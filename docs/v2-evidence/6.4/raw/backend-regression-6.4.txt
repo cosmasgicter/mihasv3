@@ -1,0 +1,17 @@
+........................................................................ [ 35%]
+........................................................................ [ 71%]
+..........................................................               [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_draft_start_list_rename_6_2.py: 10 warnings
+tests/integration/test_assignment_snapshot_isolation.py: 1 warning
+tests/integration/test_assignment_config_failure.py: 1 warning
+tests/unit/test_application_canonical_ids.py: 2 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+202 passed, 15 warnings in 30.39s

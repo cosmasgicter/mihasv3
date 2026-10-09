@@ -20,7 +20,16 @@ from apps.common.email.render import (
 # ---------------------------------------------------------------------------
 
 
-def test_available_message_types_exposes_seven_messages():
+def test_available_message_types_exposes_the_registered_messages():
+    """Every registered transactional message, and no more.
+
+    admissions-v2 task 10.4 (R13.5) added the eighth: ``official_document``, the
+    body for the one canonical per-type official-document email. Before it, only
+    the application slip had a backend email route at all, and its body was inline
+    HTML built inside ``EmailSlipView`` — so an acceptance letter could be
+    downloaded but not emailed, and the one message that did exist was not part of
+    this component system.
+    """
     types = available_message_types()
     assert "application_submitted" in types
     assert "payment_received" in types
@@ -29,7 +38,8 @@ def test_available_message_types_exposes_seven_messages():
     assert "conditional_acceptance" in types
     assert "rejection" in types
     assert "password_reset" in types
-    assert len(types) == 7
+    assert "official_document" in types
+    assert len(types) == 8
 
 
 def test_render_message_returns_subject_html_text():

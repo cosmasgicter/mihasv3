@@ -781,7 +781,7 @@ describe('Property 12: 401 intercept-refresh-retry behavior', () => {
           vi.resetModules();
 
           const { apiClient } = await import('@/services/client');
-          const result = await apiClient.request(endpoint, { method, retries: 0 });
+          const result = await apiClient.request(endpoint, { method, retries: 0, headers: { 'Idempotency-Key': 'test-prop-key' } });
 
           // Should have made exactly 3 fetch calls: original, refresh, retry
           expect(capturedRequests.length).toBe(3);

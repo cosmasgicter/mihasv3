@@ -19,12 +19,11 @@ import {
   stats,
 } from '@/lib/constants/landing'
 
-import { FadeInView } from '@/components/motion'
 import { StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion/stagger'
+import { ScrollReveal } from '@/components/motion/scroll-reveal'
 
-/** Motion-enabled wrappers replacing the old passthrough stubs */
-const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <FadeInView className={className}>{children}</FadeInView>
-const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <StaggerContainer className={className}>{children}</StaggerContainer>
+/** CSS-first wrappers keep the public route out of the framer-motion chunk. */
+const StaggerReveal = ({ children, className, staggerDelay = 0 }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <StaggerContainer className={className} delay={staggerDelay}>{children}</StaggerContainer>
 const StaggerItem = ({ children }: { children: React.ReactNode }) => <MStaggerItem>{children}</MStaggerItem>
 const TextEffect = ({ children }: { children: React.ReactNode; effect?: string }) => <>{children}</>
 
@@ -450,7 +449,7 @@ function CTASection() {
               The current intake is open. You can start tonight.
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Takes about 30 minutes if your documents are ready. K150 for Zambian applicants, USD 20 for international applicants. Mobile money or card — either works.
+              Takes about 30 minutes if your documents are ready. Your application fee is shown before you pay, in your own currency. Mobile money or card — either works.
             </p>
           </div>
         </TextEffect>

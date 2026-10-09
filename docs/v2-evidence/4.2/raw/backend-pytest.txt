@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.test (from env)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 41 items
+
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_creates_identity_invitation_and_membership_atomically PASSED [  2%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_persists_no_plaintext_password_or_token PASSED [  4%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_emits_audit_and_outbox PASSED [  7%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_reuses_existing_identity_without_duplicate_or_password_reset PASSED [  9%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_promotes_existing_role_up_only PASSED [ 12%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_rejects_duplicate_pending_invitation PASSED [ 14%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_rejects_existing_active_member PASSED [ 17%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_rejects_non_invitable_role PASSED [ 19%]
+tests/unit/test_staff_invitation_service.py::TestInvite::test_invite_compensates_leaving_no_orphan_on_failure PASSED [ 21%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_sets_password_and_activates PASSED [ 24%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_is_single_use PASSED [ 26%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_rejects_invalid_token PASSED [ 29%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_rejects_short_password PASSED [ 31%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_expired_marks_expired PASSED [ 34%]
+tests/unit/test_staff_invitation_service.py::TestAccept::test_accept_rejects_revoked PASSED [ 36%]
+tests/unit/test_staff_invitation_service.py::TestResend::test_resend_rotates_token_and_invalidates_old PASSED [ 39%]
+tests/unit/test_staff_invitation_service.py::TestResend::test_resend_increments_count_and_extends_expiry PASSED [ 41%]
+tests/unit/test_staff_invitation_service.py::TestResend::test_resend_expired_returns_to_pending PASSED [ 43%]
+tests/unit/test_staff_invitation_service.py::TestResend::test_resend_rejects_accepted PASSED [ 46%]
+tests/unit/test_staff_invitation_service.py::TestRevoke::test_revoke_deactivates_membership_and_clears_token PASSED [ 48%]
+tests/unit/test_staff_invitation_service.py::TestRevoke::test_revoke_is_idempotent PASSED [ 51%]
+tests/unit/test_staff_invitation_service.py::TestSearchCandidates::test_search_matches_email_prefix PASSED [ 53%]
+tests/unit/test_staff_invitation_service.py::TestSearchCandidates::test_search_requires_minimum_query_length PASSED [ 56%]
+tests/unit/test_staff_invitation_service.py::TestSearchCandidates::test_search_is_capped PASSED [ 58%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_super_admin_invite_returns_no_credential PASSED [ 60%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_tenant_admin_with_capability_can_invite PASSED [ 63%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_duplicate_pending_invite_conflicts PASSED [ 65%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_missing_email_is_validation_error PASSED [ 68%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_anonymous_is_unauthenticated PASSED [ 70%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_student_is_forbidden PASSED [ 73%]
+tests/integration/test_staff_invitation_workflow.py::TestInviteApi::test_tenant_admin_cannot_invite_into_other_tenant PASSED [ 75%]
+tests/integration/test_staff_invitation_workflow.py::TestListApi::test_list_is_scoped_and_enveloped PASSED [ 78%]
+tests/integration/test_staff_invitation_workflow.py::TestCandidateSearchApi::test_super_admin_search_returns_minimal_projection PASSED [ 80%]
+tests/integration/test_staff_invitation_workflow.py::TestCandidateSearchApi::test_tenant_admin_search_requires_institution PASSED [ 82%]
+tests/integration/test_staff_invitation_workflow.py::TestCandidateSearchApi::test_student_search_forbidden PASSED [ 85%]
+tests/integration/test_staff_invitation_workflow.py::TestResendRevokeApi::test_resend_then_revoke PASSED [ 87%]
+tests/integration/test_staff_invitation_workflow.py::TestResendRevokeApi::test_command_on_unknown_invitation_is_not_found PASSED [ 90%]
+tests/integration/test_staff_invitation_workflow.py::TestAcceptApi::test_public_accept_sets_password PASSED [ 92%]
+tests/integration/test_staff_invitation_workflow.py::TestAcceptApi::test_public_accept_invalid_token PASSED [ 95%]
+tests/property/test_staff_invitation_properties.py::TestNoPlaintextCredentialPersisted::test_invite_never_persists_plaintext_credential PASSED [ 97%]
+tests/property/test_staff_invitation_properties.py::TestInviteAtomicAllOrNothing::test_duplicate_invite_never_creates_a_second_record PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_staff_invitation_workflow.py: 15 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 41 passed, 16 warnings in 4.31s ========================

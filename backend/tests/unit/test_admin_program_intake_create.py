@@ -273,3 +273,66 @@ class TestAdminProgramIntakeCreateValidation:
         response = client.post(URL, {}, format="json")
 
         assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestAdminProgramIntakeCreateCapacity:
+    """Optional Intake_Offering capacity/priority (task 4.3, R4.2/R7.3).
+
+    The onboarding wizard links an offering to an intake *with* a seat capacity
+    so a launch-ready tenant carries a real capacity constraint rather than a
+    null default. Capacity is optional (omitting it preserves the prior
+    program_id/intake_id-only behaviour) and non-negative when supplied.
+    """
+
+    def test_super_admin_sets_capacity_and_priority(self, offering_and_intake, production_scope):
+        institution, offering, intake = offering_and_intake
+        client = _client_for(build_profile(role="super_admin"))
+
+        response = client.post(
+            URL,
+            {
+                "program_id": str(offering.id),
+                "intake_id": str(intake.id),
+                "max_capacity": 120,
+                "assignment_priority": 5,
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201, response.data
+        body = response.json()
+        assert body["data"]["max_capacity"] == 120
+        assert body["data"]["assignment_priority"] == 5
+        row = ProgramIntake.objects.get(program_id=offering.id, intake_id=intake.id)
+        assert row.max_capacity == 120
+        assert row.assignment_priority == 5
+
+    def test_capacity_is_optional(self, offering_and_intake, production_scope):
+        institution, offering, intake = offering_and_intake
+        client = _client_for(build_profile(role="super_admin"))
+
+        response = client.post(
+            URL,
+            {"program_id": str(offering.id), "intake_id": str(intake.id)},
+            format="json",
+        )
+
+        assert response.status_code == 201, response.data
+        row = ProgramIntake.objects.get(program_id=offering.id, intake_id=intake.id)
+        assert row.max_capacity is None
+
+    def test_negative_capacity_is_rejected(self, offering_and_intake, production_scope):
+        institution, offering, intake = offering_and_intake
+        client = _client_for(build_profile(role="super_admin"))
+
+        response = client.post(
+            URL,
+            {"program_id": str(offering.id), "intake_id": str(intake.id), "max_capacity": -1},
+            format="json",
+        )
+
+        assert response.status_code == 400, response.data
+        assert not ProgramIntake.objects.filter(
+            program_id=offering.id, intake_id=intake.id
+        ).exists()

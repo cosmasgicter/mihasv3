@@ -170,40 +170,37 @@ describe('Route guard hardening contracts', () => {
 // ─── 4. Wizard persistence through auth recovery ────────────────────────────────
 
 describe('Wizard autosave auth recovery', () => {
-  it('useAutoSave listens for Beanola auth-recovered to resume cloud saves', async () => {
+  // Task 6.3 retired `src/hooks/useAutoSave.ts`; the wizard's autosave is the
+  // draft machine. Its React binding owns the browser events, the machine owns
+  // what recovery does.
+  it('the draft machine binding listens for Beanola auth-recovered to resume cloud saves', async () => {
     const fs = await import('fs');
     const path = await import('path');
-    const src = fs.readFileSync(
-      path.resolve(__dirname, '../../src/hooks/useAutoSave.ts'),
+    const binding = fs.readFileSync(
+      path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/useWizardDraftMachine.ts'),
       'utf-8'
     );
-    expect(src).toContain('BROWSER_EVENTS.authRecovered');
-    // Must reset authExpiredRef on recovery
-    expect(src).toMatch(/authExpiredRef/);
+    expect(binding).toContain('BROWSER_EVENTS.authRecovered');
+    expect(binding).toContain('machine.authRecovered()');
+    const machine = fs.readFileSync(path.resolve(__dirname, '../../src/lib/wizardDraftController.ts'), 'utf-8');
+    // Recovery must reset the expired-session flag and send the held work.
+    expect(machine).toMatch(/authRecovered\(\): void \{[\s\S]*?this\.authExpired = false[\s\S]*?this\.autosave\('auth'\)/);
   });
-
-  it('useSmartAutoSave listens for Beanola auth-recovered', async () => {
+  it('the draft machine binding listens for Beanola auth-expired', async () => {
     const fs = await import('fs');
     const path = await import('path');
-    const src = fs.readFileSync(
-      path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts'),
+    const binding = fs.readFileSync(
+      path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/useWizardDraftMachine.ts'),
       'utf-8'
     );
-    expect(src).toContain('BROWSER_EVENTS.authRecovered');
+    expect(binding).toContain('BROWSER_EVENTS.authExpired');
   });
-
   it('wizard shows progress-saved message during auth recovery', async () => {
-    const fs = await import('fs');
-    const path = await import('path');
-    const src = fs.readFileSync(
-      path.resolve(__dirname, '../../src/hooks/useAutoSave.ts'),
-      'utf-8'
-    );
+    const { WIZARD_DRAFT_MESSAGES } = await import('@/lib/wizardDraftController');
     // Must show the progress saved message, not a generic error
-    expect(src).toMatch(/saved.*device|progress.*saved/i);
+    expect(WIZARD_DRAFT_MESSAGES.sessionExpired).toMatch(/saved.*device|progress.*saved/i);
   });
 });
-
 // ─── 5. Dashboard 403 handling ──────────────────────────────────────────────────
 
 describe('Dashboard 403 does not navigate to sign-in', () => {

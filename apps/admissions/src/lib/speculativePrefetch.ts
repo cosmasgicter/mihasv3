@@ -118,14 +118,24 @@ function prefetchProfile(userId?: string): void {
 function prefetchAdminDashboard(): void {
   once('admin-dashboard-data', () => {
     prefetchQuery(
-      ['admin-dashboard-polling'],
+      ['admin-dashboard-polling', 'all'],
       async () => {
         const { adminDashboardService } = await import('@/services/admin/dashboard')
         const overview = await adminDashboardService.getOverview()
-        // Must match the shape produced by useAdminDashboardPolling's queryFn
-        // ({ stats, activity }). Seeding bare stats here desyncs the cache and
-        // crashes the poller (query.data.stats === undefined).
-        return { stats: overview.stats, activity: overview.recentActivity ?? [] }
+        // Must match the shape produced by useAdminDashboardPolling's queryFn.
+        // Seeding a partial shape here desyncs the cache and crashes the poller
+        // (query.data.stats === undefined), and omitting `institutionId` would
+        // make the poller discard this entry as belonging to another school
+        // (task 9.2). This unscoped prefetch seeds the `'all'` entry only.
+        return {
+          stats: overview.stats,
+          activity: overview.recentActivity ?? [],
+          metrics: overview.metrics,
+          health: overview.health,
+          freshness: overview.freshness,
+          sources: overview.sources,
+          institutionId: null,
+        }
       },
       30_000,
     )

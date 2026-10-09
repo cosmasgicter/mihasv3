@@ -218,11 +218,16 @@ def _assert_read_serializers_surface_legacy(instance, *, institution, program, i
     assert listed["program_offering_id"] is None
     assert listed["intake_id"] is None
 
-    # Public tracking read (unauthenticated serializer).
+    # Public tracking read (unauthenticated serializer). admissions-v2 task 10.5
+    # (R13.12, STU-22) renamed this contract onto the field names the tracker page
+    # actually reads — ``program_name`` / ``intake_name`` — and dropped
+    # ``public_tracking_code`` / ``created_at``. The property being asserted is
+    # unchanged: a legacy row with null canonical IDs still surfaces its legacy
+    # display strings.
     tracked = dict(ApplicationTrackingSerializer(instance).data)
     assert tracked["institution"] == institution
-    assert tracked["program"] == program
-    assert tracked["intake"] == intake
+    assert tracked["program_name"] == program
+    assert tracked["intake_name"] == intake
 
 
 # ---------------------------------------------------------------------------
@@ -339,7 +344,8 @@ class TestLegacyNullCanonicalReadable:
             for attname in null_attnames:
                 assert data[_SERIALIZER_FIELD_BY_ATTNAME[attname]] is None
 
+        # task 10.5 field names (see the helper above).
         tracked = dict(ApplicationTrackingSerializer(reread).data)
         assert tracked["institution"] == legacy_institution
-        assert tracked["program"] == legacy_program
-        assert tracked["intake"] == legacy_intake
+        assert tracked["program_name"] == legacy_program
+        assert tracked["intake_name"] == legacy_intake

@@ -1,0 +1,37 @@
+]633;E;echo "=== M8 baseline vs M4-M5-M6's after-run: the one-failure / one-skip discrepancy ===";4ce13bd7-d5f2-40a8-8e39-7754ac5c3ef4]633;C=== M8 baseline vs M4-M5-M6's after-run: the one-failure / one-skip discrepancy ===
+
+M4-M5-M6 raw/51 summary:
+41 failed, 5374 passed, 103 skipped, 2 xfailed, 1 xpassed, 2514 warnings in 587.62s (0:09:47)
+M8   raw/01 summary:
+42 failed, 5374 passed, 102 skipped, 2 xfailed, 1 xpassed, 2514 warnings in 603.29s (0:10:03)
+
+--- failure headers present in M8 baseline but not in M4-M5-M6's after run ---
+M4-M5-M6 headers: 41
+M8 headers: 42
+
+ONLY IN M8 BASELINE (1):
+  + test_api_quality_script_passes_against_baseline
+
+ONLY IN M4-M5-M6 (0):
+
+--- the skip that became a failure: test_api_quality_script's own environment guard ---
+19:def _find_venv_python() -> str | None:
+20-    """Locate the audit venv used during remediation, falling back to PATH python."""
+21-    candidates = [
+22-        Path("/tmp/mihas_audit_venv/bin/python"),
+23-        Path("/opt/venv/bin/python"),
+--
+34:    py = _find_venv_python()
+35-    if not py:
+36-        pytest.skip("No python executable found")
+37-
+38-    # Make sure drf-spectacular and django are importable with this python
+--
+44:        pytest.skip(f"Python at {py} lacks backend deps; run `pip install -r backend/requirements.txt`")
+45-
+46-    report = tmp_path / "report.md"
+47-    # Build a clean env to avoid inheriting pytest TESTING/CACHE overrides that
+48-    # django_ratelimit rejects at check time.
+
+--- skip reason strings, M8 baseline (sorted, unique) ---
+31

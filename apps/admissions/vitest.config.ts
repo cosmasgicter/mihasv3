@@ -10,6 +10,12 @@ export default defineConfig({
     exclude: [
       'tests/e2e/**',
       'tests/playwright/**',
+      // Playwright harness specs (admissions-v2 task 0.4). They import
+      // `@playwright/test`, which refuses to run outside the Playwright runner,
+      // so Vitest collecting them turns every one into a hard failure that has
+      // nothing to do with the code under test. They run via
+      // `harness/bin/harness e2e` / playwright.harness.config.ts.
+      'tests/harness-e2e/**',
       // (a) Calls React components as plain functions — needs rewrite with render()
       'tests/unit/optimized-auth-routes.test.tsx',
       // (a) Imports non-existent module ../../lib/auth/permissions — not yet implemented

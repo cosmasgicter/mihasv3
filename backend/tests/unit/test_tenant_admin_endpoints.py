@@ -407,7 +407,7 @@ class TestHostnameCollisionValidation:
 
 @pytest.mark.django_db
 class TestTenantWriteRequiresSuperAdmin:
-    """School_Staff cannot create/patch tenant config (403 FORBIDDEN) (R5.6).
+    """School_Staff cannot create/patch tenant config (403) (R5.6).
 
     The staff actor here holds a genuine membership to their own institution,
     so the legacy-admin compat branch does not apply — they are a real,
@@ -426,7 +426,9 @@ class TestTenantWriteRequiresSuperAdmin:
         )
 
         assert response.status_code == 403, response.content
-        assert response.json()["code"] == "FORBIDDEN"
+        # This collection route is capability-gated before its handler, so the
+        # shared non-revealing permission envelope is authoritative here.
+        assert response.json()["code"] == "INSUFFICIENT_PERMISSIONS"
 
     def test_staff_cannot_patch_own_institution(self, tenant_world):
         client = _client_for(tenant_world.staff)
@@ -468,14 +470,20 @@ class TestTenantReadScoping:
             AccessScopeService, "_test_settings_active", staticmethod(lambda: False)
         )
 
-    def test_staff_lists_only_their_own_institution(self):
+    def test_staff_uses_scoped_self_description_not_platform_directory(self):
         world_a = build_tenant_world()
         world_b = build_tenant_world()
         client = _client_for(world_a.staff)
 
-        response = client.get(_INSTITUTIONS)
+        directory = client.get(_INSTITUTIONS)
+        assert directory.status_code == 403, directory.content
+        assert world_a.institution.name not in str(directory.json())
+        assert world_b.institution.name not in str(directory.json())
+
+        response = client.get("/api/v1/admin/scope/")
         assert response.status_code == 200, response.content
-        ids = _ids(response.json())
+        rows = response.json()["data"]["institutions"]
+        ids = {str(row["id"]) for row in rows}
         assert world_a.institution_id in ids
         assert world_b.institution_id not in ids
 
@@ -744,12 +752,25 @@ class TestLegacyCatalogTenantIsolation:
 
         own = client.get(f"/api/v1/programs/{world_a.offering.id}/fees/")
         other = client.get(f"/api/v1/programs/{world_b.offering.id}/fees/")
+        missing = client.get(f"/api/v1/programs/{uuid.uuid4()}/fees/")
 
         assert own.status_code == 200, own.content
         assert str(own_fee.id) in _ids(own.json())
         assert str(other_fee.id) not in _ids(own.json())
-        assert other.status_code == 200, other.content
-        assert _ids(other.json()) == set()
+
+        # Admissions-v2 task 8.4 (finding AUTH-02, R3.2) strengthened the
+        # cross-tenant answer. School B's offering used to return ``200`` with an
+        # empty list, which confirmed the id was a real, resolvable offering — the
+        # 200-vs-404 difference against a nonsense id is exactly the inference
+        # channel R3.2 closes. The fee list now scopes through
+        # ``visible_institution_queryset`` *before* the lookup, so another
+        # tenant's offering and an id that does not exist are one
+        # indistinguishable masked 404. The original claim — another school's fee
+        # never reaches school-A staff — holds strictly more strongly.
+        assert other.status_code == 404, other.content
+        assert missing.status_code == 404, missing.content
+        assert str(other_fee.id) not in other.content.decode()
+        assert world_b.institution.name not in other.content.decode()
 
     def test_tenant_admin_cannot_mutate_program_fees(self, two_tenant_worlds):
         world_a, _world_b = two_tenant_worlds

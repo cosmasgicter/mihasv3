@@ -1,0 +1,153 @@
+{
+  "baseline_label": "local-pg-task-3.4-before",
+  "candidate_label": "local-pg-task-3.4-before",
+  "ok": false,
+  "failure_count": 24,
+  "warning_count": 0,
+  "differences": [
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "access_grants.access_grants_application_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (application_id) REFERENCES applications(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "access_grants.access_grants_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "access_grants.access_grants_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "access_grants.access_grants_program_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (program_id) REFERENCES programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "access_grants.access_grants_user_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (user_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "communication_templates.fk_comm_templates_institution",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_assets.institution_assets_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_assets.institution_assets_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_profiles.fk_doc_profiles_canonical_program",
+      "detail": "FK is NOT VALID: FOREIGN KEY (canonical_program_id) REFERENCES canonical_programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_profiles.fk_doc_profiles_institution",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_profiles.fk_doc_profiles_intake",
+      "detail": "FK is NOT VALID: FOREIGN KEY (intake_id) REFERENCES intakes(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_profiles.fk_doc_profiles_program",
+      "detail": "FK is NOT VALID: FOREIGN KEY (program_id) REFERENCES programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_templates.institution_templates_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_document_templates.institution_templates_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_domains.institution_domains_approved_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (approved_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_domains.institution_domains_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_domains.institution_domains_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_required_documents.required_documents_canonical_program_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (canonical_program_id) REFERENCES canonical_programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_required_documents.required_documents_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "institution_required_documents.required_documents_program_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (program_id) REFERENCES programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "programs.programs_canonical_program_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (canonical_program_id) REFERENCES canonical_programs(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "user_institution_memberships.memberships_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "user_institution_memberships.memberships_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "user_institution_memberships.memberships_user_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (user_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    }
+  ]
+}

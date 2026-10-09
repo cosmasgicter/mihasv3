@@ -188,6 +188,19 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
         # Build mock request
         mock_request = MagicMock()
         mock_request.user.id = uuid.uuid4()
+        # The actor's canonical role, stated rather than auto-mocked, for the same
+        # reason the mocked ORM below is stated: this property's subject is
+        # all-or-nothing rollback, and authority became an ambient variable when
+        # admissions-v2 task 2.2 put ``authorize_tenant_surface(capability=
+        # "tenant.application.review")`` at the top of ``post`` (R3.1, AUTH-02).
+        # ``AdminCapabilityService`` reads ``role`` as the *input* of its
+        # derivation, and an unset MagicMock attribute is not one of the four
+        # canonical roles, so the batch was masked 404 before a single transition
+        # ran. The scope patch below supplies the scope the derivation composes
+        # with; the authorization code itself still executes. Cross-tenant
+        # authority on this endpoint is proven against real rows by
+        # ``tests/unit/test_scoped_access_matrix.py::test_bulk_status_out_of_scope_reported_not_found``.
+        mock_request.user.role = "admin"
         mock_request.data = {
             "application_ids": [str(aid) for aid in app_ids],
             "new_status": new_status,
@@ -210,12 +223,23 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
             "apps.applications.views.Application.objects.filter",
             return_value=mock_qs,
         ), patch(
+            "apps.catalog.services.AccessScopeService",
+        ) as mock_scope_cls, patch(
             "apps.applications.services.transition_application_status",
             side_effect=mock_transition,
         ), patch(
             "apps.applications.services.ALLOWED_TRANSITIONS",
             {"draft": {new_status, "submitted", "under_review", "approved", "rejected"}},
         ):
+            # One scope source for the whole request, mocked at the seam the
+            # sibling review properties already mock
+            # (``apps.catalog.services.AccessScopeService`` — the module attribute
+            # ``AdminCapabilityService`` and ``tenant_authorization._services``
+            # both resolve at call time). ``filter_applications`` is the identity so
+            # the batch under test is the batch the view sees.
+            mock_scope_cls.return_value.filter_applications.side_effect = (
+                lambda qs, _user: qs
+            )
             response = view.post(mock_request)
 
         # The view should return an error response (500) because the

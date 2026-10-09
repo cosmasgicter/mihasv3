@@ -1,0 +1,35 @@
+### 2026-08-15T07:36:25Z M1 - L2-L3's own long-value-probe.py, re-run unmodified after the widen
+# L2-L3 raw/12 recorded PASS - failing_writes=0 with the intake name at 53 chars.
+# This run must still be PASS: the widen must not have broken the writes L2 fixed.
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+database                     : v2_snap_13_6
+applications snapshot widths : institution=varchar(255), intake=varchar(255), program=varchar(255)
+
+the legal rename this probe performs (all inside rolled-back txs):
+  institutions.name     46 ->  61 chars   'Mukuba Institute of Health and Allied Sciences (Ndola Campus)'
+  intakes.name          19 ->  53 chars   'January 2026 Intake (School of Nursing and Midwifery)'
+  programs.name         29 ->  59 chars   'Diploma in Registered Nursing and Community Health Practice'
+
+1. one long snapshot column at a time
+  institution  (61 chars) -> ok: stored institution=61 intake=19 program=29
+  intake       (53 chars) -> ok: stored institution=46 intake=53 program=29
+  program      (59 chars) -> ok: stored institution=46 intake=19 program=59
+
+2. all three long at once (the realistic shape)
+  model-column INSERT -> ok: stored institution=61 intake=53 program=59
+
+3. the ORM's own Application.objects.create
+  objects.create -> ok: stored institution=61 intake=53 program=59
+
+after rollback (must equal the pre-probe values):
+  institutions.name :  46 chars 'Mukuba Institute of Health and Allied Sciences'
+  intakes.name      :  19 chars 'January 2026 Intake'
+  programs.name     :  29 chars 'Diploma in Registered Nursing'
+  probe rows remaining : 0
+
+VERDICT: PASS - failing_writes=0 (every legal long catalogue name is stored whole)
+long-value-probe exit=0
+### 2026-08-15T07:36:45Z done

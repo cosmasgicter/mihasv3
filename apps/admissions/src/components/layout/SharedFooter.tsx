@@ -10,6 +10,8 @@ import { ArrowRight, Mail, Phone, MapPin } from '@/components/icons';
 import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge';
 import { cn } from '@/lib/utils';
 import { contactInfo, quickLinks, socialLinks } from '@/lib/constants/landing';
+import { usePortalBrand } from '@/hooks/usePortalBrand';
+import { resolveTenantSupportContact } from '@/lib/tenantSupport';
 
 interface SharedFooterProps {
   className?: string;
@@ -22,6 +24,23 @@ function smoothScrollToSection(sectionId: string) {
 export function SharedFooter({ className }: SharedFooterProps) {
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
+  /*
+    Whose contact details these are (admissions-v2 task 11.5, finding STU-24).
+
+    This footer printed the **platform's** admissions phone, support phone and two
+    platform inboxes on every public page — including a resolved tenant's own
+    tracker, where "Admissions: +260 …" pointed an applicant at Beanola rather
+    than at the school they applied to.
+
+    Beanola's details are correct on the neutral shared portal, because there
+    Beanola *is* the admissions party. On a resolved tenant host the block becomes
+    that school's own affordance, through the same `resolveTenantSupportContact`
+    every other student surface uses. The platform attribution line below is
+    unaffected: that is who built the product, on any host.
+  */
+  const { brandName, isWhiteLabel, supportEmail } = usePortalBrand();
+  const tenantSupport = resolveTenantSupportContact({ supportEmail, brandName });
+  const showTenantContact = isWhiteLabel && tenantSupport.kind === 'tenant_email';
 
   const handleInPageAnchor = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     if (!isLandingPage) return; // Let normal navigation happen on non-landing pages
@@ -48,34 +67,40 @@ export function SharedFooter({ className }: SharedFooterProps) {
               />
               <span className="text-xl sm:text-2xl font-bold text-white">Beanola</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-white">Apply Today - Contact Us</h3>
-            <div className="space-y-2 text-sm text-white sm:text-base">
-              <p className="flex items-start gap-2 text-white">
-                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                <span className="text-white">{contactInfo.address}</span>
-              </p>
-              <a
-                href={`tel:${contactInfo.admissionsPhone.replace(/\s/g, '')}`}
-                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
-              >
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>Admissions:</strong> {contactInfo.admissionsPhone}</span>
-              </a>
-              <a
-                href={`tel:${contactInfo.supportPhone.replace(/\s/g, '')}`}
-                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
-              >
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>Support:</strong> {contactInfo.supportPhone}</span>
-              </a>
-              <a
-                href={`mailto:${contactInfo.email}`}
-                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
-              >
-                <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>{contactInfo.supportEmail} | {contactInfo.email}</span>
-              </a>
-            </div>
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-white">Contact admissions</h3>
+            {showTenantContact ? (
+              <div className="space-y-2 text-sm text-white sm:text-base">
+                <p className="text-white/80">{tenantSupport.description}</p>
+                <a
+                  href={tenantSupport.href}
+                  className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                >
+                  <Mail className="h-4 w-4 flex-shrink-0" />
+                  <span>{tenantSupport.email}</span>
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-2 text-sm text-white sm:text-base">
+                <p className="flex items-start gap-2 text-white">
+                  <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
+                  <span className="text-white">{contactInfo.address}</span>
+                </p>
+                <a
+                  href={`tel:${contactInfo.admissionsPhone.replace(/\s/g, '')}`}
+                  className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                >
+                  <Phone className="h-4 w-4 flex-shrink-0" />
+                  <span><strong>Admissions:</strong> {contactInfo.admissionsPhone}</span>
+                </a>
+                <a
+                  href={`mailto:${contactInfo.email}`}
+                  className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                >
+                  <Mail className="h-4 w-4 flex-shrink-0" />
+                  <span>{contactInfo.email}</span>
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
@@ -143,8 +168,13 @@ export function SharedFooter({ className }: SharedFooterProps) {
           <p className="mb-2 text-sm text-white sm:text-base">
             &copy; {new Date().getFullYear()} Beanola. All rights reserved.
           </p>
+          {/*
+            No emoji in product copy (DESIGN.md: "Don't use emoji as structural
+            icons"; PRODUCT.md: "No emoji icons"). The attribution is the
+            attribution — task 11.5.
+          */}
           <p className="text-sm text-white">
-            Developed with ❤️ by{' '}
+            Developed by{' '}
             <a
               href="https://beanola.com"
               target="_blank"

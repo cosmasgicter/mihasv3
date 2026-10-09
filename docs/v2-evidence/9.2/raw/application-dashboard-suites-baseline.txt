@@ -1,0 +1,319 @@
+$ cd backend && DATABASE_URL=<localtest 5433> TESTING=1 python3 -m pytest $(ls tests/unit/*.py tests/property/*.py | grep -iE "application|dashboard|metric") -q --tb=no -rfE -p no:randomly
+# BASELINE: 9.2 removed — dashboard_metrics.py and its suite moved aside, AdminDashboardView reverted to its pre-9.2 implementation
+
+tests/property/test_application_binding.py::TestProperty16ApplicationBinding::test_application_binds_to_resolved_tenant_offering PASSED [  0%]
+tests/property/test_perf_dashboard_counts.py::test_property_8_conditional_count_aggregate_equivalence PASSED [  0%]
+tests/property/test_perf_dashboard_counts.py::test_property_8_empty_population PASSED [  1%]
+tests/property/test_perf_dashboard_counts.py::test_property_8_mixed_population_spans_every_bucket PASSED [  1%]
+tests/unit/test_application_canonical_ids.py::TestCanonicalIdsPersisted::test_all_four_canonical_ids_round_trip PASSED [  1%]
+tests/unit/test_application_canonical_ids.py::TestCanonicalIdsPersisted::test_create_endpoint_persists_all_four_canonical_ids PASSED [  2%]
+tests/unit/test_application_canonical_ids.py::TestCanonicalIdsPersisted::test_create_endpoint_assigns_correct_institution PASSED [  2%]
+tests/unit/test_application_canonical_ids.py::TestLegacyRowsRemainReadable::test_legacy_null_id_row_is_readable PASSED [  3%]
+tests/unit/test_application_canonical_ids.py::TestLegacyRowsRemainReadable::test_legacy_row_serializes_without_error PASSED [  3%]
+tests/unit/test_application_query_contract_9_1.py::TestAggregatesEqualIndependentSql::test_every_aggregate_matches_raw_sql PASSED [  3%]
+tests/unit/test_application_query_contract_9_1.py::TestAggregatesEqualIndependentSql::test_aggregate_matches_raw_sql_under_a_filter PASSED [  4%]
+tests/unit/test_application_query_contract_9_1.py::TestAggregatesEqualIndependentSql::test_deadline_pressure_aggregate_matches_raw_sql PASSED [  4%]
+tests/unit/test_application_query_contract_9_1.py::TestNothingIsDerivedFromTheLoadedPage::test_aggregates_are_identical_on_every_page PASSED [  5%]
+tests/unit/test_application_query_contract_9_1.py::TestNothingIsDerivedFromTheLoadedPage::test_facets_are_complete_regardless_of_page PASSED [  5%]
+tests/unit/test_application_query_contract_9_1.py::TestNothingIsDerivedFromTheLoadedPage::test_a_narrowed_query_still_offers_the_other_values_of_that_dimension PASSED [  5%]
+tests/unit/test_application_query_contract_9_1.py::TestNothingIsDerivedFromTheLoadedPage::test_facet_options_carry_labels_and_ids PASSED [  6%]
+tests/unit/test_application_query_contract_9_1.py::TestAuthorityIsCapabilityDerived::test_scoped_reviewer_can_read_their_assigned_queue PASSED [  6%]
+tests/unit/test_application_query_contract_9_1.py::TestAuthorityIsCapabilityDerived::test_student_is_masked_as_not_found PASSED [  7%]
+tests/unit/test_application_query_contract_9_1.py::TestAuthorityIsCapabilityDerived::test_no_scope_admin_is_masked_as_not_found PASSED [  7%]
+tests/unit/test_application_query_contract_9_1.py::TestAuthorityIsCapabilityDerived::test_anonymous_is_denied PASSED [  7%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_list_and_aggregates_exclude_the_other_tenant PASSED [  8%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_searching_the_other_tenants_applicant_returns_the_same_empty_body PASSED [  8%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_out_of_scope_identifier_filter_is_a_masked_404[institution_id] PASSED [  9%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_out_of_scope_identifier_filter_is_a_masked_404[program_offering_id] PASSED [  9%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_out_of_scope_identifier_filter_is_a_masked_404[intake_id] PASSED [  9%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_a_masked_filter_probe_is_audited PASSED [ 10%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_reviewer_filter_cannot_enumerate_another_tenants_staff PASSED [ 10%]
+tests/unit/test_application_query_contract_9_1.py::TestCrossTenantIsolation::test_peer_offering_count_is_platform_only PASSED [ 11%]
+tests/unit/test_application_query_contract_9_1.py::TestRegisteredParameterContract::test_every_dashboard_deep_link_parameter_is_registered PASSED [ 11%]
+tests/unit/test_application_query_contract_9_1.py::TestRegisteredParameterContract::test_an_unknown_parameter_is_echoed_back PASSED [ 11%]
+tests/unit/test_application_query_contract_9_1.py::TestRegisteredParameterContract::test_a_understood_query_reports_no_unknown_parameters PASSED [ 12%]
+tests/unit/test_application_query_contract_9_1.py::TestRegisteredParameterContract::test_an_unknown_sort_falls_back_rather_than_interpolating PASSED [ 12%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_review_queue_filter_and_counter_agree PASSED [ 13%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_overdue_review_filter_uses_the_configured_sla PASSED [ 13%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_pending_amendments_filter PASSED [ 13%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_exclude_status_and_search_compose PASSED [ 14%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_search_matches_the_application_number PASSED [ 14%]
+tests/unit/test_application_query_contract_9_1.py::TestFiltersRunInSql::test_sort_by_deadline_orders_by_the_derived_column PASSED [ 15%]
+tests/unit/test_application_query_contract_9_1.py::TestEnvelopeAndDefinitions::test_envelope_and_pagination_shape PASSED [ 15%]
+tests/unit/test_application_query_contract_9_1.py::TestEnvelopeAndDefinitions::test_each_headline_metric_carries_a_definition PASSED [ 15%]
+tests/unit/test_application_query_contract_9_1.py::TestEnvelopeAndDefinitions::test_an_empty_scope_is_an_honest_zero_with_its_window PASSED [ 16%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_is_page_independent PASSED [ 16%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_requires_the_explicit_export_capability PASSED [ 17%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_is_audited_without_the_rows PASSED [ 17%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_omits_the_platform_only_column_for_a_tenant PASSED [ 17%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_excludes_the_other_tenant PASSED [ 18%]
+tests/unit/test_application_query_contract_9_1.py::TestExportIsACommand::test_export_row_limit_is_a_refusal_not_a_truncation PASSED [ 18%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_save_list_and_apply PASSED [ 19%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_explicit_parameters_override_the_saved_filter PASSED [ 19%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_saving_the_same_name_updates_rather_than_duplicating PASSED [ 19%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_an_unregistered_parameter_cannot_be_saved PASSED [ 20%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_saved_filters_are_private_to_their_owner PASSED [ 20%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_a_cross_tenant_institution_binding_is_masked PASSED [ 21%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_delete_removes_the_owners_own_filter PASSED [ 21%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_a_name_is_required PASSED [ 21%]
+tests/unit/test_application_query_contract_9_1.py::TestSavedFilters::test_the_database_itself_refuses_a_duplicate_name PASSED [ 22%]
+tests/unit/test_application_query_contract_9_1.py::TestServiceInvariants::test_review_queue_statuses_match_the_legacy_filter PASSED [ 22%]
+tests/unit/test_application_query_contract_9_1.py::TestServiceInvariants::test_accepted_statuses_mirror_the_frontend PASSED [ 23%]
+tests/unit/test_application_query_contract_9_1.py::TestServiceInvariants::test_grouping_and_counting_happen_in_sql PASSED [ 23%]
+tests/unit/test_application_query_contract_9_1.py::TestServiceInvariants::test_export_limit_is_declared_to_the_client PASSED [ 23%]
+tests/unit/test_application_query_contract_9_1.py::TestServiceInvariants::test_the_service_never_compares_a_role_string PASSED [ 24%]
+tests/unit/test_application_review_force_approved.py::test_force_approved_path_creates_canonical_ledger_row ERROR [ 24%]
+tests/unit/test_application_review_force_approved.py::test_force_approved_rejects_short_reason ERROR [ 25%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestAssignedRequiredDocumentGate::test_submit_blocked_when_assigned_required_document_missing PASSED [ 25%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestAssignedRequiredDocumentGate::test_submit_succeeds_when_assigned_required_document_present PASSED [ 25%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestAssignedRequiredDocumentGate::test_submit_succeeds_when_no_required_documents_configured PASSED [ 26%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestAssignedRequiredDocumentGate::test_admin_force_bypasses_required_document_gate PASSED [ 26%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestAssignedRequiredDocumentGate::test_optional_assigned_document_does_not_block_submit PASSED [ 27%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestLegacyStringCreateMetric::test_legacy_create_emits_metric_and_still_creates PASSED [ 27%]
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestLegacyStringCreateMetric::test_canonical_create_does_not_emit_legacy_metric PASSED [ 27%]
+tests/unit/test_perf_dashboard_cache.py::test_cache_hit_within_ttl_issues_zero_count_queries PASSED [ 28%]
+tests/unit/test_perf_dashboard_cache.py::test_application_status_change_invalidates_cache PASSED [ 28%]
+tests/unit/test_perf_dashboard_cache.py::test_payment_change_invalidates_cache PASSED [ 29%]
+tests/unit/test_perf_dashboard_cache.py::test_membership_or_grant_change_invalidates_cache PASSED [ 29%]
+tests/unit/test_perf_dashboard_cache.py::test_institution_update_invalidates_cache PASSED [ 29%]
+tests/unit/test_perf_dashboard_query_count.py::test_dashboard_collapsed_aggregate_block_is_at_most_three PASSED [ 30%]
+tests/property/test_application_hardening.py::test_duplicate_webhook_does_not_call_payment_service PASSED [ 30%]
+tests/property/test_application_hardening.py::test_non_duplicate_webhook_proceeds_to_payment_service PASSED [ 31%]
+tests/property/test_admin_dashboard_overhaul.py::AdminDashboardRecentActivityProperties::test_payment_events_are_included_when_recent PASSED [ 31%]
+tests/property/test_admin_dashboard_overhaul.py::AdminDashboardRecentActivityProperties::test_recent_activity_is_ordered_descending_and_limited PASSED [ 31%]
+tests/property/test_admin_dashboard_overhaul.py::AdminDashboardRecentActivityProperties::test_status_activity_entries_are_complete_and_not_audit_log_shaped PASSED [ 32%]
+tests/property/test_application_endpoints.py::TestDocumentVerificationStatusUpdate::test_verification_status_matches_request FAILED [ 32%]
+tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_verify_document FAILED [ 33%]
+tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_acceptance_letter FAILED [ 33%]
+tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_finance_receipt FAILED [ 33%]
+tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_verify_document FAILED [ 34%]
+tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_acceptance_letter FAILED [ 34%]
+tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_finance_receipt FAILED [ 35%]
+tests/property/test_application_endpoints.py::TestAcceptanceLetter202Response::test_approved_application_returns_202_with_correct_shape FAILED [ 35%]
+tests/property/test_application_endpoints.py::TestFinanceReceipt202Response::test_verified_payment_returns_202_with_correct_shape FAILED [ 35%]
+tests/property/test_application_endpoints.py::TestAcceptanceLetterRejectsNonApproved::test_non_approved_status_returns_400 FAILED [ 36%]
+tests/property/test_application_endpoints.py::TestFinanceReceiptRejectsNoPayment::test_no_verified_payment_returns_400 FAILED [ 36%]
+tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_acceptance_letter_idempotency FAILED [ 37%]
+tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_finance_receipt_idempotency FAILED [ 37%]
+tests/property/test_application_hardening.py::TestIdempotencyKeyReturnsCachedResponse::test_existing_idempotency_key_returns_cached_response PASSED [ 37%]
+tests/property/test_application_hardening.py::TestIdempotencyKeyReturnsCachedResponse::test_new_idempotency_key_proceeds_to_submission PASSED [ 38%]
+tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail FAILED [ 38%]
+tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker FAILED [ 39%]
+tests/property/test_application_hardening.py::TestPaginationMaxPageSizeCap::test_default_page_size_is_20 PASSED [ 39%]
+tests/property/test_application_hardening.py::TestPaginationMaxPageSizeCap::test_page_size_capped_at_500 PASSED [ 39%]
+tests/property/test_application_hardening.py::TestPaginationMaxPageSizeCap::test_page_size_within_limit_is_honoured PASSED [ 40%]
+tests/property/test_application_hardening.py::TestProgramIntakeValidationRejectsInvalidCombos::test_no_matching_program_intake_row_raises_validation_error PASSED [ 40%]
+tests/property/test_application_hardening.py::TestProgramIntakeValidationRejectsInvalidCombos::test_nonexistent_program_or_intake_raises_validation_error PASSED [ 41%]
+tests/property/test_application_hardening.py::TestAgeValidationRejectsUnderage::test_of_age_dob_does_not_raise PASSED [ 41%]
+tests/property/test_application_hardening.py::TestAgeValidationRejectsUnderage::test_underage_dob_raises_validation_error PASSED [ 41%]
+tests/property/test_application_hardening.py::TestE164PhoneValidation::test_invalid_e164_phone_is_rejected PASSED [ 42%]
+tests/property/test_application_hardening.py::TestE164PhoneValidation::test_valid_e164_phone_is_accepted PASSED [ 42%]
+tests/property/test_application_hardening.py::TestStateMachineRejectsInvalidTransitions::test_invalid_transitions_raise_value_error PASSED [ 43%]
+tests/property/test_application_hardening.py::TestStateMachineRejectsInvalidTransitions::test_valid_transitions_do_not_raise PASSED [ 43%]
+tests/property/test_application_properties.py::TestApplicationCRUDRoundTrip::test_application_serializer_round_trip PASSED [ 43%]
+tests/property/test_application_properties.py::TestApplicationCRUDRoundTrip::test_create_serializer_accepts_valid_data PASSED [ 44%]
+tests/property/test_application_properties.py::TestApplicationCRUDRoundTrip::test_create_serializer_rejects_invalid_program PASSED [ 44%]
+tests/property/test_application_properties.py::TestApplicationListingFilterSort::test_filter_by_status_returns_only_matching PASSED [ 45%]
+tests/property/test_application_properties.py::TestApplicationListingFilterSort::test_search_filter_exists PASSED [ 45%]
+tests/property/test_application_properties.py::TestApplicationListingFilterSort::test_sort_filter_allows_created_at_and_full_name PASSED [ 45%]
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_has_allow_any_permission PASSED [ 46%]
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_400_for_empty_code PASSED [ 46%]
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_nonexistent_code PASSED [ 47%]
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_tracking_serializer_exposes_limited_fields PASSED [ 47%]
+tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_approval_with_force_proceeds_when_payment_unverified PASSED [ 47%]
+tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_approval_without_force_rejected_when_payment_unverified PASSED [ 48%]
+tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check FAILED [ 48%]
+tests/property/test_application_properties.py::TestDraftAutoSaveRoundTrip::test_draft_get_returns_latest PASSED [ 49%]
+tests/property/test_application_properties.py::TestDraftAutoSaveRoundTrip::test_draft_save_and_load_round_trip PASSED [ 49%]
+tests/property/test_application_properties.py::TestDraftAutoSaveRoundTrip::test_draft_serializer_includes_draft_data_field PASSED [ 49%]
+tests/property/test_application_tasks.py::TestCeleryTaskApplicationDocumentCreation::test_task_creates_document_with_correct_type_and_system_generated PASSED [ 50%]
+tests/property/test_production_readiness_metrics.py::TestMetricsMiddlewareStructuredLogs::test_emits_complete_structured_log PASSED [ 50%]
+tests/property/test_production_readiness_metrics.py::TestMetricsMiddlewareSkipsHealthPaths::test_no_metric_log_for_health_paths PASSED [ 50%]
+tests/property/test_production_readiness_metrics.py::TestMetricsMiddlewareDurationPositive::test_duration_is_non_negative PASSED [ 51%]
+tests/property/test_production_readiness_metrics.py::TestPaymentCompletionBusinessMetric::test_payment_completion_emits_business_metric PASSED [ 51%]
+tests/property/test_production_readiness_metrics.py::TestApplicationSubmissionBusinessMetric::test_application_submission_emits_business_metric PASSED [ 52%]
+tests/unit/test_admin_dashboard_overhaul.py::AdminDashboardOverhaulUnitTests::test_activity_serializer_matches_new_recent_activity_shape PASSED [ 52%]
+tests/unit/test_admin_dashboard_overhaul.py::AdminDashboardOverhaulUnitTests::test_audit_log_serializer_exposes_network_context_for_admin_trail PASSED [ 52%]
+tests/unit/test_admin_dashboard_overhaul.py::AdminDashboardOverhaulUnitTests::test_program_fee_queryset_includes_legacy_null_active_rows PASSED [ 53%]
+tests/unit/test_admin_dashboard_overhaul.py::AdminDashboardOverhaulUnitTests::test_recent_activity_formatter_combines_status_and_payment_entries PASSED [ 53%]
+tests/unit/test_application_contract_alignment.py::ApplicationListSerializerContractTests::test_application_fee_prefers_canonical_payment_over_stale_column PASSED [ 54%]
+tests/unit/test_application_contract_alignment.py::ApplicationListSerializerContractTests::test_list_serializer_includes_admin_dashboard_grade_fields PASSED [ 54%]
+tests/unit/test_application_contract_alignment.py::ApplicationListSerializerContractTests::test_payment_summary_includes_force_approved PASSED [ 54%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthenticated_returns_401_or_403 ERROR [ 55%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_successful_verification ERROR [ 55%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_missing_application_returns_404 ERROR [ 56%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_document_not_belonging_to_application_returns_404 ERROR [ 56%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthorized_student_returns_403 ERROR [ 56%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_invalid_request_body_returns_400 ERROR [ 57%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_response_envelope_format ERROR [ 57%]
+tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_audit_log_created_on_success ERROR [ 58%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthenticated_returns_401_or_403 ERROR [ 58%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_successful_202_response ERROR [ 58%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_missing_application_returns_404 ERROR [ 59%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_non_approved_application_returns_400 ERROR [ 59%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthorized_student_returns_403 ERROR [ 60%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_idempotency_returns_cached_response ERROR [ 60%]
+tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_audit_log_created_on_success ERROR [ 60%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthenticated_returns_401_or_403 ERROR [ 61%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_successful_202_response ERROR [ 61%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_missing_application_returns_404 ERROR [ 62%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_no_verified_payment_returns_400 ERROR [ 62%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthorized_student_returns_403 ERROR [ 62%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_idempotency_returns_cached_response ERROR [ 63%]
+tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_audit_log_created_on_success ERROR [ 63%]
+tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_via_sql_function ERROR [ 64%]
+tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_for_KATC ERROR [ 64%]
+tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_legacy_fallback_path_preserves_format ERROR [ 64%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_pattern_accepts_non_mihas_katc_application_numbers PASSED [ 65%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_pattern_accepts_non_brand_tracking_codes PASSED [ 65%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_pattern_preserves_legacy_mihas_katc_numbers PASSED [ 66%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_pattern_preserves_legacy_tracking_formats PASSED [ 66%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_pattern_still_rejects_structurally_invalid_codes PASSED [ 66%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_non_brand_prefix_passes_format_gate PASSED [ 67%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_legacy_brand_prefix_still_passes_format_gate PASSED [ 67%]
+tests/unit/test_application_number_prefix_validation.py::TestApplicationNumberPrefixIsInstitutionAgnostic::test_truly_invalid_format_returns_400 PASSED [ 68%]
+tests/unit/test_application_review_payment_gate.py::TestApplicationReviewPaymentGate::test_approval_accepts_legacy_paid_payment_row ERROR [ 68%]
+tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_failed ERROR [ 68%]
+tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_pending ERROR [ 69%]
+tests/unit/test_application_student_flow_views.py::TestApplicationSubmitView::test_student_owner_can_submit_application PASSED [ 69%]
+tests/unit/test_application_student_flow_views.py::TestApplicationSubmitView::test_submit_validation_failure_returns_400 PASSED [ 70%]
+tests/unit/test_application_student_flow_views.py::TestApplicationSubmitView::test_submit_requires_final_confirmation PASSED [ 70%]
+tests/unit/test_application_student_flow_views.py::TestApplicationSubmitView::test_repeated_submit_returns_current_submitted_application PASSED [ 70%]
+tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_student_list_filters_to_owned_interviews PASSED [ 71%]
+tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed FAILED [ 71%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_delete_missing_application_is_idempotent PASSED [ 72%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_student_cannot_delete_submitted_application PASSED [ 72%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_student_can_delete_draft_application_via_model_delete PASSED [ 72%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_delete_draft_database_failure_returns_json_error PASSED [ 73%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_student_cannot_update_grades_after_submission PASSED [ 73%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_duplicate_grade_subjects_are_rejected PASSED [ 74%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_batch_grade_sync_requires_five_unique_subjects PASSED [ 74%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_student_cannot_upload_document_after_submission PASSED [ 74%]
+tests/unit/test_application_student_flow_views.py::TestStudentPostSubmissionMutationGuards::test_student_cannot_upload_application_slip_after_submission PASSED [ 75%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftView::test_student_cannot_save_draft_for_another_students_application PASSED [ 75%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftView::test_save_draft_for_missing_application_returns_404 PASSED [ 76%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftView::test_save_draft_with_malformed_application_id_returns_400 PASSED [ 76%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftView::test_save_draft_rejects_oversized_snapshot_payload PASSED [ 76%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftView::test_save_draft_rejects_deeply_nested_snapshot_payload PASSED [ 77%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftListView::test_post_with_canonical_selection_delegates_to_canonical_create PASSED [ 77%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftListView::test_post_without_canonical_selection_is_rejected_before_delegation PASSED [ 78%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftDetailView::test_draft_detail_masks_missing_or_foreign_draft PASSED [ 78%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftDetailView::test_draft_detail_patch_updates_only_owned_draft PASSED [ 78%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftDetailView::test_draft_detail_delete_blocks_payment_linked_draft PASSED [ 79%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftDetailView::test_draft_detail_delete_removes_unpaid_draft_application PASSED [ 79%]
+tests/unit/test_application_student_flow_views.py::TestApplicationDraftTimestampConsistency::test_application_serializer_patch_advances_updated_at_and_version PASSED [ 80%]
+tests/unit/test_application_student_flow_views.py::TestDraftDeletionRegression::test_delete_draft_with_all_dependents_returns_204 PASSED [ 80%]
+tests/unit/test_application_student_flow_views.py::TestSubmitAfterDeferRegression::test_submit_after_defer_with_identity_doc_succeeds PASSED [ 80%]
+tests/unit/test_application_student_flow_views.py::TestSubmitAfterDeferRegression::test_submit_after_defer_without_identity_doc_fails PASSED [ 81%]
+tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_creates_application_document_with_correct_fields PASSED [ 81%]
+tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_document_name_contains_applicant_name PASSED [ 82%]
+tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_stores_pdf_in_r2_via_media_storage PASSED [ 82%]
+tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_file_url_set_from_storage PASSED [ 82%]
+tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_missing_application_does_not_create_document PASSED [ 83%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_creates_application_document_with_correct_fields PASSED [ 83%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_document_name_contains_applicant_name PASSED [ 84%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_stores_pdf_in_r2_via_media_storage PASSED [ 84%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_file_url_set_from_storage PASSED [ 84%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_missing_application_does_not_create_document PASSED [ 85%]
+tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_handles_no_payment_gracefully PASSED [ 85%]
+tests/unit/test_application_triage_filters.py::test_application_filter_exposes_triage_filters PASSED [ 86%]
+tests/unit/test_applications_serializers.py::test_amendment_request_serializer_happy_path PASSED [ 86%]
+tests/unit/test_applications_serializers.py::test_amendment_request_rejects_missing_fields PASSED [ 86%]
+tests/unit/test_applications_serializers.py::test_amendment_request_rejects_non_amendable_field PASSED [ 87%]
+tests/unit/test_applications_serializers.py::test_amendment_request_validates_email_and_phone_values PASSED [ 87%]
+tests/unit/test_applications_serializers.py::test_amendment_review_rejects_invalid_status PASSED [ 88%]
+tests/unit/test_applications_serializers.py::test_amendment_review_accepts_approved_or_rejected PASSED [ 88%]
+tests/unit/test_applications_serializers.py::test_assign_serializer_requires_uuid PASSED [ 88%]
+tests/unit/test_applications_serializers.py::test_fee_waiver_serializer_happy_path PASSED [ 89%]
+tests/unit/test_applications_serializers.py::test_fee_waiver_rejects_invalid_type PASSED [ 89%]
+tests/unit/test_applications_serializers.py::test_fee_waiver_clamps_discount_percentage PASSED [ 90%]
+tests/unit/test_applications_serializers.py::test_confirm_enrollment_accepts_empty_body PASSED [ 90%]
+tests/unit/test_applications_serializers.py::test_auto_assign_accepts_empty_body PASSED [ 90%]
+tests/unit/test_applications_serializers.py::test_student_views_declare_serializer_class FAILED [ 91%]
+tests/unit/test_applications_serializers.py::test_admin_views_declare_serializer_class FAILED [ 91%]
+tests/unit/test_late_applications.py::TestSubmissionWithinGracePeriod::test_within_grace_period_returns_allowed_and_late PASSED [ 92%]
+tests/unit/test_late_applications.py::TestSubmissionWithinGracePeriod::test_last_day_of_grace_period_allowed PASSED [ 92%]
+tests/unit/test_late_applications.py::TestSubmissionWithinGracePeriod::test_before_deadline_not_flagged_late PASSED [ 92%]
+tests/unit/test_late_applications.py::TestSubmissionPastGracePeriod::test_past_grace_period_rejected PASSED [ 93%]
+tests/unit/test_late_applications.py::TestSubmissionPastGracePeriod::test_no_grace_period_past_deadline_rejected PASSED [ 93%]
+tests/unit/test_late_applications.py::TestSubmissionPastGracePeriod::test_zero_grace_period_past_deadline_rejected PASSED [ 94%]
+tests/unit/test_late_applications.py::TestLateFeeRequirement::test_late_fee_required_error PASSED [ 94%]
+tests/unit/test_late_applications.py::TestLateFeeRequirement::test_no_late_fee_configured_allows_submission PASSED [ 94%]
+tests/unit/test_late_applications.py::TestAdminForceBypassLateFee::test_force_approved_bypasses_late_fee PASSED [ 95%]
+tests/unit/test_late_applications.py::TestAdminForceBypassLateFee::test_paid_late_fee_allows_submission PASSED [ 95%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentCounterRegistryCompleteness::test_every_emitted_counter_is_registered PASSED [ 96%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentCounterRegistryCompleteness::test_registry_has_no_duplicate_counter_names PASSED [ 96%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_all_forbidden_names_are_dropped PASSED [ 96%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_forbidden_pii_tag_key_is_dropped PASSED [ 97%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_invalid_value_for_known_tag_is_dropped PASSED [ 97%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_no_sentry_metrics_module_does_not_raise PASSED [ 98%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_observe_latency_drops_pii_tag PASSED [ 98%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_unknown_counter_is_dropped_silently PASSED [ 98%]
+tests/unit/test_payment_metrics_registry.py::TestPaymentMetricsPIIGuardrails::test_valid_tag_reaches_sentry PASSED [ 99%]
+tests/unit/test_payment_metrics_registry.py::TestAllowedLabelSchema::test_label_names_and_values_are_non_empty PASSED [ 99%]
+tests/unit/test_payment_metrics_registry.py::TestAllowedLabelSchema::test_label_names_do_not_overlap_with_forbidden_names PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/property/test_application_binding.py: 1 warning
+tests/unit/test_application_canonical_ids.py: 2 warnings
+tests/unit/test_application_query_contract_9_1.py: 47 warnings
+tests/unit/test_assignment_required_docs_legacy_metric.py: 2 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/property/test_application_endpoints.py::TestDocumentVerificationStatusUpdate::test_verification_status_matches_request
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetter202Response::test_approved_application_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceipt202Response::test_verified_payment_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetterRejectsNonApproved::test_non_approved_status_returns_400
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceiptRejectsNoPayment::test_no_verified_payment_returns_400
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_acceptance_letter_idempotency
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_finance_receipt_idempotency
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker
+FAILED tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check
+FAILED tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+FAILED tests/unit/test_applications_serializers.py::test_student_views_declare_serializer_class
+FAILED tests/unit/test_applications_serializers.py::test_admin_views_declare_serializer_class
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_path_creates_canonical_ledger_row
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_rejects_short_reason
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_successful_verification
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_document_not_belonging_to_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_invalid_request_body_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_response_envelope_format
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_non_approved_application_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_no_verified_payment_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_audit_log_created_on_success
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_via_sql_function
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_for_KATC
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_legacy_fallback_path_preserves_format
+ERROR tests/unit/test_application_review_payment_gate.py::TestApplicationReviewPaymentGate::test_approval_accepts_legacy_paid_payment_row
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_failed
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_pending
+=========== 19 failed, 202 passed, 53 warnings, 30 errors in 11.27s ============

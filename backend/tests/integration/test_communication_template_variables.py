@@ -78,6 +78,19 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "reset_url": "https://apply.beanola.com/reset?token=abc123",
         "expires_in_minutes": 30,
     },
+    # admissions-v2 task 10.4 (R13.5): the one official-document email, for every
+    # document type. `historical` is the read-existing flag (design §11.3) and is
+    # exercised here in its default (false) shape; the notice-box branch is
+    # covered by `test_official_document_durability_10_4.py`.
+    "official_document": {
+        "student_name": "Chanda Mulenga",
+        "document_label": "Application Slip",
+        "application_number": "APP-20260510-ABCD1234",
+        "program_name": "Diploma in Nursing",
+        "institution_name": "Example College",
+        "issued_at": "2026-05-10",
+        "historical": False,
+    },
 }
 
 

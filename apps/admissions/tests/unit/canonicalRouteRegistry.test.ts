@@ -25,7 +25,11 @@ const migratedRouteConsumerFiles = [
   'components/DashboardRedirect.tsx',
   'components/navigation/AppLayout.tsx',
   'components/navigation/DesktopSidebar.tsx',
-  'components/navigation/MobileBottomNav.tsx',
+  // `components/navigation/MobileBottomNav.tsx` was removed by admissions-v2
+  // task 12.4: it had **zero** importers, so the mobile bottom bar it defined
+  // was never rendered — `AppLayout` renders `components/ui/BottomNavigation.tsx`
+  // (already in this list) with capability-filtered items. The list shrinks; it
+  // does not gain an exemption.
   'components/navigation/adminNavAccess.ts',
   'components/navigation/tenantNav.ts',
   'components/ui/BottomNavigation.tsx',

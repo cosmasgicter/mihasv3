@@ -67,7 +67,7 @@ from apps.accounts.authentication import JWTUser
 from apps.accounts.models import CSRFToken
 from apps.accounts.tokens import generate_access_token
 from apps.catalog.models import Institution
-from tests.tenant_fixtures import build_institution, build_profile
+from tests.tenant_fixtures import build_institution, build_membership, build_profile
 
 pytestmark = [pytest.mark.django_db, pytest.mark.tenant]
 
@@ -154,6 +154,28 @@ class TestProperty17AuthAndCsrfPreservation:
         changed (R5 scope/capabilities, R2 dashboard)."""
         cache.clear()
         profile = build_profile(role=role)
+        # The subject of this property is the AUTHENTICATION layer: it uses 200
+        # as the proof that DRF resolved ``request.user`` from the cookie token.
+        # That proxy needs authorization to be a constant, and for a
+        # ``role="admin"`` actor it is not: admissions-v2 task 9.2 moved
+        # ``/admin/dashboard/`` onto ``HasTenantCapability`` +
+        # ``tenant.application.read``, so an admin with no membership is now
+        # deliberately a masked 404 there
+        # (``tests/unit/test_no_scope_empty.py::TestDashboardNoScope``). Giving
+        # the generated admin a real membership removes that ambient dependency
+        # and keeps the property measuring what it says it measures. A
+        # ``super_admin`` needs no membership -- platform authority is not
+        # derived from one (R1.4) -- so none is created, which also keeps the
+        # super-admin half of the property honest.
+        #
+        # The endpoint list, the strategies, the 200 assertion and the
+        # role-echo assertion are unchanged (13.6 remediation M3).
+        if role == "admin":
+            build_membership(
+                user=profile,
+                institution=build_institution(suffix=f"csrf-{profile.id.hex[:6]}"),
+                role="admin",
+            )
         client = _cookie_client(profile)
 
         resp = client.get(_READ_ENDPOINTS[endpoint])

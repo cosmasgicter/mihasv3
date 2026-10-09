@@ -1,0 +1,44 @@
+
+Running 5 tests using 1 worker
+
+  ✘  1 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (6.8s)
+  -  2 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:367:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows
+  -  3 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:402:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied
+  -  4 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:425:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling
+  -  5 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:440:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all
+
+
+  1) [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByTestId('roster-page-indicator')
+    Expected pattern: [32m/Page 1 of [2-9]\d*/[39m
+    Received string:  [31m"Page 1 of 16"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toHaveText" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('roster-page-indicator')[22m
+    [2m    9 × locator resolved to <p data-testid="roster-page-indicator" class="text-xs text-muted-foreground">Page 1 of 16</p>[22m
+    [2m      - unexpected value "Page 1 of 16"[22m
+
+
+      333 |     // The server's own page arithmetic — the browser divides nothing.
+      334 |     const indicator = page.getByTestId('roster-page-indicator');
+    > 335 |     await expect(indicator).toHaveText(/Page 1 of [2-9]\d*/);
+          |                             ^
+      336 |
+      337 |     const firstPageTotal = await portfolioTotal(page);
+      338 |     const firstPageIds = await visibleRowIds(page);
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/admin-applications-roster.spec.ts:335:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-admin-application-cfa8b-d-never-the-portfolio-total-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-admin-application-cfa8b-d-never-the-portfolio-total-mobile-required/error-context.md
+
+  1 failed
+    [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total 
+  4 did not run

@@ -1,0 +1,77 @@
+
+Running 6 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (1.0s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.3s)
+  ✘  3 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.4s)
+  ✓  4 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (1.0s)
+  ✓  5 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.6s)
+  ✘  6 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.4s)
+
+
+  1) [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/error-context.md
+
+  2) [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/error-context.md
+
+  2 failed
+    [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+    [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+  4 passed (20.2s)

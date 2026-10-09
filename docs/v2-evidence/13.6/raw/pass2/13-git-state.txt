@@ -1,0 +1,66 @@
+]633;E;echo "=== 13.6 SECOND PASS (O10) — git state (FINAL) ===";2252cc2e-ff67-454f-bf89-26441c10c8c5]633;C=== 13.6 SECOND PASS (O10) — git state (FINAL) ===
+DATE: 2026-08-14T19:39:44Z
+NOTHING COMMITTED. NOTHING STAGED BY THIS PASS.
+
+--- HEAD / branch ---
+bae29a28d
+main
+
+--- this pass's own writes, and ONLY these ---
+?? .kiro/specs/admissions-v2-canonical-rebuild/findings.md
+?? .kiro/specs/admissions-v2-canonical-rebuild/tasks.md
+?? docs/v2-evidence/13.6/README.md
+ ?? docs/v2-evidence/13.6/raw/pass2/   (new directory, 15 files)
+
+--- MUST BE UNCHANGED BY THIS PASS (mtimes prove it) ---
+  2026-07-12 18:51:00.737871303 +0200  .kiro/specs/admissions-v2-canonical-rebuild/.config.kiro
+  2026-08-12 03:14:00.259049818 +0200  docs/canonical-truth-map.md
+  2026-08-12 23:14:25.578257208 +0200  docs/v2-evidence/13.5/sign-off.md
+  now: 2026-08-14 19:39:44 UTC
+
+  .config.kiro still reads:
+    {
+      "specId": "d1300058-e07d-433d-8aac-87e9986794a6",
+      "name": "admissions-v2-canonical-rebuild",
+      "workflowType": "requirements-first",
+      "specType": "platform-remediation",
+      "status": "planned",
+      "createdAt": "2026-07-12",
+      "release": "2.0.0"
+    }
+
+  13.5/sign-off.md md5: dae18daf72850f995d1a7bd3a532cec8
+  13.5 checkbox in tasks.md: 732:- [~] 13.5 Deploy canary and run production read-only/post-deploy proof
+  13.6 checkbox in tasks.md: 742:- [-] 13.6 Close the spec truthfully
+
+--- git status --porcelain, counts by state (whole tree) ---
+    520  M
+    410 ??
+     23  D
+      6 D 
+      3  D
+      2 D 
+      1 D 
+
+--- staged entries: 9 pre-existing de-AI deletions, another lane's, NOT touched here ---
+D	backend/apps/common/ai_cache.py
+D	backend/apps/common/ai_circuit_breaker.py
+D	backend/apps/common/ai_prompt_redactor.py
+D	backend/apps/common/ai_service.py
+D	backend/tests/unit/test_ai_cache.py
+D	backend/tests/unit/test_ai_circuit_breaker.py
+D	backend/tests/unit/test_ai_prompt_redactor.py
+D	backend/tests/unit/test_ai_rate_throttling.py
+D	backend/tests/unit/test_ai_redaction_canonical.py
+]633;E;echo;2252cc2e-ff67-454f-bf89-26441c10c8c5]633;C
+=== L8's fix (GATE-13.1-07) independently confirmed by THIS pass's own defaulted run ===
+This pass ran the whole backend tree with V2_EVIDENCE_* unset — i.e. L8's DEFAULT path.
+Where the run's 2.2 artifact landed:
+  -rw-rw-r-- 1 cosmas cosmas 13367 Aug 14 21:04 backend/test-results/v2-evidence/current/2.2/authority-conformance-summary.json
+The guarded artifact in another task's evidence directory, UNCHANGED (mtime 2026-08-14 08:59,
+hours before this pass began):
+  -rw-rw-r-- 1 cosmas cosmas 13367 Aug 14 08:59 docs/v2-evidence/2.2/authority-conformance-summary.json
+  sha256 now      : db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2
+  L7-L8 recorded  : db5f2873c2049152...  -> MATCHES
+  0.4 report now  : 85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68
+  L7-L8 recorded  : 85799ced60e970fe...  -> MATCHES

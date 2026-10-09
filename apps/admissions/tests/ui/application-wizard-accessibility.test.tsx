@@ -5,11 +5,12 @@ import { useForm } from 'react-hook-form'
 import PaymentStep from '@/pages/student/applicationWizard/steps/PaymentStep'
 import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
-const useFeeResolverMock = vi.fn()
+const useFeeQuoteMock = vi.fn()
 const useLencoWidgetMock = vi.fn()
 
-vi.mock('@/hooks/useFeeResolver', () => ({
-  useFeeResolver: (...args: unknown[]) => useFeeResolverMock(...args),
+// Task 8.1: the payment step reads the expiring server-authored fee quote.
+vi.mock('@/hooks/useFeeQuote', () => ({
+  useFeeQuote: (...args: unknown[]) => useFeeQuoteMock(...args),
 }))
 
 vi.mock('@/hooks/useLencoWidget', () => ({
@@ -52,10 +53,29 @@ function renderPaymentMarkup() {
 
 describe('PaymentStep accessibility', () => {
   beforeEach(() => {
-    useFeeResolverMock.mockReturnValue({
-      fee: { amount: 153, currency: 'ZMW', residency_category: 'resident' },
+    useFeeQuoteMock.mockReturnValue({
+      quote: {
+        quote_id: 'a2f5ee2e-1b8d-4c2f-96c1-95c8fbb0f7d1',
+        application_id: 'app-1',
+        configuration_version: 'cfg-1',
+        fee_configuration_version: 'fp-1',
+        fee_type: 'application',
+        base_amount: '153.00',
+        provider_fee: '1.53',
+        total_amount: '154.53',
+        currency: 'ZMW',
+        bearer: 'customer',
+        residency_category: 'local',
+        waiver_applied: false,
+        status: 'active',
+        expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+        signature: 'a'.repeat(64),
+        signature_version: 1,
+      },
       isLoading: false,
       error: null,
+      isExpired: false,
+      refresh: vi.fn(),
     })
     useLencoWidgetMock.mockReturnValue({
       openWidget: vi.fn(),

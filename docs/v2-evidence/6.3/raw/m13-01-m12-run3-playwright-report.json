@@ -1,0 +1,560 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 3,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 3,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../apps/admissions/test-results/harness-evidence/t63-m12c-two-tab-3/0.4/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/wizard-draft-two-tab.spec.ts",
+      "file": "required/wizard-draft-two-tab.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16406,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T01:26:28.954Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-6eb6fce2537088243305",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7389,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T01:26:45.684Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-9531f93f317e2c8103ec",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16103,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T01:26:54.910Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-67cb2ada028c4d6b3850",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7238,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T01:27:11.295Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-8484034b9175c1f97660",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 81544,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:257:55",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts",
+                      "column": 55,
+                      "line": 257
+                    },
+                    "snippet": "  255 |   await reloadLatest.click();\n  256 |   await reloaded;\n> 257 |   await expect(tabB.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });\n      |                                                       ^\n  258 |   await openPersonalStep(tabB);\n  259 |   await expect(tabB.getByLabel(/town|city/i).first()).toHaveValue(winnerTown);\n  260 |   await expect(tabB.getByRole('button', { name: /reload latest draft/i })).toHaveCount(0);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts",
+                        "column": 55,
+                        "line": 257
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n\n  255 |   await reloadLatest.click();\n  256 |   await reloaded;\n> 257 |   await expect(tabB.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });\n      |                                                       ^\n  258 |   await openPersonalStep(tabB);\n  259 |   await expect(tabB.getByLabel(/town|city/i).first()).toHaveValue(winnerTown);\n  260 |   await expect(tabB.getByRole('button', { name: /reload latest draft/i })).toHaveCount(0);\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:257:55"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T01:27:20.455Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-wizard-draft-two--17afd-he-winner-tab-reopens-clean-chromium-required-repeat2/test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-wizard-draft-two--17afd-he-winner-tab-reopens-clean-chromium-required-repeat2/test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-wizard-draft-two--17afd-he-winner-tab-reopens-clean-chromium-required-repeat2/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts",
+                    "column": 55,
+                    "line": 257
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-646b5c2cd1838b36d140",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8155,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:10:31.032Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-02892dfc310433af15a8",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16806,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:10:41.304Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-3584d6cd06ac2498e104",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7540,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:10:58.404Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-59e2d469d2305c4c322b",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16579,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:11:07.696Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-ac59a54ecde040be3a92",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7898,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:11:24.545Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-780856fd08bd8d0126b5",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15873,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:11:34.358Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-3e078719ee519c730ecc",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 156,
+          "column": 1
+        },
+        {
+          "title": "a refresh right after a new application is saved reopens that application, not a blank one",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7921,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T07:11:50.509Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e5077ea9a942b87bced5-44e927f7928eb80ae9d1",
+          "file": "required/wizard-draft-two-tab.spec.ts",
+          "line": 298,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T01:26:26.943Z",
+    "duration": 224820.712,
+    "expected": 11,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

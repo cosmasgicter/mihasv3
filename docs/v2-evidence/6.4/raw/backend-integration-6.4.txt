@@ -1,0 +1,44 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 22 items
+
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_reroute_moves_every_canonical_id_snapshot_and_dependent_answer PASSED [  4%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_reroute_reports_stale_uploads_without_destroying_evidence PASSED [  9%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_reroute_writes_an_audit_history_row PASSED [ 13%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_replaying_the_same_selection_is_an_idempotent_no_op PASSED [ 18%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_stale_assignment_version_is_a_version_conflict PASSED [ 22%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_display_strings_are_rejected_as_selection_input PASSED [ 27%]
+tests/integration/test_change_selection_6_4.py::TestRerouteSuccess::test_generic_patch_can_no_longer_move_the_assignment PASSED [ 31%]
+tests/integration/test_change_selection_6_4.py::TestRerouteRollback::test_failure_after_the_write_rolls_the_whole_reroute_back PASSED [ 36%]
+tests/integration/test_change_selection_6_4.py::TestRerouteRollback::test_configuration_failure_fails_closed_and_changes_nothing PASSED [ 40%]
+tests/integration/test_change_selection_6_4.py::TestRerouteRollback::test_duplicate_target_is_rejected_without_mutating PASSED [ 45%]
+tests/integration/test_change_selection_6_4.py::TestRerouteRollback::test_target_without_an_eligible_offering_is_rejected_without_mutating PASSED [ 50%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[pending] PASSED [ 54%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[deferred] PASSED [ 59%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[successful] PASSED [ 63%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[force_approved] PASSED [ 68%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[failed] PASSED [ 72%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_any_payment_activity_blocks_the_reroute[expired] PASSED [ 77%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_payment_block_exposes_a_non_empty_recovery_path PASSED [ 81%]
+tests/integration/test_change_selection_6_4.py::TestReroutePaymentBlock::test_paid_application_can_still_replay_its_own_unchanged_selection PASSED [ 86%]
+tests/integration/test_change_selection_6_4.py::TestRerouteCrossTenant::test_another_students_draft_is_a_non_revealing_404 PASSED [ 90%]
+tests/integration/test_change_selection_6_4.py::TestRerouteCrossTenant::test_trusted_tenant_host_beats_a_cross_tenant_institution_override PASSED [ 95%]
+tests/integration/test_change_selection_6_4.py::TestRerouteCrossTenant::test_same_name_other_tenant_offering_is_never_selected PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_change_selection_6_4.py: 22 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 22 passed, 23 warnings in 4.63s ========================

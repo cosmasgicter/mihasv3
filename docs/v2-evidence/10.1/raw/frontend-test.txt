@@ -1,0 +1,300 @@
+  reason: [32m'chunk_import_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'a1oh3DaaWf'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m2[39m,
+    previousAt: [32m'2026-08-08T18:56:23.667Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.667Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_mime_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'jaya'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m1[39m,
+    previousAt: [32m'2026-08-08T18:56:23.668Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.668Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_mime_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'jaya'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m2[39m,
+    previousAt: [32m'2026-08-08T18:56:23.668Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.668Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_import_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'a3Z1aLa'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m1[39m,
+    previousAt: [32m'2026-08-08T18:56:23.669Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.669Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_import_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'a3Z1aLa'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m2[39m,
+    previousAt: [32m'2026-08-08T18:56:23.669Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.669Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_preload_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'a'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m1[39m,
+    previousAt: [32m'2026-08-08T18:56:23.669Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.670Z'[39m
+}
+[ReloadControl] {
+  reason: [32m'chunk_preload_error'[39m,
+  mode: [32m'auto'[39m,
+  buildKey: [32m'a'[39m,
+  details: {
+    blockedByGuard: [33mtrue[39m,
+    blockedCount: [33m2[39m,
+    previousAt: [32m'2026-08-08T18:56:23.669Z'[39m
+  },
+  ts: [32m'2026-08-08T18:56:23.670Z'[39m
+}
+
+ [32m✓[39m tests/property/reloadGuard.property.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 59[2mms[22m[39m
+ [32m✓[39m tests/property/paymentErrorCodes.property.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m tests/property/profileCompletion.property.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+ [32m✓[39m tests/unit/toast.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/integration/auth-flows.integration.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/Button.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/canonicalRouteRegistry.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationQueryInvalidation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/property/test_bug3_hydration_race.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+[90mstderr[2m | tests/unit/page-verification/wizard-step1.test.tsx[2m > [22m[2mWizard Step 1 — catalog service normalization[2m > [22m[2mnormalizeProgram[2m > [22m[2mreturns null for record missing id
+[22m[39m[catalog] normalizeProgram: missing required fields [id] { keys: [ [32m'name'[39m ] }
+
+[90mstderr[2m | tests/unit/page-verification/wizard-step1.test.tsx[2m > [22m[2mWizard Step 1 — catalog service normalization[2m > [22m[2mnormalizeIntake[2m > [22m[2mreturns null for record missing id
+[22m[39m[catalog] normalizeIntake: missing required fields [id] { keys: [ [32m'name'[39m ] }
+
+ [32m✓[39m tests/unit/page-verification/wizard-step1.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentErrorCodesCoverage.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/signout-cleanup.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+[90mstderr[2m | tests/unit/adminDashboardOverhaul.test.tsx[2m > [22m[2madmin dashboard overhaul unit coverage[2m > [22m[2mrenders activity empty state and actor details
+[22m[39mWarning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at MotionComponent (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/framer-motion@11.18.2+6dbf9a050bc9aadb/node_modules/framer-motion/dist/es/motion/index.mjs:36:16)
+    at FadeIn (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/motion/index.tsx:24:19)
+    at div
+    at div
+    at section
+    at SectionCard (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/SectionCard.tsx:15:3)
+    at DashboardActivityFeed (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/dashboard/DashboardActivityFeed.tsx:7:34)
+
+ [32m✓[39m tests/unit/adminDashboardOverhaul.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/pwaPackageRemoval.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/property/test_bug2_auth_error.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/checkIsAdminNoEmail.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/property/adminRoleCheck.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+ [32m✓[39m tests/property/schemaValidation.property.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 64[2mms[22m[39m
+ [32m✓[39m tests/unit/sanitizeInputCanonical.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/unit/useManualRefresh.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/unit/authBroadcast.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/submissionGatesDriftGuard.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/unit/errorMessages.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/property/auth-profile-cache-fix-exploration.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/securityHeaders.property.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/requiredDocumentsContract.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/property/tokenRefreshDedup.property.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/unit/settingsAutosaveCanonical.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/property/dateFormatRoundTrip.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-dead-files.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/clientFileValidation.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/tenantStaffInvitationSecretScan.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/property/autoSaveVersionOrdering.property.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/notificationPreferences.property.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m tests/property/test_bug5_slip_service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/paymentGateEnforcement.property.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/property/applicationTrackerSearch.property.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/property/tokenRotation.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-eslint.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/property/metricsConsistency.property.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationStatus.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/dateFormat.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/integration/whiteLabelHostResolution.integration.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/property/unusedDeps.property.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/lazyImportRecovery.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+ [32m✓[39m tests/unit/launchBundleGuard.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 52[2mms[22m[39m
+ [32m✓[39m tests/unit/notificationServiceUpdatePreferences.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+ [32m✓[39m tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/integration/securityHeaders.integration.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/property/applicationStats.property.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/xlsxWriter.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/errorReporterDsnGating.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/assignmentRecovery.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/test_bug1_preservation.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/wizard/liveGradeValidation.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/unit/eczExamNumber.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/contracts/adminContracts.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/unit/accessibilityInteractionGuard.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/property/ui-ux-performance-overhaul/accessibility.property.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/property/officialDocumentGating.property.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationWizardUxGuard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentRecoveryStoreMigration.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/property/interviewRouting.property.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/property/errorPropagationStability.property.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentErrorCodes.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/tenantAdminService.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/notificationPreferenceSchema.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardNavigation.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/csvParsing.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowBugCondition.property.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentRecoveryPresentation.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-focus-trap.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/adminTenantPolishGuard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/deadCodeRemovalVerification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-cache-keys.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m tests/property/relativeTimeThreshold.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/urlSafety.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/property/paymentStateMachine.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m tests/unit/usePaymentStatusRefetch.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/subjectMatcher.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/unit/eczExtractionChecks.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/accessibilityUtilsLogger.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/profileFieldMapping.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/tenantSupportContact.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/secureStorageSaltKey.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/submitIdempotency.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/integration/email-check.integration.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/requiredDocumentVersions.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/rolesBackendMirror.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentFormIdempotencyHeader.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/property/production-cors-pagination-fix-exploration.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationStatusMutation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/pdf/acceptanceLetterProfiles.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/wizard/realEczResultsFixture.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/subjectCatalogDrift.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationStats.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/cacheInvalidation.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/derivePaymentUiState.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/errorCodesDriftGuard.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/authStateUnification.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/pdf/currency.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardAssignmentPatchLock.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/whiteLabelContext.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/profileAutosave.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+ [32m✓[39m tests/unit/animations.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+[90mstderr[2m | tests/admin/dashboard.regression.test.ts[2m > [22m[2madmin dashboard data mapping[2m > [22m[2mkeeps status breakdown keys consistent across the modern lifecycle
+[22m[39m[admin-dashboard] Response shape mismatch — missing expected keys {
+  missingKeys: [ [32m'applications'[39m, [32m'users'[39m, [32m'recent_activity'[39m ],
+  receivedKeys: [ [32m'stats'[39m, [32m'statusBreakdown'[39m ]
+}
+
+ [32m✓[39m tests/admin/dashboard.regression.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/no-infinite-loops.integration.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationServiceEncoding.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardController.contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/pdf/intakeSchedule.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/usersRoleContract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/authRoutePreload.contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/adminBulkAndPushClientUsage.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/submitStepAiFallback.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/adminRouteActionParity.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/adminEndToEndWiring.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentPhaseUiStates.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/useScrollRestoration.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/student-dashboard-load-path.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentRecoveryStorePersistence.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/documentSelection.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/adminNavAccess.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/sanitizer.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/pdf/qr.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardIntakeIdentity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/notificationCursorPolling.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/unit/draftManagerStorage.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/adminUserImportEndpointConsistency.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardBasicKycMobileAttributes.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationStatusUi.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardProgressSummary.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/useAutoSaveSafety.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/test_bug1_csp_config.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/dashboardScope.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/queryCacheConfig.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/paymentStepRecoveryRehydration.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/property/chunkAutoReloadPolicy.property.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/settingsProfileUpdateFields.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/productionSecurityConfig.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/userDisplayName.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSubmitIdempotencyHeaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentStatusLegacy.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentStepLegacyMode.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/paymentStatusMappingDriftGuard.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/tenantNav.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/appGlobalLazyLoading.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/versionDriftGuard.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationStatusDriftGuard.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/usePaymentStatusNoFailedOnTimeout.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/routeRuntime.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/usePaymentStatusTimeout.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/authLoadingState.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/forensic-cleanliness.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRecencySorting.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/sharedShellTouchTargets.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/authAdminRoleResolution.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/adminDashboardBootstrap.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/settingsDirtyStatePhase4.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardSessionRedirect.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardPaymentGate.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/integration/paymentStepUiStateMatrix.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/useApplicationSubmitSafety.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/unit/documentTemplatesPremium.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+ [32m✓[39m tests/unit/studentRouteSmoke.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/authPageFormMarkup.test.tsx[2m > [22mauth page form markup[2m > [22muses honest helper copy instead of fake email availability states
+[31m[1mAssertionError[22m: expected '<div class="min-h-dvh bg-muted"><div …' to contain 'We&#x27;ll verify this address.'[39m
+
+Expected: [32m"We&#x27;ll verify this address."[39m
+Received: [31m"<div class="min-h-dvh bg-muted"><div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-10 sm:px-6 sm:py-16"><a class="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted" aria-label="Beanola home" href="/"><img src="/images/logos/beanolalogo.webp" alt="Beanola Admissions" width="32" height="32" loading="eager" decoding="async" class="h-8 w-8"/><span class="text-lg font-semibold tracking-tight text-foreground">Beanola</span></a><main class="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8"><header class="mb-6 space-y-1.5"><h1 class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Create your application account</h1><p class="text-sm text-muted-foreground sm:text-base">Start your journey with Beanola. <a class="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md" href="/auth/signin">Already have an account? Sign in</a></p></header><form class="space-y-5" method="post" novalidate=""><div class="grid grid-cols-1 gap-4 sm:grid-cols-2"><div class="w-full"><label for=":R2ea:" class="block text-sm font-medium text-foreground mb-2">First name<span class="text-destructive ml-1">*</span></label><div class="relative"><input type="text" id=":R2ea:" class="w-full h-12 px-4 rounded-xl touch-target bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-required="true" name="first_name" inputMode="text" aria-label="First name" autoComplete="given-name" required="" autofocus=""/></div></div><div class="w-full"><label for=":R4ea:" class="block text-sm font-medium text-foreground mb-2">Last name<span class="text-destructive ml-1">*</span></label><div class="relative"><input type="text" id=":R4ea:" class="w-full h-12 px-4 rounded-xl touch-target bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-required="true" name="last_name" inputMode="text" aria-label="Last name" autoComplete="family-name" required=""/></div></div></div><div class="w-full"><label for=":Ria:" class="block text-sm font-medium text-foreground mb-2">Email<span class="text-destructive ml-1">*</span></label><div class="relative"><input type="email" id=":Ria:" class="w-full h-12 px-4 rounded-xl touch-target bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-required="true" aria-describedby=":Ria:-helper" name="email" inputMode="email" aria-label="Email" autoComplete="email" required=""/></div><p id=":Ria:-helper" class="mt-1 text-sm text-muted-foreground">We&#x27;ll send account updates here. If you already have an account, sign in instead.</p></div><div class="w-full"><label for=":Rma:" class="block text-sm font-medium text-foreground mb-2">Phone number<span class="text-destructive ml-1">*</span></label><div class="relative"><input type="tel" id=":Rma:" class="w-full h-12 px-4 rounded-xl touch-target bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-required="true" name="phone" inputMode="tel" aria-label="Phone number" autoComplete="tel" required=""/></div></div><div class="grid grid-cols-1 gap-4 sm:grid-cols-2"><div class="w-full"><label for=":R2qa:" class="block text-sm font-medium text-foreground mb-2">Password<span class="text-destructive ml-1">*</span></label><div class="relative"><input name="password" aria-label="Password" autoComplete="new-password" required="" id=":R2qa:" type="password" class="w-full h-12 px-4 pr-12 rounded-xl bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-invalid="false" aria-required="true"/><button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation" aria-label="Show password"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye h-5 w-5" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div><div class="w-full"><label for=":R4qa:" class="block text-sm font-medium text-foreground mb-2">Confirm password<span class="text-destructive ml-1">*</span></label><div class="relative"><input name="confirmPassword" aria-label="Confirm password" autoComplete="new-password" required="" id=":R4qa:" type="password" class="w-full h-12 px-4 pr-12 rounded-xl bg-background/80 border border-border/60 text-foreground text-base placeholder:text-muted-foreground hover:border-primary/50 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-[border-color,box-shadow] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-input disabled:hover:bg-background min-h-[48px]" aria-invalid="false" aria-required="true"/><button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation" aria-label="Show password"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye h-5 w-5" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div></div><button class="relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold ring-offset-background transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] min-h-touch-lg h-auto px-6 py-2.5 text-lg w-full min-h-[48px] motion-reduce:transform-none motion-reduce:transition-none" type="submit">Create account</button><p class="text-center text-xs text-muted-foreground">By creating an account, you agree to our <a class="text-primary hover:underline" href="/terms">Terms</a> and <a class="text-primary hover:underline" href="/privacy">Privacy Policy</a>.</p></form></main><div class="mt-6 border-t border-border/60 pt-6"><nav aria-label="Auth alternatives" class="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center sm:gap-6"><a class="rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-primary hover:text-primary/80" href="/auth/signin">Sign in instead</a><a class="rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-muted-foreground hover:text-foreground" href="/auth/forgot-password">Forgot password?</a></nav></div><div class="mt-8"><p class="text-center text-xs text-muted-foreground">Your session lasts 7 days. We never share your information.</p></div></div></div>"[39m
+
+[36m [2m❯[22m tests/unit/authPageFormMarkup.test.tsx:[2m106:20[22m[39m
+    [90m104| [39m
+    [90m105| [39m    [90m// The redesigned helper text is more direct and honest.[39m
+    [90m106| [39m    [34mexpect[39m(markup)[33m.[39m[34mtoContain[39m([32m"We&#x27;ll verify this address."[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m107| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Checking...'[39m)
+    [90m108| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'>Available<'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m472 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (474)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4123 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (4125)[39m
+[2m   Start at [22m 20:55:36
+[2m   Duration [22m 63.32s[2m (transform 27.78s, setup 7.07s, import 138.58s, tests 216.61s, environment 292.39s)[22m
+
+error: script "test" exited with code 1

@@ -1,0 +1,25 @@
+$ bun x vitest run --run tests/unit/multiDraftService.test.ts tests/unit/useMultiDraft.test.tsx tests/unit/draftAutosave.test.ts tests/unit/useWizardController.contract.test.ts tests/unit/wizardDraftIntent.test.ts tests/unit/wizardDraftMachine.test.ts tests/unit/draftLocalCache.test.ts tests/unit/applicationSessionDrafts.test.ts tests/unit/applicationServiceEncoding.test.ts tests/unit/wizardDraftResume.test.ts tests/unit/wizardIntakeIdentity.test.ts tests/unit/wizardPaymentGate.test.ts tests/property/wizardDraftMachine.property.test.ts tests/property/draftLocalCache.property.test.ts
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/unit/wizardPaymentGate.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationServiceEncoding.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/multiDraftService.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 256[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 173[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionDrafts.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 409[2mms[22m[39m
+     [33m[2m✓[22m[39m deletes draft applications by application id rather than user id [33m 386[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 116[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardController.contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/property/draftLocalCache.property.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 103[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardIntakeIdentity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m81 passed[39m[22m[90m (81)[39m
+[2m   Start at [22m 23:24:52
+[2m   Duration [22m 3.19s[2m (transform 3.61s, setup 411ms, import 4.89s, tests 1.13s, environment 12.20s)[22m
+

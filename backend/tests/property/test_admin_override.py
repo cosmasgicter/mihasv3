@@ -61,6 +61,17 @@ def _build_mock_request(admin_id, data):
     return mock_request
 
 
+# admissions-v2 task 8.2 made the review path branch on whether a canonical
+# ``Payment`` row already exists for the application: no row at all means the
+# admin is recording money that arrived outside the platform, which becomes a
+# ``force_approved`` ledger row (ADR-002) rather than an update of an existing
+# one. This property is about overriding the status of an application that
+# already has a payment, so these tests assert the row exists. Without the
+# patch the view's real ``Payment.objects.filter(...).exists()`` would hit the
+# database from a ``SimpleTestCase``.
+_LEDGER_ROW_EXISTS = "apps.documents.models.Payment.objects"
+
+
 # ---------------------------------------------------------------------------
 # Property 10: Admin payment status override records audit trail
 # ---------------------------------------------------------------------------
@@ -83,10 +94,12 @@ class TestAdminPaymentStatusOverride(SimpleTestCase):
 
         with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
              patch("apps.catalog.services.AccessScopeService") as mock_scope, \
+             patch(_LEDGER_ROW_EXISTS) as mock_payment_qs, \
              patch("apps.documents.payment_service.PaymentService.review_application_payment") as mock_review:
             mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.all.return_value = mock_qs
             mock_qs.get.return_value = mock_app
+            mock_payment_qs.filter.return_value.exists.return_value = True
             # Simulate PaymentService updating the app and returning it
             def side_effect(application_id, payment_status, reviewed_by_id, notes):
                 mock_app.payment_status = payment_status
@@ -117,10 +130,12 @@ class TestAdminPaymentStatusOverride(SimpleTestCase):
 
         with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
              patch("apps.catalog.services.AccessScopeService") as mock_scope, \
+             patch(_LEDGER_ROW_EXISTS) as mock_payment_qs, \
              patch("apps.documents.payment_service.PaymentService.review_application_payment") as mock_review:
             mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.all.return_value = mock_qs
             mock_qs.get.return_value = mock_app
+            mock_payment_qs.filter.return_value.exists.return_value = True
             def side_effect(application_id, payment_status, reviewed_by_id, notes):
                 mock_app.payment_status = payment_status
                 return mock_app

@@ -57,13 +57,17 @@ describe('normalizeNotificationsResponse', () => {
   it('maps backend is_read/message fields to the bell read/content contract', async () => {
     const { normalizeNotificationsResponse } = await import('@/services/notifications')
 
+    // Repointed by task 12.2 (R14.5): the input is the payload as the SERVICE
+    // sees it. `apiClient.request` has already unwrapped one `{success, data}`
+    // level, so wrapping the fixture in a second envelope tested a branch the
+    // service could never reach — and that branch is now gone. The claim of this
+    // case (the `is_read` → `read` / `message` → `content` field map) is
+    // unchanged.
     const result = normalizeNotificationsResponse({
-      success: true,
-      data: {
-        page: 1,
-        pageSize: 20,
-        totalCount: 2,
-        results: [
+      page: 1,
+      pageSize: 20,
+      totalCount: 2,
+      results: [
           {
             id: 'notification-1',
             title: 'Unread message',
@@ -79,10 +83,9 @@ describe('normalizeNotificationsResponse', () => {
             message: 'Already read',
             type: 'general',
             is_read: true,
-            created_at: '2026-04-20T11:00:00.000Z',
-          },
-        ],
-      },
+          created_at: '2026-04-20T11:00:00.000Z',
+        },
+      ],
     })
 
     expect(result).toEqual([
@@ -109,16 +112,22 @@ describe('normalizeNotificationsResponse', () => {
   it('normalizes legacy HTML-stripped notification bodies', async () => {
     const { normalizeNotificationsResponse } = await import('@/services/notifications')
 
-    const result = normalizeNotificationsResponse([
-      {
-        id: 'notification-3',
-        title: 'Payment Expired',
-        message: 'pDear Cosmas,/ppYour pending payment expired./ppBest regards,brMIHAS Admissions/p',
-        type: 'warning',
-        is_read: false,
-        created_at: '2026-04-20T12:00:00.000Z',
-      },
-    ])
+    // Repointed by task 12.2 (R14.5): the bare-array input was one of the five
+    // shapes the deleted sniff accepted; `NotificationListView` returns
+    // `{…, results}` on every one of its four paths. The claim of this case (the
+    // HTML-stripped body is rebuilt into paragraphs) is unchanged.
+    const result = normalizeNotificationsResponse({
+      results: [
+        {
+          id: 'notification-3',
+          title: 'Payment Expired',
+          message: 'pDear Cosmas,/ppYour pending payment expired./ppBest regards,brMIHAS Admissions/p',
+          type: 'warning',
+          is_read: false,
+          created_at: '2026-04-20T12:00:00.000Z',
+        },
+      ],
+    })
 
     expect(result[0]?.content).toBe(
       'Dear Cosmas,\n\nYour pending payment expired.\n\nBest regards,\nMIHAS Admissions'

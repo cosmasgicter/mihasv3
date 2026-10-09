@@ -38,7 +38,7 @@ interface CommunicationModalProps {
 
 export interface CommunicationData {
   applicantId: string
-  channel: 'email' | 'sms' | 'in-app'
+  channel: 'email' | 'in-app'
   message: string
   template?: string
   subject?: string
@@ -78,7 +78,7 @@ const MESSAGE_TEMPLATES = [
 ]
 
 export function CommunicationModal({ open, onOpenChange, applicant, onSend }: CommunicationModalProps) {
-  const [channel, setChannel] = useState<'email' | 'sms' | 'in-app'>('email')
+  const [channel, setChannel] = useState<'email' | 'in-app'>('email')
   const [selectedTemplate, setSelectedTemplate] = useState('custom')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
@@ -122,10 +122,6 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
       return
     }
 
-    if (channel === 'sms' && !applicant.phone) {
-      setError('Applicant does not have a phone number on file')
-      return
-    }
 
     setSending(true)
     setError(null)
@@ -161,8 +157,6 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
     switch (channelType) {
       case 'email':
         return <Mail className="w-4 h-4" />
-      case 'sms':
-        return <Phone className="w-4 h-4" />
       case 'in-app':
         return <MessageSquare className="w-4 h-4" />
       default:
@@ -174,8 +168,6 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
     switch (channelType) {
       case 'email':
         return !!applicant.email
-      case 'sms':
-        return false
       case 'in-app':
         return true // Always available
       default:
@@ -189,7 +181,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
       .replace(/\{\{email\}\}/g, applicant.email)
       .replace(/\{\{phone\}\}/g, applicant.phone ?? '')
 
-  const characterLimit = channel === 'sms' ? 160 : 1000
+  const characterLimit = 1000
   const remainingChars = characterLimit - getExpandedMessage(message).length
 
   return (
@@ -239,11 +231,24 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
             </div>
           </div>
 
-          {/* Channel Selection */}
+          {/*
+            Channel selection — the channels the platform can actually send.
+
+            Admissions-v2 task 11.5 (R16.5, MAINT-02) removed the `sms` option.
+            `getChannelAvailability` returned a hardcoded `false` for it, so it
+            rendered as a permanently disabled third of the grid badged
+            "Coming soon": an operator could read it, tab to nothing, and learn
+            only that a channel does not exist. The platform has no SMS sender
+            (outbound is Zoho SMTP with a Resend fallback, plus in-app
+            notifications), so this is not a channel that is coming — it is a
+            promise in a control. Email can still be unavailable for a real,
+            per-applicant reason (no address on file), and that case keeps its
+            honest `N/A` badge.
+          */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Communication Channel *</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['email', 'sms', 'in-app'] as const).map((channelType) => {
+            <div className="grid grid-cols-2 gap-2">
+              {(['email', 'in-app'] as const).map((channelType) => {
                 const isAvailable = getChannelAvailability(channelType)
                 return (
                   <button
@@ -252,7 +257,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
                     onClick={() => isAvailable && setChannel(channelType)}
                     disabled={!isAvailable}
                     className={cn(
-                      'flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all',
+                      'flex min-h-touch flex-col items-center justify-center p-3 rounded-lg border-2 transition-all',
                       'hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed',
                       channel === channelType
                         ? 'border-primary bg-primary/5'
@@ -265,7 +270,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
                     </span>
                     {!isAvailable && (
                       <Badge variant="secondary" className="mt-1 text-xs">
-                        {channelType === 'sms' ? 'Coming soon' : 'N/A'}
+                        No email on file
                       </Badge>
                     )}
                   </button>
@@ -326,14 +331,9 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Enter your message..."
-              rows={channel === 'sms' ? 4 : 6}
+              rows={6}
               className={cn(remainingChars < 0 && 'border-destructive')}
             />
-            {channel === 'sms' && (
-              <p className="text-xs text-muted-foreground">
-                SMS messages are limited to 160 characters
-              </p>
-            )}
           </div>
         </div>
 

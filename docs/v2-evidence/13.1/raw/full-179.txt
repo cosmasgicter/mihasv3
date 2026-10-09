@@ -1,0 +1,8 @@
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+   apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view

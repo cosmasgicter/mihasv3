@@ -1,0 +1,8 @@
+]633;E;echo "# M4 — freshness AFTER regeneration";1b58bf84-b20a-4c15-86dc-51b1f7447710]633;C# M4 — freshness AFTER regeneration
+# 2026-08-15T11:21:07Z
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+FRESHNESS OK: report covers every June 2026+ migration script on disk (32 June+ rows), links sha256:771c69eaf448361de576b0c120958ccb14dca6c8df1bee0a0e1acdc2220fc970, no secrets.
+exit=0

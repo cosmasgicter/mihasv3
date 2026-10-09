@@ -100,8 +100,18 @@ class TestCeleryTaskApplicationDocumentCreation:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
 
+        # admissions-v2 task 7.3 (R11.7-R11.8, STU-19): the row is written by the
+        # staged-write command, not by a bare manager ``create``. ``open_stage``
+        # commits a durable ledger row *before* the PDF reaches storage — that
+        # ordering is the deliverable — so it must be patched here or this DB-free
+        # property test would need a database. The manager patch stays for the
+        # reuse/supersede read, and the assertions move to the command's
+        # arguments: ``application_id`` instead of an instance, and the verified
+        # lifecycle plus system provenance instead of the columns they project to.
         with patch(_APP_MODEL) as mock_app_qs, \
-             patch(_DOC_CREATE) as mock_doc_qs, \
+             patch(_DOC_CREATE), \
+             patch("apps.documents.document_evidence.open_stage"), \
+             patch("apps.documents.document_evidence.commit_version") as mock_commit, \
              patch(_PAY_MODEL) as mock_pay_qs, \
              patch("apps.applications.tasks.pdf_generation._render_official_pdf") as mock_render, \
              patch(_STORAGE) as mock_storage_cls:
@@ -121,10 +131,10 @@ class TestCeleryTaskApplicationDocumentCreation:
             else:
                 generate_finance_receipt_task(str(app_id))
 
-            mock_doc_qs.create.assert_called_once()
-            call_kwargs = mock_doc_qs.create.call_args[1]
-            assert call_kwargs["application"] == application
+            mock_commit.assert_called_once()
+            call_kwargs = mock_commit.call_args[1]
+            assert call_kwargs["application_id"] == application.id
             assert call_kwargs["document_type"] == doc_type
-            assert call_kwargs["system_generated"] is True
-            assert call_kwargs["verification_status"] == "verified"
+            assert call_kwargs["provenance"] == "system_generated"
+            assert call_kwargs["lifecycle_state"] == "verified"
             assert call_kwargs["mime_type"] == "application/pdf"

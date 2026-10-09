@@ -1,21 +1,34 @@
-import React, { useState, useCallback, useMemo } from 'react'
-import { CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react'
+import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
-import { useConfirmDialog } from '@/hooks/useConfirmDialog'
-import { logApiError } from '@/lib/apiErrorLogger'
 import { formatApplicationStatus } from '@/types/applicationStatus'
 import { normalizePaymentStatus } from '@/lib/paymentStatus'
+import { Button, StatusBadge } from '@/components/ui'
+/*
+  Task 12.1 (R14.3-R14.5, R17.5; finding MAINT-01): this file was 689 lines that
+  held the tone tokens, the dialog copy map, both commands, both branch trees and
+  two dialogs. Four of those moved:
+
+    - `approvalActionTokens.ts`        — the tone vocabulary (task 11.5's, verbatim).
+    - `paymentReviewCopy.ts`           — the dialog copy map, and the one
+                                         client-side rule in the block: a rejection
+                                         must carry a reason.
+    - `useApprovalActionCommands.ts`   — both commands and the dialog state.
+    - `PaymentDecisionControls.tsx`    — the payment branch tree and its dialog.
+
+  What deliberately stayed is the **application-status** branch tree. Task 11.4
+  declined to split this file because two other lanes read its source text —
+  `approvalFlowPreservation.property.test.ts` asserts a `currentStatus === '<status>'`
+  branch for each of five statuses in *this* file, and `handleStatusUpdate('approved')`
+  / `('rejected')` within 1,200 characters of the `under_review` branch. Keeping that
+  half here keeps those claims literally true, so no pin needed repointing. The
+  dispatch allowed either; the smaller change is the honest one.
+*/
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Button,
-  Textarea,
-} from '@/components/ui'
-import { toError } from '@/lib/toError'
+  OUTLINE_INFO,
+  OUTLINE_WARNING,
+} from '@/components/admin/applications/approvalActionTokens'
+import { PaymentDecisionControls } from '@/components/admin/applications/PaymentDecisionControls'
+import { useApprovalActionCommands } from '@/hooks/admin/useApprovalActionCommands'
 
 interface ApplicationApprovalActionsProps {
   applicationId: string
@@ -23,6 +36,30 @@ interface ApplicationApprovalActionsProps {
   currentPaymentStatus?: string | null
   onStatusUpdate: (id: string, status: string) => Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
+  /**
+   * Whether this actor holds `tenant.payment.verify` for this application's
+   * school (task 9.4, AUTH-02). The backend is the boundary — it re-enforces the
+   * capability on every payment decision — but a control an actor cannot use
+   * should not be offered, so the answer comes from the server's own published
+   * command matrix rather than a role tier.
+   *
+   * Defaults to `true` for the roster card, whose payment control predates this
+   * matrix and is gated by the endpoint alone.
+   */
+  canVerifyPayment?: boolean
+  /**
+   * Whether this block renders its own Application/Payment status pair
+   * (admissions-v2 task 11.4).
+   *
+   * The review workspace wants them: the block is the footer of a sheet whose
+   * header is scrolled away. The roster row does **not** — it already renders the
+   * application's status badge and its payment badge above, and the block now
+   * lives inside that row's counted disclosure, so its copy of the pair would be
+   * a third statement of the same two facts and it would be inside a collapsed
+   * panel. R16.5 calls two controls for one action a duplicate affordance; the
+   * same reasoning applies to two renderings of one status.
+   */
+  showStatusSummary?: boolean
   disabled?: boolean
 }
 
@@ -32,186 +69,51 @@ export function ApplicationApprovalActions({
   currentPaymentStatus,
   onStatusUpdate,
   onPaymentStatusUpdate,
+  canVerifyPayment = true,
+  showStatusSummary = true,
   disabled = false
 }: ApplicationApprovalActionsProps) {
-  const [updatingStatus, setUpdatingStatus] = useState(false)
-  const [updatingPayment, setUpdatingPayment] = useState(false)
-  const [paymentReviewDialogOpen, setPaymentReviewDialogOpen] = useState(false)
-  const [pendingPaymentStatus, setPendingPaymentStatus] = useState<string | null>(null)
-  const [paymentReviewNotes, setPaymentReviewNotes] = useState('')
-  const [paymentReviewError, setPaymentReviewError] = useState<string | null>(null)
-  const confirmDialog = useConfirmDialog()
   const normalizedPaymentStatus = normalizePaymentStatus(currentPaymentStatus)
   const isPaymentVerified = normalizedPaymentStatus === 'verified'
 
-  const paymentReviewCopy = useMemo(() => {
-    if (pendingPaymentStatus === 'verified') {
-      return {
-        title: 'Verify Payment',
-        description: 'Confirm that the application fee has been received before marking this payment as verified.',
-        confirmText: 'Verify payment',
-        notesLabel: 'Verification note',
-        notesPlaceholder: 'Optional context for this verification decision.',
-        notesRequired: false,
-      }
-    }
-
-    if (pendingPaymentStatus === 'rejected') {
-      return {
-        title: 'Reject Payment',
-        description: 'Explain why the proof was rejected so the student can correct and resubmit it.',
-        confirmText: 'Reject payment',
-        notesLabel: 'Rejection reason',
-        notesPlaceholder: 'State what is wrong with the submitted proof or payment details.',
-        notesRequired: true,
-      }
-    }
-
-    if (pendingPaymentStatus === 'deferred') {
-      return {
-        title: 'Defer Payment',
-        description: 'Defer payment collection for this application. The student will be contacted to arrange payment.',
-        confirmText: 'Defer payment',
-        notesLabel: 'Deferral reason',
-        notesPlaceholder: 'Explain why payment is being deferred (e.g. financial hardship, instalment arrangement).',
-        notesRequired: true,
-      }
-    }
-
-    return {
-      title: 'Return Payment To Review',
-      description: 'Reopen this payment for review so the applicant can continue the payment process.',
-      confirmText: 'Return to review',
-      notesLabel: 'Review note',
-      notesPlaceholder: 'Optional context for why the payment is being reopened.',
-      notesRequired: false,
-    }
-  }, [pendingPaymentStatus])
-
-  const handleStatusUpdate = useCallback(async (newStatus: string) => {
-    if (updatingStatus || disabled) return
-    
-    // Prevent approval without verified payment.
-    if (newStatus === 'approved' && !isPaymentVerified) {
-      await confirmDialog.confirm({
-        title: 'Payment Not Verified',
-        message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
-        confirmText: 'OK',
-        variant: 'danger'
-      })
-      return
-    }
-    
-    // Confirm critical actions
-    if (newStatus === 'rejected') {
-      const confirmed = await confirmDialog.confirm({
-        title: 'Reject Application',
-        message: 'This application will be rejected. The applicant will be notified.',
-        confirmText: 'Reject',
-        variant: 'danger'
-      })
-      if (!confirmed) return
-    }
-    
-    if (newStatus === 'approved') {
-      const confirmed = await confirmDialog.confirm({
-        title: 'Approve Application',
-        message: 'The applicant will be notified of approval. This action cannot be undone.',
-        confirmText: 'Approve',
-        variant: 'info'
-      })
-      if (!confirmed) return
-    }
-    
-    try {
-      setUpdatingStatus(true)
-      await onStatusUpdate(applicationId, newStatus)
-      // Success - state will be updated by parent component
-    } catch (error) {
-      logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
-      // Show error to user
-      await confirmDialog.confirm({
-        title: 'Update Failed',
-        message: toError(error).message || 'Failed to update application status. Please try again.',
-        confirmText: 'OK',
-        variant: 'danger'
-      })
-    } finally {
-      setUpdatingStatus(false)
-    }
-  }, [applicationId, disabled, isPaymentVerified, updatingStatus, onStatusUpdate, confirmDialog])
-
-  const openPaymentReviewDialog = useCallback((newStatus: string) => {
-    if (updatingPayment || disabled) return
-    setPendingPaymentStatus(newStatus)
-    setPaymentReviewNotes('')
-    setPaymentReviewError(null)
-    setPaymentReviewDialogOpen(true)
-  }, [disabled, updatingPayment])
-
-  const handlePaymentDialogOpenChange = useCallback((open: boolean) => {
-    setPaymentReviewDialogOpen(open)
-    if (!open) {
-      setPendingPaymentStatus(null)
-      setPaymentReviewNotes('')
-      setPaymentReviewError(null)
-    }
-  }, [])
-
-  const handlePaymentUpdate = useCallback(async () => {
-    if (!pendingPaymentStatus || updatingPayment || disabled) return
-
-    const normalizedNotes = paymentReviewNotes.trim()
-
-    if (paymentReviewCopy.notesRequired && !normalizedNotes) {
-      setPaymentReviewError('A rejection reason is required.')
-      return
-    }
-
-    try {
-      setUpdatingPayment(true)
-      await onPaymentStatusUpdate(applicationId, pendingPaymentStatus, normalizedNotes || undefined)
-      handlePaymentDialogOpenChange(false)
-    } catch (error) {
-      logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
-      const errorMessage = toError(error).message
-      const isNoPaymentRecord = errorMessage.includes('PAYMENT_RECORD_REQUIRED') || errorMessage.toLowerCase().includes('no payment record')
-      await confirmDialog.confirm({
-        title: isNoPaymentRecord ? 'No Payment Record' : 'Update Failed',
-        message: isNoPaymentRecord
-          ? 'No payment record found — the student must initiate payment first.'
-          : errorMessage || 'Failed to update payment status. Please try again.',
-        confirmText: 'OK',
-        variant: 'danger'
-      })
-      handlePaymentDialogOpenChange(false)
-    } finally {
-      setUpdatingPayment(false)
-    }
-  }, [
+  const commands = useApprovalActionCommands({
     applicationId,
-    confirmDialog,
     disabled,
-    handlePaymentDialogOpenChange,
+    isPaymentVerified,
+    onStatusUpdate,
     onPaymentStatusUpdate,
-    paymentReviewCopy.notesRequired,
-    paymentReviewNotes,
-    pendingPaymentStatus,
-    updatingPayment,
-  ])
+  })
+  const { confirmDialog, updatingStatus, handleStatusUpdate } = commands
+
+  /**
+   * Whether this block is *listed* inside a record's disclosure rather than
+   * owning its surface (admissions-v2 task 11.4).
+   *
+   * When it is, the row already has one primary control, so the block's two
+   * default-variant commands ("Force Submit", "Review") step down to `outline`:
+   * two identically-filled primary buttons on one 390 px card is a second primary,
+   * which is the thing 11.3's pattern exists to prevent. The semantic tones
+   * (`success` / `destructive` / `warning`) do **not** step down — those carry
+   * decision meaning, are paired with a word and an icon, and are the same in the
+   * review workspace.
+   */
+  const listed = !showStatusSummary
+  const advanceVariant = listed ? 'outline' : 'default'
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-2 sm:grid-cols-2">
-        <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
-          <p className="mt-1 text-sm font-semibold text-foreground">{formatApplicationStatus(currentStatus)}</p>
+      {showStatusSummary && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{formatApplicationStatus(currentStatus)}</p>
+          </div>
+          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
+          </div>
         </div>
-        <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
-          <p className="mt-1 text-sm font-semibold text-foreground">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
-        </div>
-      </div>
+      )}
 
       {/* Application Status Controls */}
       <div>
@@ -221,12 +123,18 @@ export function ApplicationApprovalActions({
         <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
             <>
+              {/*
+                Status-only, so it is suppressed when the block is listed inside a
+                record whose card already publishes the same status above it — a
+                third rendering of one fact, inside a collapsed panel (task 11.4).
+              */}
+              {showStatusSummary && (
               <div className="flex-1 rounded-lg border border-border bg-muted py-3 text-center">
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
-                  Draft — not yet submitted
-                </span>
+                <StatusBadge tone="neutral" label="Draft — not yet submitted" />
               </div>
+              )}
               <Button
+                variant={advanceVariant}
                 onClick={() => handleStatusUpdate('submitted')}
                 disabled={updatingStatus || disabled}
                 className="w-full"
@@ -238,6 +146,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'submitted' && (
             <Button
+              variant={advanceVariant}
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
               className="sm:col-span-2"
@@ -284,7 +193,7 @@ export function ApplicationApprovalActions({
                 variant="outline"
                 onClick={() => handleStatusUpdate('conditionally_approved')}
                 disabled={updatingStatus || disabled}
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                className={`w-full ${OUTLINE_INFO}`}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -297,7 +206,7 @@ export function ApplicationApprovalActions({
                 variant="outline"
                 onClick={() => handleStatusUpdate('waitlisted')}
                 disabled={updatingStatus || disabled}
-                className="w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+                className={`w-full ${OUTLINE_WARNING}`}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -311,34 +220,21 @@ export function ApplicationApprovalActions({
           
           {(currentStatus === 'approved' || currentStatus === 'rejected') && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                currentStatus === 'approved' 
-                  ? 'bg-green-100 text-green-800 border border-green-300' 
-                  : 'bg-red-100 text-red-800 border border-red-300'
-              }`}>
-                {currentStatus === 'approved' ? (
-                  <>
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Approved
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-3 w-3 mr-1" />
-                    Rejected
-                  </>
-                )}
-              </span>
+              {currentStatus === 'approved' ? (
+                <StatusBadge tone="success" icon={CheckCircle} label="Approved" />
+              ) : (
+                <StatusBadge tone="destructive" icon={XCircle} label="Rejected" />
+              )}
             </div>
           )}
 
           {currentStatus === 'conditionally_approved' && (
             <>
+              {showStatusSummary && (
               <div className="sm:col-span-2 text-center py-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Conditionally Approved
-                </span>
+                <StatusBadge tone="info" icon={Clock} label="Conditionally Approved" />
               </div>
+              )}
               <Button
                 variant="success"
                 onClick={() => handleStatusUpdate('approved')}
@@ -371,12 +267,11 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'waitlisted' && (
             <>
+              {showStatusSummary && (
               <div className="sm:col-span-2 text-center py-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Waitlisted
-                </span>
+                <StatusBadge tone="warning" icon={Clock} label="Waitlisted" />
               </div>
+              )}
               <Button
                 variant="success"
                 onClick={() => handleStatusUpdate('approved')}
@@ -409,178 +304,52 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'enrolled' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Enrolled
-              </span>
+              <StatusBadge tone="success" icon={CheckCircle} label="Enrolled" />
             </div>
           )}
 
           {currentStatus === 'withdrawn' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
-                <XCircle className="h-3 w-3 mr-1" />
-                Withdrawn
-              </span>
+              <StatusBadge tone="neutral" icon={XCircle} label="Withdrawn" />
             </div>
           )}
 
           {currentStatus === 'expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-300">
-                <XCircle className="h-3 w-3 mr-1" />
-                Expired
-              </span>
+              <StatusBadge tone="destructive" icon={XCircle} label="Expired" />
             </div>
           )}
 
           {currentStatus === 'enrollment_expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
-                <Clock className="h-3 w-3 mr-1" />
-                Enrollment Expired
-              </span>
+              <StatusBadge tone="warning" icon={Clock} label="Enrollment Expired" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Payment Status Controls */}
-      <div>
-        <label className="mb-2 block text-xs font-medium text-foreground">
-          Payment Status
-        </label>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {normalizedPaymentStatus === 'not_paid' && (
-            <div className="sm:col-span-2 grid gap-2">
-            <div className="text-center py-2 space-y-1 rounded-lg border border-amber-200 bg-amber-50">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
-                Awaiting Payment
-              </span>
-            </div>
-              <Button
-                variant="outline"
-                onClick={() => openPaymentReviewDialog('verified')}
-                disabled={updatingPayment || disabled}
-                className="w-full border-green-600 text-green-700 hover:bg-green-50"
-              >
-                {updatingPayment ? 'Updating...' : (
-                  <>
-                    <CheckCircle className="h-3 w-3" />
-                    Mark as Paid
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-
-          {normalizedPaymentStatus === 'pending_review' && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => openPaymentReviewDialog('verified')}
-                disabled={updatingPayment || disabled}
-                className="border-green-600 text-green-700 hover:bg-green-50"
-              >
-                {updatingPayment ? 'Updating...' : (
-                  <>
-                    <CheckCircle className="h-3 w-3" />
-                    Verify
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => openPaymentReviewDialog('rejected')}
-                disabled={updatingPayment || disabled}
-                className="w-full"
-              >
-                {updatingPayment ? 'Updating...' : (
-                  <>
-                    <XCircle className="h-3 w-3" />
-                    Reject
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => openPaymentReviewDialog('deferred')}
-                disabled={updatingPayment || disabled}
-                className="border-amber-500 text-amber-700 hover:bg-amber-50 sm:col-span-2"
-              >
-                {updatingPayment ? 'Updating...' : (
-                  <>
-                    <Clock className="h-3 w-3" />
-                    Defer
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-
-          {normalizedPaymentStatus === 'rejected' && (
-            <Button
-              variant="warning"
-              onClick={() => openPaymentReviewDialog('pending_review')}
-              disabled={updatingPayment || disabled}
-              className="sm:col-span-2"
-            >
-              {updatingPayment ? 'Updating...' : (
-                <>
-                  <RotateCcw className="h-3 w-3" />
-                  Reopen Review
-                </>
-              )}
-            </Button>
-          )}
-
-          {normalizedPaymentStatus === 'deferred' && (
-            <>
-              <div className="text-center py-3 rounded-lg border border-amber-200 bg-amber-50">
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Deferred
-                </span>
-              </div>
-              <Button
-                variant="warning"
-                onClick={() => openPaymentReviewDialog('pending_review')}
-                disabled={updatingPayment || disabled}
-                className="w-full"
-              >
-                {updatingPayment ? 'Updating...' : (
-                  <>
-                    <RotateCcw className="h-3 w-3" />
-                    Reopen Review
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-          
-          {(normalizedPaymentStatus === 'verified' || normalizedPaymentStatus === 'rejected') && (
-            <div className="sm:col-span-2 text-center py-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                normalizedPaymentStatus === 'verified'
-                  ? 'bg-green-100 text-green-800 border border-green-300' 
-                  : 'bg-red-100 text-red-800 border border-red-300'
-              }`}>
-                {normalizedPaymentStatus === 'verified' ? (
-                  <>
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Verified
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-3 w-3 mr-1" />
-                    Rejected
-                  </>
-                )}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      <PaymentDecisionControls
+        normalizedPaymentStatus={normalizedPaymentStatus}
+        canVerifyPayment={canVerifyPayment}
+        showStatusSummary={showStatusSummary}
+        disabled={disabled}
+        updatingPayment={commands.updatingPayment}
+        paymentReviewDialogOpen={commands.paymentReviewDialogOpen}
+        paymentReviewCopy={commands.paymentReviewCopy}
+        paymentReviewNotes={commands.paymentReviewNotes}
+        paymentReviewError={commands.paymentReviewError}
+        onNotesChange={(value) => {
+          commands.setPaymentReviewNotes(value)
+          if (commands.paymentReviewError) {
+            commands.setPaymentReviewError(null)
+          }
+        }}
+        onOpenReviewDialog={commands.openPaymentReviewDialog}
+        onDialogOpenChange={commands.handlePaymentDialogOpenChange}
+        onSubmitDecision={() => {
+          void commands.handlePaymentUpdate()
+        }}
+      />
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
@@ -591,47 +360,6 @@ export function ApplicationApprovalActions({
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-      <Dialog open={paymentReviewDialogOpen} onOpenChange={handlePaymentDialogOpenChange}>
-        <DialogContent size="sm">
-          <DialogHeader>
-            <DialogTitle>{paymentReviewCopy.title}</DialogTitle>
-            <DialogDescription>{paymentReviewCopy.description}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              label={paymentReviewCopy.notesLabel}
-              value={paymentReviewNotes}
-              onChange={(event) => {
-                setPaymentReviewNotes(event.target.value)
-                if (paymentReviewError) {
-                  setPaymentReviewError(null)
-                }
-              }}
-              placeholder={paymentReviewCopy.notesPlaceholder}
-              error={paymentReviewError ?? undefined}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handlePaymentDialogOpenChange(false)}
-              disabled={updatingPayment}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                void handlePaymentUpdate()
-              }}
-              disabled={updatingPayment}
-            >
-              {updatingPayment ? 'Saving...' : paymentReviewCopy.confirmText}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

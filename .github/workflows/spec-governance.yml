@@ -1,0 +1,77 @@
+name: Spec Governance
+
+# Admissions V2 task 0.2 — wires the spec finding/requirement/task/evidence
+# validator (R1.3) into CI. This lives in its OWN workflow file on purpose: the
+# working tree carries unrelated user-owned edits to .github/workflows/ci.yml,
+# and task 0.2 must "add it to CI without modifying unrelated user-owned
+# workflow changes until they are reconciled." A dedicated workflow keeps this
+# gate fully additive — it touches none of those pending ci.yml edits.
+#
+# The validators are standard-library-only Python, so this job needs no pip
+# install, no Postgres, and no Redis; it runs fast.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".kiro/specs/**"
+      - "scripts/validate_spec_metadata.py"
+      - "scripts/validate_spec_governance.py"
+      - "scripts/tests/**"
+      - "docs/v2-evidence/**"
+      - ".github/workflows/spec-governance.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".kiro/specs/**"
+      - "scripts/validate_spec_metadata.py"
+      - "scripts/validate_spec_governance.py"
+      - "scripts/tests/**"
+      - "docs/v2-evidence/**"
+      - ".github/workflows/spec-governance.yml"
+
+concurrency:
+  group: spec-governance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spec-governance:
+    runs-on: ubuntu-latest
+    name: Spec finding/requirement/task/evidence governance (R1.3)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Validator self-tests (stdlib-only unittest). These INCLUDE the
+      # intentional failing fixtures for each R1.3 rule (missing evidence,
+      # unreferenced requirement, unowned finding, duplicate spec ID, false
+      # completed status), so the gate proves the rules actually fail when
+      # violated. No environment gating or skips (R1.4).
+      - name: Validator self-tests (task 0.1 metadata + task 0.2 governance)
+        run: |
+          python3 scripts/tests/test_validate_spec_metadata.py
+          python3 scripts/tests/test_validate_spec_governance.py
+
+      # Rule 4 (repo-wide): every live spec has a unique spec ID and valid
+      # .config.kiro JSON. Blocking.
+      - name: Spec metadata validator (task 0.1, blocking)
+        run: python3 scripts/validate_spec_metadata.py
+
+      # Rules 1, 2, 3, 5 for the active admissions authority spec
+      # (admissions-v2-canonical-rebuild) plus the repo-wide duplicate-ID check.
+      # Blocking: a checked task without linked evidence, an unreferenced
+      # requirement, an unowned finding, a duplicate spec ID, or a falsely
+      # completed V2 spec fails CI.
+      - name: Spec governance validator (task 0.2, blocking)
+        run: python3 scripts/validate_spec_governance.py
+
+      # Informational repo-wide audit of completed-status + evidence across
+      # EVERY live spec. Non-blocking on purpose: it surfaces pre-existing
+      # governance debt in unrelated specs (e.g. the GOV-02 falsely-completed
+      # spec) without turning this task's gate red on work it does not own.
+      # Reconcile those specs, then this can be promoted to blocking.
+      - name: Repo-wide governance audit (informational, non-blocking)
+        run: python3 scripts/validate_spec_governance.py --all-specs || true
+        continue-on-error: true

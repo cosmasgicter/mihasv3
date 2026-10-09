@@ -8,6 +8,12 @@ on:
       - "docs/redis-dependency-tiers.md"
       - "docs/decision/**"
       - ".github/workflows/backend-governance.yml"
+      # Version drift guard (R2, task 1.2) — product-version sources
+      - "apps/admissions/package.json"
+      - "apps/admissions/.env.example"
+      - ".env.example"
+      - "bun.lock"
+      - "scripts/launch-verification/version_eval.py"
   pull_request:
     paths:
       - "backend/**"
@@ -16,6 +22,12 @@ on:
       - "docs/redis-dependency-tiers.md"
       - "docs/decision/**"
       - ".github/workflows/backend-governance.yml"
+      # Version drift guard (R2, task 1.2) — product-version sources
+      - "apps/admissions/package.json"
+      - "apps/admissions/.env.example"
+      - ".env.example"
+      - "bun.lock"
+      - "scripts/launch-verification/version_eval.py"
 
 jobs:
   schema-and-outbox-checks:
@@ -67,6 +79,16 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
           REDIS_URL: redis://localhost:6379/0
         run: pytest tests/unit/test_outbox_helpers.py tests/unit/test_email_outbox_hardening.py tests/unit/test_communication_service.py -q
+
+      - name: Version + API-major drift guard (R2, task 1.2)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+          TESTING: "1"
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          pytest tests/unit/test_version_drift_guard.py -q
+          python3 scripts/generate_version_manifest.py --check-only
 
   drift-guard:
     runs-on: ubuntu-latest

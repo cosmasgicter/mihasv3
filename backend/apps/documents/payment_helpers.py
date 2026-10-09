@@ -211,12 +211,6 @@ def _sanitize_lenco_response(data):
 # Feature flag helper
 # ---------------------------------------------------------------------------
 
-def _forward_only_enabled() -> bool:
-    """Return True when the forward-only transition matrix should be enforced."""
-    from django.conf import settings
-    return bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
-
-
 # ---------------------------------------------------------------------------
 # Lenco API call helpers
 # ---------------------------------------------------------------------------
@@ -317,10 +311,13 @@ def _classify_mobile_money_response(resp, lenco_data: dict) -> tuple[str, dict, 
 
 
 def _resolve_fee_for_application(fee_resolver, application, application_id) -> tuple:
-    """Resolve program fee and apply waiver for an application.
+    """Resolve the canonical program fee and apply any waiver for an application.
 
-    Returns ``(resolved_program, resolved_fee, effective_amount)`` or raises
-    ``ValueError`` if the program cannot be resolved.
+    Returns ``(offering, resolved_fee, effective_amount)``. The offering is the
+    application's canonical ``program_offering`` binding (task 5.2 assignment
+    snapshot); the fee comes only from the canonical ``FeeSchedule``. Fails
+    closed with ``FeeConfigurationError`` (``FEE_NOT_CONFIGURED``) when no unique
+    active fee exists — it never invents a default (DATA-05, STU-08, R12.2).
 
     ``fee_resolver`` is a ``FeeResolver`` instance.
     ``application`` is an Application model instance.
@@ -329,20 +326,9 @@ def _resolve_fee_for_application(fee_resolver, application, application_id) -> t
     import logging as _logging
     _logger = _logging.getLogger(__name__)
 
-    from apps.applications.identifier_resolver import IdentifierResolver
-
-    resolved_program = IdentifierResolver.resolve_program(application.program)
-    if resolved_program.source == "not_found":
-        raise ValueError(
-            f"Cannot resolve program '{application.program}'. "
-            f"Please verify the program exists and is active."
-        )
-
-    resolved = fee_resolver.resolve_fee(
-        program_code=resolved_program.code,
-        nationality=application.nationality,
-        country=getattr(application, 'country', None),
-    )
+    # Canonical: resolve the offering + fee from the application's canonical
+    # binding. Raises FeeConfigurationError (fail closed) rather than defaulting.
+    offering, resolved = fee_resolver.resolve_for_application(application)
 
     effective_amount = resolved.amount
     try:
@@ -357,79 +343,39 @@ def _resolve_fee_for_application(fee_resolver, application, application_id) -> t
             exc_info=True,
         )
 
-    return resolved_program, resolved, effective_amount
+    return offering, resolved, effective_amount
 
 
 def _build_snapshot_dict(
     fee_resolver,
     application,
     application_id,
-    resolved_program,
+    resolved_program=None,
 ) -> tuple:
-    """Resolve fee with snapshot support and build the snapshot dict.
+    """Resolve the canonical fee and build the immutable payment snapshot dict.
 
     Returns ``(resolved_fee, effective_amount, snapshot_dict)``.
-    Tries ``resolve_for_payment_snapshot`` first, falls back to ``resolve_fee``.
+
+    Delegates entirely to ``FeeResolver.resolve_for_payment_snapshot``, which
+    resolves the offering + fee from the application's canonical binding and the
+    canonical ``FeeSchedule``. A ``FeeConfigurationError`` (``FEE_NOT_CONFIGURED``
+    / ``FEE_AMBIGUOUS``) is **propagated**, never swallowed into an invented
+    default (DATA-05, STU-08, R12.2). ``resolved_program`` is accepted for
+    backward compatibility and is unused — the offering is derived canonically.
     """
-    import logging as _logging
-    _logger = _logging.getLogger(__name__)
-
-    resolved = None
-    snapshot_dict: dict = {}
-    snapshot_builder = getattr(fee_resolver, "resolve_for_payment_snapshot", None)
-    if callable(snapshot_builder):
-        try:
-            resolved, snapshot_obj = snapshot_builder(application)
-            snapshot_dict = {
-                "expected_amount": str(snapshot_obj.expected_amount),
-                "currency": snapshot_obj.currency,
-                "residency_category": snapshot_obj.residency_category,
-                "program_code": snapshot_obj.program_code,
-                "intake_id": snapshot_obj.intake_id,
-                "waiver_applied": snapshot_obj.waiver_applied,
-                "original_amount": str(snapshot_obj.original_amount),
-                "fee_source": snapshot_obj.fee_source,
-            }
-        except Exception:
-            _logger.warning(
-                "resolve_for_payment_snapshot failed for application %s — falling back",
-                application_id,
-                exc_info=True,
-            )
-            resolved = None
-
-    if resolved is None:
-        resolved = fee_resolver.resolve_fee(
-            program_code=resolved_program.code,
-            nationality=application.nationality,
-            country=getattr(application, "country", None),
-        )
-
-    effective_amount = resolved.amount
-    try:
-        from apps.documents.fee_waiver_service import FeeWaiverService
-        effective_amount = FeeWaiverService.get_effective_fee(
-            str(application_id), resolved.amount,
-        )
-    except Exception:
-        _logger.warning(
-            "Fee waiver check failed for application %s, using full fee",
-            application_id,
-            exc_info=True,
-        )
-
-    if not snapshot_dict:
-        snapshot_dict = {
-            "expected_amount": str(effective_amount),
-            "currency": resolved.currency,
-            "residency_category": resolved.residency_category,
-            "program_code": resolved_program.code,
-            "intake_id": str(getattr(application, "intake_id", "") or "") or None,
-            "waiver_applied": str(effective_amount) != str(resolved.amount),
-            "original_amount": str(resolved.amount),
-            "fee_source": resolved.source,
-        }
-
+    resolved, snapshot_obj = fee_resolver.resolve_for_payment_snapshot(application)
+    effective_amount = snapshot_obj.expected_amount
+    snapshot_dict = {
+        "expected_amount": str(snapshot_obj.expected_amount),
+        "currency": snapshot_obj.currency,
+        "residency_category": snapshot_obj.residency_category,
+        "program_code": snapshot_obj.program_code,
+        "intake_id": snapshot_obj.intake_id,
+        "waiver_applied": snapshot_obj.waiver_applied,
+        "original_amount": str(snapshot_obj.original_amount),
+        "fee_source": snapshot_obj.fee_source,
+        "configuration_version": snapshot_obj.configuration_version,
+    }
     return resolved, effective_amount, snapshot_dict
 
 
@@ -525,14 +471,6 @@ _ADMIN_REVIEW_STATUS_MAP: dict[str, str] = {
     'rejected': 'failed',
     'deferred': 'deferred',
 }
-
-# Legacy application-status derivation used by _update_payment_status.
-_LEGACY_PAYMENT_TO_APP_STATUS: dict[str, str] = {
-    'successful': 'verified',
-    'paid': 'verified',
-    'failed': 'failed',
-}
-
 
 def _review_application_payment_impl(
     service,
@@ -717,58 +655,9 @@ def _review_application_payment_impl(
         return application
 
 
-def _process_webhook_event_impl(service, event_type: str, reference: str, payload: dict) -> None:
-    """Implementation body for ``PaymentService.process_webhook_event``.
-
-    Extracted to reduce payment_service.py line count while keeping the
-    method entry point on the class (ADR-007).
-    """
-    import logging as _logging
-    from django.db import transaction
-    from django.utils import timezone as _tz
-    from apps.documents.models import Payment
-
-    _logger = _logging.getLogger(__name__)
-
-    try:
-        with transaction.atomic():
-            payment = (
-                Payment.objects.select_for_update()
-                .get(transaction_reference=reference)
-            )
-    except Payment.DoesNotExist:
-        _logger.warning("Webhook references unknown payment: reference=%s", reference)
-        return
-
-    data = payload.get('data', {})
-
-    if event_type == 'collection.successful':
-        from apps.documents.payment_state_machine import check_legacy_mismatch
-        mismatch = check_legacy_mismatch(data, payment.amount, payment.currency)
-        if mismatch is not None:
-            _logger.warning("Webhook %s for payment %s -- skipping", mismatch[0], payment.id)
-            return
-        service._update_payment_status(payment, 'successful', data)
-
-    elif event_type == 'collection.failed':
-        service._update_payment_status(payment, 'failed', data)
-
-    elif event_type == 'collection.settled':
-        meta = payment.metadata or {}
-        meta['settlement'] = data.get('settlement', data)
-        payment.metadata = meta
-        payment.updated_at = _tz.now()
-        payment.save(update_fields=['metadata', 'updated_at'])
-        _logger.info("Settlement metadata updated for payment %s", payment.id)
-
-    else:
-        _logger.info("Ignoring unrecognised webhook event_type=%s", event_type)
-
-
 __all__ = [
     "_ADMIN_REVIEW_STATUS_MAP",
     "_AIRTEL_PREFIXES",
-    "_LEGACY_PAYMENT_TO_APP_STATUS",
     "_MTN_PREFIXES",
     "_PII_KEYS_IN_LENCO_RESPONSE",
     "_build_snapshot_dict",
@@ -776,14 +665,55 @@ __all__ = [
     "_call_lenco_mobile_money",
     "_check_retry_limit",
     "_classify_mobile_money_response",
-    "_forward_only_enabled",
     "_generate_receipt_number",
     "_generate_reference",
     "_normalize_phone_e164",
     "_operator_for_msisdn",
     "_parse_amount",
-    "_process_webhook_event_impl",
     "_resolve_fee_for_application",
     "_review_application_payment_impl",
     "_sanitize_lenco_response",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Fee-authority error translation (task 8.1)
+# ---------------------------------------------------------------------------
+
+
+def fee_authority_error_response(exc):
+    """Translate a fee/quote authority failure into the canonical error envelope.
+
+    ``FeeConfigurationError`` (``FEE_NOT_CONFIGURED`` / ``FEE_AMBIGUOUS``) and
+    ``FeeQuoteError`` (``QUOTE_EXPIRED``, ``QUOTE_ALREADY_REDEEMED``,
+    ``QUOTE_INVALID``, ``QUOTE_CONFIGURATION_CHANGED``, ``QUOTE_NOT_FOUND``) all
+    carry a stable ``code`` / ``message`` / ``status_code``, so every payment view
+    surfaces the same recoverable answer instead of a generic 500 (R12.2, R12.6).
+
+    Returns ``None`` when *exc* is not a fee-authority error, so callers can fall
+    through to their existing handling.
+
+    DRF is imported lazily to keep this helper module importable from
+    framework-neutral service code.
+    """
+    from apps.documents.fee_quote_service import FeeQuoteError
+    from apps.documents.fee_resolver import FeeConfigurationError
+
+    if not isinstance(exc, (FeeConfigurationError, FeeQuoteError)):
+        return None
+
+    from rest_framework.response import Response
+
+    code = getattr(exc, "code", "FEE_UNAVAILABLE")
+    message = getattr(exc, "message", None) or str(exc)
+    http_status = int(getattr(exc, "status_code", 422) or 422)
+    body = {
+        "success": False,
+        "error": {"code": code, "message": message},
+        "code": code,
+    }
+    if getattr(exc, "retryable", False):
+        # R12.6: the UI needs a named recovery action, not a dead end. A retryable
+        # fee/quote failure is resolved by requesting a fresh quote.
+        body["data"] = {"next_action": "refresh_quote"}
+    return Response(body, status=http_status)

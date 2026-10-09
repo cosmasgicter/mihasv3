@@ -1,0 +1,19 @@
+=== 13.6 SECOND PASS (O10) — spec governance validator ===
+DATE: 2026-08-14T19:38:29Z
+CMD : python3 scripts/validate_spec_governance.py
+STATE: FINAL — after all twelve lane items L1-L12, after this pass's findings.md
+       state updates, and after this pass's tasks.md edit (13.6's bullets only).
+FIRST PASS: exit 2, 2 errors (tasks 4.1 and 7.4 checked with no evidence directory)
+
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 0  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=71 tasks=73 (checked=71)
+
+RESULT: PASS
+EXIT=0

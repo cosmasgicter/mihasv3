@@ -19,24 +19,28 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin
 from apps.applications.interview_service import (
     InterviewSchedulingError,
     InterviewService,
 )
 from apps.applications.models import Application, ApplicationInterview
-from apps.applications.serializers import (
-    ApplicationInterviewSerializer,
+from apps.applications.serializers import ApplicationInterviewSerializer
+from apps.catalog.services import (
+    AccessScopeService,
+    AdminCapabilityService,
+    CapabilityResolutionError,
 )
-from apps.catalog.services import AccessScopeService
 from apps.common.openapi_helpers import ErrorResponseSerializer
+from apps.common.tenant_authorization import (
+    resolve_owner_or_scoped_application,
+    resolve_scoped_application,
+)
 
 from ._view_helpers import (
     ApplicationInterviewListResponseSerializer,
     ApplicationInterviewResponseSerializer,
     ApplicationInterviewWriteSerializer,
     ApplicationMessageResponseSerializer,
-    _staff_can_access_application,
 )
 
 logger = logging.getLogger(__name__)
@@ -81,14 +85,16 @@ class ApplicationInterviewListView(APIView):
 
         queryset = ApplicationInterview.objects.select_related("application", "application__user")
 
-        if mine_only or not IsAdmin().has_permission(request, self):
+        try:
+            staff_can_read = AdminCapabilityService().has_any_application_capability(
+                request.user, "tenant.application.read"
+            )
+        except CapabilityResolutionError:
+            staff_can_read = False
+
+        if mine_only or not staff_can_read:
             queryset = queryset.filter(application__user_id=request.user.id)
         else:
-            # R5.2/R5.9: staff (non-`mine`) see only interviews for
-            # applications in their AccessScopeService scope. Super-admins
-            # keep the full set; a scoped admin never sees another school's
-            # interviews. Narrowing on the canonical application FK, never
-            # Legacy_String_Fields (R5.8).
             scoped_app_ids = AccessScopeService().filter_applications(
                 Application.objects.all(), request.user
             ).values_list("id", flat=True)
@@ -183,38 +189,33 @@ class ApplicationInterviewView(APIView):
     serializer_class = ApplicationInterviewSerializer
 
     def get(self, request, application_id):
-        try:
-            application = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not IsOwnerOrAdmin().has_object_permission(request, self, application):
-            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
-
-        # R5.2/R5.9: a staff caller (role admin) authorized above by role must
-        # also be in AccessScopeService scope for this application; otherwise
-        # mask as a genuine not-found (R5.4, R16.4). The owner path is
-        # unaffected.
-        role = getattr(request.user, "role", "student")
-        if role in ("admin", "super_admin") and not _staff_can_access_application(request, application):
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        application = resolve_owner_or_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.read",
+            queryset=Application.objects.all(),
+        )
 
         interviews = ApplicationInterview.objects.select_related("application", "application__user").filter(application_id=application_id).order_by("-scheduled_at")
         return Response({"success": True, "data": ApplicationInterviewSerializer(interviews, many=True).data})
 
     def post(self, request, application_id):
-        if not IsAdmin().has_permission(request, self):
-            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
 
-        try:
-            application = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-
-        # R5.2/R5.9: out-of-scope staff are masked as not-found before any
-        # write side effect (no interview is scheduled for another school).
-        if not _staff_can_access_application(request, application):
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        application = resolve_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.review",
+            queryset=Application.objects.all(),
+        )
+        # Versioned command (task 9.4): scheduling an interview is a decision the
+        # applicant is told about, so it may not be issued from a stale view.
+        ApplicationReviewWorkspaceService.assert_version(
+            application, read_expected_version(request)
+        )
 
         serializer = ApplicationInterviewWriteSerializer(data=request.data)
         if not serializer.is_valid():
@@ -247,6 +248,7 @@ class ApplicationInterviewView(APIView):
         response_data = ApplicationInterviewSerializer(interview).data
         if validation.get("warnings"):
             response_data["warnings"] = validation["warnings"]
+        response_data["version"] = ApplicationReviewWorkspaceService.bump_version(application)
         return Response({"success": True, "data": response_data}, status=status.HTTP_201_CREATED)
 
     def patch(self, request, application_id):
@@ -256,18 +258,21 @@ class ApplicationInterviewView(APIView):
         return self._update_latest_interview(request, application_id)
 
     def _update_latest_interview(self, request, application_id):
-        if not IsAdmin().has_permission(request, self):
-            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
 
-        # R5.2/R5.9: mask out-of-scope applications as not-found before
-        # mutating any interview (a scoped admin cannot edit another school's
-        # interview).
-        try:
-            application = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        if not _staff_can_access_application(request, application):
-            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        application = resolve_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.review",
+            queryset=Application.objects.all(),
+            not_found_detail="Interview not found",
+        )
+        ApplicationReviewWorkspaceService.assert_version(
+            application, read_expected_version(request)
+        )
 
         interview = (
             ApplicationInterview.objects.select_related("application", "application__user")
@@ -321,6 +326,7 @@ class ApplicationInterviewView(APIView):
             response_data = ApplicationInterviewSerializer(updated_interview).data
             if validation.get("warnings"):
                 response_data["warnings"] = validation["warnings"]
+            response_data["version"] = ApplicationReviewWorkspaceService.bump_version(application)
             return Response({"success": True, "data": response_data})
 
         if new_status == "cancelled":
@@ -336,7 +342,11 @@ class ApplicationInterviewView(APIView):
                     {"success": False, "error": exc.message, "code": exc.code},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            return Response({"success": True, "data": ApplicationInterviewSerializer(updated_interview).data})
+            cancelled_payload = ApplicationInterviewSerializer(updated_interview).data
+            cancelled_payload["version"] = ApplicationReviewWorkspaceService.bump_version(
+                application
+            )
+            return Response({"success": True, "data": cancelled_payload})
 
         mode = serializer.validated_data.get("mode", "").strip()
         if mode:
@@ -368,20 +378,26 @@ class ApplicationInterviewView(APIView):
             update_fields.append("notes")
 
         interview.save(update_fields=update_fields)
-        return Response({"success": True, "data": ApplicationInterviewSerializer(interview).data})
+        updated_payload = ApplicationInterviewSerializer(interview).data
+        updated_payload["version"] = ApplicationReviewWorkspaceService.bump_version(application)
+        return Response({"success": True, "data": updated_payload})
 
     def delete(self, request, application_id):
-        if not IsAdmin().has_permission(request, self):
-            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
 
-        # R5.2/R5.9: mask out-of-scope applications as not-found before
-        # deleting any interview.
-        try:
-            application = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        if not _staff_can_access_application(request, application):
-            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        application = resolve_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.review",
+            queryset=Application.objects.all(),
+            not_found_detail="Interview not found",
+        )
+        ApplicationReviewWorkspaceService.assert_version(
+            application, read_expected_version(request)
+        )
 
         interview = (
             ApplicationInterview.objects.select_related("application", "application__user")
@@ -394,4 +410,7 @@ class ApplicationInterviewView(APIView):
             return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         interview.delete()
-        return Response({"success": True, "data": {"message": "Interview deleted"}})
+        return Response({"success": True, "data": {
+            "message": "Interview deleted",
+            "version": ApplicationReviewWorkspaceService.bump_version(application),
+        }})

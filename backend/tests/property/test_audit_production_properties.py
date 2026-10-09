@@ -111,25 +111,26 @@ class TestTrackingFormatValidation:
 
     @given(code=_valid_tracking_codes)
     @_default_settings
-    def test_valid_format_codes_pass_validation(self, code):
-        """Valid-format tracking codes should NOT get a 400 INVALID_FORMAT response.
+    def test_legacy_identifier_shapes_are_recognised_not_authorised(self, code):
+        """A recognised legacy identifier is refused as such, never as malformed.
 
-        They should either get 404 (not found in DB) or 200 (found).
-        The format validation step must accept them.
+        Pre-10.5 this asserted 404 for these shapes: an application number and a
+        legacy ``TRK-`` code **were** public credentials, so a well-formed one
+        reached the database. admissions-v2 task 10.5 (R13.12) removed that
+        authority. The distinction this property protects survives — a recognised
+        identifier is *not* answered with ``INVALID_FORMAT``, because telling a
+        student "that is not a code" when it plainly is their application number is
+        the confusing failure the original bug report was about. It is now
+        ``TRACKING_SECRET_REQUIRED``, and it is answered without a lookup.
         """
-        with patch("apps.applications.public_views.Application.objects") as mock_qs:
-            from apps.applications.models import Application
-            mock_qs.get.side_effect = Application.DoesNotExist
+        request = self.factory.get(f"/api/v1/applications/track/?code={code}")
+        response = self.view(request)
 
-            request = self.factory.get(f"/api/v1/applications/track/?code={code}")
-            response = self.view(request)
-
-            # Valid format codes pass validation — they get 404 (not found), not 400
-            assert response.status_code != 400, (
-                f"Valid format code '{code}' was rejected with 400: {response.data}"
-            )
-            assert response.status_code == 404, (
-                f"Expected 404 for valid-format non-existent code '{code}', got {response.status_code}"
+        assert response.data.get("code") != "INVALID_FORMAT", (
+            f"Recognised identifier '{code}' was answered as malformed: {response.data}"
+        )
+        assert response.data.get("code") == "TRACKING_SECRET_REQUIRED", (
+            f"Expected TRACKING_SECRET_REQUIRED for '{code}', got {response.data}"
             )
 
     @given(code=_arbitrary_strings)

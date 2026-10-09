@@ -1,0 +1,392 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/0.4/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "gatecheck/console.gate.spec.ts",
+      "file": "gatecheck/console.gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "gatecheck: an unexpected console error fails the run",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gatecheck-negative",
+              "projectName": "gatecheck-negative",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 556,
+                  "error": {
+                    "message": "Error: Harness gate failed (1 violation(s)):\n  - console.error: GATECHECK intentional console error",
+                    "stack": "Error: Harness gate failed (1 violation(s)):\n  - console.error: GATECHECK intentional console error\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:108:15)",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                      "column": 15,
+                      "line": 108
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mharness-fixtures.ts:108\n\n  106 |       const violations = gate.collectViolations();\n  107 |       if (violations.length > 0) {\n> 108 |         throw new Error(\n      |               ^\n  109 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  110 |         );\n  111 |       }"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                        "column": 15,
+                        "line": 108
+                      },
+                      "message": "Error: Harness gate failed (1 violation(s)):\n  - console.error: GATECHECK intentional console error\n\n   at harness-fixtures.ts:108\n\n  106 |       const violations = gate.collectViolations();\n  107 |       if (violations.length > 0) {\n> 108 |         throw new Error(\n      |               ^\n  109 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  110 |         );\n  111 |       }\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:108:15)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-15T06:52:55.029Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/gatecheck-console.gate-gat-3904b-console-error-fails-the-run-gatecheck-negative/test-failed-1.png"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                    "column": 15,
+                    "line": 108
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "2e0cf982f5c362a78f2e-8d694584f74b4867708a",
+          "file": "gatecheck/console.gate.spec.ts",
+          "line": 9,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "gatecheck/failed-request.gate.spec.ts",
+      "file": "gatecheck/failed-request.gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "gatecheck: an unasserted failed request fails the run",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gatecheck-negative",
+              "projectName": "gatecheck-negative",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 858,
+                  "error": {
+                    "message": "Error: Harness gate failed (2 violation(s)):\n  - console.error: Failed to load resource: net::ERR_NAME_NOT_RESOLVED\n  - failed request [requestfailed]: http://gatecheck.invalid/boom (net::ERR_NAME_NOT_RESOLVED)",
+                    "stack": "Error: Harness gate failed (2 violation(s)):\n  - console.error: Failed to load resource: net::ERR_NAME_NOT_RESOLVED\n  - failed request [requestfailed]: http://gatecheck.invalid/boom (net::ERR_NAME_NOT_RESOLVED)\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:108:15)",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                      "column": 15,
+                      "line": 108
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mharness-fixtures.ts:108\n\n  106 |       const violations = gate.collectViolations();\n  107 |       if (violations.length > 0) {\n> 108 |         throw new Error(\n      |               ^\n  109 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  110 |         );\n  111 |       }"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                        "column": 15,
+                        "line": 108
+                      },
+                      "message": "Error: Harness gate failed (2 violation(s)):\n  - console.error: Failed to load resource: net::ERR_NAME_NOT_RESOLVED\n  - failed request [requestfailed]: http://gatecheck.invalid/boom (net::ERR_NAME_NOT_RESOLVED)\n\n   at harness-fixtures.ts:108\n\n  106 |       const violations = gate.collectViolations();\n  107 |       if (violations.length > 0) {\n> 108 |         throw new Error(\n      |               ^\n  109 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  110 |         );\n  111 |       }\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:108:15)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-15T06:52:58.030Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/gatecheck-failed-request.g-054e9-ailed-request-fails-the-run-gatecheck-negative/test-failed-1.png"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                    "column": 15,
+                    "line": 108
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fc27d15b5affaff36dfa-fb916ab32f8f6fa2d646",
+          "file": "gatecheck/failed-request.gate.spec.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "gatecheck/skip.gate.spec.ts",
+      "file": "gatecheck/skip.gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "gatecheck: calling test.skip converts to a failure",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gatecheck-negative",
+              "projectName": "gatecheck-negative",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 308,
+                  "error": {
+                    "message": "Error: test.skip is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).",
+                    "stack": "Error: test.skip is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).\n    at Function.skip (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:123:11)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/skip.gate.spec.ts:12:8",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                      "column": 11,
+                      "line": 123
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mharness-fixtures.ts:123\n\n  121 | const forbid = (name: string) => {\n  122 |   return (..._args: unknown[]): never => {\n> 123 |     throw new Error(\n      |           ^\n  124 |       `${name} is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).`,\n  125 |     );\n  126 |   };"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                        "column": 11,
+                        "line": 123
+                      },
+                      "message": "Error: test.skip is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).\n\n   at harness-fixtures.ts:123\n\n  121 | const forbid = (name: string) => {\n  122 |   return (..._args: unknown[]): never => {\n> 123 |     throw new Error(\n      |           ^\n  124 |       `${name} is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).`,\n  125 |     );\n  126 |   };\n    at Function.skip (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:123:11)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/skip.gate.spec.ts:12:8"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-15T06:53:01.339Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/gatecheck-skip.gate-gatech-8f2a7--skip-converts-to-a-failure-gatecheck-negative/test-failed-1.png"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                    "column": 11,
+                    "line": 123
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b5e348fb9977fd95ffdf-16389bb6ccc13229dc5f",
+          "file": "gatecheck/skip.gate.spec.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "gatecheck/undrained.gate.spec.ts",
+      "file": "gatecheck/undrained.gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "gatecheck: an undrained background job fails the run",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gatecheck-negative",
+              "projectName": "gatecheck-negative",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3477,
+                  "error": {
+                    "message": "Error: Undrained required jobs after 3000ms: {\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":1,\"unsettled_references\":[\"GATECHECK-UNSETTLED-1784098384359\"]} — background work (Celery queue / payment collections) did not settle (R18.4).",
+                    "stack": "Error: Undrained required jobs after 3000ms: {\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":1,\"unsettled_references\":[\"GATECHECK-UNSETTLED-1784098384359\"]} — background work (Celery queue / payment collections) did not settle (R18.4).\n    at assertRequiredJobsDrained (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts:79:9)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/undrained.gate.spec.ts:23:3",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts",
+                      "column": 9,
+                      "line": 79
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mhelpers/ops.ts:79\n\n  77 |     await new Promise((r) => setTimeout(r, 1000));\n  78 |   }\n> 79 |   throw new Error(\n     |         ^\n  80 |     `Undrained required jobs after ${timeoutMs}ms: ${JSON.stringify(last)} — background work ` +\n  81 |       `(Celery queue / payment collections) did not settle (R18.4).`,\n  82 |   );"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts",
+                        "column": 9,
+                        "line": 79
+                      },
+                      "message": "Error: Undrained required jobs after 3000ms: {\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":1,\"unsettled_references\":[\"GATECHECK-UNSETTLED-1784098384359\"]} — background work (Celery queue / payment collections) did not settle (R18.4).\n\n   at helpers/ops.ts:79\n\n  77 |     await new Promise((r) => setTimeout(r, 1000));\n  78 |   }\n> 79 |   throw new Error(\n     |         ^\n  80 |     `Undrained required jobs after ${timeoutMs}ms: ${JSON.stringify(last)} — background work ` +\n  81 |       `(Celery queue / payment collections) did not settle (R18.4).`,\n  82 |   );\n    at assertRequiredJobsDrained (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts:79:9)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/undrained.gate.spec.ts:23:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-15T06:53:03.896Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/gatecheck-undrained.gate-g-3a5ce-ackground-job-fails-the-run-gatecheck-negative/test-failed-1.png"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts",
+                    "column": 9,
+                    "line": 79
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "b8bef506d6cd7e45ccf3-b2bb0855c913ff4bc14e",
+          "file": "gatecheck/undrained.gate.spec.ts",
+          "line": 17,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-15T06:52:52.898Z",
+    "duration": 15050.920000000002,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

@@ -4,7 +4,6 @@
  * Provides visual feedback within 100ms
  */
 
-import React from 'react'
 import { cn } from '@/lib/utils'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 

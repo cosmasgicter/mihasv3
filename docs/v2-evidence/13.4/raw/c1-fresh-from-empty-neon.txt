@@ -1,0 +1,318 @@
+]633;E;echo "== Clause 1: migration from empty, on the Neon rehearsal branch ==";2e0bedb6-b657-4de6-a377-09b9dee9f193]633;C== Clause 1: migration from empty, on the Neon rehearsal branch ==
+Target: disposable database v2_fresh_13_4 on branch br-jolly-pine-ahybtg2e.
+Task 13.1 proved this path on a LOCAL throwaway Postgres 16.14. The difference
+this task's bullet asks for is that it runs on NEON (Postgres 17.10) and is timed.
+Nothing here touches the Neon default branch or production.
+
+### 2026-08-12T15:08:15Z [C1] pre-state: base tables in v2_fresh_13_4 (empty)
+0 base tables
+### 2026-08-12T15:08:17Z [C1] apply backend/scripts/00_full_schema.sql
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+### 2026-08-12T15:09:58Z [C1] apply 2026_05_22_migration_history_extend.sql
+ALTER TABLE
+CREATE INDEX
+### 2026-08-12T15:10:25Z [C1] apply_sql_migrations --allow-non-additive (41 scripts)
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Pending migrations: 41/41
+  applying: 2026_05_18_expand_application_status_columns.sql (sha256=384810082d2d) ... OK
+  applying: 2026_05_18_hot_query_indexes.sql (sha256=afff4eff9b19) ... OK
+  applying: 2026_05_19_seed_communication_templates.sql (sha256=913afa433b49) ... OK
+  applying: 2026_05_22_device_sessions_refresh_jti.sql (sha256=f689d42bf75e) ... OK
+  applying: 2026_05_22_fk_index_backfill.sql (sha256=fa8b9a8965d9) ... OK
+  applying: 2026_05_22_migration_history_extend.sql (sha256=9df62f34f0ed) ... OK
+  applying: 2026_05_22_migration_history_reconcile.sql (sha256=c49fd3dae057) ... OK
+  applying: 2026_06_08_01_multi_tenant_beanola_admissions.sql (sha256=7f0e69390dff) ... OK
+  applying: 2026_06_08_03_institution_document_profiles.sql (sha256=8a4007e90d58) ... OK
+  applying: 2026_06_08_04_communication_templates_tenant.sql (sha256=168fcfab5df7) ... OK
+  applying: 2026_06_08_student_number.sql (sha256=57165411afb5) ... OK
+  applying: 2026_06_18_01_institution_domain_lifecycle.sql (sha256=052aedf10471) ... OK
+  applying: 2026_06_25_01_multi_tenant_fk_index_backfill.sql (sha256=7b8a185d8019) ... OK
+  applying: 2026_06_25_02_jobs_ops_scaffold_tables.sql (sha256=21f5db3627ca) ... OK
+  applying: 2026_07_16_01_canonical_assignment_expand.sql (sha256=c35c29796e02) ... OK
+  applying: 2026_07_16_02_canonical_assignment_backfill.sql (sha256=92d8d09e3d75) ... OK
+  applying: 2026_07_16_03_canonical_assignment_validate.sql (sha256=c1100026111b) ... OK
+  applying: 2026_07_17_01_integrity_constraints_expand.sql (sha256=fa13a52246e3) ... OK
+  applying: 2026_07_17_02_communication_template_unique_switch.sql (sha256=80bcffd8cdfd) ... OK
+  applying: 2026_07_18_01_tenant_fk_validate.sql (sha256=c60fc91154c7) ... OK
+  applying: 2026_07_19_01_payments_documents_expand.sql (sha256=861cdec7fb24) ... OK
+  applying: 2026_07_19_02_payments_documents_backfill.sql (sha256=f07b48b821b3) ... OK
+  applying: 2026_07_19_03_payments_documents_validate.sql (sha256=757c02c44883) ... OK
+  applying: 2026_07_20_01_tenant_onboarding.sql (sha256=570474d14cf3) ... OK
+  applying: 2026_07_21_01_tenant_staff_invitations.sql (sha256=e2c6a9fbd2af) ... OK
+  applying: 2026_07_22_01_tenant_change_requests.sql (sha256=8f83fb165767) ... OK
+  applying: 2026_07_23_01_application_assignment_snapshot.sql (sha256=e5e514adfc4b) ... OK
+  applying: 2026_07_24_01_application_draft_name.sql (sha256=305f8ee21b07) ... OK
+  applying: 2026_07_25_01_canonical_subject_catalog.sql (sha256=64c2550009c1) ... OK
+  applying: 2026_07_26_01_document_evidence_lifecycle.sql (sha256=4daf5f9ce42c) ... OK
+  applying: 2026_07_26_02_document_current_slot_alignment.sql (sha256=c40ff6bac9a6) ... OK
+  applying: 2026_07_30_01_payment_fee_quotes.sql (sha256=3b8979de1449) ... OK
+  applying: 2026_08_06_01_admin_saved_filters.sql (sha256=5547808b8033) ... OK
+  applying: 2026_08_09_01_application_tracking_secret.sql (sha256=3cc2e7416ecd) ... OK
+  applying: application_number_sequences.sql (sha256=34c7c776c7ce) ... OK
+  applying: backfill_application_documents_from_legacy_urls.sql (sha256=bdb0f8e28ece) ... OK
+  applying: backfill_profiles_sex_lowercase.sql (sha256=9f201dca36a7) ... OK
+  applying: perf_idx_applications_status_submitted_at.sql (sha256=6a81b44c0c3c) ... OK
+  applying: schema_cleanup_device_session_default.sql (sha256=dd4ad056bfa4) ... OK
+  applying: schema_cleanup_drop_stale_columns.sql (sha256=629381770d61) ... OK
+  applying: system_actor_seed.sql (sha256=bbf9561f2cee) ... OK
+Applied 41 migration(s) successfully.
+### 2026-08-12T15:12:55Z [C1] schema_manifest --emit fresh-from-empty-neon
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Wrote manifest 'fresh-from-empty-neon' -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.4/raw/manifest.fresh-from-empty-neon.json (vendor=postgresql reduced=False tables=89 fingerprint=sha256:a48a176d78ed2663ecfd4272793fbfaba60750a1dd38a60101a838cf312c629b)
+### 2026-08-12T15:13:53Z [C1] schema_manifest --verify (BEFORE the 13.4 validate script)
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_requested_by_id_fk - FK is NOT VALID: FOREIGN KEY (requested_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_reviewed_by_id_fk - FK is NOT VALID: FOREIGN KEY (reviewed_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_invited_by_id_fk - FK is NOT VALID: FOREIGN KEY (invited_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_membership_id_fk - FK is NOT VALID: FOREIGN KEY (membership_id) REFERENCES user_institution_memberships(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_profile_id_fk - FK is NOT VALID: FOREIGN KEY (profile_id) REFERENCES profiles(id) NOT VALID
+DRIFT: 9 failure(s), 0 warning(s).

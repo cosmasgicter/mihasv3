@@ -1,7 +1,10 @@
 import React, { useCallback, useState } from 'react'
-import { Eye, FileText, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
+import { FileText, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
+import { AdminRecordActions } from '@/components/admin/AdminRecordActions'
+import { applicationDecisionCommandCount } from '@/lib/adminApplicationCommands'
+import type { AdminRecordCommand } from '@/lib/adminRecordCommands'
 import { useToastStore } from '@/hooks/useToast'
 import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
 import { applicationService } from '@/services/applications'
@@ -82,10 +85,10 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     const normalizedStatus = normalizePaymentStatus(paymentStatus)
     const paymentConfig = {
       not_paid: { color: 'bg-muted/80 text-muted-foreground', icon: Clock },
-      pending_review: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
-      verified: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle },
-      deferred: { color: 'bg-amber-100/80 text-amber-700', icon: AlertTriangle }
+      pending_review: { color: 'bg-warning/10 text-warning', icon: Clock },
+      verified: { color: 'bg-success/10 text-success', icon: CheckCircle },
+      rejected: { color: 'bg-destructive/10 text-destructive', icon: XCircle },
+      deferred: { color: 'bg-warning/10 text-warning', icon: AlertTriangle }
     }
 
     const config = paymentConfig[normalizedStatus]
@@ -140,6 +143,44 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
   const documentsCount = [app.result_slip_url, app.extra_kyc_url].filter(Boolean).length
 
+  /**
+   * How many commands the decision block contributes to this row's disclosure
+   * (task 11.4). Enumerated by `adminApplicationCommands`, which is a mirror of
+   * `ApplicationApprovalActions` and is drift-guarded against it, so the label on
+   * the trigger states a number the panel really holds.
+   */
+  const decisionCommandCount = applicationDecisionCommandCount({
+    status: app.status,
+    paymentStatus: app.payment_status,
+  })
+
+  /**
+   * The row's own commands, as data.
+   *
+   * "Open review" opens the review workspace. It is deliberately **not** labelled
+   * "Review": the decision block's transition out of `submitted` already carries
+   * that exact word, and once both live on one row a sheet with two differently
+   * behaving "Review" buttons is an ambiguous accessible name (R16.2) — one opens
+   * a surface, the other records a state change.
+   */
+  const commands: AdminRecordCommand[] = [
+    {
+      id: 'review',
+      label: 'Open review',
+      prominence: 'primary',
+      onSelect: () => onViewDetails(app.id),
+    },
+    ...(app.isDraft
+      ? [
+          {
+            id: 'contact',
+            label: 'Contact applicant',
+            prominence: 'overflow' as const,
+            onSelect: () => setShowCommunicationModal(true),
+          },
+        ]
+      : []),
+  ]
 
   return (
     <article className={`relative min-w-0 rounded-lg border bg-card p-4 shadow-sm transition-colors duration-200 sm:p-5 ${
@@ -183,26 +224,45 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         </div>
       </div>
 
-      {/* Draft Status Banner */}
+      {/*
+        Draft status banner. Design tokens, not raw palette steps (admissions-v2
+        task 11.5, R16.4 — task 11.4 §11 named `bg-yellow-50` / `text-yellow-800`
+        here). `warning` is the semantic role this banner has always had, and it
+        is the token the rest of the roster row already uses.
+      */}
       {app.isDraft && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-yellow-600" />
-              <span className="min-w-0 break-words text-sm font-medium text-yellow-800">Draft Application</span>
+              <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+              <span className="min-w-0 break-words text-sm font-medium text-warning">Draft Application</span>
             </div>
-            <div className="min-w-0 break-words text-xs text-yellow-700">
+            <div className="min-w-0 break-words text-xs text-muted-foreground">
               Last updated: {formatDate(app.lastUpdated)}
             </div>
           </div>
-          <div className="mt-2">
-            <div className="w-full bg-yellow-100 rounded-full h-2">
+          {/*
+            The progress bar appears only when the server told us how complete
+            the draft is. A bar drawn at 0% for an unknown would read as "this
+            applicant has done nothing" (task 9.1, R8.6).
+          */}
+          {typeof app.completionPercentage === 'number' && (
+            <div className="mt-2">
               <div
-                className="bg-yellow-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${app.completionPercentage}%` }}
-              />
+                className="h-2 w-full rounded-full bg-warning/15"
+                role="progressbar"
+                aria-valuenow={app.completionPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Draft ${app.completionPercentage}% complete`}
+              >
+                <div
+                  className="h-2 rounded-full bg-warning transition-all duration-300 motion-reduce:transition-none"
+                  style={{ width: `${app.completionPercentage}%` }}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -220,8 +280,18 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         )}
       </div>
 
-      {/* Program Info */}
-      <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3">
+      {/*
+        Program info — a *section* of this card, not a card inside it
+        (admissions-v2 task 11.5, R16.4; PRODUCT.md "one container deep").
+
+        This block was `rounded-lg border border-border bg-muted/40 p-3`: a second
+        bordered, filled, rounded surface drawn inside a surface that already has
+        a border, a fill and a shadow. Task 11.4 §11 named it as the roster card's
+        remaining inherited nesting and left it here. It is a rule separating the
+        applicant's contact details above from the payment/grades grid below now —
+        the same grouping, one container fewer.
+      */}
+      <div className="mb-4 border-t border-border/45 pt-3">
         <div className="mb-1 flex min-w-0 items-start gap-2">
           <GraduationCap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           <span className="min-w-0 break-words text-sm font-medium text-foreground">{app.program}</span>
@@ -240,25 +310,43 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         <div>
           <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
-          <div className="mt-1 min-w-0 break-words text-sm font-medium text-foreground">
-            {app.payment_currency && app.payment_currency !== 'ZMW'
-              ? `${app.payment_currency} ${app.paid_amount || 0} / ${app.payment_currency} ${app.application_fee}`
-              : `K${app.paid_amount || 0} / K${app.application_fee}`}
-          </div>
+          {/*
+            The amounts are printed only when the server sent them. The scoped
+            roster contract (task 9.1) does not carry money — `application_fee`
+            and `paid_amount` are `null` on a roster row and the review workspace
+            fetches them for the one application an operator opened — so this line
+            used to render the string `K0 / Knull` on every row at every width. A
+            `null` interpolated into a currency string is not a number, and task
+            9.1's own rule for this contract is that unknown means "not on this
+            surface" and renders nothing, never a zero that reads as a fact.
+          */}
+          {app.application_fee !== null && app.application_fee !== undefined && (
+            <div className="mt-1 min-w-0 break-words text-sm font-medium text-foreground">
+              {app.payment_currency && app.payment_currency !== 'ZMW'
+                ? `${app.payment_currency} ${app.paid_amount ?? 0} / ${app.payment_currency} ${app.application_fee}`
+                : `K${app.paid_amount ?? 0} / K${app.application_fee}`}
+            </div>
+          )}
           {normalizePaymentStatus(app.payment_status) === 'deferred' && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-amber-700">
+            <div className="mt-1 flex items-center gap-1 text-xs text-warning">
               <Phone className="h-3 w-3" />
               <span>Contact Student</span>
             </div>
           )}
         </div>
         
-        {app.total_subjects > 0 && (
+        {/*
+          Grades are detail data, not triage data: the scoped roster contract
+          (task 9.1) does not carry them, and the review workspace fetches them
+          for the one application an operator opened. `null` therefore means "not
+          on this surface" and renders nothing — never "0 subjects".
+        */}
+        {typeof app.total_subjects === 'number' && app.total_subjects > 0 && (
           <div>
             <div className="text-xs text-muted-foreground mb-1">Academic</div>
             <div className="text-sm">
               <span className="text-foreground">{app.total_subjects} subjects</span>
-              {app.points > 0 && (
+              {typeof app.points === 'number' && app.points > 0 && (
                 <div className={`font-medium ${getPointsColor(app.points)}`}>
                   Points: {app.points}
                 </div>
@@ -269,8 +357,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       </div>
 
       {app.last_payment_audit_notes && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-amber-900 mb-1">
+        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
+          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-warning">
             Latest Payment Review Note
           </div>
           <div className="text-sm text-foreground break-words">
@@ -298,56 +386,52 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         </div>
       )}
 
-      {/* Status Controls */}
-      <ApplicationApprovalActions
-        applicationId={app.id}
-        currentStatus={app.status}
-        currentPaymentStatus={app.payment_status}
-        onStatusUpdate={async (id, status) => { await onStatusUpdate(id, status) }}
-        onPaymentStatusUpdate={async (id, status, verificationNotes) => {
-          await onPaymentStatusUpdate(id, status, verificationNotes)
-        }}
-        disabled={updatingStatus || updatingPayment}
-      />
+      {/*
+        One primary command and one counted disclosure for every remaining one
+        (task 11.4, R16.1-R16.2 — the roster half of ADM-01).
 
-      {/* Actions */}
-      <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => onViewDetails(app.id)}
-          className="flex min-h-touch flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
-        >
-          <Eye className="h-4 w-4" />
-          View Details
-        </button>
-        
-        {/* Contact Applicant Button - Show for draft applications */}
-        {app.isDraft && (
-          <button
-            type="button"
-            onClick={() => setShowCommunicationModal(true)}
-            className="flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
-            title="Contact Applicant"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Contact
-          </button>
-        )}
-        
-        {documentsCount > 0 && (
-          <div className="flex gap-1">
-            {app.result_slip_url && (
-              <button
-                type="button"
-                onClick={() => onViewDetails(app.id)}
-                className="flex min-h-touch min-w-touch items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title="Result Slip"
-              >
-                <FileText className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        )}
+        What this row used to end in, at 320 px: the decision block's own four
+        status buttons and up to three payment buttons, then a full-width "View
+        Details", then "Contact", then a third control whose only behaviour was
+        `onViewDetails` again under a document icon — up to ten equally prominent
+        targets, repeated per application, so the applicant scrolled off the
+        screen under the row's own controls.
+
+        "Review" is the primary because the review workspace is where a decision
+        is actually defensible: it carries the server's `allowed_transitions`, its
+        published capability matrix, the evidence, the payment ledger and the
+        history. Every other command is one tap away in a sheet whose label counts
+        them — the same trade task 11.3 made for the student's secondary
+        documents, and the count is drift-guarded against what the decision block
+        really renders.
+      */}
+      <div className="mt-4 border-t border-border/40 pt-4">
+        <AdminRecordActions
+          testId="application-record-actions"
+          recordLabel={`application ${app.application_number}`}
+          commands={commands}
+          additionalOverflowCount={decisionCommandCount}
+          announcement={
+            updatingStatus || updatingPayment
+              ? `Updating application ${app.application_number}…`
+              : ''
+          }
+          overflowContent={
+            decisionCommandCount > 0 ? (
+              <ApplicationApprovalActions
+                applicationId={app.id}
+                currentStatus={app.status}
+                currentPaymentStatus={app.payment_status}
+                onStatusUpdate={async (id, status) => { await onStatusUpdate(id, status) }}
+                onPaymentStatusUpdate={async (id, status, verificationNotes) => {
+                  await onPaymentStatusUpdate(id, status, verificationNotes)
+                }}
+                showStatusSummary={false}
+                disabled={updatingStatus || updatingPayment}
+              />
+            ) : null
+          }
+        />
       </div>
 
       {/* Communication Modal */}

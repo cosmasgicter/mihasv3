@@ -11,6 +11,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_STUDENT_DASHBOARD, platform_base_url
 
 
 def render(context: dict) -> tuple[str, str]:
@@ -25,7 +26,7 @@ def render(context: dict) -> tuple[str, str]:
     program = context.get("program_name") or "your selected programme"
     intake = context.get("intake_name") or "the upcoming intake"
     start = context.get("start_date") or "the programme start date"
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
 
     subject = f"Offer of admission — {program}"
 
@@ -65,7 +66,7 @@ def render(context: dict) -> tuple[str, str]:
             paragraph(
                 "Congratulations once again. We look forward to seeing you on campus."
             ),
-            cta_button("Confirm your place", portal + "/student/application"),
+            cta_button("Confirm your place", portal + ROUTE_STUDENT_DASHBOARD),
             signature_block(division=derive_division(program)),
         ]
     )

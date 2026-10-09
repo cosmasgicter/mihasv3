@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import uuid
 
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.response import Response
@@ -33,12 +34,42 @@ from apps.catalog.tenant_audit_service import TenantAuditService
 #: ``apps.catalog.views._INTAKE_WRITE_CAPABILITY``, R5.3/R8.1).
 PROGRAM_INTAKE_WRITE_CAPABILITY = "platform.intake.manage"
 
+#: Stable 409 code for a duplicate (program_id, intake_id) link. Registered in
+#: docs/canonical-truth-map.md (catalog integrity 409 codes, task 3.3).
+ALREADY_LINKED_CODE = "ALREADY_LINKED"
+
+
+def _already_linked_response() -> Response:
+    """The stable 409 for a duplicate Intake_Offering link (R7.4)."""
+    return Response(
+        {
+            "success": False,
+            "error": "This program is already linked to this intake.",
+            "code": ALREADY_LINKED_CODE,
+        },
+        status=status.HTTP_409_CONFLICT,
+    )
+
 
 class AdminProgramIntakeCreateInputSerializer(serializers.Serializer):
-    """Validate the ``program_id`` / ``intake_id`` request body (R8.2)."""
+    """Validate the ``program_id`` / ``intake_id`` request body (R8.2).
+
+    ``max_capacity`` and ``assignment_priority`` are optional Intake_Offering
+    capacity/routing settings (R4.2, R7.3): the onboarding wizard sets a seat
+    capacity for the intake when it links an offering, so a launch-ready tenant
+    can carry a real capacity constraint rather than a null default. Both are
+    non-negative when supplied; omitting them preserves the prior
+    program_id/intake_id-only behaviour.
+    """
 
     program_id = serializers.UUIDField()
     intake_id = serializers.UUIDField()
+    max_capacity = serializers.IntegerField(
+        required=False, allow_null=True, min_value=0
+    )
+    assignment_priority = serializers.IntegerField(
+        required=False, allow_null=True, min_value=0
+    )
 
 
 class AdminProgramIntakeSerializer(serializers.ModelSerializer):
@@ -102,6 +133,8 @@ class AdminProgramIntakeCreateView(APIView):
         input_serializer.is_valid(raise_exception=True)
         program_id = input_serializer.validated_data["program_id"]
         intake_id = input_serializer.validated_data["intake_id"]
+        max_capacity = input_serializer.validated_data.get("max_capacity")
+        assignment_priority = input_serializer.validated_data.get("assignment_priority")
 
         try:
             program = Program.objects.get(id=program_id, is_active=True)
@@ -127,27 +160,30 @@ class AdminProgramIntakeCreateView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Uniqueness (R8.2): no DB-level unique constraint exists on
-        # (program_id, intake_id) in the ``program_intakes`` schema, so the
-        # pair is checked explicitly here — any existing row (active or not)
-        # for this exact pair is treated as already linked.
+        # Uniqueness (R7.4/R8.2): the ``program_intakes`` schema now carries a
+        # DB unique on (program_id, intake_id) — task 3.3,
+        # scripts/2026_07_17_01_integrity_constraints_expand.sql. The explicit
+        # check is kept as the fast, friendly path; the DB unique is the final
+        # race guard, so a concurrent double-submit that slips past the check
+        # surfaces as an IntegrityError below and is translated to the SAME
+        # stable 409 rather than a 500.
         if ProgramIntake.objects.filter(program_id=program.id, intake_id=intake.id).exists():
-            return Response(
-                {
-                    "success": False,
-                    "error": "This program is already linked to this intake.",
-                    "code": "ALREADY_LINKED",
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+            return _already_linked_response()
 
-        program_intake = ProgramIntake.objects.create(
-            id=uuid.uuid4(),
-            program=program,
-            intake=intake,
-            is_active=True,
-            created_at=timezone.now(),
-        )
+        try:
+            with transaction.atomic():
+                program_intake = ProgramIntake.objects.create(
+                    id=uuid.uuid4(),
+                    program=program,
+                    intake=intake,
+                    max_capacity=max_capacity,
+                    assignment_priority=assignment_priority,
+                    is_active=True,
+                    created_at=timezone.now(),
+                )
+        except IntegrityError:
+            # Concurrent duplicate lost the race to the DB unique (R7.4).
+            return _already_linked_response()
 
         TenantAuditService.record_config_change(
             resource="program_intake",
@@ -156,7 +192,12 @@ class AdminProgramIntakeCreateView(APIView):
             institution_id=program.institution_id,
             actor_id=getattr(request.user, "id", None),
             actor_role=getattr(request.user, "role", None),
-            metadata={"program_id": str(program.id), "intake_id": str(intake.id)},
+            metadata={
+                "program_id": str(program.id),
+                "intake_id": str(intake.id),
+                "max_capacity": max_capacity,
+                "assignment_priority": assignment_priority,
+            },
             request=request,
         )
 

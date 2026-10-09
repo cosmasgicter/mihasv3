@@ -1,0 +1,60 @@
+tests/property/test_admissions_canonicalization.py::TestReviewQueuePriorityScoreAndClassification::test_score_follows_weighted_formula PASSED [ 67%]
+tests/property/test_admissions_canonicalization.py::TestReviewQueuePriorityScoreAndClassification::test_score_is_deterministic PASSED [ 68%]
+tests/property/test_admissions_canonicalization.py::TestReviewQueueSortOrder::test_sorted_by_priority_descending PASSED [ 69%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsFunnelCountsMatchData::test_empty_dataset_returns_zero_rates PASSED [ 70%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsFunnelCountsMatchData::test_funnel_counts_equal_aggregate_counts PASSED [ 70%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsDateRangeFiltering::test_date_range_filters_applied PASSED [ 71%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsDateRangeFiltering::test_empty_filters_do_not_modify_queryset PASSED [ 72%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsDateRangeFiltering::test_institution_and_program_filters_applied PASSED [ 72%]
+tests/property/test_admissions_canonicalization.py::TestAnalyticsDateRangeFiltering::test_only_start_date_applies_gte_filter PASSED [ 73%]
+tests/property/test_payment_fee_resolver_properties.py::test_property_11a_initiate_signature_rejects_tainted_kwargs PASSED [ 74%]
+tests/property/test_payment_fee_resolver_properties.py::test_property_16_phone_normalization_idempotence PASSED [ 75%]
+tests/property/test_payment_fee_resolver_properties.py::test_property_16_operator_prefix_determinism PASSED [ 75%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_set_matches_snapshot PASSED [ 76%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[ALREADY_PAID] PASSED [ 77%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[AMOUNT_MISMATCH] PASSED [ 77%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[APPLICATION_NOT_FOUND] PASSED [ 78%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[APPLICATION_NOT_PAYABLE] PASSED [ 79%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[CANNOT_REVERSE_SUCCESSFUL_PAYMENT] PASSED [ 80%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[CURRENCY_MISMATCH] PASSED [ 80%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[DRAFT_DELETE_BLOCKED_BY_PAYMENT] PASSED [ 81%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[FEE_AMBIGUOUS] PASSED [ 82%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[FEE_NOT_CONFIGURED] PASSED [ 82%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[FEE_UNAVAILABLE] PASSED [ 83%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[MAX_PAYMENT_ATTEMPTS_EXCEEDED] PASSED [ 84%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[MISSING_PROVIDER_REFERENCE] PASSED [ 85%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[NOT_OWNER] PASSED [ 85%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[OVERRIDE_REASON_REQUIRED] PASSED [ 86%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[PAYMENT_CONFIRMED] PASSED [ 87%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[PAYMENT_PENDING] PASSED [ 87%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[PAYMENT_SENSITIVE_FIELDS_LOCKED] PASSED [ 88%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[PAYMENT_UNAVAILABLE] PASSED [ 89%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[PROVIDER_UNAVAILABLE] PASSED [ 90%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[RATE_LIMITED] PASSED [ 90%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[RECEIPT_NOT_ELIGIBLE] PASSED [ 91%]
+tests/unit/test_payment_error_codes_snapshot.py::test_stable_code_entry_is_exact_match[VALIDATION_ERROR] PASSED [ 92%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_urls_resolve_to_expected_view_classes[payments-initiate] PASSED [ 92%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_urls_resolve_to_expected_view_classes[payments-mobile-money] PASSED [ 93%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_urls_resolve_to_expected_view_classes[payments-verify] PASSED [ 94%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_urls_resolve_to_expected_view_classes[payments-webhook-lenco] PASSED [ 95%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_urls_resolve_to_expected_view_classes[payments-resolve-fee] PASSED [ 95%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_initiate_preserves_envelope_shape PASSED [ 96%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_mobile_money_preserves_envelope_shape PASSED [ 97%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_verify_preserves_envelope_shape PASSED [ 97%]
+tests/unit/test_payment_api_contract_preservation.py::test_payment_resolve_fee_preserves_envelope_shape PASSED [ 98%]
+tests/unit/test_payment_expiry.py::TestRetryLimit::test_rejects_at_max_attempts PASSED [ 99%]
+tests/unit/test_payment_expiry.py::TestRetryLimit::test_allows_under_limit PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_settlement_summary_excludes_other_school
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_missing_metadata_buckets_as_unassigned
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_no_scope_staff_settlement_summary_is_empty
+tests/unit/test_payment_api_contract_preservation.py::test_payment_webhook_preserves_envelope_and_returns_200_on_invalid_signature
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_valid_program_intake_returns_assigned_school
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_missing_ids_returns_validation_error
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_unassignable_pair_returns_recoverable_error
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 139 passed, 1 skipped, 7 warnings in 6.72s ==================

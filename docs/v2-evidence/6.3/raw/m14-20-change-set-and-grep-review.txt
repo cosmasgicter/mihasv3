@@ -1,0 +1,80 @@
+# Task 6.3 M14 — change set and grep-loop review (FINAL tree)
+# base commit: bae29a28d9657f288b3339062adb31285959c966; candidate = working tree. M14 staged and committed nothing. The index below is NOT empty: it holds 9 staged deletions of the retired backend AI modules (another task's state — tech.md lists them as 'Retired — do not reintroduce'); none is under apps/admissions and none is M14's (M14 changed no backend file).
+# captured: 2026-10-08T23:35:48Z
+$ git diff --cached --stat
+ backend/apps/common/ai_cache.py                   | 191 -------------
+ backend/apps/common/ai_circuit_breaker.py         | 189 -------------
+ backend/apps/common/ai_prompt_redactor.py         | 185 -------------
+ backend/apps/common/ai_service.py                 | 323 ----------------------
+ backend/tests/unit/test_ai_cache.py               | 191 -------------
+ backend/tests/unit/test_ai_circuit_breaker.py     | 179 ------------
+ backend/tests/unit/test_ai_prompt_redactor.py     | 202 --------------
+ backend/tests/unit/test_ai_rate_throttling.py     | 121 --------
+ backend/tests/unit/test_ai_redaction_canonical.py |  75 -----
+ 9 files changed, 1656 deletions(-)
+(end)
+
+## M14 files (sha256/16, lines)
+76d1d1b9d8d00cd6  1606 lines  apps/admissions/src/lib/wizardDraftController.ts
+08f8c13c9f6330c3  228 lines  apps/admissions/src/lib/wizardDraftProjection.ts
+e35562913d6dd879  330 lines  apps/admissions/src/lib/wizardDraftMachine.ts
+289329a41ef9b963  204 lines  apps/admissions/src/lib/draftLocalCache.ts
+f07de25d05d8b9c1  83 lines  apps/admissions/src/pages/student/applicationWizard/lib/draftOutbox.ts
+2c185c935b11f6df  699 lines  apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts
+df00dd6589fee319  664 lines  apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts
+0d57884e63085a44  482 lines  apps/admissions/tests/unit/wizardDraftOutboxMinimisation.test.tsx
+b4ad5395edbc561a  131 lines  apps/admissions/tests/property/draftOutboxMinimisation.property.test.ts
+c7932f286869561b  589 lines  apps/admissions/tests/unit/wizardDraftController.test.ts
+88989b9d034a8c04  490 lines  apps/admissions/tests/unit/wizardDraftLoaderSafety.test.tsx
+7527909db7e53c17  117 lines  apps/admissions/tests/unit/wizardDraftProjection.test.ts
+d493f428f174638f  165 lines  apps/admissions/tests/unit/draftLocalCache.test.ts
+d3eb5d286be6db37  186 lines  apps/admissions/tests/harness-e2e/helpers/wizard-draft.ts
+f42207801a978cb5  316 lines  apps/admissions/tests/harness-e2e/required/wizard-draft-refresh-each-step.spec.ts
+1a509833660ad546  351 lines  apps/admissions/tests/harness-e2e/required/wizard-draft-slow-network.spec.ts
+38214c0bd385c457  368 lines  apps/admissions/tests/harness-e2e/required/wizard-draft-two-tab.spec.ts
+6c9823807ea8fa13  1273 lines  apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts
+
+## grep-loop review
+### 1. the full form is written only for an UNATTACHED application
+331:            formData: getValues(),
+311:      if (meta.applicationId) {
+312-        if (meta.pending) {
+313-          writeWizardDraftSnapshot(
+314-            buildDraftOutboxRecord({
+### 2. the attached record shape is built in one place
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:75:import { buildDraftOutboxRecord, draftOutboxAnswers } from '../../lib/draftOutbox'
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:314:            buildDraftOutboxRecord({
+### 3. the unattached 'new' record is cleared only by explicit mode=new and by its own attach
+apps/admissions/src/lib/draftLocalCache.ts:164:    clearNewWizardDraftCache(userId, options)
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:424:        clearNewWizardDraftCache(user?.id ?? null, { notify: false })
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts:206:          clearNewWizardDraftCache(user.id);
+195:    removeKeyEverywhere(getWizardDraftStorageKey(userId, null))
+### 4. no draft module touches the payment-recovery store
+(the only matches are two doc-comment lines of draftLocalCache.ts that say it never does:)
+ 16: * (`beanola-payment-recovery`) in one shot — the exact R10.10 violation.
+ 19: * (`paymentRecoveryStore.record/clear` on initiate/success, TTL expiry, and
+### 5. the snapshot 'overrides' plumbing is gone
+(none)
+### 6. the assignment address is set from every server answer the machine adopts
+apps/admissions/src/lib/wizardDraftController.ts:743:    this.assignment = draftAssignmentKey(record) ?? this.assignment
+apps/admissions/src/lib/wizardDraftController.ts:849:      this.assignment = draftAssignmentKey(theirsRecord) ?? this.assignment
+apps/admissions/src/lib/wizardDraftController.ts:1211:    this.assignment = draftAssignmentKey(record) ?? this.assignment
+apps/admissions/src/lib/wizardDraftController.ts:1283:    this.assignment = draftAssignmentKey(record)
+apps/admissions/src/lib/wizardDraftController.ts:1366:    this.assignment = draftAssignmentKey(record) ?? this.assignment
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:649:        const assignment = draftAssignmentKey(draft)
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts:579:          const assignment = draftAssignmentKey(
+### 7. a record for another assignment is never replayed
+apps/admissions/src/lib/wizardDraftProjection.ts:175:export type LocalDraftOutboxDisposition = 'none' | 'replay' | 'stale' | 'reassigned'
+apps/admissions/src/lib/wizardDraftProjection.ts:188:  if (recordAssignment && target.assignment && recordAssignment !== target.assignment) return 'reassigned'
+apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:591:      if (disposition === 'stale' || disposition === 'reassigned') {
+### 8. the save view reports a replay in flight as retrying
+248:  if (snapshot.retrying) return { status: 'retrying', message: snapshot.saveError }
+249:  if (snapshot.state === 'saving') return { status: 'saving', message: null }
+### 9. timestamp arbitration still absent from the loader
+(none)
+### 10. temporary M14 diagnostics deleted; task 11.2's leftover untouched
+_diag-hydration.spec.ts
+### 11. the announce event no longer carries the answers
+350:        const savePoint = { applicationId: meta.applicationId, savedAt, pending: meta.pending }
+351:        useDraftStore.getState().markSaved(savePoint)
+352:        window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: savePoint }))

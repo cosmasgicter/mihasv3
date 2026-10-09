@@ -7,35 +7,18 @@
 
 import { useState } from 'react';
 import { generatePaymentReceipt } from '@/lib/pdf';
-import { apiClient } from '@/services/client';
+import { listPayments, readPaymentReceipt } from '@/services/payments';
 
-interface PaymentRecord {
-  id: string
-  status: string
-}
-
-interface PaymentListResponse {
-  results?: PaymentRecord[]
-  [key: string]: unknown
-}
-
-interface BackendReceiptData {
-  payment_id: string
-  amount: string
-  currency: string
-  status: string
-  created_at: string | null
-  application_number: string | null
-  program: string | null
-  applicant_name: string | null
-}
-
+/**
+ * The row and receipt shapes, and the transports that fetch them, now live in
+ * `@/services/payments` (task 13.6 remediation L12). This hook had its own copy of both
+ * the list unwrap and the receipt call, reached over the raw client from `src/pages` —
+ * which the R14.3 rule forbids and which meant two dev hooks each carried a private
+ * reader for the same two endpoints.
+ */
 async function findSuccessfulPaymentId(applicationId: string): Promise<string | null> {
   try {
-    const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-      `/payments/?application_id=${encodeURIComponent(applicationId)}`
-    )
-    const records = Array.isArray(data) ? data : (data?.results ?? [])
+    const records = await listPayments({ applicationId })
     const successful = records.find(r => r.status === 'successful')
     return successful?.id ?? records[0]?.id ?? null
   } catch {
@@ -55,9 +38,7 @@ export function usePaymentReceipt() {
       const paymentId = await findSuccessfulPaymentId(applicationId)
       if (!paymentId) throw new Error('No payment record found for this application')
 
-      const receipt = await apiClient.request<BackendReceiptData>(
-        `/payments/${encodeURIComponent(paymentId)}/receipt/`
-      )
+      const receipt = await readPaymentReceipt(paymentId)
       if (!receipt) throw new Error('Receipt data unavailable')
 
       // Yield to browser before CPU-intensive PDF work

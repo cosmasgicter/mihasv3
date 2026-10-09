@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { normalizePaymentStatus } from '@/lib/paymentStatus'
+import { normalizePaymentStatus, type PaymentPhase } from '@/lib/paymentStatus'
 import { apiClient } from '@/services/client'
+import { normalizePaymentRows } from '@/services/payments'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -13,13 +14,15 @@ interface PaymentRecord {
   id?: string
   status: string
   created_at?: string
+  /** Server-derived phase — who is being waited on (task 8.2, STU-09). */
+  phase?: PaymentPhase
+  /** Server-derived UI wait budget for that phase, in seconds. */
+  phase_timeout_seconds?: number | null
   [key: string]: unknown
 }
 
 interface PaymentListResponse {
-  data?: PaymentRecord[] | { results?: PaymentRecord[] }
   results?: PaymentRecord[]
-  payments?: PaymentRecord[]
   [key: string]: unknown
 }
 
@@ -32,7 +35,13 @@ export const BACKOFF_FACTOR = 1.5
 export const MAX_INTERVAL = 60_000
 export const MAX_POLL_COUNT = 30
 
-/** Polling-exceeded-timeout threshold (R14.3). Default 120s. */
+/**
+ * Fallback polling-exceeded-timeout threshold (R14.3). Default 120s.
+ *
+ * Used when the payload carries no server-derived `phase_timeout_seconds`. When
+ * it does, that value wins: waiting on a student who must approve a prompt and
+ * waiting on a provider that has gone quiet are different waits (task 8.2).
+ */
 export const POLL_TIMEOUT_MS =
   typeof import.meta !== 'undefined' &&
   import.meta.env?.VITE_PAYMENT_POLL_TIMEOUT_MS
@@ -67,6 +76,7 @@ export function normalizePaymentStatusValue(status?: string | null): PaymentStat
  */
 export function usePaymentStatus(applicationId: string, applicationPaymentStatus?: string | null) {
   const [status, setStatus] = useState<PaymentStatusValue>(null)
+  const [phase, setPhase] = useState<PaymentPhase | null>(null)
   const [pollingExceededTimeout, setPollingExceededTimeout] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<number | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -78,6 +88,9 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   const requestIdRef = useRef(0)
   const inFlightRef = useRef(false)
   const startedAtRef = useRef<number | null>(null)
+  // Server-derived wait budget for the current phase, in ms. Null until a
+  // payload tells us which wait we are in.
+  const waitBudgetRef = useRef<number | null>(null)
 
   useEffect(() => () => { mountedRef.current = false }, [])
 
@@ -99,15 +112,19 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     statusRef.current = status
   }, [status])
 
-  const normalizeRecords = useCallback((payload: PaymentListResponse | PaymentRecord[] | null | undefined): PaymentRecord[] => {
-    if (Array.isArray(payload)) return payload
-    if (!payload || typeof payload !== 'object') return []
-    if (Array.isArray(payload.results)) return payload.results
-    if (Array.isArray(payload.payments)) return payload.payments
-    if (Array.isArray(payload.data)) return payload.data
-    if (payload.data && typeof payload.data === 'object' && Array.isArray(payload.data.results)) return payload.data.results
-    return []
-  }, [])
+  // Task 12.2 (R14.5, findings API-02 / REL-01): this hook carried its own copy
+  // of the payments-list envelope sniff over the SAME endpoint the payment page
+  // reads through `normalizePaymentRows`. Two readers for one endpoint is the
+  // duplication finding API-02 names, and it is how one copy keeps a branch the
+  // other drops. The service's reader is now the only one, and it accepts only
+  // the two shapes `PaymentListView` emits.
+  const normalizeRecords = useCallback(
+    (payload: PaymentListResponse | PaymentRecord[] | null | undefined): PaymentRecord[] =>
+      normalizePaymentRows(
+        payload as Parameters<typeof normalizePaymentRows>[0],
+      ) as unknown as PaymentRecord[],
+    [],
+  )
 
   const fetchStatus = useCallback(async () => {
     if (!applicationId || inFlightRef.current) return
@@ -136,6 +153,8 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
       if (records.length === 0) {
         updateStatus(applicationStatus)
+        if (mountedRef.current) setPhase(null)
+        waitBudgetRef.current = null
         return
       }
 
@@ -146,6 +165,15 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
       if (normalized) {
         updateStatus(normalized)
       }
+      // The phase and its wait budget are the server's answer to "who are we
+      // waiting on, and for how long is that reasonable?" — never recomputed here.
+      if (mountedRef.current) {
+        setPhase(latest?.phase ?? null)
+      }
+      waitBudgetRef.current =
+        typeof latest?.phase_timeout_seconds === 'number'
+          ? latest.phase_timeout_seconds * 1000
+          : null
       failCountRef.current = 0
       if (mountedRef.current) {
         setLastUpdated(Date.now())
@@ -176,7 +204,7 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     if (
       statusRef.current === 'pending' &&
       startedAtRef.current !== null &&
-      Date.now() - startedAtRef.current > POLL_TIMEOUT_MS
+      Date.now() - startedAtRef.current > (waitBudgetRef.current ?? POLL_TIMEOUT_MS)
     ) {
       if (mountedRef.current) {
         setPollingExceededTimeout(true)
@@ -241,6 +269,13 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
   return {
     status,
+    /**
+     * Server-derived phase of the latest payment: `action_required` when the
+     * student must approve on their handset, `provider_processing` when we are
+     * waiting on Lenco (task 8.2, STU-09). `null` when no payment payload has
+     * been read yet.
+     */
+    phase,
     refetch,
     setStatus: updateStatus,
     pollingExceededTimeout,

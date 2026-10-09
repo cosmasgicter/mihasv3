@@ -46,7 +46,7 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.throttling import DocumentExtractUserScopedRateThrottle, PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
@@ -74,15 +74,6 @@ def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
     return False
 
 
-def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
-    """Extract AI analysis JSON from verification_notes field."""
-    if not verification_notes:
-        return None
-    try:
-        data = json.loads(verification_notes)
-        return data.get("ai_analysis") if isinstance(data, dict) else None
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def _document_not_found_response():
@@ -247,6 +238,12 @@ PaymentResponseSerializer = envelope_serializer(
             400: OpenApiResponse(response=ErrorResponseSerializer),
             403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            # admissions-v2 task 7.3 (R17.1): a competing attempt already holds
+            # this command's declared identity (``DOCUMENT_UPLOAD_IN_PROGRESS``),
+            # or a concurrent upload won the one-current slot first
+            # (``DOCUMENT_VERSION_CONFLICT``). Both are retryable and neither
+            # wrote anything.
+            409: OpenApiResponse(response=ErrorResponseSerializer),
             500: OpenApiResponse(response=ErrorResponseSerializer),
         },
     )
@@ -261,11 +258,26 @@ class DocumentUploadView(APIView):
     serializer_class = DocumentUploadSerializer
 
     def post(self, request):
-        # Enforce 10MB file size limit
+        from apps.applications.required_documents import PLATFORM_MAX_UPLOAD_BYTES
+
+        # Platform ceiling, enforced before anything is read or resolved.
         uploaded_file = request.FILES.get('file')
-        if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:
+        if uploaded_file and uploaded_file.size > PLATFORM_MAX_UPLOAD_BYTES:
             return Response(
                 {"success": False, "error": "File size exceeds 10MB limit", "code": "FILE_TOO_LARGE"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # An empty selection gets the shared stable code (task 7.2), not the
+        # serializer's generic VALIDATION_ERROR: the client refuses the same case
+        # locally under ``EMPTY_FILE``, and "your document is invalid" is the
+        # wrong thing to tell a student whose file simply did not attach.
+        if uploaded_file is not None and uploaded_file.size == 0:
+            return Response(
+                {
+                    "success": False,
+                    "error": "That file is empty. Please choose the file again.",
+                    "code": "EMPTY_FILE",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -324,8 +336,44 @@ class DocumentUploadView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Magic byte validation.
+        # admissions-v2 task 7.2 (R11.6-R11.7, STU-13): resolve this upload
+        # against the application's *own* versioned requirement contract — the
+        # same contract the student's upload controls were rendered from. A
+        # tenant-configured custom type is accepted; a type nobody asked for is
+        # refused with a stable code; and an unevaluable configuration fails
+        # closed with a retryable 503 instead of accepting unverified evidence.
         declared_mime = file_obj.content_type or ""
+        from apps.applications.assignment_resolution import AssignmentConfigurationError
+        from apps.applications.required_documents import (
+            UploadRejected,
+            resolve_upload_target,
+            validate_upload,
+        )
+
+        try:
+            requirement = resolve_upload_target(application, document_type)
+            validate_upload(
+                requirement,
+                size=getattr(file_obj, "size", None),
+                mime_type=declared_mime,
+            )
+        except UploadRejected as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
+        except AssignmentConfigurationError as exc:
+            return Response(
+                {
+                    "success": False,
+                    "error": exc.message,
+                    "code": exc.code,
+                    "retryable": True,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        # Magic byte validation — the authority on what the bytes actually are.
         try:
             validate_file_magic_bytes(file_obj, declared_mime)
         except Exception:
@@ -335,37 +383,211 @@ class DocumentUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Store file in S3/R2.
-        import os as _os
-        import re as _re
-        safe_name = _os.path.basename(file_obj.name or "unnamed")
-        safe_name = _re.sub(r'[^\w\s\-.]', '_', safe_name)[:255] or "unnamed"
-        file_key = f"documents/{application_id}/{uuid.uuid4().hex}_{safe_name}"
+        # Active-content screen (task 7.2, R11.7; design §9.2 "malware/type/size
+        # check"). The format is now known to be a PDF/JPEG/PNG; this refuses one
+        # that carries an executable action or a script polyglot before anything
+        # is written to object storage. Signature-based scanning and the
+        # ``uploaded -> scanning -> ready_for_review`` lifecycle are task 7.3.
+        from apps.documents.validators import scan_document_for_active_content
+
+        try:
+            scan_document_for_active_content(file_obj)
+        except Exception as exc:
+            logger.warning(
+                "Active-content screen refused an upload to application %s", application_id
+            )
+            detail = getattr(exc, "detail", None)
+            message = (
+                str(detail[0]) if isinstance(detail, list) and detail else str(detail or exc)
+            )
+            return Response(
+                {"success": False, "error": message, "code": "UNSAFE_FILE_CONTENT"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # admissions-v2 task 7.3 (R11.7-R11.8, R17.1, STU-19): the object write and
+        # the metadata write become one recoverable command instead of two
+        # unrelated ones. Order matters and is asserted by
+        # tests/integration/test_document_evidence_compensation_7_3.py:
+        #
+        #   hash -> idempotency short-circuit -> COMMIT stage row
+        #        -> object write -> VERIFY the stored object
+        #        -> COMMIT metadata (supersede + new version)
+        #        -> on metadata failure: compensating delete, else sweeper
+        #
+        # The verify step is what closes the *other* direction of the gap: an
+        # object write that reports success without being durable would otherwise
+        # be recorded as evidence whose bytes cannot be produced. Compensation can
+        # delete an orphan object; it cannot recover missing bytes, so the commit
+        # is ordered after the proof instead of before it.
+        from apps.documents import document_evidence as evidence
+
+        safe_name = evidence.safe_object_name(file_obj.name)
+        try:
+            content_hash, hashed_size = evidence.compute_checksum(file_obj)
+        except Exception:
+            logger.exception("Failed to checksum upload for application %s", application_id)
+            return Response(
+                {"success": False, "error": "File could not be read", "code": "INVALID_FILE"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        accepts = list(requirement.get("accepts_document_types") or [document_type])
+        idempotency_key = request.headers.get("Idempotency-Key") or None
+
+        # Idempotent replay (R17.1), strongest identity first.
+        #
+        # 1. The caller-declared one. A client that resends the same
+        #    ``Idempotency-Key`` is asserting "this is the command I already sent",
+        #    and the stage ledger knows whether that command produced evidence.
+        #    This lookup is also what keeps
+        #    ``uq_document_upload_stages_idempotency`` from turning a legitimate
+        #    retry into an unactionable integrity error.
+        # 2. Failing that, the implicit one: the same bytes *under the same name*
+        #    already current for this requirement. Bytes alone are deliberately
+        #    not enough — a student who uploads a second, byte-identical file
+        #    under a different name is replacing their evidence, and answering
+        #    that with the old version is the server-side shape of STU-19's
+        #    "'Replace' may clear only local UI state".
+        replay = evidence.find_replay_by_idempotency_key(
+            application_id, document_type, idempotency_key
+        ) or evidence.find_identical_current_version(
+            application_id, accepts, content_hash, document_name=safe_name
+        )
+        if replay is not None:
+            return Response(
+                {"success": True, "data": DocumentSerializer(replay).data},
+                status=status.HTTP_201_CREATED,
+            )
+
+        object_key = evidence.build_object_key(application_id, document_type, safe_name)
+        actor_id = getattr(request.user, "id", None)
+        # Durable BEFORE the object write (design §17): once this row is committed
+        # the object is discoverable, so a crash mid-command leaves a reconcilable
+        # stage rather than an invisible orphan.
+        try:
+            stage = evidence.open_stage(
+                application_id=application_id,
+                document_type=document_type,
+                object_key=object_key,
+                content_hash=content_hash,
+                file_size=hashed_size or getattr(file_obj, "size", None),
+                mime_type=declared_mime or None,
+                actor_id=actor_id,
+                idempotency_key=idempotency_key,
+            )
+        except evidence.DocumentCommandError as exc:
+            # A concurrent attempt with the same declared identity holds the
+            # ledger slot. Nothing has been written, so there is nothing to
+            # compensate; the client retries once the first attempt resolves.
+            return Response(
+                {
+                    "success": False,
+                    "error": exc.message,
+                    "code": exc.code,
+                    "retryable": True,
+                },
+                status=exc.status_code,
+            )
+
         try:
             from apps.common.storage import MediaStorage
 
             storage = MediaStorage()
-            saved_name = storage.save(file_key, file_obj)
+            saved_name = storage.save(object_key, file_obj)
             file_url = storage.url(saved_name)
-        except Exception:
+        except Exception as exc:
             logger.exception("Failed to upload file to storage")
+            # No object is known to exist, but the provider may have written a
+            # partial object before failing, so compensation still runs: it either
+            # deletes it or leaves the row for the sweeper. Never a silent orphan.
+            evidence.compensate_stage(stage, reason=f"object write failed: {exc}")
             return Response(
                 {"success": False, "error": "File storage error", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        # Create ApplicationDocument record.
-        doc = ApplicationDocument.objects.create(
-            application_id=application_id,
-            document_type=document_type,
-            document_name=safe_name,
-            file_url=file_url,
-            file_size=getattr(file_obj, "size", None),
-            mime_type=declared_mime or None,
-            verification_status="pending",
-            system_generated=False,
-            uploaded_at=timezone.now(),
-        )
+        # The provider said yes; confirm it before the database agrees. A missing
+        # or short object here leaves the *previous* version authoritative and the
+        # student with a retryable failure, which is the honest outcome — the
+        # alternative is a committed version, a published checksum, and a passed
+        # submission gate for evidence nobody can open.
+        try:
+            evidence.verify_stored_object(
+                storage,
+                saved_name or object_key,
+                expected_size=hashed_size or None,
+            )
+        except evidence.DocumentCommandError as exc:
+            logger.error(
+                "Stored document object failed verification for application %s "
+                "(document_type=%s); refusing to record it as evidence",
+                application_id,
+                document_type,
+            )
+            emit_metric(
+                evidence.EVENT_STAGE_UNVERIFIED,
+                stage_id=str(stage.id),
+                document_type=document_type,
+            )
+            evidence.compensate_stage(
+                stage, reason=f"storage verification failed: {exc.code}"
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": exc.message,
+                    "code": exc.code,
+                    "retryable": True,
+                },
+                status=exc.status_code,
+            )
+
+        try:
+            doc = evidence.commit_version(
+                stage=stage,
+                application_id=application_id,
+                document_type=document_type,
+                document_name=safe_name,
+                file_url=file_url,
+                storage_key=saved_name or object_key,
+                file_size=hashed_size or getattr(file_obj, "size", None),
+                mime_type=declared_mime or None,
+                content_hash=content_hash,
+                uploaded_by_id=actor_id,
+                actor_role=role,
+                provenance=(
+                    evidence.PROVENANCE_ADMIN
+                    if role in ("admin", "super_admin")
+                    else evidence.PROVENANCE_STUDENT
+                ),
+                # The active-content screen above already ran synchronously on
+                # these exact bytes, so the version is genuinely ready for a
+                # human. The asynchronous `scanning` state stays available for
+                # deeper signature scanning without backdating a state here.
+                lifecycle_state=evidence.READY_FOR_REVIEW,
+                supersede_document_types=accepts,
+            )
+        except evidence.DocumentCommandError as exc:
+            evidence.compensate_stage(stage, reason=f"metadata commit rejected: {exc.code}")
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Document metadata commit failed for application %s", application_id
+            )
+            evidence.compensate_stage(stage, reason=f"metadata commit failed: {exc}")
+            return Response(
+                {
+                    "success": False,
+                    "error": "The upload could not be saved. Please try again.",
+                    "code": "DOCUMENT_COMMIT_FAILED",
+                    "retryable": True,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         application_url_field = None
         if document_type == "result_slip":
@@ -404,10 +626,11 @@ class DocumentExtractView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = TaskQueuedSerializer
-    # AI hardening: cap per-user OCR retries (5/hour) when flag is on.
-    # Guards against budget-burn attacks via repeated ``force=True`` calls.
-    throttle_classes = [AIUserScopedRateThrottle]
-    throttle_scope = "ai_document_extract"
+    # Cap per-user OCR retries (5/hour) when the flag is on: repeated
+    # ``force=True`` re-extract calls are CPU-expensive. Task 7.4 renamed the
+    # throttle and scope off the retired AI vocabulary; extraction is local.
+    throttle_classes = [DocumentExtractUserScopedRateThrottle]
+    throttle_scope = "document_extract"
 
     def post(self, request, document_id):
         # Authorize through the shared scope path BEFORE any side effect. The
@@ -538,15 +761,27 @@ class DocumentInfoView(APIView):
         if error_response is not None:
             return error_response
 
-        ai_analysis = _parse_ai_analysis(document.verification_notes) if document.extracted_text else None
-        ocr_state = document.verification_status if document.verification_status in {
+        from apps.documents import document_evidence as evidence
+        from apps.documents import extraction_provenance, grade_extraction
+
+        # admissions-v2 task 7.4: generative extraction is gone, so any blob
+        # still in ``verification_notes`` is historical. It is surfaced as
+        # labeled read-only provenance and never as current authority.
+        historical_extraction = extraction_provenance.provenance_payload(document)
+        _OCR_STATES = {
             "ocr_processing",
             "ocr_complete",
             "ocr_no_text",
             "ocr_no_grades",
             "ocr_failed",
             "ocr_skipped",
-        } else None
+        }
+        # ``extraction_state`` is the canonical home for OCR progress (task 7.3);
+        # ``verification_status`` is only consulted for rows written before the
+        # column existed, so an existing client keeps seeing the same `ocr_state`.
+        ocr_state = document.extraction_state if document.extraction_state in _OCR_STATES else None
+        if ocr_state is None and document.verification_status in _OCR_STATES:
+            ocr_state = document.verification_status
         data = {
             "id": str(document.id),
             "document_name": document.document_name,
@@ -557,17 +792,45 @@ class DocumentInfoView(APIView):
             "file_size": document.file_size,
             "mime_type": document.mime_type,
             "extracted_text": bool(document.extracted_text),
-            "ai_analysis": ai_analysis,
-            "ai_analysis_available": bool(ai_analysis),
+            # Labeled read-only provenance for pre-7.4 rows (R11.9 + the design
+            # §18 "preserve historical extraction as labeled provenance" rule).
+            "extraction_provenance": historical_extraction,
+            # admissions-v2 task 7.5 (R11.4): deterministic OCR *suggestions*.
+            # Every candidate carries its subject identity, grade, confidence,
+            # match tier, and the source line it came from; the block states
+            # ``requires_confirmation`` and ``authoritative: false`` explicitly so
+            # no client can treat it as application data. ``None`` when the
+            # document has no stored candidate set (never OCR'd, not a result
+            # slip, or nothing resolved).
+            #
+            # The pre-7.5 ``ai_analysis`` / ``ai_analysis_available`` aliases that
+            # stood in for this block are GONE: they published a historical blob
+            # under a name that implied current AI authority, and the wizard hook
+            # that consumed them auto-applied it. Historical values are still
+            # readable above, labelled for what they are.
+            "extraction": grade_extraction.latest_candidates(document),
+            # Immutable-version identity (task 7.3, R11.7).
+            "version": document.version,
+            "is_current": document.is_current,
+            "lifecycle_state": evidence.lifecycle_of(document),
+            "extraction_state": document.extraction_state,
+            "checksum": document.content_hash,
         }
 
         return Response({"success": True, "data": data})
 
 
 class DocumentDeleteView(APIView):
-    """DELETE /api/v1/documents/{id}/delete/ - soft-delete a document record.
+    """DELETE /api/v1/documents/{id}/delete/ - remove a document as current evidence.
 
-    Sets verification_status to 'deleted' as a soft-delete marker.
+    admissions-v2 task 7.3 (R11.8, STU-19): this is the *delete command* over the
+    immutable version model, not a status poke. One atomic metadata write marks the
+    version non-current with lifecycle ``deleted``, and the removal is appended to
+    the append-only verification history with the actor and reason. The stored
+    object is deliberately retained so prior evidence survives (R11.8) — there is
+    therefore no object write to compensate, which is why this command is atomic by
+    construction rather than by a compensating action that could itself fail.
+
     Requires authentication.
     """
 
@@ -607,15 +870,31 @@ class DocumentDeleteView(APIView):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-        document.verification_status = "deleted"
-        document.updated_at = timezone.now()
-        document.save(update_fields=["verification_status", "updated_at"])
+        from apps.documents import document_evidence as evidence
 
+        try:
+            evidence.delete_document(
+                document=document,
+                actor_id=getattr(request.user, "id", None),
+                actor_role=role,
+                reason=(request.data or {}).get("reason") if hasattr(request, "data") else None,
+            )
+        except evidence.DocumentCommandError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
+
+        # The legacy ``applications.*_url`` snapshots are cleared only when no
+        # *current* evidence of that type survives. ``is_current=True`` matters here
+        # (task 7.3): a superseded version is history, so counting it would keep a
+        # dead URL alive after the live evidence was removed.
         application = document.application
         if document.document_type == "result_slip":
             remaining_result_slip = ApplicationDocument.objects.filter(
                 application_id=application.id,
                 document_type="result_slip",
+                is_current=True,
             ).exclude(
                 id=document.id,
             ).exclude(
@@ -629,6 +908,7 @@ class DocumentDeleteView(APIView):
             remaining_identity_document = ApplicationDocument.objects.filter(
                 application_id=application.id,
                 document_type__in=("extra_kyc", "nrc", "passport"),
+                is_current=True,
             ).exclude(
                 id=document.id,
             ).exclude(

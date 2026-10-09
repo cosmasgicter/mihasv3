@@ -58,9 +58,11 @@ export const skipLinkClasses = cn(
   'focus:translate-y-0 focus:opacity-100 focus:pointer-events-auto',
   'focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto',
   // Smooth transition for focus state
-  'transition-all duration-150',
-  // Styling
-  'block px-4 py-2',
+  'transition-all duration-150 motion-reduce:transition-none',
+  // Styling. `min-h-touch` because a skip link is a pointer target as well as a
+  // keyboard one once it is revealed, and R16.2 sets no exception for it — it
+  // measured 40 px until admissions-v2 task 11.5 measured it in a browser.
+  'inline-flex min-h-touch items-center px-4 py-2',
   'bg-primary text-primary-foreground',
   'font-medium rounded-lg shadow-lg',
   // Focus ring for visibility

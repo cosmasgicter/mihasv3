@@ -33,7 +33,7 @@ from apps.applications.services import (
     submit_application,
 )
 from apps.catalog.models import InstitutionRequiredDocument
-from tests.tenant_fixtures import build_document, build_tenant_world
+from tests.tenant_fixtures import build_document, build_grades, build_tenant_world
 
 pytestmark = pytest.mark.django_db
 
@@ -74,11 +74,17 @@ def _seed_required_document(world, *, document_type: str, label: str, **scope):
 
 
 def _make_submittable_world(**kwargs):
-    """Draft tenant world whose payment + identity-doc gates already pass."""
+    """Draft tenant world whose payment, identity-doc and grade gates already pass.
+
+    The five persisted canonical grades are required by the authoritative in-lock
+    readiness gate (admissions-v2 task 6.5, R11.5/STU-11), so a "submittable"
+    fixture must seed them.
+    """
     world = build_tenant_world(application_status="draft", **kwargs)
     Application.objects.filter(id=world.application.id).update(payment_status="verified")
     world.application.refresh_from_db()
     build_document(application=world.application, document_type="nrc")
+    build_grades(application=world.application, count=5)
     return world
 
 

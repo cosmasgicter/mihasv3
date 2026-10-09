@@ -8,54 +8,36 @@ import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useProfileAutoPopulation, getBestValue, getUserMetadata, normalizeSexForWizard } from '@/hooks/useProfileAutoPopulation'
+import { useProfileAutoPopulation } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymentStatus'
-// eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
-import { sanitizeForLog, sanitizeInput } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
-import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
+import { documentService } from '@/services/documents'
 import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
-import { clearAllDraftData } from '@/lib/draftManager'
-import { generateIdempotencyKey, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import { type PaymentPhase } from '@/lib/paymentStatus'
 import { useDraftStore } from '@/stores/draftStore'
 import {
   clearStaleApplicationDraftReference,
   isApplicationMissingError,
 } from '@/lib/applicationSession'
-import { cachedSetItem } from '@/lib/localStorageCache'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
-import { normalizeResidenceTown } from '@/lib/residenceTown'
 import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_EVENTS, LEGACY_BROWSER_KEYS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
+import { mergeWizardSubjects } from '../lib/educationCatalog'
 import {
-  getCanonicalResidenceCountry,
-  normalizeDateInputValue,
-} from '@/lib/profileFieldMapping'
-import { mergeWizardSubjects, resolveWizardSubjectId } from '../lib/educationCatalog'
-import {
-  asAssignmentFailureCode,
-  buildAdmissionsMailto,
-  getAssignmentFailureCode,
-  hasRecordedAssignmentInterest,
-  recordAssignmentInterest,
-  resolveAssignmentRecovery,
   type AssignmentFailureCode,
   type AssignmentRecoveryGuidance,
 } from '../lib/assignmentRecovery'
 import {
-  mergeDraftResumeUploads,
-  normalizeDraftResumeGrades,
-  resolveDraftResumeStepId,
-} from '../lib/draftResume'
-import { validateLiveGrades } from '../lib/liveGradeValidation'
-import {
-  buildServerDraftPayload,
-  canCreateServerDraft,
-} from '../lib/draftAutosave'
+  resolveSelectionChangeIntent,
+  resolveSelectionChangeRecovery,
+  type SelectionChangeRecovery,
+  type TargetSelection,
+} from '../lib/selectionChange'
+import { documentReadinessItems } from '../lib/requiredDocumentSurfaces'
 import { buildWizardReadiness, type WizardReadiness } from '../lib/wizardReadiness'
 
 import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicationSlip'
@@ -68,24 +50,30 @@ import {
   type SubjectGrade,
   type WizardFormData,
   type WizardProgram,
-  type WizardIntake
+  type WizardIntake,
 } from '../types'
-import { getStepIndexById, getStepIndexByKey, wizardSteps } from '../steps/config'
+import { wizardSteps } from '../steps/config'
 import {
-  createGradeRowId,
   normalizeServerUploadedFiles,
-  sanitizePhoneInput,
-  isAuthSaveError,
   buildWizardIntakeDisplayName,
   resolveWizardIntakeIdentity,
-  type SaveDraftOptions,
+  type SaveDraftOptions
 } from './wizard/wizardControllerUtils'
 import { useWizardSessionRecovery } from './wizard/useWizardSessionRecovery'
 import { useWizardProfileAutoPopulate } from './wizard/useWizardProfileAutoPopulate'
 import { parseWizardDraftIntent, useWizardDraftLoader } from './wizard/useWizardDraftLoader'
 import { useWizardGrades } from './wizard/useWizardGrades'
-import { useWizardFileUploads } from './wizard/useWizardFileUploads'
 import { useWizardDraftPersistence, type DuplicateDraftConflict } from './wizard/useWizardDraftPersistence'
+import { useWizardAssignment } from './wizard/useWizardAssignment'
+import { useWizardCatalogIdentity } from './wizard/useWizardCatalogIdentity'
+import { useWizardStepAdvance } from './wizard/useWizardStepAdvance'
+import { useWizardSubmission } from './wizard/useWizardSubmission'
+import { useWizardDraftMachine } from './useWizardDraftMachine'
+import type { WizardDraftController, WizardDraftSnapshot } from '@/lib/wizardDraftController'
+import {
+  useRequiredDocuments,
+  type UseRequiredDocumentsResult,
+} from '@/hooks/useRequiredDocuments'
 
 // Re-export pure helpers so existing test imports keep working
 export {
@@ -96,7 +84,14 @@ export {
   resolveWizardIntakeIdentity,
 } from './wizard/wizardControllerUtils'
 
-interface UseWizardControllerResult {
+/**
+ * Exported by admissions-v2 task 11.2 so the extracted step views can be typed
+ * against the state machine they read (MAINT-01). The shape is unchanged; only its
+ * visibility is. `WizardStepRenderer` takes this whole object rather than
+ * forty-odd individual props, which is what makes moving the step switch out of
+ * `index.tsx` a relocation instead of a rewrite.
+ */
+export interface UseWizardControllerResult {
   authLoading: boolean
   restoringDraft: boolean
   user: ReturnType<typeof useAuth>['user']
@@ -129,7 +124,20 @@ interface UseWizardControllerResult {
   uploadProgress: Record<string, number>
   uploadStates: Record<string, ApplicationUploadState>
   uploadedFiles: Record<string, boolean>
+  /**
+   * The versioned required-document contract for this draft (task 7.2, R11.6).
+   * The education step renders its upload controls from this — including custom
+   * tenant document types — instead of a hardcoded two-field list (STU-13).
+   */
+  requiredDocuments: UseRequiredDocumentsResult
   wizardReadiness: WizardReadiness
+  /**
+   * The ONE owner of the open draft (task 6.3, R10.2): hydration, edits, the
+   * local outbox, autosave, manual save, retry, conflict, payment gate and
+   * submit. Views read `draftSnapshot`; they never write the draft themselves.
+   */
+  draftMachine: WizardDraftController
+  draftSnapshot: WizardDraftSnapshot
   isDraftSaving: boolean
   draftSaved: boolean
   draftLoaded: boolean
@@ -141,10 +149,17 @@ interface UseWizardControllerResult {
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
   paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
-  ocrStatus: 'idle' | 'polling' | 'done' | 'failed'
-  ocrExtractedCount: number
+  /** Server-derived phase of the pending payment (task 8.2, STU-09). */
+  paymentPhase: PaymentPhase | null
+  ocrStatus: 'idle' | 'polling' | 'suggested' | 'applied' | 'dismissed' | 'failed'
+  ocrCandidates: import('./useOcrGradeExtraction').OcrGradeCandidate[]
+  ocrWithheld: import('./useOcrGradeExtraction').OcrWithheldCandidate[]
+  ocrAppliedCount: number
   ocrFailureReason: import('./useOcrGradeExtraction').OcrFailureReason
   ocrExtractionMeta: import('./useOcrGradeExtraction').OcrExtractionMeta | null
+  /** The student's explicit confirmation of selected candidates (R11.4). */
+  confirmOcrCandidates: (subjectIds: string[]) => void
+  dismissOcrCandidates: () => void
   retryOcr: (documentId?: string | null) => void
   persistingSlip: boolean
   slipLoading: boolean
@@ -152,8 +167,6 @@ interface UseWizardControllerResult {
   handleDownloadSlip: () => Promise<void>
   handleEmailSlip: () => Promise<void>
   dismissSlipProgress: () => void
-  handleResultSlipUpload: (file: File | null) => void
-  handleExtraKycUpload: (file: File | null) => void
   handleLoadDraft: (draftData: unknown, draftId?: string) => Promise<void>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
@@ -162,7 +175,7 @@ interface UseWizardControllerResult {
   removeGrade: (index: number) => void
   updateGrade: (index: number, field: keyof SubjectGrade, value: string | number) => void
   getUsedSubjects: () => string[]
-  saveDraft: (options?: SaveDraftOptions) => Promise<void>
+  saveDraft: (options?: SaveDraftOptions) => Promise<Application | null>
   watchValues: () => WizardFormData
   goToStep: (index: number) => void
   refetchPaymentStatus: () => Promise<void>
@@ -202,22 +215,50 @@ const useWizardController = (): UseWizardControllerResult => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [applicationId, setApplicationId] = useState<string | null>(null)
+  // The open draft's identity and version belong to the draft machine (task
+  // 6.3, R10.1/R10.2). Everything below reads `applicationId` from it; nothing
+  // else holds a copy that could disagree.
+  const { machine: draftMachine, snapshot: draftSnapshot } = useWizardDraftMachine()
+  const applicationId = draftSnapshot.applicationId
   const [ocrDocumentId, setOcrDocumentId] = useState<string | null>(null)
   const startOcrPollingRef = useRef<((documentId?: string | null) => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
   const selectedGradesRef = useRef<SubjectGrade[]>([])
   selectedGradesRef.current = selectedGrades
-  const [isDraftSaving, setIsDraftSaving] = useState(false)
-  const [draftSaved, setDraftSaved] = useState(false)
   const [restoringDraft, setRestoringDraft] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [duplicateDraftConflict, setDuplicateDraftConflict] = useState<DuplicateDraftConflict | null>(null)
   const [confirmSubmission, setConfirmSubmission] = useState(false)
   const [gradesHydrating, setGradesHydrating] = useState(false)
-  const [programs, setPrograms] = useState<WizardProgram[]>([])
-  const [intakes, setIntakes] = useState<WizardIntake[]>([])
+  /*
+    The catalog lists and the canonical-identity resolvers (task 12.1, MAINT-01).
+
+    Extracted verbatim into `useWizardCatalogIdentity`: the `programs` / `intakes`
+    state and `findProgramId` / `deriveInstitutionLabel` / `resolveProgramIdentity` /
+    `resolveIntakeIdentity` / `programIds` / `intakeIds`. `findProgramId`'s fallback
+    ladder is the code that decides which *canonical* program a restored display
+    name means — the canonical truth map makes ids the sole authority and the
+    `applications.program` string a display snapshot — so it now has a module with a
+    name instead of 90 lines in the middle of a 1,110-line hook.
+
+    The two population effects and the two reconciliation effects stay below. The
+    reason is ordering, and it is written into the extracted module's header rather
+    than left to be rediscovered: `programIds` feeds the schema, the schema feeds
+    the form, and the catalog query reads `watch('intake')` off that form.
+  */
+  const {
+    programs,
+    setPrograms,
+    intakes,
+    setIntakes,
+    findProgramId,
+    deriveInstitutionLabel,
+    resolveProgramIdentity,
+    resolveIntakeIdentity,
+    programIds,
+    intakeIds,
+  } = useWizardCatalogIdentity()
   const isSubmittingRef = useRef(false)
   // Submit-time re-assignment failure code (R2.7). Set when the submit path
   // returns OFFERING_NO_LONGER_AVAILABLE / OFFERING_CAPACITY_FULL so the
@@ -230,96 +271,6 @@ const useWizardController = (): UseWizardControllerResult => {
     [location.search]
   )
 
-  const findProgramId = useCallback(
-    (
-      value?: string | null,
-      institutionHint?: string | null,
-      programList?: WizardProgram[]
-    ) => {
-      const list = programList ?? programs
-      if (!value) return ''
-
-      const trimmed = value.trim()
-      if (!trimmed) return ''
-
-      // Exact ID match
-      const byId = list.find(program => program.id === trimmed)
-      if (byId) return byId.id
-
-      const normalized = trimmed.toLowerCase()
-      
-      // Exact name match
-      const exactMatches = list.filter(program => program.name?.trim().toLowerCase() === normalized)
-      if (exactMatches.length === 1) return exactMatches[0]!.id
-
-      // Multiple exact matches - use institution hint
-      if (exactMatches.length > 1 && institutionHint) {
-        const hint = institutionHint.trim().toLowerCase()
-        const byInstitution = exactMatches.find(program => {
-          const institutionName = program.institutions?.full_name || program.institutions?.name || ''
-          const normalizedInstitution = institutionName.trim().toLowerCase()
-          return normalizedInstitution === hint || normalizedInstitution.includes(hint) || hint.includes(normalizedInstitution)
-        })
-        if (byInstitution) return byInstitution.id
-        // Return first match if institution hint doesn't help
-        return exactMatches[0]!.id
-      }
-
-      // Partial name match (fallback)
-      const partialMatches = list.filter(program => {
-        const programName = program.name?.trim().toLowerCase() || ''
-        return programName.includes(normalized) || normalized.includes(programName)
-      })
-      
-      if (partialMatches.length === 1) return partialMatches[0]!.id
-      if (partialMatches.length > 1 && institutionHint) {
-        const hint = institutionHint.trim().toLowerCase()
-        const byInstitution = partialMatches.find(program => {
-          const institutionName = program.institutions?.full_name || program.institutions?.name || ''
-          const normalizedInstitution = institutionName.trim().toLowerCase()
-          return normalizedInstitution === hint || normalizedInstitution.includes(hint)
-        })
-        if (byInstitution) return byInstitution.id
-      }
-
-      // No match found - return empty to trigger validation error
-      return ''
-    },
-    [programs]
-  )
-
-  const deriveInstitutionLabel = useCallback((institution?: WizardProgram['institutions']) => {
-    if (!institution) return ''
-    return institution.full_name?.trim() || institution.name?.trim() || ''
-  }, [])
-
-  const resolveProgramIdentity = useCallback(
-    (value?: string | null, institutionHint?: string | null) => {
-      const programId = findProgramId(value, institutionHint)
-      if (!programId) return null
-
-      const program = programs.find(item => item.id === programId)
-      if (!program?.name?.trim()) return null
-
-      return {
-        id: programId,
-        label: program.name.trim(),
-        institutionLabel: deriveInstitutionLabel(program.institutions)
-      }
-    },
-    [deriveInstitutionLabel, findProgramId, programs]
-  )
-
-  const resolveIntakeIdentity = useCallback(
-    (value?: string | null) => resolveWizardIntakeIdentity(intakes, value),
-    [intakes]
-  )
-
-  const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
-  const intakeIds = useMemo(
-    () => intakes.map(intake => intake.id).filter(Boolean),
-    [intakes]
-  )
   const schema = useMemo(() => createWizardSchema(programIds, intakeIds), [programIds, intakeIds])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
@@ -340,8 +291,6 @@ const useWizardController = (): UseWizardControllerResult => {
     () => mergeWizardSubjects((subjectsData?.subjects as Array<{ id: string; name: string; code: string }> | undefined) || []),
     [subjectsData]
   )
-  const createApplication = applicationsData.useCreate()
-  const updateApplication = applicationsData.useUpdate()
   const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications, isPending: draftApplicationsLoading } = applicationsData.useList({
@@ -355,6 +304,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const paymentStepActive = currentStepConfig.key === 'payment' || currentStepConfig.key === 'submit'
   const {
     status: paymentStatus,
+    // Task 8.2 / STU-09: who the pending payment is waiting on, decided server-side.
+    phase: paymentPhase,
     refetch: refetchPaymentStatus,
     setStatus: setPaymentStatus,
   } = usePaymentStatus(paymentStepActive ? (applicationId || '') : '', submittedApplication?.paymentStatus ?? null)
@@ -422,112 +373,32 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [programs, selectedProgram, findProgramId, setValue])
   const clearValidationError = useCallback(() => setError(''), [])
 
-  // ── Program-first assignment preview (R10.2 / R10.3) ──────────────────────
-  // Once the student has chosen a canonical programme + intake, resolve the
-  // assigned school + fee + required documents + contact from the backend.
-  // The result drives the assigned-school checkpoint (step 2) and gates the
-  // payment step: payment is unreachable until `assignmentResolved` is true.
-  const { data: wizardCatalogContext } = catalogData.useContext()
-  const whiteLabelInstitutionId =
-    wizardCatalogContext?.portal_type === 'white_label' ? wizardCatalogContext.institution_id : null
-  const previewNationality = getBestValue(profile?.nationality, getUserMetadata(user).nationality, 'Zambian')
-  const previewCountry = getCanonicalResidenceCountry(profile, getUserMetadata(user))
   const {
-    data: assignmentPreview,
-    isFetching: assignmentPreviewFetching,
-    error: assignmentPreviewErrorRaw,
-    refetch: refetchAssignmentPreview,
-  } = catalogData.useAssignmentPreview({
-    programId: selectedProgram && programIds.includes(selectedProgram) ? selectedProgram : null,
-    intakeId: selectedIntake && intakeIds.includes(selectedIntake) ? selectedIntake : null,
-    nationality: previewNationality,
-    country: previewCountry,
-    institution: whiteLabelInstitutionId,
-  })
-  // R10.3 gate: assignment is "resolved" only when the backend returned an
-  // assigned school AND a resolved fee for the chosen program+intake.
-  const assignmentResolved = Boolean(assignmentPreview?.assigned_school?.id && assignmentPreview?.fee)
-  const assignmentPreviewError = assignmentPreviewErrorRaw
-    ? toError(assignmentPreviewErrorRaw).message || 'We could not confirm your assigned school. Please try again.'
-    : null
-
-  // ── Recoverable assignment-failure guidance (R10.4, R2.6, R2.7) ───────────
-  // A failure is either: a preview failure carrying a stable code (R2.6:
-  // NO_ELIGIBLE_OFFERING), a submit-time re-assignment failure (R2.7:
-  // OFFERING_NO_LONGER_AVAILABLE / OFFERING_CAPACITY_FULL), or a transient
-  // network/unknown failure. In every case the student gets a recoverable path
-  // (choose another intake, interest list, contact admissions) — never a
-  // dead-end. The submit-time code takes precedence because it is the most
-  // recent, decisive signal.
-  const previewFailureCode = getAssignmentFailureCode(assignmentPreviewErrorRaw)
-  const activeAssignmentFailureCode = submitAssignmentFailureCode ?? previewFailureCode
-  const assignmentContactMailto = useMemo(
-    () =>
-      buildAdmissionsMailto({
-        email:
-          assignmentPreview?.contact?.email ??
-          wizardCatalogContext?.brand?.admissions_email ??
-          wizardCatalogContext?.brand?.support_email ??
-          null,
-        programName: assignmentPreview?.program_name ?? selectedProgramDetails?.name,
-        intakeName: assignmentPreview?.intake_name,
-      }),
-    [
-      assignmentPreview?.contact?.email,
-      assignmentPreview?.program_name,
-      assignmentPreview?.intake_name,
-      wizardCatalogContext?.brand?.admissions_email,
-      wizardCatalogContext?.brand?.support_email,
-      selectedProgramDetails?.name,
-    ],
-  )
-  const assignmentRecovery: AssignmentRecoveryGuidance | null = useMemo(() => {
-    // Only surface recovery when there is an actual failure: a stable code, or
-    // a transient preview error while ids are present and nothing resolved.
-    const hasFailure =
-      activeAssignmentFailureCode !== null ||
-      (Boolean(assignmentPreviewError) && !assignmentResolved)
-    if (!hasFailure) return null
-    return resolveAssignmentRecovery({
-      code: activeAssignmentFailureCode,
-      programName: assignmentPreview?.program_name ?? selectedProgramDetails?.name,
-      intakeName:
-        assignmentPreview?.intake_name ??
-        intakes.find(intake => intake.id === selectedIntake)?.name,
-    })
-  }, [
-    activeAssignmentFailureCode,
-    assignmentPreviewError,
+    wizardCatalogContext,
+    assignmentPreview,
+    assignmentPreviewFetching,
     assignmentResolved,
-    assignmentPreview?.program_name,
-    assignmentPreview?.intake_name,
-    selectedProgramDetails?.name,
-    intakes,
+    assignmentPreviewError,
+    assignmentRecovery,
+    assignmentContactMailto,
+    assignmentInterestRecorded,
+    joinAssignmentInterestList,
+    refetchAssignmentPreview,
+  } = useWizardAssignment({
+    user,
+    profile,
+    selectedProgram,
     selectedIntake,
-  ])
-  const assignmentInterestRecorded = useMemo(() => {
-    void assignmentInterestTick
-    return hasRecordedAssignmentInterest({ programId: selectedProgram, intakeId: selectedIntake })
-  }, [assignmentInterestTick, selectedProgram, selectedIntake])
-  const joinAssignmentInterestList = useCallback(() => {
-    const recorded = recordAssignmentInterest({
-      programId: selectedProgram,
-      intakeId: selectedIntake,
-      code: activeAssignmentFailureCode,
-    })
-    if (recorded) {
-      setAssignmentInterestTick(tick => tick + 1)
-      showSuccess('Added to the interest list. We will contact you if a place opens.')
-    }
-  }, [selectedProgram, selectedIntake, activeAssignmentFailureCode, showSuccess])
-
-  // Clear a stale submit-time failure once the student changes their selection
-  // and a fresh assignment resolves successfully.
-  useEffect(() => {
-    if (assignmentResolved && submitAssignmentFailureCode) {
-      setSubmitAssignmentFailureCode(null)
-    }
-  }, [assignmentResolved, submitAssignmentFailureCode])
+    programIds,
+    intakeIds,
+    selectedProgramDetails,
+    intakes,
+    submitAssignmentFailureCode,
+    setSubmitAssignmentFailureCode,
+    assignmentInterestTick,
+    setAssignmentInterestTick,
+    showSuccess,
+  })
 
   const {
     resultSlipFile,
@@ -536,13 +407,7 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadProgress,
     uploadStates,
     uploadedFiles,
-    handleResultSlipUpload: baseHandleResultSlipUpload,
-    handleExtraKycUpload: baseHandleExtraKycUpload,
-    handleResultSlipFile: baseHandleResultSlipFile,
-    handleExtraKycFile: baseHandleExtraKycFile,
     markUploadedFile,
-    startUpload,
-    trackUploadTask
   } = useApplicationFileUploads({
     userId: user?.id,
     applicationId,
@@ -552,8 +417,14 @@ const useWizardController = (): UseWizardControllerResult => {
 
   const clearStaleApplicationReference = useCallback((staleApplicationId: string, message?: string) => {
     clearStaleApplicationDraftReference(staleApplicationId)
-    setApplicationId(current => (current === staleApplicationId ? null : current))
-    queryClient.removeQueries({ queryKey: ['application-detail', staleApplicationId] })
+    // The server no longer has this draft: the machine detaches from it and
+    // never resurrects it by autosave; the answers stay in the form.
+    draftMachine.detach(staleApplicationId)
+    // Task 10.6 (R13.13): the canonical workspace's cache key. The retired
+    // `['application-detail', …]` key belonged to the second student workspace
+    // and evicting it now would evict nothing, leaving a stale application on
+    // screen after the draft it referred to went away.
+    queryClient.removeQueries({ queryKey: ['application-workspace', staleApplicationId] })
     queryClient.removeQueries({ queryKey: ['applications', 'detail', staleApplicationId] })
     queryClient.invalidateQueries({ queryKey: ['applications'] })
     useDraftStore.getState().markStale(staleApplicationId)
@@ -561,7 +432,73 @@ const useWizardController = (): UseWizardControllerResult => {
     if (message) {
       showWarning(message)
     }
-  }, [queryClient, showWarning])
+  }, [draftMachine, queryClient, showWarning])
+
+  /**
+   * Move a draft's assignment through the one reroute command (task 6.4).
+   *
+   * Returns `ok: true` when the selection already matched (no command sent) or
+   * the reroute succeeded; otherwise returns recoverable guidance for the stable
+   * rejection code (payment lock, duplicate, version conflict, unavailable
+   * configuration). Never throws — the caller decides whether to block.
+   */
+  const applyDraftSelectionChange = useCallback(async ({
+    applicationId: draftId,
+    persisted,
+    target,
+  }: {
+    applicationId: string
+    persisted: Record<string, unknown> | null | undefined
+    target: TargetSelection
+  }): Promise<{ ok: true; changed: boolean } | { ok: false; recovery: SelectionChangeRecovery }> => {
+    const record = (persisted ?? {}) as Record<string, unknown>
+    const intent = resolveSelectionChangeIntent({
+      persisted: {
+        programId: typeof record.program_id === 'string' ? record.program_id : null,
+        intakeId: typeof record.intake_id === 'string' ? record.intake_id : null,
+        programName: typeof record.program === 'string' ? record.program : null,
+        intakeName: typeof record.intake === 'string' ? record.intake : null,
+        assignmentVersion:
+          typeof record.assignment_version === 'number' ? record.assignment_version : null,
+      },
+      target,
+    })
+    if (intent.kind === 'noop') return { ok: true, changed: false }
+
+    try {
+      const changedApplication = await applicationService.changeSelection(draftId, {
+        programId: intent.programId,
+        intakeId: intent.intakeId,
+        ...(intent.assignmentVersion !== undefined
+          ? { assignmentVersion: intent.assignmentVersion }
+          : {}),
+      })
+      // The reroute is a canonical command of its own and advances the shared
+      // optimistic version; the machine adopts it so the next answer write
+      // carries the right `expected_version`.
+      draftMachine.acknowledgeServerRecord(
+        changedApplication as unknown as Record<string, unknown> | null,
+      )
+      // The requirement/eligibility/fee snapshots changed server-side, so any
+      // cached view of this application is stale.
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.invalidateQueries({ queryKey: ['application-workspace', draftId] })
+      return { ok: true, changed: true }
+    } catch (selectionError) {
+      logApiError(
+        'application-wizard',
+        `POST /applications/drafts/${draftId}/change-selection/`,
+        selectionError,
+      )
+      return {
+        ok: false,
+        recovery: resolveSelectionChangeRecovery(selectionError, {
+          programName: target.programName,
+          intakeName: target.intakeName,
+        }),
+      }
+    }
+  }, [draftMachine, queryClient])
 
   const {
     normalizeSelectedGrades,
@@ -614,12 +551,12 @@ const useWizardController = (): UseWizardControllerResult => {
     persistLocalDraftSnapshot,
     handleLoadDraft,
     saveDraft,
+    restoreServerDraft,
+    outboxRecoveryFor,
   } = useWizardDraftPersistence({
+    machine: draftMachine,
     user,
     profile,
-    restoringDraft,
-    success,
-    applicationId,
     uploadedFiles,
     currentStepConfig,
     paymentStatus,
@@ -627,15 +564,12 @@ const useWizardController = (): UseWizardControllerResult => {
     selectedProgramDetails,
     programsData,
     totalSteps,
-    form: { getValues, setValue },
-    setApplicationId,
+    form: { getValues, setValue, getFieldState: form.getFieldState },
     setRestoringDraft,
     setDraftLoaded,
     setDuplicateDraftConflict,
     setGradesHydrating,
     setError,
-    setIsDraftSaving,
-    setDraftSaved,
     setSubmittedApplication,
     markUploadedFile,
     restorePaymentStatus,
@@ -645,31 +579,66 @@ const useWizardController = (): UseWizardControllerResult => {
     deriveInstitutionLabel,
     resolveProgramIdentity,
     resolveIntakeIdentity,
-    createApplication,
     goToStep,
     clearStaleApplicationReference,
     hydrateServerGrades,
     hydrateServerDocuments,
   })
 
-  const {
-    handleResultSlipUpload,
-    handleExtraKycUpload,
-  } = useWizardFileUploads({
+  /**
+   * The versioned required-document contract (admissions-v2 task 7.2, R11.6).
+   *
+   * The education step renders one upload control per server requirement, so a
+   * tenant-configured document type — including a custom one — is uploadable
+   * instead of being an invisible submission blocker (STU-13). The upload
+   * command persists ``result_slip_url`` / ``extra_kyc_url`` itself, so this path
+   * needs no extra application PATCH; the local draft snapshot is still refreshed
+   * so an interrupted session keeps the student's other work.
+   */
+  const requiredDocuments = useRequiredDocuments({
     applicationId,
-    baseHandleResultSlipUpload,
-    baseHandleExtraKycUpload,
-    baseHandleResultSlipFile,
-    baseHandleExtraKycFile,
-    updateApplication,
-    persistLocalDraftSnapshot,
-    clearStaleApplicationReference,
-    showInfo,
-    showSuccess,
-    showWarning,
-    setOcrDocumentId,
-    startOcrPollingRef,
+    onUploaded: useCallback(
+      (documentType: string, documentId: string) => {
+        persistLocalDraftSnapshot()
+        if (documentType !== 'result_slip') {
+          return
+        }
+        // Optional deterministic grade assistance — never authoritative, and a
+        // failure here never blocks the upload (R11.4, task 7.5).
+        setOcrDocumentId(documentId)
+        documentService
+          .extract({ documentId })
+          .catch((extractError: unknown) =>
+            logger.warn('OCR extraction request failed', toError(extractError)),
+          )
+        startOcrPollingRef.current?.(documentId)
+      },
+      [persistLocalDraftSnapshot, setOcrDocumentId, startOcrPollingRef],
+    ),
   })
+
+  /**
+   * Bridge the contract into the legacy ``uploadedFiles`` map.
+   *
+   * Progress, draft resume, and the advisory client readiness still read the two
+   * legacy keys. The contract is the source of truth; this keeps those surfaces
+   * consistent with it rather than with a local optimistic flag. Tasks 10.6/11.2
+   * replace the advisory readiness with the server readiness query, at which
+   * point this bridge goes away.
+   */
+  useEffect(() => {
+    const contract = requiredDocuments.contract
+    if (!contract) return
+    const satisfies = (types: string[]) =>
+      contract.requirements.some(
+        (requirement) =>
+          requirement.state !== 'missing' &&
+          (types.includes(requirement.documentType) ||
+            requirement.acceptsDocumentTypes.some((accepted) => types.includes(accepted))),
+      )
+    markUploadedFile('result_slip', satisfies(['result_slip']))
+    markUploadedFile('extra_kyc', satisfies(['extra_kyc', 'nrc', 'passport']))
+  }, [markUploadedFile, requiredDocuments.contract])
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     persistLocalDraftSnapshot()
@@ -701,18 +670,78 @@ const useWizardController = (): UseWizardControllerResult => {
     toast: { showError, showWarning, showSuccess, showInfo },
   })
 
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if ((currentStepIndex > 0 || form.formState.isDirty) && !success) {
-        persistLocalDraftSnapshot()
-        event.preventDefault()
-        event.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
-      }
-    }
+  // The `beforeunload` guard belongs to the draft machine binding
+  // (`useWizardDraftMachine`): it asks only when the machine says work is not on
+  // the server, instead of whenever the student was past step 1.
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [currentStepIndex, form.formState.isDirty, persistLocalDraftSnapshot, success])
+  // Every form change is an edit event for the machine. It decides — by
+  // comparing the canonical answer projection with what the server last
+  // acknowledged — whether anything is due; a change the PATCH would not carry
+  // (the programme, a re-resolved intake id) can never cause a write.
+  useEffect(() => {
+    const subscription = form.watch(() => draftMachine.observe())
+    return () => subscription.unsubscribe()
+  }, [form, draftMachine])
+
+  // PAY: once the draft has payment activity it is payment-linked.
+  useEffect(() => {
+    if (paymentStatus) draftMachine.notePaymentActivity()
+  }, [draftMachine, paymentStatus])
+
+  // An in-app change of draft intent (R10.1) — "Switch application", "Start a
+  // new application", "Continue existing" — keeps this component mounted, so it
+  // must re-hydrate: the machine lets go of the draft it held and the loader runs
+  // again for the new intent. Without this the machine would stay attached to the
+  // previous application, and answers typed into the "new" one would be written
+  // to it. Keyed on mode + draft id only: the wizard's own `?step=` history
+  // entries are not an intent change.
+  const draftIntentKey = `${wizardDraftIntent.mode}:${wizardDraftIntent.draftId ?? ''}`
+  const hydratedIntentKeyRef = useRef<string | null>(null)
+  // "Resume the draft this machine already holds" is not an intent change: it is
+  // the address the wizard itself gave a just-started application (below), which
+  // Back/Forward can land on. Re-hydrating there would move the student off the
+  // step they navigated to.
+  const intentNamesOpenDraft =
+    wizardDraftIntent.mode === 'resume' && applicationId !== null && wizardDraftIntent.draftId === applicationId
+  useEffect(() => {
+    if (!draftLoaded) return
+    if (hydratedIntentKeyRef.current === null) {
+      hydratedIntentKeyRef.current = draftIntentKey
+      return
+    }
+    if (hydratedIntentKeyRef.current === draftIntentKey) return
+    if (intentNamesOpenDraft) return
+    hydratedIntentKeyRef.current = null
+    draftMachine.reset()
+    setDuplicateDraftConflict(null)
+    setDraftLoaded(false)
+  }, [draftIntentKey, draftLoaded, draftMachine, intentNamesOpenDraft])
+
+  // Refresh after a NEW application has been saved (R10.1, R10.8). The machine
+  // attaches a `mode=new` draft to the id the start command returned, but the
+  // address bar kept saying `mode=new`, so a refresh — or a tab the browser
+  // restored — reopened a blank new application instead of the student's saved
+  // one (the browser run measured `?mode=new&step=education` reloading to
+  // `?mode=new&step=program` with every answer gone from the screen).
+  //
+  // Once attached, the address bar is rewritten IN PLACE to resume that draft,
+  // the same way the wizard already writes its own `?step=` (`index.tsx`):
+  // `history.replaceState`, not a router navigation. The mounted wizard's intent
+  // does not change, so nothing re-hydrates. Back/Forward stay on the same
+  // application either way: an older `mode=new` entry keeps the hydrated intent
+  // (and this effect rewrites it on arrival), and a rewritten entry names the
+  // open draft, which the effect above ignores. Only what a reload opens changes.
+  useEffect(() => {
+    if (!draftLoaded || wizardDraftIntent.mode !== 'new' || !applicationId) return
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('mode') === 'resume' && url.searchParams.get('draftId') === applicationId) return
+    url.searchParams.delete('new')
+    url.searchParams.delete('fresh')
+    url.searchParams.set('mode', 'resume')
+    url.searchParams.set('draftId', applicationId)
+    window.history.replaceState(window.history.state, '', url.toString())
+  }, [applicationId, draftLoaded, location.search, wizardDraftIntent.mode])
 
   useEffect(() => {
     const handleAuthRedirect = () => {
@@ -734,6 +763,15 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadedFiles,
     hasResultSlipFile: Boolean(resultSlipFile),
     hasIdentityFile: Boolean(extraKycFile),
+    // Task 7.2 (R11.6): the readiness rail describes the *tenant's* required
+    // documents. `undefined` (no readable contract) keeps the legacy pair, so
+    // the rail is never weaker than before.
+    requiredDocumentItems: requiredDocuments.contract
+      ? documentReadinessItems(requiredDocuments.contract, {
+          hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
+          hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+        })
+      : undefined,
     paymentStatus,
     confirmSubmission,
     assignmentResolved,
@@ -770,6 +808,7 @@ const useWizardController = (): UseWizardControllerResult => {
   })
 
   useWizardDraftLoader({
+    machine: draftMachine,
     user,
     authLoading,
     draftLoaded,
@@ -779,10 +818,9 @@ const useWizardController = (): UseWizardControllerResult => {
     totalSteps,
     programsData,
     setValue,
-    getValues,
     setRestoringDraft,
     setDraftLoaded,
-    setApplicationId,
+    setError,
     setSelectedGrades,
     setGradesHydrating,
     goToStep,
@@ -792,10 +830,12 @@ const useWizardController = (): UseWizardControllerResult => {
     findProgramId,
     hydrateServerGrades,
     hydrateServerDocuments,
+    restoreServerDraft,
+    outboxRecoveryFor,
   })
 
-  // Auto-save is handled by useSmartAutoSave (via useAutoSave) in the wizard component.
-  // No redundant setInterval needed here — useSmartAutoSave calls saveDraft every 8 seconds.
+  // Autosave is the draft machine's own debounce and 8-second sweep; nothing
+  // here schedules a second one.
 
   // Use the fixed eligibility checker
   const { assessment: eligibilityAssessment } = useEligibilityChecker({
@@ -820,12 +860,29 @@ const useWizardController = (): UseWizardControllerResult => {
     [selectedProgramDetails]
   )
 
-  const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, extractionMeta: ocrExtractionMeta, startPolling: startOcrPolling } = useOcrGradeExtraction(
-    ocrDocumentId,
-    subjects,
-    handleOcrGrades,
-  )
+  // admissions-v2 task 7.5 (R11.4): the hook *holds* deterministic candidates; it
+  // does not apply them. `handleOcrGrades` now runs only from
+  // `confirmOcrCandidates` — i.e. only after the student ticks rows and presses
+  // confirm in the education step. Nothing reaches the grades grid otherwise.
+  const {
+    status: ocrStatus,
+    candidates: ocrCandidates,
+    withheld: ocrWithheld,
+    appliedCount: ocrAppliedCount,
+    failureReason: ocrFailureReason,
+    extractionMeta: ocrExtractionMeta,
+    startPolling: startOcrPolling,
+    confirmCandidates,
+    dismissCandidates: dismissOcrCandidates,
+  } = useOcrGradeExtraction(ocrDocumentId)
   startOcrPollingRef.current = startOcrPolling
+
+  const confirmOcrCandidates = useCallback((subjectIds: string[]) => {
+    const confirmed = confirmCandidates(subjectIds)
+    if (confirmed.length > 0) {
+      handleOcrGrades(confirmed)
+    }
+  }, [confirmCandidates, handleOcrGrades])
 
   // Auto-start OCR polling on draft restore when result slip exists but no grades loaded
   useEffect(() => {
@@ -837,435 +894,49 @@ const useWizardController = (): UseWizardControllerResult => {
   const retryOcr = useCallback((documentId?: string | null) => {
     const docId = documentId || ocrDocumentId
     if (!docId) return
-    apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch((err) => logger.warn('OCR retry request failed', toError(err)))
+    documentService
+      .extract({ documentId: docId, force: true })
+      .catch((err) => logger.warn('OCR retry request failed', toError(err)))
     startOcrPolling(docId)
   }, [ocrDocumentId, startOcrPolling])
 
-  const handleNextStep = useCallback(async () => {
-    await saveDraft({ syncServer: false })
-
-    // Step 1 (R10.1): programme + intake selection. Validate the pair, then
-    // advance to the assigned-school checkpoint. The assignment preview runs
-    // reactively (useAssignmentPreview) — no application row is created here.
-    if (currentStepConfig.key === 'program') {
-      const formData = watch()
-      if (!formData.program || !programIds.includes(formData.program)) {
-        setError('Please select a valid program from the list provided')
-        return
-      }
-      if (!formData.intake || !intakeIds.includes(formData.intake)) {
-        setError('Please select a valid intake from the list provided')
-        return
-      }
-      setError('')
-      goToStep(currentStepIndex + 1)
-      return
-    }
-
-    // Step 2 (R10.2 / R10.3): assigned-school checkpoint. Payment is unreachable
-    // until the backend has resolved the assigned school AND fee. Block forward
-    // navigation past this checkpoint until the preview resolves.
-    if (currentStepConfig.key === 'assignedSchool') {
-      if (assignmentPreviewFetching) {
-        setError('Please wait while we confirm your assigned school.')
-        return
-      }
-      if (!assignmentResolved) {
-        setError(
-          assignmentPreviewError ||
-          'We could not confirm your assigned school for this programme and intake. Please choose another intake or contact admissions.'
-        )
-        return
-      }
-      setError('')
-      goToStep(currentStepIndex + 1)
-      return
-    }
-
-    if (currentStepConfig.key === 'personal') {
-      const formData = watch()
-      const requiredFields = ['full_name', 'date_of_birth', 'sex', 'phone', 'email', 'residence_town', 'program', 'intake']
-      const missingFields = requiredFields.filter(field => {
-        if (field === 'residence_town') {
-          return !normalizeResidenceTown(formData.residence_town)
-        }
-        return !formData[field as keyof typeof formData]
-      })
-      if (missingFields.length > 0) {
-        const errorMessage = `Please fill in all required fields: ${missingFields.join(', ')}`
-        setError(errorMessage)
-        return
-      }
-      if (!formData.nrc_number && !formData.passport_number) {
-        const errorMessage = 'Either NRC or Passport number is required'
-        setError(errorMessage)
-        return
-      }
-      if (formData.program && !programIds.includes(formData.program)) {
-        const errorMessage = 'Please select a valid program from the list provided'
-        setError(errorMessage)
-        return
-      }
-      if (formData.intake && !intakeIds.includes(formData.intake)) {
-        const errorMessage = 'Please select a valid intake from the list provided'
-        setError(errorMessage)
-        return
-      }
-
-      try {
-        setLoading(true)
-        setError('')
-        const resolvedProgram = resolveProgramIdentity(formData.program)
-        if (!resolvedProgram) {
-          const errorMessage = 'Please select a valid program from the list provided'
-          setError(errorMessage)
-          return
-        }
-        const resolvedIntake = resolveIntakeIdentity(formData.intake)
-        if (!resolvedIntake) {
-          const errorMessage = 'Please select a valid intake from the list provided'
-          setError(errorMessage)
-          return
-        }
-
-        const programName = resolvedProgram.label
-        const institutionLabel =
-          resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'Beanola Admissions'
-        
-        // Duplicate check handled by backend on create/submit
-
-        if (applicationId) {
-          // Update existing application
-          const metadata = getUserMetadata(user)
-          const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
-          const country = getCanonicalResidenceCountry(profile, metadata)
-
-          const updatedApp = await updateApplication.mutateAsync({
-            id: applicationId,
-            data: {
-              full_name: formData.full_name,
-              nrc_number: formData.nrc_number || null,
-              passport_number: formData.passport_number || null,
-              date_of_birth: formData.date_of_birth,
-              sex: formData.sex?.toLowerCase(),
-              phone: sanitizePhoneInput(formData.phone),
-              email: formData.email,
-              residence_town: normalizeResidenceTown(formData.residence_town),
-              country: formData.country || country,
-              next_of_kin_name: formData.next_of_kin_name || null,
-              next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
-              program: resolvedProgram.label,
-              intake: resolvedIntake.name,
-              institution: institutionLabel,
-              nationality: nationality
-            }
-          })
-
-          setSubmittedApplication(prev => ({
-            applicationNumber: updatedApp?.application_number || prev?.applicationNumber || '',
-            trackingCode: String(updatedApp?.public_tracking_code || prev?.trackingCode || ''),
-            program: programName,
-            institution: institutionLabel,
-            intake: resolvedIntake.label,
-            fullName: formData.full_name,
-            email: formData.email,
-            phone: sanitizePhoneInput(formData.phone),
-            status: updatedApp?.status || 'draft',
-            paymentStatus: updatedApp?.payment_status ?? prev?.paymentStatus ?? null
-          }))
-          
-          // Invalidate cache and notify dashboard
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-          window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId } }))
-        } else {
-          // Create new application
-          const metadata = getUserMetadata(user)
-          const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
-          const country = getCanonicalResidenceCountry(profile, metadata)
-
-          const app = await createApplication.mutateAsync({
-            full_name: sanitizeInput(formData.full_name),
-            nrc_number: sanitizeInput(formData.nrc_number) || null,
-            passport_number: sanitizeInput(formData.passport_number) || null,
-            date_of_birth: formData.date_of_birth,
-            sex: formData.sex?.toLowerCase(),
-            phone: sanitizePhoneInput(formData.phone),
-            email: sanitizeInput(formData.email),
-            residence_town: normalizeResidenceTown(formData.residence_town),
-            country: sanitizeInput(formData.country) || country,
-            next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
-            next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
-            program_id: resolvedProgram.id,
-            intake_id: resolvedIntake.id,
-            program: resolvedProgram.label,
-            intake: resolvedIntake.name,
-            institution: institutionLabel,
-            nationality: nationality,
-          })
-
-          if (!app?.id) {
-            throw new Error('Application created but ID not returned')
-          }
-
-          setApplicationId(app.id)
-          setSubmittedApplication({
-            applicationNumber: app.application_number || '',
-            trackingCode: String(app.public_tracking_code || ''),
-            program: app.program || programName,
-            institution: app.institution || institutionLabel,
-            intake: resolvedIntake.label,
-            fullName: formData.full_name,
-            email: formData.email,
-            phone: sanitizePhoneInput(formData.phone),
-            status: app.status || 'draft',
-            paymentStatus: app.payment_status ?? null,
-            nationality,
-          })
-          
-          // Invalidate cache and notify dashboard
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-          window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id } }))
-        }
-        
-        goToStep(currentStepIndex + 1)
-      } catch (error) {
-        logApiError('application-wizard', '/applications/', error)
-        let errorMessage = toError(error).message || 'Failed to save application'
-        let staleRecoveryFailed = false
-        
-        if (applicationId && isApplicationMissingError(error)) {
-          clearStaleApplicationReference(applicationId)
-          try {
-            const resolvedProgram = resolveProgramIdentity(formData.program)
-            const resolvedIntake = resolveIntakeIdentity(formData.intake)
-            if (!resolvedProgram || !resolvedIntake) {
-              throw new Error('Please reselect your program and intake before continuing.')
-            }
-
-            const metadata = getUserMetadata(user)
-            const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
-            const country = getCanonicalResidenceCountry(profile, metadata)
-            const institutionLabel =
-              resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'Beanola Admissions'
-
-            const app = await createApplication.mutateAsync({
-              full_name: sanitizeInput(formData.full_name),
-              nrc_number: sanitizeInput(formData.nrc_number) || null,
-              passport_number: sanitizeInput(formData.passport_number) || null,
-              date_of_birth: formData.date_of_birth,
-              sex: formData.sex?.toLowerCase(),
-              phone: sanitizePhoneInput(formData.phone),
-              email: sanitizeInput(formData.email),
-              residence_town: normalizeResidenceTown(formData.residence_town),
-              country: sanitizeInput(formData.country) || country,
-              next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
-              next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
-              program_id: resolvedProgram.id,
-              intake_id: resolvedIntake.id,
-              program: resolvedProgram.label,
-              intake: resolvedIntake.name,
-              institution: institutionLabel,
-              nationality,
-            })
-
-            if (!app?.id) {
-              throw new Error('Application created but ID not returned')
-            }
-
-            setApplicationId(app.id)
-            setSubmittedApplication({
-              applicationNumber: app.application_number || '',
-              trackingCode: String(app.public_tracking_code || ''),
-              program: app.program || resolvedProgram.label,
-              institution: app.institution || institutionLabel,
-              intake: resolvedIntake.label,
-              fullName: formData.full_name,
-              email: formData.email,
-              phone: sanitizePhoneInput(formData.phone),
-              status: app.status || 'draft',
-              paymentStatus: app.payment_status ?? null,
-              nationality,
-            })
-            queryClient.invalidateQueries({ queryKey: ['applications'] })
-            window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id, source: 'stale-draft-recovery' } }))
-            goToStep(currentStepIndex + 1)
-            return
-          } catch (recoveryError) {
-            logApiError('application-wizard', 'POST /applications/ stale-draft-recovery', recoveryError)
-            errorMessage = 'Your previous online draft was no longer available. Your details are still saved on this device. Please try Continue again.'
-            staleRecoveryFailed = true
-          }
-        }
-
-        // Handle 404 for unavailable programs/intakes (Req 6.5)
-        const errorStatus = (error as { status?: number })?.status
-        if (!staleRecoveryFailed && errorStatus === 404) {
-          errorMessage = 'The selected program or intake is no longer available. Please select a different option.'
-        } else if (errorMessage.includes('Bad Request')) {
-          errorMessage = 'Connection issue - please try again'
-        }
-        
-        // Map Django field-level validation errors to wizard display (Req 6.3)
-        const fieldErrors = (error as { fieldErrors?: Record<string, unknown> })?.fieldErrors
-        if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length > 0) {
-          errorMessage = Object.entries(fieldErrors)
-            .map(([field, msg]) => {
-              const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-              const message = Array.isArray(msg) ? msg.join(', ') : String(msg ?? '')
-              return `${label}: ${message}`
-            })
-            .join('; ')
-        }
-        
-        setError(errorMessage)
-        showError(errorMessage)
-        return // Don't advance step on error
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
-    if (currentStepConfig.key === 'education') {
-      // Read from ref to avoid stale closure — selectedGrades state may not
-      // have flushed yet if the user's last dropdown selection was very recent.
-      const latestGrades = selectedGradesRef.current
-
-      // Live validation — produces per-row diagnostics without silently
-      // dropping in-progress rows (unlike normalizeDraftResumeGrades,
-      // which is a server-draft sanitiser and was the cause of the
-      // "6 subjects selected but told 2 are missing" bug).
-      const liveValidation = validateLiveGrades(latestGrades)
-      const validGradeCount = liveValidation.validCount
-
-      if (!applicationId) {
-        const errorMessage = 'Application not created. Returning to the personal details step.'
-        setError(errorMessage)
-        showError(errorMessage)
-        goToStep(getStepIndexByKey('personal'))
-        return
-      }
-
-      if (validGradeCount < 5) {
-        const hintSuffix = liveValidation.hintMessage ? ` — ${liveValidation.hintMessage}` : ''
-        const errorMessage = `Minimum 5 unique subjects required (${validGradeCount} selected${hintSuffix})`
-        setError(errorMessage)
-        return
-      }
-
-      // validGradeCount already excludes duplicates — if they still count as
-      // "valid" (hitting the >= 5 threshold via first-occurrence), surface
-      // the duplicate rows explicitly so the student can fix them.
-      const duplicateCount = liveValidation.diagnostics.filter((d) => d.issue === 'duplicate').length
-      if (duplicateCount > 0) {
-        const errorMessage = 'Each subject can only be selected once. Please remove or change duplicate subjects.'
-        setError(errorMessage)
-        return
-      }
-      if (selectedProgram && eligibilityCheck && !eligibilityCheck.eligible) {
-      }
-      if (!resultSlipFile && !uploadedFiles['result_slip']) {
-        const errorMessage = 'Result slip is required'
-        setError(errorMessage)
-        return
-      }
-
-      // Require identity document (NRC or Passport) — Req 5.1, 5.2
-      if (!extraKycFile && !uploadedFiles['extra_kyc']) {
-        const errorMessage = 'An NRC or Passport document is required before proceeding'
-        setError(errorMessage)
-        return
-      }
-
-      // Wait for upload to complete if still uploading
-      if (uploading) {
-        const errorMessage = 'Please wait for file upload to complete'
-        setError(errorMessage)
-        return
-      }
-
-      // Files already uploaded on selection, just sync grades and proceed
-      try {
-        setLoading(true)
-        // For the server sync we still strip in-progress / empty rows using
-        // the draft-resume normaliser — that's what it was designed for.
-        // Live validation above ensures only genuinely valid rows got us
-        // here, so this normalisation is a safe final cleanup.
-        const gradesToSync = normalizeSelectedGrades(latestGrades)
-        if (gradesToSync.length > 0) {
-          await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
-          setSelectedGrades(gradesToSync)
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-        }
-        goToStep(currentStepIndex + 1)
-      } catch (error) {
-        logApiError('application-wizard', `/applications/${applicationId}/grades/`, error)
-        if (isApplicationMissingError(error)) {
-          const errorMessage = 'Your online draft was no longer available. Your grades are saved on this device; please continue from the personal details step to refresh the draft.'
-          clearStaleApplicationReference(applicationId, errorMessage)
-          setError(errorMessage)
-          goToStep(getStepIndexByKey('personal'))
-          return
-        }
-
-        const errorMessage = toError(error).message || 'Failed to save grades'
-        setError(errorMessage)
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
-    if (currentStepConfig.key === 'payment') {
-      if (!applicationId) {
-        showError('Application not found. Please go back to step 1.')
-        return
-      }
-
-      if (!isPaymentResolvedForProgress(paymentStatus)) {
-        const errorMessage = 'Complete and confirm payment before continuing to the review step.'
-        setError(errorMessage)
-        showError(errorMessage)
-        return
-      }
-
-      goToStep(currentStepIndex + 1)
-    }
-  }, [
-    saveDraft,
+  const { handleNextStep } = useWizardStepAdvance({
+    applicationId,
     currentStepConfig,
-    watch,
-    createApplication,
-    goToStep,
     currentStepIndex,
-    selectedGrades,
+    watch,
+    programIds,
+    intakeIds,
     selectedProgram,
     selectedProgramDetails,
+    selectedGradesRef,
     eligibilityCheck,
     resultSlipFile,
     extraKycFile,
-    trackUploadTask,
-    clearValidationError,
-    startUpload,
-    syncGrades,
-    applicationId,
-    updateApplication,
-    normalizeSelectedGrades,
-    programIds,
-    intakeIds,
-    resolveIntakeIdentity,
-    resolveProgramIdentity,
-    showError,
+    uploadedFiles,
+    uploading,
     paymentStatus,
-    user,
-    profile,
-    deriveInstitutionLabel,
-    clearStaleApplicationReference,
-    queryClient,
     assignmentPreviewFetching,
     assignmentResolved,
     assignmentPreviewError,
-  ])
+    requiredDocuments,
+    queryClient,
+    syncGrades,
+    saveDraft,
+    applyDraftSelectionChange,
+    resolveProgramIdentity,
+    resolveIntakeIdentity,
+    deriveInstitutionLabel,
+    normalizeSelectedGrades,
+    clearStaleApplicationReference,
+    goToStep,
+    setSelectedGrades,
+    setSubmittedApplication,
+    setLoading,
+    setError,
+    showError,
+    showWarning,
+  })
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
@@ -1274,174 +945,32 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [currentStepIndex, goToStep, saveDraft])
 
-  const handleSubmitApplication = useCallback(async (data: WizardFormData) => {
-    logger.info('[handleSubmitApplication] Starting submission...')
-    // Prevent double-click on submit (Req 8.3)
-    if (isSubmittingRef.current) return
-    isSubmittingRef.current = true
-
-    const finalReadiness = buildWizardReadiness({
-      values: data,
-      selectedGrades: selectedGradesRef.current,
-      uploadedFiles,
-      hasResultSlipFile: Boolean(resultSlipFile),
-      hasIdentityFile: Boolean(extraKycFile),
-      paymentStatus,
-      confirmSubmission,
-    })
-
-    if (!finalReadiness.canSubmit) {
-      const errorMessage = `Complete the remaining requirements before submitting: ${finalReadiness.missingItems
-        .map(item => item.label)
-        .join(', ')}`
-      setError(errorMessage)
-      isSubmittingRef.current = false
-      return
-    }
-    if (!applicationId) {
-      const errorMessage = 'Application ID not found. Please try refreshing the page.'
-      setError(errorMessage)
-      isSubmittingRef.current = false
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError('')
-      
-      logger.info('[handleSubmitApplication] Checking signed-in user...')
-      if (!user?.id) {
-        throw new Error('Please sign in again to submit your application')
-      }
-
-      logger.info('[handleSubmitApplication] Finalizing submission...')
-      const idempotencyKey = generateIdempotencyKey(applicationId)
-      const updatedApp = await submitApplicationMutation.mutateAsync({
-        id: applicationId,
-        headers: { 'Idempotency-Key': idempotencyKey },
-      })
-      
-
-      if (!updatedApp) {
-        throw new Error('Application not found or access denied')
-      }
-
-      // Fetch institution name
-      let institutionName = updatedApp.institution
-      try {
-        const result = await apiClient.request<{ institutions?: Array<{ id: string; slug?: string; name: string }> } | Array<{ id: string; slug?: string; name: string }>>(
-          `/catalog/institutions/`
-        )
-        const institutions = Array.isArray(result) ? result : result?.institutions ?? []
-        const match = institutions.find(
-          (inst: { id: string; slug?: string; name: string }) =>
-            inst.id === updatedApp.institution
-            || inst.slug === updatedApp.institution
-            || inst.name === updatedApp.institution
-        )
-        if (match?.name) {
-          institutionName = match.name
-        }
-      } catch (e) {
-        logApiError('application-wizard', '/catalog/institutions/', e)
-      }
-
-      setSubmittedApplication(prev => ({
-        applicationNumber: updatedApp.application_number || prev?.applicationNumber || '',
-        trackingCode: String(updatedApp.public_tracking_code || prev?.trackingCode || ''),
-        program: updatedApp.program || prev?.program || '',
-        institution: String(institutionName || prev?.institution || ''),
-        intake: updatedApp.intake || prev?.intake || '',
-        fullName: updatedApp.full_name || prev?.fullName || '',
-        email: updatedApp.email || prev?.email || '',
-        phone: updatedApp.phone || prev?.phone || '',
-        status: updatedApp.status || 'submitted',
-        paymentStatus: updatedApp.payment_status ?? prev?.paymentStatus ?? null,
-        submittedAt: updatedApp.submitted_at,
-        updatedAt: updatedApp.updated_at,
-        nationality: updatedApp.nationality
-      }))
-
-      // Notification is automatically sent by database trigger on status change
-
-      clearAllDraftData()
-
-      // Invalidate all application queries to refresh dashboard
-      await queryClient.invalidateQueries({ queryKey: ['applications'] })
-      
-      // Dispatch event to notify dashboard to refresh
-      window.dispatchEvent(new CustomEvent('applicationSubmitted', {
-        detail: {
-          applicationId,
-          applicationNumber: updatedApp.application_number,
-          submittedAt: updatedApp.submitted_at,
-          status: updatedApp.status,
-          paymentStatus: updatedApp.payment_status ?? null,
-          program: updatedApp.program,
-        }
-      }))
-      
-      logger.info('[handleSubmitApplication] Submission successful!')
-      showSuccess('Application submitted successfully!')
-      setSuccess(true)
-    } catch (error) {
-      logApiError('application-wizard', `/applications/${applicationId}/submit/`, error)
-      let message = toError(error).message || 'Failed to submit application'
-      
-      // Handle 404 for unavailable programs/intakes (Req 6.5)
-      const errorStatus = (error as { status?: number })?.status
-      const errorCode = (error as { data?: { code?: string }; code?: string })?.data?.code || (error as { code?: string })?.code
-      if (applicationId && isApplicationMissingError(error)) {
-        clearStaleApplicationReference(applicationId)
-        message = 'Your online draft was no longer available. Your details are still saved on this device; please continue from the personal details step to refresh the draft.'
-        goToStep(getStepIndexByKey('personal'))
-      } else if (asAssignmentFailureCode(errorCode)) {
-        // R2.7: submission re-ran assignment and the assigned offering is no
-        // longer eligible / filled to capacity. This is recoverable, never a
-        // silent success — surface the recoverable guidance on the
-        // assigned-school checkpoint and route the student there.
-        const failureCode = asAssignmentFailureCode(errorCode)!
-        setSubmitAssignmentFailureCode(failureCode)
-        const recovery = resolveAssignmentRecovery({
-          code: failureCode,
-          programName: selectedProgramDetails?.name,
-          intakeName: intakes.find(intake => intake.id === getValues('intake'))?.name,
-        })
-        message = recovery.message
-        goToStep(getStepIndexByKey('assignedSchool'))
-      } else if (errorCode === 'IDEMPOTENCY_PENDING') {
-        message = 'Your submission is still being processed. Please wait a moment, refresh the application status, and try again only if it is not submitted.'
-      } else if (errorCode === 'ALREADY_SUBMITTED') {
-        message = 'This application has already been submitted. Refreshing your dashboard will show the current status.'
-      } else if (errorStatus && errorStatus >= 500) {
-        void queryClient.invalidateQueries({ queryKey: ['applications'] })
-        void queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
-        message = 'We could not confirm submission because the server had a temporary issue. Please refresh your application status before trying again.'
-      } else if (errorStatus === 404) {
-        message = 'The selected program or intake is no longer available. Please go back and select a different option.'
-      } else if (message.includes('Bad Request')) {
-        message = 'Connection issue - please try again'
-      }
-      
-      // Map Django field-level validation errors (Req 6.3)
-      const fieldErrors = (error as { fieldErrors?: Record<string, unknown> })?.fieldErrors
-      if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length > 0) {
-        message = Object.entries(fieldErrors)
-          .map(([field, msg]) => {
-            const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-            const text = Array.isArray(msg) ? msg.join(', ') : String(msg ?? '')
-            return `${label}: ${text}`
-          })
-          .join('; ')
-      }
-      
-      setError(message)
-      showError(message)
-    } finally {
-      setLoading(false)
-      isSubmittingRef.current = false
-    }
-  }, [confirmSubmission, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep, selectedProgramDetails, intakes, getValues])
+  const { handleSubmitApplication } = useWizardSubmission({
+    draftMachine,
+    applicationId,
+    user,
+    uploadedFiles,
+    resultSlipFile,
+    extraKycFile,
+    paymentStatus,
+    confirmSubmission,
+    selectedGradesRef,
+    isSubmittingRef,
+    selectedProgramDetails,
+    intakes,
+    getValues,
+    queryClient,
+    submitApplicationMutation,
+    setLoading,
+    setError,
+    setSuccess,
+    setSubmittedApplication,
+    setSubmitAssignmentFailureCode,
+    clearStaleApplicationReference,
+    goToStep,
+    showError,
+    showSuccess,
+  })
 
   return {
     authLoading,
@@ -1476,9 +1005,12 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadProgress,
     uploadStates,
     uploadedFiles,
+    requiredDocuments,
     wizardReadiness,
-    isDraftSaving,
-    draftSaved,
+    draftMachine,
+    draftSnapshot,
+    isDraftSaving: draftSnapshot.state === 'saving',
+    draftSaved: draftSnapshot.state === 'ready.clean' && draftSnapshot.lastSavedAt !== null,
     draftLoaded,
     draftApplicationsLoading,
     draftApplications,
@@ -1488,10 +1020,15 @@ const useWizardController = (): UseWizardControllerResult => {
     submittedApplication,
     applicationId,
     paymentStatus,
+    paymentPhase,
     ocrStatus,
-    ocrExtractedCount,
+    ocrCandidates,
+    ocrWithheld,
+    ocrAppliedCount,
     ocrFailureReason,
     ocrExtractionMeta,
+    confirmOcrCandidates,
+    dismissOcrCandidates,
     retryOcr,
     persistingSlip,
     slipLoading,
@@ -1499,8 +1036,6 @@ const useWizardController = (): UseWizardControllerResult => {
     handleDownloadSlip,
     handleEmailSlip,
     dismissSlipProgress,
-    handleResultSlipUpload,
-    handleExtraKycUpload,
     handleLoadDraft,
     handleNextStep,
     handlePrevStep,

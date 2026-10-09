@@ -84,6 +84,11 @@ class TestPaymentNextActionCanonicalPin:
             "already_paid",
             "check_status",
             "retry_with_different_number",
+            # admissions-v2 task 8.1 (R12.6): a retryable fee/quote failure is
+            # recovered by requesting a fresh server-authored quote — the client
+            # is never told to pick an amount. Mirrored in
+            # apps/admissions/src/lib/paymentNextActions.ts.
+            "refresh_quote",
         }
         assert backend == expected, (
             f"Backend next_action set changed. "

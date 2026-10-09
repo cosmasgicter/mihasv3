@@ -1,0 +1,878 @@
+# Task 6.3 M14 — the 6.3 model/property/controller suites: M13's 35 files (m13-19), M14's two new files (wizardDraftOutboxMinimisation, draftOutboxMinimisation.property), and 6 more suites that touch the outbox, the save view or draft deletion — FINAL tree
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T23:29:32Z
+# 6.3 has no numbered PBT sub-task (tasks.meta.json pbtResults is empty), so nothing is recorded via update_pbt_status; the property files run as ordinary suites
+$ bun x vitest run --reporter=verbose <43 files>
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/property/wizardDraftHydration.property.test.ts[2m > [22mfillDraftPersonalFieldsFromRecord properties[2m > [22mnever replaces a present list value, for any field[32m 129[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mapplicationService.delete — 404 resilience[2m > [22mreturns { success: true } when apiClient throws with status 404[33m 590[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mlocalStorageCache — the encrypted draft outbox across page loads[2m > [22ma record written on one page load is decrypted into the cache on the next, once the key exists[33m 508[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftHydration.property.test.ts[2m > [22mfillDraftPersonalFieldsFromRecord properties[2m > [22mtouches no field outside the omitted set[32m 103[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mapplicationService.delete — 404 resilience[2m > [22mreturns { success: true } when error message contains "resource not found" without .status[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mapplicationService.delete — 404 resilience[2m > [22mreturns { success: true } on a normal successful DELETE (no error)[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mapplicationService.delete — 404 resilience[2m > [22mthrows for non-404 errors (e.g. 500)[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionDrafts.test.ts[2m > [22mapplicationSessionManager draft deletion[2m > [22mdeletes draft applications by application id rather than user id[33m 661[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mlocalStorageCache — the encrypted draft outbox across page loads[2m > [22mholds a draft write made before the key exists, never stores it as plaintext, and writes it encrypted after the preload[32m 119[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionDrafts.test.ts[2m > [22mapplicationSessionManager draft deletion[2m > [22msuppresses stale local drafts when the saved application is already submitted[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionDrafts.test.ts[2m > [22mapplicationSessionManager draft deletion[2m > [22mclears orphaned local draft when server application returns 404[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionDrafts.test.ts[2m > [22mapplicationSessionManager draft deletion[2m > [22mdoes not load another user scoped wizard draft[32m 6[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftHydration.property.test.ts[2m > [22mfillDraftPersonalFieldsFromRecord properties[2m > [22monly ever moves a field from absent to present[32m 67[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftHydration.property.test.ts[2m > [22mfillDraftPersonalFieldsFromRecord properties[2m > [22mis idempotent and does not mutate its input[32m 81[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mreturns { success: true } when all deletes get 404 (resolved by service)[32m 152[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mlocalStorageCache — the encrypted draft outbox across page loads[2m > [22mnever resurrects a record this page removed before the preload ran[32m 116[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mlocalStorageCache — the encrypted draft outbox across page loads[2m > [22mdoes not hold writes to keys that are not encrypted[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mwhenSecureStorageReady[2m > [22manswers false after the timeout when the preload never runs[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mwhenSecureStorageReady[2m > [22manswers at once when the preload has already run[32m 47[2mms[22m[39m
+ [32m✓[39m tests/unit/localStorageCacheEncryptedOutbox.test.ts[2m > [22mwhenSecureStorageReady[2m > [22mis no longer ready once the owner goes away, and a waiting reader is answered false[32m 80[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mreuses an in-flight deleteDraft request for the same user[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mreturns { success: true } with mixed 200/404 responses (all resolve)[32m 35[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mreturns { success: false } when a delete throws a non-404 error (500)[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mclears stale localStorage references for each attempted draft ID[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/delete404Resilience.test.ts[2m > [22mdeleteDraft — 404 resilience[2m > [22mclears only the deleted drafts’ own records, keeping a refused draft, another user and payment recovery[32m 12[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mremoves all known PII fields while preserving non-PII fields[32m 87[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mdoes not mutate the original object[32m 17[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mrecursively strips nested PII fields case-insensitively[32m 3[2mms[22m[39m
+[90mstderr[2m | tests/property/secureStorage.property.test.ts[2m > [22m[2msecureStorage utility contract[2m > [22m[2mfalls back to PII stripping when crypto is unavailable
+[22m[39mWeb Crypto API unavailable — falling back to non-PII plain storage [90mundefined[39m
+
+[90mstderr[2m | tests/property/secureStorage.property.test.ts[2m > [22m[2msecureStorage utility contract[2m > [22m[2mfallback storage strips nested draft PII before writing plain JSON
+[22m[39mWeb Crypto API unavailable — falling back to non-PII plain storage [90mundefined[39m
+
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Valid auth saves unchanged[2m > [22mproperty: successful save sets saveStatus=saved and resets retry counter[33m 852[2mms[22m[39m
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Valid phone numbers unchanged[2m > [22mproperty: phone strings without spaces matching regex pass validation identically[32m 19[2mms[22m[39m
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Production payment enforcement[2m > [22mproperty: no bypass mechanism visible in production mode[32m 9[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mcorrectly encrypts and decrypts values (round-trip)[32m 221[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mfalls back to PII stripping when crypto is unavailable[32m 65[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mfallback storage strips nested draft PII before writing plain JSON[32m 2[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mclearSession clears the cryptographic state[32m 84[2mms[22m[39m
+ [32m✓[39m tests/property/secureStorage.property.test.ts[2m > [22msecureStorage utility contract[2m > [22mclearSession removes only MIHAS-prefixed keys[32m 111[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftController.property.test.ts[2m > [22mdraft machine runtime — invariants over arbitrary interleavings[2m > [22mnever sends a same-value write: every new command changes the answers the server holds[33m 723[2mms[22m[39m
+ [32m✓[39m tests/property/localStorageCache.property.test.ts[2m > [22mlocalStorage Cache Property Tests (P18)[2m > [22mP18.1: First read hits localStorage once[2m > [22mcalls getItem once on first access per key[33m 1622[2mms[22m[39m
+ [32m✓[39m tests/property/localStorageCache.property.test.ts[2m > [22mlocalStorage Cache Property Tests (P18)[2m > [22mP18.2: Subsequent reads skip localStorage[2m > [22mserves from cache on repeated reads[32m 17[2mms[22m[39m
+ [32m✓[39m tests/property/localStorageCache.property.test.ts[2m > [22mlocalStorage Cache Property Tests (P18)[2m > [22mP18.3: Writes update cache immediately[2m > [22mreflects value without localStorage read[32m 11[2mms[22m[39m
+ [32m✓[39m tests/property/localStorageCache.property.test.ts[2m > [22mlocalStorage Cache Property Tests (P18)[2m > [22mP18.4: Remove marks key null[2m > [22mreturns null after removal without localStorage read[32m 12[2mms[22m[39m
+ [32m✓[39m tests/property/localStorageCache.property.test.ts[2m > [22mlocalStorage Cache Property Tests (P18)[2m > [22mP18.5: Round-trip consistency[2m > [22mreturns last written value[32m 12[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardMobileRecomposition.test.tsx[2m > [22m[2mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22m[2moffers the checklist behind a real disclosure at 320 px
+[22m[39mWarning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+Warning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+
+[90mstderr[2m | tests/unit/wizardMobileRecomposition.test.tsx[2m > [22m[2mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22m[2mis open with no disclosure control on a desktop width
+[22m[39mWarning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+Warning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22moffers the checklist behind a real disclosure at 320 px[33m 433[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardMobileRecomposition.test.tsx[2m > [22m[2mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22m[2mrenders exactly one instance of the panel, so a screen reader meets it once
+[22m[39mWarning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+Warning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22mis open with no disclosure control on a desktop width[32m 90[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardMobileRecomposition.test.tsx[2m > [22m[2mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22m[2mdrops the application preview on the review step, where the review is the preview
+[22m[39mWarning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+Warning: An update to WizardContextPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at WizardContextPanel (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx:11:3)
+    at ContextHarness (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardMobileRecomposition.test.tsx:39:27)
+
+ [32m✓[39m tests/property/wizardDraftController.property.test.ts[2m > [22mdraft machine runtime — invariants over arbitrary interleavings[2m > [22mkeeps at most one draft command in flight and never reuses a key for a different command[33m 551[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22mrenders exactly one instance of the panel, so a screen reader meets it once[32m 111[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the context and checklist reach a phone (R16.1, STU-03)[2m > [22mdrops the application preview on the review step, where the review is the preview[32m 84[2mms[22m[39m
+ [32m✓[39m tests/unit/signInBroadcast.test.ts[2m > [22msignIn login broadcast[2m > [22mbroadcasts login after seeding the auth cache[33m 1159[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftController.property.test.ts[2m > [22mdraft machine runtime — invariants over arbitrary interleavings[2m > [22mwith no other writer, never sends a stale version and advances the row once per change[33m 535[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the blockers are the platform’s (R16.1)[2m > [22mprints the server’s blocker messages verbatim, in the server’s order[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the blockers are the platform’s (R16.1)[2m > [22mkeeps “we could not check” apart from “nothing is outstanding”[33m 684[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the blockers are the platform’s (R16.1)[2m > [22msays nothing about blockers before a draft exists to evaluate[32m 33[2mms[22m[39m
+ [32m✓[39m tests/property/draftOutboxMinimisation.property.test.ts[2m > [22mthe attached outbox record (task 6.3 M14 invariants)[2m > [22mholds exactly the address, the base version, the pending answers and retry metadata — nothing else[33m 514[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the blockers are the platform’s (R16.1)[2m > [22mreports one progress number, once, with an accessible progressbar[32m 114[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the blockers are the platform’s (R16.1)[2m > [22mderives no blocker of its own[32m 3[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftController.property.test.ts[2m > [22mdraft machine runtime — invariants over arbitrary interleavings[2m > [22mloses no work: once back online and given time, the server holds exactly the student’s answers[33m 722[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22m[2mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22m[2mC1: a resume takes the step, grades, upload flags and payment state from the server, never from the record
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/home/cosmas/Downloads/mihasv3/node_modules/.bun/@testing-library+react@16.3.2+e9cc401744b55d0d/node_modules/@testing-library/react/dist/pure.js:328:5)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at wrapper (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardDraftOutboxMinimisation.test.tsx:158:19)
+
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC1: a resume takes the step, grades, upload flags and payment state from the server, never from the record[32m 264[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC2: in production storage the key-less local reader cannot see an attached record at all[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mcarries the step controls, manual save and draft state in one surface[33m 383[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mnames the offline state in words, not by colour alone[32m 36[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mreleases its sticky position while the on-screen keyboard is open[32m 35[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mpads for the device safe area (R16.3)[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC3: an unattached new application keeps the whole form on this device (all of it is pending)[32m 47[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC4: a legacy pending record made on the loaded version is still replayed once[32m 42[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM1: a draft hydrated with nothing pending keeps no record on this device[32m 25[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22m[2mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22m[2mM2: an unsent edit is stored as the pending answer, its base and version, and the full address
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/home/cosmas/Downloads/mihasv3/node_modules/.bun/@testing-library+react@16.3.2+e9cc401744b55d0d/node_modules/@testing-library/react/dist/pure.js:328:5)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at wrapper (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardDraftOutboxMinimisation.test.tsx:158:19)
+
+ [32m✓[39m tests/property/draftOutboxMinimisation.property.test.ts[2m > [22mthe attached outbox record (task 6.3 M14 invariants)[2m > [22mrecovers exactly the pending answers that differ from what the server holds[33m 643[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22moffers submit instead of continue on the last step, and refuses when readiness is unmet[32m 155[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftController.property.test.ts[2m > [22mdraft machine runtime — invariants over arbitrary interleavings[2m > [22ma version conflict is terminal: nothing is written after it until the student resolves it[33m 460[2mms[22m[39m
+ [32m✓[39m tests/property/draftOutboxMinimisation.property.test.ts[2m > [22mthe attached outbox record (task 6.3 M14 invariants)[2m > [22mis never replayed onto a draft that reports a different assignment[32m 75[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22m[2mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22m[2mM4: a pending record addressed to another assignment is never replayed: it opens the explicit conflict
+[22m[39m[ERROR] [application-wizard] API error — local draft outbox (other assignment) {
+  status: [90mundefined[39m,
+  message: [32m'Unsent changes on this device were made before this draft’s programme or intake changed.'[39m,
+  error: Error: Unsent changes on this device were made before this draft’s programme or intake changed.
+      at Object.outboxRecoveryFor [90m(/home/cosmas/Downloads/mihasv3/apps/admissions/[39msrc/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts:595:11[90m)[39m
+      at [90m/home/cosmas/Downloads/mihasv3/apps/admissions/[39mtests/unit/wizardDraftOutboxMinimisation.test.tsx:212:27
+} [90mundefined[39m
+
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM2: an unsent edit is stored as the pending answer, its base and version, and the full address[32m 61[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM3: a successful sync clears the record entirely[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM4: a pending record addressed to another assignment is never replayed: it opens the explicit conflict[32m 78[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM6: resuming one draft leaves another, unattached application’s local work alone (R10.10)[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM7: a new application that attaches removes its own unattached record, and keeps nothing once synced[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mnever hides the manual save behind a failing autosave[32m 146[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM5: a draft the server no longer has (404) loses its attached record; the answers stay in the form[32m 29[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 2 Preservation — Existing status render behavior unchanged[2m > [22mproperty: submitted status shows Review button[32m 24[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 2 Preservation — Existing status render behavior unchanged[2m > [22mproperty: under_review status shows Approve and Reject buttons[32m 8[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 2 Preservation — Existing status render behavior unchanged[2m > [22mproperty: approved and rejected statuses show status badges[32m 7[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 2 Preservation — Existing status render behavior unchanged[2m > [22mproperty: draft status shows Draft indicator[32m 4[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 2 Preservation — Existing status render behavior unchanged[2m > [22mproperty: all existing statuses have explicit render branches[32m 11[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 3 Preservation — No dev bypass in production[2m > [22mproperty: production mode never renders dev bypass button[32m 5[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 3 Preservation — No dev bypass in production[2m > [22mproperty: DEV=true with VITE_PAYMENT_DEV_BYPASS=false shows no bypass[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 3 Preservation — No dev bypass in production[2m > [22mproperty: PaymentForm component is still rendered for non-deferred payments[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: one bottom action surface (R16.3)[2m > [22mblocks saving a stale draft and lets the student reload the latest version[32m 189[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the global bottom navigation is suppressed (R16.3)[2m > [22mdrops the bottom bar on the wizard route and its alias[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the global bottom navigation is suppressed (R16.3)[2m > [22mremoves the bottom-bar padding on the wizard route too[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: step deep-linking (task 11.1’s deferral)[2m > [22mreads only the step vocabulary the wizard owns[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: step deep-linking (task 11.1’s deferral)[2m > [22mopens a reachable step that the URL asked for[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: step deep-linking (task 11.1’s deferral)[2m > [22mdoes not move for an unreachable step, and says why[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: step deep-linking (task 11.1’s deferral)[2m > [22mleaves the resume machine alone when the URL asks for nothing it understands[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: step deep-linking (task 11.1’s deferral)[2m > [22mreads the opened URL once, from a ref captured before the history sync[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mrenders no PageShell metrics row above the work (R16.5)[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mdeletes pages/student/applicationWizard/components/AnalyticsDashboard.tsx rather than relocating it[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mdeletes pages/student/applicationWizard/components/DraftManager.tsx rather than relocating it[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mdeletes pages/student/applicationWizard/lib/progressSummary.ts rather than relocating it[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mno longer estimates how long the student will take[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: the decorative surfaces are gone, not moved[2m > [22mkeeps the step rail but not its duplicate progress bar[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: 11.1’s route table now deep-links (R13.1 + R10.2)[2m > [22mkeeps one step vocabulary between the registry and the wizard[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: 11.1’s route table now deep-links (R13.1 + R10.2)[2m > [22mresumes a draft at the step the platform named[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: 11.1’s route table now deep-links (R13.1 + R10.2)[2m > [22mdrops a step the wizard does not own rather than emitting a link it would ignore[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardMobileRecomposition.test.tsx[2m > [22mwizard recomposition: 11.1’s route table now deep-links (R13.1 + R10.2)[2m > [22mstill addresses the draft by its own id, with or without a step[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mfails closed on a request failure without hydrating projection blanks[32m 218[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-draft-dedup.test.ts[2m > [22mProperty 16: DraftManager Deduplicates Concurrent Calls[2m > [22mconcurrent clearAllDrafts calls return the same promise[33m 365[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mfails closed on a empty response without hydrating projection blanks[32m 89[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP1: a hydrated, unedited draft writes nothing on the debounce or the 8 s sweep[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mstill hydrates omitted personal answers from a readable authoritative row[32m 95[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP2: one edit becomes one debounced, versioned, idempotent write[32m 45[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP3: an offline edit stays in the outbox, then saves once the connection returns[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP4: a transient failure is retried with the same idempotency key and version, and shown as retrying[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP4b: a response lost after commit is replayed by the same key, so the draft advances once[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP5: VERSION_CONFLICT is terminal — no retry, Save now and the sweep do not write[32m 21[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: saves on the 8-second sweep for normal auto-save[33m 764[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: online recovery sends the queued work[32m 12[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: queued work is sent as one command carrying every queued edit[32m 11[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: auth recovery still sends work queued while offline[32m 6[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: local persistence happens before the cloud save[32m 6[2mms[22m[39m
+ [32m✓[39m tests/property/approvalFlowPreservation.property.test.ts[2m > [22m[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged[2m > [22mproperty: going offline with unsaved work shows the offline status[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mruns one hydration per intent, even when its inputs change while it awaits the server[32m 145[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP6: an edit made during a save is written next, on the new version with a new key[32m 50[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — parity with the pre-consolidation composition[2m > [22mP7: an expired session stops cloud retries, says the work is on this device, and sends it on recovery[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD1: Save now on an unchanged draft writes nothing[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD2: leaving a step on an unchanged draft writes nothing (the F3 residual)[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD3: Continue on an unchanged draft confirms with a read, never a write[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD3b: Continue on an unchanged draft another device advanced is a conflict, not a silent pick[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD4: a programme/intake-only change is not an answer write[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD5: answers recovered from a pending local outbox record are sent without another keystroke[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mfails closed when the selected draft is not among the student’s drafts[32m 85[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mrecovers a local outbox record under its own application id[32m 61[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22mD6: a save that times out is replayed under the same key, and the replay in flight is shown as retrying (task 6.3 M14)[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22ma clean local recovery record is never re-sent[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22man edit undone before the debounce fires leaves nothing to write (ready.clean <-> ready.dirty)[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — the recorded defects, fixed (no same-value writes)[2m > [22ma non-student value change that the PATCH would not carry never writes[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22mreload writes nothing, discards only this draft’s stale outbox, and reloads the authoritative draft[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22man explicit merge keeps the student’s change and adopts the other device’s[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22mthe outbox records, for each pending answer, the value the server last acknowledged[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22ma stale outbox (pending edits on an older version) opens a conflict instead of being dropped or applied[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22man explicit merge of a stale outbox restores the stale edits and merges them onto the newer version[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22man outbox addressed to another assignment opens the conflict with words that say so (task 6.3 M14)[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22man outbox that could not be read is left untouched by hydration; the next edit writes it (task 6.3 M14)[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — conflict resolution (design §8.2: reload | explicit merge)[2m > [22ma merge is never automatic: a conflict waits for the student indefinitely[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22man unattached draft starts once creatable and attaches to the created id and version[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma failed hydration never writes, so projection blanks cannot overwrite real answers[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22msubmit writes pending answers first, then reaches the terminal submitted state and clears only this outbox[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma double submit joins the one in flight[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma failed submit returns to ready.with_errors and the draft stays editable[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.createDraft — minimum canonical selection (STU-12)[2m > [22mrefuses to start without program_id + intake_id and never calls the server[33m 494[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.createDraft — minimum canonical selection (STU-12)[2m > [22mstarts with a valid canonical selection and clears the error[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.createDraft — minimum canonical selection (STU-12)[2m > [22msurfaces a server error instead of suppressing it[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.renameDraft — validated label (R10.9, STU-12)[2m > [22mrefuses a blank name and never calls the server[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.renameDraft — validated label (R10.9, STU-12)[2m > [22mrenames via the dedicated command with a trimmed value and clears the error[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx[2m > [22museMultiDraft.renameDraft — validated label (R10.9, STU-12)[2m > [22msurfaces a server error on rename failure[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22mthe autosave gate holds writes while paused and releases them, with a deferred Save now[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma missing draft (404) is detached and never resurrected by autosave[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma missing draft (404) has its own outbox record cleared; the answers stay unattached on this device[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22mPAY marks payment activity without moving the persistence lifecycle[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma reroute version is adopted, so the next answer write carries it[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma reroute with pending work re-addresses its outbox record to the new version and assignment[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftController.test.ts[2m > [22mdraft machine — start, hydration, submit, gates[2m > [22ma command in flight for a previous draft never attaches to the next one[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mreads neither the outbox nor the server until the encrypted outbox is readable[32m 109[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22mstill hydrates the server draft when the outbox never becomes readable[32m 87[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftLoaderSafety.test.tsx[2m > [22museWizardDraftLoader selected-draft safety[2m > [22maddresses the outbox with the canonical offering and intake the server reports[32m 85[2mms[22m[39m
+ [32m✓[39m tests/property/deleteDraft404Resilience.property.test.ts[2m > [22m[PBT] deleteDraft — success iff all responses are 200 or 404[2m > [22mreturns { success: true } iff every delete response is 200 or 404[33m 473[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mis total: every (state, event) yields a known state[32m 166[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mterminal states are absorbing under any event sequence[32m 55[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mnever reaches submitted except immediately after submitting via SUBMIT_OK[32m 12[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mnever reaches deleted except immediately after deleting via DELETE_OK[32m 8[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mlosing the network while holding dirty work never silently drops it to a clean/terminal state[32m 12[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mqueued offline work always resumes saving on reconnect[32m 66[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22mEDIT is idempotent on a dirty draft (coalesced edits are stable)[32m 14[2mms[22m[39m
+ [32m✓[39m tests/property/wizardDraftMachine.property.test.ts[2m > [22mwizardDraftMachine — properties[2m > [22many reachable state is a valid state (no undefined leaks) from the initial state[32m 87[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22mfor any current URL, all 6 required cascade steps are executed[32m 168[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/draftRoundTrip.property.test.ts[2m > [22mDraft Round-Trip Consistency Property Tests (P1)[2m > [22mcomplete wizard draft survives JSON round-trip with all fields preserved[32m 93[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22mfor any current URL, no forbidden actions (window.location assignment) occur[32m 57[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22mBeanola auth-expired event detail contains correct from and signInPath[32m 53[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22mredirect URL is stored in sessionStorage under the Beanola post-auth redirect key[32m 15[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msignInPath includes redirect parameter when current URL is not root[32m 29[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure sets session query data to null[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure calls queryClient.removeQueries()[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure calls clearCsrfToken()[32m 0[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure calls clearSession()[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure dispatches Beanola auth-expired CustomEvent with from and signInPath[32m 4[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22monAuthFailure stores redirect URL in sessionStorage under the Beanola post-auth redirect key[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22mno window.location assignment in the auth failure callback[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22mclearCsrfToken is imported from lib/csrfToken[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/authFailureCascade.property.test.ts[2m > [22mProperty 8: Auth failure cascade clears all state[2m > [22msource verification[2m > [22mclearSession is imported from lib/secureStorage[32m 1[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/draftRoundTrip.property.test.ts[2m > [22mDraft Round-Trip Consistency Property Tests (P1)[2m > [22mECZ grade data preserves subject_id and numeric grade through round-trip[32m 37[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/draftRoundTrip.property.test.ts[2m > [22mDraft Round-Trip Consistency Property Tests (P1)[2m > [22mstep key is preserved through round-trip for correct step restoration[32m 19[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/draftRoundTrip.property.test.ts[2m > [22mDraft Round-Trip Consistency Property Tests (P1)[2m > [22mdraft round-trip is idempotent (double round-trip equals single)[32m 20[2mms[22m[39m
+ [32m✓[39m tests/property/production-readiness-audit/draftRoundTrip.property.test.ts[2m > [22mDraft Round-Trip Consistency Property Tests (P1)[2m > [22mpersonal info fields preserve type and value through round-trip[32m 19[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-autosave.test.ts[2m > [22mProperty 8: Auto-Save Interval Preserved[2m > [22mauto-save intervals use 8000ms (8 seconds)[32m 158[2mms[22m[39m
+ [32m✓[39m tests/unit/signOutRaceRegression.test.ts[2m > [22mSign-out race regression[2m > [22mslow profile query resolving after sign-out does not repopulate cache[32m 42[2mms[22m[39m
+ [32m✓[39m tests/unit/signOutRaceRegression.test.ts[2m > [22mSign-out race regression[2m > [22mslow session query resolving after sign-out does not repopulate auth cache[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/signOutRaceRegression.test.ts[2m > [22mSign-out race regression[2m > [22mauth-failure cleanup also prevents slow profile query from repopulating cache[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/signOutRaceRegression.test.ts[2m > [22mSign-out race regression[2m > [22mconcurrent slow profile + session queries both cancelled by sign-out[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextSecureStorageLifecycle.test.tsx[2m > [22mAuthContext secure-storage lifecycle[2m > [22mnever clears storage on page load, before the session is known[32m 103[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextSecureStorageLifecycle.test.tsx[2m > [22mAuthContext secure-storage lifecycle[2m > [22mderives the key and decrypts the outbox once the student is known, without clearing it[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextSecureStorageLifecycle.test.tsx[2m > [22mAuthContext secure-storage lifecycle[2m > [22mdoes not re-derive the key when the same student arrives as a new object[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextSecureStorageLifecycle.test.tsx[2m > [22mAuthContext secure-storage lifecycle[2m > [22mclears storage when the signed-in student goes away (sign-out, cross-tab logout, auth-failure cascade)[32m 41[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextSecureStorageLifecycle.test.tsx[2m > [22mAuthContext secure-storage lifecycle[2m > [22mclears the previous owner before deriving the next owner’s key when another user signs in in this tab[32m 30[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardController.contract.test.ts[2m > [22museWizardController Step 1 API contract regression[2m > [22muses resolved program/intake identities in create and update payloads[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardController.contract.test.ts[2m > [22museWizardController Step 1 API contract regression[2m > [22madvances to the next step after successful Step 1 save[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/useWizardController.contract.test.ts[2m > [22museWizardController Step 1 API contract regression[2m > [22mpasses program details into buildServerDraftPayload for server draft creation[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionScopedCleanupCharacterisation.test.ts[2m > [22mgetLocalWizardDraft cleanup scope[2m > [22mFIXED: a stale submitted record for one application never erases another draft[32m 184[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationSessionScopedCleanupCharacterisation.test.ts[2m > [22mgetLocalWizardDraft cleanup scope[2m > [22ma deleted (404) draft drops its own record only, and never the payment-recovery store[32m 28[2mms[22m[39m
+[90mstderr[2m | tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[2m[PBT] Preservation — Existing admin controls unchanged[2m > [22m[2mproperty: for all status × paymentStatus in baseline, rendered buttons match
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Existing admin controls unchanged[2m > [22mproperty: for all status × paymentStatus in baseline, rendered buttons match[33m 7480[2mms[22m[39m
+[90mstderr[2m | tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[2m[PBT] Preservation — Existing admin controls unchanged[2m > [22m[2msubmitted status renders Review button
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[2m[PBT] Preservation — Existing admin controls unchanged[2m > [22m[2munder_review status renders Approve and Reject buttons
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Existing admin controls unchanged[2m > [22msubmitted status renders Review button[32m 59[2mms[22m[39m
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Existing admin controls unchanged[2m > [22munder_review status renders Approve and Reject buttons[32m 61[2mms[22m[39m
+ [32m✓[39m tests/property/draftLocalCache.property.test.ts[2m > [22mclearWizardDraftCache — property: one target, no collateral (R10.10)[2m > [22mclearing one draft removes only it and never touches any payment-recovery record[33m 443[2mms[22m[39m
+[90mstderr[2m | tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[2m[PBT] Preservation — Existing admin controls unchanged[2m > [22m[2mpending_review payment renders Verify and Reject buttons
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[2m[PBT] Preservation — Existing admin controls unchanged[2m > [22m[2mrejected payment renders Reopen Review button
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/Dialog.tsx:48:59
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at PaymentDecisionControls (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx:21:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+    at Presence (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-presence@1.1.5+5d079b7778d3bdd6/node_modules/@radix-ui/react-presence/dist/index.mjs:19:11)
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at DialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:85:11)
+    at AlertDialogPortal (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:34:11)
+    at /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:44:64
+    at Provider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-context@1.1.2+32264e8fb3466d46/node_modules/@radix-ui/react-context/dist/index.mjs:27:15)
+    at Dialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-dialog/dist/index.mjs:25:5)
+    at AlertDialog (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@radix-ui+react-alert-dialog@1.1.15+5d079b7778d3bdd6/node_modules/@radix-ui/react-alert-dialog/dist/index.mjs:18:11)
+    at ConfirmAlertDialog (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/alert-dialog.tsx:195:3)
+    at div
+    at ApplicationApprovalActions (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx:15:3)
+Warning: The current testing environment is not configured to support act(...)
+
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Existing admin controls unchanged[2m > [22mpending_review payment renders Verify and Reject buttons[32m 45[2mms[22m[39m
+ [32m✓[39m tests/property/admissionsFlowPreservation.property.test.ts[2m > [22m[PBT] Preservation — Existing admin controls unchanged[2m > [22mrejected payment renders Reopen Review button[32m 45[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22mVisibility change triggers session invalidation (Req 7.1)[2m > [22minvalidates session query when tab goes hidden then visible[32m 83[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22mVisibility change triggers session invalidation (Req 7.1)[2m > [22mdoes not invalidate on the first visibility event (skips initial load)[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22mVisibility change triggers session invalidation (Req 7.1)[2m > [22mdoes not invalidate when going hidden (only on visible)[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22m3-second debounce (Req 7.2)[2m > [22mdoes not trigger multiple invalidations within 3 seconds[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22m3-second debounce (Req 7.2)[2m > [22mtriggers invalidation after 3 seconds have passed[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22m3-second debounce (Req 7.2)[2m > [22mallows repeated invalidations when each is spaced 3+ seconds apart[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22mNo payment-in-progress guards (Req 7.3)[2m > [22mAuthContext.tsx does not import isPaymentInProgress[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/authContextVisibility.test.tsx[2m > [22mAuthContext visibility handling (Requirements 7.1, 7.2, 7.3)[2m > [22mNo payment-in-progress guards (Req 7.3)[2m > [22mAuthContext.tsx does not contain payment-related guards in visibility handler[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mdoes not write an unchanged projection on debounce or interval[32m 159[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mre-baselines server hydration without writing the loaded projection[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mcoalesces an edit into one debounced canonical save, and Save now on top of it writes nothing more[32m 41[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mmakes an optimistic conflict terminal and never retries it[32m 39[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mserializes an edit made during a save and persists the latest value next[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/useSmartAutoSaveCoordinator.test.tsx[2m > [22museSmartAutoSave — the view over the draft machine (R10.2/R10.7)[2m > [22mpauses autosave behind its gate and releases it[32m 31[2mms[22m[39m
+ [32m✓[39m tests/unit/authPageshowRevalidation.test.tsx[2m > [22mAuthProvider pageshow revalidation[2m > [22mrevalidates the auth session when the page is restored from bfcache[32m 156[2mms[22m[39m
+ [32m✓[39m tests/unit/authPageshowRevalidation.test.tsx[2m > [22mAuthProvider pageshow revalidation[2m > [22mdoes not add extra auth revalidation on a normal pageshow event[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/authPageshowRevalidation.test.tsx[2m > [22mAuthProvider pageshow revalidation[2m > [22mmounts the auth broadcast listener inside the provider[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP1: a hydrated, unedited draft issues no write on debounce or interval[32m 136[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP2: one edit becomes one debounced versioned, idempotent write[32m 56[2mms[22m[39m
+[90mstderr[2m | tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22m[2mPARITY — behaviour the single draft machine must keep[2m > [22m[2mP5: VERSION_CONFLICT is terminal — no retry, Save now does not write
+[22m[39m[ERROR] [application-wizard] API error — PATCH /applications/drafts/{id}/ (version conflict) {
+  status: [33m409[39m,
+  message: [32m'stale'[39m,
+  error: Error: stale
+      at [90m/home/cosmas/Downloads/mihasv3/apps/admissions/[39mtests/unit/wizardDraftPersistenceCharacterisation.test.tsx:317:21
+      at file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+      at file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+      at file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+      at new Promise (<anonymous>)
+      at runWithTimeout (file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10)
+      at file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
+      at Traces.$ (file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/vitest@4.0.18+a4fca02204670b07/node_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27)
+      at trace (file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/vitest@4.0.18+a4fca02204670b07/node_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21)
+      at runTest (file:///home/cosmas/Downloads/mihasv3/node_modules/[4m.bun[24m/@vitest+runner@4.0.18/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:12) {
+    status: [33m409[39m,
+    data: { code: [32m'VERSION_CONFLICT'[39m, current_version: [33m9[39m }
+  }
+} [90mundefined[39m
+
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP3: an offline edit stays local, then saves once the connection returns[32m 38[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP4: a transient failure is retried with the same idempotency key and version[32m 40[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP5: VERSION_CONFLICT is terminal — no retry, Save now does not write[32m 73[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP6: an edit made during a save is written next, on the new version with a new key[32m 32[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mPARITY — behaviour the single draft machine must keep[2m > [22mP7: an expired session stops cloud retries and says the work is on this device[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mFIXED — the recorded defects, after the consolidation[2m > [22mD1: Save now on an unchanged draft writes nothing[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mFIXED — the recorded defects, after the consolidation[2m > [22mD2: step navigation on an unchanged draft writes nothing (the F3 residual)[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mFIXED — the recorded defects, after the consolidation[2m > [22mD3: Continue on an unchanged personal step confirms with a read, never a write[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mFIXED — the recorded defects, after the consolidation[2m > [22mD5: answers recovered from a pending local outbox record are sent without another keystroke[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftPersistenceCharacterisation.test.tsx[2m > [22mFIXED — the recorded defects, after the consolidation[2m > [22mD4: a programme/intake-only change is not an answer write[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/signout-cleanup.test.ts[2m > [22msignOut cleanup completeness[2m > [22mclears session query data after signOut[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/signout-cleanup.test.ts[2m > [22msignOut cleanup completeness[2m > [22mremoves sessionStorage and localStorage redirect keys after signOut[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/signout-cleanup.test.ts[2m > [22msignOut cleanup completeness[2m > [22mclears the CSRF token after signOut[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/useAutoSaveSafety.test.ts[2m > [22mautosave safety invariants (the draft machine)[2m > [22mpreserves the required 8-second autosave interval[32m 38[2mms[22m[39m
+ [32m✓[39m tests/unit/useAutoSaveSafety.test.ts[2m > [22mautosave safety invariants (the draft machine)[2m > [22mguards against overlapping autosave requests[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/useAutoSaveSafety.test.ts[2m > [22mautosave safety invariants (the draft machine)[2m > [22mdoes not clear drafts automatically on route changes[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/useAutoSaveSafety.test.ts[2m > [22mautosave safety invariants (the draft machine)[2m > [22mtreats VERSION_CONFLICT as a terminal reload/merge state, not an offline retry[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mstarts uninitialized[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mexplicit new intent goes straight to a clean ready draft[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mresume intent loads, then becomes clean when hydrated[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22medit -> debounced save -> saved cycle[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22ma failed save returns to dirty so the edit is retried, never lost[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22moffline queues dirty work and flushes on reconnect[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22ma clean draft with no queued work stays clean when the network drops[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mserver conflict is explicit and resolves by reload or merge (never a silent pick)[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mdelete transitions through deleting to the terminal deleted state[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22ma payment-linked delete is blocked and leaves the draft intact[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22msubmit transitions through submitting to submitted, or back to errors[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mpayment activity does not move the persistence lifecycle[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22mterminal states are absorbing for every event[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — design §8.2 graph[2m > [22man inapplicable event is a no-op (adapters cannot corrupt the lifecycle)[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — predicates[2m > [22mflags exactly the terminal states[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — predicates[2m > [22mflags unsynced states that a page unload would lose[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — predicates[2m > [22monly offline.queued has queued work[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts[2m > [22mwizardDraftMachine — predicates[2m > [22mmaps every state to a stable save label[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearWizardDraftCache — single (user, application) scoping (R10.10)[2m > [22mremoves only the addressed application snapshot[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearWizardDraftCache — single (user, application) scoping (R10.10)[2m > [22mdoes not wipe the shared legacy draft key when clearing a specific application[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearWizardDraftCache — single (user, application) scoping (R10.10)[2m > [22mNEVER erases any payment-recovery record (payment-linked protection)[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearWizardDraftCache — single (user, application) scoping (R10.10)[2m > [22mnotifies the draft store + dispatches a scoped draftCleared event by default[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearWizardDraftCache — single (user, application) scoping (R10.10)[2m > [22mroutes a null applicationId to the new-draft cleanup[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearNewWizardDraftCache — mode=new cleanup (R10.10)[2m > [22mclears only the unattached new snapshot + legacy key, never another draft[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mclearNewWizardDraftCache — mode=new cleanup (R10.10)[2m > [22mdoes not touch payment-recovery records on a fresh start[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftLocalCache.test.ts[2m > [22mwriteWizardDraftSnapshot — single authoritative key[2m > [22mwrites the scoped key and leaves another, unattached application’s record alone[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mfingerprintDraftProjection[2m > [22mignores key order and undefined members, so equal bodies share a fingerprint[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mmergeDraftAnswerProjections[2m > [22mkeeps the student’s changes and adopts everything else from the newer version[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mmergeDraftAnswerProjections[2m > [22mon a field both devices changed, the student’s explicit choice wins[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mclassifyLocalDraftOutbox[2m > [22mreplays pending edits made on exactly the server’s version[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mclassifyLocalDraftOutbox[2m > [22mtreats pending edits made on an older version as a stale command (a conflict)[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mclassifyLocalDraftOutbox[2m > [22mnever replays a clean copy, another draft’s record, another user’s, or nothing at all[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mclassifyLocalDraftOutbox[2m > [22mnever replays a record addressed to another assignment, even on the same version[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mclassifyLocalDraftOutbox[2m > [22mjudges a record without an assignment (written before M14), or a row without one, by version alone[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mdraftAssignmentKey[2m > [22mis the canonical offering and intake a draft row reports, or null without both[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftProjection.test.ts[2m > [22mpendingDraftBase / restoreDraftBase[2m > [22mrecords only the changed answers, with their acknowledged values, and round-trips through JSON[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts[2m > [22mdraftAutosave[2m > [22mdoes not create a server draft until the first-step fields are complete[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts[2m > [22mdraftAutosave[2m > [22mallows autosave to create a server draft once the step is complete[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts[2m > [22mdraftAutosave[2m > [22mbuilds a canonical draft payload for autosave creation[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts[2m > [22mdraftAutosave[2m > [22mbuilds duplicate draft conflicts without silently adopting the existing id[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftAutosave.test.ts[2m > [22mdraftAutosave[2m > [22mkeeps duplicate conflicts until the student changes program or intake[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mnormalizes and filters restored grades[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mderives uploaded document flags from restored application urls[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mkeeps application document urls when server document hydration is empty[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mkeeps server document flags when application urls are missing[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mresumes to the payment step when education requirements are complete but payment is not verified[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mresumes to the review step when payment is already verified[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mwizard draft resume helpers[2m > [22mstays on the education step when grades or documents are incomplete[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mnames exactly the fields the list omits[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mfills every omitted answer from the authoritative row[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mnever overrides a field the list already carries[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mkeeps a value the list carries for an omitted field, when it has one[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mtreats whitespace as absent and a blank record value as no answer[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mreturns the list item unchanged when there is no readable record[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftResume.test.ts[2m > [22mdraft personal fields absent from the list projection[2m > [22mis idempotent: filling twice answers the same thing[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/draftHydrationCanonicalIntake.test.ts[2m > [22mdraftRecordToFormValues — the intake[2m > [22mholds the canonical intake id, not the shared display name[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/draftHydrationCanonicalIntake.test.ts[2m > [22mdraftRecordToFormValues — the intake[2m > [22mkeeps the display name for a legacy draft that has no canonical intake id[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/draftHydrationCanonicalIntake.test.ts[2m > [22mdraftRecordToFormValues — the intake[2m > [22mnever changes the answer projection the draft machine compares and sends[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/draftManagerStorage.test.ts[2m > [22mdraftManager storage detection[2m > [22mdoes not count cleanup metadata as an active draft[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/draftManagerStorage.test.ts[2m > [22mdraftManager storage detection[2m > [22mcounts canonical draft content keys as active draft data[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/draftManagerStorage.test.ts[2m > [22mdraftManager storage detection[2m > [22mcounts scoped wizard draft keys as active draft data[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/draftManagerStorage.test.ts[2m > [22mdraftManager storage detection[2m > [22mremoves scoped wizard draft keys during draft cleanup, one application at a time[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts[2m > [22mwizard draft intent parsing[2m > [22mnormalizes explicit new application aliases[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts[2m > [22mwizard draft intent parsing[2m > [22mparses selected resume targets[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts[2m > [22mwizard draft intent parsing[2m > [22mparses local draft resume intent separately from automatic mode[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftIntent.test.ts[2m > [22mwizard draft intent parsing[2m > [22mkeeps bare visits in auto mode so the wizard can show the draft-choice screen[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/secureStorageSaltKey.test.ts[2m > [22msecureStorage.keys() salt-key collision[2m > [22mexcludes the salt key from keys()[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/secureStorageSaltKey.test.ts[2m > [22msecureStorage.keys() salt-key collision[2m > [22mkeeps legacy secure entries discoverable during migration[32m 2[2mms[22m[39m
+ [32m✓[39m tests/property/consolidation-canonical-source.test.ts[2m > [22mProperty 1: Single Canonical Source[2m > [22meach symbol in the canonical module map is exported from exactly its canonical file[33m 15173[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m43 passed[39m[22m[90m (43)[39m
+[2m      Tests [22m [1m[32m316 passed[39m[22m[90m (316)[39m
+[2m   Start at [22m 01:29:32
+[2m   Duration [22m 15.85s[2m (transform 19.30s, setup 1.53s, import 34.84s, tests 45.27s, environment 70.10s)[22m
+
+PROCESS EXIT: 0

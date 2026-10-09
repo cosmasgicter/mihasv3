@@ -54,6 +54,14 @@ docker image prune -a -f --filter "until=48h"   # more aggressive than the cron'
 df -h /                                          # confirm recovery
 ```
 
+For a lighter-touch manual run that matches the installed weekly cron's own
+filter exactly (rather than the more aggressive 48h above):
+
+```bash
+docker image prune -a -f --filter "until=72h"    # same age filter as the weekly cron
+df -h /                                          # confirm recovery
+```
+
 **Deploy-time gate:** `deploy/disk_gate.sh` (tested by
 `backend/tests/property/test_perf_deploy_gate.py`) halts the deploy workflow
 if `/` usage is at or above `DISK_THRESHOLD` (a repo/org Actions variable,

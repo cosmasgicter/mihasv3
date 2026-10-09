@@ -1,0 +1,1639 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.13-2.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-13-2",
+        "name": "chromium-13-2",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/two-tenant-(isolation-matrix|golden-journey|adversarial-matrix)\\.spec\\.ts$/"
+        ],
+        "timeout": 300000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-13-2",
+        "name": "mobile-13-2",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/two-tenant-golden-journey\\.spec\\.ts$/"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.2/raw/playwright-report.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "../../docs/v2-evidence/13.2/raw/html-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "two-tenant-adversarial-matrix.spec.ts",
+      "file": "two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5072,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:25.295Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-3769b-rk-and-the-surface-recovers-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-3769b-rk-and-the-surface-recovers-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-035f5aee0715524cf932",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 196,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2874,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:38.651Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-63645-ts-the-in-memory-CSRF-token-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-63645-ts-the-in-memory-CSRF-token-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-60c4383fbabaec5b9525",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 257,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: two live sessions for one student agree, because the server is the record",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F3 stale-tab reload vs the other device's write",
+                  "description": "device 2 wrote \"Device two 16885941\"; after device 1 reloaded its stale wizard the server holds \"Device two 16885941\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3871,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:41.632Z",
+                  "annotations": [
+                    {
+                      "type": "F3 stale-tab reload vs the other device's write",
+                      "description": "device 2 wrote \"Device two 16885941\"; after device 1 reloaded its stale wizard the server holds \"Device two 16885941\""
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-701a0-se-the-server-is-the-record-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-701a0-se-the-server-is-the-record-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-7dfc4b31c7cc18e29a50",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 300,
+          "column": 1
+        },
+        {
+          "title": "F4 interrupted upload: an aborted upload leaves no document row, and the retry succeeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F4 interrupted upload",
+                  "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3744,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:45.648Z",
+                  "annotations": [
+                    {
+                      "type": "F4 interrupted upload",
+                      "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-ca9c7--row-and-the-retry-succeeds-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-ca9c7--row-and-the-retry-succeeds-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-75968b490c771701e817",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "F5 lost submit response: the client never learns the outcome, retries, and the platform submits once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F5 retry of a lost submit",
+                  "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4681,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:49.529Z",
+                  "annotations": [
+                    {
+                      "type": "F5 retry of a lost submit",
+                      "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-3924e-d-the-platform-submits-once-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-3924e-d-the-platform-submits-once-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-2ca045c75c25153f9304",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 445,
+          "column": 1
+        },
+        {
+          "title": "F6 provider delay: a slow collection is a wait, not a failure, and no second collection is offered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F6 second collection while one is open",
+                  "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2411,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:54.393Z",
+                  "annotations": [
+                    {
+                      "type": "F6 second collection while one is open",
+                      "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-0b6fc-econd-collection-is-offered-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-0b6fc-econd-collection-is-offered-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-f14c63a920d8f2d121bd",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 573,
+          "column": 1
+        },
+        {
+          "title": "F7 duplicate callback: a redelivered signed webhook is rejected as a duplicate, and a webhook with no provider reference never moves money",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F7 duplicate callback",
+                  "description": "reference BNL-MIHAS202600008-1786516918115; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1679,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:56.880Z",
+                  "annotations": [
+                    {
+                      "type": "F7 duplicate callback",
+                      "description": "reference BNL-MIHAS202600008-1786516918115; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-7ce8f-reference-never-moves-money-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-7ce8f-reference-never-moves-money-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-3f822cbec29128f07156",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 676,
+          "column": 1
+        },
+        {
+          "title": "F8 broker outage: a job committed with no dispatch is still served, by the platform's own sweep",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "F8 broker outage",
+                  "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9755,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:41:58.623Z",
+                  "annotations": [
+                    {
+                      "type": "F8 broker outage",
+                      "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-0abdc-by-the-platform-s-own-sweep-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-0abdc-by-the-platform-s-own-sweep-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-55cb36b889c837748b8f",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 794,
+          "column": 1
+        },
+        {
+          "title": "F9 after every injection the queues are drained and no collection is unsettled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "drain after the adversarial matrix",
+                  "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                },
+                {
+                  "type": "unsettled collections present before this file ran",
+                  "description": "none"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 187,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:08.440Z",
+                  "annotations": [
+                    {
+                      "type": "drain after the adversarial matrix",
+                      "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                    },
+                    {
+                      "type": "unsettled collections present before this file ran",
+                      "description": "none"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-66ffa--no-collection-is-unsettled-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-adversarial-mat-66ffa--no-collection-is-unsettled-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "df23c33d57220a89f05c-6fb1ad5b05c488d4bdd6",
+          "file": "two-tenant-adversarial-matrix.spec.ts",
+          "line": 862,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "two-tenant-golden-journey.spec.ts",
+      "file": "two-tenant-golden-journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "The complete golden journey on a resolved tenant host (R18.2)",
+          "file": "two-tenant-golden-journey.spec.ts",
+          "line": 154,
+          "column": 6,
+          "specs": [
+            {
+              "title": "one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [
+                    {
+                      "type": "step 01 register",
+                      "description": "201 on mihas.localhost for a brand-new account"
+                    },
+                    {
+                      "type": "step 02 verify",
+                      "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                    },
+                    {
+                      "type": "step 03 login",
+                      "description": "signed in through the page; landed on /student/dashboard"
+                    },
+                    {
+                      "type": "step 04 profile autosave",
+                      "description": "\"Autosaved 16929209\" persisted and survived a page reload"
+                    },
+                    {
+                      "type": "step 05 two drafts",
+                      "description": "2 drafts for the same program+intake; resumed 36088d86-ad09-41c1-98f8-b32ff7e8dc49 by explicit mode=resume"
+                    },
+                    {
+                      "type": "step 06 assignment",
+                      "description": "canonical offering 06a56937-0715-44ed-a3c1-098af104feee; reviewer cd8f08cd-6ede-409d-b70c-361397d6745d assigned"
+                    },
+                    {
+                      "type": "step 07 five grades",
+                      "description": "5 unique ECZ subjects persisted"
+                    },
+                    {
+                      "type": "step 08 documents",
+                      "description": "uploaded result_slip, nrc; nothing required left missing"
+                    },
+                    {
+                      "type": "step 09 pay/defer",
+                      "description": "deferred, then settled 153.00 ZMW on payment 2adfcf47-63fa-46ae-b36b-d51080b849e3"
+                    },
+                    {
+                      "type": "step 10 submit",
+                      "description": "MIHAS202600011 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                    },
+                    {
+                      "type": "step 11 interview/comms",
+                      "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                    },
+                    {
+                      "type": "step 12 amendment",
+                      "description": "41c14b75-86ed-4af2-9ac1-996efc00e297 requested by the student and approved by an admin (before the condition — platform order)"
+                    },
+                    {
+                      "type": "step 13 condition",
+                      "description": "condition ea55f261-6c8a-4ff4-aeb0-36fd1b2c43f3 assigned with the conditional offer and verified met"
+                    },
+                    {
+                      "type": "step 14 approval",
+                      "description": "conditionally_approved → approved"
+                    },
+                    {
+                      "type": "step 15 official docs",
+                      "description": "application_slip issued at \"approved\" and reached \"ready\""
+                    },
+                    {
+                      "type": "step 16 enrollment",
+                      "description": "deadline 2026-08-26T06:42:20.460832Z authored by the server; confirmed to \"enrolled\""
+                    },
+                    {
+                      "type": "step 17 tracking",
+                      "description": "TRK-VFPHXMBA-1JSAJ7BWJSTZ76DAYG2S resolved anonymously to MIHAS202600011 / enrolled"
+                    },
+                    {
+                      "type": "step 18 withdrawal / new application where legal",
+                      "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 6f8867c2-36f2-48f6-bb2a-209d350a2e77 was then accepted"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-13-2",
+                  "projectName": "chromium-13-2",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8733,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-12T06:42:08.734Z",
+                      "annotations": [
+                        {
+                          "type": "step 01 register",
+                          "description": "201 on mihas.localhost for a brand-new account"
+                        },
+                        {
+                          "type": "step 02 verify",
+                          "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                        },
+                        {
+                          "type": "step 03 login",
+                          "description": "signed in through the page; landed on /student/dashboard"
+                        },
+                        {
+                          "type": "step 04 profile autosave",
+                          "description": "\"Autosaved 16929209\" persisted and survived a page reload"
+                        },
+                        {
+                          "type": "step 05 two drafts",
+                          "description": "2 drafts for the same program+intake; resumed 36088d86-ad09-41c1-98f8-b32ff7e8dc49 by explicit mode=resume"
+                        },
+                        {
+                          "type": "step 06 assignment",
+                          "description": "canonical offering 06a56937-0715-44ed-a3c1-098af104feee; reviewer cd8f08cd-6ede-409d-b70c-361397d6745d assigned"
+                        },
+                        {
+                          "type": "step 07 five grades",
+                          "description": "5 unique ECZ subjects persisted"
+                        },
+                        {
+                          "type": "step 08 documents",
+                          "description": "uploaded result_slip, nrc; nothing required left missing"
+                        },
+                        {
+                          "type": "step 09 pay/defer",
+                          "description": "deferred, then settled 153.00 ZMW on payment 2adfcf47-63fa-46ae-b36b-d51080b849e3"
+                        },
+                        {
+                          "type": "step 10 submit",
+                          "description": "MIHAS202600011 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                        },
+                        {
+                          "type": "step 11 interview/comms",
+                          "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                        },
+                        {
+                          "type": "step 12 amendment",
+                          "description": "41c14b75-86ed-4af2-9ac1-996efc00e297 requested by the student and approved by an admin (before the condition — platform order)"
+                        },
+                        {
+                          "type": "step 13 condition",
+                          "description": "condition ea55f261-6c8a-4ff4-aeb0-36fd1b2c43f3 assigned with the conditional offer and verified met"
+                        },
+                        {
+                          "type": "step 14 approval",
+                          "description": "conditionally_approved → approved"
+                        },
+                        {
+                          "type": "step 15 official docs",
+                          "description": "application_slip issued at \"approved\" and reached \"ready\""
+                        },
+                        {
+                          "type": "step 16 enrollment",
+                          "description": "deadline 2026-08-26T06:42:20.460832Z authored by the server; confirmed to \"enrolled\""
+                        },
+                        {
+                          "type": "step 17 tracking",
+                          "description": "TRK-VFPHXMBA-1JSAJ7BWJSTZ76DAYG2S resolved anonymously to MIHAS202600011 / enrolled"
+                        },
+                        {
+                          "type": "step 18 withdrawal / new application where legal",
+                          "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 6f8867c2-36f2-48f6-bb2a-209d350a2e77 was then accepted"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-golden-journey--08c10-ent-→-tracking-→-withdrawal-chromium-13-2/test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-golden-journey--08c10-ent-→-tracking-→-withdrawal-chromium-13-2/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b33cc70fee0588d1f3f0-69a131d3da2f8070cd8c",
+              "file": "two-tenant-golden-journey.spec.ts",
+              "line": 155,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "two-tenant-isolation-matrix.spec.ts",
+      "file": "two-tenant-isolation-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "S01 host override: a foreign institution_id on a resolved host is refused with no mutation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3101,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:23.777Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-1ef8e-is-refused-with-no-mutation-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-1ef8e-is-refused-with-no-mutation-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-5fd907bc8471249b611d",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 186,
+          "column": 1
+        },
+        {
+          "title": "S02 routing: with identical program and intake names the host decides the offering",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:32.947Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b4381-e-host-decides-the-offering-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b4381-e-host-decides-the-offering-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-d7f41a265e3c76baf6e5",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 243,
+          "column": 1
+        },
+        {
+          "title": "S03 drafts: a draft is readable in its own tenant and a masked 404 in the other",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1002,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:34.118Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-40d5d-d-a-masked-404-in-the-other-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-40d5d-d-a-masked-404-in-the-other-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-45dcb33d0d96d22c0a03",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 288,
+          "column": 1
+        },
+        {
+          "title": "S04 grades: persisted Grade 12 results do not cross the tenant boundary",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 695,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:35.170Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-e70aa-t-cross-the-tenant-boundary-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-e70aa-t-cross-the-tenant-boundary-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-ac452d549a31526e5f02",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 311,
+          "column": 1
+        },
+        {
+          "title": "S05 custom docs: a tenant document requirement gates its own applicants only",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2831,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:35.912Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-4123f-tes-its-own-applicants-only-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-4123f-tes-its-own-applicants-only-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-5ec55411ee4007a5818e",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 329,
+          "column": 1
+        },
+        {
+          "title": "S06 capacity: the capacity reported for an application belongs to its own tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts",
+                    "line": 432,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 276,
+                  "error": {
+                    "message": "Error: A's application must report A's own intake capacity\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m41\u001b[39m\nReceived: \u001b[31m97\u001b[39m",
+                    "stack": "Error: A's application must report A's own intake capacity\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m41\u001b[39m\nReceived: \u001b[31m97\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts:442:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts",
+                      "column": 7,
+                      "line": 442
+                    },
+                    "snippet": "  440 |       Number(application.intake_capacity),\n  441 |       `${side.tag}'s application must report ${side.tag}'s own intake capacity`,\n> 442 |     ).toBe(side.intakeCapacity);\n      |       ^\n  443 |   }\n  444 | });\n  445 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts",
+                        "column": 7,
+                        "line": 442
+                      },
+                      "message": "Error: A's application must report A's own intake capacity\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m41\u001b[39m\nReceived: \u001b[31m97\u001b[39m\n\n  440 |       Number(application.intake_capacity),\n  441 |       `${side.tag}'s application must report ${side.tag}'s own intake capacity`,\n> 442 |     ).toBe(side.intakeCapacity);\n      |       ^\n  443 |   }\n  444 | });\n  445 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts:442:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:38.812Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts",
+                        "line": 432,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-54e27-n-belongs-to-its-own-tenant-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-54e27-n-belongs-to-its-own-tenant-chromium-13-2/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts",
+                    "column": 7,
+                    "line": 442
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-7abd7d24bb64df46fbfc",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 408,
+          "column": 1
+        },
+        {
+          "title": "S06b capacity: the canonical intake binding is correct even where the reported capacity is not",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "GATE-13.2-01",
+                  "description": "reported intake_capacity A=97 B=97; configured A=41 B=97 (both tenants' intakes are named \"Shared Intake Name 16944162\")"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 298,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:39.134Z",
+                  "annotations": [
+                    {
+                      "type": "GATE-13.2-01",
+                      "description": "reported intake_capacity A=97 B=97; configured A=41 B=97 (both tenants' intakes are named \"Shared Intake Name 16944162\")"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-eec9d-he-reported-capacity-is-not-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-eec9d-he-reported-capacity-is-not-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-6a766d3bfd60084af9ac",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 450,
+          "column": 1
+        },
+        {
+          "title": "S07 waitlist: a waitlist position is scoped to the tenant that issued it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3229,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:39.482Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b6491-o-the-tenant-that-issued-it-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b6491-o-the-tenant-that-issued-it-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-eebb2f193b2f3c0ce5f9",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 476,
+          "column": 1
+        },
+        {
+          "title": "S08 promotion: freeing a seat in one tenant changes nothing in the other",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [
+                {
+                  "type": "S08 tenant A promotion outcome",
+                  "description": "tenant A's waitlisted applicant is \"waitlisted\" after the seat was freed"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6105,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:42.778Z",
+                  "annotations": [
+                    {
+                      "type": "S08 tenant A promotion outcome",
+                      "description": "tenant A's waitlisted applicant is \"waitlisted\" after the seat was freed"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-91d64-hanges-nothing-in-the-other-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-91d64-hanges-nothing-in-the-other-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-f4edeaa6561afa60fbe0",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 529,
+          "column": 1
+        },
+        {
+          "title": "S09 payment: a payment is invisible and unverifiable outside its own tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4448,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:48.967Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-8ff02-able-outside-its-own-tenant-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-8ff02-able-outside-its-own-tenant-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-da3cf11586c053557392",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 594,
+          "column": 1
+        },
+        {
+          "title": "S10 amendments: an amendment is unlistable and unreviewable outside its tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4462,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:53.517Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b172b-viewable-outside-its-tenant-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-b172b-viewable-outside-its-tenant-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-1620a5f143e685b53b2d",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 653,
+          "column": 1
+        },
+        {
+          "title": "S11 notifications: a student inbox is theirs, and no admin reads across the boundary",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6149,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:42:58.060Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-54b40-n-reads-across-the-boundary-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-54b40-n-reads-across-the-boundary-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-72ae7917afc6baf8ec23",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 745,
+          "column": 1
+        },
+        {
+          "title": "S12 review: a cross-tenant review command is refused and mutates nothing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3862,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:43:04.293Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-c953d-refused-and-mutates-nothing-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-c953d-refused-and-mutates-nothing-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-109be894cb6854f89dc1",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 796,
+          "column": 1
+        },
+        {
+          "title": "S13 official documents: an official artifact is unreachable outside its tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4425,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:43:08.225Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-4edb4-eachable-outside-its-tenant-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-4edb4-eachable-outside-its-tenant-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-a567e7535c4cf7b490e8",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 837,
+          "column": 1
+        },
+        {
+          "title": "S14 audit: audit rows are readable only inside their own institution scope",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 813,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:43:12.725Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-94c7b-their-own-institution-scope-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-94c7b-their-own-institution-scope-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-6f1a2703726bd2f1203f",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 881,
+          "column": 1
+        },
+        {
+          "title": "S15 settlement: money reports carry one tenant's rows and one tenant's amounts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:43:13.600Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-a9332-ws-and-one-tenant-s-amounts-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-a9332-ws-and-one-tenant-s-amounts-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-03944e193cc404dac377",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 915,
+          "column": 1
+        },
+        {
+          "title": "S16 public tracking: a tracking secret resolves to exactly one tenant, with no PII",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-2",
+              "projectName": "chromium-13-2",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1420,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T06:43:17.601Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-63240-ctly-one-tenant-with-no-PII-chromium-13-2/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-isolation-matri-63240-ctly-one-tenant-with-no-PII-chromium-13-2/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "821d2b13d2bb217b1390-716959cb2b7c2d5be5b3",
+          "file": "two-tenant-isolation-matrix.spec.ts",
+          "line": 984,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-12T06:41:23.610Z",
+    "duration": 115775.669,
+    "expected": 27,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

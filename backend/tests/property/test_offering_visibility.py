@@ -42,6 +42,7 @@ Run (≥100 examples, SQLite-in-memory test settings)::
 from __future__ import annotations
 
 import pytest
+from django.test import override_settings
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
@@ -263,10 +264,20 @@ class TestOfferingVisibilityExamples:
         assert str(canonical.id) in in_ids
         assert str(canonical.id) not in other_ids
 
-    def test_resolved_institution_id_prefers_explicit_then_context(self):
-        """``resolved_institution_id`` returns the explicit request id, else the
-        resolved tenant from context, else ``None`` for the shared portal
-        (R8.7)."""
+    def test_resolved_institution_id_trusted_host_wins_and_fails_closed(self):
+        """``resolved_institution_id`` fails closed (R8.7; admissions-v2 R2.4 / TEN-10).
+
+        A trusted tenant context is authoritative and can never be overridden by
+        an explicit ``?institution=`` selector; an explicit selector is honored
+        only on an allow-listed endpoint served from a registered neutral
+        shared-portal host; everything else resolves to the shared portal
+        (``None``).
+
+        This supersedes the pre-TEN-10 "explicit request id wins" semantics: a
+        query selector overriding a resolved white-label host was the tenant
+        cross-context leak that task 2.3 closes, so the previous assertion is
+        intentionally inverted here.
+        """
         service = OfferingDirectoryService()
         institution = build_institution()
 
@@ -274,12 +285,52 @@ class TestOfferingVisibilityExamples:
             def __init__(self, inst):
                 self.institution = inst
 
-        # Explicit request id wins over context.
+        # A trusted tenant host context wins — an explicit id that disagrees can
+        # never override it (TEN-10 fail-closed), regardless of endpoint/host.
         assert (
-            service.resolved_institution_id(_Ctx(institution), requested_institution_id="explicit-id")
-            == "explicit-id"
+            service.resolved_institution_id(
+                _Ctx(institution),
+                requested_institution_id="explicit-id",
+                request_host="apply.tenant.example",
+                endpoint="canonical_programs",
+            )
+            == str(institution.id)
         )
-        # Falls back to the resolved tenant from the portal context.
+        # No explicit selector + resolved tenant context still resolves the tenant.
         assert service.resolved_institution_id(_Ctx(institution)) == str(institution.id)
-        # Shared Beanola portal: neutral context resolves to None.
+        # Shared Beanola portal, no explicit selector → shared portal (None).
         assert service.resolved_institution_id(_Ctx(None)) is None
+
+        # A neutral context + explicit selector on an allow-listed endpoint is
+        # honored ONLY from a registered shared-portal host.
+        with override_settings(SHARED_PORTAL_HOSTS=["portal.beanola.example"]):
+            assert (
+                service.resolved_institution_id(
+                    _Ctx(None),
+                    requested_institution_id="explicit-id",
+                    request_host="portal.beanola.example",
+                    endpoint="canonical_programs",
+                )
+                == "explicit-id"
+            )
+            # An unregistered host never honors the explicit selector.
+            assert (
+                service.resolved_institution_id(
+                    _Ctx(None),
+                    requested_institution_id="explicit-id",
+                    request_host="random.unknown.example",
+                    endpoint="canonical_programs",
+                )
+                is None
+            )
+            # A non-allow-listed endpoint never honors the selector, even on the
+            # registered shared-portal host.
+            assert (
+                service.resolved_institution_id(
+                    _Ctx(None),
+                    requested_institution_id="explicit-id",
+                    request_host="portal.beanola.example",
+                    endpoint="programs",
+                )
+                is None
+            )

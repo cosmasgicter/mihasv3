@@ -110,39 +110,3 @@ def check_integrity_gate(
         )
 
     return None
-
-
-def check_legacy_mismatch(
-    lenco_data: dict,
-    payment_amount: Decimal | None,
-    payment_currency: str | None,
-) -> Optional[tuple[str, dict]]:
-    """Check amount/currency mismatch for the legacy ``_update_payment_status`` path.
-
-    Returns ``None`` if no mismatch, or ``(risk_type, details)`` if blocked.
-    """
-    from apps.documents.payment_helpers import _parse_amount
-
-    lenco_amount = _parse_amount(lenco_data.get("amount"))
-    if lenco_amount is not None and lenco_amount != payment_amount:
-        return (
-            "amount_mismatch",
-            {
-                "expected": str(payment_amount),
-                "received": str(lenco_amount),
-                "source": "lenco_status_update",
-            },
-        )
-
-    lenco_currency = str(lenco_data.get("currency", "")).upper()
-    if lenco_currency and payment_currency and lenco_currency != payment_currency.upper():
-        return (
-            "currency_mismatch",
-            {
-                "expected": payment_currency,
-                "received": lenco_currency,
-                "source": "lenco_status_update",
-            },
-        )
-
-    return None

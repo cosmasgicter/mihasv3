@@ -1,0 +1,10 @@
+=== manage.py check — real backend/.env, no TESTING=1, no substituted REDIS_URL (13.1 s1 precondition) ===
+=== DATE: 2026-08-12T21:52:44Z ===
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+System check identified no issues (1 silenced).
+EXIT=0
+
+=== py_compile on the 11 files task 13.6 changed ===
+py_compile: all 11 OK

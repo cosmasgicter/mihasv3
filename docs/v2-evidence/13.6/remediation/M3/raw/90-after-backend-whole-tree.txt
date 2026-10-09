@@ -1,0 +1,1338 @@
+# M3 after — backend whole tree, SERIAL
+# invocation: pytest tests/ -q -p no:cacheprovider -p no:randomly -rs
+# started 2026-08-15T10:27:57Z
+...............F........................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+....................................F................................... [  5%]
+.......................................................F..F............. [  6%]
+...............................s........................................ [  7%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+.....F.FF.....s.........................FF.............................. [ 11%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+......................................s.............s................... [ 16%]
+........................................................................ [ 18%]
+......F......F.......................................................... [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+...............................................F........................ [ 24%]
+........................................................................ [ 26%]
+.....................................ssssssssssssssssssss............... [ 27%]
+....s..............s.................................................... [ 28%]
+.....sssssssssssssssssssssssssssssssssssss.............................. [ 29%]
+............................X....FFFF................................... [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+...................................F.................................... [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........ss.............................................................. [ 41%]
+...................................................s.................... [ 43%]
+....................................................................ssss [ 44%]
+...............................xx.F.ss.............FFF...F...F..F....... [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 48%]
+.....FF........................F........................................ [ 49%]
+........................................................................ [ 50%]
+................................................F....................... [ 52%]
+.........................................F.............................. [ 53%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+...ssssssssss........................................................... [ 58%]
+........................................................................ [ 59%]
+.............sssss...................................................... [ 61%]
+........................................F.F............................. [ 62%]
+............sssssssssssssF.............................................. [ 63%]
+..............................................F..................F...... [ 65%]
+...............................F........................................ [ 66%]
+........................................................................ [ 67%]
+.................FF..................................................... [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+..........................F............................................. [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+.......................................................FF............... [ 82%]
+........................................................................ [ 83%]
+..................................................FF.................... [ 84%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+....F................................................................... [ 93%]
+.....................................................F.................. [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+...........................ss........................................... [ 99%]
+...........F.....................................                        [100%]
+=================================== FAILURES ===================================
+________________ TestAdminJourneyDrill.test_full_admin_journey _________________
+tests/integration/test_admin_journey_drill.py:396: in test_full_admin_journey
+    assert app_id in scoped_ids
+E   AssertionError: assert '1b35dd2f-0681-48a8-8d93-32a6eb908b2c' in set()
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:28:01.921144+00:00", "level": "ERROR", "logger": "apps.common.audit_network", "message": "Invalid AUDIT_LOG_ENCRYPTION_KEY configuration", "request_id": "20853fe2-ab21-4ce9-b02f-2074c4e1b347", "request_method": "POST", "request_path": "/api/v1/admin/institutions/", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py\", line 35, in __init__\n    key = base64.urlsafe_b64decode(key)\n  File \"/usr/lib/python3.14/base64.py\", line 131, in urlsafe_b64decode\n    return b64decode(s)\n  File \"/usr/lib/python3.14/base64.py\", line 85, in b64decode\n    return binascii.a2b_base64(s, strict_mode=validate)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nbinascii.Error: Incorrect padding\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/audit_network.py\", line 37, in _get_fernet\n    fernet = Fernet(key.encode())\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py\", line 37, in __init__\n    raise ValueError(\n        \"Fernet key must be 32 url-safe base64-encoded bytes.\"\n    ) from exc\nValueError: Fernet key must be 32 url-safe base64-encoded bytes."}
+{"time": "2026-08-15T10:28:01.922448+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "20853fe2-ab21-4ce9-b02f-2074c4e1b347", "request_method": "POST", "request_path": "/api/v1/admin/institutions/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/", "status_code": 201, "duration_ms": 5.0}
+{"time": "2026-08-15T10:28:01.929260+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "7f3f4e8b-6a1c-44a6-ab27-8297cd2f81bd", "request_method": "POST", "request_path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/assets/upload/", "status_code": 201, "duration_ms": 5.5}
+{"time": "2026-08-15T10:28:01.932545+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "e46b6a11-2674-437e-baa1-e56bb020314f", "request_method": "POST", "request_path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/assets/upload/", "status_code": 201, "duration_ms": 2.9}
+{"time": "2026-08-15T10:28:01.936940+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "1c9e5f9a-2281-4c88-901d-d2d9993a1853", "request_method": "POST", "request_path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/document-profiles/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/319c6ccc-bd37-4200-8449-9041cb240392/document-profiles/", "status_code": 201, "duration_ms": 3.6}
+{"time": "2026-08-15T10:28:01.947801+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "1abb9088-bebc-4909-89f6-09d39ba4637d", "request_method": "POST", "request_path": "/api/v1/admin/routing/simulate/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/routing/simulate/", "status_code": 200, "duration_ms": 9.0}
+{"time": "2026-08-15T10:28:01.952334+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "6c549659-b195-42b0-9098-0ff03a6fc5fb", "request_method": "POST", "request_path": "/api/v1/admin/memberships/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/memberships/", "status_code": 201, "duration_ms": 3.7}
+{"time": "2026-08-15T10:28:01.958230+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "29db6bed-9a12-4f99-a308-84769e723616", "request_method": "POST", "request_path": "/api/v1/admin/access-grants/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/access-grants/", "status_code": 201, "duration_ms": 4.8}
+{"time": "2026-08-15T10:28:01.972758+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering cf471e46-4fc7-493b-aeac-fba6892a5039 during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "0640c642-db0a-4df9-a944-7c5eac73fe60", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:01.974452+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-797D1FD9 year=2026", "request_id": "0640c642-db0a-4df9-a944-7c5eac73fe60", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:01.983315+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "0640c642-db0a-4df9-a944-7c5eac73fe60", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 23.5}
+{"time": "2026-08-15T10:28:01.995282+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering cf471e46-4fc7-493b-aeac-fba6892a5039 during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "aa8e6cdf-4aa8-4c4e-95f3-8e74c72974f1", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:01.996979+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-797D1FD9 year=2026", "request_id": "aa8e6cdf-4aa8-4c4e-95f3-8e74c72974f1", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:02.005463+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "aa8e6cdf-4aa8-4c4e-95f3-8e74c72974f1", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 21.1}
+{"time": "2026-08-15T10:28:02.037563+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "c2a45c03-b73d-454e-a45b-a992cdb075fb", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 27.8}
+{"time": "2026-08-15T10:28:02.043471+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "94e567f9-1a62-4371-b778-7ef7aeefff80", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 4.9}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.audit_network:audit_network.py:41 Invalid AUDIT_LOG_ENCRYPTION_KEY configuration
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py", line 35, in __init__
+    key = base64.urlsafe_b64decode(key)
+  File "/usr/lib/python3.14/base64.py", line 131, in urlsafe_b64decode
+    return b64decode(s)
+  File "/usr/lib/python3.14/base64.py", line 85, in b64decode
+    return binascii.a2b_base64(s, strict_mode=validate)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+binascii.Error: Incorrect padding
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/audit_network.py", line 37, in _get_fernet
+    fernet = Fernet(key.encode())
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py", line 37, in __init__
+    raise ValueError(
+        "Fernet key must be 32 url-safe base64-encoded bytes."
+    ) from exc
+ValueError: Fernet key must be 32 url-safe base64-encoded bytes.
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering cf471e46-4fc7-493b-aeac-fba6892a5039 during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-797D1FD9 year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering cf471e46-4fc7-493b-aeac-fba6892a5039 during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-797D1FD9 year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_____________ TestTenantLifecycleDrill.test_full_tenant_lifecycle ______________
+tests/integration/test_tenant_lifecycle_drill.py:464: in test_full_tenant_lifecycle
+    assert pdata["fee"] is not None and pdata["fee"]["amount"]
+E   assert (None is not None)
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:28:09.371251+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "275aac36-3b06-4a8c-91c3-749e44610206", "request_method": "POST", "request_path": "/api/v1/admin/institutions/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/", "status_code": 201, "duration_ms": 6.8}
+{"time": "2026-08-15T10:28:09.377860+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "38ee0483-615d-4345-bf82-55ca21f005de", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/domains/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/domains/", "status_code": 201, "duration_ms": 5.4}
+{"time": "2026-08-15T10:28:09.384024+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "756c2a00-0546-43c2-b91a-f6737b7b1798", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/domains/d15d4bdc-25aa-4427-a49c-00292409c16f/activate/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/domains/d15d4bdc-25aa-4427-a49c-00292409c16f/activate/", "status_code": 200, "duration_ms": 4.9}
+{"time": "2026-08-15T10:28:09.389003+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "7f0d0fae-3003-4158-b2c3-188f92885442", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/assets/upload/", "status_code": 201, "duration_ms": 4.3}
+{"time": "2026-08-15T10:28:09.394221+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "7fb10567-19e1-49ab-b2fd-d08c0809baed", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/assets/upload/", "status_code": 201, "duration_ms": 4.7}
+{"time": "2026-08-15T10:28:09.403108+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "8e4f93c1-eb4a-4646-b72b-15d25218c799", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/required-documents/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/required-documents/", "status_code": 201, "duration_ms": 5.3}
+{"time": "2026-08-15T10:28:09.406263+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "6664b022-8cd6-4226-b404-4a39f550c446", "request_method": "POST", "request_path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/templates/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/417bfdb5-ff72-4417-938f-ed9b40d75b6c/templates/", "status_code": 201, "duration_ms": 2.6}
+{"time": "2026-08-15T10:28:09.410285+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "2f5a8242-ef13-4884-938a-1facf2e3f5ce", "request_method": "POST", "request_path": "/api/v1/admin/memberships/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/memberships/", "status_code": 201, "duration_ms": 3.1}
+{"time": "2026-08-15T10:28:09.412616+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "32227b6e-9dfb-49a2-b5ac-48a61c0196a7", "request_method": "GET", "request_path": "/api/v1/catalog/context/", "type": "request_metric", "method": "GET", "path": "/api/v1/catalog/context/", "status_code": 200, "duration_ms": 1.2}
+{"time": "2026-08-15T10:28:09.420645+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "e1f7e24f-346f-4078-b73b-b9297dcd20ea", "request_method": "GET", "request_path": "/api/v1/catalog/canonical-programs/", "type": "request_metric", "method": "GET", "path": "/api/v1/catalog/canonical-programs/", "status_code": 200, "duration_ms": 7.7}
+{"time": "2026-08-15T10:28:09.440661+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering 635235dc-5c4b-4366-8ba4-badb1558c2c0 during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "528da82d-a027-4751-b4d4-0764e2bbd36a", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:09.443288+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=DRILL-2372432C year=2026", "request_id": "528da82d-a027-4751-b4d4-0764e2bbd36a", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:09.457814+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "528da82d-a027-4751-b4d4-0764e2bbd36a", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 36.0}
+{"time": "2026-08-15T10:28:09.461705+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "c186d639-2ee9-4ebd-b794-b685440b9434", "request_method": "GET", "request_path": "/api/v1/catalog/context/", "type": "request_metric", "method": "GET", "path": "/api/v1/catalog/context/", "status_code": 200, "duration_ms": 1.8}
+{"time": "2026-08-15T10:28:09.482018+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering 635235dc-5c4b-4366-8ba4-badb1558c2c0 during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "7a3fb8cd-00d5-41f4-b289-2f0e856787c8", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:09.484429+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=DRILL-2372432C year=2026", "request_id": "7a3fb8cd-00d5-41f4-b289-2f0e856787c8", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T10:28:09.498107+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "7a3fb8cd-00d5-41f4-b289-2f0e856787c8", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 34.8}
+{"time": "2026-08-15T10:28:09.508524+00:00", "level": "INFO", "logger": "apps.catalog.program_views", "message": "Assignment preview fee blocker for offering OFFER-2372432C: FEE_NOT_CONFIGURED", "request_id": "7dac0e8c-74ac-4535-87a0-ddb972d5a585", "request_method": "GET", "request_path": "/api/v1/catalog/assignment-preview/"}
+{"time": "2026-08-15T10:28:09.508898+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "7dac0e8c-74ac-4535-87a0-ddb972d5a585", "request_method": "GET", "request_path": "/api/v1/catalog/assignment-preview/", "type": "request_metric", "method": "GET", "path": "/api/v1/catalog/assignment-preview/", "status_code": 200, "duration_ms": 10.1}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering 635235dc-5c4b-4366-8ba4-badb1558c2c0 during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=DRILL-2372432C year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering 635235dc-5c4b-4366-8ba4-badb1558c2c0 during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=DRILL-2372432C year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.catalog.program_views:program_views.py:487 Assignment preview fee blocker for offering OFFER-2372432C: FEE_NOT_CONFIGURED
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestProperty7CapabilityGatedWrites.test_super_admin_or_global_admin_creation_requires_super_admin _
+tests/property/test_capability_gated_writes.py:414: in test_super_admin_or_global_admin_creation_requires_super_admin
+    @given(actor_kind=ACTOR, target_role=st.sampled_from(["super_admin", "admin"]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/property/test_capability_gated_writes.py:451: in test_super_admin_or_global_admin_creation_requires_super_admin
+    assert resp.data.get("code") == "PRIVILEGE_ESCALATION", resp.data
+E   AssertionError: {'code': 'INSUFFICIENT_PRIVILEGES', 'error': 'You cannot assign a role higher than your own.', 'success': False}
+E   assert 'INSUFFICIENT_PRIVILEGES' == 'PRIVILEGE_ESCALATION'
+E     
+E     - PRIVILEGE_ESCALATION
+E     + INSUFFICIENT_PRIVILEGES
+E   Falsifying example: test_super_admin_or_global_admin_creation_requires_super_admin(
+E       self=<tests.property.test_capability_gated_writes.TestProperty7CapabilityGatedWrites object at 0x721472a79eb0>,
+E       production_scope=None,
+E       actor_kind='tenant_admin_manage',
+E       target_role='super_admin',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:28:33.069968+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "01ea5f5c-fc4f-445c-be44-c2cc15f1ab08", "request_method": "POST", "request_path": "/api/v1/admin/users/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/users/", "status_code": 403, "duration_ms": 2.5}
+{"time": "2026-08-15T10:28:33.082721+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "2a106337-916c-4e87-b2c9-56c58414a070", "request_method": "POST", "request_path": "/api/v1/admin/users/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/users/", "status_code": 403, "duration_ms": 4.1}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestProperty4CrossTenantInvisibility.test_no_tenant_b_token_on_any_scoped_surface _
+tests/property/test_cross_tenant_invisibility.py:376: in test_no_tenant_b_token_on_any_scoped_surface
+    @given(
+            
+tests/property/test_cross_tenant_invisibility.py:413: in test_no_tenant_b_token_on_any_scoped_surface
+    assert witness in blob, {
+E   AssertionError: {'blob': '{"success": false, "error": "You do not have permission to perform this action.", "code": "INSUFFICIENT_PERM...a7-9305-0dda14c18bfc"}', 'missing_a_witness': 'APP-20260815-E359415C', 'status': 403, 'surface': 'applications_export'}
+E   assert 'APP-20260815-E359415C' in '{"success": false, "error": "You do not have permission to perform this action.", "code": "INSUFFICIENT_PERMISSIONS",...ission to perform this action.","code":"INSUFFICIENT_PERMISSIONS","request_id":"c96a5adf-34c6-43a7-9305-0dda14c18bfc"}'
+E   Falsifying example: test_no_tenant_b_token_on_any_scoped_surface(
+E       self=<tests.property.test_cross_tenant_invisibility.TestProperty4CrossTenantInvisibility object at 0x72147298e0d0>,
+E       production_scope=None,
+E       surface_key='applications_export',
+E       extra_b_apps=0,
+E       salt=0,
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:28:33.531112+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "bf06ed4a-d55f-4691-a52c-8f37040e0d53", "request_method": "GET", "request_path": "/api/v1/applications/export/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/export/", "status_code": 403, "duration_ms": 4.7}
+{"time": "2026-08-15T10:28:33.549955+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "c96a5adf-34c6-43a7-9305-0dda14c18bfc", "request_method": "GET", "request_path": "/api/v1/applications/export/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/export/", "status_code": 403, "duration_ms": 2.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestProperty26TenantIsolation.test_app_endpoint_in_scope_permitted_out_of_scope_masked _
+tests/property/test_production_scope_masking_properties.py:237: in test_app_endpoint_in_scope_permitted_out_of_scope_masked
+    @given(endpoint_key=_APP_ENDPOINT_KEYS, scope_kind=_IN_SCOPE_KIND)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/property/test_production_scope_masking_properties.py:266: in test_app_endpoint_in_scope_permitted_out_of_scope_masked
+    assert out_of_scope == missing, {
+E   AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'missing': (404, {'code': 'NOT_FOUND', 'error': 'Application not found', 'requ...NOT_FOUND', 'error': 'Application not found', 'request_id': '1e64236f-bb0d-4022-8e96-ee5bab89233f', 'success': False})}
+E   assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})
+E     
+E     At index 1 diff: {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': '1e64236f-bb0d-4022-8e96-ee5bab89233f'} != {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': '69a0af7f-d9a6-4c57-88d5-14b4b453b0b9'}
+E     Use -v to get more diff
+E   Falsifying example: test_app_endpoint_in_scope_permitted_out_of_scope_masked(
+E       self=<tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation object at 0x72147212e990>,
+E       production_scope=None,
+E       endpoint_key='interviews-crud (GAP-6)',
+E       scope_kind='membership',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:29:25.266865+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "504e39f8-f085-4596-8f99-81137fe4cfb1", "request_method": "GET", "request_path": "/api/v1/applications/238e07e2-118a-4f1c-a723-90130326b46d/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/238e07e2-118a-4f1c-a723-90130326b46d/interviews/", "status_code": 200, "duration_ms": 15.3}
+{"time": "2026-08-15T10:29:25.272815+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "bd87c734-d641-4155-9996-ce7834e9a620", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 5.3}
+{"time": "2026-08-15T10:29:25.280423+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "d11fbc95-21dd-4d28-9abb-d4ce4829be34", "request_method": "GET", "request_path": "/api/v1/applications/b267568b-f4b2-4aef-b8c4-d98f86e5d667/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/b267568b-f4b2-4aef-b8c4-d98f86e5d667/interviews/", "status_code": 404, "duration_ms": 6.7}
+{"time": "2026-08-15T10:29:25.318592+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "a742defe-2efd-421f-a0c3-fada5c6f7a03", "request_method": "GET", "request_path": "/api/v1/applications/f4ee7826-8f4a-4a7f-bf93-e68f66462f7c/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/f4ee7826-8f4a-4a7f-bf93-e68f66462f7c/interviews/", "status_code": 200, "duration_ms": 13.2}
+{"time": "2026-08-15T10:29:25.324821+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "69a0af7f-d9a6-4c57-88d5-14b4b453b0b9", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 5.7}
+{"time": "2026-08-15T10:29:25.333310+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "1e64236f-bb0d-4022-8e96-ee5bab89233f", "request_method": "GET", "request_path": "/api/v1/applications/1abaf884-bd29-4c6d-8169-e42eac108135/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/1abaf884-bd29-4c6d-8169-e42eac108135/interviews/", "status_code": 404, "duration_ms": 7.6}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestProperty26TenantIsolation.test_expired_grant_masks_previously_granted_resource _
+tests/property/test_production_scope_masking_properties.py:322: in test_expired_grant_masks_previously_granted_resource
+    @given(endpoint_key=_APP_ENDPOINT_KEYS, grant_scope=_GRANT_SCOPE_KIND)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/property/test_production_scope_masking_properties.py:351: in test_expired_grant_masks_previously_granted_resource
+    assert expired == missing, {
+E   AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'expired': (404, {'code': 'NOT_FOUND', 'error': 'Application not found', 'requ...NOT_FOUND', 'error': 'Application not found', 'request_id': '9d46ce56-5297-4eed-b1ce-e522e7d1da8b', 'success': False})}
+E   assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})
+E     
+E     At index 1 diff: {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': 'ef7e6527-e5d8-4368-ba34-a85eab0fa6e8'} != {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': '9d46ce56-5297-4eed-b1ce-e522e7d1da8b'}
+E     Use -v to get more diff
+E   Falsifying example: test_expired_grant_masks_previously_granted_resource(
+E       self=<tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation object at 0x7214721123f0>,
+E       production_scope=None,
+E       endpoint_key='interviews-crud (GAP-6)',
+E       grant_scope='institution',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:29:26.057425+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "77cf6bd6-dede-4670-b862-71db8ced8468", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 4.3}
+{"time": "2026-08-15T10:29:26.061837+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "acb087e2-1c00-47e6-9d37-8fcadd48d957", "request_method": "GET", "request_path": "/api/v1/applications/f3ac77b6-bf4b-4ece-947c-eb91afee2ba3/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/f3ac77b6-bf4b-4ece-947c-eb91afee2ba3/interviews/", "status_code": 404, "duration_ms": 3.8}
+{"time": "2026-08-15T10:29:26.083142+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "9d46ce56-5297-4eed-b1ce-e522e7d1da8b", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 5.1}
+{"time": "2026-08-15T10:29:26.087859+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "ef7e6527-e5d8-4368-ba34-a85eab0fa6e8", "request_method": "GET", "request_path": "/api/v1/applications/dfe4b756-4d9c-4dfd-884e-9c8034bd6cc3/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/dfe4b756-4d9c-4dfd-884e-9c8034bd6cc3/interviews/", "status_code": 404, "duration_ms": 4.1}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+__ TestProperty26TenantIsolation.test_scoped_grant_does_not_widen_to_sibling ___
+tests/property/test_production_scope_masking_properties.py:360: in test_scoped_grant_does_not_widen_to_sibling
+    @given(endpoint_key=_APP_ENDPOINT_KEYS, grant_scope=st.sampled_from(["offering", "application"]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/property/test_production_scope_masking_properties.py:404: in test_scoped_grant_does_not_widen_to_sibling
+    assert sibling_resp == missing, {
+E   AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'grant_scope': 'offering', 'missing': (404, {'code': 'NOT_FOUND', 'error': 'Ap...NOT_FOUND', 'error': 'Application not found', 'request_id': '92e41a01-509c-4376-9b2f-ec6247242cfd', 'success': False})}
+E   assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})
+E     
+E     At index 1 diff: {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': '92e41a01-509c-4376-9b2f-ec6247242cfd'} != {'success': False, 'error': 'Application not found', 'code': 'NOT_FOUND', 'request_id': 'd16ea353-8378-4160-be95-df3fd1a408ee'}
+E     Use -v to get more diff
+E   Falsifying example: test_scoped_grant_does_not_widen_to_sibling(
+E       self=<tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation object at 0x721472112520>,
+E       production_scope=None,
+E       endpoint_key='interviews-crud (GAP-6)',
+E       grant_scope='offering',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:29:26.124068+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "0dd4f8bb-785a-4370-afcf-da756e52f4cd", "request_method": "GET", "request_path": "/api/v1/applications/b67278c1-70f4-4555-b2fa-eaa99f2f884f/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/b67278c1-70f4-4555-b2fa-eaa99f2f884f/interviews/", "status_code": 403, "duration_ms": 7.5}
+{"time": "2026-08-15T10:29:26.130373+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "aed3ac3a-039a-4d7c-bf26-41b8a4282434", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 5.6}
+{"time": "2026-08-15T10:29:26.135908+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "c286f7e9-d3e5-4121-8c47-b15cf20f5527", "request_method": "GET", "request_path": "/api/v1/applications/ff66af9e-75bf-48f7-ae0e-7e345ff907eb/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/ff66af9e-75bf-48f7-ae0e-7e345ff907eb/interviews/", "status_code": 404, "duration_ms": 5.0}
+{"time": "2026-08-15T10:29:26.161575+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "9da31c90-03b2-47e9-925a-acd22d6ff84d", "request_method": "GET", "request_path": "/api/v1/applications/a7121e6f-da80-4c8c-99f2-7b1aace783e3/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/a7121e6f-da80-4c8c-99f2-7b1aace783e3/interviews/", "status_code": 403, "duration_ms": 6.2}
+{"time": "2026-08-15T10:29:26.167731+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "d16ea353-8378-4160-be95-df3fd1a408ee", "request_method": "GET", "request_path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/00000000-0000-4000-8000-000000000000/interviews/", "status_code": 404, "duration_ms": 5.6}
+{"time": "2026-08-15T10:29:26.172876+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "92e41a01-509c-4376-9b2f-ec6247242cfd", "request_method": "GET", "request_path": "/api/v1/applications/f591c6a3-5337-44b0-be8d-214dfd7d672d/interviews/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/f591c6a3-5337-44b0-be8d-214dfd7d672d/interviews/", "status_code": 404, "duration_ms": 4.6}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestCapabilityDerivedEndpointAuthority.test_tenant_admin_cannot_reach_platform_tenant_directory _
+tests/unit/test_admissions_v2_authority_policies.py:77: in test_tenant_admin_cannot_reach_platform_tenant_directory
+    assert response.status_code == 403, response.content
+E   AssertionError: b'{"success":true,"data":{"page":1,"pageSize":20,"totalCount":1,"results":[{"id":"65e47cbb-0e65-4984-9a6a-7ae372da25c0...ive":true,"description":null,"created_at":"2026-08-15T10:30:16.447556Z","updated_at":"2026-08-15T10:30:16.447556Z"}]}}'
+E   assert 200 == 403
+E    +  where 200 = <Response status_code=200, "application/json">.status_code
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:16.458536+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "3c882f9a-4ae9-41f3-bb14-0be564657ea5", "request_method": "GET", "request_path": "/api/v1/admin/institutions/", "type": "request_metric", "method": "GET", "path": "/api/v1/admin/institutions/", "status_code": 200, "duration_ms": 4.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestCapabilityDerivedEndpointAuthority.test_student_staff_mutation_is_masked_as_not_found _
+tests/unit/test_admissions_v2_authority_policies.py:98: in test_student_staff_mutation_is_masked_as_not_found
+    assert existing.json() == missing.json()
+E   AssertionError: assert {'code': 'NOT...ccess': False} == {'code': 'NOT...ccess': False}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'request_id': 'a671b511-f8e4-484b-95f9-0001976153b5'} != {'request_id': '969f7fef-605e-4b1f-9c9b-eb4797282d63'}
+E     Use -v to get more diff
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:16.472945+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "a671b511-f8e4-484b-95f9-0001976153b5", "request_method": "POST", "request_path": "/api/v1/applications/aa1ccc4b-7008-4cba-a9eb-69c76ba041f4/interviews/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/aa1ccc4b-7008-4cba-a9eb-69c76ba041f4/interviews/", "status_code": 404, "duration_ms": 3.1}
+{"time": "2026-08-15T10:30:16.476331+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "969f7fef-605e-4b1f-9c9b-eb4797282d63", "request_method": "POST", "request_path": "/api/v1/applications/6ca251c5-3902-4736-b436-322a946fe085/interviews/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/6ca251c5-3902-4736-b436-322a946fe085/interviews/", "status_code": 404, "duration_ms": 2.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestEndpointExportIsolation.test_export_excludes_other_school_application_number _
+tests/unit/test_cross_tenant_isolation.py:265: in test_export_excludes_other_school_application_number
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response status_code=403, "application/json">.status_code
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:31.171852+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "322e32ba-fac2-4c08-8f38-86560f2d798e", "request_method": "GET", "request_path": "/api/v1/applications/export/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/export/", "status_code": 403, "duration_ms": 4.6}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestEndpointGrantScopeFidelityHttp.test_application_grant_does_not_widen_to_sibling _
+tests/unit/test_cross_tenant_isolation.py:439: in test_application_grant_does_not_widen_to_sibling
+    assert world_a.application_id in ids  # the granted application
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert 'a4fee8e2-0f35-4341-b33f-d1725d63cfda' in set()
+E    +  where 'a4fee8e2-0f35-4341-b33f-d1725d63cfda' = TenantWorld(institution=<Institution: Test School c6f63502 (SCH-C6F63502)>, canonical_program=<CanonicalProgram: Diplo...4-1ce4-46f4-9af0-179564ead0c1)>, access_grant=<AccessGrant: AccessGrant object (bd525d0a-a682-43ad-824f-d046670d0c3b)>).application_id
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:31.361424+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "f67f0429-2afc-4910-b88a-6494a3acf129", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 6.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestTheCommunicationsHistory.test_the_history_never_publishes_provider_text_or_the_address _
+tests/unit/test_notification_preferences_10_1.py:646: in test_the_history_never_publishes_provider_text_or_the_address
+    assert "535" not in body
+E   assert '535' not in "{'success':...y': True}]}}"
+E     
+E     '535' is contained here:
+E       :30:37.942535Z', 'category': 'application_updates', 'kind': 'mandatory', 'audience': 'student', 'channels': [{'channel': 'in_app', 'state': 'delivered', 'attempts': 1, 'last_attempt_at': '2026-08-15T10:30:37.942535+00:00', 'can_retry': False}, {'channel': 'email', 'state': 'failed', 'attempts': 1, 'last_attempt_at': None, 'can_retry': True}], 'can_retry': True}]}}
+E     ?           +++
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:37.947694+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "aa4adf6a-527a-49ba-a449-0c79f250b7ef", "request_method": "GET", "request_path": "/api/v1/notifications/", "type": "request_metric", "method": "GET", "path": "/api/v1/notifications/", "status_code": 200, "duration_ms": 3.1}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+______________________ test_role_change_forces_recompute _______________________
+tests/unit/test_perf_capability_invalidation.py:156: in test_role_change_forces_recompute
+    assert q_hit == 0, "primed entry must be served from cache (R5.1)"
+E   AssertionError: primed entry must be served from cache (R5.1)
+E   assert 4 == 0
+__________________ test_membership_lifecycle_forces_recompute __________________
+tests/unit/test_perf_capability_invalidation.py:190: in test_membership_lifecycle_forces_recompute
+    assert q_hit == 0, "primed entry must be served from cache (R5.1)"
+E   AssertionError: primed entry must be served from cache (R5.1)
+E   assert 2 == 0
+_________________ test_access_grant_lifecycle_forces_recompute _________________
+tests/unit/test_perf_capability_invalidation.py:247: in test_access_grant_lifecycle_forces_recompute
+    assert q_hit == 0, "primed entry must be served from cache (R5.1)"
+E   AssertionError: primed entry must be served from cache (R5.1)
+E   assert 2 == 0
+_______________ test_institution_active_change_forces_recompute ________________
+tests/unit/test_perf_capability_invalidation.py:310: in test_institution_active_change_forces_recompute
+    assert q_hit == 0, "primed entry must be served from cache (R5.1)"
+E   AssertionError: primed entry must be served from cache (R5.1)
+E   assert 4 == 0
+_ TestOutOfScopeReturnsNotFound.test_bulk_status_out_of_scope_reported_not_found _
+tests/unit/test_scoped_access_matrix.py:255: in test_bulk_status_out_of_scope_reported_not_found
+    assert status_code == 400, (status_code, body)
+E   AssertionError: (403, {'code': 'INSUFFICIENT_PERMISSIONS', 'error': 'You do not have permission to perform this action.', 'success': False})
+E   assert 403 == 400
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:30:49.713040+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "17c6977e-1139-44bd-89b2-b0f5423c5f2b", "request_method": "POST", "request_path": "/api/v1/applications/bulk-status/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/bulk-status/", "status_code": 403, "duration_ms": 5.3}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+____________ test_concurrent_auto_assign_never_exceeds_max_workload ____________
+tests/unit/test_reviewer_assignment_concurrency.py:105: in test_concurrent_auto_assign_never_exceeds_max_workload
+    assert sum(r["assigned_count"] for r in results) == max_workload
+E   assert 8 == 3
+E    +  where 8 = sum(<generator object test_concurrent_auto_assign_never_exceeds_max_workload.<locals>.<genexpr> at 0x72146b77df20>)
+______________ TestV2SessionEndpoint.test_success_anonymous_user _______________
+tests/contract/test_v2_endpoint_contract.py:157: in test_success_anonymous_user
+    data = assert_success_envelope(response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/contract/test_v2_endpoint_contract.py:80: in assert_success_envelope
+    assert data["success"] is True, f"Expected success=True, got {data}"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'success'
+____________ TestV2SessionEndpoint.test_success_authenticated_user _____________
+tests/contract/test_v2_endpoint_contract.py:143: in test_success_authenticated_user
+    data = assert_success_envelope(response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/contract/test_v2_endpoint_contract.py:80: in assert_success_envelope
+    assert data["success"] is True, f"Expected success=True, got {data}"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'success'
+_____________ TestV2ProgramListEndpoint.test_success_with_programs _____________
+tests/contract/test_v2_endpoint_contract.py:227: in test_success_with_programs
+    response = view(request)
+               ^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/views/decorators/csrf.py:65: in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/views/generic/base.py:105: in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/rest_framework/views.py:517: in dispatch
+    self.response = self.finalize_response(request, response, *args, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/rest_framework/views.py:429: in finalize_response
+    assert isinstance(response, HttpResponseBase), (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Expected a `Response`, `HttpResponse` or `StreamingHttpResponse` to be returned from the view, but received a `<class 'unittest.mock.MagicMock'>`
+___________ TestV2ApplicationDetailEndpoint.test_success_owner_read ____________
+tests/contract/test_v2_endpoint_contract.py:271: in test_success_owner_read
+    data = assert_success_envelope(response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/contract/test_v2_endpoint_contract.py:80: in assert_success_envelope
+    assert data["success"] is True, f"Expected success=True, got {data}"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'success'
+______________ TestV2FeeResolveEndpoint.test_success_fee_resolved ______________
+tests/contract/test_v2_endpoint_contract.py:371: in test_success_fee_resolved
+    data = assert_success_envelope(response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/contract/test_v2_endpoint_contract.py:80: in assert_success_envelope
+    assert data["success"] is True, f"Expected success=True, got {data}"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'success'
+____________ TestV2DocumentListEndpoint.test_success_with_documents ____________
+tests/contract/test_v2_endpoint_contract.py:516: in test_success_with_documents
+    with patch("apps.documents.models.Document") as MockDocument:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.documents.models' from '/home/cosmas/Downloads/mihasv3/backend/apps/documents/models.py'> does not have the attribute 'Document'
+_ TestForceBypassCreatesAuditTrail.test_force_bypass_approval_creates_audit_trail _
+tests/property/test_application_hardening.py:274: in test_force_bypass_approval_creates_audit_trail
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:328: in test_force_bypass_approval_creates_audit_trail
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:521: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_force_bypass_approval_creates_audit_trail(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_force_bypass_approval_creates_audit_trail>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       reason='',
+E   )
+_ TestForceBypassCreatesAuditTrail.test_non_force_bypass_does_not_add_force_marker _
+tests/property/test_application_hardening.py:348: in test_non_force_bypass_does_not_add_force_marker
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:398: in test_non_force_bypass_does_not_add_force_marker
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:521: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_non_force_bypass_does_not_add_force_marker(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_non_force_bypass_does_not_add_force_marker>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       target_status='approved',
+E   )
+_ TestUnverifiedPaymentApprovalGuard.test_non_approval_status_skips_payment_check _
+tests/property/test_application_properties.py:501: in test_non_approval_status_skips_payment_check
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_properties.py:528: in test_non_approval_status_skips_payment_check
+    self.assertEqual(response.status_code, 200)
+E   AssertionError: 400 != 200
+E   Falsifying example: test_non_approval_status_skips_payment_check(
+E       self=<tests.property.test_application_properties.TestUnverifiedPaymentApprovalGuard testMethod=test_non_approval_status_skips_payment_check>,
+E       new_status='rejected',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:31:36.915950+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='125431998605568'> from=<MagicMock name='objects.all().select_for_update().get().status' id='125431998607584'> to=rejected by=fad38872-2a17-4e31-a580-a8f9dd54dcb0"}
+{"time": "2026-08-15T10:31:36.930018+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='125432051060416'> from=<MagicMock name='objects.all().select_for_update().get().status' id='125432051069152'> to=rejected by=1e377903-248d-4896-b7e9-7a25243be5cc"}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.services:services.py:340 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='125431998605568'> from=<MagicMock name='objects.all().select_for_update().get().status' id='125431998607584'> to=rejected by=fad38872-2a17-4e31-a580-a8f9dd54dcb0
+WARNING  apps.applications.services:services.py:340 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='125432051060416'> from=<MagicMock name='objects.all().select_for_update().get().status' id='125432051069152'> to=rejected by=1e377903-248d-4896-b7e9-7a25243be5cc
+__ TestBulkStatusAtomicRollback.test_failure_mid_batch_rolls_back_all_changes __
+tests/property/test_bulk_status_atomic.py:144: in test_failure_mid_batch_rolls_back_all_changes
+    new_status=_valid_statuses,
+           ^^^^^^^
+tests/property/test_bulk_status_atomic.py:219: in test_failure_mid_batch_rolls_back_all_changes
+    response = view.post(mock_request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_bulk_views.py:149: in post
+    authorize_tenant_surface(request, capability="tenant.application.review")
+apps/common/tenant_authorization.py:273: in authorize_tenant_surface
+    raise NotFound()
+E   rest_framework.exceptions.NotFound: Not found.
+E   Falsifying example: test_failure_mid_batch_rolls_back_all_changes(
+E       self=<tests.property.test_bulk_status_atomic.TestBulkStatusAtomicRollback testMethod=test_failure_mid_batch_rolls_back_all_changes>,
+E       new_status='submitted',
+E       batch_size=2,
+E       failure_index=0,
+E   )
+_ TestUploadEndpointPreservation.test_upload_persists_application_document_url_fields _
+tests/property/test_drift_bug3_preservation.py:165: in test_upload_persists_application_document_url_fields
+    self.assertEqual(getattr(mock_app, expected_field), mock_doc.file_url)
+E   AssertionError: <MagicMock name='objects.get().result_slip_url' id='125431843873056'> != 'https://r2.example.com/result_slip.pdf'
+______________ test_every_rollback_statement_is_inverse_additive _______________
+tests/property/test_rollback_safe_operations.py:385: in test_every_rollback_statement_is_inverse_additive
+    rollback_subset=st.lists(
+               ^^^
+tests/property/test_rollback_safe_operations.py:411: in test_every_rollback_statement_is_inverse_additive
+    assert not failures, (
+E   AssertionError: Rollback file(s) contain non-inverse-additive operations. Per Requirement 9.2, every rollback statement must be one of: DROP INDEX, DROP COLUMN, DROP TABLE, DROP SEQUENCE, DELETE FROM migration_history (any form), or scoped DELETE FROM <table> WHERE ... .
+E     
+E     Violations:
+E       - 2026_07_25_01_canonical_subject_catalog_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): UPDATE subjects SET is_active = true WHERE code IN ('ADD_MATH', 'MUS', 'PHYS') AND is_active IS DISTINCT FROM true
+E   assert not ["2026_07_25_01_canonical_subject_catalog_rollback.sql: statement does not match any allowed inverse-additive prefix (...): UPDATE subjects SET is_active = true WHERE code IN ('ADD_MATH', 'MUS', 'PHYS') AND is_active IS DISTINCT FROM true"]
+E   Falsifying example: test_every_rollback_statement_is_inverse_additive(
+E       rollback_subset=[PosixPath('/home/cosmas/Downloads/mihasv3/backend/scripts/2026_05_18_expand_application_status_columns_rollback.sql'),
+E        PosixPath('/home/cosmas/Downloads/mihasv3/backend/scripts/2026_07_25_01_canonical_subject_catalog_rollback.sql')],
+E   )
+___________ test_every_discovered_rollback_file_is_individually_safe ___________
+tests/property/test_rollback_safe_operations.py:464: in test_every_discovered_rollback_file_is_individually_safe
+    assert not all_failures, (
+E   AssertionError: Rollback file(s) contain non-inverse-additive operations.
+E     Violations:
+E       - 2026_07_25_01_canonical_subject_catalog_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): UPDATE subjects SET is_active = true WHERE code IN ('ADD_MATH', 'MUS', 'PHYS') AND is_active IS DISTINCT FROM true
+E       - 2026_07_26_02_document_current_slot_alignment_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): WITH ranked AS ( SELECT id, row_number() OVER w AS v, count(*) OVER (PARTITION BY application_id, document_type) AS grp_n FROM application_documents WINDOW w AS
+E   assert not ["2026_07_25_01_canonical_subject_catalog_rollback.sql: statement does not match any allowed inverse-additive prefix (...ER w AS v, count(*) OVER (PARTITION BY application_id, document_type) AS grp_n FROM application_documents WINDOW w AS']
+_ TestInstitutionPassThroughIdentity.test_institution_value_passes_through_unchanged _
+tests/property/test_system_alignment_institution_passthrough.py:95: in test_institution_value_passes_through_unchanged
+    @_default_settings
+               ^^^^^^^
+tests/property/test_system_alignment_institution_passthrough.py:105: in test_institution_value_passes_through_unchanged
+    assert data["institution"] == institution, (
+E   AssertionError: Institution value changed: stored='0', serialized=<MagicMock name='mock.institution_ref.brand_name' id='125431881703712'>
+E   assert <MagicMock name='mock.institution_ref.brand_name' id='125431881703712'> == '0'
+E   Falsifying example: test_institution_value_passes_through_unchanged(
+E       self=<tests.property.test_system_alignment_institution_passthrough.TestInstitutionPassThroughIdentity object at 0x721471c9d450>,
+E       institution='0',
+E   )
+______________ TestAmendmentReviewEndpoint.test_approve_succeeds _______________
+tests/unit/test_amendments.py:370: in test_approve_succeeds
+    assert resp.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response status_code=500, "text/html; charset=utf-8">.status_code
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:32:58.606696+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/admin_amendment_views.py\", line 160, in post\n    application = resolve_scoped_application(\n        request,\n        application_id,\n        capability=\"tenant.application.review\",\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/admin_amendment_views.py", line 160, in post
+    application = resolve_scoped_application(
+        request,
+        application_id,
+        capability="tenant.application.review",
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_______________ test_api_quality_script_passes_against_baseline ________________
+tests/unit/test_api_quality_script.py:71: in test_api_quality_script_passes_against_baseline
+    assert res.returncode == 0, (
+E   AssertionError: api_quality.sh failed (exit 1).
+E     stderr: api-quality: REGRESSION — linter issues increased
+E     
+E     stdout: => Regenerating schema...
+E     => Running linter...
+E     => Running breaking-change detector...
+E     
+E     # API Quality Report
+E     
+E     Generated: 2026-08-15T10:32:58Z
+E     
+E     ## Summary
+E     
+E     | Metric | Baseline | Current | Delta |
+E     |---|---|---|---|
+E     | drf-spectacular errors | ? | 26 | n/a |
+E     | drf-spectacular warnings | ? | 0 | n/a |
+E     | Linter issues | 883 | 1100 | 217 |
+E     | Linter errors | ? | 1 | n/a |
+E     | Breaking changes | 0 | 0 | — |
+E     
+E     ## Baseline location
+E     - Schema: `backend/schema/openapi.v1.baseline.yaml`
+E     - Lint baseline: `backend/schema/lint_baseline.json`
+E     - Targets: `backend/schema/REMEDIATION_TARGETS.md`
+E     
+E     ❌ Linter issue count regressed: 1100 > 883
+E     ✓ No breaking changes
+E     
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['bash', '/home/cosmas/Downloads/mihasv3/backend/scripts/api_quality.sh', '--report', '/tmp/pyte...ue count regressed: 1100 > 883\n✓ No breaking changes\n', stderr='api-quality: REGRESSION — linter issues increased\n').returncode
+_ TestApplicationInterviewListView.test_admin_list_without_mine_is_scope_narrowed _
+tests/unit/test_application_student_flow_views.py:272: in test_admin_list_without_mine_is_scope_narrowed
+    mock_scope_service.return_value.filter_applications.assert_called_once()
+/usr/lib/python3.14/unittest/mock.py:965: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'filter_applications' to have been called once. Called 0 times.
+_________________ TestBatchSizeLimit.test_exceeds_25_rejected __________________
+tests/unit/test_batch_operations.py:39: in test_exceeds_25_rejected
+    assert resp.status_code == 400
+E   assert 404 == 400
+E    +  where 404 = <Response status_code=404, "text/html; charset=utf-8">.status_code
+______________ TestConfirmationToken.test_invalid_token_rejected _______________
+tests/unit/test_batch_operations.py:58: in test_invalid_token_rejected
+    assert resp.status_code == 400
+E   assert 404 == 400
+E    +  where 404 = <Response status_code=404, "text/html; charset=utf-8">.status_code
+______ TestDocumentDeleteEndpoint.test_delete_soft_deletes_valid_document ______
+tests/unit/test_drift_bug3_endpoints.py:298: in test_delete_soft_deletes_valid_document
+    self.assertEqual(response.status_code, 200)
+E   AssertionError: 500 != 200
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T10:33:09.726318+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/document_storage_views.py\", line 876, in delete\n    evidence.delete_document(\n    ~~~~~~~~~~~~~~~~~~~~~~~~^\n        document=document,\n        ^^^^^^^^^^^^^^^^^^\n    ...<2 lines>...\n        reason=(request.data or {}).get(\"reason\") if hasattr(request, \"data\") else None,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/document_evidence.py\", line 951, in delete_document\n    with transaction.atomic():\n         ~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/transaction.py\", line 198, in __enter__\n    if not connection.get_autocommit():\n           ~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 454, in get_autocommit\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 309, in patched_ensure_connection\n    return _DatabaseFailure(self.ensure_connection, message)()\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database threaded connections to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_drift_bug3_endpoints.TestDocumentDeleteEndpoint.databases to silence this failure."}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/document_storage_views.py", line 876, in delete
+    evidence.delete_document(
+    ~~~~~~~~~~~~~~~~~~~~~~~~^
+        document=document,
+        ^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        reason=(request.data or {}).get("reason") if hasattr(request, "data") else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/document_evidence.py", line 951, in delete_document
+    with transaction.atomic():
+         ~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/transaction.py", line 198, in __enter__
+    if not connection.get_autocommit():
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 454, in get_autocommit
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 309, in patched_ensure_connection
+    return _DatabaseFailure(self.ensure_connection, message)()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database threaded connections to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_drift_bug3_endpoints.TestDocumentDeleteEndpoint.databases to silence this failure.
+_ LaunchVerificationSpectacularTests.test_schema_generation_emits_zero_errors __
+tests/unit/test_launch_verification_spectacular.py:64: in test_schema_generation_emits_zero_errors
+    self.assertEqual(
+E   AssertionError: 116 != 0 : Expected zero drf-spectacular errors, got 116:
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffCandidateSearchView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationResendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationRevokeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [StaffInvitationAcceptView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestApproveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingActivateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingBlockersView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingResumeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingStepView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSuspendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ApplicationDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2SessionView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ProgramListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2DocumentListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+E   /home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2FeeResolveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+----------------------------- Captured stderr call -----------------------------
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffCandidateSearchView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationResendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationRevokeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [StaffInvitationAcceptView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+{"time": "2026-08-15T10:33:12.247787+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.251719+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.254361+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.257744+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestApproveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingActivateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingBlockersView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingResumeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingStepView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSuspendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ApplicationDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2SessionView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ProgramListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2DocumentListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2FeeResolveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+Warning: operationId "api_v1_admin_intakes_retrieve" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_change_requests_retrieve" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-requests/{change_request_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+------------------------------ Captured log call -------------------------------
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+_ LaunchVerificationSpectacularTests.test_schema_generation_emits_zero_warnings _
+tests/unit/test_launch_verification_spectacular.py:75: in test_schema_generation_emits_zero_warnings
+    self.assertEqual(
+E   AssertionError: 3 != 0 : Expected zero drf-spectacular warnings, got 3:
+E   Warning: operationId "api_v1_admin_intakes_retrieve" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes.
+E   Warning: operationId "api_v2_admin_change_requests_retrieve" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-requests/{change_request_id}/', 'get')]. resolving with numeral suffixes.
+E   Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+----------------------------- Captured stderr call -----------------------------
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffCandidateSearchView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationResendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffInvitationRevokeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [StaffInvitationAcceptView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+{"time": "2026-08-15T10:33:12.420824+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.425091+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.428011+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+{"time": "2026-08-15T10:33:12.431467+00:00", "level": "WARNING", "logger": "apps.documents.payment_query_views", "message": "Failed to scope program fees for actor", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 848, in get_queryset\n    self._scoped_program()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py\", line 824, in _scoped_program\n    return Program.objects.get(id=program_id)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py\", line 87, in manager_method\n    return getattr(self.get_queryset(), name)(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 631, in get\n    num = len(clone)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 368, in __len__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py\", line 201, in __call__\n    raise DatabaseOperationForbidden(self.message)\ndjango.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure."}
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestApproveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/change_request_v2_views.py: Error [V2TenantChangeRequestSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingListCreateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingActivateView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingBlockersView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingCancelView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingRejectView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingResumeView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingStepView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSubmitView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/catalog/onboarding_v2_views.py: Error [V2TenantOnboardingSuspendView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ApplicationDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2SessionView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2ProgramListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2DocumentListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py: Error [V2FeeResolveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+Warning: operationId "api_v1_admin_intakes_retrieve" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_change_requests_retrieve" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-requests/{change_request_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+------------------------------ Captured log call -------------------------------
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+WARNING  apps.documents.payment_query_views:payment_query_views.py:854 Failed to scope program fees for actor
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 848, in get_queryset
+    self._scoped_program()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/documents/payment_query_views.py", line 824, in _scoped_program
+    return Program.objects.get(id=program_id)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 631, in get
+    num = len(clone)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 368, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/test/testcases.py", line 201, in __call__
+    raise DatabaseOperationForbidden(self.message)
+django.test.testcases.DatabaseOperationForbidden: Database queries to 'default' are not allowed in SimpleTestCase subclasses. Either subclass TestCase or TransactionTestCase to ensure proper test isolation or add 'default' to tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests.databases to silence this failure.
+_____________ test_committed_release_report_is_fresh_and_complete ______________
+tests/unit/test_migration_history_report_freshness.py:289: in test_committed_release_report_is_fresh_and_complete
+    assert findings == [], "stale/incomplete release report: " + "; ".join(
+E   AssertionError: stale/incomplete release report: june_migration_missing_from_report:2026_06_08_00_canonical_programs_id_default.sql; june_migration_missing_from_report:2026_08_06_01_admin_saved_filters.sql; june_migration_missing_from_report:2026_08_09_01_application_tracking_secret.sql; june_migration_missing_from_report:2026_08_12_01_tenant_new_table_fk_validate.sql; june_migration_missing_from_report:2026_08_13_01_widen_application_snapshot_columns.sql; june_migration_missing_from_report:2026_08_14_01_neutral_platform_communication_templates.sql; june_migration_missing_from_report:2026_08_15_01_widen_application_intake_snapshot.sql
+E   assert [Finding(cate...eport)'), ...] == []
+E     
+E     Left contains 7 more items, first extra item: Finding(category='june_migration_missing_from_report', object='2026_06_08_00_canonical_programs_id_default.sql', detail='June 2026+ migration script exists on disk but is absent from the generated report (regenerate the report)')
+E     Use -v to get more diff
+_____ test_committed_release_report_covers_every_june_plus_script_on_disk ______
+tests/unit/test_migration_history_report_freshness.py:300: in test_committed_release_report_covers_every_june_plus_script_on_disk
+    assert missing == [], f"release report omits June 2026+ scripts: {missing}"
+E   AssertionError: release report omits June 2026+ scripts: ['2026_06_08_00_canonical_programs_id_default.sql', '2026_08_06_01_admin_saved_filters.sql', '2026_08_09_01_application_tracking_secret.sql', '2026_08_12_01_tenant_new_table_fk_validate.sql', '2026_08_13_01_widen_application_snapshot_columns.sql', '2026_08_14_01_neutral_platform_communication_templates.sql', '2026_08_15_01_widen_application_intake_snapshot.sql']
+E   assert ['2026_06_08_...tes.sql', ...] == []
+E     
+E     Left contains 7 more items, first extra item: '2026_06_08_00_canonical_programs_id_default.sql'
+E     Use -v to get more diff
+_________ test_every_allow_any_view_has_public_endpoint_classification _________
+tests/unit/test_public_endpoint_policy.py:46: in test_every_allow_any_view_has_public_endpoint_classification
+    assert _allow_any_view_classes() - set(PUBLIC_ENDPOINT_CLASSIFICATIONS) == set()
+E   AssertionError: assert {'apps.catalo...2SessionView'} == set()
+E     
+E     Extra items in the left set:
+E     'apps.catalog.staff_invitation_views.StaffInvitationAcceptView'
+E     'apps.common.v2.demo_views.V2SessionView'
+E     'apps.common.v2.demo_views.V2ProgramListView'
+E     Use -v to get more diff
+_____________________ test_no_operation_is_tagged_only_api _____________________
+tests/unit/test_schema_tags.py:59: in test_no_operation_is_tagged_only_api
+    assert violations == [], (
+E   AssertionError: Operations still only tagged 'api': 23
+E     GET /api/v2/admin/change-requests/
+E     POST /api/v2/admin/change-requests/
+E     GET /api/v2/admin/change-requests/{change_request_id}/
+E     POST /api/v2/admin/change-requests/{change_request_id}/approve/
+E     POST /api/v2/admin/change-requests/{change_request_id}/cancel/
+E     POST /api/v2/admin/change-requests/{change_request_id}/reject/
+E     POST /api/v2/admin/change-requests/{change_request_id}/submit/
+E     GET /api/v2/admin/onboarding/
+E     POST /api/v2/admin/onboarding/
+E     GET /api/v2/admin/onboarding/{onboarding_id}/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/activate/
+E     GET /api/v2/admin/onboarding/{onboarding_id}/blockers/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/cancel/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/reject/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/resume/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/steps/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/submit/
+E     POST /api/v2/admin/onboarding/{onboarding_id}/suspend/
+E     GET /api/v2/applications/{application_id}/
+E     GET /api/v2/auth/session/
+E   assert ['GET /api/v2...reject/', ...] == []
+E     
+E     Left contains 23 more items, first extra item: 'GET /api/v2/admin/change-requests/'
+E     Use -v to get more diff
+______________________ test_all_api_views_are_classified _______________________
+tests/unit/test_view_auth_classification.py:578: in test_all_api_views_are_classified
+    assert not unclassified, (
+E   AssertionError: Found 38 APIView subclass(es) not in any classification list. Add them to the appropriate parametrize list in this file:
+E       - apps.accounts.user_directory_views._ImportBase
+E       - apps.applications.admin_query_views.AdminApplicationQueryView
+E       - apps.applications.admin_query_views.AdminApplicationSavedFilterDetailView
+E       - apps.applications.admin_query_views.AdminApplicationSavedFilterListView
+E       - apps.applications.readiness_v2_views.V2ApplicationReadinessView
+E       - apps.applications.student_document_views.ApplicationRequiredDocumentsView
+E       - apps.applications.student_draft_views.ApplicationDraftChangeSelectionView
+E       - apps.catalog.admin_domain_views.AdminTenantDomainApproveView
+E       - apps.catalog.admin_domain_views.AdminTenantDomainReactivateView
+E       - apps.catalog.admin_domain_views.AdminTenantDomainRejectView
+E       - apps.catalog.admin_domain_views.AdminTenantDomainRetryView
+E       - apps.catalog.admin_intake_views.AdminIntakeDetailView
+E       - apps.catalog.admin_intake_views.AdminIntakeListCreateView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestApproveView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestCancelView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestDetailView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestListCreateView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestRejectView
+E       - apps.catalog.change_request_v2_views.V2TenantChangeRequestSubmitView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingActivateView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingBlockersView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingCancelView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingDetailView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingListCreateView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingRejectView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingResumeView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingStepView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingSubmitView
+E       - apps.catalog.onboarding_v2_views.V2TenantOnboardingSuspendView
+E       - apps.catalog.onboarding_v2_views._OnboardingCommandView
+E       - apps.catalog.staff_invitation_views.AdminStaffCandidateSearchView
+E       - apps.catalog.staff_invitation_views.AdminStaffInvitationListCreateView
+E       - apps.catalog.staff_invitation_views.AdminStaffInvitationResendView
+E       - apps.catalog.staff_invitation_views.AdminStaffInvitationRevokeView
+E       - apps.catalog.staff_invitation_views.StaffInvitationAcceptView
+E       - apps.catalog.staff_invitation_views._StaffInvitationCommandView
+E       - apps.documents.fee_admin_views.AdminFeeListView
+E       - apps.documents.fee_quote_views.FeeQuoteView
+E   assert not {'apps.accounts.user_directory_views._ImportBase', 'apps.applications.admin_query_views.AdminApplicationQueryView', 'a...v2_views.V2ApplicationReadinessView', 'apps.applications.student_document_views.ApplicationRequiredDocumentsView', ...}
+=============================== warnings summary ===============================
+tests/unit/test_api_quality_script.py:31
+  /home/cosmas/Downloads/mihasv3/backend/tests/unit/test_api_quality_script.py:31: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/contract/test_contract_parity.py: 4 warnings
+tests/contract/test_serializer_response_contract.py: 11 warnings
+tests/integration/test_admin_journey_drill.py: 1 warning
+tests/integration/test_assignment_config_failure.py: 1 warning
+tests/integration/test_assignment_snapshot_isolation.py: 1 warning
+tests/integration/test_change_selection_6_4.py: 22 warnings
+tests/integration/test_cors_idempotency_headers.py: 2 warnings
+tests/integration/test_draft_start_list_rename_6_2.py: 10 warnings
+tests/integration/test_email_links_and_verification_removal.py: 2 warnings
+tests/integration/test_negative_flow_boundaries.py: 10 warnings
+tests/integration/test_ocr_assistance_7_5.py: 3 warnings
+tests/integration/test_required_documents_contract_7_2.py: 33 warnings
+tests/integration/test_staff_invitation_workflow.py: 15 warnings
+tests/integration/test_student_journey_e2e.py: 1 warning
+tests/integration/test_subject_grade_contract_7_1.py: 20 warnings
+tests/integration/test_submission_readiness_6_5.py: 22 warnings
+tests/integration/test_tenant_lifecycle_drill.py: 1 warning
+tests/integration/test_tenant_onboarding_workflow.py: 22 warnings
+tests/property/test_application_binding.py: 1 warning
+tests/property/test_authority_matrix_generated.py: 6 warnings
+tests/property/test_capability_endpoint_shape.py: 3 warnings
+tests/property/test_capability_gated_writes.py: 6 warnings
+tests/property/test_cross_tenant_invisibility.py: 2 warnings
+tests/property/test_domain_creation_init.py: 120 warnings
+tests/property/test_foreign_institution_id.py: 4 warnings
+tests/property/test_no_self_escalation.py: 5 warnings
+tests/property/test_official_document_deletion_properties.py: 1 warning
+tests/property/test_official_document_gating_properties.py: 1 warning
+tests/property/test_official_document_provenance_properties.py: 1 warning
+tests/property/test_perf_csrf_preservation.py: 3 warnings
+tests/property/test_production_scope_masking_properties.py: 9 warnings
+tests/property/test_remediation_isolation_properties.py: 1 warning
+tests/property/test_scope_before_lookup.py: 301 warnings
+tests/property/test_staff_creation_rollback.py: 1 warning
+tests/unit/test_admin_program_intake_create.py: 12 warnings
+tests/unit/test_admissions_v2_authority_policies.py: 5 warnings
+tests/unit/test_analytics_scope.py: 4 warnings
+tests/unit/test_application_canonical_ids.py: 2 warnings
+tests/unit/test_application_query_contract_9_1.py: 47 warnings
+tests/unit/test_assignment_preview.py: 4 warnings
+tests/unit/test_assignment_required_docs_legacy_metric.py: 2 warnings
+tests/unit/test_capability_self_description_m3.py: 15 warnings
+tests/unit/test_catalog_view_characterisation_12_1.py: 108 warnings
+tests/unit/test_catalog_write_freeze.py: 6 warnings
+tests/unit/test_communication_template_scope.py: 8 warnings
+tests/unit/test_condition_evidence_amendment_history_10_2.py: 35 warnings
+tests/unit/test_condition_front_doors_10_6.py: 11 warnings
+tests/unit/test_cross_tenant_capacity_canonical_id.py: 4 warnings
+tests/unit/test_cross_tenant_isolation.py: 14 warnings
+tests/unit/test_dashboard_metrics_9_2.py: 22 warnings
+tests/unit/test_document_extract_scope.py: 7 warnings
+tests/unit/test_domain_lifecycle_endpoints.py: 37 warnings
+tests/unit/test_email_slip_route_removed_10_6.py: 5 warnings
+tests/unit/test_enrollment_readiness_10_3.py: 3 warnings
+tests/unit/test_integrations_envelope_conformance.py: 2 warnings
+tests/unit/test_integrity_constraints_409.py: 4 warnings
+tests/unit/test_legacy_catalog_get_preserved.py: 15 warnings
+tests/unit/test_no_scope_empty.py: 6 warnings
+tests/unit/test_notification_preferences_10_1.py: 30 warnings
+tests/unit/test_official_document_deletion.py: 6 warnings
+tests/unit/test_official_document_durability_10_4.py: 39 warnings
+tests/unit/test_official_document_lifecycle_audit.py: 3 warnings
+tests/unit/test_official_document_signed_download.py: 2 warnings
+tests/unit/test_payment_api_contract_preservation.py: 1 warning
+tests/unit/test_payment_dev_bypass_404.py: 1 warning
+tests/unit/test_payment_dev_bypass_404_phase5.py: 19 warnings
+tests/unit/test_payment_rate_limiting.py: 6 warnings
+tests/unit/test_payment_rate_limiting_envelope.py: 1 warning
+tests/unit/test_payment_rate_limiting_flag_default.py: 2 warnings
+tests/unit/test_payment_rate_limiting_webhook_exempt.py: 1 warning
+tests/unit/test_payment_settlement_tenant.py: 3 warnings
+tests/unit/test_payment_webhook_returns_200.py: 5 warnings
+tests/unit/test_public_tracking_secret_10_5.py: 42 warnings
+tests/unit/test_review_workspace_9_4.py: 46 warnings
+tests/unit/test_reviewer_assignment.py: 17 warnings
+tests/unit/test_routing_simulate.py: 8 warnings
+tests/unit/test_scenario_domain_fail_closed.py: 5 warnings
+tests/unit/test_scenario_domain_routing.py: 4 warnings
+tests/unit/test_scenario_query_override_fail_closed.py: 5 warnings
+tests/unit/test_scenario_super_admin_onboarding.py: 1 warning
+tests/unit/test_scenario_tenant_isolation.py: 8 warnings
+tests/unit/test_scoped_access_matrix.py: 16 warnings
+tests/unit/test_settlement_csv_export.py: 6 warnings
+tests/unit/test_settlement_fee_authority_8_4.py: 35 warnings
+tests/unit/test_template_safety.py: 12 warnings
+tests/unit/test_tenant_admin_endpoints.py: 43 warnings
+tests/unit/test_tenant_api_contract_preservation.py: 5 warnings
+tests/unit/test_tenant_asset_registration.py: 15 warnings
+tests/unit/test_tenant_asset_upload.py: 27 warnings
+tests/unit/test_tenant_audit_amendment_scope_9_5.py: 27 warnings
+tests/unit/test_tenant_audit_observability.py: 10 warnings
+tests/unit/test_tenant_change_request_endpoints.py: 11 warnings
+tests/unit/test_tenant_config_authorization_boundaries.py: 2 warnings
+tests/unit/test_user_directory_9_3.py: 58 warnings
+tests/integration/test_document_evidence_compensation_7_3.py: 10 warnings
+tests/property/test_jobs_orm_drift_properties.py: 1 warning
+tests/unit/test_api_docs.py: 3 warnings
+tests/unit/test_jobs_ops_drift.py: 4 warnings
+tests/unit/test_jobs_ops_endpoints.py: 11 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='125431872490192'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='125431872497248'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='125431872996752'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='125431873003808'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='125431873010864'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_jwt_middleware.py::TestInvalidJWTDoesNotSetUser::test_wrong_key_token_does_not_set_user
+tests/property/test_jwt_middleware.py::TestInvalidJWTDoesNotSetUser::test_wrong_key_token_does_not_set_user
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 10 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+tests/property/test_jwt_middleware.py::TestInvalidJWTDoesNotSetUser::test_wrong_key_token_does_not_set_user
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 18 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+tests/property/test_jwt_middleware.py::TestInvalidJWTDoesNotSetUser::test_wrong_key_token_does_not_set_user
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 25 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+tests/property/test_jwt_middleware.py::TestInvalidJWTDoesNotSetUser::test_wrong_key_token_does_not_set_user
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 19 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+tests/unit/test_launch_verification_spectacular.py: 744 warnings
+tests/unit/test_schema_decorator_fixes.py: 186 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/drf_spectacular/plumbing.py:1340: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    return isinstance(hint, (
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/property/test_payment_fee_resolver_properties.py:521: Task 17.1 implements the API-layer sensitive-fields lock — this PBT will enforce it once wired
+SKIPPED [1] tests/property/test_schema_reconciliation_invariants.py:488: migration_history is present but empty on the configured database — the bootstrap/reconcile step has not run, so the coverage property has no recorded set to compare against.
+SKIPPED [1] tests/unit/test_check_schema_drift_fk_indexes.py:109: Non-Postgres skip path is exercised on the SQLite test settings; current backend is postgresql.
+SKIPPED [1] tests/unit/test_check_schema_drift_success_line.py:311: SQLite skip path is exercised on the SQLite test settings; current backend is postgresql.
+SKIPPED [20] tests/unit/test_payment_dev_bypass_404.py:232: Task 43 adds @require_not_dev_bypass_in_production to every payment view; Phase 5.
+SKIPPED [1] tests/unit/test_payment_dev_bypass_404_phase5.py:183: Body-field dev-bypass vector only applies to POST endpoints
+SKIPPED [1] tests/unit/test_payment_dev_bypass_audit.py:179: body-vector only applies to POST views
+SKIPPED [32] tests/unit/test_payment_sensitive_fields_lock.py:207: API-layer lock to be implemented as part of Phase 2 rollout — Task 17.1 is the enforcement gate for when it ships.
+SKIPPED [5] tests/unit/test_payment_sensitive_fields_lock.py: API-layer lock to be implemented as part of Phase 2 rollout — Task 17.1 is the enforcement gate for when it ships.
+SKIPPED [1] tests/unit/test_tenant_migration.py:264: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:277: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/integration/test_tenant_cutover_idempotence.py:352: Cutover idempotence on a live branch is gated: set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real apply/re-apply + validation-SQL assertions. The cutover scripts are never applied to production or the Neon default branch from this environment.
+SKIPPED [1] tests/unit/test_payment_receipt_generation.py:298: RECEIPT_NOT_ELIGIBLE eligibility gate (helper + PaymentReceiptView) is scheduled for the Phase 2 receipt rollout. This test is the enforcement anchor for when it ships.
+SKIPPED [3] tests/unit/test_payment_receipt_generation.py:334: RECEIPT_NOT_ELIGIBLE eligibility gate (helper + PaymentReceiptView) is scheduled for the Phase 2 receipt rollout. This test is the enforcement anchor for when it ships.
+SKIPPED [1] tests/unit/test_tenant_migration.py:293: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:388: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/property/test_migration_idempotency.py:138: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:125: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:157: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:169: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:205: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:196: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:213: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:230: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:112: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:119: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [5] tests/property/test_production_readiness_csrf.py: CSRF middleware refactored — tests need update
+SKIPPED [4] tests/property/test_submission_gate.py: Stale property tests target the pre-admin-force submission seam; current submission gates are covered by student submission/unit tests.
+SKIPPED [9] tests/property/test_submission_gates.py: Stale property tests target the pre-admin-force submission seam; current submission gates are covered by student submission/unit tests.
+SKIPPED [1] tests/unit/test_tenant_migration.py:238: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:243: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+45 failed, 5371 passed, 102 skipped, 2 xfailed, 1 xpassed, 2516 warnings in 327.98s (0:05:27)
+EXIT=1
+# finished 2026-08-15T10:33:30Z

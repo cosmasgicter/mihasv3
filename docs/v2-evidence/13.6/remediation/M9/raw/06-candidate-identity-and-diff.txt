@@ -1,0 +1,10 @@
+candidate_commit=bae29a28d9657f288b3339062adb31285959c966
+candidate_state=dirty inherited worktree; not an immutable release candidate
+status_paths_at_measurement=1018
+status_breakdown=565 unstaged modifications, 26 unstaged deletions, 418 untracked entries, 9 index-deleted paths
+openapi_sha256=2c6a7ddd435878ff738b76867b79e1f75ec49ac627daf75e3c9c2ebd65d02bfc
+generated_types_sha256=a644787e64262469c199a6fee0cf81456b0846314a7372be2d4c16aea80460be
+
+No commit, tag, push, deployment, migration, production write or signature was
+performed by M9. Candidate identity therefore means the HEAD plus the explicitly
+dirty shared worktree, not a reproducible release object.

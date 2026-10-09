@@ -10,6 +10,10 @@
  */
 
 export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message: string; category: string }> = {
+  CANONICAL_DRAFT_UPDATE_REQUIRED: { http_status: 409, message: 'Student draft answers must be saved through the versioned draft endpoint.', category: 'application' },
+  IDEMPOTENCY_KEY_REQUIRED: { http_status: 400, message: 'An Idempotency-Key header is required to save this draft.', category: 'validation' },
+  EXPECTED_VERSION_REQUIRED: { http_status: 400, message: 'The current draft version is required to save changes.', category: 'validation' },
+  EXPECTED_VERSION_INVALID: { http_status: 400, message: 'The draft version must be a positive integer.', category: 'validation' },
   // Payment (from payment_error_codes.py)
   NOT_OWNER: { http_status: 403, message: 'Not authorized', category: 'payment' },
   APPLICATION_NOT_FOUND: { http_status: 404, message: 'Application not found', category: 'payment' },
@@ -137,6 +141,45 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   FIELD_NAME_TOO_LONG: { http_status: 400, message: 'Field name exceeds maximum length', category: 'application' },
   VALUE_TOO_LONG: { http_status: 400, message: 'Value exceeds maximum length', category: 'application' },
   REASON_TOO_LONG: { http_status: 400, message: 'Reason exceeds maximum length', category: 'application' },
+  // ---------------------------------------------------------------------
+  // Reconstructed mirror rows — 26 codes (13.6 remediation M3)
+  //
+  // 26 of the backend catalogue's codes were absent from this
+  // fixture when M3 regenerated it. 16 of them belong to earlier V2 tasks
+  // (document evidence 7.3, fee quotes 8.1, scoped exports 8.4/9.1/9.3,
+  // change-of-selection) and 10 were registered by M3 itself. M3 destroyed
+  // this file's uncommitted rows with a `git checkout --` and rebuilt them
+  // from `backend/apps/common/error_codes.py` — which is what a mirror is,
+  // so every http_status/message/category below is the backend's own value,
+  // read out of the catalogue rather than retyped. The incident is recorded
+  // in docs/v2-evidence/13.6/remediation/M3/README.md.
+  // ---------------------------------------------------------------------
+  DOCUMENT_COMMIT_FAILED: { http_status: 500, message: 'The upload could not be saved. Please try again.', category: 'document' },
+  DOCUMENT_NOT_READY: { http_status: 409, message: 'This document is not ready to send yet. Nothing was emailed.', category: 'document' },
+  DOCUMENT_STORAGE_UNVERIFIED: { http_status: 500, message: 'The upload could not be confirmed as stored. Please try again.', category: 'document' },
+  DOCUMENT_TRANSITION_REJECTED: { http_status: 409, message: 'This document version can no longer accept that change', category: 'document' },
+  DOCUMENT_VERSION_CONFLICT: { http_status: 409, message: 'Another upload for this document finished first. Please reload and try again.', category: 'document' },
+  DUPLICATE_ACTIVE_FEE: { http_status: 409, message: 'An active fee for this program, fee type, and residency already exists.', category: 'validation' },
+  EMPTY_FILE: { http_status: 400, message: 'That file is empty. Please choose the file again.', category: 'document' },
+  EXPORT_TOO_LARGE: { http_status: 400, message: 'This export is too large. Narrow the filters and try again.', category: 'common' },
+  FEE_AMBIGUOUS: { http_status: 409, message: 'More than one active application fee is configured for this option.', category: 'payment' },
+  FEE_NOT_CONFIGURED: { http_status: 422, message: 'The application fee is not configured for this option.', category: 'payment' },
+  INVALID_VERIFICATION_DECISION: { http_status: 400, message: 'A document decision must be verified or rejected', category: 'document' },
+  MINIMUM_SELECTION_REQUIRED: { http_status: 400, message: 'Select a programme and intake to start an application.', category: 'validation' },
+  NO_RECIPIENT: { http_status: 400, message: 'This application has no account email address to send to.', category: 'document' },
+  QUOTE_ALREADY_REDEEMED: { http_status: 409, message: 'This fee quote has already been used for a payment.', category: 'payment' },
+  QUOTE_CONFIGURATION_CHANGED: { http_status: 409, message: 'The application fee changed. Please review the new amount before paying.', category: 'payment' },
+  QUOTE_EXPIRED: { http_status: 409, message: 'This fee quote has expired. Please refresh the fee and try again.', category: 'payment' },
+  QUOTE_INVALID: { http_status: 409, message: 'This fee quote could not be verified. Please refresh the fee.', category: 'payment' },
+  QUOTE_NOT_FOUND: { http_status: 404, message: 'This fee quote was not found.', category: 'payment' },
+  RECIPIENT_NOT_PERMITTED: { http_status: 400, message: "An official document can only be sent to the applicant's own account email address.", category: 'document' },
+  SAVED_FILTER_LIMIT: { http_status: 400, message: 'You have reached the saved-filter limit. Delete one first.', category: 'application' },
+  TRACKING_LINK_UNAVAILABLE: { http_status: 503, message: 'A tracking link could not be issued right now. Please try again in a moment.', category: 'application' },
+  TRACKING_SECRET_REQUIRED: { http_status: 400, message: 'That looks like an application number, not a tracking link. Public tracking needs the tracking link issued to you.', category: 'application' },
+  UNREGISTERED_QUERY_PARAMETER: { http_status: 400, message: 'The saved query contains parameters this contract does not implement.', category: 'validation' },
+  UNSAFE_FILE_CONTENT: { http_status: 400, message: 'This file contains active content and cannot be accepted', category: 'document' },
+  UNSUPPORTED_FIELD: { http_status: 400, message: 'This request carries fields the platform does not accept here.', category: 'validation' },
+  VERSION_CONFLICT: { http_status: 409, message: 'This resource changed since you loaded it. Please reload and try again.', category: 'common' },
 }
 
 /** Sorted list of all canonical error code keys */

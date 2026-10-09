@@ -176,115 +176,28 @@ class TestInvalidSignatureRejectionAndLogging(SimpleTestCase):
             self.assertEqual(create_kwargs["event_type"], event_type)
 
             # Verify PaymentService was NOT called
-            mock_payment_svc.process_webhook_event.assert_not_called()
+            mock_payment_svc.apply_webhook_event.assert_not_called()
 
-            # Verify processing_error was set
+            # Verify the reason was recorded. The canonical path writes
+            # ``processing_error`` in the same INSERT as the log row (task 8.2)
+            # instead of creating the row and then patching it, so a persisted
+            # row can never be missing its reason.
             self.assertEqual(
-                mock_log_entry.processing_error,
+                create_kwargs["processing_error"],
                 "Invalid webhook signature",
             )
 
-
-class TestWebhookProcessingIdempotence(SimpleTestCase):
-    """# Feature: production-payment-hardening, Property 12: Webhook processing idempotence
-
-    For any valid webhook event, processing it N times (N >= 1) SHALL produce
-    the same final payment state as processing it exactly once.
-
-    **Validates: Requirements 7.4**
-    """
-
-    @given(
-        payment_id=st.uuids(),
-        application_id=st.uuids(),
-        amount=st.decimals(
-            min_value=Decimal("0.01"),
-            max_value=Decimal("99999.99"),
-            places=2,
-            allow_nan=False,
-            allow_infinity=False,
-        ),
-        n_times=st.integers(min_value=1, max_value=5),
-    )
-    @settings(max_examples=5)
-    def test_repeated_webhook_produces_same_state(
-        self, payment_id, application_id, amount, n_times
-    ):
-        """Processing a successful webhook N times yields the same final
-        payment status as processing it once."""
-        from contextlib import contextmanager
-
-        from apps.documents.payment_service import PaymentService
-
-        @contextmanager
-        def _noop_atomic():
-            yield
-
-        reference = f"MIHAS-TEST-{payment_id.hex[:8]}"
-        payload = {
-            "data": {
-                "reference": reference,
-                "amount": str(amount),
-            }
-        }
-
-        current_status = "pending"
-        service = PaymentService()
-
-        for i in range(n_times):
-            webhook_mock = MagicMock()
-            webhook_mock.id = payment_id
-            webhook_mock.application_id = application_id
-            webhook_mock.status = current_status
-            webhook_mock.amount = amount
-            webhook_mock.currency = "ZMW"
-            webhook_mock.transaction_reference = reference
-            webhook_mock.lenco_reference = None
-            webhook_mock.payment_method = None
-            webhook_mock.fee = None
-            webhook_mock.bearer = None
-            webhook_mock.metadata = {}
-            webhook_mock.updated_at = None
-            webhook_mock.save = MagicMock()
-
-            locked_mock = MagicMock()
-            locked_mock.id = payment_id
-            locked_mock.application_id = application_id
-            locked_mock.status = current_status
-            locked_mock.amount = amount
-            locked_mock.currency = "ZMW"
-            locked_mock.lenco_reference = None
-            locked_mock.payment_method = None
-            locked_mock.fee = None
-            locked_mock.bearer = None
-            locked_mock.metadata = {}
-            locked_mock.updated_at = None
-            locked_mock.save = MagicMock()
-
-            with (
-                patch(
-                    "apps.documents.payment_service.Payment.objects"
-                ) as mock_payment_qs,
-                patch(
-                    "apps.applications.models.Application.objects"
-                ) as mock_app_qs,
-                patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-            ):
-                mock_payment_qs.select_for_update.return_value.get.side_effect = [
-                    webhook_mock,
-                    locked_mock,
-                ]
-                mock_app_qs.filter.return_value.update.return_value = 1
-
-                service.process_webhook_event(
-                    event_type="collection.successful",
-                    reference=reference,
-                    payload=payload,
-                )
-
-                if i == 0:
-                    self.assertEqual(locked_mock.status, "successful")
-                    current_status = "successful"
-                else:
-                    # Already successful — no-op, status stays successful
-                    self.assertEqual(locked_mock.status, "successful")
+# ---------------------------------------------------------------------------
+# Property 12 (webhook processing idempotence) moved in admissions-v2 task 8.2
+# ---------------------------------------------------------------------------
+#
+# It used to live here as a mock-driven test of the deleted
+# ``PaymentService.process_webhook_event``: it asserted that a MagicMock's
+# ``status`` attribute stayed ``"successful"``. The property now runs against a
+# real database, over the surviving ``apply_webhook_event`` path, comparing full
+# row snapshots plus the derived application summary:
+#
+#   tests/property/test_webhook_idempotency.py
+#     ::test_processing_n_times_equals_processing_once
+#     ::test_settled_event_idempotent_metadata
+#     ::test_receipt_is_allocated_once_across_replays

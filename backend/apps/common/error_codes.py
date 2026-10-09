@@ -395,6 +395,65 @@ ERROR_CODES.update({
         "message": "No document profile configured for this institution and document type",
         "category": "document",
     },
+    # ------------------------------------------------------------------
+    # Immutable document evidence versions (admissions-v2 task 7.3 —
+    # R11.7-R11.8, R17.1; finding STU-19). The upload command spans object
+    # storage and the database, so every way it can stop half-way needs a code
+    # a client can act on rather than an opaque 500.
+    # ------------------------------------------------------------------
+    # The file did not attach (a zero-byte selection). Distinct from
+    # INVALID_FILE: nothing is wrong with the student's document, so the copy
+    # must not tell them it is invalid.
+    "EMPTY_FILE": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "That file is empty. Please choose the file again.",
+        "category": "document",
+    },
+    # The bytes are a valid PDF/JPEG/PNG but carry an executable action or a
+    # script polyglot. Refused before anything reaches object storage.
+    "UNSAFE_FILE_CONTENT": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "This file contains active content and cannot be accepted",
+        "category": "document",
+    },
+    # The object was written but the provider could not confirm it is durable
+    # (missing, or a stored length that disagrees with the streamed length).
+    # Fails closed: no version is committed, the previous version stays
+    # authoritative, and the staged object is compensated. Retryable.
+    "DOCUMENT_STORAGE_UNVERIFIED": {
+        "http_status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "message": "The upload could not be confirmed as stored. Please try again.",
+        "category": "document",
+    },
+    # The metadata transaction failed after the object write. The staged object
+    # is compensated (or left for the reconciliation sweeper) and no version is
+    # recorded. Retryable.
+    "DOCUMENT_COMMIT_FAILED": {
+        "http_status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "message": "The upload could not be saved. Please try again.",
+        "category": "document",
+    },
+    # Two uploads raced for the same requirement and the database's one-current
+    # partial unique index rejected the loser. 409, not 500: reloading shows the
+    # version that won.
+    "DOCUMENT_VERSION_CONFLICT": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "Another upload for this document finished first. Please reload and try again.",
+        "category": "document",
+    },
+    # A lifecycle command was issued against a version that can no longer accept
+    # it (for example verifying a superseded version, or removing a deleted one).
+    "DOCUMENT_TRANSITION_REJECTED": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "This document version can no longer accept that change",
+        "category": "document",
+    },
+    # A reviewer decision that is neither verified nor rejected.
+    "INVALID_VERIFICATION_DECISION": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "A document decision must be verified or rejected",
+        "category": "document",
+    },
 })
 
 # --- Catalog (programs/intakes/institutions) ---
@@ -503,6 +562,21 @@ ERROR_CODES.update({
         "message": "Duplicate key — record already exists",
         "category": "validation",
     },
+    # Emitted by ProgramFeeViewSet.create/update when uq_program_fees_one_active
+    # (task 3.3) rejects a concurrent double-submit. Registered here so the
+    # emitted code has a canonical entry (see module docstring).
+    "DUPLICATE_ACTIVE_FEE": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "An active fee for this program, fee type, and residency already exists.",
+        "category": "validation",
+    },
+    # Emitted by the canonical draft-start command when the request carries no
+    # canonical program + intake selection (finding STU-12).
+    "MINIMUM_SELECTION_REQUIRED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Select a programme and intake to start an application.",
+        "category": "validation",
+    },
     "DUPLICATE_SUBJECT": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Subject already exists in the application",
@@ -592,3 +666,127 @@ ERROR_CODES.update({
 
 
 __all__ = ["ERROR_CODES"]
+
+
+# ---------------------------------------------------------------------------
+# Admissions V2 codes this catalogue had drifted behind (13.6 remediation M3)
+# ---------------------------------------------------------------------------
+#
+# Ten codes were being emitted by real V1 endpoints while absent from the
+# catalogue, so ``tests/unit/test_error_codes_canonical.py`` failed. Each entry
+# below is transcribed from its emission site rather than invented: the
+# ``http_status`` is the status that site actually returns and the ``message``
+# is that site's own user-facing sentence (shortened only where the site
+# interpolates a runtime value). The emitting file is named so the next reader
+# can re-check the pair instead of trusting this comment.
+#
+# This is a governance gap, not cosmetics: the catalogue is what the frontend
+# mirror (``apps/admissions/src/lib/errorMessages.ts``) and its drift guard are
+# checked against, so an unregistered code reaches the browser with no
+# user-facing copy behind it.
+ERROR_CODES.update({
+    # apps/applications/official_document_views.py — the official-document email
+    # path (task 10.4). 409 because the document may become ready later.
+    "DOCUMENT_NOT_READY": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "This document is not ready to send yet. Nothing was emailed.",
+        "category": "document",
+    },
+    "RECIPIENT_NOT_PERMITTED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": (
+            "An official document can only be sent to the applicant's own "
+            "account email address."
+        ),
+        "category": "document",
+    },
+    "NO_RECIPIENT": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "This application has no account email address to send to.",
+        "category": "document",
+    },
+    # The one bounded-export refusal, emitted identically by all four scoped
+    # export surfaces (tasks 8.4 / 9.1 / 9.3):
+    #   apps/applications/admin_query_views.py, apps/documents/fee_admin_views.py,
+    #   apps/documents/payment_query_views.py, apps/accounts/user_directory_views.py.
+    "EXPORT_TOO_LARGE": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "This export is too large. Narrow the filters and try again.",
+        "category": "common",
+    },
+    # apps/applications/admin_query_views.py — the saved-query surface (task 9.1).
+    # The endpoint interpolates the actual limit; the catalogue default does not.
+    "SAVED_FILTER_LIMIT": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "You have reached the saved-filter limit. Delete one first.",
+        "category": "application",
+    },
+    "UNREGISTERED_QUERY_PARAMETER": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": (
+            "The saved query contains parameters this contract does not implement."
+        ),
+        "category": "validation",
+    },
+    # apps/accounts/user_directory_views.py + user_import_service.py (task 9.3).
+    "UNSUPPORTED_FIELD": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "This request carries fields the platform does not accept here.",
+        "category": "validation",
+    },
+    # apps/applications/student_tracking_views.py — issuing a tracking link
+    # depends on a secret the platform may fail to write right now, so this one
+    # is retryable and 503 rather than 400.
+    "TRACKING_LINK_UNAVAILABLE": {
+        "http_status": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "message": (
+            "A tracking link could not be issued right now. Please try again "
+            "in a moment."
+        ),
+        "category": "application",
+    },
+    # apps/applications/public_views.py — an application number offered where a
+    # tracking link is required. 400 and deliberately non-revealing: it does not
+    # say whether the number exists.
+    "TRACKING_SECRET_REQUIRED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": (
+            "That looks like an application number, not a tracking link. Public "
+            "tracking needs the tracking link issued to you."
+        ),
+        "category": "application",
+    },
+    # The optimistic-concurrency refusal shared by submission, admin review, the
+    # review workspace, bulk status, document writes and change-of-selection.
+    # Already registered for /api/v2/ in apps/common/v2/error_codes.py at the
+    # same 409; this is the V1 half of the same contract, with the same wording.
+    "VERSION_CONFLICT": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": (
+            "This resource changed since you loaded it. Please reload and try again."
+        ),
+        "category": "common",
+    },
+    "CANONICAL_DRAFT_UPDATE_REQUIRED": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": (
+            "Student draft answers must be saved through the versioned draft endpoint."
+        ),
+        "category": "application",
+    },
+    "IDEMPOTENCY_KEY_REQUIRED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "An Idempotency-Key header is required to save this draft.",
+        "category": "validation",
+    },
+    "EXPECTED_VERSION_REQUIRED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "The current draft version is required to save changes.",
+        "category": "validation",
+    },
+    "EXPECTED_VERSION_INVALID": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "The draft version must be a positive integer.",
+        "category": "validation",
+    },
+})

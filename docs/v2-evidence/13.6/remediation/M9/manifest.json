@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-08-15T22:44:14Z",
+  "candidate": {
+    "head": "bae29a28d9657f288b3339062adb31285959c966",
+    "worktree": "dirty inherited shared worktree",
+    "status_paths_at_measurement": 1018,
+    "immutable_release_object": false
+  },
+  "verdict": {
+    "m9_scoped_local_gates_passed": true,
+    "complete_required_playwright_projects": "not rerun by M9",
+    "gate_13_2_03_fixed": true,
+    "spec_closed": false,
+    "spec_status": "planned",
+    "checked_tasks": 68,
+    "partial_tasks": ["6.3", "12.3", "12.5", "13.6"],
+    "not_executed_tasks": ["13.5"]
+  },
+  "verification": {
+    "backend_postgresql": {
+      "passed": 5425,
+      "skipped": 104,
+      "xfailed": 2,
+      "xpassed": 1,
+      "exit_code": 0
+    },
+    "frontend_vitest": {
+      "files_passed": 495,
+      "files_skipped": 1,
+      "tests_passed": 4627,
+      "tests_skipped": 1,
+      "exit_code": 0
+    },
+    "f3_stale_dirty_wizard": {
+      "independent_passes": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "f1_f2": {
+      "passed": 2,
+      "skipped": 0,
+      "unexpected": 0
+    },
+    "governance": {
+      "errors": 0,
+      "warnings": 0,
+      "self_tests_passed": 24
+    },
+    "metadata": {
+      "errors": 0,
+      "unrelated_warnings": 2,
+      "self_tests_passed": 9
+    }
+  },
+  "artifacts_sha256": {
+    "README.md": "655d8f4543f5917f0a87d6bc7f52f4556a2a5a8622d4366bf97b82e0e645ac5d",
+    "raw/08-draft-concurrency-backend-postgres.txt": "ba6b588c77364d5b7c46db6a63e4d076031722ede667880b84352a63f75efa5a",
+    "raw/10-f3-two-device-three-runs.txt": "49f2969f60ee7fa10bd6dd98b4058ccf4460140f229c01edf32493485278d224",
+    "raw/12-harness-drain-teardown.txt": "156a9876c64df15f8481b41461d132b789772930dc0784cdb40512c999fda7d2",
+    "raw/21-backend-whole-tree-after.txt": "b0b486811f2cc2d914eac60525841439f72f93cf7bc9f77c2b2854961d2d41f1",
+    "raw/23-frontend-full-gates.txt": "d5f639a19c7b5aecf0e5d0e4e259022cc76caec228d74e88f7ac707a037c80da",
+    "raw/25-governance-traceability.txt": "9469acf693aab07ed1f16ea26836ab4dfb64a57ed9218952cfd6ec02176518ac",
+    "raw/26-docs-fingerprint-after.txt": "05ee2bc2ef1a63a7c97374e8908d58c6aa76230fceeff0e319cd3a4fa590d387",
+    "raw/playwright-f3-ui-proof-1.json": "92709bed5979b72913283cea91ece43a211af37305ac6ce3caab651b96d5c270",
+    "raw/playwright-f3-ui-proof-2.json": "d7488408018f78df7cb38c288988875315ea3681d96a025f5cee0e1fde3a1111",
+    "raw/playwright-f3-ui-proof-3.json": "68e93db16e626f451b1e964fa2ec2d213ca73d6dd08b3a3ea35d034d0da6ec8c",
+    "raw/playwright-f1-f2-final.json": "b61806895dfb065f78e86806be31603f8769098feaeba3c63b23038f3ffedec0",
+    "backend/schema/openapi.v2.candidate.yaml": "2c6a7ddd435878ff738b76867b79e1f75ec49ac627daf75e3c9c2ebd65d02bfc",
+    "apps/admissions/src/generated/api.d.ts": "a644787e64262469c199a6fee0cf81456b0846314a7372be2d4c16aea80460be",
+    "apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts": "a943fbc8e4e37a440f8f5f7a729a770c50d298cdb6dfdcc42bae79adcce77be4"
+  },
+  "safety": {
+    "production_contacted": false,
+    "production_or_neon_write": false,
+    "migration_or_deployment": false,
+    "commit_tag_push_or_pr": false,
+    "human_signature_created": false,
+    "isolated_harness_destroyed_with_volumes": true
+  }
+}

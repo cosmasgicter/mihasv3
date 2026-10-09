@@ -1,0 +1,124 @@
+$ cd backend && DATABASE_URL=<localtest 5433> TESTING=1 python3 -m pytest tests/unit/test_settlement_fee_authority_8_4.py tests/unit/test_payment_settlement_tenant.py tests/unit/test_settlement_csv_export.py tests/property/test_admin_fee_auth.py tests/unit/test_tenant_admin_endpoints.py -v
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python3
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 98 items
+
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementAuthorityIsCapabilityDerived::test_scoped_reviewer_can_read_settlement PASSED [  1%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementAuthorityIsCapabilityDerived::test_student_is_masked_as_not_found PASSED [  2%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementAuthorityIsCapabilityDerived::test_no_scope_admin_is_masked_as_not_found PASSED [  3%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementAuthorityIsCapabilityDerived::test_anonymous_is_denied PASSED [  4%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeAdministrationAuthorityIsCapabilityDerived::test_scoped_staff_can_read_fee_report PASSED [  5%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeAdministrationAuthorityIsCapabilityDerived::test_student_fee_report_is_masked PASSED [  6%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeAdministrationAuthorityIsCapabilityDerived::test_read_only_tenant_admin_cannot_write_a_fee PASSED [  7%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeAdministrationAuthorityIsCapabilityDerived::test_super_admin_can_write_a_fee_and_it_is_audited PASSED [  8%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_list_and_aggregates_exclude_the_other_tenant PASSED [  9%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_other_tenant_institution_filter_is_masked_not_empty PASSED [ 10%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_other_tenant_offering_filter_is_masked PASSED [ 11%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_search_cannot_probe_the_other_tenant PASSED [ 12%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_pagination_is_server_side_and_scoped PASSED [ 13%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementTenantABIsolation::test_super_admin_sees_both_tenants PASSED [ 14%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_fee_list_and_aggregates_exclude_the_other_tenant PASSED [ 15%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_other_tenant_fee_detail_is_masked PASSED [ 16%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_cross_tenant_fee_mutation_is_refused_without_mutating PASSED [ 17%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_fee_search_cannot_probe_the_other_tenant PASSED [ 18%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_coverage_aggregate_counts_only_the_actors_offerings PASSED [ 19%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeTenantABIsolation::test_peer_offering_count_is_platform_only PASSED [ 20%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestReconciliationState::test_settled_group_reports_settled PASSED [ 21%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestReconciliationState::test_stale_pending_demands_attention PASSED [ 22%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestReconciliationState::test_reconciliation_filter_narrows_rows_and_aggregates_together PASSED [ 23%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestReconciliationState::test_quarantined_count_is_platform_only PASSED [ 24%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementExport::test_read_only_tenant_admin_cannot_export PASSED [ 25%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementExport::test_granted_tenant_admin_export_is_scoped_and_audited PASSED [ 26%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementExport::test_export_is_page_independent PASSED [ 27%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementExport::test_export_respects_the_applied_filters PASSED [ 28%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestSettlementExport::test_super_admin_export_carries_the_platform_columns PASSED [ 29%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeExport::test_read_only_tenant_admin_cannot_export_fees PASSED [ 30%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeExport::test_granted_export_is_scoped_redacted_and_audited PASSED [ 31%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestFeeExport::test_fee_export_is_page_independent PASSED [ 32%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestServerOwnsTheNumbers::test_amounts_are_quantised_decimal_strings PASSED [ 33%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestServerOwnsTheNumbers::test_grouping_and_counting_happen_in_sql PASSED [ 34%]
+tests/unit/test_settlement_fee_authority_8_4.py::TestServerOwnsTheNumbers::test_default_status_filter_keeps_reconciliation_complete PASSED [ 35%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementMetadataTagging::test_tenant_world_provides_settlement_inputs PASSED [ 36%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementMetadataTagging::test_card_initiate_writes_collector_marker_and_snapshot PASSED [ 37%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementMetadataTagging::test_defer_writes_collector_marker_and_snapshot PASSED [ 38%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementMetadataTagging::test_mobile_money_writes_collector_marker_and_snapshot PASSED [ 39%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementMetadataTagging::test_no_raw_phone_persisted_on_mobile_money_metadata PASSED [ 40%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_settlement_summary_excludes_other_school PASSED [ 41%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_missing_metadata_buckets_as_unassigned PASSED [ 42%]
+tests/unit/test_payment_settlement_tenant.py::TestSettlementSummaryScoping::test_no_scope_staff_settlement_summary_is_masked PASSED [ 43%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvTenantScoping::test_csv_download_has_header_and_attachment PASSED [ 44%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvTenantScoping::test_csv_excludes_other_school_rows PASSED [ 45%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvTenantScoping::test_no_scope_staff_gets_no_file_at_all PASSED [ 46%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvBucketingAndGlobal::test_missing_metadata_lands_in_unassigned_row PASSED [ 47%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvBucketingAndGlobal::test_super_admin_csv_sees_every_school PASSED [ 48%]
+tests/unit/test_settlement_csv_export.py::TestSettlementCsvBucketingAndGlobal::test_csv_rows_match_json_grouping PASSED [ 50%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadinessEndpoint::test_super_admin_reads_launch_ready_tenant PASSED [ 51%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadinessEndpoint::test_scoped_admin_cannot_read_other_tenant_readiness PASSED [ 52%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_slug_collision_rejected_on_create PASSED [ 53%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_slug_collision_is_case_insensitive PASSED [ 54%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_code_collision_rejected_on_create PASSED [ 55%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_slug_collision_rejected_on_update PASSED [ 56%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_code_collision_rejected_on_update PASSED [ 57%]
+tests/unit/test_tenant_admin_endpoints.py::TestInstitutionCollisionValidation::test_update_with_own_slug_and_code_succeeds PASSED [ 58%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_hostname_collision_rejected_on_create PASSED [ 59%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_domain_list_exposes_lifecycle_fields PASSED [ 60%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_deactivate_active_domain_moves_to_disabled_status PASSED [ 61%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_hostname_collision_is_case_insensitive PASSED [ 62%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_hostname_collision_across_institutions_rejected PASSED [ 63%]
+tests/unit/test_tenant_admin_endpoints.py::TestHostnameCollisionValidation::test_hostname_collision_rejected_on_update PASSED [ 64%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantWriteRequiresSuperAdmin::test_staff_cannot_create_institution PASSED [ 65%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantWriteRequiresSuperAdmin::test_staff_cannot_patch_own_institution PASSED [ 66%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantWriteRequiresSuperAdmin::test_staff_cannot_create_domain PASSED [ 67%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadScoping::test_staff_lists_only_their_own_institution PASSED [ 68%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadScoping::test_staff_can_list_own_institution_child_resources PASSED [ 69%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadScoping::test_out_of_scope_institution_detail_is_not_found PASSED [ 70%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadScoping::test_out_of_scope_child_list_does_not_leak PASSED [ 71%]
+tests/unit/test_tenant_admin_endpoints.py::TestTenantReadScoping::test_no_scope_staff_cannot_read_child_resources PASSED [ 72%]
+tests/unit/test_tenant_admin_endpoints.py::TestAccessGrantInstitutionFilter::test_super_admin_filter_returns_only_that_institutions_grants PASSED [ 73%]
+tests/unit/test_tenant_admin_endpoints.py::TestAccessGrantInstitutionFilter::test_super_admin_unfiltered_sees_grants_globally PASSED [ 74%]
+tests/unit/test_tenant_admin_endpoints.py::TestAccessGrantInstitutionFilter::test_staff_never_sees_other_institution_grants PASSED [ 75%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_catalog_institutions_list_is_scoped PASSED [ 76%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_catalog_programs_list_is_scoped PASSED [ 77%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_catalog_program_detail_masks_other_tenant PASSED [ 78%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_catalog_institution_detail_masks_other_tenant PASSED [ 79%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_scoped_admin_programs_endpoint_returns_only_that_school PASSED [ 80%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_super_admin_updates_offering_rules_through_tenant_admin_endpoint PASSED [ 81%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_cannot_mutate_offering_rules_through_tenant_admin_endpoint PASSED [ 82%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_request_change_capability_does_not_authorize_real_program_mutation PASSED [ 83%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_super_admin_can_still_create_program_offering PASSED [ 84%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_program_fee_list_is_scoped_to_own_offering PASSED [ 85%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_tenant_admin_cannot_mutate_program_fees PASSED [ 86%]
+tests/unit/test_tenant_admin_endpoints.py::TestLegacyCatalogTenantIsolation::test_super_admin_can_still_create_program_fee PASSED [ 87%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_super_admin_creates_institution PASSED [ 88%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_super_admin_creates_domain PASSED [ 89%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_super_admin_creates_membership PASSED [ 90%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_super_admin_creates_access_grant PASSED [ 91%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_access_grant_scope_type_requires_matching_id PASSED [ 92%]
+tests/unit/test_tenant_admin_endpoints.py::TestSuperAdminGlobalManagement::test_super_admin_lists_institutions_globally PASSED [ 93%]
+tests/property/test_admin_fee_auth.py::TestProgramFeeViewSetUsesCapabilityGates::test_no_raw_role_permission_class_remains PASSED [ 94%]
+tests/property/test_admin_fee_auth.py::TestProgramFeeViewSetUsesCapabilityGates::test_read_actions_use_the_tenant_capability_gate PASSED [ 95%]
+tests/property/test_admin_fee_auth.py::TestProgramFeeViewSetUsesCapabilityGates::test_write_actions_use_the_platform_capability_gate PASSED [ 96%]
+tests/property/test_admin_fee_auth.py::TestUnauthenticatedRequestsDenied::test_no_user_denied PASSED [ 97%]
+tests/property/test_admin_fee_auth.py::TestUnauthenticatedRequestsDenied::test_unauthenticated_user_denied PASSED [ 98%]
+tests/property/test_admin_fee_auth.py::TestMisconfiguredViewFailsClosed::test_platform_gate_without_capability_denies PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_settlement_fee_authority_8_4.py: 35 warnings
+tests/unit/test_payment_settlement_tenant.py: 3 warnings
+tests/unit/test_settlement_csv_export.py: 6 warnings
+tests/unit/test_tenant_admin_endpoints.py: 43 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 98 passed, 88 warnings in 5.01s ========================

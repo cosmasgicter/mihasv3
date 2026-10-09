@@ -11,13 +11,25 @@ function readSource(relativePath: string): string {
 describe('accessibility interaction guard', () => {
   it('keeps public and authenticated layouts skip-linkable with focusable main landmarks', () => {
     const publicLayout = readSource('components/layout/PublicLayout.tsx')
+    const publicHeader = readSource('components/layout/PublicSiteHeader.tsx')
     const appLayout = readSource('components/navigation/AppLayout.tsx')
 
+    // Every layout owns a focusable `<main>` at the canonical id.
     for (const source of [publicLayout, appLayout]) {
-      expect(source).toContain('SkipLink')
       expect(source).toContain('APP_MAIN_CONTENT_ID')
       expect(source).toContain('tabIndex={-1}')
     }
+
+    // The skip link is rendered **once** per page, by the thing being skipped.
+    // The authenticated shell renders its own; on the public side that is
+    // `PublicSiteHeader`, which `PublicLayout` always mounts. Both public
+    // surfaces shipped one each until admissions-v2 task 11.5 removed the
+    // duplicate, so a keyboard user no longer tabs past the same affordance
+    // twice before reaching the page.
+    expect(appLayout).toContain('SkipLink')
+    expect(publicHeader).toContain('SkipLink')
+    expect(publicLayout).toContain('<PublicSiteHeader />')
+    expect(publicLayout).not.toContain('<SkipLink')
   })
 
   it('keeps route-change focus targeting the canonical main content id', () => {

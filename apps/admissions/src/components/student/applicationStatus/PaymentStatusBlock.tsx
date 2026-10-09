@@ -1,6 +1,7 @@
 import React from 'react'
 import { CreditCard } from 'lucide-react'
 import { formatDate } from '@/lib/dateFormat'
+import { formatServerAmount } from '@/lib/serverAmount'
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -13,7 +14,14 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 interface PaymentStatusBlockProps {
   paymentStatusLabel: string
+  /** Server-derived fee for this application (canonical payment amount projection). */
   applicationFee: number | string | null | undefined
+  /**
+   * Currency the server recorded for this application's payment. Task 8.1: the
+   * block no longer prefixes every amount with `K` — an international applicant
+   * paying in USD is shown USD (R12.1: no client-side money assumptions).
+   */
+  paymentCurrency?: string | null
   paymentVerifiedAt: string | null | undefined
   paymentStatusDescription: string
 }
@@ -21,9 +29,14 @@ interface PaymentStatusBlockProps {
 export function PaymentStatusBlock({
   paymentStatusLabel,
   applicationFee,
+  paymentCurrency = null,
   paymentVerifiedAt,
   paymentStatusDescription,
 }: PaymentStatusBlockProps) {
+  const feeLabel = formatServerAmount(
+    typeof applicationFee === 'number' ? String(applicationFee) : applicationFee,
+    paymentCurrency,
+  )
   return (
     <div className="rounded-lg border border-border bg-muted px-5 py-4 lg:col-span-2">
       <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" aria-hidden="true" /> Payment information</h3>
@@ -31,7 +44,7 @@ export function PaymentStatusBlock({
         <DetailRow label="Payment status" value={paymentStatusLabel} />
         <DetailRow
           label="Application fee"
-          value={applicationFee != null ? `K${applicationFee}` : 'Resolved at payment step'}
+          value={feeLabel || 'Shown on the payment step'}
         />
         <DetailRow label="Payment method" value="Lenco Payment Gateway" />
         {paymentVerifiedAt && (

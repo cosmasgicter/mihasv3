@@ -37,6 +37,7 @@ from apps.documents.payment_query_views import (  # noqa: F401
     ProgramFeeViewSet,
     _ip_allowed,
 )
+from apps.documents.fee_quote_views import FeeQuoteView  # noqa: F401
 from apps.documents.throttles import PaymentVerifyThrottle  # noqa: F401
 from apps.documents.lenco_webhook_views import LencoWebhookView  # noqa: F401
 from apps.documents.document_storage_views import (  # noqa: F401
@@ -73,6 +74,7 @@ __all__ = [
     "DocumentInfoView",
     "DocumentSignedUrlView",
     "DocumentUploadView",
+    "FeeQuoteView",
     "FeeResolveView",
     "LencoWebhookView",
     "MobileMoneyInitiateView",

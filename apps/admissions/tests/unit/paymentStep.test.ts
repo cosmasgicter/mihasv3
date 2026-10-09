@@ -6,25 +6,30 @@ import { useForm } from 'react-hook-form'
 import fc from 'fast-check'
 
 import PaymentStep from '@/pages/student/applicationWizard/steps/PaymentStep'
+import type { FeeQuote } from '@/hooks/useFeeQuote'
 import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
 /**
  * Validates: Requirements 17.1
  *
- * Property 12: When the PaymentStep cannot show a payment form (fee loading,
- * no fee resolved), the payment form is absent. When fee is resolved, the
- * mobile money form is rendered as the primary payment method.
+ * Property 12: When the PaymentStep cannot show a payment form (quote loading,
+ * no server quote), the payment form is absent. When a live server-authored quote
+ * exists, the mobile money form is rendered as the primary payment method.
+ *
+ * Updated by admissions-v2 task 8.1: the step's money comes from the expiring
+ * server-authored fee quote (`useFeeQuote`), not from the retired client-side
+ * `useFeeResolver` hook.
  */
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-const useFeeResolverMock = vi.fn()
+const useFeeQuoteMock = vi.fn()
 const useLencoWidgetMock = vi.fn()
 
-vi.mock('@/hooks/useFeeResolver', () => ({
-  useFeeResolver: (...args: unknown[]) => useFeeResolverMock(...args),
+vi.mock('@/hooks/useFeeQuote', () => ({
+  useFeeQuote: (...args: unknown[]) => useFeeQuoteMock(...args),
 }))
 
 vi.mock('@/hooks/useLencoWidget', () => ({
@@ -32,25 +37,48 @@ vi.mock('@/hooks/useLencoWidget', () => ({
 }))
 
 // ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
+const SERVER_QUOTE: FeeQuote = {
+  quote_id: 'a2f5ee2e-1b8d-4c2f-96c1-95c8fbb0f7d1',
+  application_id: 'app-1',
+  configuration_version: 'cfg-1',
+  fee_configuration_version: 'fp-1',
+  fee_type: 'application',
+  base_amount: '153.00',
+  provider_fee: '1.53',
+  total_amount: '154.53',
+  currency: 'ZMW',
+  bearer: 'customer',
+  residency_category: 'local',
+  waiver_applied: false,
+  status: 'active',
+  expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+  signature: 'a'.repeat(64),
+  signature_version: 1,
+}
+
+// ---------------------------------------------------------------------------
 // No-payment-form state arbitrary
 // ---------------------------------------------------------------------------
 
 interface NoFormState {
   label: string
-  feeLoading: boolean
-  fee: { amount: number; currency: string; residency_category: string } | null
+  quoteLoading: boolean
+  quote: FeeQuote | null
 }
 
 const noFormStateArb: fc.Arbitrary<NoFormState> = fc.oneof(
   fc.record({
-    label: fc.constant('fee-loading'),
-    feeLoading: fc.constant(true),
-    fee: fc.constant(null),
+    label: fc.constant('quote-loading'),
+    quoteLoading: fc.constant(true),
+    quote: fc.constant(null),
   }),
   fc.record({
-    label: fc.constant('no-fee'),
-    feeLoading: fc.constant(false),
-    fee: fc.constant(null),
+    label: fc.constant('no-quote'),
+    quoteLoading: fc.constant(false),
+    quote: fc.constant(null),
   }),
 )
 
@@ -75,14 +103,13 @@ const DEFAULT_FORM_VALUES: Partial<WizardFormData> = {
   intake: 'intake-2026-aug',
 }
 
-function renderWithState(state: {
-  feeLoading: boolean
-  fee: { amount: number; currency: string; residency_category: string } | null
-}) {
-  useFeeResolverMock.mockReturnValue({
-    fee: state.fee,
-    isLoading: state.feeLoading,
+function renderWithState(state: { quoteLoading: boolean; quote: FeeQuote | null }) {
+  useFeeQuoteMock.mockReturnValue({
+    quote: state.quote,
+    isLoading: state.quoteLoading,
     error: null,
+    isExpired: false,
+    refresh: vi.fn(),
   })
   useLencoWidgetMock.mockReturnValue({
     openWidget: vi.fn(),
@@ -107,8 +134,9 @@ function renderWithState(state: {
 // Property tests
 // ---------------------------------------------------------------------------
 
-describe('Property 12: Payment form visibility matches fee state', () => {
+describe('Property 12: Payment form visibility matches server quote state', () => {
   let originalConsoleError: typeof console.error
+
   beforeAll(() => {
     originalConsoleError = console.error
     console.error = (...args: unknown[]) => {
@@ -116,6 +144,7 @@ describe('Property 12: Payment form visibility matches fee state', () => {
       originalConsoleError(...args)
     }
   })
+
   afterAll(() => {
     console.error = originalConsoleError
   })
@@ -124,11 +153,10 @@ describe('Property 12: Payment form visibility matches fee state', () => {
     vi.clearAllMocks()
   })
 
-  it('does not render payment form when fee is unavailable', () => {
+  it('does not render payment form when no server quote is available', () => {
     fc.assert(
       fc.property(noFormStateArb, (state) => {
         const markup = renderWithState(state)
-
         // No payment form should be rendered
         expect(markup).not.toContain('data-testid="payment-form"')
         // No pay buttons should be present
@@ -138,15 +166,21 @@ describe('Property 12: Payment form visibility matches fee state', () => {
     )
   })
 
-  it('renders mobile money form when fee is resolved', () => {
-    const markup = renderWithState({
-      feeLoading: false,
-      fee: { amount: 153, currency: 'ZMW', residency_category: 'resident' },
-    })
-
+  it('renders mobile money form when a live server quote exists', () => {
+    const markup = renderWithState({ quoteLoading: false, quote: SERVER_QUOTE })
     expect(markup).toContain('data-testid="payment-form"')
     expect(markup).toContain('data-testid="pay-momo-button"')
     expect(markup).toContain('Mobile Money')
     expect(markup).toContain('data-testid="pay-later-button"')
+  })
+
+  it('renders the server total verbatim and never a client-computed one', () => {
+    const markup = renderWithState({ quoteLoading: false, quote: SERVER_QUOTE })
+    // Exactly the server strings: base, provider fee, total.
+    expect(markup).toContain('K153.00')
+    expect(markup).toContain('K1.53')
+    expect(markup).toContain('K154.53')
+    // The retired client-side label is gone for good (finding STU-08).
+    expect(markup).not.toContain('Transaction fee (1%)')
   })
 })

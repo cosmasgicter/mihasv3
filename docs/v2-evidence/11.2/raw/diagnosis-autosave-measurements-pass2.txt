@@ -1,0 +1,105 @@
+Task 11.2 second pass — §9 diagnosis, measured in the isolated harness
+(HARNESS_PW_CHANNEL=chrome, mobile-required project, Pixel 5).
+
+Method. A temporary journey reproduced `student-wizard-characterisation.spec.ts:255`
+step for step (resume a draft -> step back to Personal -> fill the personal fields
+-> town = "Kabwe" -> wait 12 s -> press "Save Now" -> read the row back) while
+recording (a) every request the browser made to `/api/v1/applications*`, (b) a render
+counter incremented in `useSmartAutoSave`, (c) an arm/tick counter on
+`useAutoSave`'s interval, and (d) the field values at four checkpoints. The
+instrumentation was removed before any evidence run; the journey was deleted.
+
+--------------------------------------------------------------------------------
+A. BOTH DEFECTS PRESENT (the base commit's shapes restored)
+   `useSmartAutoSave` writes a new `changedFields` array every render;
+   `useAutoSave`'s interval effect lists `saveData` as a dependency.
+
+   renders (12 s window)         1,595   (~133/s)
+   interval armed                3,467
+   interval fired                    0
+   application writes (PUT/POST)     0        <-- nothing left the browser
+   form at every checkpoint      full_name="Characterisation Student",
+                                 nrc="123456/78/9", town="Kabwe"
+   server row afterwards         residence_town="Lusaka",
+                                 nrc_number="945355/54/4",
+                                 full_name="Harness Student"
+                                 (i.e. exactly the values the draft was CREATED
+                                 with — the row was never written to)
+
+   => The failure is a save that never fired. Nothing re-hydrated: the form held
+      the student's values throughout. §9's reading ("draft re-hydration
+      overwriting live edits, not a save that did not fire") is falsified.
+
+--------------------------------------------------------------------------------
+B. RENDER LOOP ONLY (interval fix in place, `changedFields` restored)
+
+   renders (12 s window)         2,287   (~191/s)
+   interval fired                    2
+   application writes                1 PUT at 8,983 ms  -> town persisted "Kabwe"
+
+   => The interval dependency was the decisive half. The render loop is what made
+      it decisive: an effect re-armed ~190 times a second never elapses.
+
+--------------------------------------------------------------------------------
+C. BOTH FIXED (the tree as shipped)
+
+   renders (12 s window)            17   (~1/s)     [a ~130x reduction]
+   interval armed                    1
+   interval fired                    2
+   application writes                1 PUT at 8,947 ms  -> town persisted "Kabwe"
+   server row afterwards         residence_town="Kabwe", nrc_number="123456/78/9",
+                                 full_name="Characterisation Student"
+
+--------------------------------------------------------------------------------
+D. THE §2.2 GAP, OBSERVED DIRECTLY (before the fill fix)
+
+   One step after a resume and BEFORE any typing, on a row that held both values:
+     {"full_name":"Harness Student","nrc":"","phone":"+260971234567","town":""}
+
+   `ApplicationListSerializer` carries `full_name`, `email`, `phone` and no other
+   personal answer, so hydrating from a list item wrote '' over nine stored fields.
+   This is why the first pass read "NRC and phone are empty" as a wipe: the fields
+   were never filled, not emptied.
+
+--------------------------------------------------------------------------------
+E. THE MANUAL TAP IN THAT LEG (mobile project)
+
+   Playwright reports the click as successful, the control is enabled and its box
+   measures 44x44, and yet:
+
+     native click listeners fired on the button            0
+     `forceSave` called                                    no
+     box before the click (viewport coords)   y = 764   [viewport height 727]
+     box after  the click                     y = 297
+     window.scrollY after                     1,974
+
+   After `scrollIntoViewIfNeeded()` plus a 1.2 s settle, the same click lands:
+
+     native click listeners fired                          1
+     `forceSave` called                                   yes -> saveData(manual=true)
+
+   The shell sets `scroll-behavior: smooth` (`src/index.css`, `src/styles/mobile.css`),
+   so the auto-scroll animates and the event is dispatched at a coordinate the
+   control has already left. A student taps what they can see, so this is a
+   test-interaction artifact, not a product defect — but it is why the leg's
+   manual-save assertion is satisfied by the 8-second autosave write rather than by
+   the tap.
+
+--------------------------------------------------------------------------------
+F. WHY THE BAR IS BELOW THE FOLD (measured, and it is a claim correction)
+
+     [data-testid="wizard-action-bar"]  position: sticky
+     rect.top 751 / rect.bottom 872     viewport height 727   document height 2,915
+     nearest ancestors that break it:
+       DIV.bottom-nav-content-padding animate-page-shell-in
+           overflow = hidden auto / hidden / auto   transform = matrix(1,0,0,1,0,0)
+       DIV.transform-gpu ... (x2)                    transform = matrix(1,0,0,1,0,0)
+       MAIN.flex-1 scroll-smooth overflow-x-hidden   overflow = hidden auto
+       DIV.flex min-h-screen w-full overflow-x-hidd  overflow = hidden auto
+       BODY.light                                    overflow = hidden auto
+
+   `PageShell`'s root (`src/components/ui/PageShell.tsx`) is `overflow-x-hidden`,
+   and `overflow-x: hidden` computes `overflow-y: auto`, which makes it a scroll
+   container. A `sticky` child of a scroll container that is as tall as its content
+   has no range to stick in. So the bar computes as `sticky` and behaves as
+   in-flow, at any width — not only at 375 and 390 as journey 1's comment assumed.

@@ -1,0 +1,13 @@
+=== clean venv python ===
+Python 3.12.13
+
+=== supported release runtime version output: manage.py app_version ===
+2.0.0
+
+=== manage.py app_version --verbose ===
+product: Beanola Admissions Platform
+product_version: 2.0.0
+api_version: v1
+
+=== settings.APP_VERSION direct read ===
+APP_VERSION = 2.0.0

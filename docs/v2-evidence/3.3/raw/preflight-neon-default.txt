@@ -1,0 +1,31 @@
+Neon default branch (br-floral-scene-aha2ybfd), READ-ONLY preflight — inventory.sql Block A + B
+Project: wild-bar-37055823 (mihasApplication) | run via Neon MCP run_sql | candidate commit bae29a28d
+
+Block A — violation counts (all P1..P7 MUST be 0; P8 = legacy global unique present):
+  P1_dup_program_intake_pairs                  = 0
+  P2_dup_active_fees                           = 0
+  P3_scope_type_out_of_set                     = 0
+  P3_scope_target_mismatch                     = 0
+  P3_dup_active_institution_grant              = 0
+  P3_dup_active_program_grant                  = 0
+  P3_dup_active_application_grant              = 0
+  P4_dup_doc_profile_versions                  = 0
+  P5_negative_capacity_counters                = 0
+  P6_dup_template_key_inst_version             = 0
+  P6_dup_active_template_key_inst              = 0
+  P7_dup_canonical_waitlist_position           = 0
+  P8_legacy_global_template_key_unique_exists  = 1   (present -> script 02 DROP is meaningful)
+
+Block B — row totals covered by the preflight:
+  program_intakes                 = 12
+  intakes                         = 3
+  program_fees                    = 8   (program_fees_active = 8)
+  access_grants                   = 0   (no scope_type='offering' rows exist; the 'offering' issue was test-fixture-only)
+  institution_document_profiles   = 0
+  communication_templates         = 33
+  applications                    = 33  (applications_with_waitlist_pos = 0)
+
+Conclusion: zero existing rows violate any task 3.3 constraint, so every expand
+constraint is created VALID (no NOT VALID staging needed), and dropping the
+legacy global UNIQUE(template_key) in script 02 loses no enforcement the
+tenant-scoped uniques do not already provide.

@@ -63,11 +63,16 @@ export const ADMIN_APPLICATION_STATUS_BADGES: Record<ApplicationStatus, { cardCl
 export const getApplicationStatusBadgeClass = (status: ApplicationStatus): string => {
   const styles: Record<ApplicationStatus, string> = {
     draft: 'bg-accent text-foreground',
-    submitted: 'bg-primary/10 text-primary-foreground',
+    // `text-primary-foreground` and `text-destructive-foreground` are both
+    // **white**, and both were painted on a 10 % wash over white: `submitted` and
+    // `rejected` rendered their own labels at roughly 1.1 : 1 — invisible
+    // (admissions-v2 task 11.5, R16.2, found by the audit in §6 of that task's
+    // evidence). The tone stays in the fill; the label is `text-foreground`.
+    submitted: 'bg-primary/10 text-foreground',
     under_review: 'bg-accent/10 text-accent-foreground',
     approved: 'bg-accent/10 text-accent-foreground',
     conditionally_approved: 'bg-emerald-100 text-emerald-800',
-    rejected: 'bg-destructive/10 text-destructive-foreground',
+    rejected: 'bg-destructive/10 text-foreground',
     waitlisted: 'bg-amber-100 text-amber-800',
     withdrawn: 'bg-muted text-muted-foreground',
     expired: 'bg-orange-100 text-orange-800',

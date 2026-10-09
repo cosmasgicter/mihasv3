@@ -1,0 +1,18 @@
+]633;E;echo "=== L11's two named instruments, RE-RUN by the write-up pass (independent of the 05:03Z/05:04Z runs recorded in 4.1/raw and 7.4/raw) ===";6c94c47b-fbee-4608-b42f-4440f9604086]633;C=== L11's two named instruments, RE-RUN by the write-up pass (independent of the 05:03Z/05:04Z runs recorded in 4.1/raw and 7.4/raw) ===
+=== DATE: 2026-08-14T07:14:12Z ===
+=== ENV: isolated local test stack (backend/.env.local.test via .localtest-host-env.sh) — never backend/.env ===
+=== 13.6 §6.1 measured 46 and 18; L11's own runs measured 46 and 18 ===
+
+..............................................                           [100%]
+=============================== warnings summary ===============================
+tests/integration/test_tenant_onboarding_workflow.py: 22 warnings
+tests/unit/test_scenario_super_admin_onboarding.py: 1 warning
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+46 passed, 23 warnings in 6.15s
+]633;E;echo;6c94c47b-fbee-4608-b42f-4440f9604086]633;C
+--- task 7.4's named guard ---
+..................                                                       [100%]
+18 passed in 1.58s

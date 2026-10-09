@@ -1,0 +1,7 @@
+]633;E;echo "=== C) manifest: Neon authoring default branch (READ-ONLY introspection\x3b DSN never printed) ===";b825a802-0d55-4a4d-b194-8fb427f1dd5f]633;C=== C) manifest: Neon authoring default branch (READ-ONLY introspection; DSN never printed) ===
+host: ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Wrote manifest 'neon-authoring' -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.1/raw/manifest.neon-authoring.json (vendor=postgresql reduced=False tables=78 fingerprint=sha256:9d4bc5c7f5233e9d01e8b498c6951e9a776a3feb487f94bf14074822d2d5ee66)
+exit=0

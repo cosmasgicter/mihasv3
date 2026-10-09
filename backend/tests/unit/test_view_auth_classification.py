@@ -168,6 +168,19 @@ _PUBLIC_PERSONALIZABLE = {
     "apps.catalog.views.IntakeListCreateView",
     "apps.catalog.views.SubjectListView",
     "apps.catalog.views.InstitutionListCreateView",
+    # The catalog views were split by admissions-v2 task 12.1 (MAINT-01) and
+    # ``apps.catalog.views`` is now a re-export shim. ``_discover_all_api_views``
+    # keys on ``obj.__module__``, so a class is only ever found under the module
+    # that *defines* it — the canonical module has to be pinned as well as the
+    # shim, exactly as task 9.3 did for the user directory and as the
+    # ``apps.applications`` split already is below.
+    "apps.catalog.context_views.CatalogContextView",
+    "apps.catalog.program_views.CanonicalProgramListView",
+    "apps.catalog.program_views.AssignmentPreviewView",
+    "apps.catalog.program_views.ProgramListCreateView",
+    "apps.catalog.intake_views.IntakeListCreateView",
+    "apps.catalog.subject_views.SubjectListView",
+    "apps.catalog.institution_views.InstitutionListCreateView",
     "apps.applications.views.ApplicationTrackView",
     "apps.applications.public_views.ApplicationTrackView",
     "apps.jobs.views.JobListView",
@@ -189,6 +202,8 @@ _AUTH_EXEMPT = {
     "apps.documents.views.LencoWebhookView",
     "apps.integrations.views.TelegramWebhookView",
     "apps.integrations.email_views.EmailDeliveryWebhookView",
+    # Public invitee handoff guarded by a single-use emailed token (task 4.2).
+    "apps.catalog.staff_invitation_views.StaffInvitationAcceptView",
 }
 
 _PROTECTED = {
@@ -226,9 +241,10 @@ _PROTECTED = {
     "apps.applications.student_views.ApplicationConditionsView",
     "apps.applications.student_views.ApplicationConfirmEnrollmentView",
     "apps.applications.student_views.ApplicationAmendmentView",
-    "apps.applications.student_views.EmailSlipView",
+    # ``EmailSlipView`` removed by admissions-v2 task 10.6 (R13.5, API-04).
     "apps.applications.student_draft_views.ApplicationDraftListView",
     "apps.applications.student_draft_views.ApplicationDraftDetailView",
+    "apps.applications.student_draft_views.ApplicationDraftRenameView",
     # applications — admin
     "apps.applications.admin_views.ApplicationListCreateView",
     "apps.applications.admin_views.ApplicationReviewView",
@@ -249,13 +265,27 @@ _PROTECTED = {
     "apps.applications.document_views.PaymentReceiptView",
     "apps.applications.official_document_views.OfficialDocumentListView",
     "apps.applications.official_document_views.OfficialDocumentDetailView",
+    # Task 10.4 (R13.5): the one canonical official-document email route. Same
+    # authority as the detail read it reuses — `IsAuthenticated` plus the shared
+    # owner/scope path with 404 masking — so it belongs in exactly this bucket.
+    "apps.applications.official_document_views.OfficialDocumentEmailView",
     "apps.applications.interview_views.ApplicationInterviewView",
     "apps.applications.interview_views.ApplicationInterviewListView",
     "apps.applications.history_views.TimelineHistoryView",
-    # catalog detail views
+    # applications — canonical admin-query and student V2/split surfaces
+    "apps.applications.admin_query_views.AdminApplicationQueryView",
+    "apps.applications.admin_query_views.AdminApplicationSavedFilterDetailView",
+    "apps.applications.admin_query_views.AdminApplicationSavedFilterListView",
+    "apps.applications.readiness_v2_views.V2ApplicationReadinessView",
+    "apps.applications.student_document_views.ApplicationRequiredDocumentsView",
+    "apps.applications.student_draft_views.ApplicationDraftChangeSelectionView",
+    # catalog detail views — shim path plus the canonical split module (task 12.1)
     "apps.catalog.views.ProgramDetailView",
     "apps.catalog.views.IntakeDetailView",
     "apps.catalog.views.InstitutionDetailView",
+    "apps.catalog.program_views.ProgramDetailView",
+    "apps.catalog.intake_views.IntakeDetailView",
+    "apps.catalog.institution_views.InstitutionDetailView",
     # catalog tenant admin
     "apps.catalog.admin_views.AdminAccessGrantDetailView",
     "apps.catalog.admin_views.AdminAccessGrantListCreateView",
@@ -285,6 +315,72 @@ _PROTECTED = {
     "apps.catalog.admin_views.AdminTenantProfileCloneView",
     "apps.catalog.admin_views._InstitutionChildDetailView",
     "apps.catalog.admin_views._InstitutionChildListCreateView",
+    # catalog tenant admin — the canonical split modules (admissions-v2 task
+    # 12.1, MAINT-01). ``apps.catalog.admin_views`` is a re-export shim now, and
+    # discovery keys on the *defining* module, so these are the entries that
+    # actually classify the live views; the shim paths above stay pinned for the
+    # same reason task 9.3 kept both.
+    "apps.catalog.admin_tenant_views.AdminTenantListCreateView",
+    "apps.catalog.admin_tenant_views.AdminTenantDetailView",
+    "apps.catalog.admin_tenant_views.AdminTenantReadinessView",
+    "apps.catalog.admin_tenant_views.AdminTenantProgramListView",
+    "apps.catalog.admin_tenant_views.AdminTenantProgramDetailView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainListCreateView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainDetailView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainActivateView",
+    # Task 4.4 lifecycle commands: routed platform-domain operations with the
+    # inherited JWT authentication strategy.
+    "apps.catalog.admin_domain_views.AdminTenantDomainApproveView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainReactivateView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainRejectView",
+    "apps.catalog.admin_domain_views.AdminTenantDomainRetryView",
+    # Platform intake administration.
+    "apps.catalog.admin_intake_views.AdminIntakeDetailView",
+    "apps.catalog.admin_intake_views.AdminIntakeListCreateView",
+    "apps.catalog.admin_asset_views.AdminTenantAssetListCreateView",
+    "apps.catalog.admin_asset_views.AdminTenantAssetUploadView",
+    "apps.catalog.admin_asset_views.AdminTenantAssetDetailView",
+    "apps.catalog.admin_document_config_views.AdminTenantTemplateListCreateView",
+    "apps.catalog.admin_document_config_views.AdminTenantTemplateDetailView",
+    "apps.catalog.admin_document_config_views.AdminTenantProfileListCreateView",
+    "apps.catalog.admin_document_config_views.AdminTenantProfileDetailView",
+    "apps.catalog.admin_document_config_views.AdminTenantProfileCloneView",
+    "apps.catalog.admin_document_config_views.AdminTenantRequiredDocumentListCreateView",
+    "apps.catalog.admin_document_config_views.AdminTenantRequiredDocumentDetailView",
+    "apps.catalog.admin_access_views.AdminMembershipListCreateView",
+    "apps.catalog.admin_access_views.AdminMembershipDetailView",
+    "apps.catalog.admin_access_views.AdminAccessGrantListCreateView",
+    "apps.catalog.admin_access_views.AdminAccessGrantDetailView",
+    "apps.catalog.admin_routing_views.AdminRoutingSimulateView",
+    "apps.catalog.admin_audit_views.AdminTenantAuditView",
+    "apps.catalog.admin_audit_views.AdminInstitutionAuditView",
+    "apps.catalog._admin_view_helpers._InstitutionChildDetailView",
+    "apps.catalog._admin_view_helpers._InstitutionChildListCreateView",
+    # V2 tenant change-request workflow.
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestApproveView",
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestCancelView",
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestDetailView",
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestListCreateView",
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestRejectView",
+    "apps.catalog.change_request_v2_views.V2TenantChangeRequestSubmitView",
+    # V2 tenant onboarding workflow. The shared command base is deliberately in
+    # `_ABSTRACT_UNROUTED`, not misclassified as a mounted protected endpoint.
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingActivateView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingBlockersView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingCancelView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingDetailView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingListCreateView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingRejectView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingResumeView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingStepView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingSubmitView",
+    "apps.catalog.onboarding_v2_views.V2TenantOnboardingSuspendView",
+    # Tenant staff invitation administration. The public accept handoff is in
+    # `_AUTH_EXEMPT`; its shared command base is `_ABSTRACT_UNROUTED`.
+    "apps.catalog.staff_invitation_views.AdminStaffCandidateSearchView",
+    "apps.catalog.staff_invitation_views.AdminStaffInvitationListCreateView",
+    "apps.catalog.staff_invitation_views.AdminStaffInvitationResendView",
+    "apps.catalog.staff_invitation_views.AdminStaffInvitationRevokeView",
     # documents
     "apps.documents.views.DocumentUploadView",
     "apps.documents.views.DocumentDeleteView",
@@ -301,6 +397,8 @@ _PROTECTED = {
     "apps.documents.views.DeferPaymentView",
     "apps.documents.views.FeeResolveView",
     "apps.documents.views.ProgramFeeViewSet",
+    "apps.documents.fee_admin_views.AdminFeeListView",
+    "apps.documents.fee_quote_views.FeeQuoteView",
     # documents — job views
     "apps.documents.job_views.ResumeListView",
     "apps.documents.job_views.ResumeVariantCreateView",
@@ -355,6 +453,10 @@ _PROTECTED = {
     "apps.common.notification_views.NotificationMarkReadBatchAliasView",
     "apps.common.notification_views.NotificationDeleteView",
     "apps.common.notification_views.NotificationPreferenceView",
+    # Task 10.1 (R13.4): owner-scoped redelivery. Authority is ownership — the
+    # notification is fetched from the caller's own rows — so an id that is not
+    # theirs is the same 404 as an unknown one.
+    "apps.common.notification_views.CommunicationRetryView",
     "apps.common.notification_views.NotificationSendView",
     "apps.common.notification_views.EmailSendView",
     "apps.common.notification_views.AdminNotificationHistoryView",
@@ -390,26 +492,46 @@ _PROTECTED.update(
         "apps.accounts.admin_user_views.AdminCapabilitiesView",
         "apps.accounts.admin_user_views.AdminUserListView",
         "apps.accounts.admin_user_views.AdminUserDetailView",
+        "apps.accounts.admin_user_views.AdminUserEffectiveCapabilitiesView",
         "apps.accounts.admin_user_views.AdminUserExportView",
+        # The user directory, rebuilt by admissions-v2 task 9.3 (R6.1-R6.5).
+        # ``admin_user_views`` re-exports these, so the canonical module is
+        # pinned as well as the shim.
+        "apps.accounts.user_directory_views.AdminUserListView",
+        "apps.accounts.user_directory_views.AdminUserDetailView",
+        "apps.accounts.user_directory_views.AdminUserExportView",
+        "apps.accounts.user_directory_views.AdminUserBulkView",
+        "apps.accounts.user_directory_views.AdminUserBatchImportView",
+        "apps.accounts.user_directory_views.AdminUserImportPreviewView",
         "apps.accounts.admin_audit_views.AdminAuditLogView",
         "apps.accounts.admin_settings_views.AdminSettingsListView",
         "apps.accounts.admin_settings_views.AdminSettingDetailView",
         "apps.accounts.admin_settings_views.AdminSettingsImportView",
         "apps.accounts.admin_settings_views.AdminSettingsResetView",
         # applications split modules
-        "apps.applications.admin_amendment_views.ApplicationAdminSummaryView",
+        # ``ApplicationAdminSummaryView`` is intentionally absent: task 7.4 deleted
+        # the generative admin review summary (R11.1) and admissions-v2 task 9.4
+        # removed its last caller. Its replacement is the deterministic
+        # ``readiness`` section of ``AdminApplicationReviewWorkspaceView``, below.
+        "apps.applications.admin_review_workspace_views.AdminApplicationReviewWorkspaceView",
         "apps.applications.admin_amendment_views.ApplicationAmendmentReviewView",
         "apps.applications.admin_amendment_views.ApplicationConditionVerifyView",
         "apps.applications.admin_assignment_views.ApplicationAssignView",
         "apps.applications.admin_assignment_views.ApplicationAutoAssignView",
         "apps.applications.admin_assignment_views.ApplicationFeeWaiverView",
+        "apps.applications.admin_assignment_views.AssignmentCandidatesView",
         "apps.applications.admin_bulk_views.ApplicationBulkStatusView",
         "apps.applications.admin_export_views.ApplicationExportView",
         "apps.applications.admin_review_views.ApplicationListCreateView",
         "apps.applications.admin_review_views.ApplicationReviewView",
         "apps.applications.student_amendment_views.ApplicationAmendmentView",
+        # admissions-v2 task 10.2 (R13.9-R13.10, STU-16 / STU-17)
+        "apps.applications.student_amendment_views.ApplicationAmendmentDetailView",
+        "apps.applications.condition_views.ApplicationConditionDetailView",
+        "apps.applications.condition_views.ApplicationConditionEvidenceView",
+        "apps.applications.condition_views.ApplicationConditionReviewView",
         "apps.applications.student_document_views.ApplicationDocumentsView",
-        "apps.applications.student_document_views.EmailSlipView",
+        # ``EmailSlipView`` removed by admissions-v2 task 10.6 (R13.5, API-04).
         "apps.applications.student_draft_views.ApplicationDetailView",
         "apps.applications.student_draft_views.ApplicationDetailsView",
         "apps.applications.student_draft_views.ApplicationDraftView",
@@ -417,6 +539,11 @@ _PROTECTED.update(
         "apps.applications.student_submission_views.ApplicationPreviewSummaryView",
         "apps.applications.student_submission_views.ApplicationSubmitView",
         "apps.applications.student_submission_views.ApplicationSummaryView",
+        # admissions-v2 task 10.5 (R13.12, STU-22): the owner issues their own
+        # public tracking link. Owner-only with the shared 404 mask — the same
+        # bucket as withdraw, and deliberately NOT staff-accessible, because
+        # issuing revokes the applicant's live link.
+        "apps.applications.student_tracking_views.ApplicationTrackingLinkView",
         "apps.applications.student_withdrawal_views.ApplicationConditionsView",
         "apps.applications.student_withdrawal_views.ApplicationConfirmEnrollmentView",
         "apps.applications.student_withdrawal_views.ApplicationWaitlistPositionView",
@@ -442,6 +569,15 @@ _PROTECTED.update(
         "apps.documents.risk_views.RiskFlagsListView",
     }
 )
+
+# These classes are intentionally discoverable as APIView subclasses because
+# concrete routed views inherit their implementation. They are not endpoints and
+# must not be presented as protected routes merely to satisfy the registry gate.
+_ABSTRACT_UNROUTED = {
+    "apps.accounts.user_directory_views._ImportBase",
+    "apps.catalog.onboarding_v2_views._OnboardingCommandView",
+    "apps.catalog.staff_invitation_views._StaffInvitationCommandView",
+}
 
 _ALL_CLASSIFIED = _PUBLIC_PERSONALIZABLE | _AUTH_EXEMPT | _PROTECTED
 
@@ -487,9 +623,40 @@ def test_all_api_views_are_classified():
     """Every APIView subclass in backend apps must appear in one of the
     classification lists. New unclassified views will cause this test to fail."""
     all_views = _discover_all_api_views()
-    unclassified = all_views - _ALL_CLASSIFIED
+    unclassified = all_views - _ALL_CLASSIFIED - _ABSTRACT_UNROUTED
     assert not unclassified, (
         f"Found {len(unclassified)} APIView subclass(es) not in any classification list. "
         f"Add them to the appropriate parametrize list in this file:\n"
         + "\n".join(f"  - {v}" for v in sorted(unclassified))
+    )
+
+
+def test_abstract_unrouted_exclusions_are_discovered_but_not_mounted():
+    """Every exclusion is a real implementation base and remains off the URL tree."""
+    from django.urls import get_resolver
+    from rest_framework.views import APIView
+
+    discovered = _discover_all_api_views()
+    assert _ABSTRACT_UNROUTED <= discovered
+    assert _ABSTRACT_UNROUTED.isdisjoint(_ALL_CLASSIFIED)
+
+    routed: set[str] = set()
+
+    def walk(patterns):
+        for pattern in patterns:
+            nested = getattr(pattern, "url_patterns", None)
+            if nested is not None:
+                walk(nested)
+                continue
+            callback = getattr(pattern, "callback", None)
+            view_class = getattr(callback, "view_class", None) or getattr(
+                callback, "cls", None
+            )
+            if isinstance(view_class, type) and issubclass(view_class, APIView):
+                routed.add(f"{view_class.__module__}.{view_class.__name__}")
+
+    walk(get_resolver().url_patterns)
+    assert _ABSTRACT_UNROUTED.isdisjoint(routed), (
+        "An APIView base excluded as abstract/unrouted is now mounted; classify "
+        f"the concrete endpoint instead: {sorted(_ABSTRACT_UNROUTED & routed)}"
     )

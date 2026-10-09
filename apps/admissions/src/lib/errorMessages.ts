@@ -20,6 +20,10 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: 'Invalid email or password.',
   ACCOUNT_LOCKED: 'Account temporarily locked. Try again in 30 minutes.',
   VERSION_CONFLICT: 'Your changes conflict with a newer version.',
+  CANONICAL_DRAFT_UPDATE_REQUIRED: 'Reload this draft before saving your changes.',
+  IDEMPOTENCY_KEY_REQUIRED: 'This draft save could not be retried safely. Reload and try again.',
+  EXPECTED_VERSION_REQUIRED: 'Reload this draft before saving your changes.',
+  EXPECTED_VERSION_INVALID: 'This draft has an invalid version. Reload and try again.',
   FILE_TYPE_NOT_ALLOWED: 'Only PDF, JPEG, and PNG files are accepted.',
   FILE_TOO_LARGE: 'File must be smaller than 10MB.',
   FILE_CONTENT_MISMATCH: 'File content does not match the declared type.',
@@ -45,6 +49,15 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   PROVIDER_UNAVAILABLE: 'Payment service is temporarily unavailable. Please try again.',
   PAYMENT_UNAVAILABLE: 'Payment processing is not available right now.',
   FEE_UNAVAILABLE: 'Fee is not available for this program.',
+  FEE_NOT_CONFIGURED: 'The application fee is not configured for this option.',
+  FEE_AMBIGUOUS: 'More than one active application fee is configured for this option.',
+  // Server-authored fee quotes (admissions-v2 task 8.1). Every refusal is
+  // recovered by requesting a fresh quote — never by the client picking an amount.
+  QUOTE_NOT_FOUND: 'This fee quote was not found. Refresh the fee to continue.',
+  QUOTE_EXPIRED: 'This fee quote has expired. Refresh the fee and try again.',
+  QUOTE_ALREADY_REDEEMED: 'This fee quote has already been used for a payment.',
+  QUOTE_INVALID: 'This fee quote could not be verified. Refresh the fee.',
+  QUOTE_CONFIGURATION_CHANGED: 'The application fee changed. Review the new amount before paying.',
   PAYMENT_SENSITIVE_FIELDS_LOCKED: 'These fields cannot be changed while payment activity exists.',
   DRAFT_DELETE_BLOCKED_BY_PAYMENT: 'Draft cannot be deleted while a payment record exists.',
   CANNOT_REVERSE_SUCCESSFUL_PAYMENT: 'A successful payment cannot be reversed.',
@@ -124,6 +137,15 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   ASSET_INVALID: 'This asset must be a PNG, JPEG, WebP, or SVG under 2MB.',
   TEMPLATE_TOKEN_REJECTED: 'Disallowed section or token in document template.',
 
+  // Immutable document evidence versions (admissions-v2 task 7.3)
+  EMPTY_FILE: 'That file is empty. Please choose the file again.',
+  UNSAFE_FILE_CONTENT: 'This file contains active content, so it cannot be accepted. Please upload a plain PDF, JPEG, or PNG.',
+  DOCUMENT_STORAGE_UNVERIFIED: 'We could not confirm your upload was stored. Your previous document is still on file — please try again.',
+  DOCUMENT_COMMIT_FAILED: 'The upload could not be saved. Your previous document is still on file — please try again.',
+  DOCUMENT_VERSION_CONFLICT: 'Another upload for this document finished first. Reload the page to see the current file.',
+  DOCUMENT_TRANSITION_REJECTED: 'This document version can no longer accept that change. Reload the page to see its current state.',
+  INVALID_VERIFICATION_DECISION: 'A document decision must be either verified or rejected.',
+
   // Catalog
   INACTIVE_INTAKE: 'The selected intake is not active.',
   INVALID_INSTITUTION: 'Invalid institution.',
@@ -151,6 +173,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
 
   // Validation (extended)
   DUPLICATE_KEY: 'This record already exists.',
+  DUPLICATE_ACTIVE_FEE: 'An active fee already exists for this programme, fee type, and residency.',
+  MINIMUM_SELECTION_REQUIRED: 'Select a programme and intake to start an application.',
   DUPLICATE_SUBJECT: 'This subject is already in your application.',
   MINIMUM_AGE_NOT_MET: 'Minimum age requirement not met.',
   MINIMUM_SUBJECTS_REQUIRED: 'Please add the minimum number of required subjects.',
@@ -171,6 +195,36 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   FIELD_NAME_TOO_LONG: 'Field name exceeds maximum length.',
   VALUE_TOO_LONG: 'Value exceeds maximum length.',
   REASON_TOO_LONG: 'Reason exceeds maximum length.',
+
+  // Codes registered in the backend catalogue by 13.6 remediation M3.
+  // The copy below is the browser's, not the backend's sentence: the backend
+  // message states what the platform refused, this states what the person can
+  // do next. `VERSION_CONFLICT` is deliberately absent from this block — it is
+  // already covered above.
+  //
+  // Official-document email path
+  DOCUMENT_NOT_READY:
+    'This document is not ready yet. Nothing was emailed — try again once it finishes preparing.',
+  RECIPIENT_NOT_PERMITTED:
+    'Official documents can only be emailed to the address on the application. Update the account email first.',
+  NO_RECIPIENT:
+    'This application has no email address on file, so there is nowhere to send the document.',
+  // Scoped exports (applications, users, fees, settlements)
+  EXPORT_TOO_LARGE:
+    'That export covers too many rows. Narrow the filters and try again.',
+  // Saved admin queries
+  SAVED_FILTER_LIMIT:
+    'You have reached the saved-filter limit. Delete one before saving another.',
+  UNREGISTERED_QUERY_PARAMETER:
+    'That saved view uses a filter this page no longer supports. Rebuild the filters and save again.',
+  // User directory writes
+  UNSUPPORTED_FIELD:
+    'This form sent fields the platform does not accept here. Remove the extra columns and try again.',
+  // Public and student tracking
+  TRACKING_LINK_UNAVAILABLE:
+    'We could not issue a tracking link just now. Please try again in a moment.',
+  TRACKING_SECRET_REQUIRED:
+    'That looks like an application number, not a tracking link. Open your application and choose "Get tracking link", or sign in to view your status.',
 }
 
 /** Default message for network errors (no server response) */

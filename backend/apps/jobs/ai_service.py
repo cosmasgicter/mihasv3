@@ -20,9 +20,18 @@ logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def _get_client():
+    """Jobs-ops AI gateway client.
+
+    Reads the ``JOBS_OPS_AI_*`` settings only. admissions-v2 task 7.4 moved the
+    gateway configuration into this namespace so the admissions domain has no
+    runtime import of, or setting shared with, a generative model (R11.9,
+    design 9.1).
+    """
     from openai import OpenAI
-    api_key = getattr(settings, "AI_GATEWAY_API_KEY", "")
-    base_url = getattr(settings, "AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1")
+    api_key = getattr(settings, "JOBS_OPS_AI_GATEWAY_API_KEY", "")
+    base_url = getattr(
+        settings, "JOBS_OPS_AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1"
+    )
     if not api_key:
         return None
     return OpenAI(api_key=api_key, base_url=base_url)
@@ -34,7 +43,7 @@ def score_job_match(job_data: dict, candidate_data: dict) -> dict | None:
     if not client:
         return None
 
-    model = getattr(settings, "AI_MODEL_FAST", "google/gemini-2.5-flash")
+    model = getattr(settings, "JOBS_OPS_AI_MODEL_FAST", "google/gemini-2.5-flash")
 
     prompt = f"""Score this job match from 0-100 for the candidate. Return JSON only.
 
@@ -73,7 +82,7 @@ def tailor_resume(job_data: dict, resume_text: str) -> dict | None:
     if not client:
         return None
 
-    model = getattr(settings, "AI_MODEL_SMART", "deepseek/deepseek-v3")
+    model = getattr(settings, "JOBS_OPS_AI_MODEL_SMART", "deepseek/deepseek-v3")
 
     prompt = f"""Tailor this resume for the job below. Return JSON only.
 
@@ -112,7 +121,7 @@ def generate_outreach_message(contact_data: dict, context: str = "") -> dict | N
     if not client:
         return None
 
-    model = getattr(settings, "AI_MODEL_FAST", "google/gemini-2.5-flash")
+    model = getattr(settings, "JOBS_OPS_AI_MODEL_FAST", "google/gemini-2.5-flash")
 
     prompt = f"""Write a professional outreach email. Return JSON only.
 
@@ -151,7 +160,7 @@ def analyze_job_posting(description: str) -> dict | None:
     if not client:
         return None
 
-    model = getattr(settings, "AI_MODEL_FAST", "google/gemini-2.5-flash")
+    model = getattr(settings, "JOBS_OPS_AI_MODEL_FAST", "google/gemini-2.5-flash")
 
     prompt = f"""Extract structured data from this job posting. Return JSON only.
 

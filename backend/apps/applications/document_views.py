@@ -20,13 +20,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin
 from apps.applications.models import Application
 from apps.common.openapi_helpers import ErrorResponseSerializer
+from apps.common.tenant_authorization import resolve_scoped_application
 from apps.documents.models import ApplicationDocument, Payment
 from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 from apps.documents.serializers import DocumentSerializer
-from apps.catalog.services import AccessScopeService
 from apps.applications.official_document_views import (
     OfficialDocumentDetailView,
     OfficialDocumentResponseSerializer,
@@ -41,10 +40,16 @@ from ._view_helpers import (
 logger = logging.getLogger(__name__)
 
 
-def _get_scoped_application(request, application_id):
-    queryset = Application.objects.select_related("user", "institution_ref", "canonical_program", "program_offering", "intake_ref")
-    queryset = AccessScopeService().filter_applications(queryset, request.user)
-    return queryset.get(id=application_id)
+def _get_scoped_application(request, application_id, capability):
+    queryset = Application.objects.select_related(
+        "user", "institution_ref", "canonical_program", "program_offering", "intake_ref"
+    )
+    return resolve_scoped_application(
+        request,
+        application_id,
+        capability=capability,
+        queryset=queryset,
+    )
 
 
 def _with_deprecation_headers(response: Response, *, canonical_document_type: str) -> Response:
@@ -150,7 +155,8 @@ def _delegate_to_official_document(request, application_id, document_type: str, 
 class ApplicationVerifyDocumentView(APIView):
     """POST /api/v1/applications/{id}/verify-document/"""
 
-    permission_classes = [IsAdmin]
+    # R3.1/R3.2: derived tenant.document.verify capability + scope-before-lookup.
+    permission_classes = [IsAuthenticated]
     serializer_class = DocumentVerifySerializer
 
     @extend_schema(
@@ -164,15 +170,21 @@ class ApplicationVerifyDocumentView(APIView):
         },
     )
     def post(self, request, application_id):
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
         from apps.common.audit_network import build_audit_network_fields
 
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.document.verify"
+        )
+
+        # Versioned command (task 9.4). Verifying evidence changes what a decision
+        # rests on, so a decision issued from a stale workspace is refused with
+        # VERSION_CONFLICT rather than applied silently.
+        expected_version = read_expected_version(request)
+        ApplicationReviewWorkspaceService.assert_version(application, expected_version)
 
         serializer = DocumentVerifySerializer(data=request.data)
         if not serializer.is_valid():
@@ -206,20 +218,29 @@ class ApplicationVerifyDocumentView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # admissions-v2 task 7.3 (R11.7): the decision goes through the evidence
+        # command so the canonical ``lifecycle_state`` moves with the legacy
+        # ``verification_status`` projection, and the reviewer's identity plus the
+        # structured reason are appended to the append-only verification history.
+        # The single free-text ``verification_notes`` column is overwritten by the
+        # latest decision as before, but the previous reviewer's words survive in
+        # history instead of being lost.
+        from apps.documents import document_evidence as evidence
+
         old_status = document.verification_status
-        document.verification_status = verification_status
-        document.verified_by_id = str(request.user.id)
-        document.verified_at = timezone.now()
-        document.verification_notes = notes
-        document.save(
-            update_fields=[
-                "verification_status",
-                "verified_by",
-                "verified_at",
-                "verification_notes",
-                "updated_at",
-            ]
-        )
+        try:
+            evidence.record_verification_decision(
+                document=document,
+                decision=verification_status,
+                actor_id=str(request.user.id),
+                actor_role=getattr(request.user, "role", None),
+                notes=notes,
+            )
+        except evidence.DocumentCommandError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
 
         from apps.common.models import AuditLog
 
@@ -273,7 +294,9 @@ class ApplicationVerifyDocumentView(APIView):
         except Exception:
             logger.warning("Failed to send document verification notification for document=%s", document.id, exc_info=True)
 
-        return Response({"success": True, "data": DocumentSerializer(document).data})
+        payload = DocumentSerializer(document).data
+        payload["version"] = ApplicationReviewWorkspaceService.bump_version(application)
+        return Response({"success": True, "data": payload})
 
 
 # ---------------------------------------------------------------------------
@@ -288,7 +311,7 @@ class AcceptanceLetterView(APIView):
     /api/v1/applications/{id}/official-documents/acceptance_letter/.
     """
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = OfficialDocumentStatusSerializer
 
     @extend_schema(
@@ -304,13 +327,9 @@ class AcceptanceLetterView(APIView):
         },
     )
     def post(self, request, application_id):
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.application.review"
+        )
 
         if application.status != "approved":
             return Response(
@@ -330,7 +349,7 @@ class AcceptanceLetterView(APIView):
 class ApplicationSlipView(APIView):
     """POST /api/v1/applications/{id}/application-slip/"""
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = OfficialDocumentStatusSerializer
 
     @extend_schema(
@@ -345,13 +364,9 @@ class ApplicationSlipView(APIView):
         },
     )
     def post(self, request, application_id):
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.application.review"
+        )
         return _delegate_to_official_document(
             request, application_id, "application_slip", application=application
         )
@@ -360,7 +375,7 @@ class ApplicationSlipView(APIView):
 class ConditionalOfferView(APIView):
     """POST /api/v1/applications/{id}/conditional-offer/"""
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = OfficialDocumentStatusSerializer
 
     @extend_schema(
@@ -376,13 +391,9 @@ class ConditionalOfferView(APIView):
         },
     )
     def post(self, request, application_id):
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.application.review"
+        )
         if application.status not in {"conditional", "conditionally_approved", "approved"}:
             return Response(
                 {"success": False, "error": "Application is not in a conditional-offer status", "code": "INVALID_STATUS"},
@@ -405,7 +416,7 @@ class FinanceReceiptView(APIView):
     /api/v1/applications/{id}/official-documents/finance_receipt/.
     """
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = OfficialDocumentStatusSerializer
 
     @extend_schema(
@@ -421,13 +432,9 @@ class FinanceReceiptView(APIView):
         },
     )
     def post(self, request, application_id):
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.payment.read"
+        )
 
         has_verified_payment = Payment.objects.filter(
             application_id=application.id, status__in=COMPLETED_PAYMENT_STATUSES
@@ -450,7 +457,7 @@ class FinanceReceiptView(APIView):
 class PaymentReceiptView(APIView):
     """POST /api/v1/applications/{id}/payment-receipt/"""
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = OfficialDocumentStatusSerializer
 
     @extend_schema(
@@ -466,13 +473,9 @@ class PaymentReceiptView(APIView):
         },
     )
     def post(self, request, application_id):
-        try:
-            application = _get_scoped_application(request, application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        application = _get_scoped_application(
+            request, application_id, "tenant.payment.read"
+        )
         has_verified_payment = Payment.objects.filter(
             application_id=application.id, status__in=COMPLETED_PAYMENT_STATUSES
         ).exists()

@@ -1,0 +1,18 @@
+### 2026-08-14T09:54:23Z L7 - apply_sql_migrations run 1 on v2_snap_13_6
+# Neon branch br-jolly-pine-ahybtg2e. The database is fully migrated by L2-L3
+# (44/44, 75 ledger rows), so the only pending script must be L7's.
+# Real backend/.env, DATABASE_URL overridden to the rehearsal database.
+# TESTING is NOT exported; REDIS_URL is NOT substituted.
+# interpreter: backend/.venv/bin/python3 (Django 5.2.14, CPython 3.14.4)
+
+--- dry run: what is pending ---
+Pending migrations: 1/45
+  [dry-run] would apply: 2026_08_14_01_neutral_platform_communication_templates.sql (sha256=3f6823fea9ef)
+[dry-run] NOTHING WAS APPLIED. 1 migration(s) would be applied. Re-run without --dry-run to apply them.
+dry-run exit=0
+
+--- real run ---
+Pending migrations: 1/45
+  applying: 2026_08_14_01_neutral_platform_communication_templates.sql (sha256=3f6823fea9ef) ... OK
+Applied 1 migration(s) successfully.
+apply_sql_migrations exit=0

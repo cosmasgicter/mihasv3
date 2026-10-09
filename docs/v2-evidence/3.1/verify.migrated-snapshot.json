@@ -1,0 +1,8 @@
+{
+  "baseline_label": "migrated-snapshot",
+  "candidate_label": "migrated-snapshot",
+  "ok": true,
+  "failure_count": 0,
+  "warning_count": 0,
+  "differences": []
+}

@@ -1,0 +1,18 @@
+$ cd apps/admissions && HARNESS_PW_CHANNEL=chrome PLAYWRIGHT_BASE_URL=http://localhost:8090 bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required tests/harness-e2e/required/admin-applications-roster.spec.ts
+# (fresh harness: harness/bin/harness up — volumes wiped, 0 applications in the database before the run)
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (1.2s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:367:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (1.2s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:402:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (785ms)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:425:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (758ms)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:440:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (987ms)
+  ✓   6 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (1.3s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:367:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (1.4s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:402:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (984ms)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:425:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (783ms)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:440:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (1.2s)
+
+  10 passed (45.2s)
+PW_EXIT=0

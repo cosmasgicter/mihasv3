@@ -63,8 +63,7 @@ The test asserts for each endpoint that:
 ``target_status='force_approved'`` is used for the correction test
 because it bypasses the 4-check integrity gate (which only fires on
 ``successful``) while still exercising the full sole-authority
-``_transition`` path under ``PAYMENT_HARDENING_FORWARD_ONLY=True`` —
-mirroring ``test_super_admin_payment_correction.py``.
+``_transition`` path — mirroring ``test_super_admin_payment_correction.py``.
 
 Validates: Requirements R16.1, R22.6
 """
@@ -391,7 +390,6 @@ class TestSuperAdminCorrectionPassthroughAbsentBypassVector:
         ENV_SETTINGS,
         ids=[name for name, _ in ENV_SETTINGS],
     )
-    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
     def test_legitimate_correction_succeeds_without_bypass(
         self, env_name, settings_overrides
     ):
@@ -465,7 +463,6 @@ class TestSuperAdminCorrectionPassthroughAbsentBypassVector:
             f"{len(audits)!r}."
         )
 
-    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
     def test_response_shape_matches_between_dev_and_prod(self):
         """Same legitimate request → same status + envelope in dev and prod.
 

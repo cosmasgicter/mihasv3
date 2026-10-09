@@ -1,15 +1,26 @@
-"""Bug condition exploration test — Email slip endpoint missing.
+"""Property 9: an application slip email has exactly one route, and it is wired.
 
-Property 9: Bug Condition — Email Slip Returns Hardcoded Error
+── History ─────────────────────────────────────────────────────────────────
+This suite began as a bug-condition exploration test for a real defect: the
+client asked to email an application slip, no backend route existed, and the
+client returned a hardcoded "not implemented" refusal. The fix registered
+``POST /api/v1/applications/{id}/email-slip/``, and these cases pinned it.
 
-This test encodes the EXPECTED (fixed) behavior:
-- POST /api/v1/applications/{id}/email-slip/ endpoint exists
-- It creates an EmailQueue record and dispatches send_email_task.delay()
-- Returns success with queued_id
+admissions-v2 task **10.4** (R13.5, R13.11, finding **API-04**) then built the
+canonical official-document family — ``POST …/official-documents/{type}/email/``,
+the only path with stored provenance, a fingerprint, a durable job and a delivery
+record in the communications history — and reduced ``/email-slip/`` to a proxy
+over it for the measured deprecation window R13.5 requires. Task **10.6** closed
+that window: zero production call sites, measured twice
+(``docs/v2-evidence/10.4/README.md`` §8 and
+``docs/v2-evidence/10.6/raw/usage-measurement.txt``), and the route is removed.
 
-On UNFIXED code, this test MUST FAIL because:
-- The endpoint does not exist (404)
-- No URL pattern is registered for email-slip/
+── What the property is now ─────────────────────────────────────────────────
+Property 9 was never "the path ``email-slip`` is in the URL conf". It was
+**a capability with no route behind it**, surfacing to the student as a hardcoded
+lie. So the property is asserted against the route that now carries the
+capability, plus its converse — that there is no *second* route for it, which is
+the finding (API-04) the consolidation closes.
 
 **Validates: Requirements 1.10, 1.11**
 """
@@ -19,15 +30,15 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
-import uuid  # noqa: E402
-from unittest.mock import MagicMock, patch  # noqa: E402
+import uuid  # noqa: E402,F401
 
 import django  # noqa: E402
 
 django.setup()
 
 from django.test import SimpleTestCase  # noqa: E402
-from django.urls import resolve, reverse, NoReverseMatch  # noqa: E402
+from django.urls import NoReverseMatch, resolve, reverse  # noqa: E402
+from django.urls.exceptions import Resolver404  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
@@ -40,116 +51,121 @@ _app_ids = st.uuids()
 
 
 # =========================================================================
-# Property 9: Bug Condition — Email Slip Endpoint Exists
+# Property 9a: the capability has a route
 # =========================================================================
 
 
-class TestEmailSlipEndpointExists(SimpleTestCase):
-    """Property 9: Bug Condition — Email Slip Returns Hardcoded Error.
+class TestOfficialDocumentEmailEndpointExists(SimpleTestCase):
+    """For any valid application UUID, the canonical slip-email route resolves.
 
-    For any valid application UUID, the URL pattern
-    POST /api/v1/applications/{id}/email-slip/ MUST resolve to a view.
-
-    On UNFIXED code, no such URL pattern exists, so this test will FAIL.
+    This is the original property, carried by the route that now owns the
+    capability. If it ever stops resolving, "email me my slip" is a dead end
+    again — which is the defect, independent of which URL served it.
 
     **Validates: Requirements 1.10, 1.11**
     """
 
     @given(app_id=_app_ids)
     @settings(max_examples=5, deadline=None)
-    def test_email_slip_url_resolves(self, app_id):
-        """The email-slip URL pattern must exist in the applications URL conf.
-
-        Bug condition: backendEndpoint('/api/v1/applications/{id}/email-slip/') NOT EXISTS
-        Expected: URL resolves to EmailSlipView
-        Actual (unfixed): NoReverseMatch or Resolver404
-        """
+    def test_canonical_email_url_resolves(self, app_id):
         try:
             url = reverse(
-                "applications:application-email-slip",
-                kwargs={"application_id": app_id},
+                "applications:application-official-document-email",
+                kwargs={"application_id": app_id, "document_type": "application_slip"},
             )
-            # URL should contain the application ID and email-slip
-            self.assertIn("email-slip", url)
-            self.assertIn(str(app_id), url)
         except NoReverseMatch:
             self.fail(
-                f"URL pattern 'application-email-slip' does not exist. "
-                f"Bug condition: no endpoint for POST /api/v1/applications/{app_id}/email-slip/. "
-                f"The email slip endpoint has not been implemented yet."
+                "URL pattern 'application-official-document-email' does not exist. "
+                "Bug condition: no endpoint can email an application slip."
             )
+        self.assertIn("official-documents/application_slip/email/", url)
+        self.assertIn(str(app_id), url)
 
     @given(app_id=_app_ids)
     @settings(max_examples=5, deadline=None)
-    def test_email_slip_url_path_resolves(self, app_id):
-        """The email-slip URL path must resolve to a view via resolve().
-
-        Bug condition: backendEndpoint NOT EXISTS
-        Expected: path resolves to a view
-        Actual (unfixed): Resolver404
-        """
-        from django.urls import Resolver404
-
-        url_path = f"/api/v1/applications/{app_id}/email-slip/"
+    def test_canonical_email_path_resolves_to_a_view(self, app_id):
+        url_path = (
+            f"/api/v1/applications/{app_id}"
+            "/official-documents/application_slip/email/"
+        )
         try:
             match = resolve(url_path)
-            # The resolved view should exist
-            self.assertIsNotNone(match.func)
         except Resolver404:
             self.fail(
                 f"URL path '{url_path}' does not resolve. "
-                f"Bug condition: no endpoint registered for email-slip. "
-                f"The email slip endpoint has not been implemented yet."
+                "Bug condition: the slip-email capability has no route."
+            )
+        self.assertIsNotNone(match.func)
+
+    @given(email=_emails)
+    @settings(max_examples=5, deadline=None)
+    def test_the_view_is_importable(self, email):
+        """The view backing the capability must exist as a real class."""
+        self.assertTrue(email)
+        try:
+            from apps.applications.official_document_views import (  # noqa: F401
+                OfficialDocumentEmailView,
+            )
+        except (ImportError, AttributeError):
+            self.fail(
+                "OfficialDocumentEmailView cannot be imported. "
+                "Bug condition: the slip-email capability has no implementation."
             )
 
+    @given(email=_emails)
+    @settings(max_examples=5, deadline=None)
+    def test_the_url_conf_wires_the_view(self, email):
+        """A view nobody routed to is the same defect as no view at all."""
+        import inspect
 
-class TestEmailSlipCreatesEmailQueue(SimpleTestCase):
-    """Property 9: Bug Condition — Email Slip Creates EmailQueue Record.
+        from apps.applications import urls as app_urls
 
-    For any valid application + email combination, the endpoint creates
-    an EmailQueue record and dispatches send_email_task before returning.
+        self.assertTrue(email)
+        source = inspect.getsource(app_urls)
+        self.assertIn(
+            "OfficialDocumentEmailView",
+            source,
+            "OfficialDocumentEmailView is not wired in apps/applications/urls.py.",
+        )
 
-    On UNFIXED code, this test MUST FAIL because the endpoint does not exist.
+
+# =========================================================================
+# Property 9b: and only one route (API-04)
+# =========================================================================
+
+
+class TestThereIsOnlyOneSlipEmailRoute(SimpleTestCase):
+    """The retired duplicate is gone (task 10.6, R13.5, finding API-04).
+
+    Two routes for one capability is the finding, not a convenience: the deleted
+    one bypassed the delivery gate, so its messages appeared in no communications
+    history and reported an ``unknown`` delivery state, and it emailed to whatever
+    address the request body named.
 
     **Validates: Requirements 1.10, 1.11**
     """
 
-    @given(email=_emails)
+    @given(app_id=_app_ids)
     @settings(max_examples=5, deadline=None)
-    def test_email_slip_view_can_be_imported(self, email):
-        """The EmailSlipView class must be importable from applications.views.
-
-        Bug condition: EmailSlipView does not exist
-        Expected: class is importable
-        Actual (unfixed): ImportError or AttributeError
-        """
-        try:
-            from apps.applications.views import EmailSlipView  # noqa: F401
-
-            self.assertTrue(True)
-        except (ImportError, AttributeError):
-            self.fail(
-                "EmailSlipView cannot be imported from apps.applications.views. "
-                "Bug condition: the email slip view has not been implemented yet."
+    def test_the_retired_route_name_does_not_reverse(self, app_id):
+        with self.assertRaises(NoReverseMatch):
+            reverse(
+                "applications:application-email-slip",
+                kwargs={"application_id": app_id},
             )
 
-    @given(email=_emails)
+    @given(app_id=_app_ids)
     @settings(max_examples=5, deadline=None)
-    def test_email_slip_url_conf_imports_view(self, email):
-        """The applications urls.py must import EmailSlipView.
+    def test_the_retired_path_does_not_resolve(self, app_id):
+        with self.assertRaises(Resolver404):
+            resolve(f"/api/v1/applications/{app_id}/email-slip/")
 
-        Bug condition: EmailSlipView not in URL conf imports
-        Expected: EmailSlipView is imported and wired
-        Actual (unfixed): not imported
-        """
+    def test_the_url_conf_no_longer_mentions_the_retired_view(self):
         import inspect
 
         from apps.applications import urls as app_urls
 
         source = inspect.getsource(app_urls)
-        self.assertIn(
-            "EmailSlipView",
-            source,
-            "EmailSlipView is not imported in apps/applications/urls.py. "
-            "Bug condition: the email slip endpoint has not been wired up.",
-        )
+        # The removal is documented in a comment, so the check is for the wiring
+        # (`EmailSlipView.as_view`) rather than for the name appearing at all.
+        self.assertNotIn("EmailSlipView.as_view", source)

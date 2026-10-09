@@ -1,0 +1,53 @@
+SKIPPED [1] tests/property/test_payment_fee_resolver_properties.py:524: Task 17.1 implements the API-layer sensitive-fields lock — this PBT will enforce it once wired
+SKIPPED [1] tests/property/test_schema_reconciliation_invariants.py:311: FK_Index_Invariant relies on Postgres-only information_schema.referential_constraints + pg_index joins; active backend is 'sqlite'.
+SKIPPED [1] tests/property/test_schema_reconciliation_invariants.py:477: migration_history is present but empty on the configured database — the bootstrap/reconcile step has not run, so the coverage property has no recorded set to compare against.
+SKIPPED [1] tests/unit/test_communication_template_scope.py:183: pg_indexes is Postgres-only; backend is 'sqlite'.
+SKIPPED [20] tests/unit/test_payment_dev_bypass_404.py:232: Task 43 adds @require_not_dev_bypass_in_production to every payment view; Phase 5.
+SKIPPED [1] tests/unit/test_payment_dev_bypass_404_phase5.py:183: Body-field dev-bypass vector only applies to POST endpoints
+SKIPPED [1] tests/unit/test_payment_dev_bypass_audit.py:179: body-vector only applies to POST views
+SKIPPED [11] tests/unit/test_payment_migration_indexes.py:72: pg_indexes is Postgres-only; current backend is 'sqlite'. Skipping index presence checks.
+SKIPPED [32] tests/unit/test_payment_sensitive_fields_lock.py:207: API-layer lock to be implemented as part of Phase 2 rollout — Task 17.1 is the enforcement gate for when it ships.
+SKIPPED [5] tests/unit/test_payment_sensitive_fields_lock.py: API-layer lock to be implemented as part of Phase 2 rollout — Task 17.1 is the enforcement gate for when it ships.
+SKIPPED [1] tests/unit/test_payment_snapshot_backfill.py:83: metadata__has_key requires Postgres; current backend is 'sqlite'. Skipping backfill integration test.
+SKIPPED [1] tests/unit/test_payment_snapshot_backfill_ambiguous.py:78: metadata__has_key requires Postgres; current backend is 'sqlite'. Skipping ambiguous-row backfill test.
+SKIPPED [3] tests/unit/test_payment_snapshot_backfill_verify.py:73: metadata__has_key requires Postgres; current backend is 'sqlite'. Skipping verify integration test.
+SKIPPED [1] tests/unit/test_tenant_migration.py:264: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:277: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/integration/test_tenant_cutover_idempotence.py:352: Cutover idempotence on a live branch is gated: set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real apply/re-apply + validation-SQL assertions. The cutover scripts are never applied to production or the Neon default branch from this environment.
+SKIPPED [3] tests/property/test_payment_receipt_properties.py:637: Partial unique indexes are PostgreSQL-only; active backend is 'sqlite'.
+SKIPPED [1] tests/property/test_payment_state_machine_properties.py:299: SQLite locks the whole table during concurrent write race tests
+SKIPPED [1] tests/property/test_perf_index_migration.py:318: CREATE INDEX CONCURRENTLY is Postgres-only (skipped on SQLite)
+SKIPPED [1] tests/property/test_perf_index_migration.py:352: EXPLAIN index-scan plans are Postgres-only (skipped on SQLite)
+SKIPPED [1] tests/property/test_schema_reconciliation_invariants.py:84: Snapshot_Invariant relies on Postgres-only jsonb operators; active backend is 'sqlite'.
+SKIPPED [1] tests/unit/test_apply_sql_migrations.py:497: CREATE INDEX CONCURRENTLY is Postgres-only
+SKIPPED [1] tests/unit/test_apply_sql_migrations.py:564: CREATE INDEX CONCURRENTLY is Postgres-only
+SKIPPED [1] tests/unit/test_apply_sql_migrations.py:624: CREATE INDEX CONCURRENTLY is Postgres-only
+SKIPPED [1] tests/unit/test_check_schema_drift_fk_indexes.py:192: FK fixture is Postgres-only
+SKIPPED [1] tests/unit/test_check_schema_drift_fk_indexes.py:236: FK fixture is Postgres-only
+SKIPPED [1] tests/unit/test_check_schema_drift_fk_indexes.py:299: _enumerate_foreign_keys is Postgres-only; current backend is 'sqlite'.
+SKIPPED [1] tests/unit/test_fk_index_backfill_completeness.py:192: FK index apply check is Postgres-only; current backend is 'sqlite'. Run with DJANGO_SETTINGS_MODULE=config.settings.dev (or any Postgres settings module) to exercise this path.
+SKIPPED [1] tests/unit/test_payment_receipt_generation.py:301: RECEIPT_NOT_ELIGIBLE eligibility gate (helper + PaymentReceiptView) is scheduled for the Phase 2 receipt rollout. This test is the enforcement anchor for when it ships.
+SKIPPED [3] tests/unit/test_payment_receipt_generation.py:338: RECEIPT_NOT_ELIGIBLE eligibility gate (helper + PaymentReceiptView) is scheduled for the Phase 2 receipt rollout. This test is the enforcement anchor for when it ships.
+SKIPPED [1] tests/unit/test_tenant_migration.py:293: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:388: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/property/test_ip_address_column.py:149: Database not available
+SKIPPED [1] tests/property/test_migration_idempotency.py:138: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:125: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:157: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:169: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:205: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:196: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:213: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:230: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:112: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_migration_idempotency.py:119: Legacy lenco_payment_integration.sql archive is not present in this checkout
+SKIPPED [1] tests/property/test_production_cors_pagination_fix_exploration.py:81: Cannot import prod settings without full env
+SKIPPED [5] tests/property/test_production_readiness_csrf.py: CSRF middleware refactored — tests need update
+SKIPPED [4] tests/property/test_submission_gate.py: Stale property tests target the pre-admin-force submission seam; current submission gates are covered by student submission/unit tests.
+SKIPPED [9] tests/property/test_submission_gates.py: Stale property tests target the pre-admin-force submission seam; current submission gates are covered by student submission/unit tests.
+SKIPPED [1] tests/property/test_unique_constraints.py:138: Database not available
+SKIPPED [1] tests/property/test_unique_constraints.py:225: Database not available
+SKIPPED [1] tests/property/test_unique_constraints.py:193: Database not available
+SKIPPED [1] tests/unit/test_api_quality_script.py:44: Python at /usr/bin/python3 lacks backend deps; run `pip install -r backend/requirements.txt`
+SKIPPED [1] tests/unit/test_tenant_migration.py:238: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.
+SKIPPED [1] tests/unit/test_tenant_migration.py:243: P16 migration idempotency is deferred to Phase 1 (task 3.5): set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real re-apply/backfill assertions. Applying the migration is never attempted against the production database configured in .env.

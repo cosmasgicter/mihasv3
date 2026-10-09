@@ -1,0 +1,123 @@
+### 2026-08-15T07:40:33Z M1 - the rollback lint (26 pre-existing violations in 9 other lanes' files) + pairing + freshness
+# The requirement: do not fix them, do not add a 27th.
+
+F.F..                                                                    [100%]
+=================================== FAILURES ===================================
+______________ test_every_rollback_statement_is_inverse_additive _______________
+tests/property/test_rollback_safe_operations.py:344: in test_every_rollback_statement_is_inverse_additive
+    rollback_subset=st.lists(
+               ^^^
+tests/property/test_rollback_safe_operations.py:370: in test_every_rollback_statement_is_inverse_additive
+    assert not failures, (
+E   AssertionError: Rollback file(s) contain non-inverse-additive operations. Per Requirement 9.2, every rollback statement must be one of: DROP INDEX, DROP COLUMN, DROP TABLE, DROP SEQUENCE, DELETE FROM migration_history (any form), or scoped DELETE FROM <table> WHERE ... .
+E     
+E     Violations:
+E       - 2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): SELECT 1
+E   assert not ['2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive pref...E, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): SELECT 1']
+E   Falsifying example: test_every_rollback_statement_is_inverse_additive(
+E       rollback_subset=[PosixPath('/home/cosmas/Downloads/mihasv3/backend/scripts/2026_07_16_03_canonical_assignment_validate_rollback.sql')],
+E   )
+___________ test_every_discovered_rollback_file_is_individually_safe ___________
+tests/property/test_rollback_safe_operations.py:423: in test_every_discovered_rollback_file_is_individually_safe
+    assert not all_failures, (
+E   AssertionError: Rollback file(s) contain non-inverse-additive operations.
+E     Violations:
+E       - 2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): SELECT 1
+E       - 2026_07_17_02_communication_template_unique_switch_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): DO $$ BEGIN IF NOT EXISTS ( SELECT 1 FROM pg_constraint WHERE conname = 'communication_templates_template_key_key' ) THEN ALTER TABLE communication_templates AD
+E       - 2026_07_18_01_tenant_fk_validate_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): SELECT 1
+E       - 2026_07_20_01_tenant_onboarding_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_onboarding_institution_id_fk') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT ten
+E       - 2026_07_20_01_tenant_onboarding_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_onboarding_created_by_id_fk') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT tenant_onboardin
+E       - 2026_07_20_01_tenant_onboarding_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_onboarding_state') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT chk_tenant_onboarding_s
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_institution_id_fk') THEN ALTER TABLE tenant_staff_invitations DROP 
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_profile_id_fk') THEN ALTER TABLE tenant_staff_invitations DROP CONSTRAINT tenan
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_membership_id_fk') THEN ALTER TABLE tenant_staff_invitations DROP CONSTRAINT te
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_invited_by_id_fk') THEN ALTER TABLE tenant_staff_invitations DROP CONSTRAINT te
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_staff_invitations_status') THEN ALTER TABLE tenant_staff_invitations DROP CONSTRAINT chk_tena
+E       - 2026_07_21_01_tenant_staff_invitations_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_staff_invitations_resend_nonneg') THEN ALTER TABLE tenant_staff_invitations DROP CONSTRAINT c
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_institution_id_fk') THEN ALTER TABLE tenant_change_requests DROP CONS
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_requested_by_id_fk') THEN ALTER TABLE tenant_change_requests DROP CONSTRAINT tena
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_reviewed_by_id_fk') THEN ALTER TABLE tenant_change_requests DROP CONSTRAINT tenan
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_kind') THEN ALTER TABLE tenant_change_requests DROP CONSTRAINT chk_tenant_cha
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_status') THEN ALTER TABLE tenant_change_requests DROP CONSTRAINT chk_tenant_c
+E       - 2026_07_22_01_tenant_change_requests_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_version_nonneg') THEN ALTER TABLE tenant_change_requests DROP CONSTRAINT chk_
+E       - 2026_07_25_01_canonical_subject_catalog_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): UPDATE subjects SET is_active = true WHERE code IN ('ADD_MATH', 'MUS', 'PHYS') AND is_active IS DISTINCT FROM true
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_verification_events DROP CONSTRAINT IF EXISTS document_verification_events_application_id_fk
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_verification_events DROP CONSTRAINT IF EXISTS document_verification_events_document_id_fk
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS document_upload_stages_document_id_fk
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS document_upload_stages_application_id_fk
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS chk_document_upload_stages_attempts
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS chk_document_upload_stages_state
+E       - 2026_07_26_02_document_current_slot_alignment_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): WITH ranked AS ( SELECT id, row_number() OVER w AS v, count(*) OVER (PARTITION BY application_id, document_type) AS grp_n FROM application_documents WINDOW w AS
+E   assert not ['2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive pref...name = 'chk_tenant_onboarding_state') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT chk_tenant_onboarding_s", ...]
+=========================== short test summary info ============================
+FAILED tests/property/test_rollback_safe_operations.py::test_every_rollback_statement_is_inverse_additive
+FAILED tests/property/test_rollback_safe_operations.py::test_every_discovered_rollback_file_is_individually_safe
+2 failed, 3 passed in 1.22s
+
+--- the violation list, verbatim: count it and look for 2026_08_15 ---
+      6 2026_07_26_01_document_evidence_lifecycle_rollback.sql
+      6 2026_07_22_01_tenant_change_requests_rollback.sql
+      6 2026_07_21_01_tenant_staff_invitations_rollback.sql
+      5 2026_07_16_03_canonical_assignment_validate_rollback.sql
+      3 2026_07_20_01_tenant_onboarding_rollback.sql
+      1 2026_07_26_02_document_current_slot_alignment_rollback.sql
+      1 2026_07_25_01_canonical_subject_catalog_rollback.sql
+      1 2026_07_18_01_tenant_fk_validate_rollback.sql
+      1 2026_07_17_02_communication_template_unique_switch_rollback.sql
+
+--- does 2026_08_15_01 appear anywhere in the lint output? (expect 0) ---
+0
+
+--- the violation total the lint reports ---
+
+--- migration-report freshness: how many scripts does the release report omit now? ---
+### 2026-08-15T07:40:50Z done
+
+--- violation lines counted from the individually-safe test (expect 26 across 9 files, none of them this batch's) ---
+      1 2026_07_16_03_canonical_assignment_validate_rollback.sql
+      1 2026_07_17_02_communication_template_unique_switch_rollback.sql
+      1 2026_07_18_01_tenant_fk_validate_rollback.sql
+      3 2026_07_20_01_tenant_onboarding_rollback.sql
+      6 2026_07_21_01_tenant_staff_invitations_rollback.sql
+      6 2026_07_22_01_tenant_change_requests_rollback.sql
+      1 2026_07_25_01_canonical_subject_catalog_rollback.sql
+      6 2026_07_26_01_document_evidence_lifecycle_rollback.sql
+      1 2026_07_26_02_document_current_slot_alignment_rollback.sql
+TOTAL violations: 26
+files: 9
+
+--- migration-report freshness: the omitted-script list, verbatim ---
+
+--- the whole set of migration / boot-gate / drift / pairing suites, serial ---
+ERROR: file or directory not found: tests/property/test_migration_history_report_freshness.py
+
+
+no tests ran in 0.14s
+### 2026-08-15T07:41:27Z done
+
+--- migration-report freshness: the omitted-script list, verbatim (13.6 recorded 6) ---
+    assert findings == [], "stale/incomplete release report: " + "; ".join(
+E   assert [Finding(cate...eport)'), ...] == []
+E     Left contains 7 more items, first extra item: Finding(category='june_migration_missing_from_report', object='2026_06_08_00_canonical_programs_id_default.sql', detail='June 2026+ migration script exists on disk but is absent from the generated report (regenerate the report)')
+    assert missing == [], f"release report omits June 2026+ scripts: {missing}"
+E   AssertionError: release report omits June 2026+ scripts: ['2026_06_08_00_canonical_programs_id_default.sql', '2026_08_06_01_admin_saved_filters.sql', '2026_08_09_01_application_tracking_secret.sql', '2026_08_12_01_tenant_new_table_fk_validate.sql', '2026_08_13_01_widen_application_snapshot_columns.sql', '2026_08_14_01_neutral_platform_communication_templates.sql', '2026_08_15_01_widen_application_intake_snapshot.sql']
+E   assert ['2026_06_08_...tes.sql', ...] == []
+E     Left contains 7 more items, first extra item: '2026_06_08_00_canonical_programs_id_default.sql'
+2 failed, 29 passed in 0.95s
+
+--- the migration / boot-gate / drift / pairing suites, serial ---
+E   + [] : Unexpected models found: ["applications.AdminSavedFilter → 'admin_saved_filters'"]
+____ TestSchemaCompatibility.test_total_model_count_matches_expected_schema ____
+tests/property/test_migration_properties.py:147: in test_total_model_count_matches_expected_schema
+    self.assertEqual(
+E   AssertionError: 50 != 49 : Expected 49 models, found 50: ['Profile', 'DeviceSession', 'LoginAttempt', 'PasswordResetToken', 'CSRFToken', 'UserPermissionOverride', 'Application', 'ApplicationStatusHistory', 'ApplicationDraft', 'ApplicationInterview', 'ApplicationCondition', 'ApplicationAmendment', 'AdminSavedFilter', 'ApplicationDocument', 'DocumentUploadStage', 'DocumentVerificationEvent', 'ApplicationGrade', 'Payment', 'FeeQuote', 'ProgramFee', 'WebhookEventLog', 'FeeWaiver', 'Institution', 'Program', 'CanonicalProgram', 'Intake', 'ProgramIntake', 'Subject', 'CourseRequirement', 'AcademicCalendarEvent', 'InstitutionAsset', 'InstitutionDocumentTemplate', 'InstitutionRequiredDocument', 'InstitutionDocumentProfile', 'InstitutionDomain', 'TenantOnboarding', 'TenantChangeRequest', 'UserInstitutionMembership', 'TenantStaffInvitation', 'AccessGrant', 'AuditLog', 'IdempotencyKey', 'Setting', 'Notification', 'UserNotificationPreference', 'EmailQueue', 'OutboxEvent', 'ErrorLog', 'MigrationHistory', 'CommunicationTemplate']
+=========================== short test summary info ============================
+FAILED tests/property/test_rollback_safe_operations.py::test_every_rollback_statement_is_inverse_additive
+FAILED tests/property/test_rollback_safe_operations.py::test_every_discovered_rollback_file_is_individually_safe
+FAILED tests/unit/test_migration_history_report_freshness.py::test_committed_release_report_is_fresh_and_complete
+FAILED tests/unit/test_migration_history_report_freshness.py::test_committed_release_report_covers_every_june_plus_script_on_disk
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_db_table_values_match_expected
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_no_extra_models_outside_expected_tables
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_total_model_count_matches_expected_schema
+7 failed, 55 passed in 8.99s
+### 2026-08-15T07:42:11Z done

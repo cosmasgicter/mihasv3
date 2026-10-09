@@ -1,0 +1,114 @@
+$ curl -c cookies -X POST http://localhost:8090/api/v1/auth/login/   # bootstrapped platform super-admin
+login success: True
+
+Harness state for this comparison (all of it created through platform endpoints):
+  - 6 applications, each one a real applicant who registered and created a draft
+  - 2 of them moved to 'submitted' via POST /api/v1/applications/{id}/review/
+  - the 'review_sla_days' Setting written to 0 via POST /api/v1/admin/settings/,
+    so a just-submitted application is past SLA and 'overdue_reviews' is non-zero
+
+======================================================================
+$ curl -b cookies http://localhost:8090/api/v1/admin/dashboard/
+======================================================================
+health     : {'state': 'operational', 'definition': 'Every metric source answered this request.'}
+freshness  : {'generated_at': '2026-08-08T03:33:03.635690+00:00', 'stale_after_seconds': 120}
+scope      : {'kind': 'platform', 'institution_id': None, 'all_access': True, 'institution_count': None}
+sources    : {'applications': {'state': 'ok', 'reason': None}, 'accounts': {'state': 'ok', 'reason': None}, 'activity': {'state': 'ok', 'reason': None}}
+
+metric                     state    value  roster_query
+----------------------------------------------------------------------------------------
+total_applications         ok       6      -
+decision_queue             ok       2      review_queue=true
+accepted_path              ok       0      -
+rejected                   ok       0      -
+overdue_reviews            ok       2      overdue_review=true
+deadline_pressure          ok       0      deadline_pressure=true
+pending_documents          ok       0      has_pending_documents=true
+payment_review             ok       0      payment_status=pending_review
+upcoming_interviews        ok       0      has_upcoming_interviews=true
+today_activity             ok       2      -
+applications_this_week     ok       2      -
+applications_this_month    ok       2      -
+payment_resolved           ok       0      -
+payment_unpaid             ok       6      -
+staff_accounts_total       ok       9      -
+staff_accounts_enabled     ok       9      -
+
+windows    : {'review_sla_days': 0, 'deadline_pressure_hours': 48, 'next_deadline_at': None, 'last_activity_at': '2026-08-08T03:30:07.013246+00:00'}
+by_status  : {'draft': 4, 'submitted': 2}
+
+Every metric carries its definition. Two of them, verbatim:
+  decision_queue        : Submitted or under review — waiting on a staff decision.
+  staff_accounts_enabled: Accounts in your scope that are enabled to sign in. This is not a count of users currently online — the platform does not measure presence.
+
+Pre-9.2 compatibility blocks (a key is OMITTED when its metric is unknown,
+never written as 0):
+  applications    : {'total': 6, 'today': 2, 'today_activity': 2, 'this_week': 2, 'this_month': 2, 'by_status': {'draft': 4, 'submitted': 2}}
+  users           : {'total': 9, 'enabled': 9}
+  needs_attention : {'pending_documents': 0, 'payment_review': 0, 'upcoming_interviews': 0, 'overdue_reviews': 2, 'deadline_pressure': 0}
+
+======================================================================
+each tile counter  vs  the totalCount of the roster its own link opens
+======================================================================
+decision_queue         tile=2     GET /admin/applications/?review_queue=true                  totalCount=2    MATCH
+overdue_reviews        tile=2     GET /admin/applications/?overdue_review=true                totalCount=2    MATCH
+deadline_pressure      tile=0     GET /admin/applications/?deadline_pressure=true             totalCount=0    MATCH
+pending_documents      tile=0     GET /admin/applications/?has_pending_documents=true         totalCount=0    MATCH
+payment_review         tile=0     GET /admin/applications/?payment_status=pending_review      totalCount=0    MATCH
+upcoming_interviews    tile=0     GET /admin/applications/?has_upcoming_interviews=true       totalCount=0    MATCH
+
+======================================================================
+the same numbers, recomputed in psql inside the harness Postgres
+(hand-written SQL against the same rows — a second query builder)
+======================================================================
+accepted_path|0
+decision_queue|2
+overdue_reviews|2
+payment_review|0
+pending_documents|0
+rejected|0
+review_sla_days (Setting)|0
+staff_accounts_enabled|9
+staff_accounts_total|9
+total_applications|6
+upcoming_interviews|0
+
+======================================================================
+a selected school narrows every number (scope, R8.6)
+======================================================================
+institution_id=dc13d476-4dda-4c09-ad5a-8f6c537f8822
+  scope              : {'kind': 'platform', 'institution_id': 'dc13d476-4dda-4c09-ad5a-8f6c537f8822', 'all_access': True, 'institution_count': None}
+  total_applications : 6
+  decision_queue     : 2
+psql total for that school|6
+psql decision_queue for that school|2
+
+======================================================================
+an out-of-scope / unknown institution_id is a masked 404, not a 200 of zeros
+======================================================================
+institution_id=11111111-1111-4111-8111-111111111111     -> HTTP 404  {"success":false,"error":"Not found","code":"NOT_FOUND"}
+institution_id=not-a-uuid                               -> HTTP 404  {"success":false,"error":"Not found","code":"NOT_FOUND"}
+
+the probe is recorded as a scope denial (never the tenant's identity):
+scope.denied|dashboard.institution|security
+scope.denied|dashboard.institution|security
+scope.denied|dashboard.institution|security
+scope.denied|dashboard.institution|security
+
+======================================================================
+API metric  vs  independent psql count, side by side
+======================================================================
+metric                   API        psql       verdict
+------------------------------------------------------------
+accepted_path            0          0          MATCH
+decision_queue           2          2          MATCH
+overdue_reviews          2          2          MATCH
+payment_review           0          0          MATCH
+pending_documents        0          0          MATCH
+rejected                 0          0          MATCH
+staff_accounts_enabled   9          9          MATCH
+staff_accounts_total     9          9          MATCH
+total_applications       6          6          MATCH
+upcoming_interviews      0          0          MATCH
+
+ALL_COUNTERS_MATCH: True

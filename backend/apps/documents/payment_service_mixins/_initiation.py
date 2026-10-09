@@ -1,4 +1,11 @@
-"""Payment initiation mixin: initiate_payment, initiate, initiate_mobile_money, mark_provider_initiation, defer_payment."""
+"""Payment initiation mixin: initiate, defer_payment, initiate_mobile_money.
+
+One initialisation path (admissions-v2 task 8.2). The pre-hardening
+``initiate_payment`` and the ``PAYMENT_HARDENING_FORWARD_ONLY`` fallback that
+selected it were deleted after the parity matrix in
+``tests/unit/test_payment_path_parity_8_2.py`` proved both paths produced the
+same ledger.
+"""
 
 from __future__ import annotations
 
@@ -27,7 +34,6 @@ from apps.documents.payment_helpers import (
     _call_lenco_mobile_money,
     _check_retry_limit,
     _classify_mobile_money_response,
-    _forward_only_enabled,
     _build_tenant_payment_metadata,
     _normalize_phone_e164,
     _operator_for_msisdn,
@@ -38,6 +44,55 @@ from apps.documents.payment_types import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _bind_fee_quote(application, payment, actor_id, *, expected_base_amount) -> None:
+    """Redeem a server-authored fee quote for *payment* (task 8.1, R12.1).
+
+    Called inside the transaction that created the Payment, so a Payment row can
+    never exist without the quote that authorised its amount. The quote records
+    what the student was shown — base, provider fee, total, currency, bearer,
+    residency, expiry, configuration binding — and single-use redemption means a
+    stale or already-spent quote cannot fund a second payment.
+
+    ``payment.fee`` / ``payment.bearer`` carry the *quoted* provider fee and bearer
+    until the provider reports its actual fee on verification; ``payment.amount``
+    stays the settlement amount sent to the provider (unchanged behaviour — the
+    customer-borne provider fee is added by the provider, which is exactly why the
+    client must not invent it).
+
+    A quote failure is never swallowed into a payment with an unauthorised amount:
+    it propagates so the caller surfaces the stable code.
+    """
+    from apps.documents.fee_quote_service import FeeQuoteService
+
+    service = FeeQuoteService()
+    quote = service.create_and_redeem(
+        application=application,
+        payment_id=payment.id,
+        actor_id=actor_id,
+        expected_base_amount=expected_base_amount,
+    )
+
+    meta = payment.metadata or {}
+    meta["fee_quote"] = {
+        "quote_id": str(quote.id),
+        "fee_configuration_version": quote.fee_configuration_version,
+        "configuration_version": quote.configuration_version,
+        "base_amount": str(quote.base_amount),
+        "provider_fee": str(quote.provider_fee),
+        "total_amount": str(quote.total_amount),
+        "currency": quote.currency,
+        "bearer": quote.bearer,
+        "residency_category": quote.residency_category,
+        "expires_at": quote.expires_at.isoformat() if quote.expires_at else None,
+        "signature_version": quote.signature_version,
+    }
+    payment.metadata = meta
+    payment.fee = quote.provider_fee
+    payment.bearer = quote.bearer
+    payment.updated_at = timezone.now()
+    payment.save(update_fields=["metadata", "fee", "bearer", "updated_at"])
 
 
 def _generate_reference(application_number: str) -> str:
@@ -53,94 +108,6 @@ def _generate_reference(application_number: str) -> str:
 
 class PaymentInitiationMixin:
     """Mixin for payment initiation methods."""
-
-    def initiate_payment(
-        self, application_id: UUID, user_id: UUID
-    ) -> PaymentInitiationResult:
-        """Create a *pending* Payment record with the resolved fee.
-
-        Returns existing pending payment if one exists. Enforces
-        MAX_PAYMENT_ATTEMPTS per application.
-        """
-        from django.db import transaction
-
-        from apps.applications.models import Application
-
-        # Double-payment prevention: atomic + select_for_update to close TOCTOU race.
-        with transaction.atomic():
-            existing = (
-                Payment.objects.select_for_update()
-                .filter(application_id=application_id, status='pending')
-                .first()
-            )
-            if existing:
-                logger.info(
-                    "Returning existing pending payment %s for application %s",
-                    existing.id,
-                    application_id,
-                )
-                return PaymentInitiationResult(
-                    payment_id=existing.id,
-                    reference=existing.transaction_reference,
-                    amount=existing.amount,
-                    currency=existing.currency,
-                )
-
-            # Retry limit enforcement (Req 8.4, 8.5)
-            _check_retry_limit(application_id, MAX_PAYMENT_ATTEMPTS, EXPIRED_EXCLUSION_DAYS)
-
-            application = Application.objects.get(id=application_id)
-
-            if application.payment_status in COMPLETED_PAYMENT_STATUSES:
-                return PaymentInitiationResult(
-                    payment_id=None,
-                    reference='',
-                    amount=Decimal('0'),
-                    currency='',
-                )
-
-            resolved_program, resolved, effective_amount = _resolve_fee_for_application(
-                self._fee_resolver, application, application_id,
-            )
-
-            # Use the module-level _generate_reference from payment_service.py
-            # (which is the patchable one tests target).
-            from apps.documents.payment_service import _generate_reference as _gen_ref
-            reference = _gen_ref(application.application_number)
-
-            payment = Payment.objects.create(
-                application_id=application_id,
-                user_id=user_id,
-                amount=effective_amount,
-                currency=resolved.currency,
-                status='pending',
-                transaction_reference=reference,
-                payment_method=None,
-                metadata={
-                    **_build_tenant_payment_metadata(application),
-                    'residency_category': resolved.residency_category,
-                    'fee_source': resolved.source,
-                    'original_amount': str(resolved.amount),
-                    'waiver_applied': str(effective_amount) != str(resolved.amount),
-                },
-                created_at=timezone.now(),
-                updated_at=timezone.now(),
-            )
-
-            logger.info(
-                "Payment initiated: payment=%s reference=%s amount=%s %s",
-                payment.id,
-                reference,
-                effective_amount,
-                resolved.currency,
-            )
-
-            return PaymentInitiationResult(
-                payment_id=payment.id,
-                reference=reference,
-                amount=effective_amount,
-                currency=resolved.currency,
-            )
 
     def defer_payment(
         self, application_id: UUID, user_id: UUID
@@ -221,6 +188,12 @@ class PaymentInitiationMixin:
                 updated_at=timezone.now(),
             )
 
+            # Task 8.1: a deferred payment is still a money contract — the student
+            # is told what they will owe, so it carries a quote too (R12.1).
+            _bind_fee_quote(
+                application, payment, user_id, expected_base_amount=effective_amount
+            )
+
             Application.objects.filter(id=application_id).update(
                 payment_status='deferred', updated_at=timezone.now(),
             )
@@ -292,14 +265,16 @@ class PaymentInitiationMixin:
     def initiate(
         self, application_id: UUID, user_id: UUID
     ) -> PaymentInitiationResult:
-        """Hardened initiate: resolve fee, enforce retry limit, create pending Payment."""
-        if not _forward_only_enabled():
-            # LEGACY: preserve existing behaviour byte-for-byte.
-            return self.initiate_payment(application_id, user_id)
+        """Resolve the fee, enforce the retry limit, create the pending Payment.
 
+        The only initialisation path (task 8.2). Idempotent by construction: an
+        application that already holds an active (``pending``/``deferred``) row
+        gets that row back instead of a second one, and the
+        ``uq_payments_one_active_per_application`` index makes the concurrent
+        case converge on the same row.
+        """
         from django.db import transaction
 
-        from apps.applications.identifier_resolver import IdentifierResolver
         from apps.applications.models import Application
 
         with transaction.atomic():
@@ -319,6 +294,45 @@ class PaymentInitiationMixin:
                     existing.id,
                     application_id,
                 )
+                # A reused *deferred* row must be ACTIVATED, not just handed back.
+                #
+                # admissions-v2 task 8.3 (R12.3, R12.4), finding STU-09.
+                #
+                # `deferred` means "the fee is owed and nobody is collecting it".
+                # The moment this row is handed to a caller that goes on to place a
+                # real provider collection against it (`initiate_mobile_money`, and
+                # the widget path through `initiate`), that stops being true — so
+                # the ledger has to say `pending`, which is the status every other
+                # part of the platform reads as "a collection is open":
+                #
+                #   * `derive_payment_phase` only answers action_required /
+                #     provider_processing for a `pending` row, so a deferred row
+                #     with a live prompt rendered as "not paid" and offered another
+                #     "Pay now" — a second collection against an open one;
+                #   * `poll_pending_payments_task` / `expire_stale` only sweep
+                #     `pending`, so nothing would ever reconcile or expire it;
+                #   * `applications.payment_status` would keep deriving `deferred`
+                #     while the student's handset was being debited.
+                #
+                # `ALLOWED_TRANSITIONS[("deferred", "pending")] = {"initiate"}`
+                # already existed for exactly this edge; nothing was calling it.
+                # Going through `_transition` keeps the sole-writer contract
+                # (ADR-007), so the activation is audited and forward-only like
+                # every other status change.
+                #
+                # The amount is deliberately NOT re-priced: `payment.amount` is the
+                # settlement amount sent to the provider, and a customer-borne
+                # provider fee is added by the provider itself (see
+                # `_bind_fee_quote`). Re-pricing here would double-count it.
+                if existing.status == "deferred":
+                    self._transition(
+                        existing,
+                        "pending",
+                        source="initiate",
+                        actor=user_id,
+                        reason="student resumed a deferred payment",
+                    )
+                    existing.refresh_from_db()
                 return PaymentInitiationResult(
                     payment_id=existing.id,
                     reference=existing.transaction_reference,
@@ -349,22 +363,12 @@ class PaymentInitiationMixin:
                 )
 
             # ---- 4. Resolve the fee + build the immutable snapshot ----
-            resolved_program = IdentifierResolver.resolve_program(
-                application.program
-            )
-            if resolved_program.source == "not_found":
-                logger.error(
-                    "initiate: program '%s' not found for application %s",
-                    application.program,
-                    application_id,
-                )
-                raise ValueError(
-                    f"Cannot resolve program '{application.program}'. "
-                    "Please verify the program exists and is active."
-                )
-
+            # The offering + fee are resolved canonically from the application's
+            # program_offering binding inside resolve_for_payment_snapshot; a
+            # missing/ambiguous fee fails closed (FEE_NOT_CONFIGURED) rather than
+            # defaulting (DATA-05, STU-08, R12.2). No display-name lookup here.
             resolved, effective_amount, snapshot_dict = _build_snapshot_dict(
-                self._fee_resolver, application, application_id, resolved_program,
+                self._fee_resolver, application, application_id,
             )
 
             from apps.documents.payment_service import _generate_reference as _gen_ref
@@ -417,6 +421,13 @@ class PaymentInitiationMixin:
                             currency=existing.currency,
                         )
                 raise
+
+            # ---- 5b. Bind the server-authored fee quote (task 8.1, R12.1) ----
+            # Same transaction as the Payment insert: no Payment row exists whose
+            # amount was not authorised by a signed, unexpired, single-use quote.
+            _bind_fee_quote(
+                application, payment, user_id, expected_base_amount=effective_amount
+            )
 
             # ---- 6. Audit and return ----
             self._emit_audit(

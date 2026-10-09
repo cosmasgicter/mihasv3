@@ -1,0 +1,193 @@
+### 2026-08-15T08:25:05Z this batch's own hunks and line numbers
+# The whole V2 tree is uncommitted (13.6 §9.3), so 'git diff' against bae29a28d mixes every
+# earlier V2 task's hunks into the same files - models.py alone carries task 10.x's five new
+# columns, task 8.x's tracking columns and AdminSavedFilter. L2-L3 §7 item 11 makes the same
+# point. So files and LINE NUMBERS are attributed here rather than per-file diff totals.
+
+=== 1. backend/apps/applications/models.py - ONE line changed, plus a comment block above it ===
+@@ -75,0 +76,13 @@ class Application(models.Model):
++    # The three legacy display snapshots. Each mirrors its canonical source's own
++    # width, so a name the catalogue accepts can always be snapshotted:
++    #   program     <- programs.name      varchar(255)
++    #   intake      <- intakes.name       varchar(255)
++    #   institution <- institutions.name  varchar(255)
++    # ``intake`` was ``max_length=100`` until task 13.6 remediation M1. That was
++    # the last surviving half of GATE-13.3-13: a 101-255 character intake name is
++    # legal in the catalogue, Django does not validate ``max_length`` on
++    # ``.save()``, and the write reached Postgres whole and raised an unhandled
++    # ``DataError`` -> HTTP 500 on EVERY application create for that intake.
++    # Widening the model alone would only have moved the failure; the matching
++    # column widen ships as ``backend/scripts/2026_08_15_01_widen_application_intake_snapshot.sql``.
++    # Do not narrow any of the three below its source column again.
+@@ -77 +90 @@ class Application(models.Model):
+-    intake = models.CharField(max_length=100, db_index=True)
++    intake = models.CharField(max_length=255, db_index=True)
+@@ -141,0 +155,49 @@ class Application(models.Model):
++    # Canonical assignment snapshot (admissions-v2 task 5.2, design §7.2/§8.3/§9.3).
++    # Populated by the canonical assignment resolution when a draft is created
++    # from canonical offering + intake IDs. Legacy rows keep NULL and fall back
++    # to live resolution. See backend/scripts/2026_07_23_01_application_assignment_snapshot.sql.
++    #
++    #  * configuration_version — deterministic content version of the resolved
++    #    offering configuration captured under one transactionally consistent
++    #    read (R7.2). Readiness recomputes + compares to detect drift.
++    #  * requirements_snapshot — the versioned dynamic Required_Documents resolved
++    #    for the assigned scope (R11.6, §9.3).
++    #  * eligibility_snapshot — the eligibility rules resolved for the offering.
++    #  * assignment_version — optimistic-concurrency version (starts at 1; the
+
+current state, with line numbers:
+89:    program = models.CharField(max_length=255)
+90:    intake = models.CharField(max_length=255, db_index=True)
+91:    institution = models.CharField(max_length=255)
+
+=== 2. backend/config/settings/prod.py ===
+diff --git a/backend/config/settings/prod.py b/backend/config/settings/prod.py
+--- a/backend/config/settings/prod.py
++++ b/backend/config/settings/prod.py
+@@ -44,24 +44,34 @@ if not AUDIT_LOG_ENCRYPTION_KEY:  # noqa: F405
+     raise ImproperlyConfigured("AUDIT_LOG_ENCRYPTION_KEY is required in production.")
+ 
+-# Payment hardening is mandatory in production. These settings intentionally
+-# override the rollout flags from base.py so a missing env var cannot silently
+-# leave the legacy payment paths active.
+-PAYMENT_HARDENING_FORWARD_ONLY = True
+-PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
++# Payment rate limiting is mandatory in production, so a missing env var cannot
++# silently leave the payment endpoints unthrottled. The forward-only,
++# strict-dedup, and force-approved flags no longer exist: admissions-v2 task 8.2
++# deleted the alternative implementations they used to select, so their
++# behaviour is now unconditional.
+ PAYMENT_HARDENING_RATE_LIMITS = True
+-PAYMENT_HARDENING_FORCE_APPROVED = True
+ 
+ # AI hardening is mandatory in production for PII protection. Mirrors the
+ # payment-hardening pattern: env vars cannot silently leave PII redaction off.
+-AI_HARDENING_CIRCUIT_BREAKER = True
+-AI_HARDENING_RATE_LIMITS = True
+-AI_HARDENING_CACHE = True
+-AI_HARDENING_REDACTION = True
++DOCUMENT_EXTRACT_RATE_LIMITS = True
+ 
+ # Production log volume: sample healthy 200s at 10%. Slow requests (>1s)
+ # and 4xx/5xx responses are always logged regardless of sample rate.
+-# Override via REQUEST_METRIC_SAMPLE_RATE env var if needed.
+-import os as _os  # noqa: E402
+-_os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
++# Override via the REQUEST_METRIC_SAMPLE_RATE env var, which still wins.
++#
++# This is a SETTING, not an ``os.environ.setdefault``. Until task 13.6
++# remediation M2 it was the latter, and that made *importing* this module — which
++# is inspection, not activation — silently re-sample every ``MetricsMiddleware``
++# constructed later in the same process. One test does exactly that import
++# (``tests/property/test_production_cors_pagination_fix_exploration.py:78``), and
++# on the day its environment-conditional skip stopped firing, two unrelated
++# metrics properties in ``tests/property/test_production_readiness_metrics.py``
++# began measuring 0.1 instead of the 1.0 they assert under. Measured, with the
++# mechanism and the 1.0 -> 0.1 / 200-of-200 -> 26-of-200 readings, in
++# docs/v2-evidence/13.6/remediation/M1-M2/raw/11-m2-mechanism.txt.
++#
++# The env var keeps precedence so an operator override behaves exactly as it did
++# under ``setdefault``; ``MetricsMiddleware`` resolves env first, then this
++# setting, then 1.0.
++REQUEST_METRIC_SAMPLE_RATE = 0.1
+ 
+ # CORS — production frontend only (explicit origins, no regexes)
+
+=== 3. backend/apps/common/middleware.py - MetricsMiddleware only ===
+43:    def __init__(self, get_response):
+106:    def __init__(self, get_response):
+128:class MetricsMiddleware:
+158:    DEFAULT_SAMPLE_RATE = 1.0
+161:    def resolve_sample_rate(cls):
+177:            raw = cls.DEFAULT_SAMPLE_RATE
+182:            rate = cls.DEFAULT_SAMPLE_RATE
+191:    def __init__(self, get_response):
+196:        self._sample_rate = self.resolve_sample_rate()
+323:    def __init__(self, get_response):
+(the docstring at :128-142 and the block at :155-196 are this batch's; nothing else in the file was touched)
+
+=== 4. backend/tests/property/test_production_readiness_metrics.py ===
+diff --git a/backend/tests/property/test_production_readiness_metrics.py b/backend/tests/property/test_production_readiness_metrics.py
+--- a/backend/tests/property/test_production_readiness_metrics.py
++++ b/backend/tests/property/test_production_readiness_metrics.py
+@@ -14,5 +14,5 @@ os.environ["TESTING"] = "1"
+ 
+ import logging  # noqa: E402
+-from unittest.mock import MagicMock  # noqa: E402
++from unittest.mock import MagicMock, patch  # noqa: E402
+ 
+ import django  # noqa: E402
+@@ -80,7 +80,36 @@ def _get_metric_records(handler: _LogCapture) -> list[logging.LogRecord]:
+ 
+ def _run_middleware(method, path, status_code):
+-    """Run MetricsMiddleware and return (response, metric_records)."""
++    """Run MetricsMiddleware and return (response, metric_records).
++
++    The sample rate is pinned to ``1.0`` for the construction, and that is
++    load-bearing rather than tidy.
++
++    Properties 2, 3 and 4 are statements about *what an emitted metric log
++    contains* and *which paths are skipped*. They say nothing about sampling,
++    which is a later, separately-owned volume control
++    (``MetricsMiddleware.resolve_sample_rate``, exercised on its own in
++    ``tests/unit/test_metrics_middleware_sampling.py``). Left unpinned, this
++    helper inherits whatever ``REQUEST_METRIC_SAMPLE_RATE`` happens to be in the
++    process environment — so "every non-health request emits exactly one log"
++    silently becomes a coin flip, and the property measures the sampler instead
++    of the claim it states.
++
++    That is not hypothetical: until task 13.6 remediation M2,
++    ``config/settings/prod.py`` set that variable with
++    ``os.environ.setdefault`` at *import* time, and one test in this same
++    directory imports prod settings to inspect a cookie flag
++    (``test_production_cors_pagination_fix_exploration.py:78``, behind an
++    environment-conditional skip). On the run where that skip stopped firing,
++    both properties below started failing with ``0 != 1`` on the first healthy
++    200 the generator produced — with nothing in either traceback pointing at
++    the cause. See docs/v2-evidence/13.6/remediation/M1-M2/README.md §3.
++
++    Pinning it strengthens these rows: they now fail only when the emission
++    itself is wrong, and the pin is the condition the claim is true under rather
++    than an allowance carved out of it.
++    """
+     response = _make_response(status_code)
+-    middleware = MetricsMiddleware(lambda req: response)
++    with patch.dict(os.environ, {"REQUEST_METRIC_SAMPLE_RATE": "1.0"}):
++        middleware = MetricsMiddleware(lambda req: response)
+     request = _make_request(method, path)
+ 
+@@ -266,5 +295,5 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
+         # Capture logs from the payment_service logger
+         handler = _LogCapture()
+-        ps_logger = logging.getLogger("apps.documents.payment_service_mixins._verification")
++        ps_logger = logging.getLogger("apps.documents.payment_service_mixins._core")
+         ps_logger.addHandler(handler)
+         ps_logger.setLevel(logging.DEBUG)
+@@ -272,5 +301,5 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
+         try:
+             # Mock the DB layer and run _update_payment_status
+-            with patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs, \
++            with patch("apps.documents.payment_service_mixins._core.Payment.objects") as mock_qs, \
+                  patch("apps.applications.models.Application.objects") as mock_app_qs, \
+                  patch("django.db.transaction.atomic") as mock_atomic:
+@@ -287,8 +316,16 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
+                 from apps.documents.payment_service import PaymentService
+                 service = PaymentService()
+-                service._update_payment_status(
++                # Task 8.2: the business metric moved with the mutation
++                # into ``_transition``, the sole writer.
++                service._transition(
+                     locked_payment,
+                     "successful",
+-                    {"amount": str(amount)},
++                    source="webhook",
++                    actor=None,
++                    provider_data={
++                        "amount": str(amount),
++                        "currency": currency,
++                        "lencoReference": "LR-METRIC",
++                    },
+                 )
+         finally:
+### 2026-08-15T08:25:05Z done

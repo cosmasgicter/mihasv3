@@ -20,6 +20,18 @@ interface EnhancedProgressIndicatorProps {
   completedSteps?: Set<number>;
   progressPercentage?: number;
   className?: string;
+  /**
+   * Drop the mobile-only step label and overall progress bar (admissions-v2 task
+   * 11.2, R16.5).
+   *
+   * The step rail is this component's job; "step 3 of 6" and one progress
+   * percentage are now `WizardProgressSummary`'s, so rendering both put two
+   * progress bars and two step counters in the same phone viewport. Defaulted
+   * `false` so every existing caller — including
+   * `wizardProperties.property.test.ts`, which pins this component's rendered
+   * output — is byte-identical.
+   */
+  compact?: boolean;
 }
 
 interface StepItemProps {
@@ -214,6 +226,7 @@ export const EnhancedProgressIndicator = ({
   completedSteps = new Set(),
   progressPercentage,
   className,
+  compact = false,
 }: EnhancedProgressIndicatorProps) => {
   const { shouldAnimate } = useOptimizedAnimation();
   const desktopStepRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -302,10 +315,42 @@ export const EnhancedProgressIndicator = ({
         </div>
       </div>
 
-      {/* Mobile: Compact horizontal dots */}
+      {/*
+        Mobile: six step controls, each 44 x 44 at 320 px (GATE-13.3-02, 13.6 §8.1
+        item L6; R16.1 and R16.2 together).
+
+        Task 13.3 measured this row at **18-20 x 40/48** at 320 x 568 — the width
+        R16.1 says the student experience *"SHALL be designed at … first"*. Two
+        defects compounded:
+
+        * the buttons were declared `w-10 h-10` (40 px, already under R16.2's 44),
+          and the current one `w-12 h-12`; and
+        * nothing was `shrink-0`, so six of them plus five 24 px connectors plus ten
+          12 px gaps — 504 px of intrinsic width — were squeezed into ~288 px of
+          usable room and flex compressed them to 18-20 px **wide**.
+
+        The desktop variant of this same component sizes its circle from
+        `var(--touch-target, 44px)` and has always been right; only this branch
+        hardcoded a number.
+
+        The arithmetic the fix is built on: 6 x 44 = 264 px, and 320 px minus the
+        wizard card's own horizontal padding leaves ~272-288 px. So the buttons are
+        `min-h-touch min-w-touch shrink-0`, the row starts at `gap-1` and only
+        relaxes to `gap-3` at >= 375 px (`xs:`), and the connector segments are
+        `hidden xs:block` with `w-4 xs:w-6` — the two things that must give way are
+        decoration, and progress is still stated three other ways on this same
+        screen (each button's own `aria-label … (completed)`, the current-step
+        label below, and the overall progress bar). `flex-wrap` is the backstop: if
+        a future step count or a 200% text zoom still cannot fit, the row wraps
+        rather than compressing a control below 44 px again.
+
+        The current step keeps its emphasis without keeping its 48 px: a ring and
+        the fill distinguish it, so all six controls are one size and the row's
+        intrinsic width is predictable.
+      */}
       <div className="md:hidden">
         <div
-          className="flex items-center justify-center gap-3 py-2"
+          className="flex flex-wrap items-center justify-center gap-1 py-2 xs:gap-3"
           role="group"
           aria-label="Application steps"
           data-orientation="horizontal"
@@ -319,10 +364,13 @@ export const EnhancedProgressIndicator = ({
             return (
               <React.Fragment key={step.id}>
                 {index > 0 && (
-                  <div className={cn(
-                    'h-0.5 w-6 rounded-full transition-[background-color] duration-200',
-                    index <= currentStepIndex ? 'bg-primary' : 'bg-border/40'
-                  )} />
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      'hidden h-0.5 w-4 shrink-0 rounded-full transition-[background-color] duration-200 xs:block xs:w-6',
+                      index <= currentStepIndex ? 'bg-primary' : 'bg-border/40'
+                    )}
+                  />
                 )}
                 <button
                   type="button"
@@ -331,14 +379,14 @@ export const EnhancedProgressIndicator = ({
                   onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, mobileStepRefs)}
                   disabled={!isClickable}
                   className={cn(
-                    'relative flex items-center justify-center rounded-full transition-[color,background-color,border-color,box-shadow,transform] duration-200',
+                    'relative flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-full transition-[color,background-color,border-color,box-shadow,transform] duration-200',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isClickable ? 'cursor-pointer' : 'cursor-default',
                     isCurrent
-                      ? 'w-12 h-12 bg-primary text-white  shadow-primary/25'
+                      ? 'bg-primary text-white ring-2 ring-primary/40 ring-offset-2 ring-offset-card shadow-primary/25'
                       : isCompleted
-                      ? 'w-10 h-10 bg-success/90 text-white'
-                      : 'w-10 h-10 bg-muted border border-border/50 text-muted-foreground/60'
+                      ? 'bg-success/90 text-white'
+                      : 'bg-muted border border-border/50 text-muted-foreground/60'
                   )}
                   aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
                   aria-current={isCurrent ? 'step' : undefined}
@@ -354,27 +402,31 @@ export const EnhancedProgressIndicator = ({
           })}
         </div>
         {/* Current step label */}
-        <p className="text-center text-sm font-semibold text-primary mt-2">
-          {steps[currentStepIndex]?.progressTitle}
-          <span className="text-muted-foreground font-normal ml-1.5">
-            — Step {currentStepIndex + 1} of {steps.length}
-          </span>
-        </p>
+        {!compact && (
+          <p className="text-center text-sm font-semibold text-primary mt-2">
+            {steps[currentStepIndex]?.progressTitle}
+            <span className="text-muted-foreground font-normal ml-1.5">
+              — Step {currentStepIndex + 1} of {steps.length}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Overall progress bar (mobile only) */}
-      <div className="md:hidden mt-4">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-          <span>Overall Progress</span>
-          <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
+      {!compact && (
+        <div className="md:hidden mt-4">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+            <span>Overall Progress</span>
+            <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
+          </div>
+          <div className="h-2 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-[width] duration-300 ease-out"
+              style={{ width: `${displayProgressPercentage}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2 bg-border rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-[width] duration-300 ease-out"
-            style={{ width: `${displayProgressPercentage}%` }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 };

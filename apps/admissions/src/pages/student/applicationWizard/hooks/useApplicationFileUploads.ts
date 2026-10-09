@@ -2,12 +2,25 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
-import { extractAuthUser } from '@/lib/authSession'
 import { sanitizeForLog } from '@/lib/security'
-import { isPermissionDenial } from '@/lib/sessionHardening'
-import { apiClient } from '@/services/client'
+import { delay, isAuthError, verifySessionWithRetry } from '@/services/sessionProbe'
 import { logger } from '@/lib/logger'
 import { toError } from '@/lib/toError'
+
+/**
+ * The session probe moved to `@/services/sessionProbe` in task 13.6 remediation L12.
+ *
+ * It reached `apiClient` directly from here, which the R14.3 architecture rule forbids
+ * for anything under `src/pages` — and the rule was right: a raw `GET /auth/session/`
+ * with retry-once semantics is transport, and it only lived in a page hook because it
+ * was written here. The behaviour is unchanged; these three re-exports keep this
+ * module's existing import sites (including
+ * `tests/property/fileUploadRetryOnAuthError.property.test.ts` and
+ * `tests/property/fileUploadProceedOnNetworkError.property.test.ts`, which mock
+ * `@/services/client` and therefore still see exactly the same two calls) working
+ * against a single definition.
+ */
+export { delay, isAuthError, verifySessionWithRetry }
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
 export const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
@@ -58,47 +71,6 @@ function isAllowedFileType(type: string): type is typeof ALLOWED_TYPES[number] {
 function hasAllowedExtension(fileName: string): boolean {
   const lowerName = fileName.toLowerCase()
   return (ALLOWED_EXTENSIONS as readonly string[]).some(ext => lowerName.endsWith(ext))
-}
-
-export function isAuthError(error: unknown): boolean {
-  if (error instanceof Error && error.name === 'AuthenticationError') {
-    return true
-  }
-  const status = (error as { status?: number })?.status
-  if (status === 401) return true
-  if (status === 403) {
-    const code = (error as { code?: string })?.code
-    // Permission denials (e.g. INSUFFICIENT_PERMISSIONS) are NOT auth errors
-    return !isPermissionDenial(403, code)
-  }
-  return false
-}
-
-export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-export async function verifySessionWithRetry(): Promise<boolean> {
-  try {
-    const result = await apiClient.request<unknown>('/auth/session/')
-    return !!extractAuthUser(result)
-  } catch (error) {
-    if (isAuthError(error)) {
-      await delay(1000)
-      try {
-        const retryResult = await apiClient.request<unknown>('/auth/session/')
-        return !!extractAuthUser(retryResult)
-      } catch (retryError) {
-        if (isAuthError(retryError)) {
-          throw new Error('Your session has expired. Please sign in again to continue uploading.')
-        }
-        // Network error on retry — proceed with upload
-        return true
-      }
-    }
-    // Network error (not auth) — proceed with upload
-    return true
-  }
 }
 
 function isRetryableUploadError(error: unknown): boolean {

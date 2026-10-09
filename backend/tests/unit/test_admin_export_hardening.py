@@ -34,8 +34,17 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+
+        # Only patch the module-level name if it is still there. Task 7.3 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point
+        # this fixture began raising ``AttributeError`` **at setup** and every case
+        # in this file errored rather than ran. Guarding the patch target (rather
+        # than only the import) is what makes the fixture describe the code that
+        # exists (admissions-v2 task 9.4).
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -72,79 +81,73 @@ class AdminExportHardeningTests(SimpleTestCase):
         self.assertEqual(redact_user_name("Jane"), "J***")
         self.assertEqual(redact_user_email("jane@example.com"), "j***@example.com")
 
-    def test_regular_admin_application_export_is_redacted(self):
-        app = SimpleNamespace(
-            application_number="APP-1",
-            full_name="Jane Mary Doe",
-            email="jane@example.com",
-            phone="+260971123456",
-            program="Clinical Medicine",
-            intake="July 2026",
-            institution="MIHAS",
-            status="submitted",
-            created_at=None,
+    # ------------------------------------------------------------------
+    # The two mocked view-internals cases these replaced (task 9.4)
+    # ------------------------------------------------------------------
+    #
+    # ``test_regular_admin_application_export_is_redacted`` and
+    # ``test_super_admin_application_export_is_full`` used to drive
+    # ``ApplicationExportView().get(...)`` with five patched internals
+    # (``Application.objects``, ``_with_payment_summary``, ``ApplicationFilter``,
+    # ``StandardPagination``, ``ApplicationListSerializer``) and assert that the
+    # view's *own* ``_redact_name`` / ``_redact_email`` / ``_redact_phone`` had
+    # been applied to a hand-built row list.
+    #
+    # Admissions-v2 task 9.4 deleted that implementation: the route now delegates
+    # to the one export path (``ApplicationQueryService`` +
+    # ``AdminApplicationQueryView._export``), so there is no second redaction
+    # implementation inside the view to patch around, and ``StandardPagination``
+    # is not involved at all — an export is page-independent by contract.
+    #
+    # The behaviour those two cases protected is preserved and *strengthened*:
+    #   * redaction by capability, against real rows and a real capability set —
+    #     ``tests/unit/test_application_query_contract_9_1.py``
+    #     (``TestExportIsACommand::test_export_is_redacted_by_capability``);
+    #   * the delegation itself, page-independence, byte-identity with the roster
+    #     export, the export capability, the audit record and tenant scoping —
+    #     ``tests/unit/test_review_workspace_9_4.py::TestExportIsOnePath`` (5 cases).
+    #
+    # The redaction *helpers* are still exercised directly above
+    # (``test_application_export_redacts_direct_identifiers``), because they remain
+    # the platform's PII-masking primitives.
+
+    def test_the_export_route_delegates_rather_than_redacting_twice(self):
+        """The view holds no second redaction or pagination implementation.
+
+        This is the pin that replaces the two mocked cases: it asserts the
+        *absence* of the shape they were written against, which is the thing task
+        9.4 changed. Behaviour is covered by the two suites named above.
+        """
+        import ast
+        from pathlib import Path
+
+        source = (
+            Path(__file__).resolve().parents[1].parent
+            / "apps"
+            / "applications"
+            / "admin_export_views.py"
+        ).read_text()
+        tree = ast.parse(source)
+        export_view = next(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ClassDef) and node.name == "ApplicationExportView"
         )
-        queryset = _FakeQuerySet([app])
-        request = SimpleNamespace(query_params={}, user=SimpleNamespace(role="admin"))
-
-        rows = [{
-            "full_name": "Jane Mary Doe",
-            "email": "jane@example.com",
-            "phone": "+260971123456",
-        }]
-        with (
-            patch("apps.applications.admin_views.Application.objects") as objects,
-            patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
-            patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
-            patch("apps.applications.admin_export_views.StandardPagination") as pagination,
-            patch("apps.applications.admin_export_views.ApplicationListSerializer", return_value=SimpleNamespace(data=rows)),
-        ):
-            objects.all.return_value = queryset
-            paginator = pagination.return_value
-            paginator.paginate_queryset.return_value = None
-            response = ApplicationExportView().get(request)
-
-        results = response.data["data"]["results"]
-        self.assertEqual(results[0]["full_name"], "J*** M*** D***")
-        self.assertEqual(results[0]["email"], "j***@example.com")
-        self.assertEqual(results[0]["phone"], "***3456")
-
-    def test_super_admin_application_export_is_full(self):
-        app = SimpleNamespace(
-            application_number="APP-1",
-            full_name="Jane Mary Doe",
-            email="jane@example.com",
-            phone="+260971123456",
-            program="Clinical Medicine",
-            intake="July 2026",
-            institution="MIHAS",
-            status="submitted",
-            created_at=None,
-        )
-        queryset = _FakeQuerySet([app])
-        request = SimpleNamespace(query_params={}, user=SimpleNamespace(role="super_admin"))
-
-        rows = [{
-            "full_name": "Jane Mary Doe",
-            "email": "jane@example.com",
-            "phone": "+260971123456",
-        }]
-        with (
-            patch("apps.applications.admin_views.Application.objects") as objects,
-            patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
-            patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
-            patch("apps.applications.admin_export_views.StandardPagination") as pagination,
-            patch("apps.applications.admin_export_views.ApplicationListSerializer", return_value=SimpleNamespace(data=rows)),
-        ):
-            objects.all.return_value = queryset
-            paginator = pagination.return_value
-            paginator.paginate_queryset.return_value = None
-            response = ApplicationExportView().get(request)
-
-        results = response.data["data"]["results"]
-        self.assertEqual(results[0]["full_name"], "Jane Mary Doe")
-        self.assertEqual(results[0]["email"], "jane@example.com")
-        self.assertEqual(results[0]["phone"], "+260971123456")
+        # Blank every string literal first: the class *documents* the shape it
+        # replaced, so a dump that included its own docstring would fail on its
+        # own prose rather than on the code.
+        for node in ast.walk(export_view):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                node.value = ""
+        body = ast.dump(export_view)
+        # No second redaction implementation inside the view...
+        for forbidden in ("_redact_name", "_redact_email", "_redact_phone"):
+            self.assertNotIn(forbidden, body, f"the export view redacts again: {forbidden}")
+        # ...and no pagination: an export is the whole filtered set.
+        self.assertNotIn("StandardPagination", body)
+        self.assertNotIn("paginate_queryset", body)
+        # It delegates to the one export path.
+        self.assertIn("_export", body)
 
 
 class _FakeQuerySet(list):

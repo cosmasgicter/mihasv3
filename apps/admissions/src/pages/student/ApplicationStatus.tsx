@@ -1,89 +1,70 @@
-import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
 import { useAuth } from '@/contexts/AuthContext'
-import type { ApplicationWithDetails } from '@/types/database'
-import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui'
-import { formatDate, formatTimestamp } from '@/lib/dateFormat'
-import { applicationService } from '@/services/applications'
-import { AuthenticationError } from '@/services/client'
-import { DocumentButtons } from '@/components/student/DocumentButtons'
-import {
-  getPaymentStatusLabel,
-  normalizePaymentStatus,
-  requiresStudentPaymentAction,
-} from '@/lib/paymentStatus'
+import { DocumentChecklist } from '@/components/student/applicationStatus/DocumentChecklist'
 import {
   ArrowLeft,
-  FileText,
   Calendar,
-  User,
   CheckCircle,
   Clock,
   XCircle,
   AlertCircle,
   Download,
-  Phone,
-  CreditCard,
   AlertTriangle,
   Edit3,
+  History,
 } from 'lucide-react'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageShell } from '@/components/ui/PageShell'
-import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
-import { useToastStore } from '@/hooks/useToast'
-import { isValidEmail, isValidPhoneNumber } from '@/lib/utils'
-import { canWithdraw } from '@/lib/withdrawalEligibility'
 import { StatusTimeline } from '@/components/student/applicationStatus/StatusTimeline'
-import { NextActionCards } from '@/components/student/applicationStatus/NextActionCards'
-import { DocumentChecklist } from '@/components/student/applicationStatus/DocumentChecklist'
-import { PaymentStatusBlock } from '@/components/student/applicationStatus/PaymentStatusBlock'
 import { ConditionsTimeline } from '@/components/student/applicationStatus/ConditionsTimeline'
 import { AmendmentForm } from '@/components/student/applicationStatus/AmendmentForm'
+import { AmendmentHistory } from '@/components/student/applicationStatus/AmendmentHistory'
 import { WithdrawDialog, EnrollDialog } from '@/components/student/applicationStatus/WithdrawEnrollDialogs'
-import { studentApplicationResumePath } from '@/routes/routeRegistry'
+import { ApplicationHistory } from '@/components/student/applicationStatus/ApplicationHistory'
+// Task 10.6 (R13.13, STU-23): the affordances the retired `/student/application/:id`
+// workspace owned, brought onto the canonical one rather than deleted with it.
+import { InterviewDetails } from '@/components/student/InterviewDetails'
+import {
+  pathFor,
+  studentApplicationNewPath,
+  studentApplicationWorkspacePath,
+} from '@/routes/routeRegistry'
+// Task 11.3 (R13.1, R16.1): the workspace's status/next-action header is task
+// 11.1's panel and task 11.1's resolver, not a second implementation of either.
+import { NextActionPanel } from '@/components/student/dashboard/NextActionPanel'
+import { useStudentNextAction } from '@/hooks/useStudentNextAction'
+/*
+  Task 12.1 (R14.3-R14.5, R17.5; finding MAINT-01): this page was 807 lines that
+  fetched, mutated, validated, derived and rendered. The four concerns now have
+  four owners and the page is the composition:
 
-interface ApplicationTimeline {
-  status: string
-  date: string | undefined
-  description: string
-  completed: boolean
-}
+    - `useApplicationWorkspace`  — the four server reads, the four commands, and
+      the state each command owns (`hooks/student/`, task 9.4's shape).
+    - `buildApplicationTimeline` — the derived progress list (pure).
+    - `buildWorkspacePresentation` — every label and sentence that is a function
+      of the application row (pure).
+    - `ApplicationDetailsSection` / `WorkspaceAside` — two sections that were
+      inline JSX.
 
-interface ApplicationCondition {
-  id: string
-  description: string
-  deadline: string
-  status: string
-  condition_type: string
-  met_at: string | null
-}
-
-const AMENDABLE_STATUSES = new Set(['submitted', 'under_review', 'waitlisted'])
-const PHONE_AMENDMENT_FIELDS = new Set(['phone', 'next_of_kin_phone'])
-
-function formatStatusLabel(status: string) {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
-}
-
-function truncateValue(value: string | null | undefined, maxLength: number) {
-  if (!value) {
-    return null
-  }
-  return value.length > maxLength ? `${value.slice(0, maxLength)}\u2026` : value
-}
-
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="text-sm font-medium text-foreground break-words">{value}</dd>
-    </div>
-  )
-}
+  Nothing about what a student sees or can do changed; the split is by bounded
+  workflow, which is MAINT-01's own remedy.
+*/
+import {
+  AMENDABLE_STATUSES,
+  useApplicationWorkspace,
+} from '@/hooks/student/useApplicationWorkspace'
+import { buildApplicationTimeline } from '@/components/student/applicationStatus/applicationTimeline'
+import { buildWorkspacePresentation } from '@/components/student/applicationStatus/workspacePresentation'
+import { ApplicationDetailsSection } from '@/components/student/applicationStatus/ApplicationDetailsSection'
+import { WorkspaceAside } from '@/components/student/applicationStatus/WorkspaceAside'
+// Task 13.6 remediation L5 (GATE-13.3-09, STU-23): the bare `/student/status`
+// route's own shape — see the block comment on `ApplicationStatus` below.
+import { ApplicationWorkspaceIndex } from '@/components/student/applicationStatus/ApplicationWorkspaceIndex'
 
 function getStatusIcon(status: string) {
   switch (status) {
@@ -113,213 +94,77 @@ function getStatusIcon(status: string) {
   }
 }
 
+/**
+ * The canonical student application workspace route (task 10.6, R13.13).
+ *
+ * Four registered paths reach it and only three of them carry an `:id`. The
+ * fourth is the bare `/student/status` — the nav item's own target, and the
+ * target of the `/student/application-status` redirect. Task 13.3 measured that
+ * path for a student who owned **two** applications and was shown *"Application
+ * Not Found"* (**GATE-13.3-09**, blocking item **B7**, register finding
+ * **STU-23**).
+ *
+ * The cause was a missing branch rather than a broken read: with no `:id`,
+ * `useApplicationWorkspace`'s `enabled: !!id && enabled` predicate is false, so
+ * the query never ran, `application` stayed `null`, `loading` stayed `false`, and
+ * the page fell into the error branch below. An absent *parameter* was reported
+ * as an absent *application*.
+ *
+ * So the route now has two shapes, and the workspace itself is untouched:
+ *
+ * * **no id** — `ApplicationWorkspaceIndex`: the student's own applications, with
+ *   a redirect when there is exactly one, a chooser when there are several, and a
+ *   real empty state when there are none.
+ * * **an id** — `ApplicationWorkspaceView`, which is this file's original body,
+ *   unchanged except that `id` arrives as a prop it can rely on.
+ */
 export default function ApplicationStatus() {
   const { id } = useParams<{ id: string }>()
+
+  // A route parameter that is absent is not an application that is missing.
+  if (!id) return <ApplicationWorkspaceIndex />
+
+  return <ApplicationWorkspaceView id={id} />
+}
+
+function ApplicationWorkspaceView({ id }: { id: string }) {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
+  const { brandName } = usePortalBrand()
 
-  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
-  const [withdrawalReason, setWithdrawalReason] = useState('')
-  const [showEnrollDialog, setShowEnrollDialog] = useState(false)
-  const [amendField, setAmendField] = useState('')
-  const [amendValue, setAmendValue] = useState('')
-  const [amendReason, setAmendReason] = useState('')
-  const [amendError, setAmendError] = useState('')
-  const [amendSuccess, setAmendSuccess] = useState('')
-
+  const workspace = useApplicationWorkspace(id, !!user)
   const {
-    data: application = null,
-    isLoading: loading,
-    error: queryError,
-    refetch: loadApplicationDetails,
-  } = useQuery<ApplicationWithDetails | null>({
-    queryKey: ['application-status', id],
-    queryFn: async () => {
-      try {
-        const response = await applicationService.getById(id!)
-        if (!response.application) {
-          throw new Error('Application not found or access denied')
-        }
-        return response.application as ApplicationWithDetails
-      } catch (error) {
-        if (error instanceof AuthenticationError) {
-          throw error
-        }
-        throw new Error('Application not found or access denied')
-      }
-    },
-    enabled: !!id && !!user,
-    ...CACHE_CONFIG.applications,
-  })
+    application,
+    statusHistory,
+    loading,
+    error,
+    loadApplicationDetails,
+    conditions,
+    amendmentPage,
+    amendmentsLoading,
+    waitlistPosition,
+  } = workspace
 
-  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load application') : ''
+  /*
+    The platform's next action for *this* application (task 11.3, R13.1).
 
-  const withdrawMutation = useMutation({
-    mutationFn: async (reason: string) => {
-      await applicationService.withdraw(id!, reason)
-    },
-    onSuccess: () => {
-      setShowWithdrawDialog(false)
-      setWithdrawalReason('')
-      queryClient.invalidateQueries({ queryKey: ['application-status', id] })
-      useToastStore.getState().addToast('success', 'Application withdrawn successfully')
-    },
-  })
-
-  const { data: conditions = [] } = useQuery<ApplicationCondition[]>({
-    queryKey: ['application-conditions', id],
-    queryFn: async () => {
-      const res = await applicationService.getConditions(id!)
-      return (res ?? []) as ApplicationCondition[]
-    },
-    enabled: !!id && application?.status === 'conditionally_approved',
-    staleTime: 60_000,
-  })
-
-  const { data: waitlistPosition } = useQuery<{ position: number; total: number }>({
-    queryKey: ['waitlist-position', id],
-    queryFn: async () => {
-      const res = await applicationService.getWaitlistPosition(id!)
-      return res ?? { position: 0, total: 0 }
-    },
-    enabled: !!id && application?.status === 'waitlisted',
-    staleTime: 60_000,
-  })
-
-  const confirmEnrollmentMutation = useMutation({
-    mutationFn: async () => {
-      await applicationService.confirmEnrollment(id!)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['application-status', id] })
-      useToastStore.getState().addToast('success', 'Enrollment confirmed successfully')
-    },
-  })
-
-  const amendMutation = useMutation({
-    mutationFn: async (data: { field_name: string; new_value: string; reason: string }) => {
-      await applicationService.submitAmendment(id!, data)
-    },
-    onSuccess: () => {
-      setAmendField('')
-      setAmendValue('')
-      setAmendReason('')
-      setAmendError('')
-      setAmendSuccess('Amendment request submitted successfully.')
-      setTimeout(() => setAmendSuccess(''), 5000)
-    },
-    onError: (err: Error) => {
-      setAmendError(err.message || 'Failed to submit amendment request.')
-    },
-  })
-
-  const handleWithdraw = () => {
-    if (withdrawalReason.trim().length < 10) return
-    withdrawMutation.mutate(withdrawalReason.trim())
-  }
-
-  const handleAmendSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setAmendError('')
-    setAmendSuccess('')
-    const normalizedValue = amendValue.trim()
-    const normalizedReason = amendReason.trim()
-
-    if (!amendField || !normalizedValue || !normalizedReason) {
-      setAmendError('All fields are required.')
-      return
-    }
-    if (amendField === 'email' && !isValidEmail(normalizedValue)) {
-      setAmendError('Enter a valid email address.')
-      return
-    }
-    if (PHONE_AMENDMENT_FIELDS.has(amendField) && !isValidPhoneNumber(normalizedValue)) {
-      setAmendError('Enter a valid phone number with digits only, optionally prefixed with +.')
-      return
-    }
-    amendMutation.mutate({ field_name: amendField, new_value: normalizedValue, reason: normalizedReason })
-  }
-
-  const formatInterviewDateTime = (value?: string | null) => {
-    if (!value) return 'To be confirmed'
-    const result = formatTimestamp(value)
-    return result === 'Not available' ? 'To be confirmed' : result
-  }
-
-  const getTimeline = (): ApplicationTimeline[] => {
-    if (!application) return []
-
-    const timeline: ApplicationTimeline[] = [
-      application.status === 'draft'
-        ? { status: 'draft', date: application.created_at, description: 'Application draft started', completed: true }
-        : { status: 'submitted', date: application.submitted_at || application.created_at, description: 'Application submitted successfully', completed: true }
-    ]
-
-    if (application.interview && application.interview.status !== 'cancelled') {
-      timeline.push({
-        status: 'interview_scheduled',
-        date: application.interview.scheduled_at,
-        description: `Interview scheduled for ${formatInterviewDateTime(application.interview.scheduled_at)}`,
-        completed: application.interview.scheduled_at ? new Date(application.interview.scheduled_at) < new Date() : false
-      })
-    }
-
-    if (['under_review', 'approved', 'rejected', 'waitlisted', 'conditionally_approved', 'enrolled', 'enrollment_expired'].includes(application.status)) {
-      timeline.push({
-        status: 'under_review',
-        date: application.review_started_at || application.updated_at,
-        description: 'Application currently under review by admissions',
-        completed: application.status !== 'under_review'
-      })
-    }
-
-    if (application.status === 'waitlisted') {
-      timeline.push({
-        status: 'waitlisted',
-        date: application.updated_at,
-        description: 'Application has been waitlisted \u2014 you will be notified if a spot opens',
-        completed: true
-      })
-    }
-
-    if (['approved', 'rejected', 'conditionally_approved'].includes(application.status)) {
-      timeline.push({
-        status: application.status,
-        date: application.decision_date || application.updated_at,
-        description: application.status === 'approved'
-          ? 'Application approved'
-          : application.status === 'conditionally_approved'
-            ? 'Application conditionally approved'
-            : 'Application not successful',
-        completed: true
-      })
-    }
-
-    if (application.status === 'enrolled') {
-      timeline.push({ status: 'approved', date: application.decision_date || application.updated_at, description: 'Application approved', completed: true })
-      timeline.push({ status: 'enrolled', date: application.updated_at, description: 'Enrollment confirmed', completed: true })
-    }
-
-    if (application.status === 'withdrawn') {
-      timeline.push({ status: 'withdrawn', date: application.updated_at, description: 'Application withdrawn', completed: true })
-    }
-
-    if (application.status === 'expired' || application.status === 'enrollment_expired') {
-      timeline.push({
-        status: application.status,
-        date: application.updated_at,
-        description: application.status === 'expired' ? 'Application expired' : 'Enrollment confirmation window expired',
-        completed: true
-      })
-    }
-
-    return timeline
-  }
+    Task 11.1's hook and resolver, reused verbatim: it selects whichever server
+    contract governs this application's lifecycle point — task 6.5's readiness
+    while it is a draft, task 10.3's enrollment readiness once a decision exists,
+    or the canonical payment status for a fee still owed — and it authors no verb,
+    label or blocker sentence of its own. Passing the single application makes
+    `selectNextActionSubject` a no-op selection, and the readiness request only
+    fires for a draft.
+  */
+  const {
+    nextAction,
+    isLoading: nextActionLoading,
+    readinessUnavailable,
+  } = useStudentNextAction(application ? [application] : [])
 
   if (loading) {
     return (
       <>
-      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
       <PageShell title="Application Status" subtitle="Loading...">
         <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
           <Skeleton className="h-8 w-40 rounded-full" />
@@ -344,7 +189,7 @@ export default function ApplicationStatus() {
   if (error || !application) {
     return (
       <>
-      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
       <PageShell title="Application Status">
         <ErrorDisplay variant="section" title="Application Not Found" message={error || 'Application not found or access denied'} onRetry={() => loadApplicationDetails()} className="max-w-2xl" />
       </PageShell>
@@ -352,62 +197,35 @@ export default function ApplicationStatus() {
     )
   }
 
-  const timeline = getTimeline()
+  const timeline = buildApplicationTimeline(application)
   const interview = application.interview
   const hasActiveInterview = Boolean(interview && interview.status !== 'cancelled')
-  const statusLabel = formatStatusLabel(application.status).toUpperCase()
-  const paymentReviewNote =
-    typeof application.last_payment_audit_notes === 'string' && application.last_payment_audit_notes.trim().length > 0
-      ? application.last_payment_audit_notes.trim()
-      : null
-  const needsPaymentAttention = requiresStudentPaymentAction(application.payment_status)
-  const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
-  const normalizedPaymentStatus = normalizePaymentStatus(application.payment_status)
-  const paymentStatusDescription =
-    normalizedPaymentStatus === 'verified'
-      ? 'Your application fee has been verified and recorded successfully.'
-      : normalizedPaymentStatus === 'pending_review'
-        ? 'Your recent payment is awaiting review by the admissions team.'
-        : normalizedPaymentStatus === 'rejected'
-          ? 'Your recent payment needs attention before your application can continue.'
-          : application.status === 'draft'
-            ? 'Payment is completed in the wizard when you are ready to submit this draft.'
-            : 'Payment still needs attention before review can continue.'
-  const applicationTitle = application.application_number
-    ? `Application #${application.application_number}`
-    : 'Application status'
-  const applicationSubtitlePrefix = application.status === 'draft' ? 'Started on' : 'Submitted on'
-  const applicationSubtitleDate = formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)
-  const paymentAction =
-    needsPaymentAttention
-      ? {
-          href: application.status === 'draft'
-            ? studentApplicationResumePath(application.id)
-            : `/student/payment?applicationId=${encodeURIComponent(application.id)}`,
-          label: application.status === 'draft'
-            ? 'Continue draft in wizard'
-            : normalizedPaymentStatus === 'rejected'
-              ? 'Retry rejected payment'
-              : 'Pay application fee',
-        }
-      : null
+  const presentation = buildWorkspacePresentation(application)
+  const workspacePath = studentApplicationWorkspacePath(application.id)
 
   return (
     <>
-      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
     <PageShell
-      title={applicationTitle}
+      title={presentation.applicationTitle}
       eyebrow="Application Status"
-      subtitle={`${truncateValue(application.program, 40) || 'Programme pending'} \u2022 ${applicationSubtitlePrefix} ${applicationSubtitleDate}`}
+      subtitle={presentation.applicationSubtitle}
       maxWidth="7xl"
       tone="student"
-      metrics={[
-        { label: 'Decision state', value: formatStatusLabel(application.status), helper: application.status === 'under_review' ? 'Admissions is actively reviewing this file' : 'Latest recorded application state' },
-        { label: 'Payment', value: paymentStatusLabel, helper: paymentStatusDescription },
-        { label: 'Interview', value: hasActiveInterview ? 'Scheduled' : 'Not active', helper: hasActiveInterview ? formatInterviewDateTime(interview?.scheduled_at) : 'You will be notified if an interview is required' },
-        { label: 'Next move', value: paymentAction ? paymentAction.label : application.status === 'approved' ? 'Confirm enrollment' : 'Monitor progress', helper: needsPaymentAttention ? 'There is still an action blocking forward movement' : 'No immediate blocker detected' },
-      ]}
-      actions={<div className="flex items-center gap-2">{getStatusIcon(application.status)}<span className="text-sm font-bold">{statusLabel}</span></div>}
+      /*
+        No `metrics` (admissions-v2 task 11.3, R13.1, R16.1, R16.5).
+
+        `PageShell` renders `metrics` *between* the page title and the children,
+        so this array was literally four passive tiles above the student's own
+        status and action on a 320 px screen. Two of them restated the header
+        badge and the payment block below; "Interview" restated the interview
+        card; and "Next move" **derived a next action in the browser** —
+        "Resolve payment" / "Confirm enrollment" / "Monitor progress" — from a
+        payment helper and a status string, which is the STU-04 defect task 11.1
+        removed from the dashboard, on a second surface. The platform's own next
+        action is now the first thing on the page.
+      */
+      actions={<div className="flex items-center gap-2">{getStatusIcon(application.status)}<span className="text-sm font-bold">{presentation.statusLabel}</span></div>}
     >
       <div className="space-y-6 sm:space-y-8">
         <Link to="/student/dashboard" className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
@@ -415,52 +233,57 @@ export default function ApplicationStatus() {
           Back to dashboard
         </Link>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              {['Status clarity', 'Document access', 'Payment guidance'].map((item) => (
-                <span key={item} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">{item}</span>
-              ))}
-            </div>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">A single view of where your application stands and what happens next</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">This page is structured to reduce uncertainty. The latest admissions state, payment position, interview details, and supporting documents are all surfaced here in the order students usually need them.</p>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-            <p className="text-xs font-semibold uppercase text-primary">Decision snapshot</p>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-lg border border-border bg-muted px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Status</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">{formatStatusLabel(application.status)}</p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Priority</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {needsPaymentAttention ? 'Resolve payment' : hasActiveInterview ? 'Prepare for interview' : application.status === 'approved' ? 'Confirm enrollment' : 'Watch review progress'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/*
+          Status, then the platform's own next action — first (admissions-v2 task
+          11.3, R13.1, R16.1, R16.5; finding STU-05).
 
+          What stood here was a hero block ("A single view of where your
+          application stands and what happens next", three explanatory pills and a
+          paragraph describing how the page is organised) beside a "Decision
+          snapshot" card whose two tiles restated the status badge in the header
+          and **derived a priority in the browser** — "Resolve payment" /
+          "Prepare for interview" / "Confirm enrollment" / "Watch review
+          progress". PRODUCT.md names the first one directly ("Hero headlines that
+          compete with the action"), and the second is the STU-04 derivation task
+          11.1 removed from the dashboard.
+
+          `NextActionPanel` is 11.1's, unchanged in what it renders: the server's
+          own label, the server's own blocker sentence, and the rest of the
+          server's actions in the server's order. `useStudentNextAction` reads task
+          6.5's readiness only while this application is still a draft; for every
+          other lifecycle point the answer is already on the row this page
+          already read — task 10.3's enrollment readiness, or the canonical
+          payment status — so the panel costs no extra request here.
+        */}
+        <NextActionPanel
+          nextAction={nextAction}
+          isLoading={nextActionLoading}
+          readinessUnavailable={readinessUnavailable}
+          applicationCount={1}
+          onRetry={() => loadApplicationDetails()}
+          startApplicationHref={studentApplicationNewPath()}
+          selfHref={workspacePath}
+        />
+
+        {/*
+          Task 10.6 (R13.13, STU-23): one interview renderer.
+
+          The two workspaces drew the same interview two ways, and the difference
+          was not cosmetic — the retired page used `InterviewDetails`, which turns
+          a virtual interview's `location` into a **clickable meeting link**, while
+          this page printed the same value as plain text. A student with a video
+          interview therefore got a joinable link on one URL and an unclickable
+          string on the other, which is precisely STU-23's "different actions".
+          The richer renderer wins and the inline copy is gone.
+        */}
         {hasActiveInterview && interview ? (
-          <SectionCard title="Admissions interview" description="Your interview is scheduled\u2014review the key details below." icon={<Calendar className="h-5 w-5" />}>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">{formatInterviewDateTime(interview.scheduled_at)}</p>
-                <p className="text-sm text-foreground">{interview.mode?.replace('_', ' ') || 'Interview'}</p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-info-strong">Location / Link</p>
-                  <p className="text-sm text-foreground">{interview.location || 'You will receive the meeting details shortly.'}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-info-strong">Important notes</p>
-                  <p className="text-sm text-foreground">{interview.notes || 'Please arrive 10 minutes early and bring your identification.'}</p>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
+          <InterviewDetails
+            interview={{
+              ...interview,
+              location: interview.location ?? '',
+              notes: interview.notes ?? undefined,
+            }}
+          />
         ) : null}
 
         {!hasActiveInterview && (
@@ -475,35 +298,31 @@ export default function ApplicationStatus() {
               <StatusTimeline timeline={timeline} />
             </SectionCard>
 
-            <SectionCard title="Application details" description="Review the information you submitted with this application." icon={<FileText className="h-5 w-5" />}>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="rounded-lg border border-border bg-muted px-5 py-4">
-                  <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
-                  <dl className="space-y-2 text-sm">
-                    <DetailRow label="Full name" value={application.full_name || 'Not provided'} />
-                    <DetailRow label="Date of birth" value={application.date_of_birth || 'Not provided'} />
-                    <DetailRow label="Sex" value={application.sex || 'Not provided'} />
-                    <DetailRow label="Phone" value={application.phone || 'Not provided'} />
-                    <DetailRow label="Email" value={application.email || 'Not provided'} />
-                  </dl>
-                </div>
-                <div className="rounded-lg border border-border bg-muted px-5 py-4">
-                  <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
-                  <dl className="space-y-2 text-sm">
-                    <DetailRow label="Residence town" value={application.residence_town || 'Not provided'} />
-                    <DetailRow label="NRC" value={application.nrc_number || 'Not provided'} />
-                    <DetailRow label="Next of kin" value={application.next_of_kin_name || 'Not provided'} />
-                    <DetailRow label="Next of kin phone" value={application.next_of_kin_phone || 'Not provided'} />
-                  </dl>
-                </div>
-                <PaymentStatusBlock
-                  paymentStatusLabel={paymentStatusLabel}
-                  applicationFee={application.application_fee}
-                  paymentVerifiedAt={application.payment_verified_at}
-                  paymentStatusDescription={paymentStatusDescription}
-                />
-              </div>
+            {/*
+              The record, not the progress bar (task 10.6, R13.2 / R13.13).
+
+              `StatusTimeline` above is derived from this application's own
+              timestamp columns and includes steps that have not happened. This
+              section is the platform's `ApplicationStatusHistory` — one row per
+              committed transition, with the note the actor left and their name
+              where the reader is permitted it. It existed on
+              `GET /applications/{id}/summary/` and no student surface read it, so
+              "who moved my application, when, and did they say why" had no answer
+              on either of the two old workspaces.
+            */}
+            <SectionCard
+              title="Recorded changes"
+              description="Every change the admissions team has committed to this application."
+              icon={<History className="h-5 w-5" />}
+            >
+              <ApplicationHistory rows={statusHistory} isLoading={loading} />
             </SectionCard>
+
+            <ApplicationDetailsSection
+              application={application}
+              paymentStatusLabel={presentation.paymentStatusLabel}
+              paymentStatusDescription={presentation.paymentStatusDescription}
+            />
 
             <SectionCard title="Supporting documents" description="Access the files you uploaded with this application." icon={<Download className="h-5 w-5" />}>
               <DocumentChecklist resultSlipUrl={application.result_slip_url} extraKycUrl={application.extra_kyc_url} />
@@ -511,80 +330,73 @@ export default function ApplicationStatus() {
 
             {application.status === 'conditionally_approved' && conditions.length > 0 && (
               <SectionCard title="Admission conditions" description="You must fulfill these conditions to complete your admission." icon={<AlertTriangle className="h-5 w-5" />}>
-                <ConditionsTimeline conditions={conditions} />
+                <ConditionsTimeline
+                  conditions={conditions}
+                  onSubmitEvidence={(conditionId, file, comment) =>
+                    workspace.submitConditionEvidence({ conditionId, file, comment })
+                  }
+                  pendingConditionId={workspace.pendingConditionId}
+                  errors={workspace.conditionErrors}
+                />
               </SectionCard>
             )}
 
             {AMENDABLE_STATUSES.has(application.status) && (
               <SectionCard title="Request an amendment" description="Request a change to your personal details. Amendments require admin approval." icon={<Edit3 className="h-5 w-5" />}>
                 <AmendmentForm
-                  amendField={amendField}
-                  amendValue={amendValue}
-                  amendReason={amendReason}
-                  amendError={amendError}
-                  amendSuccess={amendSuccess}
-                  isPending={amendMutation.isPending}
-                  onFieldChange={setAmendField}
-                  onValueChange={(v) => { setAmendValue(v); if (amendError) setAmendError('') }}
-                  onReasonChange={setAmendReason}
-                  onSubmit={handleAmendSubmit}
+                  amendField={workspace.amendField}
+                  amendValue={workspace.amendValue}
+                  amendReason={workspace.amendReason}
+                  amendError={workspace.amendError}
+                  amendSuccess={workspace.amendSuccess}
+                  isPending={workspace.amendPending}
+                  onFieldChange={workspace.setAmendField}
+                  onValueChange={(v) => { workspace.setAmendValue(v); if (workspace.amendError) workspace.setAmendError('') }}
+                  onReasonChange={workspace.setAmendReason}
+                  onSubmit={workspace.handleAmendSubmit}
+                />
+              </SectionCard>
+            )}
+            {AMENDABLE_STATUSES.has(application.status) && (
+              <SectionCard title="Your amendment requests" description="Track the changes you have asked for and where each one stands." icon={<Edit3 className="h-5 w-5" />}>
+                <AmendmentHistory
+                  amendments={amendmentPage?.results ?? []}
+                  totalCount={amendmentPage?.totalCount}
+                  isLoading={amendmentsLoading}
                 />
               </SectionCard>
             )}
           </div>
 
-          <div className="space-y-6">
-            <SectionCard title="Documents and records" description="Download your application slip and other available documents." icon={<Download className="h-5 w-5" />}>
-              <DocumentButtons applicationId={application.id} applicationNumber={application.application_number} status={application.status} paymentStatus={application.payment_status ?? null} />
-            </SectionCard>
-
-            {paymentReviewNote && (
-              <SectionCard title="Latest payment review note" description="Use this guidance if you need to correct or complete payment." icon={<CreditCard className="h-5 w-5" />}>
-                <p className="text-sm text-foreground">{paymentReviewNote}</p>
-              </SectionCard>
-            )}
-
-            <SectionCard title="Quick information" description="Essential application details at a glance." icon={<User className="h-5 w-5" />}>
-              <dl className="space-y-3 text-sm">
-                <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
-                <DetailRow label="Program" value={application.program || 'Not provided'} />
-                <DetailRow label="Intake" value={application.intake || 'Not provided'} />
-                <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)} />
-                <DetailRow label="Last updated" value={formatDate(application.updated_at)} />
-              </dl>
-            </SectionCard>
-
-            <NextActionCards
-              applicationId={application.id}
-              applicationStatus={application.status}
-              paymentAction={paymentAction}
-              onWithdrawClick={() => setShowWithdrawDialog(true)}
-              waitlistPosition={waitlistPosition}
-              showEnrollButton={application.status === 'approved'}
-              onEnrollClick={() => setShowEnrollDialog(true)}
-              enrollPending={confirmEnrollmentMutation.isPending}
-              enrollError={confirmEnrollmentMutation.isError ? (confirmEnrollmentMutation.error instanceof Error ? confirmEnrollmentMutation.error.message : 'Failed to confirm enrollment') : null}
-            />
-          </div>
+          <WorkspaceAside
+            application={application}
+            institutionLabel={presentation.institutionLabel}
+            paymentReviewNote={presentation.paymentReviewNote}
+            waitlistPosition={waitlistPosition}
+            onWithdrawClick={() => workspace.setShowWithdrawDialog(true)}
+            onEnrollClick={() => workspace.setShowEnrollDialog(true)}
+            enrollPending={workspace.enrollPending}
+            enrollError={workspace.enrollError}
+          />
         </div>
       </div>
     </PageShell>
 
     <WithdrawDialog
-      open={showWithdrawDialog}
-      onOpenChange={(open) => { if (!open) { setShowWithdrawDialog(false); setWithdrawalReason('') } }}
-      reason={withdrawalReason}
-      onReasonChange={setWithdrawalReason}
-      onConfirm={handleWithdraw}
-      isPending={withdrawMutation.isPending}
-      error={withdrawMutation.isError ? (withdrawMutation.error instanceof Error ? withdrawMutation.error.message : 'Failed to withdraw application.') : null}
+      open={workspace.showWithdrawDialog}
+      onOpenChange={(open) => { if (!open) { workspace.setShowWithdrawDialog(false); workspace.setWithdrawalReason('') } }}
+      reason={workspace.withdrawalReason}
+      onReasonChange={workspace.setWithdrawalReason}
+      onConfirm={workspace.handleWithdraw}
+      isPending={workspace.withdrawPending}
+      error={workspace.withdrawError}
     />
     <EnrollDialog
-      open={showEnrollDialog}
-      onOpenChange={(open) => { if (!open) setShowEnrollDialog(false) }}
-      onConfirm={() => confirmEnrollmentMutation.mutate(undefined, { onSuccess: () => setShowEnrollDialog(false) })}
-      isPending={confirmEnrollmentMutation.isPending}
-      error={confirmEnrollmentMutation.isError ? (confirmEnrollmentMutation.error instanceof Error ? confirmEnrollmentMutation.error.message : 'Failed to confirm enrollment.') : null}
+      open={workspace.showEnrollDialog}
+      onOpenChange={(open) => { if (!open) workspace.setShowEnrollDialog(false) }}
+      onConfirm={() => workspace.confirmEnrollment(undefined, { onSuccess: () => workspace.setShowEnrollDialog(false) })}
+      isPending={workspace.enrollPending}
+      error={workspace.enrollDialogError}
     />
     </>
   )

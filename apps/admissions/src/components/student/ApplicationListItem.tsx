@@ -5,12 +5,13 @@ import type { Application } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
-import { Clock, CheckCircle, XCircle, Calendar, CreditCard, ListOrdered, ShieldCheck, AlertTriangle, Video } from 'lucide-react'
+import { ArrowRight, Clock, CheckCircle, XCircle, Calendar, ListOrdered, ShieldCheck, AlertTriangle, Video } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
-import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
+import { enrollmentReadinessOf, formatEnrollmentCountdown } from '@/lib/enrollmentReadiness'
+import { resolveStudentNextAction } from '@/lib/studentNextAction'
 import { applicationService } from '@/services/applications'
-import type { ApplicationInterview } from '@/types/database'
 import { interviewsService } from '@/services/interviews'
+import { studentApplicationWorkspacePath } from '@/routes/routeRegistry'
 
 interface ApplicationListItemProps {
   application: Application
@@ -43,6 +44,11 @@ function areApplicationListItemPropsEqual(
     prev.application.created_at === next.application.created_at &&
     prev.application.application_number === next.application.application_number &&
     prev.application.enrollment_confirmation_deadline === next.application.enrollment_confirmation_deadline &&
+    // Task 10.3: the readiness the server published drives the enrollment card,
+    // so a change in `state` / `can_confirm` must re-render even when the
+    // deadline itself has not moved (a condition being accepted is exactly that).
+    prev.application.enrollment?.state === next.application.enrollment?.state &&
+    prev.application.enrollment?.can_confirm === next.application.enrollment?.can_confirm &&
     prev.index === next.index
   )
 }
@@ -51,8 +57,23 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
   application,
   index,
 }) {
-  const needsPayment = application.status !== 'draft' && requiresStudentPaymentAction(application.payment_status)
-  const paymentHref = `/student/payment?applicationId=${encodeURIComponent(application.id)}`
+  /*
+    The row's one action is the platform's (admissions-v2 task 11.3, R13.1,
+    R16.1, finding STU-05).
+
+    This row used to carry **two** browser-derived commands beside the document
+    stack: a "Complete Payment" button behind `requiresStudentPaymentAction(...)`
+    and a "Confirm Enrollment" button behind `can_confirm && deadline`. Both are
+    now read from the same resolver task 11.1 built for the dashboard panel, which
+    takes its verb, its label and its blocker sentence from whichever server
+    contract governs this application — task 10.3's enrollment readiness published
+    on the row, or the canonical payment status routed to the surface task 8.3
+    owns. Nothing here derives an action, and no readiness request is made: a
+    submitted application's next action is already on the row, and a *draft's*
+    next action belongs to the dashboard's own panel and the wizard, which is why
+    this row asks for no readiness of its own.
+  */
+  const nextAction = resolveStudentNextAction({ application })
 
   // Waitlist position query (Req 3.10)
   const { data: waitlistData } = useQuery<{ position: number; total: number }>({
@@ -76,8 +97,18 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
     staleTime: 60_000,
   })
 
-  const enrollmentDeadline = application.enrollment_confirmation_deadline as string | undefined
-  const showEnrollment = application.status === 'approved' && !!enrollmentDeadline
+  // Enrollment readiness is the server's answer (task 10.3, R13.9, STU-15).
+  // Before 10.3 this row tested `status === 'approved'` against a deadline field
+  // the server never sent, so the card could not render at all — and the rule it
+  // encoded was narrower than the backend's, which has always accepted a
+  // conditionally approved offer once its conditions are resolved.
+  //
+  // Task 11.3 keeps the *deadline* here, as status, and hands the *command* to
+  // the next action above: one row, one action.
+  const enrollment = enrollmentReadinessOf(application)
+  const enrollmentDeadline = enrollment?.deadline ?? null
+  const countdown = formatEnrollmentCountdown(enrollment)
+  const showEnrollment = enrollment?.can_confirm === true && !!enrollmentDeadline
 
   // Interview query
   const { data: interviewData } = useQuery({
@@ -92,8 +123,23 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
   })
 
   return (
+    /*
+      A flat row inside its section's one container (admissions-v2 task 11.5,
+      R16.4).
+
+      This root used to be `mx-3 my-3 rounded-lg border border-border/80 bg-card
+      … shadow-sm` — a bordered, shadowed card rendered *inside*
+      `ApplicationsGrid`'s `SectionCard`, which is itself a bordered card. Task
+      11.3 recorded the nesting in its §11 and named this task as its owner; it is
+      visible in 11.3's own `dashboard-row-320-mobile-required.png`.
+
+      The section already separates its rows with `divide-y divide-border`, so the
+      border and the margins were doing the divider's job a second time while
+      costing 24 px of horizontal room at 320 px. Padding stays — the row still
+      needs breathing space inside the divider.
+    */
     <div
-      className={`mx-3 my-3 rounded-lg border border-border/80 bg-card px-4 py-4 shadow-sm transition-all duration-200 hover:border-primary/25 sm:mx-4 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
+      className={`px-4 py-4 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
       style={staggerChild(index, 50)}
     >
       <div className="space-y-3">
@@ -102,9 +148,18 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="flex-shrink-0 mt-0.5">{getStatusIcon(application.status)}</div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-bold text-foreground break-words leading-tight sm:text-base">
+              {/*
+                `h3`, not `h4` (GATE-13.3-08, 13.6 §8.1 item L6; WCAG 1.3.1).
+
+                This row is rendered inside `ApplicationsGrid`'s `SectionCard`,
+                whose title is an `h2`, so an `h4` here skipped `h3` — task 13.3
+                measured the dashboard sequence as `… h2 x4 -> h4 -> h2 x2` and
+                traced the skip to this line. Nothing visual changes: the size
+                comes from `text-sm`/`sm:text-base`, not from the tag.
+              */}
+              <h3 className="text-sm font-bold text-foreground break-words leading-tight sm:text-base">
                 {application.program || 'Unknown Program'}
-              </h4>
+              </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 #{application.application_number}
               </p>
@@ -114,6 +169,34 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
             {application.status.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
+
+        {/*
+          Status, then the next action — before the details grid, the waitlist
+          block and the documents (R16.1, task 11.3). The label and the sentence
+          are the server's; this row authors neither.
+        */}
+        {nextAction && (
+          <div
+            data-testid="application-row-next-action"
+            className="flex flex-col gap-2 rounded-lg border border-border bg-muted/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next action</p>
+              <p className="break-words text-sm font-medium text-foreground">{nextAction.label}</p>
+              {nextAction.blockerMessage && (
+                <p className="break-words text-xs text-muted-foreground">{nextAction.blockerMessage}</p>
+              )}
+            </div>
+            {nextAction.href && (
+              <Button asChild variant="primary" size="sm" className="min-h-touch w-full sm:w-auto">
+                <Link to={nextAction.href} data-testid="application-row-next-action-link">
+                  {nextAction.label}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="h-px ambient-divider" />
 
@@ -129,30 +212,36 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           </div>
         </div>
 
-        {/* Waitlist position badge (Req 3.10) */}
+        {/*
+          Waitlist position (Req 3.10). Design tokens, not raw palette steps
+          (admissions-v2 task 11.5, R16.4): this block was
+          `border-amber-200 bg-amber-50 text-amber-600 text-amber-800` while the
+          enrollment and interview blocks immediately below it already used the
+          semantic `warning` / `success` / `primary` tokens. Same meaning, same
+          vocabulary now, and the palette step cannot drift from the theme.
+        */}
         {application.status === 'waitlisted' && waitlistData && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
-            <ListOrdered className="h-4 w-4 text-amber-600 flex-shrink-0" />
-            <span className="font-medium text-amber-800">
+          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
+            <ListOrdered className="h-4 w-4 flex-shrink-0 text-warning" aria-hidden="true" />
+            <span className="font-medium text-warning">
               Waitlist position: {waitlistData.position} of {waitlistData.total}
             </span>
           </div>
         )}
 
-        {/* Enrollment confirmation (Req 10.9) */}
+        {/* Enrollment deadline (Req 10.9; task 10.3, R13.9) — status, not a second command */}
         {showEnrollment && (
-          <div className="flex flex-col gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-success flex-shrink-0" />
-              <span className="font-medium text-success">
-                Confirm enrollment by {formatDate(enrollmentDeadline)}
-              </span>
-            </div>
-            <Link to={`/student/application/${application.id}/status`}>
-              <Button variant="primary" size="sm" className="min-h-touch w-full sm:w-auto">
-                Confirm Enrollment
-              </Button>
-            </Link>
+          <div
+            data-testid="enrollment-confirmable"
+            className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-sm"
+          >
+            <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" aria-hidden="true" />
+            <span className="font-medium text-success">
+              Confirm enrollment by {formatDate(enrollmentDeadline)}
+              {countdown && (
+                <span className="block font-normal text-muted-foreground">{countdown}</span>
+              )}
+            </span>
           </div>
         )}
 
@@ -185,29 +274,29 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           </div>
         )}
 
-        {/* Actions */}
+        {/*
+          Actions (task 11.3, STU-05). The row used to end in up to seven
+          controls: four official-document buttons plus an email form inside a
+          collapsed disclosure, a payment button and a details link. It is the
+          workspace link and one counted document control now — the documents
+          keep every command, inside the disclosure, and their live status stays
+          inside it rather than in the row.
+        */}
         <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-start">
-          <div className="min-w-0 flex-1 sm:order-2">
-            <DocumentButtons 
+          <Link to={studentApplicationWorkspacePath(application.id)} className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
+              View Details
+            </Button>
+          </Link>
+          <div className="min-w-0 flex-1">
+            <DocumentButtons
               applicationId={application.id}
               applicationNumber={application.application_number}
               status={application.status}
               paymentStatus={application.payment_status ?? null}
+              density="row"
             />
           </div>
-          {needsPayment && (
-            <Link to={paymentHref} className="w-full sm:order-1 sm:w-auto">
-              <Button variant="warning" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Complete Payment
-              </Button>
-            </Link>
-          )}
-          <Link to={`/student/application/${application.id}`} className="w-full sm:order-1 sm:w-auto">
-            <Button variant="primary" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
-              View Details
-            </Button>
-          </Link>
         </div>
       </div>
     </div>

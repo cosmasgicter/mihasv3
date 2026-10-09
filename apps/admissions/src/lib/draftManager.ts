@@ -1,9 +1,6 @@
 import { applicationSessionManager, type DraftDeleteResult } from './applicationSession'
-import { KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog } from './sanitize'
 import { logger } from '@/lib/logger'
-import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
-import { useDraftStore } from '@/stores/draftStore'
 
 const DRAFT_CONTENT_KEYS = [
   'applicationDraft',
@@ -59,21 +56,11 @@ export class DraftManager {
         // Invalidate cache BEFORE clearing to prevent stale reads
         this.draftKeysCache.clear()
         
-        // Clear all possible draft storage locations
-        const deleteResult = await applicationSessionManager.deleteDraft(userId)
-        
-        // Additional cleanup for any missed items
-        try {
-          // Clear all localStorage keys that might contain draft data
-          this.getDraftKeys(localStorage).forEach(key => {
-            localStorage.removeItem(key)
-          })
-
-          // sessionStorage removed as draft storage location (Req 7.6)
-        } catch (storageError) {
-        }
-
-        return deleteResult
+        // The scoped bulk delete: each draft the server deleted loses its own
+        // `(user, application)` records, and nothing else does. The sweep of
+        // every legacy draft key that used to follow it erased records for
+        // drafts the server had refused to delete (task 6.3, R10.10).
+        return await applicationSessionManager.deleteDraft(userId)
       } catch (error) {
         return {
           success: false,
@@ -127,18 +114,16 @@ export class DraftManager {
     }
   }
 
-  // Force clear browser storage (localStorage only — sessionStorage removed per Req 7.6)
-  forceCleanBrowserStorage(): void {
-    try {
-      this.getDraftKeys(localStorage).forEach((key) => {
-        localStorage.removeItem(key)
-      })
-      removeDraftStorageEntries(localStorage)
-      localStorage.removeItem('draftDeleted')
-    } catch (error) {
-      logger.error('Force clean failed:', sanitizeForLog(error))
-    }
-  }
+  // `forceCleanBrowserStorage()` was REMOVED by admissions-v2 task 12.5
+  // (R10.7-R10.10, findings STU-04 / STU-12). It swept every draft key in
+  // `localStorage` plus every namespaced draft-storage entry — a whole-browser
+  // wipe with no user and no application in its signature, the shape those
+  // requirements forbid. Task 12.5 measured **zero** callers: its only mention
+  // outside this class was `studentDashboardTaskFirst.test.tsx` asserting the
+  // cleanup module does *not* reference it. An unreachable wipe primitive is
+  // still a loaded gun, and unlike `clearAllDrafts` no numbered property was
+  // over it. Scoped deletion is `clearWizardDraftCache` (task 6.3) reached
+  // through `studentDraftCleanup.ts` (task 11.1).
 }
 
 export const draftManager = DraftManager.getInstance()
@@ -146,45 +131,12 @@ export const draftManager = DraftManager.getInstance()
 
 // ─── Standalone Draft Cleanup Functions (merged from src/lib/draftCleanup.ts) ───
 
-const DRAFT_KEYS = KNOWN_DRAFT_STORAGE_KEYS.filter((key) => key !== 'draftDeleted') as readonly string[];
-
-/**
- * Clear all draft data from localStorage and sessionStorage.
- * Sets a 'draftDeleted' flag in sessionStorage and dispatches a 'draftCleared' event.
- */
-export const clearAllDraftData = (): boolean => {
-  try {
-    DRAFT_KEYS.forEach(key => {
-      try { localStorage.removeItem(key); } catch {}
-    });
-
-    // Only clear localStorage — sessionStorage removed (Req 7.6)
-    [localStorage].forEach(storage => {
-      try {
-        removeDraftStorageEntries(storage)
-      } catch {}
-    });
-
-    try { localStorage.setItem('draftDeleted', 'true'); } catch {}
-    // Clear payment recovery store entries so stale recovery data does
-    // not survive draft deletion (P0 audit finding).
-    try {
-      localStorage.removeItem(BROWSER_KEYS.paymentRecovery)
-      localStorage.removeItem(LEGACY_BROWSER_KEYS.paymentRecovery)
-    } catch {}
-    // Notify both legacy listeners and the Zustand store so the
-    // dashboard, ContinueApplication card, and multi-draft list refresh.
-    try {
-      useDraftStore.getState().markCleared();
-    } catch {}
-    try { window.dispatchEvent(new CustomEvent('draftCleared')); } catch {}
-
-    return true;
-  } catch (error) {
-    logger.error('Error clearing draft data:', error);
-    return false;
-  }
-};
+// ── Single-application-addressed cleanup lives in `draftLocalCache.ts` (task
+// 6.3, R10.10). The former `clearAllDraftData()` bulk wipe removed every draft
+// key for every application AND deleted the entire payment-recovery store in
+// one shot — the exact R10.10 violation. Cleanup must instead target one
+// (user, application) and never erase another draft or any payment-recovery
+// record, so callers now use `clearWizardDraftCache` / `clearNewWizardDraftCache`.
 
 export const isDraftDeleted = (): boolean => {
   try { return localStorage.getItem('draftDeleted') === 'true'; } catch { return false; }

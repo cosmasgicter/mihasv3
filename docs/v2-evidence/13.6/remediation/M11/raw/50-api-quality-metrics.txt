@@ -1,0 +1,44 @@
+=== M11: backend/scripts/api_quality.sh — the gate before and after the session's metric change ===
+schema regenerated today: manage.py spectacular -> 0 errors, 0 warnings (stderr empty)
+
+baseline backend/schema/lint_baseline.json:
+  total: 883
+  errors: 1
+  endpoints: 196
+  actionable: 86
+  density: 0.4388
+  by_cat: {'documentation': 46, 'naming': 797, 'url_structure': 11, 'rest_conventions': 12, 'responses': 17}
+
+today's schema, today's linter:
+  total: 1159
+  errors: 0
+  endpoints: 255
+  actionable: 111
+  density: 0.4353
+  by_cat: {'documentation': 44, 'naming': 1048, 'url_structure': 20, 'rest_conventions': 22, 'responses': 25}
+
+today's schema, HEAD's linter (pre-change success-code rule):
+  total: 1160
+  errors: 1
+  endpoints: 255
+  actionable: 112
+  density: 0.4392
+  by_cat: {'documentation': 44, 'naming': 1048, 'url_structure': 20, 'rest_conventions': 22, 'responses': 26}
+
+OLD gate (HEAD api_quality.sh): fail if CURRENT total_issues > BASELINE total_issues
+  today's linter : 1159 > 883 -> FAIL
+  HEAD's linter  : 1160 > 883 -> FAIL
+NEW gate (current api_quality.sh): fail if actionable(non-naming)/endpoint density rises, or lint errors > 0, or spectacular errors/warnings > 0
+  density 0.4353 vs baseline 0.4388 -> pass; lint errors 0
+REMEDIATION_TARGETS.md target before: 'Linter total issues < 230'; after: 'no regression; zero error-severity issues' (density)
+
+intermediates (sha256, deleted after measurement to keep this directory small):
+0a0fcdeaf067ddfb6b530f4a8ec27d5e7b8f1aab2e7686792ace1967e0b0a5b0  api_linter_HEAD.py
+53dd4b31906c864754641de7173288cb2a537592bb09ddd467c88393566b2d5b  baseline.json
+7f86a5856abeac70aae05518761c89c8ccc9762827dbad34b376eb7e3d696043  current.json
+93442a6b18e6c19afde62096d514addbf0b1eae2d6e3112c988d3f330b0acde8  current_schema.yaml
+63ed221e2be931410f6cc05a9152c7899d94caade28f84502a68560c1a3ec540  lint_now_current_linter.json
+d8080fa76adbb037ead0c30085f619921cd44e170307ea5d2fa56766ec29e6b9  lint_now_head_linter.json
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  spectacular.stderr
+committed candidate for comparison:
+2c6a7ddd435878ff738b76867b79e1f75ec49ac627daf75e3c9c2ebd65d02bfc  backend/schema/openapi.v2.candidate.yaml

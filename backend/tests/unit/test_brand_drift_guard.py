@@ -16,6 +16,7 @@ allowlist file, so the allowlist is the single source of truth.
 """
 
 import json
+from datetime import date
 from pathlib import Path
 
 from django.test import SimpleTestCase
@@ -49,6 +50,70 @@ BRAND_PATTERNS = (
 # Only scan real source files; skip caches and compiled artifacts.
 _SCANNED_SUFFIXES = {".py", ".md", ".txt", ".html", ".json", ".cfg", ".ini"}
 _SKIP_DIR_NAMES = {"__pycache__", ".pytest_cache", "migrations"}
+
+# --------------------------------------------------------------------------- #
+# Owner and removal date — admissions-v2 task 12.5 pass 2 (finding GATE-13.6-01)
+# --------------------------------------------------------------------------- #
+#
+# Set under the user's authorization, on behalf of this register's owning spec.
+# Every entry is in exactly ONE of two populations (docs/legacy-brand-allowlist.json
+# "legacyExceptionPolicy"):
+#
+# * a Legacy_Exception — ``owner`` + ``removeBy``, where ``removeBy`` IS task 12.2's
+#   announced window, read here from the canonical register; or
+# * permanent by design — ``owner`` + ``reviewBucket`` (task 12.5's vocabulary) +
+#   ``permanentBecause``, and no removal date, because a date would assert a
+#   removal nobody intends (the way ``DECLINED_REMOVALS`` is kept undated).
+#
+# This replaces the blanket ``removeBy > date.today()`` check M11 Q12 flagged
+# (docs/v2-evidence/13.6/remediation/M11/README.md): that put a time bomb on ten
+# entries whose own reason says "Cannot be removed" and checked an owner that
+# no record named. The mechanism is task 13.6 item L10's, applied unchanged
+# (docs/v2-evidence/13.6/remediation/L9-L11/README.md §4.4).
+
+#: Owner -> the repo record that names it. Not coined here:
+#:
+#: * ``beanola-production-readiness`` — both brand guards carry its Property 28,
+#:   its task 3.2 wrote each pre-12.5 entry's classification and reason (R2.4),
+#:   and GATE-13.6-01 names it as this register's owning lane;
+#: * ``platform-admissions`` — admissions-v2, the owner string
+#:   ``compatibility_register.py`` already uses for this spec; it registered three
+#:   entries (docs/v2-evidence/12.5/README.md §2.5).
+OWNER_PROVENANCE = {
+    "beanola-production-readiness": ".kiro/specs/_archived/beanola-production-readiness",
+    "platform-admissions": "backend/apps/common/compatibility_register.py",
+}
+
+#: Task 12.5's buckets an entry may be reclassified into when it is permanent by
+#: design. ``registered-exception`` and ``unregistered`` are the other population
+#: and the verdict; ``dev-preview`` is deliberately absent, because the client
+#: preview surface is itself dated (documentFlowDriftGuard's PREVIEW_ALLOWLIST).
+PERMANENT_BUCKETS = frozenset({"canonical", "test-fixture", "immutable-evidence", "comment"})
+
+#: The removal date's source — the same COMPATIBILITY_SURFACES entry the SHIMS
+#: register reads (test_compatibility_surfaces_12_2.SHIM_REMOVAL_DATE_SOURCE), so
+#: every dated register carries one date with one place to change it.
+WINDOW_SOURCE = "catalog.legacy_institution_write"
+
+
+def _announced_window_end() -> str:
+    """Task 12.2's announced window end, read from the canonical register."""
+    from apps.common.compatibility_register import COMPATIBILITY_SURFACES
+
+    return COMPATIBILITY_SURFACES[WINDOW_SOURCE].end_date
+
+
+def _load_entries() -> list[dict]:
+    with ALLOWLIST_PATH.open(encoding="utf-8") as fh:
+        return json.load(fh).get("allowlist", [])
+
+
+def _is_legacy_exception(entry: dict) -> bool:
+    return "removeBy" in entry
+
+
+def _is_permanent(entry: dict) -> bool:
+    return "reviewBucket" in entry or "permanentBecause" in entry
 
 
 def _load_allowlist() -> set[str]:
@@ -106,8 +171,86 @@ class BrandDriftGuardTests(SimpleTestCase):
         for entry in data["allowlist"]:
             self.assertIn("path", entry, f"allowlist entry missing 'path': {entry}")
             self.assertIn("reason", entry, f"allowlist entry missing 'reason': {entry}")
+        # Owner and removal date are evaluated by the two tests below, per
+        # population — not here, where a blanket date check would expire the
+        # entries that are permanent by design.
         # Patterns in the file must match what this guard enforces.
         self.assertEqual(tuple(data.get("patterns", [])), BRAND_PATTERNS)
+
+    def test_every_entry_is_a_dated_legacy_exception_or_permanent_by_design(self):
+        """Exactly one population per entry, and an owner with a record (12.5 clause)."""
+        problems: list[str] = []
+        for entry in _load_entries():
+            path = entry.get("path", "<no path>")
+            exception, permanent = _is_legacy_exception(entry), _is_permanent(entry)
+            if exception == permanent:
+                problems.append(
+                    f"{path}: must be EITHER a Legacy_Exception (owner + removeBy) OR "
+                    "permanent by design (owner + reviewBucket + permanentBecause) — "
+                    f"it is {'both' if exception else 'neither'}"
+                )
+                continue
+            owner = (entry.get("owner") or "").strip()
+            record = OWNER_PROVENANCE.get(owner)
+            if record is None:
+                problems.append(
+                    f"{path}: owner {owner!r} has no record in OWNER_PROVENANCE — name the "
+                    "lane that owns the entry, not an invented one"
+                )
+            elif not (REPO_ROOT / record).exists():
+                problems.append(f"{path}: owner {owner!r}'s record {record} is missing")
+            if permanent:
+                if entry.get("reviewBucket") not in PERMANENT_BUCKETS:
+                    problems.append(
+                        f"{path}: reviewBucket {entry.get('reviewBucket')!r} is not one of "
+                        f"{sorted(PERMANENT_BUCKETS)}"
+                    )
+                if not (entry.get("permanentBecause") or "").strip():
+                    problems.append(f"{path}: permanent by design, but permanentBecause is empty")
+        self.assertEqual(
+            problems,
+            [],
+            "Brand_Allowlist populations (docs/legacy-brand-allowlist.json "
+            "legacyExceptionPolicy):\n  " + "\n  ".join(problems),
+        )
+
+    def test_legacy_exceptions_carry_the_announced_window(self):
+        """Every dated entry is on task 12.2's window, and the window is evaluated.
+
+        Parity first: a JSON literal is a copy, and a drifted copy would announce
+        two windows for one decision. Then the window itself: once it closes this
+        test fails ON PURPOSE, naming the two legitimate answers — the same
+        mechanism the SHIMS, LEGACY_EXCEPTIONS and PREVIEW_ALLOWLIST registers use.
+        """
+        window_end = _announced_window_end()
+        exceptions = [e for e in _load_entries() if _is_legacy_exception(e)]
+        if not exceptions:
+            # Every remaining entry is permanent by design: there is no window to
+            # hold, and a closed window must not fail a register with nothing dated.
+            return
+        drift = [
+            f"{e.get('path')}: removeBy {e.get('removeBy')!r}"
+            for e in exceptions
+            if e.get("removeBy") != window_end
+        ]
+        self.assertEqual(
+            drift,
+            [],
+            f"These removeBy values are not the announced window {window_end} "
+            f"(compatibility_register.COMPATIBILITY_SURFACES[{WINDOW_SOURCE!r}].end_date). "
+            "One decision, one window: change the register and let this guard carry the "
+            "change to the allowlist.\n  " + "\n  ".join(drift),
+        )
+        today = date.today()
+        self.assertGreaterEqual(
+            date.fromisoformat(window_end),
+            today,
+            f"The announced window for {len(exceptions)} Brand_Allowlist Legacy_Exceptions "
+            f"closed on {window_end} (today {today.isoformat()}). The two legitimate answers: "
+            "remove the brand strings and delete their entries, or announce a new window in "
+            "apps/common/compatibility_register.py on purpose and move removeBy with it.\n  "
+            + "\n  ".join(e["path"] for e in exceptions),
+        )
 
     def test_no_non_allowlisted_brand_strings_in_backend_apps(self):
         allowlist = _load_allowlist()

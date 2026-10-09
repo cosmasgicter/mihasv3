@@ -1,0 +1,15 @@
+=== COMMAND: bun run vitest --run tests/unit/architectureEnforcement.test.ts tests/unit/documentFlowDriftGuard.test.ts   (L10's two frontend registers) ===
+=== DATE: 2026-08-14T06:39:11Z ===
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/unit/documentFlowDriftGuard.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 200[2mms[22m[39m
+ [32m✓[39m tests/unit/architectureEnforcement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 331[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 08:39:11
+[2m   Duration [22m 1.34s[2m (transform 141ms, setup 84ms, import 125ms, tests 532ms, environment 1.36s)[22m
+
+EXIT=0

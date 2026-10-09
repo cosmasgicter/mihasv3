@@ -166,3 +166,75 @@ def _reject_unsafe_svg(file_obj):
             raise ValidationError(
                 "SVG asset contains active or unsafe content and cannot be stored."
             )
+
+
+# ---------------------------------------------------------------------------
+# Applicant-document active-content screen (admissions-v2 task 7.2, R11.7)
+# ---------------------------------------------------------------------------
+# Design §9.2 specifies ``upload -> malware/type/size check -> …`` for applicant
+# evidence. Magic bytes prove a file *is* the format it claims; they say nothing
+# about what that format carries. A genuine PDF with an embedded ``/JavaScript``
+# or ``/Launch`` action, or a PNG with an HTML/script tail (a polyglot), passes
+# every check above and is then handed to a reviewer's browser.
+#
+# What this is: a deterministic, dependency-free screen for active content that
+# has no legitimate place in a scanned certificate or a phone photo.
+# What this is *not*: an anti-virus engine. It cannot detect an obfuscated or
+# hex-escaped payload, and it makes no claim to. Signature-based scanning and the
+# ``uploaded -> scanning -> ready_for_review`` document lifecycle belong to task
+# **7.3** (design §9.3); this screen is the synchronous floor beneath it.
+#
+# Every pattern below is at least seven bytes long. That matters: a short marker
+# such as ``/JS`` would appear by chance in the compressed streams of a large
+# legitimate PDF (~0.6 expected hits in 10 MB of arbitrary bytes), and refusing a
+# student's real result slip is a worse failure than missing an exotic payload.
+_UNSAFE_DOCUMENT_PATTERNS: tuple[tuple[re.Pattern[bytes], str], ...] = (
+    # PDF action dictionaries that execute something on open.
+    (re.compile(rb"/JavaScript", re.IGNORECASE), "an embedded script action"),
+    (re.compile(rb"/Launch", re.IGNORECASE), "an application launch action"),
+    (re.compile(rb"/RichMedia", re.IGNORECASE), "embedded rich media"),
+    # HTML/PHP polyglots: bytes that a browser or server could execute if the
+    # stored object were ever served with a sniffed or wrong content type.
+    (re.compile(rb"<\s*script", re.IGNORECASE), "an embedded script tag"),
+    (re.compile(rb"<\?php", re.IGNORECASE), "embedded server-side code"),
+)
+
+#: Bytes of an applicant upload scanned for active content. The platform ceiling
+#: for a single upload is 10 MiB, so this covers a whole file in practice while
+#: keeping the work bounded for any future ceiling change.
+_MAX_DOCUMENT_SCAN_BYTES = 12 * 1024 * 1024
+
+#: Overlap between chunks so a pattern spanning a chunk boundary is still found.
+_DOCUMENT_SCAN_OVERLAP = 64
+
+
+def scan_document_for_active_content(file_obj):
+    """Reject applicant evidence carrying executable/active content.
+
+    Runs after :func:`validate_file_magic_bytes` (the format is already known to
+    be a PDF, JPEG, or PNG) and before the object write, so nothing unsafe is
+    ever stored. Leaves the file position reset for downstream consumers.
+
+    Raises:
+        ValidationError: the file carries active content. The caller maps this to
+            the stable ``UNSAFE_FILE_CONTENT`` code.
+    """
+    file_obj.seek(0)
+    scanned = 0
+    tail = b""
+    try:
+        while scanned < _MAX_DOCUMENT_SCAN_BYTES:
+            chunk = file_obj.read(min(256 * 1024, _MAX_DOCUMENT_SCAN_BYTES - scanned))
+            if not chunk:
+                break
+            scanned += len(chunk)
+            window = tail + chunk
+            for pattern, description in _UNSAFE_DOCUMENT_PATTERNS:
+                if pattern.search(window):
+                    raise ValidationError(
+                        f"This file contains {description} and cannot be accepted. "
+                        "Please upload a plain scan or photo of the document."
+                    )
+            tail = window[-_DOCUMENT_SCAN_OVERLAP:]
+    finally:
+        file_obj.seek(0)

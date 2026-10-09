@@ -1,0 +1,85 @@
+-- Rollback for 2026_08_14_01_neutral_platform_communication_templates.sql
+-- (task 13.6 remediation L7, GATE-13.4-01 / TEN-09).
+--
+-- Operator-run only: *_rollback.sql files are excluded from the
+-- apply_sql_migrations boot sweep by the suffix filter in
+-- ``_iter_migration_files``, so this is never auto-applied.
+--
+-- ===========================================================================
+-- RESTORING THE OLD TEXT WOULD RE-CREATE THE FINDING. THIS ROLLBACK IS
+-- DELIBERATELY LEDGER-ONLY.
+-- ===========================================================================
+--
+-- Two independent reasons, and the second is the one that matters:
+--
+-- 1. THERE IS NO SAFE MECHANICAL INVERSE.
+--    The forward script's edit is a text substitution over rows an operator or
+--    an admin endpoint (``PUT /api/v1/admin/templates/{key}/``) may since have
+--    edited. The mechanical inverse - replacing 'Beanola Admissions' back with
+--    'MIHAS Admissions' - is not a function of the forward change: it cannot
+--    tell a row this script corrected from a row an operator deliberately
+--    re-authored afterwards, and it would silently overwrite the operator's
+--    text. Form 3 is worse: 'We look forward to seeing you on campus.' is a
+--    sentence quoted from ``email/messages/acceptance.py``, so an inverse
+--    substitution would also rewrite that sentence anywhere it legitimately
+--    appears. Requirement 9.2 exists to forbid exactly this kind of blind
+--    row-rewriting trade.
+--
+-- 2. THE OLD STATE IS THE DEFECT.
+--    The forward change did not add a capability that could be withdrawn; it
+--    removed a tenant's brand from the fallback EVERY tenant resolves to.
+--    Putting 'MIHAS Admissions' back means a student of any other school - and
+--    of any brand-new school - is emailed under MIHAS's identity again, which is
+--    GATE-13.4-01 (high) / TEN-09 (P1) restored on purpose, and which 13.4's
+--    rehearsal proved is not dormant: it watched one of these rows reach a real
+--    queued email. Gate 19 of docs/v2-evidence/13.4/invariants.sql would go back
+--    to FAIL. A rollback whose outcome is a re-opened P1 tenancy finding is not
+--    a rollback; it is a regression with paperwork.
+--
+--    This is the same reasoning as
+--    2026_06_08_00_canonical_programs_id_default_rollback.sql, which
+--    deliberately omits a harmless ``ALTER COLUMN id DROP DEFAULT`` because its
+--    only effect would be to break the database again.
+--
+-- ROLLING BACK THE CODE DOES NOT NEED THE OLD TEXT
+-- ------------------------------------------------
+-- Nothing in the application reads these strings for behaviour. They are
+-- rendered into a subject line and an HTML body by
+-- ``CommunicationService.render_template`` and wrapped in the (already neutral)
+-- Beanola shell. Every template_key, channel, is_active flag, version and
+-- placeholder token is untouched by the forward script, so any release of the
+-- application - before or after it - renders these rows identically well.
+-- "The text stays neutral while the code goes back" is a fully supported state.
+--
+-- WHAT THIS FILE THEREFORE UNDOES
+-- -------------------------------
+-- The one artefact the migration leaves behind that outlives it and CAN be
+-- undone without touching a row: its ``migration_history`` tracking row.
+-- Removing it lets the next ``apply_sql_migrations`` sweep re-assert the
+-- correction. On a database that is already neutral that re-run matches 0 rows
+-- in all three UPDATEs and is a complete no-op, so this rollback converges
+-- rather than oscillating - and it is worth having for a real reason: if an
+-- operator ever rolls back and re-applies the 2026_05_19 seed script, its
+-- ``ON CONFLICT ... DO UPDATE`` re-brands the 19 rows while this script's
+-- tracking row still says "applied", so the sweep would skip it and the database
+-- would sit MIHAS-branded with nothing pending to explain it.
+--
+-- IF AN OPERATOR TRULY WANTS TENANT BRANDING ON THESE MESSAGES
+-- -----------------------------------------------------------
+-- That is a configuration decision, not a rollback, and the platform already
+-- supports it without touching the fallback: insert an ``institution_id``-scoped
+-- template row for that school, which ``_resolve_template`` prefers over the
+-- platform row (R14.1/R14.4/R14.5), or use the ``{{brand_name}}`` context token,
+-- which ``_build_context`` derives from the application's own institution.
+-- Neither re-brands the row every other tenant lands on.
+--
+-- LINT
+-- ----
+-- ``backend/tests/property/test_rollback_safe_operations.py`` (Requirement 9.2)
+-- accepts ``DELETE FROM migration_history`` in any form. This file is one such
+-- statement and nothing else, so it passes. It deliberately contains no
+-- ``UPDATE`` - which that lint's closed set does not admit at all, and which
+-- would be wrong here even if it did.
+
+DELETE FROM migration_history
+WHERE migration_name = '2026_08_14_01_neutral_platform_communication_templates.sql';

@@ -407,9 +407,14 @@ class TestReviewerWriteDenial(SimpleTestCase):
         # DRF maps False → 403 PermissionDenied → INSUFFICIENT_PERMISSIONS
         self.assertFalse(result)
 
-    def test_permission_override_can_grant_reviewer_admin_access(self):
-        """A reviewer with a permission override for admin:access should
-        pass IsAdmin (requirement 3.5)."""
+    def test_retired_override_does_not_grant_reviewer_admin_access(self):
+        """The legacy per-user permission override is retired (task 2.4, AUTH-04).
+
+        Even if the (now inert) override check were to report a match, a
+        reviewer must NOT pass ``IsAdmin``: authority is the role hierarchy
+        only, so a per-user override can no longer elevate a lower role. This
+        proves the permission classes ignore the override authority entirely.
+        """
         user = _make_jwt_user(role="reviewer")
         request = _make_request(user=user)
         view = MagicMock()
@@ -420,4 +425,4 @@ class TestReviewerWriteDenial(SimpleTestCase):
         ):
             result = IsAdmin().has_permission(request, view)
 
-        self.assertTrue(result)
+        self.assertFalse(result)

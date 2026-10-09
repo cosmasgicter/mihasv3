@@ -1,0 +1,3 @@
+[32m[harness] ✓ harness down (volumes wiped)[0m
+harness containers: 0
+harness volumes: 0

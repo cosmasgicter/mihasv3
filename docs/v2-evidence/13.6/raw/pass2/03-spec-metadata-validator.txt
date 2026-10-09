@@ -1,0 +1,104 @@
+=== 13.6 SECOND PASS (O10) — spec METADATA validator (task 0.1) ===
+DATE: 2026-08-14T18:43:12Z
+CMD : python3 scripts/validate_spec_metadata.py
+
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /home/cosmas/Downloads/mihasv3/.kiro/specs
+Live specs: 8
+Errors: 0  Warnings: 2
+
+Live spec IDs:
+  admin-dashboard-overhaul: 8c3a1e06-83ec-4d86-bea1-a8a53e7ec222
+  admissions-v2-canonical-rebuild: d1300058-e07d-433d-8aac-87e9986794a6
+  beanola-launch-verification: 06876e0c-0ba4-44d5-b3ad-a44493273873
+  communications-history: 1a48f276-e3fe-4fb9-9b0c-496404ffe6b8
+  full-platform-remediation-2026-07: full-platform-remediation-2026-07
+  profile-updates: a7462ced-57e8-4ead-8df5-b89b703a2c48
+  student-payment-interview-pages: <no-config>
+  student-ui-ux-mobile-remediation: <no-id>
+
+WARNINGS (informational):
+  [student-payment-interview-pages] no .config.kiro file (spec has no tracked metadata)
+  [student-ui-ux-mobile-remediation] no spec id field (expected one of: specId, spec_id, id)
+
+RESULT: PASS
+EXIT=0
+
+CMD : python3 -m unittest scripts.tests.test_validate_spec_metadata -v
+
+test_alternate_id_key_is_accepted (scripts.tests.test_validate_spec_metadata.ConfigIntegrityTests.test_alternate_id_key_is_accepted) ... ok
+test_invalid_json_is_an_error (scripts.tests.test_validate_spec_metadata.ConfigIntegrityTests.test_invalid_json_is_an_error) ... ok
+test_missing_config_is_a_warning (scripts.tests.test_validate_spec_metadata.ConfigIntegrityTests.test_missing_config_is_a_warning) ... ok
+test_missing_id_field_is_a_warning (scripts.tests.test_validate_spec_metadata.ConfigIntegrityTests.test_missing_id_field_is_a_warning) ... ok
+test_archived_specs_are_ignored (scripts.tests.test_validate_spec_metadata.DuplicateDetectionTests.test_archived_specs_are_ignored)
+An underscore-prefixed holding area is history, not a live spec. ... ok
+test_duplicate_live_ids_are_an_error (scripts.tests.test_validate_spec_metadata.DuplicateDetectionTests.test_duplicate_live_ids_are_an_error)
+Intentional failing fixture: two live specs sharing one id. ... ok
+test_unique_live_ids_pass (scripts.tests.test_validate_spec_metadata.DuplicateDetectionTests.test_unique_live_ids_pass) ... ok
+test_admissions_v2_spec_is_registered_and_unique (scripts.tests.test_validate_spec_metadata.RealRepoRegressionTests.test_admissions_v2_spec_is_registered_and_unique) ... ok
+test_repo_specs_have_no_duplicate_ids (scripts.tests.test_validate_spec_metadata.RealRepoRegressionTests.test_repo_specs_have_no_duplicate_ids)
+GOV-03 closure guard: the live repo specs carry unique ids. ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.007s
+
+OK
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpnk1brh95
+Live specs: 1
+Errors: 0  Warnings: 1
+
+Live spec IDs:
+  no-config: <no-config>
+
+WARNINGS (informational):
+  [no-config] no .config.kiro file (spec has no tracked metadata)
+
+RESULT: PASS
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpnk1brh95
+Live specs: 1
+Errors: 0  Warnings: 1
+
+Live spec IDs:
+  no-config: <no-config>
+
+WARNINGS (informational):
+  [no-config] no .config.kiro file (spec has no tracked metadata)
+
+RESULT: PASS
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpczpr_i8f
+Live specs: 2
+Errors: 2  Warnings: 0
+
+Live spec IDs:
+  alpha: dup-id-xyz
+  beta: dup-id-xyz
+
+ERRORS (block):
+  [alpha] duplicate live spec id 'dup-id-xyz' shared by: alpha, beta
+  [beta] duplicate live spec id 'dup-id-xyz' shared by: alpha, beta
+
+RESULT: FAIL (duplicate/invalid spec metadata)
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpmiz94jdr
+Live specs: 2
+Errors: 0  Warnings: 0
+
+Live spec IDs:
+  alpha: id-a
+  beta: id-b
+
+RESULT: PASS
+EXIT=0

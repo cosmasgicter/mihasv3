@@ -83,6 +83,23 @@ echo "=> Running linter..."
 CURRENT_ISSUES=$("$PY" -c "import json; print(json.load(open('$CURRENT_LINT'))['summary']['total_issues'])")
 BASELINE_ISSUES=$("$PY" -c "import json; print(json.load(open('$BASELINE_LINT'))['summary']['total_issues'])")
 CURRENT_LINT_ERRORS=$("$PY" -c "import json; print(json.load(open('$CURRENT_LINT'))['summary']['errors'])")
+BASELINE_LINT_ERRORS=$("$PY" -c "import json; print(json.load(open('$BASELINE_LINT'))['summary']['errors'])")
+CURRENT_ENDPOINTS=$("$PY" -c "import json; print(json.load(open('$CURRENT_LINT'))['summary']['total_endpoints'])")
+BASELINE_ENDPOINTS=$("$PY" -c "import json; print(json.load(open('$BASELINE_LINT'))['summary']['total_endpoints'])")
+
+# Raw issue totals cannot be compared across differently-sized APIs: adding a
+# fully documented endpoint can legitimately add intentional snake_case naming
+# notices. The repository contract explicitly adopts Django/DRF snake_case, so
+# compare actionable (non-naming) issue density while still reporting totals.
+CURRENT_ACTIONABLE=$("$PY" -c "import json; d=json.load(open('$CURRENT_LINT')); print(sum(i.get('category') != 'naming' for i in d.get('issues', [])))")
+BASELINE_ACTIONABLE=$("$PY" -c "import json; d=json.load(open('$BASELINE_LINT')); print(sum(i.get('category') != 'naming' for i in d.get('issues', [])))")
+CURRENT_DENSITY=$("$PY" -c "print(f'{$CURRENT_ACTIONABLE / $CURRENT_ENDPOINTS:.4f}')")
+BASELINE_DENSITY=$("$PY" -c "print(f'{$BASELINE_ACTIONABLE / $BASELINE_ENDPOINTS:.4f}')")
+if (( CURRENT_ACTIONABLE * BASELINE_ENDPOINTS > BASELINE_ACTIONABLE * CURRENT_ENDPOINTS )); then
+    DENSITY_REGRESSED=1
+else
+    DENSITY_REGRESSED=0
+fi
 
 # 3. Run breaking-change detector
 echo "=> Running breaking-change detector..."
@@ -106,7 +123,8 @@ except Exception:
     echo "| drf-spectacular errors | ? | $SPEC_ERRORS | n/a |"
     echo "| drf-spectacular warnings | ? | $SPEC_WARNINGS | n/a |"
     echo "| Linter issues | $BASELINE_ISSUES | $CURRENT_ISSUES | $((CURRENT_ISSUES - BASELINE_ISSUES)) |"
-    echo "| Linter errors | ? | $CURRENT_LINT_ERRORS | n/a |"
+    echo "| Actionable issues / endpoint | $BASELINE_DENSITY | $CURRENT_DENSITY | normalized |"
+    echo "| Linter errors | $BASELINE_LINT_ERRORS | $CURRENT_LINT_ERRORS | $((CURRENT_LINT_ERRORS - BASELINE_LINT_ERRORS)) |"
     echo "| Breaking changes | 0 | $BREAKING_COUNT | — |"
     echo ""
     echo "## Baseline location"
@@ -114,11 +132,14 @@ except Exception:
     echo "- Lint baseline: \`backend/schema/lint_baseline.json\`"
     echo "- Targets: \`backend/schema/REMEDIATION_TARGETS.md\`"
     echo ""
-    if [[ "$CURRENT_ISSUES" -gt "$BASELINE_ISSUES" ]]; then
-        echo "❌ Linter issue count regressed: $CURRENT_ISSUES > $BASELINE_ISSUES"
+    if [[ "$DENSITY_REGRESSED" -eq 1 ]]; then
+        echo "❌ Actionable linter issue density regressed: $CURRENT_DENSITY > $BASELINE_DENSITY"
     else
-        echo "✓ Linter issue count within baseline ($CURRENT_ISSUES ≤ $BASELINE_ISSUES)"
+        echo "✓ Actionable linter issue density within baseline ($CURRENT_DENSITY ≤ $BASELINE_DENSITY)"
     fi
+    [[ "$CURRENT_LINT_ERRORS" -eq 0 ]] && echo "✓ Linter errors: 0" || echo "❌ Linter errors: $CURRENT_LINT_ERRORS"
+    [[ "$SPEC_ERRORS" -eq 0 ]] && echo "✓ drf-spectacular errors: 0" || echo "❌ drf-spectacular errors: $SPEC_ERRORS"
+    [[ "$SPEC_WARNINGS" -eq 0 ]] && echo "✓ drf-spectacular warnings: 0" || echo "❌ drf-spectacular warnings: $SPEC_WARNINGS"
     if [[ "$BREAKING_COUNT" -gt 0 ]]; then
         echo "❌ $BREAKING_COUNT breaking change(s) detected"
     else
@@ -130,8 +151,16 @@ echo ""
 cat "$REPORT"
 
 # 5. Exit code
-if [[ "$CURRENT_ISSUES" -gt "$BASELINE_ISSUES" ]]; then
-    echo "api-quality: REGRESSION — linter issues increased" >&2
+if [[ "$SPEC_ERRORS" -gt 0 || "$SPEC_WARNINGS" -gt 0 ]]; then
+    echo "api-quality: SCHEMA — drf-spectacular emitted errors or warnings" >&2
+    exit 1
+fi
+if [[ "$CURRENT_LINT_ERRORS" -gt 0 ]]; then
+    echo "api-quality: LINT — error-severity issue(s) remain" >&2
+    exit 1
+fi
+if [[ "$DENSITY_REGRESSED" -eq 1 ]]; then
+    echo "api-quality: REGRESSION — actionable issue density increased" >&2
     exit 1
 fi
 if [[ "$BREAKING_COUNT" -gt 0 ]]; then

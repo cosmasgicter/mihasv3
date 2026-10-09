@@ -12,7 +12,10 @@
  *   5. Required documents    → `createRequiredDocument`
  *   6. Program assignments   → `listOfferings` (read) + console deep-link
  *   7. Intake availability   → guided (read) + console deep-link
- *   8. Tenant-admin invite   → `userService.create` + `createMembership`
+ *   8. Tenant-admin invite   → `tenantAdminService.inviteStaff` (one atomic
+ *                               server command: identity + invitation +
+ *                               membership; emails a set-your-own-password link;
+ *                               no password is set by or shown to the operator)
  *   9. Review & activate     → `activateDomain` (verified → active) + finish
  *
  * Authority + isolation:
@@ -45,6 +48,7 @@ import {
   Building2,
   Check,
   CircleDashed,
+  Coins,
   FileStack,
   Globe2,
   GraduationCap,
@@ -53,6 +57,7 @@ import {
   LayoutTemplate,
   ListChecks,
   Rocket,
+  Route,
   ScrollText,
   ShieldCheck,
   UserPlus,
@@ -65,10 +70,11 @@ import { Input } from '@/components/ui/input'
 import { DashboardSkeleton, SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageShell } from '@/components/ui/PageShell'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { pathFor } from '@/routes/routeRegistry'
 import { toast } from '@/hooks/useToast'
-import { userService } from '@/services/admin/users'
 import {
   tenantAdminService,
   type TenantAsset,
@@ -83,6 +89,8 @@ import {
 import { tenantErrorMessage } from './errors'
 import { TENANT_SELECT_CLASS } from './primitives'
 import { domainStatusLabel, domainStatusTone } from './domainStatus'
+import { WizardFeesStep, WizardIntakesStep, WizardProgramsStep } from './onboardingCatalogSteps'
+import { RoutingSimulatorBody } from './RoutingSimulatorPanel'
 
 // --- Step model -------------------------------------------------------------
 
@@ -94,6 +102,8 @@ type StepKey =
   | 'documents'
   | 'programs'
   | 'intakes'
+  | 'fees'
+  | 'routing'
   | 'invite'
   | 'review'
 
@@ -105,12 +115,14 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
   { key: 'profile', label: 'Institution profile', icon: Building2 },
-  { key: 'branding', label: 'Branding', icon: ImageIcon },
+  { key: 'branding', label: 'Branding & support', icon: ImageIcon },
   { key: 'domains', label: 'Domains', icon: Globe2 },
   { key: 'templates', label: 'Application templates', icon: LayoutTemplate },
   { key: 'documents', label: 'Required documents', icon: ListChecks },
-  { key: 'programs', label: 'Program assignments', icon: GraduationCap },
-  { key: 'intakes', label: 'Intake availability', icon: ScrollText },
+  { key: 'programs', label: 'Program offerings', icon: GraduationCap },
+  { key: 'intakes', label: 'Intake & capacity', icon: ScrollText },
+  { key: 'fees', label: 'Fees', icon: Coins },
+  { key: 'routing', label: 'Routing simulation', icon: Route },
   { key: 'invite', label: 'Tenant-admin invitation', icon: UserPlus },
   { key: 'review', label: 'Review & activate', icon: Rocket },
 ]
@@ -295,7 +307,10 @@ export function TenantOnboardingWizard() {
   const [hostnameDraft, setHostnameDraft] = useState('')
   const [templateDraft, setTemplateDraft] = useState({ document_type: 'acceptance_letter', name: '' })
   const [documentDraft, setDocumentDraft] = useState({ document_type: 'nrc', label: '', is_required: true })
-  const [inviteDraft, setInviteDraft] = useState({ full_name: '', email: '', phone: '', password: '' })
+  // Invite is by email only — no password field. The invited admin sets their
+  // own password via a single-use email link (R4.3, TEN-01). Invitation input
+  // is deliberately NOT persisted to browser storage.
+  const [inviteDraft, setInviteDraft] = useState({ full_name: '', email: '' })
   const [inviteCompleted, setInviteCompleted] = useState(false)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [brandingAssetType, setBrandingAssetType] = useState<'logo' | 'signature'>('logo')
@@ -330,7 +345,6 @@ export function TenantOnboardingWizard() {
         hostnameDraft?: string
         templateDraft?: typeof templateDraft
         documentDraft?: typeof documentDraft
-        inviteDraft?: typeof inviteDraft
         inviteCompleted?: boolean
         createdDomain?: TenantDomain | null
       }
@@ -342,7 +356,8 @@ export function TenantOnboardingWizard() {
       if (typeof draft.hostnameDraft === 'string') setHostnameDraft(draft.hostnameDraft)
       if (draft.templateDraft) setTemplateDraft((prev) => ({ ...prev, ...draft.templateDraft }))
       if (draft.documentDraft) setDocumentDraft((prev) => ({ ...prev, ...draft.documentDraft }))
-      if (draft.inviteDraft) setInviteDraft((prev) => ({ ...prev, ...draft.inviteDraft }))
+      // inviteDraft is intentionally NOT restored — invitation input (and never
+      // a password) is never written to browser storage (R4.3, TEN-01).
       if (typeof draft.inviteCompleted === 'boolean') setInviteCompleted(draft.inviteCompleted)
       if (draft.createdDomain) setCreatedDomain(draft.createdDomain)
     } catch {
@@ -367,6 +382,9 @@ export function TenantOnboardingWizard() {
       window.localStorage.removeItem(ONBOARDING_DRAFT_KEY)
       return
     }
+    // inviteDraft is deliberately omitted — invitation input (and, previously,
+    // an operator-set password) must never be persisted to browser storage
+    // (R4.3, TEN-01). Only non-secret onboarding progress is cached for resume.
     const draft = {
       stepIndex,
       reachedIndex,
@@ -376,7 +394,6 @@ export function TenantOnboardingWizard() {
       hostnameDraft,
       templateDraft,
       documentDraft,
-      inviteDraft,
       inviteCompleted,
       createdDomain,
     }
@@ -388,7 +405,6 @@ export function TenantOnboardingWizard() {
     hostnameDraft,
     institutionId,
     inviteCompleted,
-    inviteDraft,
     profile,
     reachedIndex,
     savedProfile,
@@ -539,35 +555,26 @@ export function TenantOnboardingWizard() {
   })
 
   const inviteMutation = useMutation({
-    mutationFn: async () => {
-      // Create the tenant-admin user, then scope it to the new tenant with a
-      // membership (R16.2). Both calls are super-admin gated on the backend.
-      const result = await userService.create({
-        email: inviteDraft.email.trim(),
-        password: inviteDraft.password,
-        full_name: inviteDraft.full_name.trim(),
-        phone: inviteDraft.phone.trim() || undefined,
-        role: 'admin',
-      })
-      const userId = result?.user?.id
-      if (!userId) {
-        throw new Error('User was created but no id was returned; cannot scope the membership.')
-      }
-      await tenantAdminService.createMembership({
-        user_id: String(userId),
+    // One atomic server command creates the identity, invitation, and membership
+    // in a single transaction and emails a single-use accept link (R4.3, R4.4,
+    // TEN-01). The operator sets no password and receives no credential — the
+    // invited admin sets their own password via the emailed link.
+    mutationFn: async () =>
+      tenantAdminService.inviteStaff({
         institution_id: institutionId!,
+        email: inviteDraft.email.trim(),
+        full_name: inviteDraft.full_name.trim() || undefined,
         role: 'admin',
         permissions: TENANT_ADMIN_PERMISSIONS,
-        is_active: true,
-      })
-    },
+      }),
     onSuccess: () => {
       setInviteCompleted(true)
-      setInviteDraft({ full_name: '', email: '', phone: '', password: '' })
+      setInviteDraft({ full_name: '', email: '' })
       invalidateTenants()
-      toast.success('Tenant admin invited and scoped to this tenant')
+      membershipsQuery.refetch()
+      toast.success('Invitation sent — the admin will set their own password via email')
     },
-    onError: (error) => toast.error(tenantErrorMessage(error, 'Tenant admin was not created')),
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Tenant admin was not invited')),
   })
 
   // --- Navigation -----------------------------------------------------------
@@ -587,13 +594,36 @@ export function TenantOnboardingWizard() {
     setReachedIndex((reached) => Math.max(reached, index))
   }, [])
 
-  const exitToConsole = useCallback(() => {
+  /**
+   * Leaving mid-onboarding (admissions-v2 task 11.5, R16.6, finding STU-10).
+   *
+   * This was the **last** `window.confirm` owning a production workflow: task
+   * 11.1 replaced the draft-deletion confirms, 11.2 replaced the wizard's
+   * unsaved-changes guard, and this one was left named as this task's. A native
+   * confirm is not a product dialog — it is not keyboard-contained, it cannot be
+   * styled to the tokens, it cannot mark its consequence as non-destructive, and
+   * on mobile Safari it can be suppressed entirely, which silently discards the
+   * guard. `ConfirmDialog` traps focus (`useFocusTrap`), closes on Escape
+   * (`useEscapeKey`), and names both outcomes.
+   *
+   * The consequence is `warning`, not `danger`: what is being left is saved.
+   */
+  const exitDialog = useConfirmDialog()
+
+  const exitToConsole = useCallback(async () => {
     if (guardRef.current) {
-      const ok = window.confirm('Onboarding is in progress. Leave the wizard? Saved steps are kept; unsaved input on this step is discarded.')
-      if (!ok) return
+      const confirmed = await exitDialog.confirm({
+        title: 'Leave tenant onboarding?',
+        message:
+          'Every step you have saved is kept, and you can return to this wizard from the tenant console. Only unsaved input on the step you are looking at is discarded.',
+        confirmText: 'Leave onboarding',
+        cancelText: 'Stay here',
+        variant: 'warning',
+      })
+      if (!confirmed) return
     }
     navigate(pathFor('admin.tenants'))
-  }, [navigate])
+  }, [exitDialog, navigate])
 
   const finishToConsole = useCallback(() => {
     setCompleted(true)
@@ -692,7 +722,7 @@ export function TenantOnboardingWizard() {
             />
             {completed && <StatusBadge tone="success" label="Onboarding complete" />}
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={exitToConsole} className="w-full sm:w-auto">
+          <Button type="button" variant="outline" size="sm" onClick={() => { void exitToConsole() }} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to console
           </Button>
         </div>
@@ -963,68 +993,57 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'programs' && (
                     <>
-                      <StepHeading title="Program assignments" description="Canonical programs assigned to this tenant become its offerings. Assign and tune routing in the console's Offerings tab — changes are saved to this tenant immediately." />
-                      <CountNote count={offerings.length} singular="program offering" plural="program offerings" />
-                      <div className="space-y-2">
-                        {offerings.map((offering) => (
-                          <div key={offering.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
-                            <div className="min-w-0">
-                              <p className="break-words text-sm font-medium text-foreground">{offering.name}</p>
-                              <p className="text-xs text-muted-foreground">{offering.code}{offering.offering_status ? ` · ${offering.offering_status}` : ''}</p>
-                            </div>
-                            {offering.is_active === false && <StatusBadge tone="muted" label="Inactive" />}
-                          </div>
-                        ))}
-                      </div>
-                      <p className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
-                        <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                        Program assignment uses the canonical program catalogue. After finishing the wizard, open the school in the console and use the Offerings tab to assign programs and set routing priority.
-                      </p>
+                      <StepHeading title="Program offerings" description="Assign canonical Beanola programs to this school as offerings. This is a real canonical mutation saved to this tenant — no manual database edit and no legacy string identifiers." />
+                      <WizardProgramsStep institutionId={institutionId!} />
                     </>
                   )}
 
                   {step.key === 'intakes' && (
                     <>
-                      <StepHeading title="Intake availability" description="Which intakes this tenant participates in. Intake offerings are platform-managed and configured per offering in the console." />
-                      <p className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
-                        <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                        Intakes follow the platform Jan/Jul cadence and are attached to a tenant through its program offerings. Set intake participation per offering in the console's Offerings tab once programs are assigned.
-                      </p>
-                      <CountNote count={offerings.length} singular="offering ready for intakes" plural="offerings ready for intakes" />
+                      <StepHeading title="Intake & capacity" description="Link each offering to an intake period and set its seat capacity. Applicants can only be routed to offerings that participate in an open intake." />
+                      <WizardIntakesStep institutionId={institutionId!} />
+                    </>
+                  )}
+
+                  {step.key === 'fees' && (
+                    <>
+                      <StepHeading title="Fees" description="Configure the canonical application fee per offering and residency. Students are quoted this exact server amount at payment — never an invented or hardcoded fee." />
+                      <WizardFeesStep institutionId={institutionId!} />
+                    </>
+                  )}
+
+                  {step.key === 'routing' && (
+                    <>
+                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a program + intake. Read-only — no application is created." />
+                      <RoutingSimulatorBody institutionId={institutionId!} institutionName={tenantName} />
                     </>
                   )}
 
                   {step.key === 'invite' && (
                     <>
-                      <StepHeading title="Tenant-admin invitation" description="Create the tenant administrator and scope a membership to this tenant only. They will see no other school's data (R16.2/R16.3)." />
+                      <StepHeading title="Tenant-admin invitation" description="Invite the tenant administrator by email and scope a membership to this tenant only. They set their own password via a single-use link — you never set or see a password. They will see no other school's data (R16.2/R16.3)." />
                       {inviteCompleted ? (
                         <div className="flex items-start gap-2 rounded-lg border border-success/25 bg-success/5 p-3 text-sm text-foreground">
                           <Check className="mt-0.5 h-4 w-4 text-success" aria-hidden="true" />
-                          Tenant admin created and scoped to {tenantName}. They can sign in with the credentials you set.
+                          Invitation sent for {tenantName}. The admin will receive an email with a secure link to set their own password and sign in.
                         </div>
                       ) : (
                         <form
                           className="grid gap-3 md:grid-cols-2"
                           onSubmit={(e) => {
                             e.preventDefault()
-                            if (!inviteDraft.full_name.trim() || !inviteDraft.email.trim()) {
-                              toast.error('Name and email are required')
-                              return
-                            }
-                            if (inviteDraft.password.length < 8) {
-                              toast.error('Set an initial password of at least 8 characters')
+                            if (!inviteDraft.email.trim()) {
+                              toast.error('An email address is required')
                               return
                             }
                             inviteMutation.mutate()
                           }}
                         >
-                          <Input value={inviteDraft.full_name} onChange={(e) => setInviteDraft((p) => ({ ...p, full_name: e.target.value }))} placeholder="Full name" aria-label="Tenant admin full name" autoComplete="off" />
+                          <Input value={inviteDraft.full_name} onChange={(e) => setInviteDraft((p) => ({ ...p, full_name: e.target.value }))} placeholder="Full name (optional)" aria-label="Tenant admin full name" autoComplete="off" />
                           <Input value={inviteDraft.email} onChange={(e) => setInviteDraft((p) => ({ ...p, email: e.target.value }))} placeholder="Email" aria-label="Tenant admin email" type="email" inputMode="email" autoComplete="off" />
-                          <Input value={inviteDraft.phone} onChange={(e) => setInviteDraft((p) => ({ ...p, phone: e.target.value }))} placeholder="Phone (optional)" aria-label="Tenant admin phone" inputMode="tel" autoComplete="off" />
-                          <Input value={inviteDraft.password} onChange={(e) => setInviteDraft((p) => ({ ...p, password: e.target.value }))} placeholder="Initial password" aria-label="Tenant admin initial password" type="password" autoComplete="new-password" />
                           <div className="md:col-span-2 flex justify-end">
                             <Button type="submit" loading={inviteMutation.isPending}>
-                              <UserPlus className="h-4 w-4" aria-hidden="true" /> Create tenant admin
+                              <UserPlus className="h-4 w-4" aria-hidden="true" /> Send invitation
                             </Button>
                           </div>
                         </form>
@@ -1122,6 +1141,16 @@ export function TenantOnboardingWizard() {
           </div>
         </div>
       </PageShell>
+      <ConfirmDialog
+        isOpen={exitDialog.isOpen}
+        onClose={exitDialog.handleCancel}
+        onConfirm={exitDialog.handleConfirm}
+        title={exitDialog.options.title}
+        message={exitDialog.options.message}
+        confirmText={exitDialog.options.confirmText}
+        cancelText={exitDialog.options.cancelText}
+        variant={exitDialog.options.variant}
+      />
     </>
   )
 }

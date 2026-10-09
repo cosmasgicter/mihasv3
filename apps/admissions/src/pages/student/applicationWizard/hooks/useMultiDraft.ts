@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { applicationService } from '@/services/applications'
+import { deleteStudentDraft, type StudentDraftDeleteResult } from '@/lib/studentDraftCleanup'
 import { useDraftRevision } from '@/stores/draftStore'
 
 interface Draft {
@@ -45,57 +46,65 @@ export const useMultiDraft = (userId: string | undefined) => {
     }
   }
 
-  const createDraft = async (draftName: string, draftData: Record<string, unknown>) => {
+  // Canonical draft START (task 6.2, R10.1/R10.3/R10.9). A start requires the
+  // minimum canonical selection (program_id + intake_id); it is NEVER an empty
+  // payload (finding STU-12). Errors are surfaced, not suppressed.
+  const createDraft = async (draftData: Record<string, unknown>) => {
     if (!userId) return null
 
+    if (!draftData?.program_id || !draftData?.intake_id) {
+      setError('Select a programme and intake to start an application.')
+      return null
+    }
+
     try {
-      const result = await applicationService.create({
-        ...draftData,
-        status: 'draft',
-        draft_name: draftName
-      })
+      const result = await applicationService.startDraft({ ...draftData, status: 'draft' })
+      setError(null)
       await fetchDrafts()
       return result
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'An error occurred'
+      const message = err instanceof Error ? err.message : 'Failed to start application'
       setError(message)
       return null
     }
   }
 
-  const updateDraft = async (draftId: string, draftData: Record<string, unknown>) => {
-    try {
-      await applicationService.update(draftId, draftData)
-      await fetchDrafts()
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'An error occurred'
-      setError(message)
-    }
-  }
-
+  // Rename via the dedicated, validated server field (task 6.2, R10.9). The old
+  // path sent draft_name through the generic application update, where it was
+  // silently dropped (finding STU-12).
   const renameDraft = async (draftId: string, newName: string) => {
+    const trimmed = newName.trim()
+    if (!trimmed) {
+      setError('Enter a name for this draft.')
+      return
+    }
     try {
-      await applicationService.update(draftId, { draft_name: newName })
+      await applicationService.renameDraft(draftId, trimmed)
+      setError(null)
       await fetchDrafts()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to rename draft')
     }
   }
 
-  const deleteDraft = async (draftId: string) => {
-    try {
-      await applicationService.delete(draftId)
-    } catch (err: unknown) {
-      // 404 means the draft is already gone — treat as success
-      const status = (err as { status?: number })?.status
-      const message = err instanceof Error ? err.message : ''
-      const is404 = status === 404 || message.includes('404') || message.includes('Not Found')
-      if (!is404) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-        return
-      }
+  /**
+   * Delete one draft (admissions-v2 task 11.1, R10.10, finding STU-12).
+   *
+   * Delegates to the one scoped command. The version this replaces deleted the
+   * server row and left that `(user, application)` local snapshot behind, so the
+   * wizard could restore a draft the platform had already removed; it also read a
+   * payment-linked refusal as a generic error, hiding the fact that the draft was
+   * protected rather than broken.
+   */
+  const deleteDraft = async (draftId: string): Promise<StudentDraftDeleteResult> => {
+    const result = await deleteStudentDraft({ userId, applicationId: draftId })
+    if (!result.success) {
+      setError(result.error ?? 'An error occurred')
+      return result
     }
+    setError(null)
     await fetchDrafts()
+    return result
   }
 
   const loadDraft = async (draftId: string) => {
@@ -126,7 +135,6 @@ export const useMultiDraft = (userId: string | undefined) => {
     loading,
     error,
     createDraft,
-    updateDraft,
     renameDraft,
     deleteDraft,
     loadDraft,

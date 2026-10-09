@@ -1,0 +1,80 @@
+=== GATE-13.1-07 pre-check (before any 13.3 Playwright run) ===
+Wed Aug 12 07:40:18 AM UTC 2026
+
+-- 1. task 0.4 playwright-report.json (base harness config hard-codes this path) --
+-rw-rw-r-- 1 cosmas cosmas 3951 2026-08-12 06:05:02.078137261 +0200 docs/v2-evidence/0.4/playwright-report.json
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+
+-- 2. the five 11.x screenshot directories (six required specs write into these) --
+11.1  files=7  newest=dashboard-320-text200.png
+-rw-rw-r-- 1 cosmas cosmas 103810 2026-08-12 05:46:16.994588410 +0200 dashboard-320-chromium-required.png
+-rw-rw-r-- 1 cosmas cosmas 364641 2026-08-12 05:56:51.240241065 +0200 dashboard-320-mobile-required.png
+11.2  files=10  newest=wizard-320-text200.png
+-rw-rw-r-- 1 cosmas cosmas 168808 2026-08-12 05:47:09.601223149 +0200 wizard-320-chromium-required.png
+-rw-rw-r-- 1 cosmas cosmas 771656 2026-08-12 05:58:18.555542269 +0200 wizard-320-context-open.png
+11.3  files=10  newest=dashboard-row-320-mobile-required.png
+-rw-rw-r-- 1 cosmas cosmas  33613 2026-08-12 05:46:26.617704521 +0200 dashboard-row-320-chromium-required.png
+-rw-rw-r-- 1 cosmas cosmas 115636 2026-08-12 05:57:08.657451217 +0200 dashboard-row-320-mobile-required.png
+11.4  files=16  newest=admin-tenants-390-mobile-required.png
+-rw-rw-r-- 1 cosmas cosmas  61977 2026-08-12 05:41:56.549445942 +0200 admin-applications-390-chromium-required.png
+-rw-rw-r-- 1 cosmas cosmas 239335 2026-08-12 05:50:05.495280492 +0200 admin-applications-390-mobile-required.png
+11.5  files=20  newest=admin-intakes-390-mobile-required.png
+-rw-rw-r-- 1 cosmas cosmas  51349 2026-08-12 05:43:16.412409549 +0200 admin-intakes-390-chromium-required.png
+-rw-rw-r-- 1 cosmas cosmas 191959 2026-08-12 05:52:47.483299954 +0200 admin-intakes-390-mobile-required.png
+
+-- 3. 2.2 authority-conformance-summary.json (backend generator) --
+-rw-rw-r-- 1 cosmas cosmas 13367 2026-08-12 05:00:40.919517818 +0200 docs/v2-evidence/2.2/authority-conformance-summary.json
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+
+
+=== GATE-13.1-07 post-check (after every 13.3 Playwright run) ===
+]633;E;date -u;9cd90cfd-d96d-4c0f-81cd-04a652fdbcc9]633;CWed Aug 12 10:42:50 AM UTC 2026
+
+-- 1. task 0.4 playwright-report.json --
+-rw-rw-r-- 1 cosmas cosmas 3951 2026-08-12 06:05:02.078137261 +0200 docs/v2-evidence/0.4/playwright-report.json
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+   expected sha256 (pre-check): 85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68
+
+-- 2. the five 11.x screenshot directories --
+11.1  files=7  newest-mtime=2026-08-12T05:56:58
+11.2  files=10  newest-mtime=2026-08-12T05:58:50
+11.3  files=10  newest-mtime=2026-08-12T05:57:08
+11.4  files=16  newest-mtime=2026-08-12T05:50:23
+11.5  files=20  newest-mtime=2026-08-12T05:52:47
+
+-- 3. 2.2 authority-conformance-summary.json --
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+   expected sha256 (pre-check): db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2
+
+-- 4. where THIS task's artifacts went instead --
+docs/v2-evidence/13.3/raw/artifacts
+docs/v2-evidence/13.3/raw/html-report
+docs/v2-evidence/13.3/screenshots
+
+-- 5. the base harness config was NOT modified (it still writes into 0.4) --
+39:    ['json', { outputFile: '../../docs/v2-evidence/0.4/playwright-report.json' }],
+
+
+=== GATE-13.1-07 final post-check (after the recorded 52-test run) ===
+]633;E;date -u;96870a41-fe1e-43ba-a873-216a6d850a25]633;CWed Aug 12 01:17:02 PM UTC 2026
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+   expected: 85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+   expected: db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2
+11.1 files=7
+11.2 files=10
+11.3 files=10
+11.4 files=16
+11.5 files=20
+
+=== GATE-13.1-07 final post-check (after the recorded 54-test run) ===
+Wed Aug 12 02:45:29 PM UTC 2026
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+   expected: 85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+   expected: db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2
+11.1 files=7
+11.2 files=10
+11.3 files=10
+11.4 files=16
+11.5 files=20

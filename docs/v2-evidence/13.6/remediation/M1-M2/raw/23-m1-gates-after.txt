@@ -1,0 +1,96 @@
+### 2026-08-15T07:34:56Z M1 AFTER - the same instruments, same database, same invocations
+# Compare line for line with raw/21-m1-gates-before.txt.
+
+=================== 1. width-drift-probe.py ===================
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+database           : v2_snap_13_6
+server_version     : 17.10 (29ad1b7)
+managed=False models with a table here : 78
+bounded-length fields compared          : 339
+
+NARROWER than the model declares (500 risk) : 0
+
+WIDER than the model declares (harmless)    : 0
+
+column absent (already check_schema_drift's job) : 0
+
+managed=False tables absent from this database   : 0
+
+VERDICT: PASS - narrower_columns=0
+probe exit=0
+
+=================== 2. preflight gate 20 - all three lines ===================
+ gate20 snapshot column ceiling | applications.institution | institutions.name |            255 |          255 |                   46 |                      0 | PASS
+ gate20 snapshot column ceiling | applications.intake      | intakes.name      |            255 |          255 |                   19 |                      0 | PASS
+ gate20 snapshot column ceiling | applications.program     | programs.name     |            255 |          255 |                   39 |                      0 | PASS
+(3 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+              gate              | colliding_intake_names | colliding_offering_names | active_institutions |                                      verdict                                      
+--------------------------------+------------------------+--------------------------+---------------------+-----------------------------------------------------------------------------------
+ gate21 name-collision exposure |                      3 |                        0 |                   2 | FAIL - GATE-13.2-01 is LIVE: a staff read can publish the other tenant's capacity
+
+=================== 3. the 150-character reproduction, re-run ===================
+--- the arithmetic, from the catalogue ---
+         col         | column_width | model_max_length 
+---------------------+--------------+------------------
+ applications.intake |          255 |              255
+ intakes.name        |          255 |              255
+(2 rows)
+
+--- 150 characters: L2-L3 raw/18 measured this as "value too long for type character varying(100)" ---
+BEGIN
+UPDATE 1
+ stored_length 
+---------------
+           150
+(1 row)
+
+ROLLBACK
+--- 113 characters: 13.3 OVERLONG_INTAKE_NAME length ---
+BEGIN
+UPDATE 1
+ stored_length 
+---------------
+           113
+(1 row)
+
+ROLLBACK
+--- 255 characters: the new ceiling, exactly ---
+BEGIN
+UPDATE 1
+ stored_length 
+---------------
+           255
+(1 row)
+
+ROLLBACK
+--- 256 characters: one over, must still be refused (this is not a text column) ---
+BEGIN
+ERROR:  value too long for type character varying(255)
+ROLLBACK
+--- and the probe left nothing behind ---
+ rows_over_100_chars 
+---------------------
+                   0
+(1 row)
+
+ longest_stored_intake 
+-----------------------
+                    19
+(1 row)
+
+### 2026-08-15T07:35:52Z done

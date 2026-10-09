@@ -1,0 +1,51 @@
+{
+  "spec_task": "2.1",
+  "requirement": "R3.2",
+  "policy_by_class": {
+    "public": {
+      "policy": "public",
+      "cross_object": "n/a",
+      "rule": "No authentication; response body is intentionally public. No object-existence concern."
+    },
+    "owner": {
+      "policy": "not_found_mask",
+      "cross_object": "404",
+      "rule": "Object is owned by the acting Student. A request for another user's (or another tenant's) object returns an indistinguishable 404 \u2014 existence is never confirmed to a non-owner. Composed staff readers are scoped before lookup and also 404-masked out of scope."
+    },
+    "reviewer_assignment": {
+      "policy": "not_found_mask",
+      "cross_object": "404",
+      "rule": "Reviewer authority is active tenant membership PLUS an explicit application assignment. An unassigned or out-of-tenant object returns an indistinguishable 404."
+    },
+    "tenant_capability": {
+      "policy": "not_found_mask_then_non_revealing_403",
+      "cross_object": "404",
+      "rule": "Scope BEFORE lookup via visible_institution_queryset: an out-of-scope (other-tenant) object is an indistinguishable 404. An in-scope object with a missing tenant.* capability is a non-revealing 403 that leaks no tenant id/name/count/attribute."
+    },
+    "platform_capability": {
+      "policy": "non_revealing_403",
+      "cross_object": "403",
+      "rule": "Platform authority sees all tenants, so there is no cross-tenant masking; a missing platform.* capability is a non-revealing 403. A genuinely absent object id is a generic 404."
+    },
+    "worker": {
+      "policy": "internal",
+      "cross_object": "n/a",
+      "rule": "Internal worker/command surface \u2014 not an actor-facing HTTP endpoint."
+    },
+    "internal_callback": {
+      "policy": "signature_verified",
+      "cross_object": "n/a",
+      "rule": "Inbound provider callback authenticated by signature/HMAC. Returns 200 on every processing outcome so internal state cannot be probed; an invalid signature is rejected without disclosure."
+    },
+    "infra": {
+      "policy": "n/a",
+      "cross_object": "n/a",
+      "rule": "Infrastructure / documentation surface (health, OpenAPI schema, docs, API root, Django operational admin). Not part of the admissions authority matrix."
+    },
+    "jobs_ops": {
+      "policy": "out_of_admissions_scope",
+      "cross_object": "n/a",
+      "rule": "Separate AI job-hunting product (gated behind ENABLE_JOBS_OPS_ROUTES). Out of the admissions authority model; excluded from the five-actor admissions case matrix. Carries its own public-read / authenticated-write / policy-gated model."
+    }
+  }
+}

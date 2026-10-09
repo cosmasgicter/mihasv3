@@ -6,8 +6,8 @@ that CI can upload as build artifacts on PR runs.
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -16,32 +16,13 @@ BACKEND = Path(__file__).resolve().parents[2]
 SCRIPT = BACKEND / "scripts" / "api_quality.sh"
 
 
-def _find_venv_python() -> str | None:
-    """Locate the audit venv used during remediation, falling back to PATH python."""
-    candidates = [
-        Path("/tmp/mihas_audit_venv/bin/python"),
-        Path("/opt/venv/bin/python"),
-    ]
-    for c in candidates:
-        if c.is_file():
-            return str(c)
-    return shutil.which("python") or shutil.which("python3")
-
-
 @pytest.mark.integration
 def test_api_quality_script_passes_against_baseline(tmp_path):
     """Running the script with no code changes must exit 0 (no regression)."""
-    py = _find_venv_python()
-    if not py:
-        pytest.skip("No python executable found")
-
-    # Make sure drf-spectacular and django are importable with this python
-    probe = subprocess.run(
-        [py, "-c", "import django, drf_spectacular"],
-        capture_output=True,
-    )
-    if probe.returncode != 0:
-        pytest.skip(f"Python at {py} lacks backend deps; run `pip install -r backend/requirements.txt`")
+    # The test is already executing inside the backend environment. Reuse that
+    # exact interpreter instead of searching PATH (which made invocation style
+    # decide whether this required gate ran or silently skipped).
+    py = sys.executable
 
     report = tmp_path / "report.md"
     # Build a clean env to avoid inheriting pytest TESTING/CACHE overrides that
@@ -64,17 +45,16 @@ def test_api_quality_script_passes_against_baseline(tmp_path):
         capture_output=True,
         text=True,
     )
-    # Schema regen may fail in environments without cache/redis. Skip cleanly in that case.
-    if res.returncode == 2 and "schema generation failed" in res.stderr:
-        pytest.skip(f"Environment cannot run manage.py spectacular cleanly: {res.stderr.splitlines()[1:4]}")
-
     assert res.returncode == 0, (
         f"api_quality.sh failed (exit {res.returncode}).\n"
         f"stderr: {res.stderr}\nstdout: {res.stdout}"
     )
     assert report.is_file()
     content = report.read_text()
-    assert "Linter issue count within baseline" in content
+    assert "Actionable linter issue density within baseline" in content
+    assert "Linter errors: 0" in content
+    assert "drf-spectacular errors: 0" in content
+    assert "drf-spectacular warnings: 0" in content
     assert "No breaking changes" in content
 
 

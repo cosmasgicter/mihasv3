@@ -1,9 +1,35 @@
-import React, { useState } from 'react'
+/**
+ * Bulk user role/status changes as one server command (task 9.3).
+ *
+ * Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` task 9.3.
+ * Requirement: **R6.5** · Findings: **ADM-03**, **AUTH-04**.
+ *
+ * What this replaces. `useUserManagement.bulkUpdateRoles` / `bulkDeleteUsers`
+ * were `for` loops issuing one `PATCH` per selected account and counting the
+ * responses, and the SHA-256 confirmation token was computed in the browser and
+ * checked in the browser — so it guarded against a mis-click and nothing else.
+ * Twenty-five role changes were twenty-five unrelated events with no single
+ * decision to authorize, audit, bound, or roll back.
+ *
+ * Now it is one command. The token still exists and still has to be typed, but
+ * it is *verified server-side*, which is what makes it part of the command's
+ * identity: a token computed for one selection cannot authorise a different one.
+ * The command is all-or-nothing, bounded at 25 targets, applies the platform's
+ * role ceiling per target, revokes sessions whose authority it changed, and is
+ * audited once.
+ */
+import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
-import { useUserManagement } from '@/hooks/useUserManagement'
 import { UserProfile } from '@/types/database'
-import { Users, Shield, Trash2, CheckSquare, Square, AlertTriangle } from 'lucide-react'
+import {
+  userBulkConfirmationToken,
+  type UserBulkOperation,
+  type UserBulkResult,
+} from '@/services/admin/userDirectory'
+import { useUserBulkCommand } from '@/hooks/admin/useUserDirectory'
+import { AVAILABLE_ROLES, getRoleLabel } from '@/pages/admin/lib/usersReducer'
+import { AlertTriangle, CheckSquare, Shield, Square, Trash2, Users } from 'lucide-react'
 import { toError } from '@/lib/toError'
 
 interface BulkUserOperationsProps {
@@ -13,170 +39,196 @@ interface BulkUserOperationsProps {
   onOperationComplete: () => void
 }
 
-interface BulkOperationResult {
-  success: number
-  failed: number
-  errors?: string[]
-}
+/** Matches `user_bulk_service.MAX_BULK_SIZE`; the server refuses beyond it. */
+export const BULK_SIZE_LIMIT = 25
 
-const AVAILABLE_ROLES = [
-  { value: 'student', label: 'Student' },
-  { value: 'reviewer', label: 'Reviewer' },
-  { value: 'admissions_officer', label: 'Admissions Officer' },
-  { value: 'registrar', label: 'Registrar' },
-  { value: 'finance_officer', label: 'Finance Officer' },
-  { value: 'academic_head', label: 'Academic Head' },
-  { value: 'admin', label: 'Administrator' },
-  { value: 'super_admin', label: 'Super Admin' },
-]
-
-export function BulkUserOperations({ 
-  users, 
-  selectedUsers, 
-  onSelectionChange, 
-  onOperationComplete 
+export function BulkUserOperations({
+  users,
+  selectedUsers,
+  onSelectionChange,
+  onOperationComplete,
 }: BulkUserOperationsProps) {
-  const { bulkUpdateRoles, bulkDeleteUsers, loading } = useUserManagement()
-  const [showRoleDialog, setShowRoleDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const bulkCommand = useUserBulkCommand()
+  const [pendingOperation, setPendingOperation] = useState<UserBulkOperation | null>(null)
   const [selectedRole, setSelectedRole] = useState('student')
-  const [operationResult, setOperationResult] = useState<BulkOperationResult | null>(null)
   const [confirmationToken, setConfirmationToken] = useState<string | null>(null)
   const [confirmInput, setConfirmInput] = useState('')
+  const [result, setResult] = useState<UserBulkResult | null>(null)
+  const [commandError, setCommandError] = useState<string>('')
 
-  const computeConfirmationToken = async (operation: string, details: Record<string, unknown>): Promise<string> => {
-    const payload = JSON.stringify({ operation, ...details, userIds: selectedUsers.sort() })
-    const encoded = new TextEncoder().encode(payload)
-    const hash = await crypto.subtle.digest('SHA-256', encoded)
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8)
+  const selectedUserDetails = useMemo(
+    () => users.filter((user) => selectedUsers.includes(user.user_id || user.id)),
+    [users, selectedUsers],
+  )
+  const overLimit = selectedUsers.length > BULK_SIZE_LIMIT
+
+  const openDialog = async (operation: UserBulkOperation) => {
+    setCommandError('')
+    setPendingOperation(operation)
+    setConfirmInput('')
+    // The **same** construction the server recomputes: the sorted ids plus the
+    // operation and role. A short prefix is shown to the operator, so the typed
+    // confirmation is still human-sized.
+    const token = await userBulkConfirmationToken(
+      operation,
+      selectedUsers,
+      operation === 'set_role' ? selectedRole : null,
+    )
+    setConfirmationToken(token.slice(0, 8))
+  }
+
+  const closeDialog = () => {
+    setPendingOperation(null)
+    setConfirmationToken(null)
+    setConfirmInput('')
+  }
+
+  const run = async () => {
+    if (!pendingOperation || confirmInput !== confirmationToken) return
+    try {
+      const answer = await bulkCommand.mutateAsync({
+        operation: pendingOperation,
+        user_ids: selectedUsers,
+        role: pendingOperation === 'set_role' ? selectedRole : null,
+      })
+      setResult(answer)
+      if (answer.committed) {
+        // Refresh the table behind the dialog, but keep the selection until the
+        // operator has read the outcome. Clearing it here would unmount this
+        // component (the page renders it only while something is selected) and
+        // destroy the report of the command that just ran — which is how a bulk
+        // change ended up being a number in a dialog nobody saw.
+        onOperationComplete()
+      }
+    } catch (error) {
+      // A refusal is the server's answer, not a partial application: nothing was
+      // changed, so the selection is left intact for the operator to correct.
+      setCommandError(toError(error).message || 'The bulk change could not be applied.')
+    } finally {
+      closeDialog()
+    }
+  }
+
+  /** Dismiss the outcome, and only then release the selection. */
+  const dismissResult = () => {
+    const committed = result?.committed
+    setResult(null)
+    if (committed) onSelectionChange([])
   }
 
   const handleSelectAll = () => {
-    if (selectedUsers.length === users.length) {
+    const pageIds = users
+      .map((user) => user.user_id || user.id)
+      .filter((id): id is string => Boolean(id))
+    if (selectedUsers.length === pageIds.length) {
       onSelectionChange([])
     } else {
-      onSelectionChange(users.map(user => user.user_id).filter((id): id is string => id !== undefined))
+      onSelectionChange(pageIds)
     }
   }
 
   const handleUserSelect = (userId: string) => {
     if (selectedUsers.includes(userId)) {
-      onSelectionChange(selectedUsers.filter(id => id !== userId))
+      onSelectionChange(selectedUsers.filter((id) => id !== userId))
     } else {
       onSelectionChange([...selectedUsers, userId])
     }
   }
 
-  const handleBulkRoleUpdate = async () => {
-    if (confirmInput !== confirmationToken) return
-    try {
-      const result = await bulkUpdateRoles(selectedUsers, selectedRole)
-      setOperationResult(result)
-      onSelectionChange([])
-      onOperationComplete()
-    } catch (error) {
-      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [toError(error).message || 'Role update failed'] })
-    } finally {
-      setShowRoleDialog(false)
-      setConfirmationToken(null)
-      setConfirmInput('')
-    }
-  }
-
-  const handleBulkDelete = async () => {
-    if (confirmInput !== confirmationToken) return
-    try {
-      const result = await bulkDeleteUsers(selectedUsers)
-      setOperationResult(result)
-      onSelectionChange([])
-      onOperationComplete()
-    } catch (error) {
-      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [toError(error).message || 'Deactivation failed'] })
-    } finally {
-      setShowDeleteDialog(false)
-      setConfirmationToken(null)
-      setConfirmInput('')
-    }
-  }
-
-  const selectedUserDetails = users.filter(user => user.user_id && selectedUsers.includes(user.user_id))
-  const canDelete = selectedUserDetails.every(user => user.role !== 'super_admin')
-
   return (
     <div className="space-y-4">
-      {/* Selection Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-muted rounded-lg border border-border">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-border bg-muted p-4 sm:flex-row sm:items-center">
         <div className="flex items-center space-x-3">
           <button
             onClick={handleSelectAll}
-            className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-foreground"
+            className="min-h-touch min-w-touch flex items-center space-x-2 text-sm font-medium text-foreground hover:text-foreground"
           >
-            {selectedUsers.length === users.length ? (
-              <CheckSquare className="h-4 w-4 text-primary" />
+            {selectedUsers.length === users.length && users.length > 0 ? (
+              <CheckSquare className="h-4 w-4 text-primary" aria-hidden="true" />
             ) : (
-              <Square className="h-4 w-4" />
+              <Square className="h-4 w-4" aria-hidden="true" />
             )}
-            <span>
-              {selectedUsers.length === users.length ? 'Deselect All' : 'Select All'}
-            </span>
+            <span>{selectedUsers.length === users.length && users.length > 0 ? 'Deselect all' : 'Select all on this page'}</span>
           </button>
           {selectedUsers.length > 0 && (
             <span className="text-sm text-foreground">
-              {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
+              {selectedUsers.length} of {BULK_SIZE_LIMIT} selected
             </span>
           )}
         </div>
 
         {selectedUsers.length > 0 && (
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { void computeConfirmationToken('role_update', { role: selectedRole }).then(t => { setConfirmationToken(t); setConfirmInput(''); setShowRoleDialog(true) }) }}
-              className="text-primary border-blue-300 hover:bg-primary/5"
+              className="min-h-touch min-w-touch"
+              onClick={() => { void openDialog('set_role') }}
+              disabled={overLimit}
             >
-              <Shield className="h-4 w-4 mr-1" />
-              Update Roles
+              <Shield className="mr-1 h-4 w-4" aria-hidden="true" />
+              Change role
             </Button>
-            {canDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { void computeConfirmationToken('delete', {}).then(t => { setConfirmationToken(t); setConfirmInput(''); setShowDeleteDialog(true) }) }}
-                className="text-destructive border-destructive/30 hover:bg-destructive/5"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Deactivate Users
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-touch min-w-touch text-destructive"
+              onClick={() => { void openDialog('deactivate') }}
+              disabled={overLimit}
+            >
+              <Trash2 className="mr-1 h-4 w-4" aria-hidden="true" />
+              Deactivate
+            </Button>
           </div>
         )}
       </div>
 
-      {/* User Selection List */}
+      {overLimit && (
+        <div className="rounded-lg border border-warning/40 bg-warning/5 p-4" role="status">
+          <p className="text-sm font-medium text-foreground">
+            A bulk change covers at most {BULK_SIZE_LIMIT} accounts
+          </p>
+          <p className="mt-1 text-sm text-foreground">
+            Deselect {selectedUsers.length - BULK_SIZE_LIMIT} to continue. The server refuses a
+            larger batch rather than applying part of it.
+          </p>
+        </div>
+      )}
+
+      {commandError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4" role="alert">
+          <p className="text-sm font-medium text-destructive">The bulk change was refused</p>
+          <p className="mt-1 text-sm text-foreground">{commandError}</p>
+          <p className="mt-1 text-sm text-foreground">Nothing was changed.</p>
+        </div>
+      )}
+
       {selectedUsers.length > 0 && (
-        <div className="bg-card rounded-lg border border-border p-4">
-          <h4 className="font-medium text-foreground mb-3 flex items-center">
-            <Users className="h-4 w-4 mr-2" />
-            Selected Users ({selectedUsers.length})
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h4 className="mb-3 flex items-center font-medium text-foreground">
+            <Users className="mr-2 h-4 w-4" aria-hidden="true" />
+            Selected accounts ({selectedUsers.length})
           </h4>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {selectedUserDetails.map(user => (
-              <div key={user.user_id} className="flex items-center justify-between p-2 bg-muted rounded">
-                <div className="flex items-center space-x-3">
+          <div className="max-h-40 space-y-2 overflow-y-auto">
+            {selectedUserDetails.map((user) => (
+              <div key={user.user_id || user.id} className="flex items-center justify-between rounded bg-muted p-2">
+                <div className="flex min-w-0 items-center space-x-3">
                   <button
-                    onClick={() => handleUserSelect(user.user_id ?? '')}
-                    className="text-primary hover:text-primary-foreground"
+                    onClick={() => handleUserSelect(user.user_id || user.id)}
+                    className="min-h-touch min-w-touch text-primary"
+                    aria-label={`Remove ${user.full_name || user.email} from the selection`}
                   >
-                    <CheckSquare className="h-4 w-4" />
+                    <CheckSquare className="h-4 w-4" aria-hidden="true" />
                   </button>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate" title={user.full_name || 'No name'}>{user.full_name?.replace(/[<>"'&]/g, '') || 'No name'}</p>
-                    <p className="text-xs text-foreground truncate" title={user.email}>{user.email?.replace(/[<>"'&]/g, '')}</p>
+                    <p className="truncate text-sm font-medium text-foreground" title={user.full_name || 'No name'}>
+                      {user.full_name || 'No name'}
+                    </p>
+                    <p className="truncate text-xs text-foreground" title={user.email}>{user.email}</p>
                   </div>
                 </div>
-                <span className="text-xs px-2 py-1 bg-skeleton text-foreground rounded">
-                  {user.role.replace('_', ' ').toUpperCase()}
+                <span className="rounded bg-skeleton px-2 py-1 text-xs text-foreground">
+                  {getRoleLabel(user.role)}
                 </span>
               </div>
             ))}
@@ -184,171 +236,149 @@ export function BulkUserOperations({
         </div>
       )}
 
-      {/* Bulk Role Update Dialog */}
-      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+      <Dialog open={pendingOperation !== null} onOpenChange={(open) => { if (!open) closeDialog() }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-primary" />
-              <span>Update User Roles</span>
+              {pendingOperation === 'deactivate' ? (
+                <Trash2 className="h-5 w-5 text-destructive" aria-hidden="true" />
+              ) : (
+                <Shield className="h-5 w-5 text-primary" aria-hidden="true" />
+              )}
+              <span>
+                {pendingOperation === 'deactivate' ? 'Deactivate accounts' : 'Change role'}
+              </span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-foreground">
-              Update the role for {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}:
+              {pendingOperation === 'deactivate'
+                ? `Remove sign-in access for ${selectedUsers.length} account${selectedUsers.length === 1 ? '' : 's'}?`
+                : `Set the platform role for ${selectedUsers.length} account${selectedUsers.length === 1 ? '' : 's'}:`}
             </p>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                New Role
-              </label>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {AVAILABLE_ROLES.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
-              <p className="text-sm text-info-strong">
-                ℹ️ This will update the role for all selected users. This action cannot be undone.
+
+            {pendingOperation === 'set_role' && (
+              <div>
+                <label htmlFor="bulk-role" className="mb-2 block text-sm font-medium text-foreground">
+                  New role
+                </label>
+                <select
+                  id="bulk-role"
+                  value={selectedRole}
+                  onChange={async (event) => {
+                    setSelectedRole(event.target.value)
+                    const token = await userBulkConfirmationToken(
+                      'set_role',
+                      selectedUsers,
+                      event.target.value,
+                    )
+                    setConfirmationToken(token.slice(0, 8))
+                    setConfirmInput('')
+                  }}
+                  className="min-h-touch h-12 w-full rounded-md border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {AVAILABLE_ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-sm text-foreground">
+                {pendingOperation === 'deactivate'
+                  ? 'Records stay available for audit and history; the accounts simply cannot sign in. Active sessions are revoked immediately.'
+                  : 'Active sessions are revoked so the next sign-in carries the new authority. The change applies to every selected account or to none.'}
               </p>
             </div>
+
             {confirmationToken && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{confirmationToken}</code> to confirm
+                <label htmlFor="bulk-confirm" className="mb-2 block text-sm font-medium text-foreground">
+                  Type{' '}
+                  <code
+                    className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs"
+                    data-testid="bulk-confirmation-code"
+                  >
+                    {confirmationToken}
+                  </code>{' '}
+                  to confirm
                 </label>
                 <input
+                  id="bulk-confirm"
                   type="text"
                   value={confirmInput}
-                  onChange={(e) => setConfirmInput(e.target.value)}
+                  onChange={(event) => setConfirmInput(event.target.value)}
                   placeholder="Enter confirmation code"
-                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
+                  className="min-h-touch w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowRoleDialog(false)}
-              disabled={loading}
-            >
+            <Button variant="outline" onClick={closeDialog} disabled={bulkCommand.isPending}>
               Cancel
             </Button>
             <Button
-              onClick={handleBulkRoleUpdate}
-              loading={loading}
+              onClick={run}
+              loading={bulkCommand.isPending}
               disabled={confirmInput !== confirmationToken}
-              className="bg-primary hover:bg-primary text-white"
+              variant={pendingOperation === 'deactivate' ? 'destructive' : 'default'}
             >
-              Update Roles
+              {pendingOperation === 'deactivate' ? 'Deactivate accounts' : 'Change role'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Deactivate Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-destructive">
-              <Trash2 className="h-5 w-5" />
-              <span>Deactivate Users</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-foreground">
-              Deactivate {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
-            </p>
-            <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
-                <div className="text-sm text-error">
-                  <p className="font-medium">Sign-in access will be removed immediately.</p>
-                  <p>User records stay available for audit/history, but the selected accounts will become inactive.</p>
-                </div>
-              </div>
-            </div>
-            {confirmationToken && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{confirmationToken}</code> to confirm
-                </label>
-                <input
-                  type="text"
-                  value={confirmInput}
-                  onChange={(e) => setConfirmInput(e.target.value)}
-                  placeholder="Enter confirmation code"
-                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
-                />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkDelete}
-              loading={loading}
-              disabled={confirmInput !== confirmationToken}
-              variant="destructive"
-            >
-              Deactivate Users
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Operation Result Dialog */}
-      {operationResult && (
-        <Dialog open={!!operationResult} onOpenChange={() => setOperationResult(null)}>
+      {result && (
+        <Dialog open onOpenChange={() => dismissResult()}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <span>Operation Complete</span>
+                <Users className="h-5 w-5 text-primary" aria-hidden="true" />
+                <span>{result.committed ? 'Bulk change applied' : 'Bulk change refused'}</span>
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-accent/10 border border-accent/30 rounded-lg">
-                  <p className="text-2xl font-bold text-warning-strong">{operationResult.success}</p>
-                  <p className="text-sm text-warning-strong">Successful</p>
+                <div className="rounded-lg border border-accent/30 bg-accent/10 p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground">{result.updated}</p>
+                  <p className="text-sm text-foreground">Updated</p>
                 </div>
-                <div className="text-center p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
-                  <p className="text-2xl font-bold text-destructive">{operationResult.failed}</p>
-                  <p className="text-sm text-error">Failed</p>
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-center">
+                  <p className="text-2xl font-bold text-destructive">{result.failed}</p>
+                  <p className="text-sm text-foreground">Refused</p>
                 </div>
               </div>
-                  {(operationResult.errors?.length ?? 0) > 0 && (
-                <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
-                  <p className="text-sm font-medium text-error mb-2">Errors:</p>
-                  <ul className="text-xs text-destructive space-y-1">
-                      {operationResult.errors?.map((error: string, index: number) => (
-                      <li key={index}>• {error?.replace(/[<>"'&]/g, '')}</li>
-                    ))}
-                  </ul>
+              {!result.committed && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-destructive" aria-hidden="true" />
+                    <p className="text-sm text-foreground">
+                      Nothing was changed. Fix the accounts below and try again.
+                    </p>
+                  </div>
                 </div>
+              )}
+              {result.errors.length > 0 && (
+                <ul className="space-y-1 text-sm text-foreground">
+                  {result.errors.map((error) => (
+                    <li key={error.user_id}>
+                      <span className="font-mono text-xs">{error.user_id.slice(0, 8)}</span> — {error.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {result.sessions_revoked > 0 && (
+                <p className="text-sm text-foreground">
+                  {result.sessions_revoked} active session
+                  {result.sessions_revoked === 1 ? '' : 's'} revoked.
+                </p>
               )}
             </div>
             <DialogFooter>
-              <Button
-                onClick={() => setOperationResult(null)}
-                className="bg-primary hover:bg-primary text-white"
-              >
-                Close
-              </Button>
+              <Button onClick={dismissResult}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

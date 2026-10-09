@@ -1,0 +1,1752 @@
+......F....................................F...s.....EE................. [ 16%]
+...............................FF.............F......................... [ 32%]
+..........FFFFFFFFFFFFF..FF.......................F...F.........EEEEEEEE [ 48%]
+EEEEEEEEEEEEEEEEE........EEE.....F........................FFFF.FFFF..... [ 64%]
+..........FF............................................................ [ 81%]
+........................................................................ [ 97%]
+............                                                             [100%]
+==================================== ERRORS ====================================
+___ ERROR at setup of test_force_approved_path_creates_canonical_ledger_row ____
+tests/unit/test_application_review_force_approved.py:71: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+__________ ERROR at setup of test_force_approved_rejects_short_reason __________
+tests/unit/test_application_review_force_approved.py:71: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_unauthenticated_returns_401_or_403 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_successful_verification _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_missing_application_returns_404 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_document_not_belonging_to_application_returns_404 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_unauthorized_student_returns_403 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_invalid_request_body_returns_400 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_response_envelope_format _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationVerifyDocument.test_audit_log_created_on_success _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAcceptanceLetter.test_unauthenticated_returns_401_or_403 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_____ ERROR at setup of TestAcceptanceLetter.test_successful_202_response ______
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAcceptanceLetter.test_missing_application_returns_404 __
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAcceptanceLetter.test_non_approved_application_returns_400 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAcceptanceLetter.test_unauthorized_student_returns_403 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAcceptanceLetter.test_idempotency_returns_cached_response _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+___ ERROR at setup of TestAcceptanceLetter.test_audit_log_created_on_success ___
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestFinanceReceipt.test_unauthenticated_returns_401_or_403 _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+______ ERROR at setup of TestFinanceReceipt.test_successful_202_response _______
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+__ ERROR at setup of TestFinanceReceipt.test_missing_application_returns_404 ___
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+__ ERROR at setup of TestFinanceReceipt.test_no_verified_payment_returns_400 ___
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+__ ERROR at setup of TestFinanceReceipt.test_unauthorized_student_returns_403 __
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestFinanceReceipt.test_idempotency_returns_cached_response _
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+____ ERROR at setup of TestFinanceReceipt.test_audit_log_created_on_success ____
+tests/unit/test_application_endpoints.py:50: in _passthrough_access_scope
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationNumberGenerator.test_format_invariant_via_sql_function _
+tests/unit/test_application_number_generator.py:72: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationNumberGenerator.test_format_invariant_for_KATC _
+tests/unit/test_application_number_generator.py:72: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationNumberGenerator.test_legacy_fallback_path_preserves_format _
+tests/unit/test_application_number_generator.py:72: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationReviewPaymentGate.test_approval_accepts_legacy_paid_payment_row _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAdminReviewCannotReverseSuccessfulPayment.test_review_refuses_to_reverse_successful_payment_to_failed _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAdminReviewCannotReverseSuccessfulPayment.test_review_refuses_to_reverse_successful_payment_to_pending _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+=================================== FAILURES ===================================
+_ TestContractReportsUploadedState.test_replacement_reports_the_newest_document_as_current _
+tests/integration/test_required_documents_contract_7_2.py:301: in test_replacement_reports_the_newest_document_as_current
+    assert row["document"]["document_name"] == "second.png"
+E   AssertionError: assert 'first.png' == 'second.png'
+E     
+E     - second.png
+E     + first.png
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:18:12.033455+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.version.committed", "request_id": "54f592c3-39bc-4c35-b27a-d468a1e52a96", "request_method": "POST", "request_path": "/api/v1/documents/upload/", "type": "app_metric", "metric": "document.version.committed", "application_id": "1470b51b-bb1c-4366-9681-ffee475ef104"}
+{"time": "2026-08-05T20:18:12.040985+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "54f592c3-39bc-4c35-b27a-d468a1e52a96", "request_method": "POST", "request_path": "/api/v1/documents/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/documents/upload/", "status_code": 201, "duration_ms": 28.5}
+{"time": "2026-08-05T20:18:12.052974+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "bed51f56-7c8f-43a3-9858-16030bafc81c", "request_method": "POST", "request_path": "/api/v1/documents/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/documents/upload/", "status_code": 201, "duration_ms": 10.8}
+{"time": "2026-08-05T20:18:12.059658+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "4d47bf96-61aa-40e5-8511-3bdce3ab470f", "request_method": "GET", "request_path": "/api/v1/applications/1470b51b-bb1c-4366-9681-ffee475ef104/required-documents/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/1470b51b-bb1c-4366-9681-ffee475ef104/required-documents/", "status_code": 200, "duration_ms": 5.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.metrics:metrics.py:7 document.version.committed
+INFO     apps.common.middleware:middleware.py:183 request_metric
+INFO     apps.common.middleware:middleware.py:183 request_metric
+INFO     apps.common.middleware:middleware.py:183 request_metric
+_ TestOfficialDocumentLifecycleProperty.test_repeated_generation_reuses_single_current_version _
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(9af2fbc7-5bff-48b3-aef7-c9aa95b611fb, acceptance_letter) already exists.
+
+The above exception was the direct cause of the following exception:
+apps/documents/document_evidence.py:697: in commit_version
+    document = ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(9af2fbc7-5bff-48b3-aef7-c9aa95b611fb, acceptance_letter) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/property/test_official_document_lifecycle_properties.py:226: in test_repeated_generation_reuses_single_current_version
+    @given(
+            
+tests/property/test_official_document_lifecycle_properties.py:266: in test_repeated_generation_reuses_single_current_version
+    _generate(document_type, application)
+tests/property/test_official_document_lifecycle_properties.py:141: in _generate
+    task(str(application.id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:198: in _generate_official_document_task
+    evidence.commit_version(
+apps/documents/document_evidence.py:719: in commit_version
+    raise DocumentCommandError(
+E   apps.documents.document_evidence.DocumentCommandError: Another upload for this document finished first. Please reload and try again.
+E   Falsifying example: test_repeated_generation_reuses_single_current_version(
+E       self=<tests.property.test_official_document_lifecycle_properties.TestOfficialDocumentLifecycleProperty object at 0x79457f329090>,
+E       document_type='acceptance_letter',
+E       repeat=2,
+E       change_kind=None,
+E       with_preexisting_deleted=True,
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:18:44.739580+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-08-05T20:18:44.739708+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-08-05T20:18:44.739762+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 605f720f-b4d1-4503-87cf-f40f6c412a91 (attempt 1/4): Another upload for this document finished first. Please reload and try again."}
+{"time": "2026-08-05T20:18:44.916599+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-08-05T20:18:44.916728+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-08-05T20:18:44.916781+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 9af2fbc7-5bff-48b3-aef7-c9aa95b611fb (attempt 1/4): Another upload for this document finished first. Please reload and try again."}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.metrics:metrics.py:7 document.stage.compensation_pending
+WARNING  apps.documents.document_evidence:document_evidence.py:609 document staged-object compensation deferred to the sweeper
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 605f720f-b4d1-4503-87cf-f40f6c412a91 (attempt 1/4): Another upload for this document finished first. Please reload and try again.
+INFO     apps.common.metrics:metrics.py:7 document.stage.compensation_pending
+WARNING  apps.documents.document_evidence:document_evidence.py:609 document staged-object compensation deferred to the sweeper
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 9af2fbc7-5bff-48b3-aef7-c9aa95b611fb (attempt 1/4): Another upload for this document finished first. Please reload and try again.
+___________ test_document_versions_assigned_and_one_current_enforced ___________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(24fee9ac-bab6-4343-b908-4b26291d2e29, result_slip) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/unit/test_payment_document_reconciliation_3_5.py:407: in test_document_versions_assigned_and_one_current_enforced
+    doc = ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(24fee9ac-bab6-4343-b908-4b26291d2e29, result_slip) already exists.
+_______________________ test_full_sequence_is_idempotent _______________________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(142d1aa8-0e8c-4f5c-8aed-d3cab6ae2549, extra_kyc) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/unit/test_payment_document_reconciliation_3_5.py:456: in test_full_sequence_is_idempotent
+    ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(142d1aa8-0e8c-4f5c-8aed-d3cab6ae2549, extra_kyc) already exists.
+____________ test_snapshot_invariant_holds_after_simulated_backfill ____________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:103: in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.NotNullViolation: null value in column "application_quarantined" of relation "payments" violates not-null constraint
+E   DETAIL:  Failing row contains (e6548cd2-ac60-4ee4-9702-d5da8601beaf, 5308380a-5ba8-4f93-aa38-7cba8dc1d5fe, null, 0a5a1f04-20c9-442f-b14d-dee93a1d05e4, 0.00, ZMW, null, null, pending, null, null, null, null, {}, 2026-08-05 20:19:20.144856+00, null, null, null, null, null).
+
+The above exception was the direct cause of the following exception:
+tests/property/test_schema_reconciliation_invariants.py:96: in test_snapshot_invariant_holds_after_simulated_backfill
+    @given(batch_size=st.integers(min_value=1, max_value=100))
+                   ^^^
+tests/property/test_schema_reconciliation_invariants.py:154: in test_snapshot_invariant_holds_after_simulated_backfill
+    cur.execute(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:103: in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: null value in column "application_quarantined" of relation "payments" violates not-null constraint
+E   DETAIL:  Failing row contains (e6548cd2-ac60-4ee4-9702-d5da8601beaf, 5308380a-5ba8-4f93-aa38-7cba8dc1d5fe, null, 0a5a1f04-20c9-442f-b14d-dee93a1d05e4, 0.00, ZMW, null, null, pending, null, null, null, null, {}, 2026-08-05 20:19:20.144856+00, null, null, null, null, null).
+E   
+E   Falsifying example: test_snapshot_invariant_holds_after_simulated_backfill(
+E       batch_size=1,
+E   )
+_ TestDocumentVerificationStatusUpdate.test_verification_status_matches_request _
+tests/property/test_application_endpoints.py:145: in test_verification_status_matches_request
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:158: in test_verification_status_matches_request
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_verification_status_matches_request(
+E       self=<tests.property.test_application_endpoints.TestDocumentVerificationStatusUpdate object at 0x79457f952710>,
+E       verification_status='verified',
+E   )
+__ TestAdminPermissionEnforcement.test_non_admin_rejected_on_verify_document ___
+tests/property/test_application_endpoints.py:198: in test_non_admin_rejected_on_verify_document
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:214: in test_non_admin_rejected_on_verify_document
+    assert response.status_code == 403
+E   assert 500 == 403
+E    +  where 500 = <Response status_code=500, "text/html; charset=utf-8">.status_code
+E   Falsifying example: test_non_admin_rejected_on_verify_document(
+E       self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x79457f9520d0>,
+E       role='student',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:33.501903+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 175, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.document.verify\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+{"time": "2026-08-05T20:19:33.539848+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 175, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.document.verify\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 175, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.document.verify"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 175, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.document.verify"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_ TestAdminPermissionEnforcement.test_non_admin_rejected_on_acceptance_letter __
+tests/property/test_application_endpoints.py:217: in test_non_admin_rejected_on_acceptance_letter
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:231: in test_non_admin_rejected_on_acceptance_letter
+    assert response.status_code == 403
+E   assert 500 == 403
+E    +  where 500 = <Response status_code=500, "text/html; charset=utf-8">.status_code
+E   Falsifying example: test_non_admin_rejected_on_acceptance_letter(
+E       self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x79457f952210>,
+E       role='student',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:33.589500+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 318, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.application.review\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+{"time": "2026-08-05T20:19:33.621919+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 318, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.application.review\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 318, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.application.review"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 318, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.application.review"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+__ TestAdminPermissionEnforcement.test_non_admin_rejected_on_finance_receipt ___
+tests/property/test_application_endpoints.py:234: in test_non_admin_rejected_on_finance_receipt
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:248: in test_non_admin_rejected_on_finance_receipt
+    assert response.status_code == 403
+E   assert 500 == 403
+E    +  where 500 = <Response status_code=500, "text/html; charset=utf-8">.status_code
+E   Falsifying example: test_non_admin_rejected_on_finance_receipt(
+E       self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x79457f50dba0>,
+E       role='student',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:33.724505+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 423, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.payment.read\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+{"time": "2026-08-05T20:19:33.749148+00:00", "level": "ERROR", "logger": "apps.common.exceptions", "message": "Unhandled exception in DRF view", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 423, in post\n    application = _get_scoped_application(\n        request, application_id, \"tenant.payment.read\"\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py\", line 47, in _get_scoped_application\n    return resolve_scoped_application(\n        request,\n    ...<2 lines>...\n        queryset=queryset,\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py\", line 137, in resolve_scoped_application\n    scoped = AccessScopeService().filter_applications(base, request.user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 825, in filter_applications\n    filters = self.filters_for_user(user)\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py\", line 807, in filters_for_user\n    memberships = list(UserInstitutionMembership.objects.filter(\n        user_id=user_id,\n        is_active=True,\n    ))\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 386, in __iter__\n    self._fetch_all()\n    ~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 1954, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size\n    )\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py\", line 1621, in execute_sql\n    cursor = self.connection.cursor()\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py\", line 26, in inner\n    return func(*args, **kwargs)\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 320, in cursor\n    return self._cursor()\n           ~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py\", line 296, in _cursor\n    self.ensure_connection()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py\", line 881, in _blocking_wrapper\n    raise RuntimeError(\n    ...<3 lines>...\n    )\nRuntimeError: Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 423, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.payment.read"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+ERROR    apps.common.exceptions:exceptions.py:101 Unhandled exception in DRF view
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 423, in post
+    application = _get_scoped_application(
+        request, application_id, "tenant.payment.read"
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py", line 47, in _get_scoped_application
+    return resolve_scoped_application(
+        request,
+    ...<2 lines>...
+        queryset=queryset,
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/tenant_authorization.py", line 137, in resolve_scoped_application
+    scoped = AccessScopeService().filter_applications(base, request.user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 825, in filter_applications
+    filters = self.filters_for_user(user)
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/catalog/services.py", line 807, in filters_for_user
+    memberships = list(UserInstitutionMembership.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ))
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 386, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 1954, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py", line 1621, in execute_sql
+    cursor = self.connection.cursor()
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/db/backends/base/base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/pytest_django/plugin.py", line 881, in _blocking_wrapper
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+____________ TestAuditLogCreation.test_audit_log_on_verify_document ____________
+tests/property/test_application_endpoints.py:270: in test_audit_log_on_verify_document
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:283: in test_audit_log_on_verify_document
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_audit_log_on_verify_document(
+E       self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x79457f952350>,
+E       verification_status='verified',
+E   )
+___________ TestAuditLogCreation.test_audit_log_on_acceptance_letter ___________
+tests/property/test_application_endpoints.py:314: in test_audit_log_on_acceptance_letter
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:325: in test_audit_log_on_acceptance_letter
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_audit_log_on_acceptance_letter(
+E       self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x79457f952490>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+____________ TestAuditLogCreation.test_audit_log_on_finance_receipt ____________
+tests/property/test_application_endpoints.py:350: in test_audit_log_on_finance_receipt
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:361: in test_audit_log_on_finance_receipt
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_audit_log_on_finance_receipt(
+E       self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x79457f50dcd0>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+_ TestAcceptanceLetter202Response.test_approved_application_returns_202_with_correct_shape _
+tests/property/test_application_endpoints.py:408: in test_approved_application_returns_202_with_correct_shape
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:419: in test_approved_application_returns_202_with_correct_shape
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_approved_application_returns_202_with_correct_shape(
+E       self=<tests.property.test_application_endpoints.TestAcceptanceLetter202Response object at 0x79457f9525d0>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+_ TestFinanceReceipt202Response.test_verified_payment_returns_202_with_correct_shape _
+tests/property/test_application_endpoints.py:466: in test_verified_payment_returns_202_with_correct_shape
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:477: in test_verified_payment_returns_202_with_correct_shape
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_verified_payment_returns_202_with_correct_shape(
+E       self=<tests.property.test_application_endpoints.TestFinanceReceipt202Response object at 0x79457f473110>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+_ TestAcceptanceLetterRejectsNonApproved.test_non_approved_status_returns_400 __
+tests/property/test_application_endpoints.py:525: in test_non_approved_status_returns_400
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:536: in test_non_approved_status_returns_400
+    patch(_SCOPE) as mock_scope:
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_non_approved_status_returns_400(
+E       self=<tests.property.test_application_endpoints.TestAcceptanceLetterRejectsNonApproved object at 0x79457f473250>,
+E       app_status='draft',
+E   )
+___ TestFinanceReceiptRejectsNoPayment.test_no_verified_payment_returns_400 ____
+tests/property/test_application_endpoints.py:569: in test_no_verified_payment_returns_400
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:580: in test_no_verified_payment_returns_400
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_no_verified_payment_returns_400(
+E       self=<tests.property.test_application_endpoints.TestFinanceReceiptRejectsNoPayment object at 0x79457f473390>,
+E       app_status='draft',
+E   )
+_____ TestIdempotentGenerationRequests.test_acceptance_letter_idempotency ______
+tests/property/test_application_endpoints.py:617: in test_acceptance_letter_idempotency
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:629: in test_acceptance_letter_idempotency
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_acceptance_letter_idempotency(
+E       self=<tests.property.test_application_endpoints.TestIdempotentGenerationRequests object at 0x79457f4734d0>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+______ TestIdempotentGenerationRequests.test_finance_receipt_idempotency _______
+tests/property/test_application_endpoints.py:675: in test_finance_receipt_idempotency
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_endpoints.py:687: in test_finance_receipt_idempotency
+    patch(_SCOPE) as mock_scope, \
+    ^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+E   Falsifying example: test_finance_receipt_idempotency(
+E       self=<tests.property.test_application_endpoints.TestIdempotentGenerationRequests object at 0x79457f473610>,
+E       admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E   )
+_ TestForceBypassCreatesAuditTrail.test_force_bypass_approval_creates_audit_trail _
+tests/property/test_application_hardening.py:274: in test_force_bypass_approval_creates_audit_trail
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:328: in test_force_bypass_approval_creates_audit_trail
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:514: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_force_bypass_approval_creates_audit_trail(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_force_bypass_approval_creates_audit_trail>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       reason='',
+E   )
+_ TestForceBypassCreatesAuditTrail.test_non_force_bypass_does_not_add_force_marker _
+tests/property/test_application_hardening.py:348: in test_non_force_bypass_does_not_add_force_marker
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:398: in test_non_force_bypass_does_not_add_force_marker
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:514: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_non_force_bypass_does_not_add_force_marker(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_non_force_bypass_does_not_add_force_marker>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       target_status='approved',
+E   )
+_ TestUnverifiedPaymentApprovalGuard.test_non_approval_status_skips_payment_check _
+tests/property/test_application_properties.py:465: in test_non_approval_status_skips_payment_check
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_properties.py:492: in test_non_approval_status_skips_payment_check
+    self.assertEqual(response.status_code, 200)
+E   AssertionError: 400 != 200
+E   Falsifying example: test_non_approval_status_skips_payment_check(
+E       self=<tests.property.test_application_properties.TestUnverifiedPaymentApprovalGuard testMethod=test_non_approval_status_skips_payment_check>,
+E       new_status='rejected',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:36.514138+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='133339345087056'> from=<MagicMock name='objects.all().select_for_update().get().status' id='133339345086384'> to=rejected by=d4c525e6-b9cb-42d3-b76a-1c43726295b0"}
+{"time": "2026-08-05T20:19:36.529436+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='133339345708640'> from=<MagicMock name='objects.all().select_for_update().get().status' id='133339345707968'> to=rejected by=b6108797-7843-491d-90ff-de4a78365bb7"}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.services:services.py:318 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='133339345087056'> from=<MagicMock name='objects.all().select_for_update().get().status' id='133339345086384'> to=rejected by=d4c525e6-b9cb-42d3-b76a-1c43726295b0
+WARNING  apps.applications.services:services.py:318 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='133339345708640'> from=<MagicMock name='objects.all().select_for_update().get().status' id='133339345707968'> to=rejected by=b6108797-7843-491d-90ff-de4a78365bb7
+_ TestCeleryTaskApplicationDocumentCreation.test_task_creates_document_with_correct_type_and_system_generated _
+tests/property/test_application_tasks.py:95: in test_task_creates_document_with_correct_type_and_system_generated
+    doc_type=st.sampled_from(["acceptance_letter", "finance_receipt"]),
+           ^^^^^^^
+tests/property/test_application_tasks.py:120: in test_task_creates_document_with_correct_type_and_system_generated
+    generate_acceptance_letter_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+E   Falsifying example: test_task_creates_document_with_correct_type_and_system_generated(
+E       self=<tests.property.test_application_tasks.TestCeleryTaskApplicationDocumentCreation object at 0x79457f25a490>,
+E       doc_type='acceptance_letter',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:36.653475+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 5f6458fe-e596-4d68-9216-dfb14e9140b6 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+{"time": "2026-08-05T20:19:36.833658+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 2f19e646-d72d-4ca1-a343-1f2313abca69 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 5f6458fe-e596-4d68-9216-dfb14e9140b6 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 2f19e646-d72d-4ca1-a343-1f2313abca69 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_ TestApplicationInterviewListView.test_admin_list_without_mine_is_scope_narrowed _
+tests/unit/test_application_student_flow_views.py:272: in test_admin_list_without_mine_is_scope_narrowed
+    mock_scope_service.return_value.filter_applications.assert_called_once()
+/usr/lib/python3.14/unittest/mock.py:965: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'filter_applications' to have been called once. Called 0 times.
+_ TestGenerateAcceptanceLetterTask.test_creates_application_document_with_correct_fields _
+tests/unit/test_application_tasks.py:119: in test_creates_application_document_with_correct_fields
+    generate_acceptance_letter_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:39.752867+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 48762597-ed8a-4abe-b70c-3c1280f5dd7b (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 48762597-ed8a-4abe-b70c-3c1280f5dd7b (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_ TestGenerateAcceptanceLetterTask.test_document_name_contains_applicant_name __
+tests/unit/test_application_tasks.py:145: in test_document_name_contains_applicant_name
+    generate_acceptance_letter_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:39.962090+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application f01ce4f0-592e-4524-9a39-efd0e0833f25 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application f01ce4f0-592e-4524-9a39-efd0e0833f25 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+___ TestGenerateAcceptanceLetterTask.test_stores_pdf_in_r2_via_media_storage ___
+tests/unit/test_application_tasks.py:166: in test_stores_pdf_in_r2_via_media_storage
+    generate_acceptance_letter_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:40.176644+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application ed326bc1-2544-4a09-840a-0dc5b8e87351 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application ed326bc1-2544-4a09-840a-0dc5b8e87351 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_______ TestGenerateAcceptanceLetterTask.test_file_url_set_from_storage ________
+tests/unit/test_application_tasks.py:190: in test_file_url_set_from_storage
+    generate_acceptance_letter_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:40.380576+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application 725ddaad-c9f2-4c4c-8354-ef9bca293713 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application 725ddaad-c9f2-4c4c-8354-ef9bca293713 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_ TestGenerateFinanceReceiptTask.test_creates_application_document_with_correct_fields _
+tests/unit/test_application_tasks.py:234: in test_creates_application_document_with_correct_fields
+    generate_finance_receipt_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:77: in generate_finance_receipt_task
+    return _generate_official_document_task(self, application_id, "finance_receipt")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:40.607815+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "finance_receipt generation failed for application 3246d63e-3ff3-4279-b519-108adbcc3f21 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 finance_receipt generation failed for application 3246d63e-3ff3-4279-b519-108adbcc3f21 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+__ TestGenerateFinanceReceiptTask.test_document_name_contains_applicant_name ___
+tests/unit/test_application_tasks.py:260: in test_document_name_contains_applicant_name
+    generate_finance_receipt_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:77: in generate_finance_receipt_task
+    return _generate_official_document_task(self, application_id, "finance_receipt")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:40.841075+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "finance_receipt generation failed for application 5919493b-96bd-4322-9538-571d9e54db93 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 finance_receipt generation failed for application 5919493b-96bd-4322-9538-571d9e54db93 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+____ TestGenerateFinanceReceiptTask.test_stores_pdf_in_r2_via_media_storage ____
+tests/unit/test_application_tasks.py:281: in test_stores_pdf_in_r2_via_media_storage
+    generate_finance_receipt_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:77: in generate_finance_receipt_task
+    return _generate_official_document_task(self, application_id, "finance_receipt")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:41.063947+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "finance_receipt generation failed for application 4dfc95a9-0e64-4a35-aa1c-9bfd2b1f9e16 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 finance_receipt generation failed for application 4dfc95a9-0e64-4a35-aa1c-9bfd2b1f9e16 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+________ TestGenerateFinanceReceiptTask.test_file_url_set_from_storage _________
+tests/unit/test_application_tasks.py:305: in test_file_url_set_from_storage
+    generate_finance_receipt_task(str(app_id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:77: in generate_finance_receipt_task
+    return _generate_official_document_task(self, application_id, "finance_receipt")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:182: in _generate_official_document_task
+    stage = evidence.open_stage(
+apps/documents/document_evidence.py:473: in open_stage
+    return DocumentUploadStage.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1880: in execute_sql
+    with self.connection.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-05T20:19:41.297695+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "finance_receipt generation failed for application 2a34246a-d30c-4985-b1eb-d219c4a25fe8 (attempt 1/4): Database access not allowed, use the \"django_db\" mark, or the \"db\" or \"transactional_db\" fixtures to enable it."}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 finance_receipt generation failed for application 2a34246a-d30c-4985-b1eb-d219c4a25fe8 (attempt 1/4): Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
+_________________ test_student_views_declare_serializer_class __________________
+tests/unit/test_applications_serializers.py:146: in test_student_views_declare_serializer_class
+    from apps.applications.student_views import (
+E   ImportError: cannot import name 'ApplicationPreviewSummaryView' from 'apps.applications.student_views' (/home/cosmas/Downloads/mihasv3/backend/apps/applications/student_views.py)
+__________________ test_admin_views_declare_serializer_class ___________________
+tests/unit/test_applications_serializers.py:166: in test_admin_views_declare_serializer_class
+    from apps.applications.admin_views import (
+E   ImportError: cannot import name 'ApplicationAdminSummaryView' from 'apps.applications.admin_views' (/home/cosmas/Downloads/mihasv3/backend/apps/applications/admin_views.py)
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_required_documents_contract_7_2.py: 33 warnings
+tests/property/test_application_binding.py: 1 warning
+tests/property/test_official_document_deletion_properties.py: 1 warning
+tests/property/test_official_document_gating_properties.py: 1 warning
+tests/property/test_official_document_provenance_properties.py: 1 warning
+tests/unit/test_application_canonical_ids.py: 2 warnings
+tests/unit/test_document_extract_scope.py: 7 warnings
+tests/unit/test_official_document_deletion.py: 6 warnings
+tests/unit/test_official_document_lifecycle_audit.py: 3 warnings
+tests/unit/test_official_document_signed_download.py: 2 warnings
+tests/integration/test_document_evidence_compensation_7_3.py: 6 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/integration/test_required_documents_contract_7_2.py::TestContractReportsUploadedState::test_replacement_reports_the_newest_document_as_current
+FAILED tests/property/test_official_document_lifecycle_properties.py::TestOfficialDocumentLifecycleProperty::test_repeated_generation_reuses_single_current_version
+FAILED tests/unit/test_payment_document_reconciliation_3_5.py::test_document_versions_assigned_and_one_current_enforced
+FAILED tests/unit/test_payment_document_reconciliation_3_5.py::test_full_sequence_is_idempotent
+FAILED tests/property/test_schema_reconciliation_invariants.py::test_snapshot_invariant_holds_after_simulated_backfill
+FAILED tests/property/test_application_endpoints.py::TestDocumentVerificationStatusUpdate::test_verification_status_matches_request
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetter202Response::test_approved_application_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceipt202Response::test_verified_payment_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetterRejectsNonApproved::test_non_approved_status_returns_400
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceiptRejectsNoPayment::test_no_verified_payment_returns_400
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_acceptance_letter_idempotency
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_finance_receipt_idempotency
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker
+FAILED tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check
+FAILED tests/property/test_application_tasks.py::TestCeleryTaskApplicationDocumentCreation::test_task_creates_document_with_correct_type_and_system_generated
+FAILED tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+FAILED tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_creates_application_document_with_correct_fields
+FAILED tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_document_name_contains_applicant_name
+FAILED tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_stores_pdf_in_r2_via_media_storage
+FAILED tests/unit/test_application_tasks.py::TestGenerateAcceptanceLetterTask::test_file_url_set_from_storage
+FAILED tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_creates_application_document_with_correct_fields
+FAILED tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_document_name_contains_applicant_name
+FAILED tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_stores_pdf_in_r2_via_media_storage
+FAILED tests/unit/test_application_tasks.py::TestGenerateFinanceReceiptTask::test_file_url_set_from_storage
+FAILED tests/unit/test_applications_serializers.py::test_student_views_declare_serializer_class
+FAILED tests/unit/test_applications_serializers.py::test_admin_views_declare_serializer_class
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_path_creates_canonical_ledger_row
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_rejects_short_reason
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_successful_verification
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_document_not_belonging_to_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_invalid_request_body_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_response_envelope_format
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_non_approved_application_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_no_verified_payment_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_audit_log_created_on_success
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_via_sql_function
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_for_KATC
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_legacy_fallback_path_preserves_format
+ERROR tests/unit/test_application_review_payment_gate.py::TestApplicationReviewPaymentGate::test_approval_accepts_legacy_paid_payment_row
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_failed
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_pending
+33 failed, 380 passed, 1 skipped, 64 warnings, 30 errors in 95.00s (0:01:34)

@@ -1,0 +1,58 @@
+{
+  "task": "2.3 Make tenant host resolution fail closed",
+  "spec": "admissions-v2-canonical-rebuild",
+  "requirements": ["R2.2", "R2.3", "R2.4", "R5.2", "R5.3"],
+  "findings": ["TEN-09", "TEN-10", "STU-24"],
+  "candidate_commit": "bae29a28d9657f288b3339062adb31285959c966",
+  "branch": "main",
+  "settings_module": "config.settings.test",
+  "schema_hash": null,
+  "schema_note": "No schema or backend API surface change. Production resolver code (OfferingDirectoryService.resolved_institution_id, InstitutionContextService.is_registered_shared_portal_host, catalog cache scope signature) already implemented the fail-closed behavior; task 2.3 adds the Required_Evidence tests and corrects one stale contradicting test.",
+  "subgoals": {
+    "prevent_explicit_filter_overriding_trusted_host": {
+      "status": "verified",
+      "mechanism": "OfferingDirectoryService.resolved_institution_id returns the resolved host tenant whenever portal_context.institution is set; the ?institution= selector is never consulted in that branch.",
+      "tests": [
+        "test_tenant_host_query_override.py::TestResolvedInstitutionFailClosed::test_trusted_host_wins_and_explicit_only_on_registered_portal",
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_trusted_host_ignores_conflicting_institution_query",
+        "test_offering_visibility.py::TestOfferingVisibilityExamples::test_resolved_institution_id_trusted_host_wins_and_fails_closed"
+      ]
+    },
+    "explicit_selection_only_on_registered_neutral_shared_portal": {
+      "status": "verified",
+      "mechanism": "Explicit selector honored iff (no trusted host context) AND (endpoint in OfferingDirectoryService.EXPLICIT_INSTITUTION_SELECTION_ENDPOINTS = {canonical_programs, assignment_preview}) AND (InstitutionContextService.is_registered_shared_portal_host(host) via SHARED_PORTAL_HOSTS allowlist).",
+      "tests": [
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_registered_shared_portal_honors_explicit_selection",
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_neutral_shared_portal_without_selector_lists_all",
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_unknown_host_ignores_selector_and_stays_neutral",
+        "test_tenant_host_query_override.py::TestResolvedInstitutionFailClosed::test_unknown_host_never_honors_explicit_selector"
+      ]
+    },
+    "partition_caches_by_canonical_institution_id": {
+      "status": "verified",
+      "mechanism": "catalog cache scope signature (_catalog_scope_signature) keys on the resolved host tenant (inst:<id>) or the honored shared-portal selection; a conflicting ?institution= on a trusted host never repartitions; non-selector endpoints stay neutral.",
+      "tests": [
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_cache_scope_keys_on_host_tenant_not_query_override",
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_cache_scope_honors_explicit_selection_on_shared_portal",
+        "test_scenario_query_override_fail_closed.py::TestQueryOverrideFailsClosed::test_cache_scope_neutral_for_non_selector_endpoint"
+      ]
+    },
+    "partition_background_task_context_by_canonical_institution_id": {
+      "status": "verified",
+      "mechanism": "Background tasks carry the canonical institution id on the record they process (e.g. verify_institution_domain_task uses domain.institution_id) and have no host/query to override it; any per-institution cache/context is keyed by catalog_institution_scope(institution_id), so distinct institutions never share a partition and never cross-serve.",
+      "tests": [
+        "test_tenant_host_query_override.py::TestBackgroundTaskContextPartition::test_distinct_institutions_partition_and_never_cross_serve"
+      ]
+    }
+  },
+  "results": {
+    "task_2_3_required_suite": {"passed": 12, "failed": 0, "skipped": 0},
+    "tenant_resolution_cache_regression_sweep": {"passed": 60, "failed": 0, "skipped": 0}
+  },
+  "stale_test_corrected": {
+    "file": "backend/tests/property/test_offering_visibility.py",
+    "before": "test_resolved_institution_id_prefers_explicit_then_context (asserted pre-TEN-10 'explicit selector wins over resolved host'; failed against the fail-closed resolver)",
+    "after": "test_resolved_institution_id_trusted_host_wins_and_fails_closed (asserts trusted host wins; explicit only on allow-listed endpoint + registered shared-portal host)"
+  },
+  "environment_gating": "none — all required tests run without skips or credential gating (V2 CI profile rule R1.4)"
+}

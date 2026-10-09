@@ -80,7 +80,15 @@ class DuplicateChecker:
         passport_number: str | None = None,
         program_id: str | None = None,
         intake_id: str | None = None,
+        exclude_id: str | None = None,
     ) -> DuplicateCheckResult:
+        """Duplicate gate for a new (or newly-rerouted) application selection.
+
+        ``exclude_id`` omits one application from the candidate set. The
+        change-selection command (admissions-v2 task 6.4) reuses this canonical
+        gate for the *target* selection and must not see the application it is
+        rerouting as its own duplicate.
+        """
         # Check multi_intake_policy (Req 15.1, 15.2)
         policy = _load_multi_intake_policy()
 
@@ -115,6 +123,9 @@ class DuplicateChecker:
                     intake=intake,
                     status__in=NON_TERMINAL_STATUSES,
                 )
+
+        if exclude_id:
+            candidates = candidates.exclude(id=exclude_id)
 
         # Filter to same-identity applicants only
         for existing in candidates:

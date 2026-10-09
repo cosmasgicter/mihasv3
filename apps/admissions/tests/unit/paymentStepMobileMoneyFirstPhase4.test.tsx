@@ -35,7 +35,9 @@ describe('PaymentStep / PaymentForm — mobile-money-first (R22.6)', () => {
     const { container } = render(
       <PaymentForm
         applicationId="11111111-1111-1111-1111-111111111111"
-        amount={153}
+        baseAmount="153.00"
+        providerFee="1.53"
+        totalAmount="154.53"
         currency="ZMW"
         phone="+260977000000"
         fullName="Student"

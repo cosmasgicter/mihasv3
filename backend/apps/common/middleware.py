@@ -131,12 +131,23 @@ class MetricsMiddleware:
     Skips health-check endpoints to avoid log noise. Wraps metric
     emission in try/except so it never blocks responses.
 
-    Sampling (REQUEST_METRIC_SAMPLE_RATE env var, default 1.0):
+    Sampling — resolved once per process at ``__init__``, in this order:
+    1. the ``REQUEST_METRIC_SAMPLE_RATE`` environment variable (operator override),
+    2. the ``REQUEST_METRIC_SAMPLE_RATE`` Django setting (``prod.py`` sets 0.1),
+    3. 1.0 — log everything, so dev and test are unaffected.
+
     - Always logs slow requests (>1000ms).
     - Always logs error responses (status >= 400).
-    - Samples healthy fast requests at the configured rate.
-    Production should set REQUEST_METRIC_SAMPLE_RATE=0.1 (10%) to keep
-    log volume bounded.
+    - Samples healthy fast requests at the resolved rate.
+
+    The order matters and is deliberate: it reproduces exactly what
+    ``prod.py``'s former ``os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE",
+    "0.1")`` did for an operator (an explicit env var still wins) *without*
+    letting an ``import config.settings.prod`` mutate the process environment and
+    silently re-sample every middleware built afterwards. That mutation was the
+    cause of two failures in
+    ``tests/property/test_production_readiness_metrics.py`` — task 13.6
+    remediation M2, docs/v2-evidence/13.6/remediation/M1-M2/README.md §3.
     """
 
     SKIP_PATHS = {"/health/live/", "/health/ready/", "/health/redis/"}
@@ -144,24 +155,45 @@ class MetricsMiddleware:
     # Always log requests slower than this (ms), even if otherwise sampled out.
     SLOW_REQUEST_THRESHOLD_MS = 1000.0
 
-    def __init__(self, get_response):
+    DEFAULT_SAMPLE_RATE = 1.0
+
+    @classmethod
+    def resolve_sample_rate(cls):
+        """Resolve the sample rate from env, then settings, then the default.
+
+        Exposed as a classmethod so a test can assert the precedence directly
+        rather than by constructing a middleware and reading a private attribute.
+        Any unparseable value falls back to the default rather than raising —
+        metrics emission must never be able to break request handling.
+        """
         import os
+
+        from django.conf import settings as _settings
+
+        raw = os.environ.get("REQUEST_METRIC_SAMPLE_RATE")
+        if raw is None:
+            raw = getattr(_settings, "REQUEST_METRIC_SAMPLE_RATE", None)
+        if raw is None:
+            raw = cls.DEFAULT_SAMPLE_RATE
+
+        try:
+            rate = float(raw)
+        except (TypeError, ValueError):
+            rate = cls.DEFAULT_SAMPLE_RATE
+
+        # Clamp to [0.0, 1.0] for sanity.
+        if rate < 0.0:
+            return 0.0
+        if rate > 1.0:
+            return 1.0
+        return rate
+
+    def __init__(self, get_response):
         import random as _random
 
         self.get_response = get_response
         self._random = _random
-
-        # Sample rate is read once at init from env. Default 1.0 (log everything)
-        # so dev environments are unaffected; production overrides via env var.
-        try:
-            self._sample_rate = float(os.environ.get("REQUEST_METRIC_SAMPLE_RATE", "1.0"))
-        except (TypeError, ValueError):
-            self._sample_rate = 1.0
-        # Clamp to [0.0, 1.0] for sanity.
-        if self._sample_rate < 0.0:
-            self._sample_rate = 0.0
-        elif self._sample_rate > 1.0:
-            self._sample_rate = 1.0
+        self._sample_rate = self.resolve_sample_rate()
 
     def __call__(self, request):
         if request.path in self.SKIP_PATHS:

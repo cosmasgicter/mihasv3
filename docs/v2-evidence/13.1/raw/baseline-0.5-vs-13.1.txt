@@ -1,0 +1,45 @@
+TASK 0.5 (immutable pre-change baseline) -> TASK 13.1 (candidate gate)
+Both at commit bae29a28, dirty tree. 0.5 ran the backend on SQLite (config.settings.test);
+13.1 runs it on the throwaway localtest Postgres, so Postgres-only suites execute here.
+
+=== 0.5's 14 backend failures, re-measured ===
+  [no longer failing] tests/integration/test_student_journey_e2e.py::TestStudentJourneyE2E::test_full_student_journey
+        0.5 attribution: in-flight task 1.6 / STU-21 email-verification contract
+  [no longer failing] tests/unit/test_harness_seed_tenants_command.py::test_seeds_two_tenants_with_active_domains_and_shared_canonical
+        0.5 attribution: in-flight task 0.4 harness
+  [no longer failing] tests/unit/test_perf_catalog_cache.py::test_neutral_request_never_served_a_tenant_cached_entry
+        0.5 attribution: in-flight task 0.4 / TEN-09 cache partitioning
+  [no longer failing] tests/unit/test_perf_catalog_cache.py::test_tenant_request_never_served_the_neutral_cached_entry
+        0.5 attribution: in-flight task 0.4 / TEN-09 cache partitioning
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_anonymous_user
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_authenticated_user
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2ProgramListEndpoint::test_success_with_programs
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2ApplicationDetailEndpoint::test_success_owner_read
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2FeeResolveEndpoint::test_success_fee_resolved
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/contract/test_v2_endpoint_contract.py::TestV2DocumentListEndpoint::test_success_with_documents
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [no longer failing] tests/unit/test_brand_drift_guard.py::BrandDriftGuardTests::test_no_non_allowlisted_brand_strings_in_backend_apps
+        0.5 attribution: in-flight task 0.4 harness
+  [STILL FAILING    ] tests/unit/test_launch_verification_spectacular.py::LaunchVerificationSpectacularTests::test_schema_generation_emits_zero_errors
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/unit/test_public_endpoint_policy.py::test_every_allow_any_view_has_public_endpoint_classification
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+  [STILL FAILING    ] tests/unit/test_schema_tags.py::test_no_operation_is_tagged_only_api
+        0.5 attribution: in-flight task 1.3 V2 endpoints
+
+=== headline numbers ===
+backend   0.5 (SQLite)  : collected 3720  passed 3565  failed 14  skipped 138  errors 0   544.02s
+backend   13.1 (Postgres): collected 5419        passed 5133      failed 106     skipped 104     errors 73  524.08s
+vitest    0.5           : files 431  tests 3499  passed 3495  failed 3  (+5 harness collection-error files)
+vitest    13.1          : files 494  tests 4609  passed 4607  failed 1  skipped 1  (0 collection-error files)
+lint      0.5           : 24 errors  ({'R14.3_architecture_enforcement_no_restricted_imports': 18, 'unused_eslint_disable_directive': 6})
+lint      13.1          : 15 errors over 13 files (byte-identical file set since 12.1)
+openapi   0.5           : version 2.0.0  paths 147  sha 5bb6ab37a58219c8  spectacular errors 20
+openapi   13.1          : version 2.0.0  paths 192  sha 35fe05d4cd3fa69d (Postgres)  spectacular errors 116
+neon      0.5           : 73 tables / 788 cols / 93 FKs / 0 NOT VALID / 299 indexes / 44 migrations  fp c48f57d9
+neon      13.1          : 78 tables / 108 FKs / 9 NOT VALID  fp 9d4bc5c7 (schema_manifest, task 3.1's tool)

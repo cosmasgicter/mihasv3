@@ -6,13 +6,25 @@
 
 ## Identity
 
-**MIHAS** — Mukuba Institute of Health and Applied Sciences and **KATC** — Kalulushi Training Centre. A multi-application monorepo: an admissions portal for Zambian healthcare-program students, an AI job-operations operator dashboard, and the Django backend that serves both.
+**Beanola Technologies** owns and operates the Platform. A multi-application
+monorepo: a multi-tenant admissions product for Zambian healthcare-program
+students, an AI job-operations operator dashboard, and the Django backend that
+serves both.
+
+**MIHAS** (Mukuba Institute of Health and Applied Sciences) and **KATC**
+(Kalulushi Training Centre) are **example tenants** — scoped `Institution`
+records, never the platform identity and never a branding fallback. A school's
+name, logo, support address and document signatories appear on a surface only
+because the resolved tenant context produced them; an unresolved host shows the
+neutral Beanola context. Any copy, token or default that casts a school as "the
+platform" is authority drift to be corrected, not preserved (R2.2 / R2.3,
+findings TEN-09 and STU-24, and `.kiro/steering/enterprise-tenancy.md`).
 
 Surface | App | Live
 --- | --- | ---
-Student admissions + admin review | `apps/admissions/` | apply.mihas.edu.zm
+Student admissions + admin review | `apps/admissions/` | apply.beanola.com (plus each tenant's own verified domain)
 AI job operations dashboard | `apps/jobs-ops/` | (planned)
-Backend API | `backend/` | api.mihas.edu.zm
+Backend API | `backend/` | api.beanola.com
 
 ## Register
 

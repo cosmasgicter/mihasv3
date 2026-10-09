@@ -1,0 +1,76 @@
+{
+  "available": true,
+  "source": "backend/apps/catalog/services.py:AdminCapabilityService",
+  "platform_capability_count": 17,
+  "tenant_capability_count": 17,
+  "platform_capabilities": [
+    "platform.access_grant.manage",
+    "platform.asset.manage",
+    "platform.audit.read_all",
+    "platform.canonical_program.manage",
+    "platform.document.manage",
+    "platform.domain.manage",
+    "platform.intake.manage",
+    "platform.program_assignment.manage",
+    "platform.routing.simulate_all",
+    "platform.settings.manage",
+    "platform.template.manage",
+    "platform.tenant.create",
+    "platform.tenant.deactivate",
+    "platform.tenant.read_all",
+    "platform.tenant.update",
+    "platform.user.create_global",
+    "platform.user.manage_all"
+  ],
+  "tenant_capabilities": [
+    "tenant.application.export",
+    "tenant.application.read",
+    "tenant.application.review",
+    "tenant.audit.read",
+    "tenant.document.read",
+    "tenant.document.verify",
+    "tenant.domain.read",
+    "tenant.domain.request_change",
+    "tenant.payment.read",
+    "tenant.payment.verify",
+    "tenant.profile.read",
+    "tenant.profile.request_change",
+    "tenant.program.read",
+    "tenant.program.request_change",
+    "tenant.staff.disable",
+    "tenant.staff.invite",
+    "tenant.staff.read"
+  ],
+  "default_tenant_read_capabilities": [
+    "tenant.application.read",
+    "tenant.audit.read",
+    "tenant.document.read",
+    "tenant.domain.read",
+    "tenant.payment.read",
+    "tenant.profile.read",
+    "tenant.program.read",
+    "tenant.staff.read"
+  ],
+  "granted_mutation_capabilities": {
+    "view": [],
+    "review": [
+      "tenant.application.review"
+    ],
+    "verify_documents": [
+      "tenant.document.verify"
+    ],
+    "verify_payments": [
+      "tenant.payment.verify"
+    ],
+    "export": [
+      "tenant.application.export"
+    ],
+    "manage": [
+      "tenant.domain.request_change",
+      "tenant.profile.request_change",
+      "tenant.program.request_change",
+      "tenant.staff.disable",
+      "tenant.staff.invite"
+    ]
+  }
+}

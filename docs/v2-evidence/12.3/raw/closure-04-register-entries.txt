@@ -1,0 +1,87 @@
+================================================================================
+task 12.3 closure — re-verification 04: the three registered column exceptions
+================================================================================
+Captured (UTC) : 2026-10-09T00:40:20Z
+Register       : backend/apps/common/compatibility_register.py
+  mtime        : 2026-08-11 08:09:11 local (last written by task 12.3 itself; read, not edited, here)
+  sha256       : 5457f773691e348f5849de54f692e44828c7c8a0386a8f33914731860dc3c932
+  git          : ?? backend/apps/common/compatibility_register.py (untracked: the whole admissions-v2 tree is uncommitted)
+Read by        : importing the module itself (it has no Django dependency), so what
+                 is printed is what the code holds, not a grep of it.
+
+kind='column' entries in the register: 3   (12.3 added 3)
+today (UTC): 2026-10-09   register ANNOUNCED_ON: 2026-08-11   legacy_columns.SUNSET_DATE: 2026-08-15 (historical, unedited)
+
+[applications.payment_verified_at]
+  surface      : applications.payment_verified_at (column; API field payment_verified_at)
+  owner        : platform-admissions
+  announced_on : 2026-08-11
+  end_date     : 2027-02-07   (121 days from today; Sunset header value 'Sun, 07 Feb 2027 00:00:00 GMT')
+  successor    : payments.verified_at
+  exit_criteria (584 chars):
+    ALL of: (1) the field is removed from ApplicationSerializer and
+    AdminApplicationDetailSerializer and from
+    apps/admissions/src/generated/api.d.ts; (2) the model field is removed from
+    Application so the ORM stops naming the column in every default SELECT; (3)
+    the dev-bypass fallback write in apps/documents/payment_widget_views.py is
+    removed; (4) ApplicationDetailsSection.tsx reads the verification time from
+    the payments ledger; (5) the four database gates in
+    docs/v2-evidence/12.3/invariants.sql read zero. Then promote
+    backend/scripts/future/legacy_columns_contract_2026_08_15.sql.
+  check: owner present                              PASS
+  check: end_date in the future                     PASS
+  check: end_date later than the original sunset    PASS
+  check: successor present                          PASS
+  check: exit_criteria evaluable (len > 80)         PASS
+
+[applications.payment_verified_by]
+  surface      : applications.payment_verified_by (column; API fields payment_verified_by / _name / _email)
+  owner        : platform-admissions
+  announced_on : 2026-08-11
+  end_date     : 2027-02-07   (121 days from today; Sunset header value 'Sun, 07 Feb 2027 00:00:00 GMT')
+  successor    : payments.verified_by_id (and audit_logs for the actor trail)
+  exit_criteria (445 chars):
+    As applications.payment_verified_at, plus: the three derived API fields
+    (payment_verified_by, payment_verified_by_name, payment_verified_by_email) are
+    re-sourced from payments.verified_by, and the three
+    select_related('payment_verified_by') call sites in admin_review_views.py and
+    student_draft_views.py are repointed. Dropping the column while the ForeignKey
+    is declared would break every Application query in the platform, not just this
+    field.
+  check: owner present                              PASS
+  check: end_date in the future                     PASS
+  check: end_date later than the original sunset    PASS
+  check: successor present                          PASS
+  check: exit_criteria evaluable (len > 80)         PASS
+
+[applications.prelenco_payment_columns]
+  surface      : applications.payment_method / payer_name / payer_phone / amount / paid_at / momo_ref / pop_url (7 ORM-unmapped columns)
+  owner        : platform-admissions
+  announced_on : 2026-08-11
+  end_date     : 2027-02-07   (121 days from today; Sunset header value 'Sun, 07 Feb 2027 00:00:00 GMT')
+  successor    : payments.payment_method / metadata (redacted) / phone_hash + phone_last4 / amount / verified_at / transaction_reference / none
+  exit_criteria (712 chars):
+    The pre-Lenco cohort is represented in the canonical ledger. Task 12.3
+    measured 18 applications still carrying legacy payment values, 17 of them with
+    NO payments row and 16 carrying a money fact (amount / paid_at / momo_ref)
+    recorded nowhere else — so for those rows the column IS the record and DROP
+    COLUMN is destruction, not contraction. Exit when Gate 1b of
+    docs/v2-evidence/12.3/invariants.sql reports unbacked_money_rows = 0, by
+    backfilling or quarantining that cohort into payments (the reverse-orphan
+    direction task 3.5 named and deliberately left:
+    docs/v2-evidence/3.5/README.md). Authoring 16 historical ledger rows is an
+    owner's judgement about applicant financial records, not a mechanical
+    migration.
+  check: owner present                              PASS
+  check: end_date in the future                     PASS
+  check: end_date later than the original sunset    PASS
+  check: successor present                          PASS
+  check: exit_criteria evaluable (len > 80)         PASS
+
+RESULT: all three entries carry owner / future end date / successor / evaluable exit criteria: True
+
+Note: each entry's measured_zero_first_party text records the 2026-08-11 measurement
+(e.g. '8 production references' for payment_verified_at). Today's half-4 run reads 7
+and 13 for the two published columns; closure-03 shows the difference is the
+telemetry scanner's trailing-comment rule, not a removed reference. The register was
+not edited (dispatch: no register edits while task 12.5 runs).

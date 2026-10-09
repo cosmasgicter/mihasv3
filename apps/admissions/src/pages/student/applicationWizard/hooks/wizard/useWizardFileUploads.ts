@@ -1,10 +1,8 @@
 import { useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
 import { logger } from '@/lib/logger'
-import { apiClient } from '@/services/client'
-import { isApplicationMissingError } from '@/lib/applicationSession'
+import { documentService } from '@/services/documents'
 import { selectLatestDocumentByType, type UploadedApplicationDocument } from '../../lib/documentSelection'
 
 export interface UseWizardFileUploadsParams {
@@ -19,9 +17,7 @@ export interface UseWizardFileUploadsParams {
   ) => void
   baseHandleResultSlipFile: (file: File | null) => void
   baseHandleExtraKycFile: (file: File | null) => void
-  updateApplication: { mutateAsync: (args: { id: string; data: Record<string, unknown> }) => Promise<unknown> }
   persistLocalDraftSnapshot: () => unknown
-  clearStaleApplicationReference: (staleApplicationId: string, message?: string) => void
   showInfo: (title: string, message?: string) => void
   showSuccess: (message: string) => void
   showWarning: (message: string) => void
@@ -36,9 +32,7 @@ export function useWizardFileUploads(params: UseWizardFileUploadsParams) {
     baseHandleExtraKycUpload,
     baseHandleResultSlipFile,
     baseHandleExtraKycFile,
-    updateApplication,
     persistLocalDraftSnapshot,
-    clearStaleApplicationReference,
     showInfo,
     showSuccess,
     showWarning,
@@ -59,42 +53,28 @@ export function useWizardFileUploads(params: UseWizardFileUploadsParams) {
       showInfo('Processing document...', 'Extracting grades from your result slip')
       persistLocalDraftSnapshot()
 
-      const persistResultSlipUrl = async () => {
-        try {
-          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-          return true
-        } catch (error) {
-          if (isApplicationMissingError(error)) {
-            clearStaleApplicationReference(
-              applicationId,
-              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-            )
-            return false
-          }
-          throw error
-        }
-      }
-      
       try {
-        // Result slip uploaded -- persist URL and trigger OCR extraction
-        const persisted = await persistResultSlipUrl()
-        if (!persisted) return
+        // The upload command already committed the document version and the
+        // application URL projection. A second application PATCH here used to
+        // race autosave and could overwrite a newer answer version.
+        void url
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
 
         // Trigger backend OCR extraction (async Celery task)
         try {
           let resultSlipDocId = uploadedDocumentId
           if (!resultSlipDocId) {
-            const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>(
-              `/applications/${applicationId}/documents/`
-            )
-            const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
+            const docList = (await documentService.listByApplication(
+              applicationId,
+            )) as UploadedApplicationDocument[]
             resultSlipDocId = selectLatestDocumentByType(docList, 'result_slip')?.id
           }
 
           if (resultSlipDocId) {
             // Fire OCR extraction -- this is async (Celery task), don't await completion
-            apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch((err) => logger.warn('OCR extraction request failed', toError(err)))
+            documentService
+              .extract({ documentId: resultSlipDocId })
+              .catch((err) => logger.warn('OCR extraction request failed', toError(err)))
             // Start polling for AI grade extraction results
             setOcrDocumentId(resultSlipDocId)
             startOcrPollingRef.current?.(resultSlipDocId)
@@ -105,19 +85,11 @@ export function useWizardFileUploads(params: UseWizardFileUploadsParams) {
           showSuccess('Result slip uploaded successfully.')
         }
       } catch (e) {
-        if (isApplicationMissingError(e)) {
-          clearStaleApplicationReference(
-            applicationId,
-            'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-          )
-          return
-        }
         logger.error('Auto-fill error:', e)
         showWarning('Auto-fill failed. Please enter grades manually.')
-        await persistResultSlipUrl()
       }
     })
-  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, clearStaleApplicationReference, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, updateApplication, setOcrDocumentId, startOcrPollingRef])
+  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, setOcrDocumentId, startOcrPollingRef])
 
   const handleExtraKycUpload = useCallback((file: File | null) => {
     if (!file) {
@@ -131,25 +103,11 @@ export function useWizardFileUploads(params: UseWizardFileUploadsParams) {
         if (!applicationId) return
 
         persistLocalDraftSnapshot()
-
-        try {
-          await updateApplication.mutateAsync({ id: applicationId, data: { extra_kyc_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-        } catch (error) {
-          if (isApplicationMissingError(error)) {
-            clearStaleApplicationReference(
-              applicationId,
-              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-            )
-            return
-          }
-
-          logApiError('application-wizard', `PATCH /applications/${applicationId}/`, error)
-          showWarning('Identity document uploaded. Refresh the application if it does not appear immediately.')
-        }
+        void url
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
       }
     )
-  }, [applicationId, baseHandleExtraKycFile, baseHandleExtraKycUpload, clearStaleApplicationReference, persistLocalDraftSnapshot, queryClient, showWarning, updateApplication])
+  }, [applicationId, baseHandleExtraKycFile, baseHandleExtraKycUpload, persistLocalDraftSnapshot, queryClient])
 
   return {
     handleResultSlipUpload,

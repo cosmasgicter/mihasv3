@@ -1,0 +1,22 @@
+# Task 6.3 completion pass — characterisation AFTER the consolidation (same two files as m12-01)
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-07T00:46:22Z
+# command: bun x vitest run tests/unit/wizardDraftPersistenceCharacterisation.test.tsx tests/unit/applicationSessionScopedCleanupCharacterisation.test.ts --reporter=verbose
+# PARITY P1-P7: unchanged assertions, must still pass. D1-D5 (and the session-cleanup CURRENT case): now assert the corrected behaviour.
+ ✓ tests/unit/applicationSessionScopedCleanupCharacterisation.test.ts > getLocalWizardDraft cleanup scope > FIXED: a stale submitted record for one application never erases another draft 229ms
+ ✓ tests/unit/applicationSessionScopedCleanupCharacterisation.test.ts > getLocalWizardDraft cleanup scope > a deleted (404) draft drops its own record only, and never the payment-recovery store 6ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P1: a hydrated, unedited draft issues no write on debounce or interval 47ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P2: one edit becomes one debounced versioned, idempotent write 14ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P3: an offline edit stays local, then saves once the connection returns 10ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P4: a transient failure is retried with the same idempotency key and version 8ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P5: VERSION_CONFLICT is terminal — no retry, Save now does not write 15ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P6: an edit made during a save is written next, on the new version with a new key 10ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > PARITY — behaviour the single draft machine must keep > P7: an expired session stops cloud retries and says the work is on this device 6ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > FIXED — the recorded defects, after the consolidation > D1: Save now on an unchanged draft writes nothing 4ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > FIXED — the recorded defects, after the consolidation > D2: step navigation on an unchanged draft writes nothing (the F3 residual) 5ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > FIXED — the recorded defects, after the consolidation > D3: Continue on an unchanged personal step confirms with a read, never a write 6ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > FIXED — the recorded defects, after the consolidation > D5: answers recovered from a pending local outbox record are sent without another keystroke 5ms
+ ✓ tests/unit/wizardDraftPersistenceCharacterisation.test.tsx > FIXED — the recorded defects, after the consolidation > D4: a programme/intake-only change is not an answer write 4ms
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+PROCESS EXIT: 0

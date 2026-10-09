@@ -1,0 +1,21 @@
+]633;E;echo "=== task 12.5 guard-teeth check: planted violations must be NAMED, not absorbed ===";aeb3dc56-1367-40bb-a15c-b48cbe269b44]633;C=== task 12.5 guard-teeth check: planted violations must be NAMED, not absorbed ===
+
+planted-violation run: UNREGISTERED=9  PASS=False
+  [1] legacy_catalog_writes: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:3  return apiClient.request<void>(`/catalog/intakes/${id}/`, { method: 'DELETE' })
+  [2] raw_role_authorization: 1
+      backend/apps/common/planted_violation_12_5.py:3  if role == "admin":
+  [3] invented_permissions: 1
+      backend/apps/common/planted_violation_12_5.py:7  PLANTED_PERM = "users:read"
+  [4] raw_uuid_form_labels: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:5  export const plantedLabel = 'Optional UUID'
+  [5] hardcoded_fees_support_brands: 1
+      backend/apps/common/planted_violation_12_5.py:6  PLANTED_BRAND = "MIHAS"
+  [7] direct_client_calls: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:1  import { apiClient } from '@/services/client'
+  [8] window_confirm: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:6  export function plantedConfirm() { return window.confirm('really?') }
+  [9] v1_document_callers: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:8  export function plantedPdf() { return generateApplicationSlip({}) }
+  [12] stale_status_aliases: 1
+      apps/admissions/src/components/PlantedViolation12_5.tsx:7  export function plantedStale(s: string) { return s === 'paid' }

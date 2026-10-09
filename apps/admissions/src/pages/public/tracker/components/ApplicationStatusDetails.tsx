@@ -1,7 +1,6 @@
 import React from 'react'
-import { Calendar, MessageSquare, CheckCircle, Clock, Target, XCircle, Rocket, Users, FileCheck, AlertTriangle } from 'lucide-react'
+import { CheckCircle, Clock, Target, XCircle, Rocket, Users, FileCheck, AlertTriangle } from 'lucide-react'
 import { PublicApplicationStatus } from '../hooks/useApplicationTracker'
-import { formatDate } from '@/lib/utils'
 import { getStatusMessage } from '../utils/trackerUtils'
 import { animateClasses } from '@/lib/animations'
 
@@ -86,32 +85,15 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
         </div>
       </div>
 
-      {/* Admin Feedback */}
-      {application.admin_feedback && (
-        <div
-          className={animateClasses.slideUp}
-          style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
-        >
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-success" aria-hidden="true" />
-            Message from Admissions
-          </h3>
-          
-          <div className="rounded-lg border border-success/30 bg-success/5 p-5 sm:p-6">
-            <div className="mb-4 rounded-lg border border-success/20 bg-card p-4">
-              <p className="text-foreground text-base leading-7">
-                {application.admin_feedback}
-              </p>
-            </div>
-            {application.admin_feedback_date && (
-              <p className="text-muted-foreground text-sm flex items-center gap-2">
-                <Calendar className="h-4 w-4" aria-hidden="true" />
-                <span>Provided on {formatDate(application.admin_feedback_date)}</span>
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      {/*
+        admissions-v2 task 10.5 (R13.12, STU-22): the "Message from Admissions"
+        panel that used to sit here read `admin_feedback` / `admin_feedback_date`
+        — reviewer-authored notes the public tracking contract has never published
+        and must never publish. It rendered nothing in practice, because the
+        backend never sent them; it was a leak waiting for someone to "fix" the
+        missing field. Decision correspondence belongs to the student's own
+        authenticated communications history.
+      */}
     </div>
   )
 }

@@ -42,20 +42,49 @@ export interface AdminUserListResult {
   totalPages?: number
 }
 
-export interface AdminUserPermissionsResult {
-  userId: string
-  role: string
-  permissions: string[]
-  defaultPermissions?: string[]
-  source: string
-  revokedSessions?: number
+/**
+ * Read-only Effective_Capabilities for a target user (design §5.3, R3.7).
+ *
+ * Mirrors the backend Capability_Endpoint payload. The fake permission editor
+ * and its invented colon-permission vocabulary are retired (task 2.4, AUTH-04):
+ * the frontend never mutates permissions and never maps arbitrary selections
+ * back to a role. Authority is mutated only through the canonical platform
+ * role, membership, and access-grant commands; this shape is display-only.
+ */
+export interface AdminUserCapabilityInstitution {
+  id: string
+  code: string
+  name: string
+  capabilities: string[]
 }
 
-const ROLE_PERMISSIONS: Record<string, string[]> = {
-  super_admin: ['users:read', 'users:write', 'applications:read', 'applications:write', 'settings:write', 'audit:read'],
-  admin: ['users:read', 'applications:read', 'applications:write', 'settings:read', 'audit:read'],
-  reviewer: ['applications:read'],
-  student: [],
+export interface AdminUserEffectiveCapabilities {
+  /** The target user's role string (informational). */
+  role: string | null
+  is_super_admin: boolean
+  all_access: boolean
+  /** Platform-level (`platform.*`) capabilities — populated for super-admins. */
+  capabilities: string[]
+  /** Per-institution tenant (`tenant.*`) capabilities. */
+  institutions: AdminUserCapabilityInstitution[]
+  /** Always true — this surface is display-only. */
+  read_only: boolean
+  /** True when the backend could not resolve the target's capabilities (fail-closed). */
+  resolution_error?: boolean
+}
+
+function normalizeCapabilityInstitution(raw: unknown): AdminUserCapabilityInstitution | null {
+  if (!raw || typeof raw !== 'object') return null
+  const entry = raw as Record<string, unknown>
+  if (typeof entry.id !== 'string') return null
+  return {
+    id: entry.id,
+    code: typeof entry.code === 'string' ? entry.code : '',
+    name: typeof entry.name === 'string' ? entry.name : '',
+    capabilities: Array.isArray(entry.capabilities)
+      ? entry.capabilities.filter((c): c is string => typeof c === 'string')
+      : [],
+  }
 }
 
 export const userService = {
@@ -112,49 +141,35 @@ export const userService = {
     }
   },
 
-  /** Get user permissions (derived from role). Maps to GET /admin/users/{id}/ */
-  getPermissions: async (id: string): Promise<AdminUserPermissionsResult> => {
+  /**
+   * Read the target user's backend-derived Effective_Capabilities (read-only).
+   * Maps to GET /admin/users/{id}/effective-capabilities/ (task 2.4, R3.7).
+   * Authority is derived server-side by AdminCapabilityService; this call never
+   * mutates and there is no permission editor.
+   */
+  getEffectiveCapabilities: async (id: string): Promise<AdminUserEffectiveCapabilities> => {
     try {
-      const user = await apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
-        method: 'GET',
-      })
-      const role = typeof user?.role === 'string' ? user.role : 'student'
+      const data = await apiClient.request<AdminUserEffectiveCapabilities>(
+        `/admin/users/${encodeURIComponent(id)}/effective-capabilities/`,
+        { method: 'GET' },
+      )
       return {
-        userId: id,
-        role,
-        permissions: ROLE_PERMISSIONS[role] ?? [],
-        defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
-        source: 'derived-from-role',
+        role: data?.role ?? null,
+        is_super_admin: Boolean(data?.is_super_admin),
+        all_access: Boolean(data?.all_access),
+        capabilities: Array.isArray(data?.capabilities)
+          ? data.capabilities.filter((c): c is string => typeof c === 'string')
+          : [],
+        institutions: Array.isArray(data?.institutions)
+          ? data.institutions
+              .map(normalizeCapabilityInstitution)
+              .filter((i): i is AdminUserCapabilityInstitution => i !== null)
+          : [],
+        read_only: data?.read_only !== false,
+        resolution_error: Boolean(data?.resolution_error),
       }
     } catch (error) {
-      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
-      throw error
-    }
-  },
-
-  /** Update user permissions (role-based). Maps to PUT /admin/users/{id}/ */
-  updatePermissions: async (id: string, permissions: string[]): Promise<AdminUserPermissionsResult> => {
-    // Permissions are role-based in the Django backend; find the matching role
-    const matchingRole = Object.entries(ROLE_PERMISSIONS).find(
-      ([, perms]) => JSON.stringify(perms.sort()) === JSON.stringify([...permissions].sort())
-    )
-    const role = matchingRole?.[0] ?? 'student'
-
-    try {
-      await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ role }),
-      })
-
-      return {
-        userId: id,
-        role,
-        permissions: ROLE_PERMISSIONS[role] ?? [],
-        defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
-        source: 'derived-from-role',
-      }
-    } catch (error) {
-      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      logApiError('admin-users', `/api/v1/admin/users/${id}/effective-capabilities/`, error)
       throw error
     }
   },

@@ -17,94 +17,47 @@ import { createRoot, type Root } from 'react-dom/client'
 // ---------------------------------------------------------------------------
 // Property 2a: Valid Auth Save Preservation (Req 3.1, 3.2, 3.3)
 // ---------------------------------------------------------------------------
-// Observation: useAutoSave with a successful onSave callback sets
-// saveStatus='saved', updates lastSaved, and resets retry counter to 0.
+// Observation: a successful save sets the status to saved, records when it
+// happened, and resets the retry counter to 0. Originally observed on
+// `useAutoSave`; admissions-v2 task 6.3 retired that hook, so the property is
+// observed on the draft machine that owns the wizard's saves.
 // ---------------------------------------------------------------------------
 describe('[PBT] Preservation — Valid auth saves unchanged', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    // Stub navigator.onLine to true
     Object.defineProperty(navigator, 'onLine', { value: true, writable: true, configurable: true })
   })
-
   afterEach(() => {
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
-  it('property: successful onSave sets saveStatus=saved and resets retry counter', async () => {
-    // Mock react-router-dom useLocation
-    vi.doMock('react-router-dom', () => ({
-      useLocation: () => ({ pathname: '/test', search: '' }),
-    }))
-    // Mock localStorage cache
-    vi.doMock('@/lib/localStorageCache', () => ({
-      cachedGetItem: vi.fn(() => null),
-      cachedSetItem: vi.fn(),
-      cachedRemoveItem: vi.fn(),
-    }))
-    // Mock secureStorage
-    vi.doMock('@/lib/secureStorage', () => ({
-      stripPiiFields: (data: Record<string, unknown>) => data,
-    }))
-
-    const { useAutoSave } = await import('@/hooks/useAutoSave')
-
-    // Use fast-check to generate various successful save data payloads
+  it('property: successful save sets saveStatus=saved and resets retry counter', async () => {
+    const { deriveWizardDraftSaveView } = await import('@/lib/wizardDraftController')
+    const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          full_name: fc.string({ minLength: 1, maxLength: 50 }),
+          full_name: fc.string({ minLength: 2, maxLength: 50 }).filter((v) => v.trim().length >= 2),
           email: fc.emailAddress(),
         }),
         async (formData) => {
-          const onSaveMock = vi.fn().mockResolvedValue(undefined)
-          let hookResult: ReturnType<typeof useAutoSave> | null = null
-
-          function TestComponent({ data }: { data: Record<string, unknown> }) {
-            hookResult = useAutoSave(data, {
-              onSave: onSaveMock,
-              enabled: true,
-              interval: 8000,
-            })
-            return null
-          }
-
-          const container = document.createElement('div')
-          document.body.appendChild(container)
-          const root = createRoot(container)
-
-          // Render with data
-          await act(async () => {
-            root.render(React.createElement(TestComponent, { data: formData }))
-          })
-
-          // Trigger manual save
-          await act(async () => {
-            hookResult!.saveData()
-          })
-
-          // Flush microtasks
-          await act(async () => {
-            await vi.advanceTimersByTimeAsync(100)
-          })
-
-          // Verify preservation: successful save → saved status, retry counter = 0
-          expect(hookResult!.saveStatus).toBe('saved')
-          expect(hookResult!.saveAttempts).toBe(0)
-
-          // Cleanup
-          act(() => { root.unmount() })
-          document.body.removeChild(container)
-          onSaveMock.mockClear()
-        }
+          const h = createDraftHarness()
+          h.machine.activate()
+          h.hydrate()
+          h.edit('full_name', formData.full_name)
+          h.edit('email', formData.email)
+          await h.machine.saveNow()
+          await settle()
+          const snapshot = h.machine.getSnapshot()
+          expect(deriveWizardDraftSaveView(snapshot).status).toBe('saved')
+          expect(snapshot.retryAttempts).toBe(0)
+          expect(snapshot.lastSavedAt).not.toBeNull()
+          h.machine.dispose()
+        },
       ),
-      { numRuns: 5 }
+      { numRuns: 5 },
     )
-
-    vi.doUnmock('react-router-dom')
-    vi.doUnmock('@/lib/localStorageCache')
-    vi.doUnmock('@/lib/secureStorage')
   })
 })
 
@@ -180,9 +133,29 @@ describe('[PBT] Preservation — Production payment enforcement', () => {
       fc.property(
         fc.constantFrom('production', 'prod'),
         (_envLabel) => {
-          // The known test-ids in PaymentStep are: payment-step and pay-later-button.
-          // Dev bypass was removed during auth simplification.
-          const knownTestIds = ['payment-step', 'pay-later-button', 'dev-bypass-button']
+          // The known test-ids in PaymentStep. The invariant this property
+          // protects is that no *bypass* affordance renders unconditionally —
+          // instrumentation for the fee panel is not a bypass. Admissions-v2 task
+          // 8.1 added the server-authored fee-quote test-ids (the amounts, expiry,
+          // and refresh action now come from the backend quote).
+          const knownTestIds = [
+            'payment-step',
+            'pay-later-button',
+            'dev-bypass-button',
+            'fee-quote-panel',
+            'fee-quote-total',
+            // Rendered by the shared `FeeQuoteRefusal` block the step composes.
+            'fee-quote-refusal',
+            'fee-quote-error',
+            'fee-quote-retry',
+            'fee-quote-guidance',
+            'fee-quote-expired',
+            'fee-quote-refresh',
+            'fee-quote-expiry',
+            // The explicit "no quote, therefore no price" state that replaced the
+            // hardcoded K150/USD 20 empty-state amount (task 8.1, STU-08).
+            'fee-quote-unavailable',
+          ]
           const testIdMatches = source.match(/data-testid="([^"]+)"/g) || []
           const foundTestIds = testIdMatches.map(m => m.replace(/data-testid="([^"]+)"/, '$1'))
 

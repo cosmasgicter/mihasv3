@@ -1,19 +1,42 @@
 # SQL Migration History
 
+> **⚠️ Superseded by generated evidence (Admissions V2 task 3.6 / DATA-09).**
+> This hand-maintained mirror **stopped at the 2026-05 scripts ("40 rows",
+> regenerated 2026-05-25)** and therefore omits every June-2026+ tenant/canonical
+> migration — the exact drift finding **DATA-09** names. Do **not** hand-edit or
+> trust the row list below as current.
+>
+> The **single current evidence link** for migration-history truth is the report
+> **generated from a real database** by
+> `python manage.py migration_history_report`, with a runnable freshness gate:
+>
+> - Evidence + reproduction: [`docs/v2-evidence/3.6/README.md`](../../docs/v2-evidence/3.6/README.md)
+> - Generated release history (ids, full sha256 checksums, applied_at, schema
+>   fingerprint, non-secret `host=… db=…` identity):
+>   [`docs/v2-evidence/3.6/migration-history.release.md`](../../docs/v2-evidence/3.6/migration-history.release.md)
+> - Freshness test (build-breaking, no skips):
+>   `backend/tests/unit/test_migration_history_report_freshness.py`
+>
+> Regenerate rather than editing by hand:
+> `python manage.py migration_history_report --emit <report>.json --label <env> --markdown <report>.md`.
+> The table below is retained only as a **historical 2026-05-25 snapshot**.
+
 All Django models use `managed = False`. Schema changes are applied
 via raw SQL scripts. After the 2026-05-22 reconciliation,
-`migration_history` on the production Neon database (project
-`wild-bar-37055823`) is the **single source of truth** for what is
-applied. This file is the human-readable mirror, regenerated from
-`SELECT migration_name, applied_at, notes FROM migration_history
-ORDER BY applied_at, migration_name` on 2026-05-25.
+`migration_history` on each real database is the **source of truth** for what is
+applied; the authoritative human-readable record is now **generated** from that
+table (see the banner above), not maintained by hand here.
 
 The drift-guard
 (`python3 manage.py check_schema_drift --check-migration-history-coverage`)
 detects when this mirror drifts from the truth — the canonical truth
 map at `docs/canonical-truth-map.md` records the relationship.
 
-## Production migration_history (40 rows)
+## Historical snapshot — production migration_history (40 rows, as of 2026-05-25; superseded)
+
+The list below is the pre-June-2026 hand-captured snapshot. It is kept for
+history only. For the current, June-2026+-inclusive record generated from a real
+database, use `docs/v2-evidence/3.6/` (see the banner above).
 
 | Migration                                              | Applied (UTC)               | Notes                                            |
 | ------------------------------------------------------ | --------------------------- | ------------------------------------------------ |
@@ -123,11 +146,28 @@ executed-DDL logs before claiming a complete archive.
 | `apply_canonical_truth_migrations.py`       | Canonical truth migration runner |
 | `generate_full_schema.py`                   | Regenerate `00_full_schema.sql` from production |
 
-## Regenerating this file
+## Regenerating (use the generated report, not this snapshot)
+
+Do not hand-regenerate the snapshot above. Emit the current report from a real
+database — it includes every June-2026+ migration id, full sha256 checksum,
+applied_at, the schema fingerprint, and a non-secret `host=… db=…` identity, and
+it is gated by a runnable freshness test:
 
 ```bash
-psql "$PROD_URL" -At -F'|' \
-    -c "SELECT migration_name, applied_at, COALESCE(notes,'') FROM migration_history ORDER BY applied_at, migration_name"
-# Pipe through awk/jinja to produce the table above. Pin the row count
-# to the value returned by SELECT count(*) FROM migration_history.
+cd backend
+# From the active Django connection (fresh/migrated local DB):
+python manage.py migration_history_report \
+    --emit ../docs/v2-evidence/3.6/migration-history.release.json \
+    --label release-canonical-committed-path \
+    --markdown ../docs/v2-evidence/3.6/migration-history.release.md
+# From a read-only DSN (Neon branch / production read-only) — DSN never printed:
+NEON_DSN=... python manage.py migration_history_report \
+    --emit ../docs/v2-evidence/3.6/migration-history.neon-default.json \
+    --label neon-default-branch --dsn-env NEON_DSN
+# Gate freshness (pure; breaks the build if a June-2026+ script is unrecorded):
+python manage.py migration_history_report \
+    --check-freshness ../docs/v2-evidence/3.6/migration-history.release.json
 ```
+
+See `docs/v2-evidence/3.6/README.md` for the full reproduction and honest notes
+(Neon-default is legitimately stale; production capture is operator-gated).

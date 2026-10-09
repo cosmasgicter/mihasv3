@@ -1,0 +1,260 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.6/remediation/M10/raw/f3-final/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/two-tenant-adversarial-matrix.spec.ts",
+      "file": "required/two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5243,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:500:28",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                      "column": 28,
+                      "line": 500
+                    },
+                    "snippet": "  498 |   const bothOpenRead = await applicant.ctx.get(draftPath);\n  499 |   const preWinnerVersion = Number(unwrap(await bothOpenRead.json())?.version);\n> 500 |   expect(preWinnerVersion).toBe(initialVersion);\n      |                            ^\n  501 |\n  502 |   // Device 1 changes the same answer and wins through the real wizard action.\n  503 |   const winnerTown = `Winner device one ${w.stamp}`;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                        "column": 28,
+                        "line": 500
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n\n  498 |   const bothOpenRead = await applicant.ctx.get(draftPath);\n  499 |   const preWinnerVersion = Number(unwrap(await bothOpenRead.json())?.version);\n> 500 |   expect(preWinnerVersion).toBe(initialVersion);\n      |                            ^\n  501 |\n  502 |   // Device 1 changes the same answer and wins through the real wizard action.\n  503 |   const winnerTown = `Winner device one ${w.stamp}`;\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:500:28"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T16:08:24.141Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/test-failed-2.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                    "column": 28,
+                    "line": 500
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-3cfbbbbdaa6cc694c37a",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6038,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:500:28",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                      "column": 28,
+                      "line": 500
+                    },
+                    "snippet": "  498 |   const bothOpenRead = await applicant.ctx.get(draftPath);\n  499 |   const preWinnerVersion = Number(unwrap(await bothOpenRead.json())?.version);\n> 500 |   expect(preWinnerVersion).toBe(initialVersion);\n      |                            ^\n  501 |\n  502 |   // Device 1 changes the same answer and wins through the real wizard action.\n  503 |   const winnerTown = `Winner device one ${w.stamp}`;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                        "column": 28,
+                        "line": 500
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n\n  498 |   const bothOpenRead = await applicant.ctx.get(draftPath);\n  499 |   const preWinnerVersion = Number(unwrap(await bothOpenRead.json())?.version);\n> 500 |   expect(preWinnerVersion).toBe(initialVersion);\n      |                            ^\n  501 |\n  502 |   // Device 1 changes the same answer and wins through the real wizard action.\n  503 |   const winnerTown = `Winner device one ${w.stamp}`;\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:500:28"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T16:08:34.776Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-mobile-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-mobile-required/test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-mobile-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                    "column": 28,
+                    "line": 500
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-c86adadcdb0aeee9e10b",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-25T16:08:23.016Z",
+    "duration": 22022.379,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

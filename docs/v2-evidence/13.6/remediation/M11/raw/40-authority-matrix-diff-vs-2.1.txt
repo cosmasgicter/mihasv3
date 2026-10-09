@@ -1,0 +1,103 @@
+=== M11: approved authority expectations, task 2.1's generated matrix vs the matrix regenerated from today's registry ===
+2.1 artifact : docs/v2-evidence/2.1/authority-matrix.json (generated 2026-07-25)
+now          : raw/authority-matrix-now/authority-matrix.json (scripts/authority_matrix_v2.py --out <that dir>, 2026-10-05)
+note         : this diff spans EVERY registry edit since 2.1 (many tasks), not only the Aug 15-16 session's
+
+routes: 2.1=216 now=230
+
+REMOVED (3):
+  - /api/v1/applications/<uuid:application_id>/admin-summary/ tenant_capability
+  - /api/v1/applications/<uuid:application_id>/email-slip/ owner
+  - /api/v1/applications/<uuid:application_id>/preview-summary/ owner
+
+ADDED (17):
+  + /api/v1/admin/applications/ tenant_capability tenant.application.read
+  + /api/v1/admin/applications/<uuid:application_id>/ tenant_capability tenant.application.read
+  + /api/v1/admin/applications/saved-filters/ tenant_capability tenant.application.read
+  + /api/v1/admin/applications/saved-filters/<uuid:saved_filter_id>/ tenant_capability tenant.application.read
+  + /api/v1/admin/fees/ tenant_capability tenant.program.read
+  + /api/v1/admin/users/batch-import/preview/ tenant_capability tenant.staff.invite
+  + /api/v1/admin/users/bulk/ tenant_capability tenant.staff.invite
+  + /api/v1/applications/<uuid:application_id>/amendments/<uuid:amendment_id>/ owner None
+  + /api/v1/applications/<uuid:application_id>/conditions/<uuid:condition_id>/ owner None
+  + /api/v1/applications/<uuid:application_id>/conditions/<uuid:condition_id>/evidence/ owner None
+  + /api/v1/applications/<uuid:application_id>/conditions/<uuid:condition_id>/review/ tenant_capability tenant.application.review
+  + /api/v1/applications/<uuid:application_id>/official-documents/<str:document_type>/email/ owner None
+  + /api/v1/applications/<uuid:application_id>/required-documents/ owner None
+  + /api/v1/applications/<uuid:application_id>/tracking-link/ owner None
+  + /api/v1/notifications/<uuid:pk>/retry/ owner None
+  + /api/v1/payments/quote/ owner None
+  + /api/v2/student/applications/<uuid:application_id>/readiness/ owner None
+
+EXPECTATION CHANGED on routes present in both:
+  * /api/v1/admin/dashboard/
+      capability: None -> 'tenant.application.read'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/admin/institutions/<uuid:institution_id>/audit/
+      disclosure: 'not_found_mask' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/admin/users/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      GET.authority_class: 'platform_capability' -> 'tenant_capability'
+      GET.capability: 'platform.user.manage_all' -> 'tenant.staff.read'
+      GET.disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      GET.composed_authorities: [] -> ['platform.user.manage_all']
+      POST.authority_class: 'platform_capability' -> 'tenant_capability'
+      POST.capability: 'platform.user.create_global' -> 'tenant.staff.invite'
+      POST.disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      POST.composed_authorities: [] -> ['platform.user.create_global']
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/admin/users/<uuid:pk>/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      capability: 'platform.user.manage_all' -> 'tenant.staff.read'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      composed_authorities: [] -> ['tenant.staff.invite', 'tenant.staff.disable', 'platform.user.manage_all']
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/admin/users/batch-import/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      capability: 'platform.user.create_global' -> 'tenant.staff.invite'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      composed_authorities: [] -> ['platform.user.create_global']
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/admin/users/export/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      capability: 'platform.user.manage_all' -> 'tenant.staff.read'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      composed_authorities: [] -> ['tenant.application.export', 'platform.user.manage_all']
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/applications/<uuid:application_id>/amendments/<uuid:amendment_id>/review/
+      disclosure: 'not_found_mask' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/applications/<uuid:application_id>/assign/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      capability: 'platform.user.manage_all' -> 'tenant.application.review'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/applications/<uuid:application_id>/assignment-candidates/
+      authority_class: 'platform_capability' -> 'tenant_capability'
+      capability: 'platform.user.manage_all' -> 'tenant.application.review'
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+      ^^ class moved to a WEAKER authority class
+  * /api/v1/applications/<uuid:application_id>/conditions/<uuid:condition_id>/verify/
+      disclosure: 'not_found_mask' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/applications/<uuid:application_id>/review/
+      disclosure: 'not_found_mask' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/applications/<uuid:application_id>/verify-document/
+      disclosure: 'not_found_mask' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/applications/export/
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/payments/settlements/
+      disclosure: 'non_revealing_403' -> 'not_found_mask_then_non_revealing_403'
+  * /api/v1/programs/<uuid:program_id>/fees/
+      capability: None -> 'tenant.program.read'
+      disclosure: 'non_revealing_403' -> 'not_found_mask'
+      GET.capability: 'tenant.payment.read' -> 'tenant.program.read'
+      POST.capability: 'platform.settings.manage' -> 'platform.program_assignment.manage'
+  * /api/v1/programs/<uuid:program_id>/fees/<uuid:pk>/
+      capability: None -> 'tenant.program.read'
+      disclosure: 'non_revealing_403' -> 'not_found_mask'
+      DELETE.capability: 'platform.settings.manage' -> 'platform.program_assignment.manage'
+      GET.capability: 'tenant.payment.read' -> 'tenant.program.read'
+      PATCH.capability: 'platform.settings.manage' -> 'platform.program_assignment.manage'
+      PUT.capability: 'platform.settings.manage' -> 'platform.program_assignment.manage'
+
+changed: 16; moved to a weaker class: 6

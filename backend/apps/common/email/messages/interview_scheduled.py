@@ -11,6 +11,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_STUDENT_INTERVIEW, platform_base_url
 
 
 def render(context: dict) -> tuple[str, str]:
@@ -29,7 +30,7 @@ def render(context: dict) -> tuple[str, str]:
     location = context.get("interview_location") or "—"
     mode = context.get("interview_mode") or "In person"
     interviewer = context.get("interviewer_name") or "A member of our admissions panel"
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
 
     subject = f"Interview scheduled — {date} at {time}"
 
@@ -66,7 +67,7 @@ def render(context: dict) -> tuple[str, str]:
                     "A pen and a short list of questions for the panel.",
                 ]
             ),
-            cta_button("View interview details", portal + "/student/interview"),
+            cta_button("View interview details", portal + ROUTE_STUDENT_INTERVIEW),
             signature_block(),
         ]
     )

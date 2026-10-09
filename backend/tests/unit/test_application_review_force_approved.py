@@ -1,11 +1,13 @@
-"""Unit tests — admin review under ``PAYMENT_HARDENING_FORCE_APPROVED``.
+"""Unit tests — admin review records an override as ``force_approved``.
 
 Scope (Phase 5 — payment-hardening Tasks 45.3 + 45.4)
 ----------------------------------------------------
-When ``PAYMENT_HARDENING_FORCE_APPROVED=True`` the ``ApplicationReviewView``
-admin-verification branch must route applications with no prior Payment
-row through ``PaymentService.force_approve(...)`` rather than the legacy
-synthetic zero-amount ``successful`` insert path (R2.3, R22.6).
+The ``ApplicationReviewView`` admin-verification branch routes applications
+with no prior Payment row through ``PaymentService.force_approve(...)``. The
+alternative — a synthetic zero-amount ``successful`` insert, indistinguishable
+in the ledger from a real collection — and the
+``PAYMENT_HARDENING_FORCE_APPROVED`` flag that selected it were deleted in
+admissions-v2 task 8.2 (R2.3, R22.6).
 
 These tests pin two things:
 
@@ -57,8 +59,18 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+        # Only patch the module-level name if it is still there. Task 9.4 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point this
+        # fixture began raising ``AttributeError`` **at setup** and every case in this
+        # file errored rather than ran. Guarding the patch target (rather than only
+        # the import) is what makes the fixture describe the code that exists. The
+        # remaining ``apps.catalog.services.AccessScopeService`` target below is the
+        # real seam: ``resolve_scoped_application`` imports it lazily from there.
+        # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -195,10 +207,6 @@ def _receipt_label_for(payment):
 
 
 @pytest.mark.django_db
-@override_settings(
-    PAYMENT_HARDENING_FORCE_APPROVED=True,
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-)
 def test_force_approved_path_creates_canonical_ledger_row(
     seed_admin_and_application,
 ):
@@ -250,7 +258,7 @@ def test_force_approved_path_creates_canonical_ledger_row(
     payment = payments[0]
     assert payment.status == "force_approved", (
         f"Expected Payment.status='force_approved' under "
-        f"PAYMENT_HARDENING_FORCE_APPROVED=True; got {payment.status!r}. "
+        f"; got {payment.status!r}. "
         f"A status of 'successful' would indicate the legacy synthetic "
         f"path is still running."
     )
@@ -318,10 +326,6 @@ def test_force_approved_path_creates_canonical_ledger_row(
 
 
 @pytest.mark.django_db
-@override_settings(
-    PAYMENT_HARDENING_FORCE_APPROVED=True,
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-)
 def test_force_approved_rejects_short_reason(seed_admin_and_application):
     """A reason shorter than 10 chars yields 400 ``OVERRIDE_REASON_REQUIRED``.
 

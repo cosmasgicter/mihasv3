@@ -188,7 +188,6 @@ def _audits_for(entity_id, action=None):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_student_cannot_access_correct_endpoint(seed_payment_and_super_admin):
     """A ``student`` actor is rejected with 403 + INSUFFICIENT_PERMISSIONS.
 
@@ -227,7 +226,6 @@ def test_student_cannot_access_correct_endpoint(seed_payment_and_super_admin):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_reviewer_cannot_access_correct_endpoint(seed_payment_and_super_admin):
     """A ``reviewer`` actor is rejected with 403 + INSUFFICIENT_PERMISSIONS.
 
@@ -255,7 +253,6 @@ def test_reviewer_cannot_access_correct_endpoint(seed_payment_and_super_admin):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_admin_cannot_access_correct_endpoint(seed_payment_and_super_admin):
     """An ``admin`` actor is rejected with 403 + INSUFFICIENT_PERMISSIONS.
 
@@ -287,7 +284,6 @@ def test_admin_cannot_access_correct_endpoint(seed_payment_and_super_admin):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_super_admin_can_transition_payment(seed_payment_and_super_admin):
     """A ``super_admin`` actor receives HTTP 200 and the transition applies.
 
@@ -344,7 +340,6 @@ def test_super_admin_can_transition_payment(seed_payment_and_super_admin):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_short_reason_returns_400_and_no_audit(seed_payment_and_super_admin):
     """Reason < 10 chars → 400 + OVERRIDE_REASON_REQUIRED; ledger untouched.
 
@@ -397,7 +392,6 @@ def test_short_reason_returns_400_and_no_audit(seed_payment_and_super_admin):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_audit_emitted_before_transition_persists(
     seed_payment_and_super_admin,
 ):

@@ -35,6 +35,16 @@ interface SeoProps {
   twitterCard?: 'summary' | 'summary_large_image'
   noindex?: boolean
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>
+  /**
+   * `og:site_name` — the **resolved** brand for this host (admissions-v2 task
+   * 11.5, STU-24 / R2.2 / R2.3).
+   *
+   * A tenant-visible surface passes `usePortalBrand().brandName`, which is
+   * already Beanola-defaulted on the shared portal and on any resolution
+   * failure. Platform-operator surfaces (admin) and the platform's own public
+   * pages omit it, because Beanola *is* their brand.
+   */
+  siteName?: string | null
 }
 
 export function Seo({
@@ -47,6 +57,7 @@ export function Seo({
   twitterCard = 'summary_large_image',
   noindex = false,
   structuredData,
+  siteName,
 }: SeoProps) {
   useEffect(() => {
     const siteUrl = resolveSiteUrl()
@@ -83,7 +94,7 @@ export function Seo({
     ensureMeta('og:description', description, 'property')
     ensureMeta('og:url', canonicalUrl, 'property')
     ensureMeta('og:image', imageUrl, 'property')
-    ensureMeta('og:site_name', DEFAULT_SITE_NAME, 'property')
+    ensureMeta('og:site_name', (siteName ?? '').trim() || DEFAULT_SITE_NAME, 'property')
 
     ensureMeta('twitter:card', twitterCard)
     ensureMeta('twitter:title', title)
@@ -107,7 +118,7 @@ export function Seo({
     } else if (jsonLdNode) {
       jsonLdNode.remove()
     }
-  }, [canonical, description, image, noindex, path, structuredData, title, twitterCard, type])
+  }, [canonical, description, image, noindex, path, siteName, structuredData, title, twitterCard, type])
 
   return null
 }

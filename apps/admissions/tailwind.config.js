@@ -181,11 +181,21 @@ module.exports = {
         'toast-out': 'toastOut 200ms ease-in',
         'shake': 'shake 0.5s ease-in-out',
         'page-shell-in': 'pageShellIn 200ms cubic-bezier(0.4,0,0.2,1) both',
+        'hero-enter': 'heroEnter 300ms cubic-bezier(0.22,1,0.36,1) both',
+        'hero-float': 'heroFloat 3s ease-in-out infinite',
       },
       keyframes: {
         pageShellIn: {
           '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        heroEnter: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        heroFloat: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' },
         },
         fadeIn: {
           '0%': { opacity: '0' },

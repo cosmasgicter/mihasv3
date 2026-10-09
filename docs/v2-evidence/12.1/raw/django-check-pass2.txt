@@ -1,0 +1,6 @@
+$ cd backend && env -u TESTING -u REDIS_URL .venv/bin/python3 manage.py check
+# (no TESTING=1, no substitute REDIS_URL — both produce a spurious django_ratelimit.E003)
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+System check identified no issues (1 silenced).

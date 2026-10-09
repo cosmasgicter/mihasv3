@@ -8,9 +8,13 @@ export const getInstitutionName = (code?: string | null) => {
 export const validateSearchTerm = (term: string): boolean => {
   const trimmed = term.trim()
   if (!trimmed || trimmed.length > 50) return false
+  // Deliberately still permissive (admissions-v2 task 10.5): whether an input is
+  // *authority* is the server's answer, and `isTrackingSecret` below is the
+  // client's read of the same rule. This only rejects input that could not be any
+  // identifier at all, so a student who pastes their application number gets the
+  // explanation about tracking links rather than a character-set complaint.
   // Application numbers begin with the assigned institution's code (R9.9):
   // any 2-10 letter tenant code, never a fixed client-code allowlist.
-  // Mirrors the backend ApplicationTrackView pattern.
   const appNumberPattern = /^[A-Za-z]{2,10}\d{6,14}$/
   if (appNumberPattern.test(trimmed)) return true
   return /^[a-zA-Z0-9\-_]+$/.test(trimmed)
@@ -18,9 +22,39 @@ export const validateSearchTerm = (term: string): boolean => {
 
 export const normalizeSearchTerm = (term: string): string => {
   const trimmed = term.trim()
-  // Upper-case any institution-code prefix on an application number so the
-  // lookup is case-insensitive (R9.9: not restricted to any launch client).
+  // A tracking secret is upper-case by construction, so normalise the whole
+  // string. Anything else keeps the pre-10.5 behaviour of upper-casing only an
+  // institution-code prefix (R9.9: not restricted to any launch client).
+  if (/^trk-[0-9a-z]{8}-[0-9a-z]{20}$/i.test(trimmed)) return trimmed.toUpperCase()
   return trimmed.replace(/^([A-Za-z]{2,10})(\d{6,14})$/, (_, prefix, serial) => `${String(prefix).toUpperCase()}${serial}`)
+}
+
+/**
+ * The tracking-secret shape (admissions-v2 task 10.5, R13.12 / STU-22).
+ *
+ * Mirror of `apps/applications/tracking_secret.py::SECRET_PATTERN`:
+ * `TRK-{selector 8}-{verifier 20}` over Crockford base32 (no I/L/O/U). Two
+ * hyphens and two fixed lengths, so it cannot be confused with an application
+ * number or with a legacy `TRK-` code — neither of which authorises anything.
+ */
+const TRACKING_SECRET_PATTERN =
+  /^TRK-[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}-[0-9ABCDEFGHJKMNPQRSTVWXYZ]{20}$/
+
+export const isTrackingSecret = (term: string): boolean =>
+  TRACKING_SECRET_PATTERN.test(normalizeSearchTerm(term))
+
+/**
+ * The shareable tracker URL for a tracking secret.
+ *
+ * The query string carries the random token and nothing else — no application
+ * number, no name, no email (STU-22: "share a URL that contains only the non-PII
+ * tracking token"). `window.location.href` cannot serve this: a result reached by
+ * typing the code into the box leaves the address bar at `/track-application`, so
+ * the pre-10.5 "Copy Link" shared a URL that tracked nothing at all.
+ */
+export const buildTrackerShareUrl = (code: string, origin?: string): string => {
+  const base = origin ?? (typeof window !== 'undefined' ? window.location.origin : '')
+  return `${base}/track-application?code=${encodeURIComponent(normalizeSearchTerm(code))}`
 }
 
 export const displayValue = (value?: string | null, fallback = 'Not available') => {

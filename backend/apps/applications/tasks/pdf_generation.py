@@ -83,6 +83,7 @@ def generate_payment_receipt_task(self, application_id):
 
 
 def _generate_official_document_task(task, application_id, document_type: str):
+    from apps.applications import official_document_jobs as jobs
     from apps.applications.models import Application
     from apps.applications.tasks.pdf.render_context import DocumentProfileNotConfigured
     from apps.documents.models import ApplicationDocument
@@ -92,10 +93,20 @@ def _generate_official_document_task(task, application_id, document_type: str):
         application = Application.objects.get(id=application_id)
     except Application.DoesNotExist:
         logger.error("Application %s not found", application_id)
+        # admissions-v2 task 10.4 (R13.11): every path out of this task settles
+        # the durable job. An early return that left it ``pending`` would be the
+        # phantom queue this task exists to remove — a committed record nobody
+        # will ever act on, polled forever.
+        jobs.mark_failed(
+            application_id, document_type, error_code=jobs.APPLICATION_NOT_FOUND
+        )
         return
 
     if config["status_required"] and application.status != config["status_required"]:
         logger.warning("Skipped %s for application %s in status %s", document_type, application_id, application.status)
+        jobs.mark_failed(
+            application_id, document_type, error_code=jobs.STATUS_NOT_ELIGIBLE
+        )
         return
 
     try:
@@ -109,6 +120,9 @@ def _generate_official_document_task(task, application_id, document_type: str):
                     "Skipped %s for application %s without successful payment",
                     document_type,
                     application_id,
+                )
+                jobs.mark_failed(
+                    application_id, document_type, error_code=jobs.PAYMENT_NOT_FOUND
                 )
                 return
 
@@ -139,12 +153,30 @@ def _generate_official_document_task(task, application_id, document_type: str):
                 document_type,
                 application_id,
             )
+            # Reuse is a success, not a skip: the requested document exists and
+            # is current, so the job is settled and the client stops polling.
+            jobs.mark_succeeded(
+                application_id, document_type, document_id=getattr(current, "id", None)
+            )
             return
 
         # R6.3 / R6.4: no current version or a changed fingerprint → render a new
         # Official_Document, store the fingerprint in
-        # ``verification_notes.official_document``, and supersede by virtue of the
-        # latest-non-deleted ordering. Prior documents are never mutated.
+        # ``verification_notes.official_document``, and supersede the prior
+        # version. Prior documents keep their own content, URL, fingerprint, and
+        # verification status — superseding marks them non-current, it does not
+        # rewrite them.
+        #
+        # admissions-v2 task 7.3 (R11.7-R11.8, design §9.3): this write goes
+        # through the same staged-object + immutable-version command the student
+        # upload uses. Two reasons, both concrete:
+        #   1. ``uq_application_documents_one_current`` allows exactly one current
+        #      row per (application, document_type). A second generation with a
+        #      changed fingerprint would otherwise insert a second ``is_current``
+        #      row and fail the insert at the database.
+        #   2. The PDF object was written before this row. Without the stage
+        #      ledger, a failed metadata commit left a paid-for orphan object that
+        #      the Celery retry then duplicated.
         pdf_buffer, metadata = _render_official_pdf(
             application,
             document_type,
@@ -157,22 +189,68 @@ def _generate_official_document_task(task, application_id, document_type: str):
         metadata["fingerprint"] = fingerprint
         storage = MediaStorage()
         filename = f"{config['folder']}/{application_id}/{uuid.uuid4().hex}.pdf"
-        stored_name = storage.save(filename, pdf_buffer)
-        file_url = storage.url(stored_name)
 
-        ApplicationDocument.objects.create(
-            application=application,
+        from apps.documents import document_evidence as evidence
+
+        pdf_bytes = pdf_buffer.getvalue()
+        content_hash = hashlib.sha256(pdf_bytes).hexdigest()
+        # ``getvalue()`` does not move the position, but the renderer's own writes
+        # leave it at the end; rewind explicitly so the stored object is the whole
+        # PDF and not a zero-byte file.
+        pdf_buffer.seek(0)
+        stage = evidence.open_stage(
+            application_id=application.id,
             document_type=document_type,
-            document_name=f"{config['name']} - {application.full_name}.pdf",
-            file_url=file_url,
-            file_size=pdf_buffer.getbuffer().nbytes,
+            object_key=filename,
+            content_hash=content_hash,
+            file_size=len(pdf_bytes),
             mime_type="application/pdf",
-            system_generated=True,
-            verification_status="verified",
-            verification_notes=json.dumps({"official_document": metadata}),
-            uploaded_at=timezone.now(),
         )
+        try:
+            stored_name = storage.save(filename, pdf_buffer)
+            file_url = storage.url(stored_name)
+        except Exception as exc:
+            evidence.compensate_stage(stage, reason=f"official document write failed: {exc}")
+            raise
+
+        try:
+            evidence.commit_version(
+                stage=stage,
+                application_id=application.id,
+                document_type=document_type,
+                document_name=f"{config['name']} - {application.full_name}.pdf",
+                file_url=file_url,
+                storage_key=stored_name or filename,
+                file_size=len(pdf_bytes),
+                mime_type="application/pdf",
+                content_hash=content_hash,
+                provenance=evidence.PROVENANCE_SYSTEM,
+                # An official document is platform-issued evidence, not an
+                # applicant upload awaiting review, so it enters the lifecycle
+                # already ``verified`` — which is exactly the
+                # ``verification_status='verified'`` this path has always written.
+                lifecycle_state=evidence.VERIFIED,
+                scan_reason="platform_generated_official_document",
+            )
+        except Exception as exc:
+            evidence.compensate_stage(
+                stage, reason=f"official document metadata commit failed: {exc}"
+            )
+            raise
+
+        # The official-document metadata (fingerprint + provenance) lives in
+        # ``verification_notes`` as before, so ``_stored_fingerprint`` and the
+        # dedup guard keep reading exactly the same place.
+        document = ApplicationDocument.objects.filter(
+            application=application, document_type=document_type, is_current=True
+        ).first()
+        if document is not None:
+            document.verification_notes = json.dumps({"official_document": metadata})
+            document.save(update_fields=["verification_notes"])
         logger.info("%s generated for application %s", document_type, application_id)
+        jobs.mark_succeeded(
+            application_id, document_type, document_id=getattr(document, "id", None)
+        )
         _audit_document_generated(application, document_type, metadata)
     except DocumentProfileNotConfigured as exc:
         # R8.9: a profile-required document type (acceptance letter / conditional
@@ -187,7 +265,21 @@ def _generate_official_document_task(task, application_id, document_type: str):
             document_type,
             application_id,
         )
+        # Terminal for the job: a missing profile does not resolve by waiting, so
+        # the read publishes ``setup_required`` instead of an endless queue, and
+        # the tenant's own staff are alerted (task 10.4 part 3).
+        jobs.mark_failed(
+            application_id,
+            document_type,
+            error_code=getattr(exc, "code", "DOCUMENT_PROFILE_NOT_CONFIGURED"),
+            terminal=True,
+        )
         _audit_profile_not_configured(application, document_type, exc)
+        _alert_staff_of_setup_failure(
+            application,
+            document_type,
+            error_code=getattr(exc, "code", "DOCUMENT_PROFILE_NOT_CONFIGURED"),
+        )
         return
     except Exception as exc:
         logger.warning(
@@ -204,8 +296,24 @@ def _generate_official_document_task(task, application_id, document_type: str):
             # an auditable form so operators can recover (re-trigger generation)
             # instead of the failure vanishing into worker logs. Best-effort:
             # auditing never masks or replaces the underlying failure.
+            jobs.mark_failed(
+                application_id,
+                document_type,
+                error_code=jobs.RENDER_FAILED,
+                terminal=True,
+                attempts=task.request.retries + 1,
+            )
             _audit_render_failure(application, document_type, exc, attempts=task.request.retries + 1)
             return
+        # Still retrying: the work is genuinely outstanding, so the job stays
+        # ``pending`` (and therefore ``queued``) with its attempt count recorded.
+        jobs.mark_failed(
+            application_id,
+            document_type,
+            error_code=jobs.RENDER_FAILED,
+            terminal=False,
+            attempts=task.request.retries + 1,
+        )
         raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
 
 
@@ -265,6 +373,105 @@ def _audit_render_failure(application, document_type: str, exc: Exception, *, at
     except Exception:  # pragma: no cover - audit must never block the task
         logger.warning(
             "Unable to record official-document render-failure audit for application %s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
+
+
+#: The capability a staff member must hold at this application's own school to be
+#: told its official documents cannot be issued. Read authority over the school's
+#: profile is what makes the alert actionable — the holder can see the document
+#: configuration and request the change — and it is deliberately **not**
+#: ``tenant.application.review``: this is a configuration problem with the school,
+#: not a decision about one applicant.
+SETUP_ALERT_CAPABILITY = "tenant.profile.read"
+
+
+def _alert_staff_of_setup_failure(application, document_type: str, *, error_code: str) -> None:
+    """Tell this school's own staff that its official documents cannot be issued.
+
+    admissions-v2 task 10.4 (R13.5, STU-18). The student half of the same failure
+    is a **neutral** recovery affordance: the pre-10.4 UI printed the tenant's
+    setup checklist ("Configure the document profile, template, logo, and
+    signature") into the student's error state, which tells an applicant to do
+    something only a school operator can do, and leaks the school's internal
+    configuration state while doing it.
+
+    Nothing here is new machinery. Recipients come from task **9.5**'s
+    ``TenantStaffRecipientService`` — active membership/grant holders of
+    :data:`SETUP_ALERT_CAPABILITY` at *this application's own* institution,
+    confirmed through ``AdminCapabilityService``, never a global admin broadcast.
+    The fan-out is task 10.1's staff shape: ``create_notifications_bulk`` with a
+    per-recipient idempotency key, and ``staff_delivery_metadata`` so the
+    communications history states the class and says email was *not applicable*
+    rather than ``unknown``.
+
+    Idempotent per (document type, error code, recipient): a job that fails the
+    same way twice does not produce two work items, but a *different* failure
+    does. Best-effort — an alert must never mask the render failure it describes.
+    """
+    try:
+        from apps.catalog.tenant_recipients import TenantStaffRecipientService
+        from apps.common.notification_preferences import (
+            CATEGORY_STAFF_ACTION_REQUIRED,
+            staff_delivery_metadata,
+        )
+        from apps.common.outbox import create_notifications_bulk
+
+        institution_id = getattr(application, "institution_ref_id", None)
+        resolved = TenantStaffRecipientService.recipients_for_institution(
+            institution_id,
+            SETUP_ALERT_CAPABILITY,
+            # The applicant is never a recipient of a work item about their own
+            # application's configuration.
+            exclude_user_ids=[getattr(application, "user_id", None)],
+        )
+        if not resolved.profiles:
+            logger.warning(
+                "Official-document setup failure for application %s has no "
+                "tenant-authorized recipient (institution=%s reason=%s)",
+                getattr(application, "id", None),
+                resolved.institution_id,
+                resolved.empty_reason,
+            )
+            return
+
+        delivery = staff_delivery_metadata(
+            category=CATEGORY_STAFF_ACTION_REQUIRED,
+            application_id=getattr(application, "id", None),
+            institution_id=resolved.institution_id,
+        )
+        label = DOCUMENT_CONFIG.get(document_type, {}).get("name", document_type)
+        create_notifications_bulk(
+            [
+                {
+                    "user_id": profile.id,
+                    "title": "Official document setup required",
+                    # The document type and the stable code — never the
+                    # applicant's name, the template text, or the exception
+                    # message (which carries the institution name).
+                    "message": (
+                        f"A {label} could not be issued because this school's "
+                        f"document configuration is incomplete ({error_code}). "
+                        "Configure the document profile, template, logo and "
+                        "signature, then retry generation."
+                    ),
+                    "type": "warning",
+                    "priority": "high",
+                    "action_url": "/admin/tenants",
+                    "idempotency_key": (
+                        f"official_document_setup:{getattr(application, 'id', None)}"
+                        f":{document_type}:{error_code}:recipient:{profile.id}"
+                    ),
+                    "metadata": dict(delivery),
+                }
+                for profile in resolved.profiles
+            ]
+        )
+    except Exception:  # pragma: no cover - an alert must never block the task
+        logger.warning(
+            "Unable to alert tenant staff of official-document setup failure for "
+            "application %s",
             getattr(application, "id", None),
             exc_info=True,
         )

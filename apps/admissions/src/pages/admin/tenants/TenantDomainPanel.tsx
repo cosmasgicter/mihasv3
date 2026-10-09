@@ -17,7 +17,7 @@
  */
 import { FormEvent, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, CircleDashed, Globe2, ShieldCheck } from 'lucide-react'
+import { Check, CircleDashed, Globe2, RotateCcw, ShieldCheck, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -76,6 +76,42 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
       invalidate()
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not deactivated')),
+  })
+
+  const retryMutation = useMutation({
+    mutationFn: (domainId: string) => tenantAdminService.retryDomain(institutionId, domainId),
+    onSuccess: () => {
+      toast.success('Verification restarted — publish the DNS records if you have not already')
+      invalidate()
+    },
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Verification could not be restarted')),
+  })
+
+  const approveMutation = useMutation({
+    mutationFn: (domainId: string) => tenantAdminService.approveDomain(institutionId, domainId),
+    onSuccess: () => {
+      toast.success('Domain approved — activate it to start routing')
+      invalidate()
+    },
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not approved')),
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: (domainId: string) => tenantAdminService.rejectDomain(institutionId, domainId),
+    onSuccess: () => {
+      toast.success('Domain rejected')
+      invalidate()
+    },
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not rejected')),
+  })
+
+  const reactivateMutation = useMutation({
+    mutationFn: (domainId: string) => tenantAdminService.reactivateDomain(institutionId, domainId),
+    onSuccess: () => {
+      toast.success('Domain reactivated')
+      invalidate()
+    },
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not reactivated')),
   })
 
   const handleSubmit = (event: FormEvent) => {
@@ -171,6 +207,46 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
 
                   {canManage && (
                     <div className="flex flex-wrap gap-2">
+                      {/* Each control maps to exactly one allowed DomainStatusMachine
+                          edge, so the panel and the backend lifecycle never diverge (R5.1). */}
+                      {(domain.status === 'pending_dns' ||
+                        domain.status === 'failed' ||
+                        domain.status === 'rejected') && (
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant="outline"
+                          loading={retryMutation.isPending && retryMutation.variables === domain.id}
+                          onClick={() => retryMutation.mutate(domain.id)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                          Re-run verification
+                        </Button>
+                      )}
+                      {domain.status === 'pending_review' && (
+                        <>
+                          <Button
+                            type="button"
+                            size="xs"
+                            variant="outline"
+                            loading={approveMutation.isPending && approveMutation.variables === domain.id}
+                            onClick={() => approveMutation.mutate(domain.id)}
+                          >
+                            <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                            Approve
+                          </Button>
+                          <Button
+                            type="button"
+                            size="xs"
+                            variant="outline"
+                            loading={rejectMutation.isPending && rejectMutation.variables === domain.id}
+                            onClick={() => rejectMutation.mutate(domain.id)}
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
                       {domain.status === 'verified' && (
                         <Button
                           type="button"
@@ -183,7 +259,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
                           Activate
                         </Button>
                       )}
-                      {domain.is_active !== false && domain.status !== 'disabled' && (
+                      {domain.status === 'active' && (
                         <Button
                           type="button"
                           size="xs"
@@ -192,6 +268,18 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
                           onClick={() => deactivateMutation.mutate(domain.id)}
                         >
                           Deactivate
+                        </Button>
+                      )}
+                      {domain.status === 'disabled' && (
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant="outline"
+                          loading={reactivateMutation.isPending && reactivateMutation.variables === domain.id}
+                          onClick={() => reactivateMutation.mutate(domain.id)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                          Reactivate
                         </Button>
                       )}
                     </div>

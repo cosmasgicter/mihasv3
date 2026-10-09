@@ -1,0 +1,70 @@
+Task 13.4 - test_rollback_safe_operations violations grouped by cause
+==============================================================================
+rollback files discovered : 43
+violating statements      : 26
+violating files           : 9
+
+--- INSTRUMENT-A: DO block not stripped (file ends it 'END$$;', regex demands 'END\s+\$\$')
+    16 statement(s) in 4 file(s)
+      2026_07_17_02_communication_template_unique_switch_rollback.sql
+        DO $$ BEGIN IF NOT EXISTS ( SELECT 1 FROM pg_constraint WHERE conname = 'communication_templates_template_key_
+      2026_07_20_01_tenant_onboarding_rollback.sql
+        DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_onboarding_institution_id_fk') THEN
+      2026_07_20_01_tenant_onboarding_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_onboarding_created_by_id_fk') THEN ALTER TABLE 
+      2026_07_20_01_tenant_onboarding_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_onboarding_state') THEN ALTER TABLE tenant_
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_institution_id_fk
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_profile_id_fk') THEN ALTER TA
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_membership_id_fk') THEN ALTER
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_staff_invitations_invited_by_id_fk') THEN ALTER
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_staff_invitations_status') THEN ALTER TABLE
+      2026_07_21_01_tenant_staff_invitations_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_staff_invitations_resend_nonneg') THEN ALTE
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_institution_id_fk')
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_requested_by_id_fk') THEN ALTER
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tenant_change_requests_reviewed_by_id_fk') THEN ALTER 
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_kind') THEN ALTER TABLE ten
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_status') THEN ALTER TABLE t
+      2026_07_22_01_tenant_change_requests_rollback.sql
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_tenant_change_requests_version_nonneg') THEN ALTER
+
+--- INSTRUMENT-B: ALTER TABLE IF EXISTS ... DROP CONSTRAINT absent from the allow-list
+    6 statement(s) in 1 file(s)
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_verification_events DROP CONSTRAINT IF EXISTS document_verification_events_appl
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_verification_events DROP CONSTRAINT IF EXISTS document_verification_events_docu
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS document_upload_stages_document_id_fk
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS document_upload_stages_application_id_f
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS chk_document_upload_stages_attempts
+      2026_07_26_01_document_evidence_lifecycle_rollback.sql
+        ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS chk_document_upload_stages_state
+
+--- INSTRUMENT-C: inert 'SELECT 1' no-op rollback absent from the allow-list
+    2 statement(s) in 2 file(s)
+      2026_07_16_03_canonical_assignment_validate_rollback.sql
+        SELECT 1
+      2026_07_18_01_tenant_fk_validate_rollback.sql
+        SELECT 1
+
+--- SPEC-GAP: data-restoring rollback (UPDATE / CTE) - genuinely outside R9.2's closed set
+    2 statement(s) in 2 file(s)
+      2026_07_25_01_canonical_subject_catalog_rollback.sql
+        UPDATE subjects SET is_active = true WHERE code IN ('ADD_MATH', 'MUS', 'PHYS') AND is_active IS DISTINCT FROM 
+      2026_07_26_02_document_current_slot_alignment_rollback.sql
+        WITH ranked AS ( SELECT id, row_number() OVER w AS v, count(*) OVER (PARTITION BY application_id, document_typ
+

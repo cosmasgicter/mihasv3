@@ -1,40 +1,37 @@
 /**
- * Application Session Manager
- * 
- * Manages application drafts via API client and localStorage.
+ * Application session manager — the local recovery-record READER.
+ *
+ * Admissions-v2 task 6.3 (R10.2, R10.4, R10.10; findings STU-02, STU-12) took
+ * the draft lifecycle away from this module. It used to be a fourth cooperating
+ * owner: an 8-second `setInterval` that rewrote a legacy `applicationDraft`
+ * record, a `saveDraft` that wrote it, session timers, and a list-based
+ * `loadDraft`/`hasDraft` — none of them reachable from production code any more,
+ * all of them a second idea of what "the draft" is. Every draft write now
+ * belongs to the draft machine (`lib/wizardDraftController.ts`).
+ *
+ * What remains is the read side the dashboard and the wizard loader use
+ * (`getLocalWizardDraft`), and its cleanup is now scoped: a stale record for one
+ * application removes that record only. It used to call a whole-browser draft
+ * wipe, so a submitted application's leftover cache erased every other draft's
+ * offline work on the next dashboard load (R10.10).
+ *
+ * The bulk `deleteDraft(userId)` command keeps its server contract (404 is
+ * success, payment-linked drafts are refused), but its local cleanup is scoped
+ * too: it clears the `(user, application)` record of each draft the server
+ * actually deleted, and nothing else. It used to finish with a whole-browser
+ * draft sweep (every user's records, every application's) even when a
+ * payment-linked draft had been refused (task 6.3 completion pass).
  */
 import { applicationService } from '@/services/applications'
-import { ApplicationFormData } from '@/forms/applicationSchema'
 import {
-  isDraftStorageKey,
+  getWizardDraftStorageKey,
   listWizardDraftStorageKeys,
-  removeDraftStorageEntries,
 } from './draftStorageKeys'
+import { clearWizardDraftCache } from './draftLocalCache'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
-import { generateSecureToken } from './security'
 import { logger } from '@/lib/logger'
 import { cachedGetItem, cachedSetItem, cachedRemoveItem } from './localStorageCache'
 import { useDraftStore } from '@/stores/draftStore'
-
-export interface ApplicationDraft {
-  id?: string
-  user_id: string
-  form_data: Partial<ApplicationFormData>
-  current_step: number
-  uploaded_files: Array<{ name: string; url: string; type?: string }>
-  selected_subjects?: Array<{ subject_id: string; grade: number }>
-  version: number
-  expires_at: string
-  last_saved_at: string
-  session_id: string
-}
-
-export interface SessionWarning {
-  type: 'timeout' | 'expiry'
-  message: string
-  timeRemaining: number
-  canExtend: boolean
-}
 
 export interface DraftDeleteResult {
   success: boolean
@@ -57,10 +54,6 @@ type StoredDraftRecord = Record<string, unknown> & {
   expired?: boolean
 }
 
-// Constants for configuration
-const AUTO_SAVE_INTERVAL = 8000 // 8 seconds
-const SESSION_WARNING_TIME = 25 * 60 * 1000 // 25 minutes
-const SESSION_EXPIRY_TIME = 30 * 60 * 1000 // 30 minutes
 const DRAFT_STORAGE_KEYS = [
   'applicationDraft',
   'applicationWizardDraft',
@@ -105,6 +98,13 @@ export function isProtectedDraftPaymentError(error: unknown): boolean {
   return getApiErrorCode(error) === 'DRAFT_HAS_PAYMENT_ACTIVITY'
 }
 
+/** Every application id a stored record names. */
+function storedApplicationIds(draft: StoredDraftRecord): string[] {
+  return [draft.applicationId, draft.application_id, draft.id].filter(
+    (value): value is string => typeof value === 'string' && value.length > 0,
+  )
+}
+
 function clearStorageDraftApplicationId(storage: Storage, key: string, staleApplicationId?: string | null) {
   const raw = storage === localStorage ? cachedGetItem(key) : storage.getItem(key)
   if (!raw) {
@@ -121,11 +121,7 @@ function clearStorageDraftApplicationId(storage: Storage, key: string, staleAppl
     return
   }
 
-  const storedIds = [
-    typeof draft.applicationId === 'string' ? draft.applicationId : null,
-    typeof draft.application_id === 'string' ? draft.application_id : null,
-    typeof draft.id === 'string' ? draft.id : null,
-  ].filter(Boolean)
+  const storedIds = storedApplicationIds(draft)
 
   if (staleApplicationId && !storedIds.includes(staleApplicationId)) {
     return
@@ -146,6 +142,32 @@ function clearStorageDraftApplicationId(storage: Storage, key: string, staleAppl
   } else {
     storage.setItem(key, JSON.stringify(draft))
   }
+}
+
+/**
+ * Remove each legacy unscoped record that names `applicationId` — and only
+ * those. Used when the server deleted that draft: its answers go with it, while
+ * a legacy record for any other application (or for none) is left alone.
+ */
+function removeLegacyRecordsNaming(applicationId: string): void {
+  const keys = new Set([...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS])
+  keys.forEach((key) => {
+    for (const storage of [localStorage, sessionStorage]) {
+      try {
+        const raw = storage === localStorage ? cachedGetItem(key) : storage.getItem(key)
+        if (!raw) continue
+        const draft = safeJsonParse<StoredDraftRecord | null>(raw, null)
+        if (!draft || !storedApplicationIds(draft).includes(applicationId)) continue
+        if (storage === localStorage) {
+          cachedRemoveItem(key)
+        } else {
+          storage.removeItem(key)
+        }
+      } catch {
+        // best effort local cleanup
+      }
+    }
+  })
 }
 
 export function clearStaleApplicationDraftReference(staleApplicationId?: string | null): void {
@@ -171,19 +193,13 @@ export function clearStaleApplicationDraftReference(staleApplicationId?: string 
 }
 
 class ApplicationSessionManager {
-  private sessionId: string
-  private saveInterval: NodeJS.Timeout | null = null
-  private warningTimeout: NodeJS.Timeout | null = null
-  private expiryTimeout: NodeJS.Timeout | null = null
   private deleteDraftPromises = new Map<string, Promise<DraftDeleteResult>>()
-  private onWarning?: (warning: SessionWarning) => void
-  private onExpiry?: () => void
 
-  constructor() {
-    this.sessionId = generateSecureToken(16)
-  }
-
-  private getStoredWizardDraft(userId?: string | null, applicationId?: string | null): StoredDraftRecord | null {
+  /** The first readable recovery record for the owner, with the key it lives under. */
+  private findStoredWizardDraft(
+    userId?: string | null,
+    applicationId?: string | null,
+  ): { key: string; draft: StoredDraftRecord } | null {
     const candidateKeys = listWizardDraftStorageKeys(localStorage, userId, applicationId)
     for (const key of candidateKeys) {
       const savedDraft = cachedGetItem(key)
@@ -215,64 +231,37 @@ class ApplicationSessionManager {
         continue
       }
 
-      return draft
+      return { key, draft }
     }
 
     return null
   }
 
-  getStoredDraft(): StoredDraftRecord | null {
-    return this.getStoredWizardDraft()
-  }
-
-  private removeStoredWizardDraft(userId?: string | null, applicationId?: string | null): void {
-    listWizardDraftStorageKeys(localStorage, userId, applicationId).forEach((key) => {
-      cachedRemoveItem(key)
+  /**
+   * Remove exactly one stale recovery record (R10.10): the key it was read from
+   * and that application's canonical key. Never another application's record,
+   * never the payment-recovery store.
+   */
+  private discardStoredWizardDraft(key: string, userId?: string | null, applicationId?: string | null): void {
+    const keys = new Set([key])
+    if (applicationId) keys.add(getWizardDraftStorageKey(userId, applicationId))
+    keys.forEach((staleKey) => {
+      try {
+        cachedRemoveItem(staleKey)
+      } catch {
+        // best effort local cleanup
+      }
+      try {
+        sessionStorage.removeItem(staleKey)
+      } catch {
+        // best effort session cleanup
+      }
     })
-    listWizardDraftStorageKeys(sessionStorage, userId, applicationId).forEach((key) => {
-      sessionStorage.removeItem(key)
-    })
   }
 
-  private async resolveDraftApplicationId(userId: string): Promise<string | null> {
-    const wizardDraft = this.getStoredWizardDraft(userId)
-    const wizardDraftId =
-      typeof wizardDraft?.applicationId === 'string'
-        ? wizardDraft.applicationId
-        : typeof wizardDraft?.application_id === 'string'
-          ? wizardDraft.application_id
-          : null
-
-    if (wizardDraftId) {
-      return wizardDraftId
-    }
-
-    const savedDraft = safeJsonParse<StoredDraftRecord | null>(
-      cachedGetItem('applicationDraft') ?? '',
-      null,
-    )
-    const savedDraftId =
-      typeof savedDraft?.applicationId === 'string'
-        ? savedDraft.applicationId
-        : typeof savedDraft?.application_id === 'string'
-          ? savedDraft.application_id
-          : null
-
-    if (savedDraftId) {
-      return savedDraftId
-    }
-
-    try {
-      const result = await applicationService.list(
-        { mine: true, status: 'draft', pageSize: 1 },
-        {}
-      )
-      const applications = result?.applications ?? []
-      return applications[0]?.id ?? null
-    } catch {
-      return null
-    }
-  }
+  // `getStoredDraft()` was removed by task 6.3 (R10.2, R10.4): it returned the
+  // first stored record of ANY user and ANY application, and its one caller (the
+  // wizard loader) used it to second-guess a record's own address.
 
   private shouldDiscardLocalDraft(error: unknown): boolean {
     if (!(error instanceof Error)) {
@@ -288,40 +277,48 @@ class ApplicationSessionManager {
   }
 
   async getLocalWizardDraft(userId?: string): Promise<StoredDraftRecord | null> {
-    const draft = this.getStoredWizardDraft(userId)
-    if (!draft) {
+    const found = this.findStoredWizardDraft(userId)
+    if (!found) {
       return null
     }
+    const { key, draft } = found
 
     const draftOwnerId = typeof draft.userId === 'string'
       ? draft.userId
       : typeof draft.user_id === 'string'
         ? draft.user_id
         : null
+    const draftApplicationId = typeof draft.applicationId === 'string'
+      ? draft.applicationId
+      : typeof draft.application_id === 'string'
+        ? draft.application_id
+        : null
 
     if (userId && draftOwnerId && draftOwnerId !== userId) {
-      this.clearAllLocalStorage()
+      // Another student's record under a shared key: drop that record only.
+      this.discardStoredWizardDraft(key)
       return null
     }
 
-    if (draft.applicationId) {
+    if (draftApplicationId) {
       try {
-        const application = await applicationService.getById(String(draft.applicationId))
+        const application = await applicationService.getById(draftApplicationId)
         const status = application?.application?.status
         if (status && status !== 'draft') {
-          this.clearAllLocalStorage()
+          // Submitted (or otherwise past draft): this one record is stale.
+          this.discardStoredWizardDraft(key, userId, draftApplicationId)
           return null
         }
       } catch (error) {
         if (isApplicationMissingError(error)) {
-          clearStaleApplicationDraftReference(String(draft.applicationId))
-          // Server draft is gone — clear the orphaned local draft entirely
-          this.clearAllLocalStorage()
+          clearStaleApplicationDraftReference(draftApplicationId)
+          // The server draft is gone — drop its orphaned record, and only it.
+          this.discardStoredWizardDraft(key, userId, draftApplicationId)
           return null
         }
 
         if (this.shouldDiscardLocalDraft(error)) {
-          this.clearAllLocalStorage()
+          this.discardStoredWizardDraft(key, userId, draftApplicationId)
           return null
         }
       }
@@ -345,193 +342,6 @@ class ApplicationSessionManager {
     }
   }
 
-  // Initialize session management
-  initialize(onWarning?: (warning: SessionWarning) => void, onExpiry?: () => void) {
-    this.onWarning = onWarning
-    this.onExpiry = onExpiry
-    this.setupAutoSave()
-    this.setupSessionWarnings()
-  }
-
-  // Setup automatic saving every 8 seconds
-  private setupAutoSave() {
-    if (this.saveInterval) {
-      clearInterval(this.saveInterval)
-    }
-    
-    this.saveInterval = setInterval(() => {
-      this.autoSaveDraft()
-    }, AUTO_SAVE_INTERVAL)
-  }
-
-  // Setup session timeout warnings
-  private setupSessionWarnings() {
-    // Warning at 5 minutes before expiry
-    this.warningTimeout = setTimeout(() => {
-      this.onWarning?.({
-        type: 'timeout',
-        message: 'Your session will expire in 5 minutes. Save your progress to avoid losing data.',
-        timeRemaining: 5 * 60 * 1000,
-        canExtend: true
-      })
-    }, SESSION_WARNING_TIME)
-
-    // Expiry at 30 minutes
-    this.expiryTimeout = setTimeout(() => {
-      this.handleSessionExpiry()
-    }, SESSION_EXPIRY_TIME)
-  }
-
-  // Save draft to both localStorage and database
-  async saveDraft(
-    userId: string,
-    formData: Partial<ApplicationFormData>,
-    currentStep: number,
-    uploadedFiles: Array<{ name: string; url: string; type?: string }> = [],
-    selectedSubjects: Array<{ subject_id: string; grade: number }> = []
-  ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const draftApplicationId = await this.resolveDraftApplicationId(userId)
-      const draft = {
-        application_id: draftApplicationId,
-        user_id: userId,
-        form_data: formData,
-        current_step: currentStep,
-        uploaded_files: uploadedFiles,
-        selected_subjects: selectedSubjects,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        last_saved_at: new Date().toISOString(),
-        session_id: this.sessionId
-      }
-
-      // Save to localStorage for immediate recovery
-      try {
-        cachedSetItem('applicationDraft', JSON.stringify(draft))
-      } catch (error) {
-        return { success: false, error: 'Storage quota exceeded' }
-      }
-
-      // Try to save to database via API
-      if (draftApplicationId) {
-        try {
-          await applicationService.update(draftApplicationId, {
-            ...formData,
-            uploaded_files: uploadedFiles,
-            selected_subjects: selectedSubjects,
-            step_completed: currentStep
-          })
-        } catch (dbError) {
-          if (isApplicationMissingError(dbError)) {
-            clearStaleApplicationDraftReference(draftApplicationId)
-            draft.application_id = null
-            try {
-              cachedSetItem('applicationDraft', JSON.stringify(draft))
-            } catch {
-              // best effort local cleanup
-            }
-          }
-        }
-      }
-
-      return { success: true }
-    } catch (error) {
-      logger.error('Error saving draft:', sanitizeForLog(error))
-      return {
-        success: false,
-        error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to save draft'
-      }
-    }
-  }
-
-  // Auto-save current form state
-  private async autoSaveDraft() {
-    try {
-      const savedDraft = cachedGetItem('applicationDraft')
-      if (savedDraft) {
-        const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
-        if (!draft) return
-        // Update last saved timestamp
-        draft.last_saved_at = new Date().toISOString()
-        cachedSetItem('applicationDraft', JSON.stringify(draft))
-        
-        const draftApplicationId =
-          typeof draft.application_id === 'string'
-            ? draft.application_id
-            : typeof draft.applicationId === 'string'
-              ? draft.applicationId
-              : await this.resolveDraftApplicationId(String(draft.user_id))
-
-        if (!draftApplicationId) {
-          return
-        }
-
-        // Also update the real draft application via API when one exists.
-        try {
-          await applicationService.update(draftApplicationId, {
-            updated_at: new Date().toISOString()
-          })
-        } catch (error) {
-          if (isApplicationMissingError(error)) {
-            clearStaleApplicationDraftReference(draftApplicationId)
-            delete draft.application_id
-            delete draft.applicationId
-            cachedSetItem('applicationDraft', JSON.stringify(draft))
-            return
-          }
-          throw error
-        }
-      }
-    } catch (error) {
-      logger.error('Auto-save failed:', sanitizeForLog(error))
-    }
-  }
-
-  // Load draft from database or localStorage
-  async loadDraft(userId: string): Promise<ApplicationDraft | null> {
-    try {
-      // First try database via API
-      try {
-        const result = await applicationService.list(
-          { mine: true, status: 'draft', pageSize: 1 },
-          {}
-        )
-        const apps = result?.applications ?? []
-
-        if (apps.length > 0) {
-          const data = apps[0]!
-          return {
-            id: data.id,
-            user_id: (data.user_id as string) || userId,
-            form_data: data as Partial<ApplicationFormData> || {},
-            current_step: (data.step_completed as number) || 1,
-            uploaded_files: [],
-            selected_subjects: [],
-            version: 1,
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            last_saved_at: data.updated_at || '',
-            session_id: this.sessionId
-          }
-        }
-      } catch (dbError) {
-      }
-
-      // Fallback to localStorage
-      const localDraft = await this.getLocalWizardDraft(userId)
-      if (localDraft) {
-        if (!localDraft.user_id || localDraft.user_id === userId) {
-          return localDraft as unknown as ApplicationDraft
-        }
-
-        this.removeStoredWizardDraft(userId)
-      }
-
-      return null
-    } catch (error) {
-      logger.error('Error loading draft:', sanitizeForLog(error))
-      return null
-    }
-  }
-
   // Delete draft with comprehensive cleanup
   async deleteDraft(userId: string): Promise<DraftDeleteResult> {
     const existingDelete = this.deleteDraftPromises.get(userId)
@@ -551,9 +361,6 @@ class ApplicationSessionManager {
 
   private async performDeleteDraft(userId: string): Promise<DraftDeleteResult> {
     try {
-      // Step 1: Clear intervals to stop auto-save before server deletion.
-      this.cleanup()
-
       const deletedIds: string[] = []
       const blockedIds: string[] = []
       const failedIds: string[] = []
@@ -585,7 +392,10 @@ class ApplicationSessionManager {
               }
             }
             deletedIds.push(id)
-            clearStaleApplicationDraftReference(id)
+            // The server deleted this draft: its local records go with it, one
+            // `(user, application)` identity at a time (R10.10). A refused or
+            // failed sibling keeps its records.
+            this.clearDeletedDraftRecords(userId, id)
           }
 
           if (failedIds.length > 0) {
@@ -600,7 +410,8 @@ class ApplicationSessionManager {
           }
 
           if (blockedIds.length > 0) {
-            this.clearAllLocalStorage()
+            // A refused (payment-linked) draft kept its local record above;
+            // only the drafts the server deleted lost theirs (R10.10).
             try {
               useDraftStore.getState().markCleared()
             } catch {
@@ -631,8 +442,10 @@ class ApplicationSessionManager {
         }
       }
 
-      // Step 3: Clear browser storage only after server cleanup succeeds.
-      this.clearAllLocalStorage()
+      // Step 3: no browser-wide sweep. Each draft the server confirmed deleted
+      // already had its own records cleared in the loop above; another user's
+      // records, another application's, and the payment-recovery store are
+      // never touched.
 
       // Step 4: Set deletion flag for other components.
       try {
@@ -664,102 +477,18 @@ class ApplicationSessionManager {
     }
   }
 
-  // Helper method to clear all local storage
-  private clearAllLocalStorage(): void {
+  /**
+   * Clear the local records of one draft the server deleted: its
+   * `(user, application)` record and any legacy unscoped record that names it
+   * (R10.10). Nothing addressed to another application is touched.
+   */
+  private clearDeletedDraftRecords(userId: string, applicationId: string): void {
     try {
-      // Clear known draft keys
-      [...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS].forEach(key => {
-        cachedRemoveItem(key)
-        sessionStorage.removeItem(key)
-      })
-      
-      const storages = [localStorage, sessionStorage]
-      storages.forEach(storage => {
-        if (storage === localStorage) {
-          Object.keys(localStorage).forEach((key) => {
-            if (isDraftStorageKey(key)) {
-              cachedRemoveItem(key)
-            }
-          })
-        } else {
-          removeDraftStorageEntries(storage)
-        }
-      })
-    } catch (error) {
-    }
-  }
-
-  // Extend session
-  async extendSession(userId: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const newExpiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      
-      // Update localStorage
-      const localDraft = cachedGetItem('applicationDraft')
-      if (localDraft) {
-        const draft = JSON.parse(localDraft)
-        draft.expires_at = newExpiryTime
-        cachedSetItem('applicationDraft', JSON.stringify(draft))
-      }
-
-      // Reset session timers
-      this.resetSessionTimers()
-
-      return { success: true }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to extend session'
-      }
-    }
-  }
-
-  // Get next version number
-  private async getNextVersion(userId: string): Promise<number> {
-    try {
-      const result = await applicationService.list(
-        { mine: true, status: 'draft', pageSize: 1 },
-        {}
-      )
-      const apps = result?.applications ?? []
-      return apps.length > 0 ? (((apps[0] as Record<string, unknown>).version as number) || 0) + 1 : 1
+      clearWizardDraftCache({ userId, applicationId }, { notify: false })
     } catch {
-      return 1
+      // best effort local cleanup
     }
-  }
-
-  // Handle session expiry
-  private handleSessionExpiry() {
-    this.onExpiry?.()
-    // Keep data but mark as expired
-    const localDraft = cachedGetItem('applicationDraft')
-    if (localDraft) {
-      const draft = safeJsonParse<StoredDraftRecord | null>(localDraft, null)
-      if (draft) {
-        draft.expired = true
-        try {
-          cachedSetItem('applicationDraft', JSON.stringify(draft))
-        } catch (error) {
-        }
-      }
-    }
-  }
-
-  // Reset session timers
-  private resetSessionTimers() {
-    if (this.warningTimeout) {
-      clearTimeout(this.warningTimeout)
-    }
-    if (this.expiryTimeout) {
-      clearTimeout(this.expiryTimeout)
-    }
-    this.setupSessionWarnings()
-  }
-
-  // Check if draft exists
-  async hasDraft(userId: string): Promise<boolean> {
-    const draft = await this.loadDraft(userId)
-    return draft !== null
+    removeLegacyRecordsNaming(applicationId)
   }
 
   // Get draft info for dashboard
@@ -812,21 +541,6 @@ class ApplicationSessionManager {
     }
   }
 
-  // Cleanup on component unmount or draft deletion
-  cleanup() {
-    if (this.saveInterval) {
-      clearInterval(this.saveInterval)
-      this.saveInterval = null
-    }
-    if (this.warningTimeout) {
-      clearTimeout(this.warningTimeout)
-      this.warningTimeout = null
-    }
-    if (this.expiryTimeout) {
-      clearTimeout(this.expiryTimeout)
-      this.expiryTimeout = null
-    }
-  }
 }
 
 export const applicationSessionManager = new ApplicationSessionManager()

@@ -1,0 +1,34 @@
+### 2026-08-13T23:12:44Z L2 AFTER - GATE-13.3-13 reproduction on v2_snap_13_6
+# BEFORE (raw/04-long-value-before.txt): failing_writes=4, probe exit=1,
+#   and the ORM create was 'unavailable' (the un-migrated snapshot had no
+#   applications.configuration_version at all - GATE-13.4-02 from the app side).
+# Every write is still inside a rolled-back transaction.
+
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+database                     : v2_snap_13_6
+applications snapshot widths : institution=varchar(255), intake=varchar(100), program=varchar(255)
+
+the legal rename this probe performs (all inside rolled-back txs):
+  institutions.name     46 ->  61 chars   'Mukuba Institute of Health and Allied Sciences (Ndola Campus)'
+  intakes.name          19 ->  53 chars   'January 2026 Intake (School of Nursing and Midwifery)'
+  programs.name         29 ->  59 chars   'Diploma in Registered Nursing and Community Health Practice'
+
+1. one long snapshot column at a time
+  institution  (61 chars) -> ok: stored institution=61 intake=19 program=29
+  intake       (53 chars) -> ok: stored institution=46 intake=53 program=29
+  program      (59 chars) -> ok: stored institution=46 intake=19 program=59
+
+2. all three long at once (the realistic shape)
+  model-column INSERT -> ok: stored institution=61 intake=53 program=59
+
+3. the ORM's own Application.objects.create
+  objects.create -> ok: stored institution=61 intake=53 program=59
+
+after rollback (must equal the pre-probe values):
+  institutions.name :  46 chars 'Mukuba Institute of Health and Allied Sciences'
+  intakes.name      :  19 chars 'January 2026 Intake'
+  programs.name     :  29 chars 'Diploma in Registered Nursing'
+  probe rows remaining : 0
+
+VERDICT: PASS - failing_writes=0 (every legal long catalogue name is stored whole)
+probe exit=0

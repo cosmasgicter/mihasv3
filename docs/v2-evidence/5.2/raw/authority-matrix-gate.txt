@@ -1,0 +1,18 @@
+bash: export: `.venv/bin/python': not a valid identifier
+bash: export: `-m': not a valid identifier
+bash: export: `tests/unit/test_assignment_resolution.py': not a valid identifier
+bash: export: `tests/integration/test_assignment_snapshot_isolation.py': not a valid identifier
+bash: export: `tests/integration/test_assignment_config_failure.py': not a valid identifier
+bash: export: `-p': not a valid identifier
+bash: export: `no:cacheprovider': not a valid identifier
+bash: export: `-v': not a valid identifier
+bash: export: `5.2 tests exit=0': not a valid identifier
+bash: export: `.venv/bin/python': not a valid identifier
+bash: export: `-m': not a valid identifier
+bash: export: `tests/unit/test_authority_matrix_v2.py': not a valid identifier
+bash: export: `-p': not a valid identifier
+bash: export: `no:cacheprovider': not a valid identifier
+bash: export: `-v': not a valid identifier
+bash: export: `authority exit=0': not a valid identifier
+bash: export: `-3': not a valid identifier
+bash: export: `../docs/v2-evidence/5.2/raw/backend-5.2-tests.txt': not a valid identifier

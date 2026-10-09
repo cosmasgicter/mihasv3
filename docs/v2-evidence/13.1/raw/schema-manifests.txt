@@ -1,0 +1,13 @@
+]633;E;echo "=== A) manifest: fresh-from-empty (00_full_schema.sql + 41 migrations, throwaway PG) ===";cba4275c-7604-4e3d-93fa-132b1dbc2aff]633;C=== A) manifest: fresh-from-empty (00_full_schema.sql + 41 migrations, throwaway PG) ===
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Wrote manifest 'fresh-from-empty' -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.1/raw/manifest.fresh-from-empty.json (vendor=postgresql reduced=False tables=89 fingerprint=sha256:a48a176d78ed2663ecfd4272793fbfaba60750a1dd38a60101a838cf312c629b)
+exit=0
+
+=== B) manifest: migrated local snapshot (mihas_localtest, READ-ONLY introspection) ===
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Wrote manifest 'migrated-snapshot' -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.1/raw/manifest.migrated-snapshot.json (vendor=postgresql reduced=False tables=87 fingerprint=sha256:bc5ab0499c8b0ef146c82377bab0390c0b98732326ee003d1f7bf76ef6367246)
+exit=0

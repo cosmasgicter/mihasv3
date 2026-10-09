@@ -1,17 +1,33 @@
 /**
- * Bug condition exploration test — Email slip endpoint missing (frontend).
+ * Property 9: the slip email has one authority, and it is never a hardcoded lie.
  *
- * Property 9: Bug Condition — Email Slip Returns Hardcoded Error
+ * ── History ────────────────────────────────────────────────────────────────
+ * This file began as a bug-condition exploration test for a real defect: the
+ * client's slip helper returned a hardcoded
+ * `"Application slip email delivery is not implemented in the Django backend yet"`
+ * and made no request at all, so "email me my slip" was a dead end with no
+ * onward path. The fix at the time was to make it call
+ * `POST /applications/{id}/email-slip/`.
  *
- * This test encodes the EXPECTED (fixed) behavior:
- * - When sendEmail == true and email is present, slipService calls the
- *   backend endpoint instead of returning a hardcoded error.
- * - The source code must NOT contain the hardcoded error string
- *   "Application slip email delivery is not implemented in the Django backend yet"
+ * admissions-v2 task **10.6** (R13.5, finding **API-04**) removed that route.
+ * Task 10.4 had already replaced its body with a proxy over the canonical
+ * official-document email — `POST …/official-documents/application_slip/email/`,
+ * which is the only path with stored provenance, a fingerprint and a delivery
+ * record in the communications history — and measured zero production call sites;
+ * 10.6 re-measured and closed it.
  *
- * On UNFIXED code, this test MUST FAIL because:
- * - slipService.ts contains the hardcoded error string
- * - No backend API call is made when sendEmail is true
+ * ── What the property is now ────────────────────────────────────────────────
+ * The defect Property 9 guards against was never "does this file contain the
+ * string `email-slip`". It was **a dead end that lies about itself**: a caller
+ * asking for an email got a hardcoded refusal with no successor and no signal.
+ * That property is preserved and is asserted against the current architecture:
+ *
+ *   1. the hardcoded "not implemented" string is still absent;
+ *   2. the client makes **no** slip-email request of its own — a second email
+ *      path is what API-04 is about;
+ *   3. a `sendEmail` request is answered with a reason the caller can read, and
+ *      that reason names the one authority that does email official documents;
+ *   4. the retired route appears nowhere in the client.
  *
  * **Validates: Requirements 1.10, 1.11**
  */
@@ -21,17 +37,47 @@ import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// ── Source path ─────────────────────────────────────────────────────────
+// ── Source paths ────────────────────────────────────────────────────────
 
-const SLIP_SERVICE_PATH = path.resolve(
-  __dirname,
-  '../../src/lib/slipService.ts',
-);
+const SRC = path.resolve(__dirname, '../../src');
+const SLIP_SERVICE_PATH = path.resolve(SRC, 'lib/slipService.ts');
+const OFFICIAL_DOCUMENTS_PATH = path.resolve(SRC, 'services/officialDocuments.ts');
 
 // ── Constants ───────────────────────────────────────────────────────────
 
 const HARDCODED_ERROR =
   'Application slip email delivery is not implemented in the Django backend yet';
+
+/** The route admissions-v2 task 10.6 removed. */
+const RETIRED_ROUTE = 'email-slip';
+
+/**
+ * Read a source file with its comments stripped.
+ *
+ * Every "this no longer appears" claim below is about **code**. The code that
+ * removed the legacy route is also the code that documents why, so a raw
+ * substring scan would be tripped by the explanation of the very thing it checks.
+ */
+function readCode(filePath: string): string {
+  return fs
+    .readFileSync(filePath, 'utf-8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
+}
+
+/** Every first-party client module, for the "no second email path" sweep. */
+function walk(dir: string, acc: string[] = []): string[] {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === 'generated') continue; // the OpenAPI mirror, not a caller
+      walk(full, acc);
+    } else if (/\.tsx?$/.test(entry.name)) {
+      acc.push(full);
+    }
+  }
+  return acc;
+}
 
 // ── Generators ──────────────────────────────────────────────────────────
 
@@ -52,100 +98,99 @@ const appIdArb = fc.constantFrom(
 
 // ── Property Tests ──────────────────────────────────────────────────────
 
-describe('Property 9: Bug Condition — Email Slip Returns Hardcoded Error', () => {
+describe('Property 9: the slip email has one authority and no hardcoded dead end', () => {
   /**
-   * STRUCTURAL TEST: Verify slipService.ts does NOT contain the hardcoded
-   * "not implemented" error string.
-   *
-   * On UNFIXED code: slipService.ts contains the hardcoded error, so this
-   * test FAILS.
-   *
-   * On FIXED code: the hardcoded error is replaced with a backend API call.
+   * The original defect: a hardcoded "not implemented" refusal. Still absent.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
   it('slipService.ts does not contain hardcoded "not implemented" error', () => {
-    const source = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
-
-    expect(source).not.toContain(HARDCODED_ERROR);
+    expect(fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8')).not.toContain(HARDCODED_ERROR);
   });
 
   /**
-   * STRUCTURAL TEST: Verify slipService.ts makes a backend API call
-   * when sendEmail is true and email is present.
-   *
-   * On UNFIXED code: slipService.ts has no API call for email-slip,
-   * so this test FAILS.
-   *
-   * On FIXED code: slipService.ts calls the backend email-slip endpoint.
+   * The client holds no slip-email request of its own — the retired route is
+   * gone from it and was not replaced by a second call.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('slipService.ts contains backend API call for email-slip', () => {
-    const source = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
+  it('slipService.ts no longer calls the retired email-slip route', () => {
+    const code = readCode(SLIP_SERVICE_PATH);
+    expect(code).not.toContain(RETIRED_ROUTE);
+    // …and it no longer holds a transport at all, which is the structural reason
+    // it cannot grow a second email path back.
+    expect(code).not.toContain('apiClient');
+  });
 
-    // The file must reference the email-slip endpoint
-    const hasEmailSlipEndpoint = source.includes('email-slip');
+  /**
+   * No first-party client module anywhere calls the retired route.
+   *
+   * **Validates: Requirements 1.10, 1.11**
+   */
+  it('no production module calls the retired email-slip route', () => {
+    const offenders = walk(SRC)
+      .filter((file) => readCode(file).includes(`/${RETIRED_ROUTE}/`))
+      .map((file) => path.relative(SRC, file));
+    expect(offenders).toEqual([]);
+  });
 
-    expect(hasEmailSlipEndpoint).toBe(true);
+  /**
+   * The one authority exists and is the canonical official-document email.
+   *
+   * **Validates: Requirements 1.10, 1.11**
+   */
+  it('the canonical official-document email is the single slip-email authority', () => {
+    const code = readCode(OFFICIAL_DOCUMENTS_PATH);
+    expect(code).toContain('official-documents/');
+    // The path is built from `applicationDocumentPath(...) + 'email/'`, so the
+    // literal to look for is the suffix the service appends.
+    expect(code).toContain("email/`");
+    expect(code).toContain('emailOfficialDocument');
   });
 
   /**
    * FUNCTIONAL PROPERTY TEST:
-   * For any valid email and application ID, the slipService source code
-   * must contain logic to call the backend when sendEmail is true.
-   *
-   * On UNFIXED code: the source just assigns a hardcoded error string,
-   * so this test FAILS.
+   * For any valid email and application id, the client neither builds the
+   * retired route nor returns the hardcoded refusal — it answers with a reason
+   * that names the successor.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('slipService handles sendEmail=true with backend call, not hardcoded error', async () => {
-    // First verify the structural prerequisite
-    const source = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
-    expect(source).not.toContain(HARDCODED_ERROR);
+  it('a sendEmail request is answered with a reason, for any recipient', async () => {
+    const raw = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
+    const code = readCode(SLIP_SERVICE_PATH);
 
     await fc.assert(
-      fc.asyncProperty(
-        emailArb,
-        appIdArb,
-        async (email, appId) => {
-          // The source must not contain the hardcoded error
-          // AND must contain an API call pattern for email-slip
-          const hasHardcodedError = source.includes(HARDCODED_ERROR);
-          const hasApiCall = source.includes('email-slip');
+      fc.asyncProperty(emailArb, appIdArb, async (email, appId) => {
+        // Neither the old dead end nor the retired route, whoever the recipient
+        // is and whichever application it is for — both are properties of the
+        // module, and the generators assert that they do not depend on the input.
+        expect(raw).not.toContain(HARDCODED_ERROR);
+        expect(code).not.toContain(`/${appId}/${RETIRED_ROUTE}/`);
+        expect(code).not.toContain(RETIRED_ROUTE);
+        expect(email).toContain('@');
 
-          // Bug condition: sendEmail == true AND email IS NOT EMPTY
-          // AND backendEndpoint NOT EXISTS
-          // Expected: source makes API call (no hardcoded error)
-          // Actual (unfixed): source has hardcoded error, no API call
-          expect(hasHardcodedError).toBe(false);
-          expect(hasApiCall).toBe(true);
-        },
-      ),
+        // The request is refused *with a reason*, and the reason points at the
+        // one authority. That is the property: not silence, and not a lie.
+        expect(code).toContain('emailError =');
+        expect(code).toContain('official-document service');
+      }),
       { numRuns: 30 },
     );
   });
 
   /**
-   * STRUCTURAL TEST: Verify slipService.ts sets emailed=true and
-   * queuedId on successful backend response.
+   * `emailed` is never asserted true by this module, because it never sends.
    *
-   * On UNFIXED code: emailed is never set to true (always false),
-   * so this test FAILS.
-   *
-   * On FIXED code: emailed is set to true on successful API response.
+   * This inverts the original case ("sets emailed=true on a successful backend
+   * response"): after 10.6 a `true` here would be a claim the module cannot
+   * substantiate, which is the same class of defect Property 9 was written for.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('slipService.ts sets emailed=true on successful backend response', () => {
-    const source = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
-
-    // The source must contain logic to set emailed = true
-    // On unfixed code, emailed is declared but never set to true
-    const hasEmailedTrue =
-      source.includes('emailed = true') || source.includes('emailed=true');
-
-    expect(hasEmailedTrue).toBe(true);
+  it('slipService.ts never reports a slip as emailed', () => {
+    const code = readCode(SLIP_SERVICE_PATH);
+    expect(code).toContain('const emailed = false');
+    expect(code.includes('emailed = true') || code.includes('emailed=true')).toBe(false);
   });
 });

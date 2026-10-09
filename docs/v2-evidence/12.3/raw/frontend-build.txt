@@ -1,0 +1,60 @@
+dist/assets/js/Communications-Bz0PTEHy.js                    11.91 kB
+dist/assets/js/studentDraftCleanup-vxsIjwUE.js               12.01 kB
+dist/assets/js/officialDocuments-Fm-RHpES.js                 12.32 kB
+dist/assets/js/ProgramFees-ZVRNmY6g.js                       12.39 kB
+dist/assets/js/dashboard-CHQSn2_k.js                         12.42 kB
+dist/assets/js/LandingPage-C2_kRwJB.js                       12.94 kB
+dist/assets/js/client-BRugIldR.js                            13.36 kB
+dist/assets/js/DocumentPreview-Fb0XYzex.js                   14.39 kB
+dist/assets/js/domainStatus-D24OUHux.js                      15.00 kB
+dist/assets/js/Payment-_IZnvIh_.js                           15.11 kB
+dist/assets/js/useStudentNextAction-DSey-E0q.js              18.68 kB
+dist/assets/js/LandingPageSections-BKKhnnGS.js               20.25 kB
+dist/assets/js/AuthContext-CBiQeChL.js                       20.83 kB
+dist/assets/js/Dashboard-BEB2aXyc.js                         21.16 kB
+dist/assets/js/purify.es-CNQAeS4Z.js                         24.43 kB
+dist/assets/js/Programs-S5ypm54o.js                          27.57 kB
+dist/assets/js/index.esm-BC7GITsZ.js                         27.99 kB
+dist/assets/js/Dashboard-C6tF61Ls.js                         28.15 kB
+dist/assets/js/vendor-radix-dialog-Dmc2jAnK.js               28.53 kB
+dist/assets/js/index-Bm3PHeSn.js                             28.69 kB
+dist/assets/js/Settings-DTyKiimp.js                          30.05 kB
+dist/assets/js/Settings-BK6bmM85.js                          31.82 kB
+dist/assets/js/AppLayout-DaJlw_YE.js                         33.07 kB
+dist/assets/js/AuthenticatedRouteShell-CoPg8L4J.js           35.48 kB
+dist/assets/js/useFeeQuote-Cn-0_SF0.js                       41.81 kB
+dist/assets/js/ApplicationStatus-DfgNhwBq.js                 45.46 kB
+dist/assets/js/AuditTrail-DuC9bbIl.js                        46.32 kB
+dist/assets/js/TenantOnboardingWizard-CBc2GxlN.js            46.83 kB
+dist/assets/js/AcceptanceLetter-olAXqenA.js                  56.49 kB
+dist/assets/js/schemas-BhuGwATM.js                           64.24 kB
+dist/assets/js/Users-COK4tUBx.js                             81.24 kB
+dist/assets/js/progress-BMXnepZO.js                          84.66 kB
+dist/assets/js/Tenants-DP0NFEc4.js                           94.73 kB
+dist/assets/js/vendor-framer-motion-DoXASSUi.js             113.99 kB
+dist/assets/js/index-o9J_IAW2.js                            125.64 kB
+dist/assets/js/index.es-BrIIM6Py.js                         156.74 kB
+dist/assets/js/vendor-react-DXgsMsgo.js                     174.92 kB
+dist/assets/js/Applications-Cd30jEB7.js                     178.77 kB
+dist/assets/js/html2canvas.esm-CyxsxQj2.js                  199.44 kB
+dist/assets/js/index-BCg7oYkO.js                            321.22 kB
+dist/assets/js/vendor-pdf-BHJHD9Bc.js                       409.05 kB
+dist/assets/js/vendor-sentry-CidXNIPv.js                    459.78 kB
+dist/assets/js/vendor-react-pdf-Bvss8VQU.js               1,433.87 kB
+
+(!) Some chunks are larger than 650 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 40.59s
+[32m✓[0m finalise-html: preload hint for LandingPage (assets/js/LandingPage-C2_kRwJB.js)
+[32m✓[0m finalise-html: critters inlined critical CSS (HTML 11508 → 21120 bytes)
+
+check-html-csp: scanned /home/cosmas/Downloads/mihasv3/apps/admissions/dist/index.html
+  CSP script-src 'unsafe-inline': NO
+  CSP style-src 'unsafe-inline':  YES
+  inline <style> total bytes:     15038
+  main <link rel=stylesheet>:     present
+
+✓ check-html-csp: HTML is compatible with the production CSP.
+EXIT=0

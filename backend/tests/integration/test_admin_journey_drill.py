@@ -311,6 +311,11 @@ class TestAdminJourneyDrill:
                 "user_id": str(staff.id),
                 "institution_id": institution_id,
                 "role": "admin",
+                # Memberships are read-only by default.  This journey later
+                # exercises review, payment verification, and export commands,
+                # so grant those mutations explicitly instead of relying on the
+                # old broad meaning of the raw ``admin`` role.
+                "permissions": ["review", "verify_payments", "export"],
             },
             format="json",
         )

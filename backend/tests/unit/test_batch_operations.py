@@ -1,17 +1,49 @@
 """Unit tests for batch operation safety (Requirement 13). Requirements: 13.1-13.9"""
 import hashlib
 import uuid
-from unittest.mock import MagicMock, patch
 
+import pytest
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
 from apps.applications.admin_bulk_views import ApplicationBulkStatusView
+from tests.tenant_fixtures import build_tenant_world, grant_tenant_permissions
 
 
 def _admin(uid=None):
     return JWTUser({"user_id": str(uid or uuid.uuid4()), "email": "a@e.com",
                     "role": "admin", "first_name": "A", "last_name": "D"})
+
+
+def _authorized_admin():
+    """A real Tenant_Admin who may issue the bulk command, and its world.
+
+    The two batch guards below are checked *after* authorization:
+    ``ApplicationBulkStatusView.post`` opens with
+    ``authorize_tenant_surface(capability="tenant.application.review")``
+    (admissions-v2 task 2.2, R3.1 / AUTH-02). A bare ``JWTUser`` with no
+    membership therefore resolves to zero capabilities and the surface answers a
+    masked 404, so the batch-size and confirmation-token assertions were never
+    reached — the actor has to be someone who could legitimately run the batch
+    for the guards to be the thing under test.
+
+    Real rows rather than a patched seam, because that is the direction the
+    platform's own suites moved once scope became part of the query: see
+    ``docs/v2-evidence/9.3/README.md`` §13.3 ("The three guarantees moved to real
+    rows in the new suite"). The grant is named for the same reason
+    ``test_review_workspace_9_4.py::_grant`` names one — a mutation capability is
+    layered on only when the membership asks for it.
+    """
+    world = build_tenant_world()
+    grant_tenant_permissions(world, ["review"])
+    staff = world.staff
+    return world, JWTUser({
+        "user_id": str(staff.id),
+        "email": staff.email,
+        "role": staff.role,
+        "first_name": staff.first_name,
+        "last_name": staff.last_name,
+    })
 
 
 def _make_token(app_ids, new_status):
@@ -20,15 +52,16 @@ def _make_token(app_ids, new_status):
     return hashlib.sha256(("".join(sorted_ids) + new_status).encode("utf-8")).hexdigest()
 
 
+@pytest.mark.django_db
 class TestBatchSizeLimit:
     """1. Batch size limit enforcement (Req 13.1, 13.2)."""
 
     def setup_method(self):
         self.f = APIRequestFactory()
         self.v = ApplicationBulkStatusView.as_view()
-        self.admin = _admin()
 
     def test_exceeds_25_rejected(self):
+        _world, self.admin = _authorized_admin()
         ids = [str(uuid.uuid4()) for _ in range(26)]
         token = _make_token(ids, "rejected")
         req = self.f.post("/api/v1/applications/bulk-status/",
@@ -46,9 +79,10 @@ class TestConfirmationToken:
     def setup_method(self):
         self.f = APIRequestFactory()
         self.v = ApplicationBulkStatusView.as_view()
-        self.admin = _admin()
 
+    @pytest.mark.django_db
     def test_invalid_token_rejected(self):
+        _world, self.admin = _authorized_admin()
         ids = [str(uuid.uuid4())]
         req = self.f.post("/api/v1/applications/bulk-status/",
                           {"application_ids": ids, "new_status": "rejected",

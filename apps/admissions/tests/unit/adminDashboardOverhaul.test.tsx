@@ -66,13 +66,26 @@ describe('admin dashboard overhaul unit coverage', () => {
     expect(activityHtml).toContain('Admissions Officer')
   })
 
-  it('validates and formats program fee amounts consistently', () => {
+  it('validates fee input and renders the server amount verbatim', () => {
+    // Input validation is unchanged: an operator's typed amount is still checked
+    // before it is sent.
     expect(validateFeeAmount('')).toBe('Amount must be a valid positive number')
     expect(validateFeeAmount('0')).toBe('Amount must be a valid positive number')
     expect(validateFeeAmount('-1')).toBe('Amount must be a valid positive number')
     expect(validateFeeAmount('not-a-number')).toBe('Amount must be a valid positive number')
     expect(validateFeeAmount('153')).toBeNull()
-    expect(formatFeeAmount('ZMW', '153')).toBe('ZMW 153.00')
+
+    // Display changed with admissions-v2 task 8.4 (ADM-06 / R12.1). This used to
+    // be `Number(amount).toFixed(2)` — the browser re-quantising money and
+    // falling back to '0.00'. The server now sends an already-quantised decimal
+    // string, so the display is that string with a currency marker, produced by
+    // the one canonical formatter. The two-decimal guarantee did not disappear;
+    // it moved to the authority that owns the money.
+    expect(formatFeeAmount('ZMW', '153.00')).toBe('K153.00')
+    expect(formatFeeAmount('USD', '20.00')).toBe('$20.00')
+    expect(formatFeeAmount('EUR', '20.00')).toBe('EUR 20.00')
+    // A missing amount is an em dash, never a fabricated zero.
+    expect(formatFeeAmount('ZMW', null)).toBe('—')
   })
 
   it('validates setting values by declared value type', () => {

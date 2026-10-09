@@ -4,18 +4,14 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 
-# Staging should exercise the same payment-hardening posture as production.
-PAYMENT_HARDENING_FORWARD_ONLY = True
-PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
+# Staging should exercise the same payment posture as production. The
+# forward-only, strict-dedup, and force-approved flags were deleted with their
+# duplicate implementations in admissions-v2 task 8.2.
 PAYMENT_HARDENING_RATE_LIMITS = True
-PAYMENT_HARDENING_FORCE_APPROVED = True
 
 # AI hardening is mandatory in production for PII protection. Mirrors the
 # payment-hardening pattern: env vars cannot silently leave PII redaction off.
-AI_HARDENING_CIRCUIT_BREAKER = True
-AI_HARDENING_RATE_LIMITS = True
-AI_HARDENING_CACHE = True
-AI_HARDENING_REDACTION = True
+DOCUMENT_EXTRACT_RATE_LIMITS = True
 
 ALLOWED_HOSTS = [
     host.strip()

@@ -1,0 +1,587 @@
+{
+  "spec": "admissions-v2-canonical-rebuild",
+  "spec_task": "13.1",
+  "task_title": "Run the complete functional and quality gate",
+  "manifest_kind": "signed candidate manifest",
+  "counterpart_baseline": "docs/v2-evidence/0.5/manifest.json",
+  "requirements": ["R17", "R18.1", "R18.2", "R18.3", "R18.4"],
+  "findings": ["GOV-04", "GOV-05"],
+  "generated_at_utc": "2026-08-12T06:20:00+00:00",
+  "nature": "Complete gate measurement of the candidate. Every clause of the bullet was run and recorded; nothing was repaired to make a suite greener, no failing test was relabelled, and no pattern or selection was narrowed to reach a clean number. This manifest follows docs/v2-evidence/0.5/manifest.json's shape so the pre-change baseline and the candidate can be compared mechanically. The headline is NOT a clean sweep: 179 backend tests, 1 frontend test, 15 lint errors, 2 browser tests and 4 schema/register items do not pass, and each is attributed below.",
+  "signature": {
+    "method": "content-addressed self-signature over the recorded command results",
+    "note": "Every command in test_commands_and_results carries its exit code and its raw artifact path. The signature block below binds this manifest to the candidate tree and to the artifacts it cites; recompute with docs/v2-evidence/13.1/raw/sign-manifest.py to verify.",
+    "candidate_commit_sha": "bae29a28d9657f288b3339062adb31285959c966",
+    "candidate_working_tree": "dirty",
+    "schema_contract_sha256": "35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58",
+    "generated_client_sha256": "a4d1e96a3555d39a9e27f22c9b408315a28a3a939dbba08fb20914845f6ca462",
+    "artifact_digest_sha256": "e0937d7d9b2cd8774c93b2181c55c0720a1f72db69f110c53a763b991dbe1b0f",
+    "signed_by": "admissions-v2 task 13.1 gate run",
+    "verification_command": "backend/.venv/bin/python3 docs/v2-evidence/13.1/raw/sign-manifest.py --verify"
+  },
+  "release_identity": {
+    "commit_sha": "bae29a28d9657f288b3339062adb31285959c966",
+    "git_branch": "main",
+    "git_describe": "bae29a28d-dirty",
+    "working_tree": "dirty",
+    "working_tree_note": "Same commit as the 0.5 baseline. The tree now carries the accumulated phase 1-12 V2 work: 489 tracked modified, 35 tracked deleted, 387 untracked additions. Task 13.1 added only docs/v2-evidence/13.1/**. One tracked file is written as a side effect by scripts/launch-bundle-guard.ts (docs/launch-evidence/05-bundle/bundle-evidence.json); it was restored and verified byte-identical (sha256 aa33658203b864806ff8134c3a23ed19160a37249d7648b1440de5297f403ea7), which is 0.5's precedent.",
+    "working_tree_counts": {"tracked_modified": 489, "tracked_deleted": 35, "untracked": 387, "total": 911},
+    "raw_report": "raw/identity-toolchain.txt"
+  },
+  "product_version_sources": {
+    "apps/admissions/package.json": "2.0.0",
+    "backend/pyproject.toml": "2.0.0",
+    "generated OpenAPI info.version": "2.0.0",
+    "apps/jobs-ops/package.json": "0.1.0",
+    "api_url_prefix": "/api/v1/ plus the committed /api/v2/ candidate surface",
+    "note": "Product version and API major remain distinct (REL-01), unchanged from 0.5."
+  },
+  "dependency_lock_checksums_sha256": {
+    "bun.lock": "9288849465fcc75b7e759abeddbca9950d7e0b516332d26becc9823f254cdcc3",
+    "backend/requirements.txt": "352aceecd871dbe25aa9fddd0cc1a5a2a01ea2880d2b5556900a608979e4e7b9",
+    "backend/pyproject.toml": "5541f4aa7abc6c27369a2b10cd430f0263ccb963066b1bb429ab71b076e67bb3",
+    "apps/admissions/package.json": "b4ee6d75b697f899ee20839d05f4bcb5ee9846ea5643621f42dcc9ffe7e270a9",
+    "apps/jobs-ops/package.json": "c36b31c3b60acbfbeae90fbfdf144a9a2478e496f8b3f44252ccb1b2f9fc51fb",
+    "backend .venv pip freeze": "59ec3e2a810071472c2a3e2a21e4a0486abce53a61883b0e2f517d1f4d9e5336",
+    "note": "All five differ from the 0.5 baseline, which is expected: twelve phases of work landed between them."
+  },
+  "toolchain": {
+    "bun": "1.3.14",
+    "node": "v24.15.0",
+    "python_system": "3.14.4",
+    "python_backend_venv": "3.14.4 (backend/.venv)",
+    "python_target_per_steering": "3.12+ (tech.md); venv runs 3.14.4",
+    "docker": "29.1.3",
+    "playwright_channel": "chrome (HARNESS_PW_CHANNEL=chrome; bundled Chromium unsupported on this OS)"
+  },
+  "measurement_environment": {
+    "backend_test_database": "throwaway Postgres 16.14 in Docker (mihas-localtest-postgres-1, 127.0.0.1:5433, db mihas_localtest)",
+    "backend_test_redis": "local Redis 7 (127.0.0.1:6380)",
+    "test_db_list_verified_empty_before_start": true,
+    "backend_run_mode": "SERIAL, -p no:randomly, no other pytest process (12.1 §15.1: a concurrent run produces spurious psycopg2 DuplicateDatabase errors and makes the numbers unreadable)",
+    "browser_stack": "task-0.4 isolated harness (docker compose), volumes wiped and reseeded before each recorded run, torn down afterwards",
+    "neon": "READ-ONLY introspection of the authoring default branch only. No write, no migration, no branch created. Neon branch br-jolly-pine-ahybtg2e was NOT needed and NOT used.",
+    "production": "not connected to, not queried, not modified",
+    "django_check_conditions": "no TESTING=1 and no substitute REDIS_URL (both produce a spurious django_ratelimit.E003)"
+  },
+  "database_schema_fingerprints": [
+    {
+      "label": "fresh-from-empty",
+      "how": "empty Postgres 16.14 + backend/scripts/00_full_schema.sql + 2026_05_22_migration_history_extend.sql + manage.py apply_sql_migrations --allow-non-additive (41 migrations applied, exit 0)",
+      "environment_identity": "host=127.0.0.1 db=v2_fresh_13_1",
+      "schema_fingerprint": "sha256:a48a176d78ed2663ecfd4272793fbfaba60750a1dd38a60101a838cf312c629b",
+      "tables": 89,
+      "migrations_recorded": 43,
+      "foreign_keys": 117,
+      "foreign_keys_not_valid": 9,
+      "intrinsic_verify": "DRIFT: 9 failures (all nine are the NOT VALID FKs — finding GATE-13.1-01)",
+      "artifact": "raw/manifest.fresh-from-empty.json",
+      "artifact_sha256": "16cfe1b0b55c2837605dc4bb4f29e1187eb4e14d1cb80efd333cadc71e40bf87"
+    },
+    {
+      "label": "migrated-snapshot",
+      "how": "READ-ONLY introspection of the previously-migrated local mihas_localtest database",
+      "environment_identity": "host=127.0.0.1 db=mihas_localtest",
+      "schema_fingerprint": "sha256:bc5ab0499c8b0ef146c82377bab0390c0b98732326ee003d1f7bf76ef6367246",
+      "tables": 87,
+      "migrations_recorded": 5,
+      "foreign_keys": 119,
+      "foreign_keys_not_valid": 28,
+      "intrinsic_verify": "DRIFT: 28 failures",
+      "artifact": "raw/manifest.migrated-snapshot.json",
+      "artifact_sha256": "1e952e982c34be7bd6f1477d814615ff4951cd7c7458e95e07662ba84635a2eb"
+    },
+    {
+      "label": "neon-authoring",
+      "how": "READ-ONLY introspection of the Neon authoring default branch (project mihasApplication / wild-bar-37055823), Postgres 17.10. NOT production.",
+      "environment_identity": "host=ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech db=neondb",
+      "schema_fingerprint": "sha256:9d4bc5c7f5233e9d01e8b498c6951e9a776a3feb487f94bf14074822d2d5ee66",
+      "tables": 78,
+      "migrations_recorded": 44,
+      "foreign_keys": 108,
+      "foreign_keys_not_valid": 9,
+      "intrinsic_verify": "DRIFT: 9 failures (the same nine — finding GATE-13.1-01)",
+      "artifact": "raw/manifest.neon-authoring.json",
+      "artifact_sha256": "cc56c849c860db608157f520304d16ebb6685dd218126b5948821d873687a438"
+    }
+  ],
+  "test_commands_and_results": [
+    {
+      "id": "backend-full-tree",
+      "clause": "Backend unit/integration/property/concurrency/security suites",
+      "suite": "the WHOLE backend/tests/ tree — 519 test files, first time any task in this spec has run it complete",
+      "command": "cd backend && DATABASE_URL=<localtest pg 5433> REDIS_URL=<local redis 6380> TESTING=1 .venv/bin/python3 -m pytest tests/ -q -p no:cacheprovider -p no:randomly -rs --junitxml=raw/backend-full-junit.xml",
+      "collected": 5419,
+      "passed": 5133,
+      "failed": 106,
+      "errored": 73,
+      "skipped": 104,
+      "xfailed": 2,
+      "xpassed": 1,
+      "duration_s": 524.08,
+      "exit_code": 1,
+      "result": "FAIL",
+      "attribution_summary": "179 non-passing, 179 of 179 attributed to 12 cause clusters plus a fully-listed 39-item remainder. 33 of them are the population every task from 12.1 to 12.5 measured; 146 have never been catalogued because they sit outside the 52-file selection.",
+      "largest_clusters": [
+        {"n": 86, "cause": "task 9.4 rewired document_views/interview_views onto resolve_scoped_application and dropped the module-level AccessScopeService import; 8 test modules still patch the removed symbol unconditionally, so they ERROR at setup and 72 tests never run. 9.4 fixed exactly one module with a hasattr guard and left the rest. Finding GATE-13.1-02."},
+        {"n": 13, "cause": "task 9.2 perf-golden divergence against the 2026-06-21 baseline (known, in the 52-file selection)"},
+        {"n": 11, "cause": "tests/property/test_admin_endpoint_auth.py asserts the retired IsAdmin permission class; the V2 code correctly resolves capabilities instead"},
+        {"n": 9, "cause": "backend/scripts/verify_schema_static.py EXPECTED_TABLES is missing six new managed=False tables"},
+        {"n": 6, "cause": "task 1.3 V2 demo endpoints — catalogued at 0.5, outside 12.x's selection, unchanged since"},
+        {"n": 3, "cause": "new NOT NULL columns (applications.assignment_version, payments.application_quarantined) vs raw-insert test factories"},
+        {"n": 3, "cause": "a bare except:pass at line 1214 of an accounts view module"},
+        {"n": 3, "cause": "12.1 §19 / 12.2 §9.3 deliberately-held classification counts (38 unclassified views, 3 unclassified public endpoints, 5 api-only tags)"},
+        {"n": 2, "cause": "task 7.4 retired the AI-summary views; two tests still import the deleted symbols"},
+        {"n": 2, "cause": "R9.2 rollback-file inverse-additive violation in 2026_07_16_02_canonical_assignment_backfill_rollback.sql"},
+        {"n": 2, "cause": "communication_templates ON CONFLICT has no matching unique constraint on this schema"},
+        {"n": 39, "cause": "unattributed remainder, listed individually in raw/backend-attribution.txt (18 inside the 52-file selection, 21 never run before)"}
+      ],
+      "raw_reports": ["raw/backend-full.txt", "raw/backend-full-junit.xml", "raw/backend-full-inventory.txt", "raw/backend-full-failures.json", "raw/backend-attribution.txt", "raw/backend-new-vs-known.txt", "raw/backend-new-vs-known.json", "raw/backend-error-rootcause.txt", "raw/backend-skips.txt", "raw/parse_junit.py", "raw/categorise_backend.py", "raw/compare_selection.py"]
+    },
+    {
+      "id": "backend-52-file-selection",
+      "clause": "control: the selection every task from 12.1 to 12.5 measured",
+      "command": "cd backend && DATABASE_URL=<localtest pg 5433> REDIS_URL=<local redis 6380> TESTING=1 .venv/bin/python3 -m pytest $(cat raw/backend-selection-52.txt) -q -p no:cacheprovider -p no:randomly",
+      "files": 52,
+      "passed": 809,
+      "failed": 33,
+      "errored": 0,
+      "duration_s": 92.93,
+      "exit_code": 1,
+      "result": "FAIL (reproduces 12.5 exactly: 33 failed / 809 passed / 0 errors)",
+      "note": "This is the control that makes the full-tree number readable: the known baseline is intact to the test name, so the extra 146 are additional population rather than a regression.",
+      "raw_reports": ["raw/backend-selection-52.txt", "raw/backend-selection-52-run.txt"]
+    },
+    {
+      "id": "backend-skips",
+      "clause": "no required skip is hidden",
+      "skipped": 104,
+      "distinct_skip_reasons": 33,
+      "result": "RECORDED",
+      "dominant_reasons": "Phase-gated future work with a named enforcement anchor (payment sensitive-fields lock Task 17.1: 37; dev-bypass Phase 5: 20; RECEIPT_NOT_ELIGIBLE: 4), stale pre-admin-force submission-gate property files (13), tenant-migration idempotency requiring TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (7), the legacy lenco archive absent from this checkout (10), CSRF middleware refactor (5), and a handful of vendor/settings guards.",
+      "note": "0.5 recorded 138 skips on SQLite. This run has 104 because the Postgres-only schema/index/jsonb/EXPLAIN suites now execute instead of skipping. No skip was relabelled as a pass.",
+      "raw_reports": ["raw/backend-skips.txt"]
+    },
+    {
+      "id": "backend-query-budgets",
+      "clause": "query budgets",
+      "suite": "every backend test file that asserts a SQL query count (assertNumQueries / CaptureQueriesContext / captured_queries) — 14 files",
+      "command": "cd backend && DATABASE_URL=<localtest pg 5433> REDIS_URL=<local redis 6380> TESTING=1 .venv/bin/python3 -m pytest $(cat raw/query-budget-selection.txt) -q -p no:cacheprovider -p no:randomly",
+      "passed": 377,
+      "failed": 5,
+      "duration_s": 15.47,
+      "exit_code": 1,
+      "result": "FAIL",
+      "detail": "All 5 failures are in tests/unit/test_perf_capability_invalidation.py and are part of the known 33; every query-count assertion itself passes. Budgets held: grade read is 1 query independent of grade count; canonical offerings 0 extra queries when cached and 1 when not, independent of offering count; the collapsed admin-dashboard aggregate block <= 3 count/aggregate queries; notification cursor paging issues no COUNT(*); the application query contract is run-to-run stable in query count.",
+      "raw_reports": ["raw/query-budgets.txt", "raw/query-budget-selection.txt", "raw/query-budget-values.txt"]
+    },
+    {
+      "id": "django-system-check",
+      "command": "cd backend && DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python3 manage.py check   (no TESTING=1, no substitute REDIS_URL)",
+      "exit_code": 0,
+      "result": "PASS",
+      "output": "System check identified no issues (1 silenced).",
+      "raw_reports": ["raw/django-check.txt"]
+    },
+    {
+      "id": "admissions-vitest",
+      "clause": "Frontend unit/contract/accessibility/visual suites",
+      "command": "cd apps/admissions && bun run test   (bun x vitest run)",
+      "test_files": {"passed": 492, "failed": 1, "skipped": 1, "total": 494},
+      "tests": {"passed": 4607, "failed": 1, "skipped": 1, "total": 4609},
+      "duration_s": 61.61,
+      "exit_code": 1,
+      "result": "FAIL",
+      "clause_coverage": {
+        "accessibility_files_executed": 13,
+        "visual_responsive_files_executed": 9,
+        "contract_drift_guard_files_executed": 16,
+        "note": "Named individually in raw/frontend-clause-coverage.txt. The Playwright accessibility/visual half is the harness required profile below (design-system-defluff axe scans, admin-mobile-journeys, student-wizard-mobile)."
+      },
+      "failures": [
+        {"test": "tests/unit/authPageFormMarkup.test.tsx > auth page form markup > uses honest helper copy instead of fake email availability states", "message": "expected markup to contain \"We&#x27;ll verify this address.\"; the page renders \"We'll send account updates here. If you already have an account, sign in instead.\"", "attribution": "the sign-up page's helper copy. ELEVENTH consecutive recording (11.1-11.5, both 12.1 passes, 12.2, 12.3, 12.4, 12.5, this one). Not this task's."}
+      ],
+      "comparison_to_12_5": "byte-identical counts (1 failed / 4607 passed / 1 skipped over 494 files)",
+      "raw_reports": ["raw/frontend-test.txt", "raw/frontend-clause-coverage.txt"]
+    },
+    {
+      "id": "admissions-lint",
+      "command": "cd apps/admissions && bun run lint   (eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0)",
+      "exit_code": 1,
+      "result": "FAIL",
+      "errors": 15,
+      "files": 13,
+      "comparison": "the file set is byte-identical to 12.5's, which is byte-identical to 12.4's and 12.3's — unchanged since 12.1",
+      "attribution": "pre-existing; not this task's",
+      "raw_reports": ["raw/frontend-lint.txt", "raw/frontend-lint-files.txt"]
+    },
+    {
+      "id": "admissions-typecheck",
+      "command": "cd apps/admissions && bun run type-check   (tsc -p tsconfig.build.json --noEmit)",
+      "exit_code": 0,
+      "result": "PASS",
+      "raw_reports": ["raw/frontend-typecheck.txt"]
+    },
+    {
+      "id": "admissions-typecheck-full",
+      "clause": "recorded because observed, NOT the repo's gate",
+      "command": "cd apps/admissions && bun run type-check:full   (tsc --noEmit, includes tests/)",
+      "exit_code": 2,
+      "result": "FAIL (non-gate)",
+      "errors": 607,
+      "files_with_errors": 128,
+      "errors_in_src": 0,
+      "detail": "607 pre-existing strict / noUncheckedIndexedAccess errors, 219 TS2532 + 181 TS18048 + 107 TS2345 dominant, spread over 127 files under tests/ plus vite.config.ts (a critters package.json exports resolution). Zero in src/. The gate the repo actually runs is tsconfig.build.json, which passes. 12.4 §10 recorded this the same way.",
+      "raw_reports": ["raw/frontend-typecheck-full.txt", "raw/frontend-typecheck-summary.txt"]
+    },
+    {
+      "id": "admissions-build",
+      "clause": "production build",
+      "command": "cd apps/admissions && bun run build   (tsc -p tsconfig.build.json --noEmit && vite build && check-html-csp)",
+      "exit_code": 0,
+      "result": "PASS",
+      "dist_files": 229,
+      "dist_path_set": "identical to 12.5's 229 content-hashed names",
+      "csp_gate": "script-src 'unsafe-inline': NO; inline <style> 15038 bytes; main stylesheet present; HTML compatible with the production CSP",
+      "raw_reports": ["raw/frontend-build.txt", "raw/dist-files.txt"]
+    },
+    {
+      "id": "admissions-check-all",
+      "command": "cd apps/admissions && bun run check:all   (check:imports + check:entry + check:html)",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "Total entry path 94.7 KB gz; CSP-compatible HTML.",
+      "raw_reports": ["raw/frontend-guards.txt"]
+    },
+    {
+      "id": "launch-bundle-guard",
+      "command": "cd apps/admissions && bun scripts/launch-bundle-guard.ts",
+      "exit_code": 1,
+      "result": "FAIL",
+      "detail": "Only the forbidden-chunk rule fails: vendor-framer-motion-UG34w3ZA.js on the entry path (threshold 0). entry-gz-budget 141.8 KB of 150.0 KB PASS; pdf-gz-budget 129.1 KB of 772.0 KB PASS; sentry-public-entry PASS. Same pre-existing regression 0.5 recorded as baseline finding BL-0.5-06 — and the PDF figure has improved from 766.4 KB to 129.1 KB since 0.5 (task 12.4 §3 removed the dev-only preview chunks).",
+      "side_effect_handled": "the guard rewrites docs/launch-evidence/05-bundle/bundle-evidence.json; restored and verified sha256 aa33658203b864806ff8134c3a23ed19160a37249d7648b1440de5297f403ea7",
+      "raw_reports": ["raw/frontend-guards.txt"]
+    },
+    {
+      "id": "validate-tailwind",
+      "command": "cd apps/admissions && bun run validate:tailwind",
+      "exit_code": 127,
+      "result": "BLOCKED (broken npm script)",
+      "detail": "The script points at ./scripts/validate-tailwind-classes.sh, which does not exist in this checkout. Recorded by 11.5 and by 12.3/12.4/12.5. Not this task's.",
+      "raw_reports": ["raw/frontend-guards.txt"]
+    },
+    {
+      "id": "jobs-ops-gates",
+      "clause": "the jobs-ops boundary 12.4 established",
+      "commands": ["cd apps/jobs-ops && bun run type-check", "cd apps/jobs-ops && bun run lint", "cd apps/jobs-ops && ./node_modules/.bin/vite build"],
+      "exit_codes": [0, 0, 0],
+      "result": "PASS",
+      "detail": "1674 modules transformed; JS 356.09 KB / gz 102.33 KB; CSS 24.19 KB / gz 5.26 KB.",
+      "raw_reports": ["raw/jobs-ops-gates.txt"]
+    },
+    {
+      "id": "openapi-schema-regeneration",
+      "clause": "schema diff",
+      "command": "cd backend && DJANGO_SETTINGS_MODULE=config.settings.dev DATABASE_URL=<localtest pg 5433> .venv/bin/python3 manage.py spectacular --file /tmp/schema-13-1-pg.yaml",
+      "exit_code": 0,
+      "result": "PASS — byte-identical to the committed contract",
+      "committed_candidate": {"file": "backend/schema/openapi.v2.candidate.yaml", "sha256": "35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58", "lines": 22135, "openapi": "3.0.3", "info_version": "2.0.0", "paths": 192},
+      "regenerated": {"sha256": "35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58", "diff": "empty"},
+      "spectacular_diagnostics": {"errors": 116, "unique_errors": 26, "warnings": 3, "note": "116 non-fatal 'unable to guess serializer' errors from 26 APIViews without serializer_class (staff invitations 5, change requests 6, onboarding 10, V2 demo 5). 0.5 recorded 20. The schema still generates; test_launch_verification_spectacular.py fails on both counts."},
+      "raw_reports": ["raw/openapi-schema.txt"]
+    },
+    {
+      "id": "openapi-generation-environment-sensitivity",
+      "clause": "schema diff — a new finding",
+      "result": "FINDING GATE-13.1-03",
+      "detail": "The committed contract is only byte-reproducible against POSTGRES. Generating under config.settings.test (SQLite, the documented fast local suite) yields sha256 03ee43ab5fb9d55e36e48c8b788ecb51a422d5601e3477a6bdfe9ae52679fd0a / 22155 lines, diverging in 20 places where an integer field's bounds move from int32 (2147483647) to int64 (9223372036854775807) with format: int64 added. Cause: Django derives IntegerField validators from connection.ops.integer_field_range(), and the SQLite backend returns 64-bit ranges for every integer field because SQLite does not enforce. Generation is deterministic within each environment (verified by a second run).",
+      "why_it_matters": "scripts/generate-api-types.sh writes DIRECTLY over backend/schema/openapi.v2.candidate.yaml and its DEFAULT DATABASE_URL is sqlite:///tmp/schema-gen.db, so running it with no env overrides silently rewrites the committed contract with the int64 variant. CI is safe today (.github/workflows/ci.yml and backend-governance.yml both set DJANGO_SETTINGS_MODULE=config.settings.dev with a Postgres service), so this is a developer-workstation drift generator, not a live CI break.",
+      "unfixed": true,
+      "proposed_owner": "the API-contract lane (tasks 1.2 / 1.5 own the schema baseline)",
+      "raw_reports": ["raw/openapi-divergence-investigation.txt", "raw/openapi-divergence-cause.txt", "raw/openapi-consumers.txt"]
+    },
+    {
+      "id": "openapi-client-compile",
+      "clause": "Generated OpenAPI client compile",
+      "commands": [
+        "cd apps/admissions && bunx openapi-typescript ../../backend/schema/openapi.v2.candidate.yaml --output /tmp/api-13-1.d.ts --immutable",
+        "cd apps/admissions && bun x tsc --noEmit --strict src/generated/api.d.ts"
+      ],
+      "exit_codes": [0, 0],
+      "result": "PASS",
+      "committed_client": {"file": "apps/admissions/src/generated/api.d.ts", "sha256": "a4d1e96a3555d39a9e27f22c9b408315a28a3a939dbba08fb20914845f6ca462", "lines": 24252},
+      "regenerated_client_sha256": "a4d1e96a3555d39a9e27f22c9b408315a28a3a939dbba08fb20914845f6ca462",
+      "detail": "openapi-typescript 7.6.1 reproduces the committed client byte-identically from the committed schema, and the client compiles clean under --strict. Types were regenerated into a temp file rather than through scripts/generate-api-types.sh so the committed schema was never overwritten (see GATE-13.1-03).",
+      "raw_reports": ["raw/openapi-client-compile.txt"]
+    },
+    {
+      "id": "migration-from-empty",
+      "clause": "migration-from-empty",
+      "command": "createdb v2_fresh_13_1 in the throwaway localtest Postgres; psql < backend/scripts/00_full_schema.sql; psql < backend/scripts/2026_05_22_migration_history_extend.sql; DATABASE_URL=<v2_fresh_13_1> manage.py apply_sql_migrations --allow-non-additive",
+      "exit_code": 0,
+      "result": "PASS",
+      "migrations_applied": 41,
+      "detail": "Every one of the 41 scripts applied OK on an empty database, each with its recorded sha256. This is R15/R17's from-empty path exercised end to end on a real Postgres.",
+      "raw_reports": ["raw/schema-fresh-from-empty-apply.txt", "raw/schema-fresh-from-empty-migrate.txt"]
+    },
+    {
+      "id": "schema-manifest-diff",
+      "clause": "snapshot, schema diff",
+      "command": "cd backend && manage.py schema_manifest --emit/--matrix/--verify   (task 3.1's live introspection tool)",
+      "exit_code": 1,
+      "result": "DRIFT (expected; 3.1's headline reproduced with current numbers)",
+      "matrix_baseline": "fresh-from-empty",
+      "comparisons": [
+        {"pair": "fresh-from-empty -> migrated-snapshot", "failures": 230, "warnings": 60, "top": "column_changed 56, missing_migration 38, foreign_key_changed 28, unvalidated_foreign_key 28, extra_foreign_key 21, missing_index 21"},
+        {"pair": "fresh-from-empty -> neon-authoring", "failures": 628, "warnings": 186, "top": "column_changed 257, missing_index 120, extra_foreign_key 80, missing_foreign_key 78, missing_migration 28, unvalidated_foreign_key 9"}
+      ],
+      "reading": "All three fingerprints differ, which is 3.1's honest headline (DATA-09): the repo SQL, a previously-migrated local database, and the Neon authoring branch are three different schemas. Two Neon migration_history rows carry a 12-character TRUNCATED checksum where the repo's own runner writes a full sha256 (schema_cleanup_device_session_default.sql, schema_cleanup_drop_stale_columns.sql), so those two can never match on Neon.",
+      "raw_reports": ["raw/schema-manifests.txt", "raw/schema-manifest-neon.txt", "raw/schema-diff.txt", "raw/schema-diff-summary.txt", "raw/schema-diff-report.json", "raw/manifest.fresh-from-empty.json", "raw/manifest.migrated-snapshot.json", "raw/manifest.neon-authoring.json", "raw/schema-verify.fresh-from-empty.json", "raw/schema-verify.migrated-snapshot.json", "raw/schema-verify.neon-authoring.json"]
+    },
+    {
+      "id": "register-audit",
+      "clause": "re-audit 12.5's search manifest and Legacy_Exception registers",
+      "command": "backend/.venv/bin/python3 scripts/v1_surface_telemetry.py   (all five halves)",
+      "exit_code": 0,
+      "result": "REPRODUCED",
+      "half_1_3": "OVERALL PASS = True (the V1 surface verdict)",
+      "half_4": "PASS = False — 12.3's legacy-column telemetry; measures SOURCE only, the database-side gates are separate",
+      "half_5": {"categories": 13, "total_hits": 838, "unregistered": 0, "guards_named_but_missing": "none", "pass": true},
+      "half_5b": {"registers": 7, "entries": 60, "broken": "none", "pass": true,
+        "gap_carried_forward": ["architectureEnforcement.LEGACY_EXCEPTIONS", "canonical_tenant_drift_guard._ALLOWED_PREDICATES", "documentFlowDriftGuard.PREVIEW_ALLOWLIST", "legacy-brand-allowlist.allowlist"],
+        "gap_detail": "Four of seven registers carry no per-entry owner and no per-entry removal date. All seven are shrink-only and all seven have a staleness mechanism whose file was checked to exist. This is 12.5 §7.4's reported gap, re-measured unchanged and handed to task 13.6, whose closure criterion is 'no unregistered Legacy_Exception' — whether a DATED owner is required is 13.6's question to answer, not this task's."},
+      "raw_reports": ["raw/register-audit.txt"]
+    },
+    {
+      "id": "harness-required-profile-run-1",
+      "clause": "all Playwright projects — the required profile",
+      "command": "harness down (volumes wiped) -> harness build -> harness up -> cd apps/admissions && HARNESS_PW_CHANNEL=chrome bun x playwright test --config=playwright.harness.config.ts --project=chromium-required --project=mobile-required",
+      "stack": "freshly seeded; pre-teardown measured at 0 harness containers / 0 harness volumes",
+      "total": 220,
+      "passed": 218,
+      "failed": 2,
+      "did_not_run": 0,
+      "duration_min": 15.3,
+      "exit_code": 1,
+      "result": "FAIL",
+      "spec_files": 22,
+      "failures": [
+        {"test": "tests/harness-e2e/required/tenant-launch.spec.ts:139 — the wizard exposes program / intake / fee / routing steps on mobile", "projects": ["chromium-required", "mobile-required"], "message": "getByText('Fees') against a 'Program Fees' step label TenantOnboardingWizard.tsx renders hidden on mobile", "attribution": "the stable pair, now the SIXTEENTH and SEVENTEENTH consecutive recording (10.5, 10.6, 11.1-11.5, both 12.1 passes, 12.2, 12.3, 12.4 x2 runs, 12.5). Tenant lane; TenantOnboardingWizard.tsx declined by 12.1 §21. Not this task's."}
+      ],
+      "tracked_items_that_passed": {
+        "ocr-manual-fallback.spec.ts:146": "PASSED on both projects (chromium 10.9 s, mobile 12.4 s) and again on both in run 2 (14.6 s / 17.4 s) — 12.2 §8.2 reproduced it failing in isolation and flagged it; 12.3 §9.2 and 12.4 §12.3 then recorded it passing. Four more project-runs added here; no cumulative cross-task total is asserted.",
+        "ocr-manual-fallback.spec.ts:256": "PASSED on both — the served bundle ships no browser OCR asset",
+        "design-system-defluff.spec.ts:664": "PASSED on both (chromium 13.1 s, mobile 19.1 s of a 30 s budget) — but see run 2, where the mobile projection of the same test times out at 31.1 s"
+      },
+      "raw_reports": ["raw/harness-down-pre.txt", "raw/harness-build.txt", "raw/harness-up.txt", "raw/harness-required-suite.txt", "raw/harness-run1-detail.txt"]
+    },
+    {
+      "id": "harness-required-profile-run-2",
+      "clause": "all Playwright projects — the variance measurement 12.4 §12.2 requires",
+      "command": "harness down (volumes wiped) -> harness up -> the same required profile on a byte-identical build",
+      "total": 220,
+      "passed": 216,
+      "failed": 3,
+      "did_not_run": 1,
+      "duration_min": 19.5,
+      "exit_code": 1,
+      "result": "FAIL",
+      "failures": [
+        {"test": "tests/harness-e2e/required/tenant-launch.spec.ts:139", "projects": ["chromium-required", "mobile-required"], "attribution": "the stable pair, in both runs. Tenant lane."},
+        {"test": "tests/harness-e2e/required/design-system-defluff.spec.ts:664 — every surface passes an axe WCAG A/AA scan", "projects": ["mobile-required"], "message": "Test timeout of 30000ms exceeded at 31.1 s; NO axe violation reported", "attribution": "duration, not assertion — see harness-axe-isolation below"}
+      ],
+      "variance_vs_run_1": "218/2/0 -> 216/3/1 on a byte-identical build. This lands exactly on 12.4 §12.2's first pair (216/3/1). Run 1 is the cleanest full-profile result any lane has posted; it is NOT published alone.",
+      "raw_reports": ["raw/harness-down-mid.txt", "raw/harness-up-2.txt", "raw/harness-required-suite-2.txt", "raw/harness-run2-detail.txt"]
+    },
+    {
+      "id": "harness-axe-isolation",
+      "clause": "re-run an unfamiliar or moved failure in isolation before attributing it",
+      "result": "ATTRIBUTED to stack/box load, with six measurements",
+      "measurements": [
+        {"context": "run 1, chromium-required, full profile", "outcome": "PASS", "duration_s": 13.1},
+        {"context": "run 1, mobile-required, full profile", "outcome": "PASS", "duration_s": 19.1},
+        {"context": "run 2, chromium-required, full profile", "outcome": "PASS", "duration_s": 13.0},
+        {"context": "run 2, mobile-required, full profile", "outcome": "FAIL", "duration_s": 31.1, "message": "Test timeout of 30000ms exceeded"},
+        {"context": "alone, on the stack that had just run a 19.5-min profile", "outcome": "FAIL", "duration_s": 38.3, "message": "page.goto('/admin/intakes', waitUntil: 'domcontentloaded') timeout", "artifact": "raw/harness-axe-isolation.txt"},
+        {"context": "alone, on a third FRESHLY SEEDED stack", "outcome": "PASS", "duration_s": 17.5, "wall_s": 22.7, "artifact": "raw/harness-axe-isolation-fresh.txt"}
+      ],
+      "reading": "No axe violation is reported in any of the six. The failure is always the 30 s test-level timeout, and the test sweeps several admin routes at two viewport widths inside that one budget, so a pass has ~11 s of headroom. Running it ALONE is not sufficient to recover it — it failed alone at 38.3 s on a used stack — but a FRESHLY SEEDED stack is: 17.5 s. That middle data point is new relative to 12.4 §12.2, which could only show the concurrent case, and it moves the cause from 'other specs running concurrently' to 'stack and box age'.",
+      "unfixed": true,
+      "proposed_owner": "the design-system lane owns the spec; the budget question (a 30 s test-level timeout covering N route loads x 2 viewports) is worth its own decision"
+    },
+    {
+      "id": "harness-gatecheck-negative",
+      "clause": "all Playwright projects — the negative profile MUST fail",
+      "command": "cd apps/admissions && HARNESS_PW_CHANNEL=chrome bun x playwright test --config=playwright.harness.config.ts --project=gatecheck-negative",
+      "expected": "4 failed",
+      "actual": "4 failed",
+      "exit_code": 1,
+      "result": "PASS (the gates fire)",
+      "gates_that_fired": ["skip.gate.spec.ts — calling test.skip converts to a failure", "console.gate.spec.ts — an unexpected console error fails the run", "failed-request.gate.spec.ts — an unasserted failed request fails the run", "undrained.gate.spec.ts — an undrained background job fails the run"],
+      "raw_reports": ["raw/harness-gatecheck.txt"]
+    },
+    {
+      "id": "harness-drain",
+      "command": "harness/bin/harness drain",
+      "exit_code": 0,
+      "result": "PASS",
+      "output": {"broker_queue_depth": 0, "celery_queues": ["celery"], "unsettled_payment_collections": 0, "unsettled_references": []},
+      "raw_reports": ["raw/harness-drain.txt"]
+    },
+    {
+      "id": "harness-teardown",
+      "command": "harness/bin/harness down",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "0 harness containers, 0 harness volumes. The throwaway v2_fresh_13_1 database was dropped and the localtest Postgres/Redis containers stopped; 0 test_% or v2_fresh% databases remain.",
+      "raw_reports": ["raw/harness-down.txt"]
+    }
+  ],
+  "artifact_index_supporting": {
+    "note": "Supporting artifacts cited in the README, or inside a multi-path evidence field rather than in a single command's raw_reports array. Listed here so the signature binds every file in raw/ — 72 of 72.",
+    "paths": [
+      "raw/sign-manifest.py",
+      "raw/artifact-hashes.txt",
+      "raw/backend-collect.txt",
+      "raw/baseline-0.5-vs-13.1.txt",
+      "raw/known-33.txt",
+      "raw/full-179.txt",
+      "raw/schema-unvalidated-fk.txt",
+      "raw/harness-down-mid.txt",
+      "raw/harness-down-mid2.txt",
+      "raw/harness-up-3.txt"
+    ]
+  },
+  "baseline_comparison_0_5": {
+    "note": "Both captures are at commit bae29a28 with a dirty tree. 0.5 ran the backend on SQLite (config.settings.test); 13.1 runs it on a real Postgres, so the Postgres-only suites execute here rather than skipping. Direct row-by-row comparison in raw/baseline-0.5-vs-13.1.txt.",
+    "backend": {"0.5": "3720 collected / 3565 passed / 14 failed / 138 skipped / 0 errored (SQLite, 544.02 s)", "13.1": "5419 collected / 5133 passed / 106 failed / 73 errored / 104 skipped (Postgres, 524.08 s)"},
+    "backend_0_5_failures_re_measured": {"still_failing": 8, "no_longer_failing": 6, "detail": "all 6 fixed ones were 0.5's task-0.4/1.6 in-flight items; all 8 still failing are the task-1.3 V2 demo endpoint / spectacular / classification cluster"},
+    "vitest": {"0.5": "431 files / 3499 tests / 3495 passed / 3 failed + 5 harness collection-error files", "13.1": "494 files / 4609 tests / 4607 passed / 1 failed / 1 skipped, 0 collection-error files"},
+    "lint": {"0.5": "24 errors (18 architecture-enforcement + 6 unused-directive)", "13.1": "15 errors over 13 files"},
+    "typecheck": {"0.5": "PASS", "13.1": "PASS"},
+    "build": {"0.5": "PASS", "13.1": "PASS, 229 dist files"},
+    "openapi": {"0.5": "2.0.0 / 147 paths / sha 5bb6ab37 / 20 spectacular errors / committed candidate 142 paths and STALE vs source", "13.1": "2.0.0 / 192 paths / sha 35fe05d4 / 116 spectacular errors / committed candidate byte-identical to source"},
+    "browser": {"0.5": "RUNTIME-GATED, 138 legacy e2e tests enumerated and NOT run (finding GOV-04)", "13.1": "220 un-gated harness tests RUN TWICE: 218/2/0 then 216/3/1, plus the negative profile (4 failed as required), the drain check and teardown — GOV-04's replacement exercised end to end"},
+    "neon_schema": {"0.5": "73 tables / 93 FKs / 0 NOT VALID / fp c48f57d9", "13.1": "78 tables / 108 FKs / 9 NOT VALID / fp 9d4bc5c7"},
+    "launch_bundle_guard": {"0.5": "FAIL — framer-motion forbidden chunk; entry 144.1 KB gz; first PDF action 766.4 KB gz", "13.1": "FAIL — same framer-motion chunk; entry 141.8 KB gz; first PDF action 129.1 KB gz"},
+    "verify_migration_py": {"0.5": "BLOCKED (localhost:5432, no credentials; 59 errors)", "13.1": "SUPERSEDED — task 3.1's schema_manifest tool was used instead and reached three real databases"}
+  },
+  "new_findings": [
+    {
+      "id": "GATE-13.1-01",
+      "severity": "medium",
+      "title": "Nine foreign keys are permanently NOT VALID because three tables were created with the expand half of the expand/validate pattern and no validate half",
+      "measured": "9 NOT VALID FKs on tenant_onboarding (2), tenant_staff_invitations (4) and tenant_change_requests (3), present in BOTH the fresh-from-empty schema and the Neon authoring branch. grep confirms no VALIDATE CONSTRAINT statement exists anywhere in backend/scripts/ for these three tables, while five other expand scripts do have a paired _validate.sql.",
+      "reading": "These are NEW tables, so there are no pre-existing rows to validate and the FK is enforced for every row that can exist — this is not a data-integrity hole today. The cost is that manage.py schema_manifest --verify can never return ok on any environment, so a real future violation would be indistinguishable from this permanent one, and the scripts' own comment ('validation of any pre-existing rows is deferred') describes work nobody scheduled.",
+      "unfixed": true,
+      "proposed_owner": "the tenant lane — tasks 4.4 / 5.1 wrote 2026_07_20_01, 2026_07_21_01 and 2026_07_22_01",
+      "evidence": "raw/schema-unvalidated-fk.txt, raw/schema-verify.fresh-from-empty.json, raw/schema-verify.neon-authoring.json"
+    },
+    {
+      "id": "GATE-13.1-02",
+      "severity": "high",
+      "title": "72 backend tests have not run since task 9.4, and no gate noticed",
+      "measured": "Eight test modules patch apps.applications.document_views.AccessScopeService unconditionally. Task 9.4 rewired document_views onto the shared resolve_scoped_application seam and dropped that module-level import, so the patch target no longer exists and all eight ERROR at setup: 22 + 20 + 8 + 6 + 5 + 3 + 3 + 2 = 69 in unit, plus 3 more downstream, plus tests/property/test_application_endpoints.py's 13 and tests/property/test_interview_status_validation.py's 1 (interview_views._staff_can_access_application, the same shape). 86 tests total.",
+      "reading": "9.4 hit this and fixed exactly one module — tests/unit/test_admin_export_hardening.py guards the patch with hasattr and documents why in a comment — and left the other eight. The correct shape is already in the tree, which is what makes this cheap. It matters because a test that errors at setup never runs, and 12.1 §15.1 is this spec's own precedent for why unrun tests make a gate unmeasurable: the 52-file selection every task from 12.1 to 12.5 measured contains none of these eight files, so the hole was invisible for five consecutive recordings.",
+      "unfixed": true,
+      "proposed_owner": "the admin-query/scope lane that owns task 9.4",
+      "evidence": "raw/backend-error-rootcause.txt, raw/backend-attribution.txt, raw/backend-new-vs-known.txt"
+    },
+    {
+      "id": "GATE-13.1-03",
+      "severity": "medium",
+      "title": "The committed OpenAPI contract is only reproducible against Postgres, and the repo's own generator script defaults to SQLite",
+      "measured": "manage.py spectacular under config.settings.dev + Postgres reproduces backend/schema/openapi.v2.candidate.yaml byte-identically (35fe05d4…, 22135 lines). Under config.settings.test (SQLite) it produces 03ee43ab…, 22155 lines, with 20 integer-bound divergences (int32 -> int64 + format: int64). Django derives IntegerField validators from connection.ops.integer_field_range(); SQLite returns 64-bit ranges for every integer field.",
+      "reading": "scripts/generate-api-types.sh writes directly over the committed contract and defaults DATABASE_URL to sqlite:///tmp/schema-gen.db, so a developer running it unqualified rewrites the contract with the wrong variant and the generated client changes with it. CI is not affected: both workflows pin config.settings.dev against a Postgres service. The fix is one line in the script (or a vendor assertion in the schema guard).",
+      "unfixed": true,
+      "proposed_owner": "the API-contract lane (tasks 1.2 / 1.5)",
+      "evidence": "raw/openapi-divergence-investigation.txt, raw/openapi-divergence-cause.txt, raw/openapi-consumers.txt"
+    },
+    {
+      "id": "GATE-13.1-04",
+      "severity": "medium",
+      "title": "Concurrent reviewer auto-assign exceeds the maximum workload",
+      "measured": "tests/unit/test_reviewer_assignment_concurrency.py::test_concurrent_auto_assign_never_exceeds_max_workload fails with assert 8 == 3 — under concurrency the auto-assign path allocated 8 applications where the workload cap is 3.",
+      "reading": "This is the bullet's 'concurrency' clause producing a real signal, and it is outside the 52-file selection so no prior recording covered it. It is a single test and this task did not investigate whether the cap is advisory or enforced; it is reported as measured.",
+      "unfixed": true,
+      "proposed_owner": "the reviewer-assignment lane (task 9.5 / admissions business logic)",
+      "evidence": "raw/backend-attribution.txt"
+    },
+    {
+      "id": "GATE-13.1-05",
+      "severity": "low",
+      "title": "Three small registries drifted behind the code they describe",
+      "measured": "backend/scripts/verify_schema_static.py EXPECTED_TABLES is missing six managed=False tables (admin_saved_filters, document_upload_stages, document_verification_events, tenant_change_requests, tenant_onboarding, tenant_staff_invitations) — 9 failures. The committed migration-history release report omits 2026_08_06_01_admin_saved_filters.sql and 2026_08_09_01_application_tracking_secret.sql — 2 failures. apps/common ERROR_CODES is missing DOCUMENT_NOT_READY and EXPORT_TOO_LARGE, which views already emit — 1 failure.",
+      "reading": "Each is a registry that a phase added rows to the code for and never to the registry. All three have an executable guard that is already red, so none needs a new mechanism — only the entries.",
+      "unfixed": true,
+      "proposed_owner": "schema registry: the data lane (3.x); release report: the release lane (1.7 / 13.5); error codes: the API lane (10.4)",
+      "evidence": "raw/backend-attribution.txt"
+    },
+    {
+      "id": "GATE-13.1-06",
+      "severity": "low",
+      "title": "One rollback script is not inverse-additive, against R9.2",
+      "measured": "tests/property/test_rollback_safe_operations.py fails twice on 2026_07_16_02_canonical_assignment_backfill_rollback.sql: a statement matches no allowed inverse-additive form (DROP INDEX / DROP COLUMN / DROP TABLE / DROP SEQUENCE / DELETE FROM).",
+      "reading": "R9.2 requires every rollback statement to be inverse-additive. A backfill's rollback is the awkward case — undoing a data backfill is not a DROP — so this may be a genuine spec/instrument tension rather than a defect, and task 13.4 rehearses rollback. Reported, not resolved.",
+      "unfixed": true,
+      "proposed_owner": "the data-migration lane (task 3.4 / 13.4)",
+      "evidence": "raw/backend-attribution.txt"
+    },
+    {
+      "id": "GATE-13.1-07",
+      "severity": "medium",
+      "title": "R2.7's immutable evidence is not immutable: three instruments write into docs/v2-evidence/**",
+      "measured": "This gate rewrote 65 files across seven earlier task directories (11.5: 20, 11.4: 16, 11.3: 10, 11.2: 10, 11.1: 7, 2.2: 1, 0.4: 1) without this task writing into any of them. Three mechanisms: (1) apps/admissions/playwright.harness.config.ts:39 hard-codes the JSON reporter to ../../docs/v2-evidence/0.4/playwright-report.json, so EVERY harness run by ANY task overwrites task 0.4's Required_Evidence; (2) six required specs write screenshots into docs/v2-evidence/11.1-11.5/screenshots; (3) backend/tests/property/test_authority_matrix_generated.py:555 writes docs/v2-evidence/2.2/authority-conformance-summary.json, so running the backend suite overwrites task 2.2's Required_Evidence.",
+      "reading": "Not introduced by 13.1 — this is how those tasks PRODUCED their evidence, and each rewrite is a fresh capture of the same journey rather than an edit. But R2.7's guarantee does not hold for these five tasks' artifacts: they reflect whoever ran the gate last, not what that task measured on its date. 13.1 is the first task to trigger all three mechanisms in one run, which is why it surfaced here. Task 13.6 has to assert 'every required task evidenced' and is the bullet that most needs this to be true.",
+      "not_restored": "docs/v2-evidence/ is untracked in git and none of the five tasks recorded content hashes for these artifacts, so there is nothing to restore to. Current hashes of all 65 files are recorded instead.",
+      "unfixed": true,
+      "proposed_owner": "the harness lane (task 0.4) owns mechanisms 1 and 2; task 2.2 owns mechanism 3",
+      "evidence": "raw/r2-7-side-effect.txt"
+    }
+  ],
+  "known_carried_forward": [
+    "authPageFormMarkup.test.tsx > uses honest helper copy — the sign-up page's helper copy; ELEVENTH consecutive recording. Sign-up lane.",
+    "15 lint errors over 13 files — pre-existing; the file set has been byte-identical since 12.1.",
+    "tenant-launch.spec.ts:139 x both projects — getByText('Fees') vs a 'Program Fees' label rendered hidden on mobile; SIXTEENTH and SEVENTEENTH consecutive recording. Tenant lane; 12.1 §21 declined the file.",
+    "14 task-9.2 perf-golden divergences (admin_dashboard, notifications, notifications_cursor, application_list) against the 2026-06-21 golden baseline — 13 of them reproduced here as failures inside the 52-file selection. Task 9.2's contract rewrite.",
+    "test_view_auth_classification.py — exactly 38 unclassified views, held deliberately by 12.1 §19 and by 12.2-12.5. Unchanged.",
+    "test_public_endpoint_policy.py — 3 unclassified public endpoints, named with owning lanes by 12.2 §9.3. Unchanged.",
+    "13 unused non-import locals — 12.4 §6.3; questions for their own lanes, not dead code.",
+    "puppeteer-core undeclared import — 12.4 §4.4; the launch-verification lane's Gate 4.",
+    "bun run validate:tailwind exits 127 — a broken npm script pointing at a shell script that never existed; recorded by 11.5.",
+    "ocr-manual-fallback.spec.ts:146 — PASSED on both projects here, 6/6 project-runs since 12.2 §8.2 reproduced it in isolation. Wizard lane.",
+    "design-system-defluff.spec.ts:664 — PASSED on both projects here at 13.1 s / 19.1 s of a 30 s budget, corroborating 12.4 §12.2's reading that its earlier mobile failure was a timeout under load, not an axe violation.",
+    "launch-bundle-guard forbidden chunk (framer-motion on the entry path) — 0.5's baseline finding BL-0.5-06.",
+    "type-check:full's 607 pre-existing errors in tests/ — not the repo's gate; 12.4 §10 recorded it the same way.",
+    "The four registers with no per-entry owner or removal date — 12.5 §7.4's reported gap, re-measured unchanged and handed to 13.6."
+  ],
+  "clause_completion": {
+    "backend unit/integration/property/concurrency/security": "RUN — the whole tree, serially, on a real Postgres",
+    "frontend unit/contract/accessibility/visual": "RUN — 494 files / 4609 tests, with the three clause groups named individually",
+    "frontend lint": "RUN — 15 errors, unchanged file set",
+    "frontend typecheck": "RUN — repo gate PASS; the non-gate full variant recorded separately",
+    "frontend production build": "RUN — PASS, incl. tsc and the CSP gate",
+    "generated OpenAPI client compile": "RUN — regenerated byte-identical and compiled clean under --strict",
+    "migration-from-empty": "RUN — 41 scripts on an empty Postgres, exit 0",
+    "snapshot": "RUN — read-only introspection of a previously-migrated local database",
+    "schema diff": "RUN — three-manifest matrix plus intrinsic verify on each",
+    "query budgets": "RUN — 14 files, 377 passed, 5 known failures",
+    "all Playwright projects": "RUN — required profile x2 fresh stacks, gatecheck-negative, drain, teardown",
+    "jobs-ops gates": "RUN — type-check / lint / vite build all exit 0",
+    "register re-audit": "RUN — 12.5's manifest reproduced, gap carried forward"
+  },
+  "not_claimed": [
+    "That the gate is clean. It is not: 179 backend tests, 1 frontend test, 15 lint errors, 2 browser tests, 1 bundle rule, 1 broken npm script and 4 schema/register items do not pass.",
+    "That any of the 146 never-catalogued backend items was investigated beyond attribution. They were measured, clustered and, for the 39-item remainder, listed individually with their messages. Nothing was fixed.",
+    "That the 39-item unattributed remainder has a cause. It has a name, a message and a location, and is explicitly labelled unattributed.",
+    "That the harness numbers are strong evidence on their own. 12.4 §12.2 established this machine is load-limited; two full-profile runs are recorded (218/2/0 then 216/3/1 on a byte-identical build) so the variance is visible, including where it moved the convenient way.",
+    "That design-system-defluff.spec.ts:664 was fixed or is a defect. Six measurements are recorded, no axe violation appears in any of them, it fails alone on a used stack and passes alone on a fresh one. Attributed to stack/box load and to a thin 30 s budget; not repaired.",
+    "That ocr-manual-fallback.spec.ts:146's earlier isolated failure was imaginary. It passed 4/4 project-runs here — evidence about this environment, not proof, and no cumulative cross-task total is asserted. The wizard lane still owns it.",
+    "That production was measured. Nothing touched production. The Neon reading is the authoring default branch, read-only, and 13.4/13.5 own the rehearsal and the canary.",
+    "That the register owner/removal-date gap was closed. It was re-measured unchanged and handed to 13.6.",
+    "That verify_migration.py was run. Task 3.1's schema_manifest tool supersedes it and reached three real databases; 0.5 recorded verify_migration.py as environment-blocked and nothing here changes that.",
+    "That the two-tenant golden/adversarial matrix, the mobile/zoom/a11y sweep, the migration rehearsal, the canary, or spec closure were performed. Those are 13.2-13.6.",
+    "That the 65 earlier-task evidence files the instruments rewrote were restored. They were not, and could not be — see GATE-13.1-07. Their current hashes are recorded instead."
+  ],
+  "rollback_decision": "N/A — this task runs and records. No product source, schema, migration, register or deployment was changed. This task's own writes are docs/v2-evidence/13.1/** plus the tasks.md checkbox; one throwaway Postgres database (v2_fresh_13_1) created inside the isolated localtest container and then dropped; and the harness stack, torn down to 0 containers / 0 volumes. The one tracked file a measurement command rewrites (docs/launch-evidence/05-bundle/bundle-evidence.json) was restored and verified. Separately, the instruments themselves rewrote 65 files across seven earlier task evidence directories — finding GATE-13.1-07 — reported rather than restored, because nothing was recorded to restore to."
+}

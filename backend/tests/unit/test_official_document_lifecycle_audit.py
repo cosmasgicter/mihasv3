@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -191,17 +192,51 @@ class TestOfficialDocumentLifecycleAudit:
             assert row.changes.get("actor_role") == "student"
             _assert_no_pii(row)
 
-    def test_emailed_event_emitted_on_email_slip(self):
+    def test_emailed_event_emitted_on_official_document_email(self):
+        """The emailed Audit_Event is written, and carries no recipient address.
+
+        admissions-v2 task 10.4 moved this claim onto the canonical
+        official-document email (R13.5, API-04), which changed two of its
+        preconditions, and task **10.6** then removed the deprecated
+        ``/email-slip/`` route this case used to post to — so the call is now the
+        canonical one directly. The claim (the audit row exists and holds no PII)
+        is untouched:
+
+        * an email now requires a **ready** document, because a mail pointing at a
+          document that does not exist is a dead end. The pre-10.4 route emailed
+          an inline table of application fields rather than a document at all;
+        * the recipient is the applicant's own account address, so an arbitrary
+          address in the body is refused rather than honoured (that refusal has
+          its own case in the task's own suite).
+        """
         world = build_tenant_world(application_status="submitted")
         application = world.application
         _inject_pii(application)
+        ApplicationDocument.objects.create(
+            application=application,
+            document_type="application_slip",
+            document_name="Application Slip.pdf",
+            file_url="https://test-storage.local/application-slips/x.pdf",
+            file_size=1024,
+            mime_type="application/pdf",
+            system_generated=True,
+            verification_status="verified",
+            verification_notes=json.dumps({"official_document": {"fingerprint": "abc"}}),
+            uploaded_at=timezone.now(),
+        )
 
         client = _client_for(world.student)
-        resp = client.post(
-            f"/api/v1/applications/{application.id}/email-slip/",
-            {"email": "recipient@example.com"},
-            format="json",
-        )
+        with patch(
+            "apps.applications.official_document_views."
+            "official_document_matches_current_inputs",
+            return_value=True,
+        ):
+            resp = client.post(
+                f"/api/v1/applications/{application.id}"
+                "/official-documents/application_slip/email/",
+                {},
+                format="json",
+            )
         assert resp.status_code == 200, resp.content
 
         rows = list(AuditLog.objects.filter(action="official_document.emailed"))

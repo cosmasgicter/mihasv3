@@ -32,8 +32,18 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+        # Only patch the module-level name if it is still there. Task 9.4 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point this
+        # fixture began raising ``AttributeError`` **at setup** and every case in this
+        # file errored rather than ran. Guarding the patch target (rather than only
+        # the import) is what makes the fixture describe the code that exists. The
+        # remaining ``apps.catalog.services.AccessScopeService`` target below is the
+        # real seam: ``resolve_scoped_application`` imports it lazily from there.
+        # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -133,6 +143,11 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application calls CommunicationService.send with application_approved."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
@@ -166,6 +181,11 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
@@ -200,6 +220,11 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
@@ -249,6 +274,11 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application calls CommunicationService.send with application_rejected."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
@@ -279,6 +309,11 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
@@ -308,6 +343,11 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()``, locked before the scoped
+        # ``.get()`` — i.e. ``objects.all().select_for_update().get()``.
+        mock_app_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None

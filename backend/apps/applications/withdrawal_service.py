@@ -120,10 +120,17 @@ class WithdrawalService:
                 user_agent=user_agent,
             )
 
-            # --- 4. Decrement enrollment (Req 1.4) ---
-            IntakeEnforcer.decrement_enrollment(
-                locked_app.intake, locked_app.program
-            )
+            # --- 4. Release the seat (Req 1.4; admissions-v2 task 5.3, DATA-02) ---
+            # Canonical applications decrement the ProgramIntake capacity row
+            # keyed on the canonical offering + intake identity (never display
+            # strings), so a same-name other tenant's counter is never touched.
+            # Legacy rows without canonical IDs keep the name-based decrement.
+            from apps.applications.capacity_service import CapacityService
+
+            if not CapacityService.release_seat(locked_app):
+                IntakeEnforcer.decrement_enrollment(
+                    locked_app.intake, locked_app.program
+                )
 
         # --- 6. Notification + email (Req 1.6) ---
         _send_withdrawal_notification(locked_app, reason)
@@ -182,7 +189,10 @@ def _trigger_waitlist_promotion(application: Application) -> None:
     try:
         from apps.applications.waitlist_manager import WaitlistManager
 
-        promoted = WaitlistManager.promote_next(application.program, application.intake)
+        # Scope the promotion queue on the canonical Intake_Offering identity
+        # (admissions-v2 task 5.3, DATA-02) — falls back to the display strings
+        # for legacy rows.
+        promoted = WaitlistManager.promote_next_for_application(application)
         if promoted:
             logger.info(
                 "Waitlist promotion after withdrawal: promoted app=%s for program=%s intake=%s",

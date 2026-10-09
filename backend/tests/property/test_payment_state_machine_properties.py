@@ -1,8 +1,8 @@
 """Property-based tests — Phase 2 state machine invariants.
 
-Enforcement PBTs for Task 16 of the payment-hardening spec. Each test runs
-under @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True) so the
-hardened code paths are exercised.
+Enforcement PBTs for Task 16 of the payment-hardening spec. Since
+admissions-v2 task 8.2 there is one payment path, so no per-test settings
+override is needed to reach it.
 
 Validates: Requirements R1.1, R1.2, R1.3, R1.4, R1.6, R1.7, R2.1, R3.1, R3.2,
 R3.3, R3.5, R3.6, R6.2, R6.3, R9.1, R10.1, R20.1, R20.2.
@@ -277,7 +277,6 @@ def _latest_transition_blocked_audits(entity_id):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(n=st.sampled_from([2, 4]))
 @settings(
     max_examples=2,
@@ -390,7 +389,6 @@ _TERMINAL_INPUT_STRATEGY = st.fixed_dictionaries(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(
     terminal=st.sampled_from(
         ["successful", "failed", "expired", "force_approved"]
@@ -545,7 +543,6 @@ def test_property_2_terminal_stability(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(
     transition_sequence=st.lists(
         st.sampled_from(_ALLOWED_SEQUENCE_ELEMENTS),
@@ -640,7 +637,6 @@ def test_property_13_application_summary_consistency(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize(
     ("from_status", "target_status", "source"),
     _CLOSURE_GRID,
@@ -734,7 +730,6 @@ def test_property_14_forward_only_closure(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(
     prior_attempts=st.integers(min_value=0, max_value=10),
     expired_old_count=st.integers(min_value=0, max_value=10),
@@ -851,7 +846,6 @@ def _operation_strategy() -> st.SearchStrategy[dict]:
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(operations=st.lists(_operation_strategy(), min_size=1, max_size=5))
 @settings(
     max_examples=20,

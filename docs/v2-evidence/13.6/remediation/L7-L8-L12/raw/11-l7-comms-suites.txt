@@ -1,0 +1,155 @@
+### 2026-08-14T10:35:33Z L7 - communication / email suites, SERIAL
+# The suites whose inputs L7 changes: the email component system (structure +
+# visual identity), the DB-template service and its fallbacks, the tenant
+# scope/coverage/property tests over communication_templates, notification
+# delivery, tenant cutover idempotence, and the two brand/tenant drift guards.
+# command: pytest <the 10 files below> -q -p no:cacheprovider -p no:randomly -rs
+  tests/unit/test_email_component_system.py
+  tests/unit/test_email_messages.py
+  tests/unit/test_communication_service.py
+  tests/unit/test_communication_template_scope.py
+  tests/integration/test_communication_template_coverage.py
+  tests/property/test_communication_template_properties.py
+  tests/unit/test_notification_preferences_10_1.py
+  tests/integration/test_tenant_cutover_idempotence.py
+  tests/unit/test_brand_drift_guard.py
+  tests/unit/test_canonical_tenant_drift_guard.py
+
+..............F.................................................Fs...... [ 38%]
+........................................................................ [ 77%]
+..........................................                               [100%]
+=================================== FAILURES ===================================
+_________ TestCommunicationTemplateProperty22.test_resolution_priority _________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_comm_templates_one_active"
+E   DETAIL:  Key (template_key, institution_id)=(tenant_resolve_a4e9c9f9d20143f7, 7d1468c1-ddcb-4467-98e6-2beb3d934b97) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/property/test_communication_template_properties.py:270: in test_resolution_priority
+    _make_template(
+tests/property/test_communication_template_properties.py:137: in _make_template
+    return CommunicationTemplate.objects.create(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_comm_templates_one_active"
+E   DETAIL:  Key (template_key, institution_id)=(tenant_resolve_a4e9c9f9d20143f7, 7d1468c1-ddcb-4467-98e6-2beb3d934b97) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/property/test_communication_template_properties.py:217: in test_resolution_priority
+    @given(
+            
+tests/property/test_communication_template_properties.py:230: in test_resolution_priority
+    world = build_tenant_world(application_status="submitted")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/tenant_fixtures.py:432: in build_tenant_world
+    institution = build_institution(suffix=sfx, is_active=is_active)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/tenant_fixtures.py:142: in build_institution
+    return Institution.objects.create(**defaults)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:99: in _execute
+    self.db.validate_no_broken_transaction()
+.venv/lib/python3.14/site-packages/django/db/backends/base/base.py:521: in validate_no_broken_transaction
+    raise TransactionManagementError(
+E   django.db.transaction.TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.
+E   Falsifying example: test_resolution_priority(
+E       self=<tests.property.test_communication_template_properties.TestCommunicationTemplateProperty22 object at 0x72f1672d1d10>,
+E       scenario='institution_specific',
+E       num_versions=2,
+E       add_inactive_decoy=False,
+E   )
+____________ TestCommunicationTemplateCoverage.test_all_keys_seeded ____________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:103: in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.InvalidColumnReference: there is no unique or exclusion constraint matching the ON CONFLICT specification
+
+The above exception was the direct cause of the following exception:
+tests/integration/test_communication_template_coverage.py:84: in test_all_keys_seeded
+    cursor.execute(cleaned)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:103: in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.ProgrammingError: there is no unique or exclusion constraint matching the ON CONFLICT specification
+=============================== warnings summary ===============================
+tests/unit/test_communication_template_scope.py: 8 warnings
+tests/unit/test_notification_preferences_10_1.py: 30 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/integration/test_tenant_cutover_idempotence.py:352: Cutover idempotence on a live branch is gated: set TENANT_MIGRATION_NEON_BRANCH=1 against a dedicated Neon branch (after backup + dry-run) to run the real apply/re-apply + validation-SQL assertions. The cutover scripts are never applied to production or the Neon default branch from this environment.
+2 failed, 183 passed, 1 skipped, 38 warnings in 9.49s
+pytest exit=1

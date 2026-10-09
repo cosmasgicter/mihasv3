@@ -168,12 +168,22 @@ describe('Property 1: Dashboard normalizer maps backend response to valid stats'
     fc.constant(-Infinity),
   )
 
-  /** Arbitrary for system health values */
+  /**
+   * Arbitrary for read-health values.
+   *
+   * The vocabulary is the three states the backend **derives** from whether each
+   * metric source answered (`operational` / `degraded` / `unknown`), which
+   * replaced the four adjectives (`excellent`/`good`/`warning`/`critical`) the
+   * backend never sent and the frontend defaulted to `'good'` (task 9.2,
+   * ADM-02). The invalid inputs stay: what changed is that they now normalise to
+   * `null`, not to the friendliest word in the enum.
+   */
   const systemHealthArb = fc.oneof(
-    fc.constantFrom('excellent', 'good', 'warning', 'critical'),
+    fc.constantFrom('operational', 'degraded', 'unknown'),
     fc.constant(null),
     fc.constant(undefined),
     fc.constant('invalid'),
+    fc.constant('good'),
     fc.constant(42),
   )
 
@@ -242,28 +252,39 @@ describe('Property 1: Dashboard normalizer maps backend response to valid stats'
     )
   })
 
-  it('systemHealth is always one of the valid enum values', () => {
+  it('systemHealth is a derived state or null — never a defaulted adjective', () => {
     fc.assert(
       fc.property(backendStatsArb, (rawStats) => {
         const stats = normalizeStats(rawStats as Record<string, unknown>)
 
-        expect(['excellent', 'good', 'warning', 'critical']).toContain(stats.systemHealth)
+        // `null` is a first-class outcome: an unrecognised or absent health value
+        // means the platform did not measure one, and saying so is the point
+        // (task 9.2, ADM-02). What is no longer reachable is a *substituted*
+        // grade.
+        expect([null, 'operational', 'degraded', 'unknown']).toContain(stats.systemHealth)
+        if (typeof rawStats.system_health !== 'string'
+            || !['operational', 'degraded', 'unknown'].includes(rawStats.system_health)) {
+          expect(stats.systemHealth).toBeNull()
+        }
       }),
       { numRuns: 200 },
     )
   })
 
-  it('null/undefined input produces all-zero defaults', () => {
+  it('null/undefined input produces zeroed numerics and NO health claim', () => {
     const statsFromUndefined = normalizeStats(undefined)
     const statsFromEmpty = normalizeStats({})
 
+    // The legacy `stats` block is still numeric-typed, so its numbers still
+    // default to 0 — but nothing on the dashboard reads it any more: the page
+    // renders `metrics`, whose absent entries render "Unknown" (task 9.2).
     for (const key of NUMERIC_STAT_KEYS) {
       expect(statsFromUndefined[key]).toBe(0)
       expect(statsFromEmpty[key]).toBe(0)
     }
 
-    expect(statsFromUndefined.systemHealth).toBe('good')
-    expect(statsFromEmpty.systemHealth).toBe('good')
+    expect(statsFromUndefined.systemHealth).toBeNull()
+    expect(statsFromEmpty.systemHealth).toBeNull()
   })
 
   it('valid numeric values pass through correctly', () => {

@@ -53,17 +53,23 @@ def test_public_endpoint_classifications_use_known_categories():
 def test_public_tracking_serializer_remains_privacy_minimized():
     from apps.applications.serializers import ApplicationTrackingSerializer
 
+    # admissions-v2 task 10.5 (R13.12, STU-22): the contract is now stated under
+    # the names the tracker page reads, and it publishes strictly less — the
+    # legacy ``public_tracking_code`` authorises nothing post-10.5, so an
+    # unauthenticated caller has no reason to receive it.
     fields = set(ApplicationTrackingSerializer.Meta.fields)
     assert fields == {
         "application_number",
-        "public_tracking_code",
         "status",
-        "program",
-        "intake",
+        "program_name",
+        "intake_name",
         "institution",
-        "created_at",
         "submitted_at",
+        "updated_at",
     }
     assert "payment_status" not in fields
     assert "email" not in fields
     assert "paid_amount" not in fields
+    assert "public_tracking_code" not in fields
+    assert "tracking_secret_hash" not in fields
+    assert "tracking_selector" not in fields

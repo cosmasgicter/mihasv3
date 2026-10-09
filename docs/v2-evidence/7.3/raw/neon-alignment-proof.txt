@@ -1,0 +1,55 @@
+BEGIN
+SELECT 1
+INSERT 0 2
+--- BEFORE: the deleted row holds the enforced slot ---
+ document_name | verification_status | lifecycle_state  | is_current 
+---------------+---------------------+------------------+------------
+ v1.pdf        | pending             | ready_for_review | f
+ v2.pdf        | deleted             | deleted          | t
+(2 rows)
+
+--- BEFORE: a new current version is rejected by the database ---
+SAVEPOINT
+psql:/tmp/73mig/prove_alignment.sql:40: ERROR:  duplicate key value violates unique constraint "uq_application_documents_one_current"
+DETAIL:  Key (application_id, document_type)=(ce2b3861-b70d-418d-8452-92dcd2707e2a, proof_slip) already exists.
+ROLLBACK
+UPDATE 1
+UPDATE 1
+--- AFTER: the live version holds the slot, the deletion is preserved ---
+ document_name | verification_status | lifecycle_state  | is_current 
+---------------+---------------------+------------------+------------
+ v1.pdf        | pending             | ready_for_review | t
+ v2.pdf        | deleted             | deleted          | f
+(2 rows)
+
+--- AFTER: a replacement now succeeds (release the slot, then insert --
+--- exactly the order document_evidence.commit_version uses) ---
+UPDATE 1
+INSERT 0 1
+--- history: all three versions survive, v2 keeps its own deletion ---
+ document_name | verification_status | lifecycle_state  | is_current 
+---------------+---------------------+------------------+------------
+ v1.pdf        | pending             | superseded       | f
+ v2.pdf        | deleted             | deleted          | f
+ v3.pdf        | pending             | ready_for_review | t
+(3 rows)
+
+--- invariant: exactly one current row for the requirement ---
+ current_rows 
+--------------
+            1
+(1 row)
+
+--- no real row was affected: whole-table stuck-slot count ---
+ stuck_slots 
+-------------
+           0
+(1 row)
+
+ROLLBACK
+--- after ROLLBACK: no fixture row persists ---
+ proof_rows 
+------------
+          0
+(1 row)
+

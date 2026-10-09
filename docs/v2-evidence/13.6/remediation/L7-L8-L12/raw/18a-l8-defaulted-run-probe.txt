@@ -1,0 +1,105 @@
+### 2026-08-14T17:35:26Z L8 - defaulted runs must not touch another task's evidence
+# V2_EVIDENCE_DIR / _TASK_DIRS / _RUN_ID : all explicitly unset for this probe
+
+=============== BEFORE ===============
+## sha256 + size of the two previously-clobbered files
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  3951 bytes  docs/v2-evidence/0.4/playwright-report.json
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  13367 bytes  docs/v2-evidence/2.2/authority-conformance-summary.json
+## 11.1-11.5 screenshot counts + newest mtime
+11.1: 7 screenshots, newest 2026-08-12 05:56
+11.2: 10 screenshots, newest 2026-08-12 05:58
+11.3: 10 screenshots, newest 2026-08-12 05:57
+11.4: 16 screenshots, newest 2026-08-12 05:50
+11.5: 20 screenshots, newest 2026-08-12 05:52
+## anything under docs/v2-evidence/ modified in the last 30 minutes, outside this batch
+(end of newer-than list)
+
+=============== 1. mechanism 3: the backend suite that wrote 2.2 ===============
+$ pytest tests/property/test_authority_matrix_generated.py -q   # DEFAULTED
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+6 passed, 6 warnings in 12.06s
+run-scoped output this produced:
+  backend/test-results/v2-evidence/current/2.2/authority-conformance-summary.json
+  (none listed above means the suite wrote nowhere at all - which is NOT the fix)
+
+=============== 2. mechanism 1 + 2: the harness profile that wrote 0.4 and 11.x ===============
+The Playwright half needs a running harness edge. What is checked without one:
+ - the reporter path the config RESOLVES to, and
+ - the screenshot directory each of the five specs RESOLVES to,
+both evaluated by importing the real modules, not by reading the source.
+## resolved write paths, from the real modules
+
+(no env — THE DEFAULT)
+  0.4   -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/0.4
+  2.2   -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/2.2
+  11.1  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/11.1
+  11.2  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/11.2
+  11.3  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/11.3
+  11.4  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/11.4
+  11.5  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/11.5
+  13.3  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/current/13.3
+  reporter (repo-relative) -> apps/admissions/test-results/harness-evidence/current/0.4
+
+V2_EVIDENCE_TASK_DIRS=1
+  0.4   -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/0.4
+  2.2   -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/2.2
+  11.1  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/11.1
+  11.2  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/11.2
+  11.3  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/11.3
+  11.4  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/11.4
+  11.5  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/11.5
+  13.3  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3
+  reporter (repo-relative) -> docs/v2-evidence/0.4
+
+V2_EVIDENCE_DIR=docs/v2-evidence/13.6/remediation/L5-L6
+  0.4   -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  2.2   -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  11.1  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  11.2  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  11.3  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  11.4  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  11.5  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  13.3  -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6
+  reporter (repo-relative) -> docs/v2-evidence/13.6/remediation/L5-L6
+
+V2_EVIDENCE_RUN_ID=probe-run
+  0.4   -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/0.4
+  2.2   -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/2.2
+  11.1  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/11.1
+  11.2  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/11.2
+  11.3  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/11.3
+  11.4  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/11.4
+  11.5  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/11.5
+  13.3  -> /home/cosmas/Downloads/mihasv3/apps/admissions/test-results/harness-evidence/probe-run/13.3
+  reporter (repo-relative) -> apps/admissions/test-results/harness-evidence/probe-run/0.4
+
+repo root resolved as       : /home/cosmas/Downloads/mihasv3
+paths escaping the repo     : 0
+apps/docs/ exists (must be false): false
+
+## playwright.harness.config.ts, imported with NO env set
+  reporter entries          : [["list"],["json",{"outputFile":"../../apps/admissions/test-results/harness-evidence/2026-08-14T17-35-44-079Z/0.4/playwright-report.json"}]]
+  json reporter outputFile  : ../../apps/admissions/test-results/harness-evidence/2026-08-14T17-35-44-079Z/0.4/playwright-report.json
+  names docs/v2-evidence?   : false
+  V2_EVIDENCE_RUN_ID stamped: 2026-08-14T17-35-44-079Z
+
+=============== AFTER ===============
+## sha256 + size of the two previously-clobbered files
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  3951 bytes  docs/v2-evidence/0.4/playwright-report.json
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  13367 bytes  docs/v2-evidence/2.2/authority-conformance-summary.json
+## 11.1-11.5 screenshot counts + newest mtime
+11.1: 7 screenshots, newest 2026-08-12 05:56
+11.2: 10 screenshots, newest 2026-08-12 05:58
+11.3: 10 screenshots, newest 2026-08-12 05:57
+11.4: 16 screenshots, newest 2026-08-12 05:50
+11.5: 20 screenshots, newest 2026-08-12 05:52
+## anything under docs/v2-evidence/ modified in the last 30 minutes, outside this batch
+(end of newer-than list)
+
+=============== VERDICT ===============
+0.4/playwright-report.json             : UNCHANGED (matches L5-L6's recorded hash)
+2.2/authority-conformance-summary.json : UNCHANGED (matches L5-L6's recorded hash)
+11.1-11.5 screenshots                  : UNCHANGED (7/10/10/16/20)
+VERDICT: PASS

@@ -1,0 +1,405 @@
+{
+  "corpus_version": "2026-07-29.1",
+  "parser_version": "ecz-slip-2026-07-1",
+  "catalog_version": "ecz-62-1b6a730c7f9ab9e7",
+  "confirmable_confidence_floor": 0.7,
+  "capture_mode": "recorded_text",
+  "tesseract_available": false,
+  "totals": {
+    "cases": 12,
+    "truth": 39,
+    "correct": 36,
+    "wrong": 0,
+    "withheld": 2,
+    "missed": 1
+  },
+  "metrics": {
+    "precision": 1.0,
+    "recall": 0.9231,
+    "f1": 0.96,
+    "mean_confidence": 0.9264
+  },
+  "thresholds": {
+    "min_precision": 1.0,
+    "min_recall": 0.85,
+    "min_mean_confidence": 0.8,
+    "max_wrong_confirmable": 0
+  },
+  "cases": [
+    {
+      "case_id": "clean_grade12_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 7,
+      "correct": [
+        [
+          "BIO",
+          5
+        ],
+        [
+          "CE",
+          4
+        ],
+        [
+          "CHEM",
+          6
+        ],
+        [
+          "ENG",
+          4
+        ],
+        [
+          "GEO",
+          5
+        ],
+        [
+          "MATH",
+          3
+        ],
+        [
+          "PHY",
+          6
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 7
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "1234567001",
+      "exam_year": 2023,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "dot_leader_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 6,
+      "correct": [
+        [
+          "ADDMATH",
+          6
+        ],
+        [
+          "COM",
+          4
+        ],
+        [
+          "ECON",
+          6
+        ],
+        [
+          "ENG",
+          5
+        ],
+        [
+          "MATH",
+          4
+        ],
+        [
+          "POA",
+          5
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 6
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "201234567089",
+      "exam_year": 2021,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "alias_names_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 7,
+      "correct": [
+        [
+          "AGR",
+          6
+        ],
+        [
+          "BIO",
+          6
+        ],
+        [
+          "CE",
+          3
+        ],
+        [
+          "CHEM",
+          7
+        ],
+        [
+          "ENG",
+          5
+        ],
+        [
+          "MATH",
+          4
+        ],
+        [
+          "SCI",
+          5
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 7
+      },
+      "mean_confidence": 0.8643,
+      "exam_number": "7654321045",
+      "exam_year": 2019,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "noisy_scan_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 5,
+      "correct": [
+        [
+          "BIO",
+          6
+        ],
+        [
+          "GEO",
+          5
+        ],
+        [
+          "HIST",
+          7
+        ],
+        [
+          "MATH",
+          4
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [
+        [
+          "ENG",
+          5
+        ]
+      ],
+      "status_counts": {
+        "unresolved": 1,
+        "suggested": 4
+      },
+      "mean_confidence": 0.8,
+      "exam_number": "4455667012",
+      "exam_year": 2022,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "low_confidence_alias_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 3,
+      "correct": [
+        [
+          "GEO",
+          6
+        ]
+      ],
+      "wrong": [],
+      "withheld": [
+        [
+          "AGR",
+          5
+        ],
+        [
+          "MATH",
+          4
+        ]
+      ],
+      "missed": [],
+      "status_counts": {
+        "low_confidence": 2,
+        "suggested": 1
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "9988776001",
+      "exam_year": 2020,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "duplicate_subject_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 2,
+      "correct": [
+        [
+          "BIO",
+          5
+        ],
+        [
+          "MATH",
+          4
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 2,
+        "duplicate": 2
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "1112223004",
+      "exam_year": 2018,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "unknown_subject_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 1,
+      "correct": [
+        [
+          "MATH",
+          5
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "unresolved": 2,
+        "suggested": 1
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "3334445006",
+      "exam_year": 2023,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "tampered_grades_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 1,
+      "correct": [
+        [
+          "PHY",
+          4
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "invalid_grade": 3,
+        "suggested": 1
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "5566778002",
+      "exam_year": 2022,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "not_a_result_slip",
+      "document_type": "nrc",
+      "source": "recorded_text",
+      "truth_count": 0,
+      "correct": [],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {},
+      "mean_confidence": 0.0,
+      "exam_number": null,
+      "exam_year": null,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "unreadable_scan",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 0,
+      "correct": [],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {},
+      "mean_confidence": 0.0,
+      "exam_number": null,
+      "exam_year": null,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "alevel_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 3,
+      "correct": [
+        [
+          "AL-CHEM",
+          4
+        ],
+        [
+          "AL-PHY",
+          4
+        ],
+        [
+          "AL-PMATH",
+          3
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 3
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "6677889003",
+      "exam_year": 2024,
+      "expectation_failures": []
+    },
+    {
+      "case_id": "letter_descriptor_slip",
+      "document_type": "result_slip",
+      "source": "recorded_text",
+      "truth_count": 4,
+      "correct": [
+        [
+          "ENG",
+          4
+        ],
+        [
+          "MATH",
+          6
+        ],
+        [
+          "RE",
+          3
+        ],
+        [
+          "SCI",
+          5
+        ]
+      ],
+      "wrong": [],
+      "withheld": [],
+      "missed": [],
+      "status_counts": {
+        "suggested": 4
+      },
+      "mean_confidence": 0.95,
+      "exam_number": "8899001007",
+      "exam_year": 2017,
+      "expectation_failures": []
+    }
+  ],
+  "failures": [],
+  "passed": true
+}

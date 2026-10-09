@@ -1,8 +1,18 @@
 """RBAC permission classes for DRF views.
 
-Deterministic permission resolution from JWT role - no database lookup
-for standard checks. Falls back to UserPermissionOverride table only
-when the standard role check fails.
+Deterministic permission resolution from the JWT role — no database lookup.
+Authority is the canonical role hierarchy (``ROLE_HIERARCHY``) composed, at the
+endpoint layer, with ``AdminCapabilityService`` (``backend/apps/catalog``). The
+role hierarchy is the *only* input these primitives evaluate.
+
+Legacy per-user permission overrides are **retired** (admissions-v2 task 2.4,
+AUTH-04 / R3.4). The old ``UserPermissionOverride`` table and its invented
+colon-delimited permission vocabulary no longer grant any authority: the
+permission classes below never consult it. ``_check_permission_override``
+is retained only as an inert, always-``False`` stub so the retirement is explicit
+and testable; Phase 12.4 removes the stub together with the ``UserPermissionOverride``
+model. The ``user_permission_overrides`` table is preserved for historical data
+compatibility but is no longer an authority source.
 
 Implements task 10.1.
 Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
@@ -39,24 +49,16 @@ def _has_role_level(user, min_level: int) -> bool:
 
 
 def _check_permission_override(user, required_permission: str) -> bool:
-    """Check UserPermissionOverride table for per-user overrides.
+    """Retired legacy per-user permission override check (admissions-v2 task 2.4).
 
-    Only called when the standard role check fails.
-    Returns True if the user has an override granting the required permission.
+    The old implementation consulted the ``UserPermissionOverride`` table for
+    invented colon-permission strings and could elevate a lower role's
+    authority. That legacy override authority is **retired**: the permission
+    classes below no longer call this function, so a per-user override can never
+    grant authority. This inert stub always returns ``False`` and is retained
+    only so the retirement is explicit and testable; Phase 12.4 removes it along
+    with the ``UserPermissionOverride`` model.
     """
-    user_id = getattr(user, "pk", None) or getattr(user, "id", None)
-    if not user_id:
-        return False
-
-    try:
-        from apps.accounts.models import UserPermissionOverride
-
-        override = UserPermissionOverride.objects.filter(user_id=user_id).first()
-        if override and isinstance(override.permissions, list):
-            return required_permission in override.permissions
-    except Exception:
-        logger.warning("Failed to check permission override for user %s", user_id)
-
     return False
 
 
@@ -64,56 +66,54 @@ class IsStudent(BasePermission):
     """Allows access to users with 'student' role or higher.
 
     Since student is the lowest role in the hierarchy, any authenticated
-    user with a valid role passes this check.
+    user with a valid role passes this check. Authority is the role hierarchy
+    only — no per-user override fallback (task 2.4).
     """
 
     def has_permission(self, request, view):
         if not request.user or not getattr(request.user, "is_authenticated", False):
             return False
 
-        if _has_role_level(request.user, ROLE_HIERARCHY["student"]):
-            return True
-
-        return _check_permission_override(request.user, "student:access")
+        return _has_role_level(request.user, ROLE_HIERARCHY["student"])
 
 
 class IsReviewer(BasePermission):
-    """Allows access to users with 'reviewer', 'admin', or 'super_admin' role."""
+    """Allows access to users with 'reviewer', 'admin', or 'super_admin' role.
+
+    Role hierarchy only — no per-user override fallback (task 2.4).
+    """
 
     def has_permission(self, request, view):
         if not request.user or not getattr(request.user, "is_authenticated", False):
             return False
 
-        if _has_role_level(request.user, ROLE_HIERARCHY["reviewer"]):
-            return True
-
-        return _check_permission_override(request.user, "reviewer:access")
+        return _has_role_level(request.user, ROLE_HIERARCHY["reviewer"])
 
 
 class IsAdmin(BasePermission):
-    """Allows access to users with 'admin' or 'super_admin' role."""
+    """Allows access to users with 'admin' or 'super_admin' role.
+
+    Role hierarchy only — no per-user override fallback (task 2.4).
+    """
 
     def has_permission(self, request, view):
         if not request.user or not getattr(request.user, "is_authenticated", False):
             return False
 
-        if _has_role_level(request.user, ROLE_HIERARCHY["admin"]):
-            return True
-
-        return _check_permission_override(request.user, "admin:access")
+        return _has_role_level(request.user, ROLE_HIERARCHY["admin"])
 
 
 class IsSuperAdmin(BasePermission):
-    """Allows access to users with 'super_admin' role only."""
+    """Allows access to users with 'super_admin' role only.
+
+    Role hierarchy only — no per-user override fallback (task 2.4).
+    """
 
     def has_permission(self, request, view):
         if not request.user or not getattr(request.user, "is_authenticated", False):
             return False
 
-        if _has_role_level(request.user, ROLE_HIERARCHY["super_admin"]):
-            return True
-
-        return _check_permission_override(request.user, "super_admin:access")
+        return _has_role_level(request.user, ROLE_HIERARCHY["super_admin"])
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -123,7 +123,9 @@ class IsOwnerOrAdmin(BasePermission):
     is where ownership is enforced).
 
     has_object_permission: checks obj.user_id or obj.user.id against
-    request.user.id, or allows if user is admin/super_admin.
+    request.user.id, or allows if user is admin/super_admin. Ownership and role
+    hierarchy are the only authority — there is no per-user override fallback
+    (task 2.4); an object with no resolvable owner denies a non-admin.
     """
 
     def has_permission(self, request, view):
@@ -149,5 +151,5 @@ class IsOwnerOrAdmin(BasePermission):
         if obj_user is not None:
             return str(getattr(obj_user, "id", "")) == user_id
 
-        # If no ownership field found, check permission override
-        return _check_permission_override(request.user, "owner:access")
+        # No resolvable owner and not an admin — deny (fail closed).
+        return False

@@ -10,6 +10,8 @@ import { useTimeline } from '@/hooks/useTimeline'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatRelative } from '@/lib/dateFormat'
 import { getTimelineStatusColor } from '@/lib/statusColors'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
 
 /**
  * Re-export of the canonical timeline status color helper so existing
@@ -35,6 +37,7 @@ function formatStatus(status: string | null | undefined): string {
 
 export default function History() {
   const [page, setPage] = useState(1)
+  const { brandName } = usePortalBrand()
 
   const { groupedEntries, isLoading, error, pagination } = useTimeline({ page, pageSize: 20 })
 
@@ -51,22 +54,29 @@ export default function History() {
   return (
     <>
       <Seo
-        title="Activity History | Beanola Admissions"
+        title={brandedPageTitle('Activity History', brandName)}
         description="View the chronological timeline of your application activity."
         path="/student/history"
+        siteName={brandName}
         noindex
       />
+      {/*
+        No `metrics` row (task 11.5, R16.5).
+
+        This shell carried four tiles above the timeline: an "Applications" and
+        an "Entries" count the list below states by existing, a "Page" tile
+        restating the pagination control at the foot of the same page, and a
+        "State" tile reading `Needs attention` / `Quiet` / `Active` — the page's
+        own loading and error state, which it already renders as an
+        `ErrorDisplay` and a skeleton. Four tiles of implementation narration
+        held the first viewport on a phone and pushed the student's actual
+        timeline below the fold. Task 11.1 named this row as this task's.
+      */}
       <PageShell
         title="Activity History"
         subtitle="A chronological timeline of all activity on your applications."
         eyebrow="Timeline"
         tone="student"
-        metrics={[
-          { label: 'Applications', value: groupedEntries.length, helper: 'Applications with recorded history' },
-          { label: 'Entries', value: pagination.totalCount, helper: 'Total timeline events available' },
-          { label: 'Page', value: `${page}/${totalPages}`, helper: 'Current history page' },
-          { label: 'State', value: error ? 'Needs attention' : isEmpty ? 'Quiet' : 'Active', helper: error?.message || 'Your timeline is ready to review' },
-        ]}
       >
         <div className="space-y-6">
           {/* Error state */}

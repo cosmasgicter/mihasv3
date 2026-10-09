@@ -1,0 +1,39 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python3
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 21 items
+
+tests/unit/test_payment_path_parity_8_2.py::test_verify_ledger_parity[verify-success] PASSED [  4%]
+tests/unit/test_payment_path_parity_8_2.py::test_verify_ledger_parity[verify-failed] PASSED [  9%]
+tests/unit/test_payment_path_parity_8_2.py::test_verify_ledger_parity[verify-pending] PASSED [ 14%]
+tests/unit/test_payment_path_parity_8_2.py::test_verify_provider_fee_and_bearer_parity PASSED [ 19%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_ledger_parity[webhook-successful] PASSED [ 23%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_ledger_parity[webhook-failed] PASSED [ 28%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_ledger_parity[webhook-settled] PASSED [ 33%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_ledger_parity[webhook-unknown] PASSED [ 38%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_unknown_reference_is_a_no_op_on_both_paths PASSED [ 42%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_amount_mismatch_refuses_success_on_both_paths PASSED [ 47%]
+tests/unit/test_payment_path_parity_8_2.py::test_initiate_reuses_the_active_row_on_both_paths PASSED [ 52%]
+tests/unit/test_payment_path_parity_8_2.py::test_initiate_short_circuits_a_paid_application_on_both_paths PASSED [ 57%]
+tests/unit/test_payment_path_parity_8_2.py::test_hardened_path_adds_receipt_and_audit_that_legacy_never_wrote PASSED [ 61%]
+tests/unit/test_payment_path_parity_8_2.py::test_hardened_path_expresses_transitions_the_legacy_matrix_cannot PASSED [ 66%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_ingress_parity[ingress-success] PASSED [ 71%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_ingress_parity[ingress-bad-signature] PASSED [ 76%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_ingress_parity[ingress-failed] PASSED [ 80%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_ingress_parity[ingress-settled] PASSED [ 85%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_ingress_parity[ingress-unknown] PASSED [ 90%]
+tests/unit/test_payment_path_parity_8_2.py::test_webhook_processor_duplicate_delivery_parity PASSED [ 95%]
+tests/unit/test_payment_path_parity_8_2.py::test_admin_override_projection_parity_with_canonical_ledger_upgrade PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 21 passed, 1 warning in 12.00s ========================

@@ -22,6 +22,10 @@ Used by the CI `api-quality` job to detect regressions and breaking changes.
   ```
 - Any PR that changes the baseline must include the rationale in the PR description
   and pass `breaking_change_detector.py` against the previous baseline.
+- The CI gate compares non-naming issue density per endpoint, not raw issue
+  totals. This keeps additive APIs comparable while preserving snake_case as
+  the documented Django/DRF wire convention. Error-severity linter issues and
+  drf-spectacular errors/warnings must remain zero.
 
 ## Regenerating the baseline
 

@@ -90,8 +90,20 @@ describe('Bug 1: Preservation — Vite Config Structure and Build Options', () =
   it('should preserve manual chunk splitting for heavy vendor libraries', () => {
     // These vendor chunks must remain to keep bundle sizes manageable
     expect(viteConfig).toContain('vendor-pdf');
-    expect(viteConfig).toContain('vendor-ocr');
-    expect(viteConfig).toContain('vendor-charts');
+    // `vendor-ocr` is deliberately gone: admissions-v2 task 7.5 (R11.9, finding
+    // STU-07) removed the browser tesseract.js packages that chunk existed to
+    // isolate. A chunk rule for a dependency nothing imports is not "preserved
+    // bundle hygiene", it is a dead rule that keeps a 29 MB asset step alive.
+    // Enforced by tests/unit/ocrAssetRemoval.test.ts.
+    expect(viteConfig).not.toContain("return 'vendor-ocr'");
+    // `vendor-charts` is deliberately gone for the same reason, one task later:
+    // admissions-v2 task 12.4 (R11.9, R16.5) removed the `recharts` dependency
+    // after measuring zero imports of it in `src/`, `tests/` and `scripts/`, so
+    // the `/recharts/` + `/d3-` chunk rule could never fire. This assertion is
+    // the previous one inverted rather than deleted, so restoring the rule
+    // without restoring a chart consumer fails here.
+    // Enforced by tests/unit/deadDependencyRemoval.test.ts.
+    expect(viteConfig).not.toContain("return 'vendor-charts'");
     expect(viteConfig).not.toContain('vendor-location-data');
     expect(viteConfig).not.toContain('country-state-city');
   });

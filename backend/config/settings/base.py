@@ -36,6 +36,15 @@ DEBUG = False
 
 ALLOWED_HOSTS: list[str] = []
 
+# Explicitly registered hosts that serve the neutral Beanola shared portal.
+# Only these hosts may honor the narrow public ``?institution=`` selector;
+# unknown, ambiguous, or tenant hosts must never become arbitrary tenant
+# selectors. Tenant domains remain authoritative whenever they resolve.
+SHARED_PORTAL_HOSTS = split_csv_env(
+    "SHARED_PORTAL_HOSTS",
+    "apply.beanola.com,api.beanola.com,localhost,127.0.0.1,testserver,web,0.0.0.0",
+)
+
 
 def validate_debug_not_serving_production_hosts() -> None:
     """Prevent DEBUG=True from serving production API hostnames."""
@@ -217,6 +226,13 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.applications.tasks.condition_expiry_task",
         "schedule": crontab(hour=5, minute=0),
     },
+    # admissions-v2 task 10.2 (R13.9, STU-16): chase a condition deadline BEFORE
+    # it lands. Scheduled an hour after the expiry sweep so the two never argue
+    # about a condition that is expiring today.
+    "condition-reminder": {
+        "task": "apps.applications.tasks.condition_reminder_task",
+        "schedule": crontab(hour=6, minute=30),
+    },
     "document-verification-sla": {
         "task": "apps.documents.tasks.document_verification_sla_task",
         "schedule": crontab(hour=8, minute=0),
@@ -240,6 +256,18 @@ CELERY_BEAT_SCHEDULE = {
     "process-pending-emails": {
         "task": "apps.common.tasks.process_pending_emails_task",
         "schedule": 120.0,  # Every 2 minutes — sweep stale pending EmailQueue rows
+    },
+    "sweep-pending-domain-verifications": {
+        "task": "apps.catalog.tasks.sweep_pending_domain_verifications_task",
+        "schedule": 300.0,  # Every 5 minutes — re-dispatch committed-but-undispatched domain verification jobs (broker-down recovery, R5.1 / design §6.3/§17)
+    },
+    "sweep-pending-official-document-jobs": {
+        "task": "apps.applications.tasks.official_document_sweep.sweep_pending_official_document_jobs_task",
+        "schedule": 300.0,  # Every 5 minutes — re-dispatch committed-but-undispatched official-document generation jobs (broker-down recovery, admissions-v2 task 10.4; R13.11/R17.1/R17.4, design §11.3/§17)
+    },
+    "reconcile-document-storage": {
+        "task": "apps.documents.tasks.reconcile_document_storage_task",
+        "schedule": 900.0,  # Every 15 minutes — delete staged document objects whose metadata commit never landed, retry deferred compensation, and mark exhausted rows orphaned (admissions-v2 task 7.3; R11.8/R17.1/R17.4, design §9.3/§17)
     },
 }
 
@@ -392,10 +420,17 @@ REST_FRAMEWORK = {
         "payment_resolve_fee": "30/min",
         "payment_correct": "3/min",
         "payment_risk_flags": "30/min",
-        # AI hardening scopes (gated by AI_HARDENING_RATE_LIMITS)
-        "ai_admin_summary": "60/hour",
-        "ai_document_extract": "5/hour",
-        "ai_student_preview": "10/hour",
+        # Document-extraction retry scope (gated by DOCUMENT_EXTRACT_RATE_LIMITS).
+        # admissions-v2 task 7.4 retired the ai_admin_summary and
+        # ai_student_preview scopes with the endpoints they throttled.
+        "document_extract": "5/hour",
+        # Public-tracker FAILED attempts per IP (admissions-v2 task 10.5,
+        # R13.12 / STU-22). A holder of a valid tracking link never spends this
+        # budget — only lookups that resolved nothing do — so it can be far
+        # tighter than the coarse 20/10m request budget RateLimitMiddleware
+        # already applies to the same path. DRF's own rate grammar (N/period),
+        # not django-ratelimit's N/Nm.
+        "public_tracking_failure": "10/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
@@ -440,7 +475,7 @@ Protected endpoints accept either:
 - a bearer access token for direct API testing
 - or the `access_token` cookie issued by the login flow
 """.strip(),
-    "VERSION": "1.0.0",
+    "VERSION": "2.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVERS": [
         {"url": "https://api.beanola.com", "description": "Production"},
@@ -562,7 +597,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-APP_VERSION = os.environ.get("APP_VERSION", "1.0.0")
+APP_VERSION = os.environ.get("APP_VERSION", "2.0.0")
 
 LOGGING = {
     "version": 1,
@@ -615,12 +650,26 @@ LENCO_MTN_PREFIXES = os.environ.get("LENCO_MTN_PREFIXES", "")
 LENCO_AIRTEL_PREFIXES = os.environ.get("LENCO_AIRTEL_PREFIXES", "")
 
 # Vercel AI Gateway
-AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")
-AI_GATEWAY_BASE_URL = os.environ.get("AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1")
-AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")  # cheap, fast tasks
-AI_MODEL_VISION = os.environ.get("AI_MODEL_VISION", "google/gemini-2.5-flash")  # document OCR
-AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")  # structured JSON extraction (cheapest)
-AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")  # complex reasoning (cheapest: $0.28/M input)
+# Jobs-ops AI gateway -- jobs-ops product only, NOT admissions.
+#
+# admissions-v2 task 7.4 (R11.9; design 9.1: "If jobs-ops retains an AI
+# integration, its dependency and settings move behind the jobs-ops boundary so
+# admissions has no runtime import"). The only reader is ``apps.jobs.ai_service``
+# and its jobs-ops callers. The admissions domain (applications / documents /
+# catalog / accounts / common) must not read these, and
+# ``tests/unit/test_no_admissions_generative_ai_guard.py`` fails the build if it
+# does. The env-var names are unchanged so no deployment has to be re-keyed;
+# only the Django setting names moved into the jobs-ops namespace.
+JOBS_OPS_AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")
+JOBS_OPS_AI_GATEWAY_BASE_URL = os.environ.get(
+    "AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1"
+)
+# gemini-2.5-flash: cheap, fast jobs-ops scoring/messaging
+JOBS_OPS_AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")
+# gpt-4o-mini: structured JSON extraction
+JOBS_OPS_AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
+# deepseek-v3: complex reasoning
+JOBS_OPS_AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
@@ -629,61 +678,83 @@ PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
 )
 
 # ---------------------------------------------------------------------------
-# Payment hardening feature flags — see .kiro/specs/payment-hardening/
+# Payment feature flags
 # ---------------------------------------------------------------------------
-# Phase 2: gates ``PaymentService._transition()`` enforcement and the
-# hardened view branches (new stable codes, audit, metrics). The forward-only
-# path is now the sole canonical path — legacy branches have been removed.
-PAYMENT_HARDENING_FORWARD_ONLY = True
-
-# Phase 3: gates canonical-JSON + ``WebhookEventIdentity`` strict dedup on
-# the webhook path. When False the previous dedup behaviour remains.
-PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = os.environ.get(
-    "PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT", ""
-).lower() in ("1", "true", "yes")
-
-# Phase 5: per-user DRF throttle scopes (payment_initiate, payment_verify,
-# payment_mobile_money, payment_resolve_fee). When False the pre-existing
-# throttle configuration remains in effect.
+# admissions-v2 task 8.2 removed three of the five payment-hardening flags,
+# because each of them selected between two implementations of the same
+# behaviour and the duplicate has been deleted:
+#
+#   PAYMENT_HARDENING_FORWARD_ONLY        → ``PaymentService._transition`` is
+#                                           the only mutator (ADR-007).
+#   PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT→ ``WebhookEventIdentity`` is the
+#                                           only dedup contract (ADR-004).
+#   PAYMENT_HARDENING_FORCE_APPROVED      → an admin override is always a
+#                                           ``force_approved`` row (ADR-002).
+#
+# Parity was proven before deletion (tests/unit/test_payment_path_parity_8_2.py,
+# docs/v2-evidence/8.2/). Rollback is no longer a flag flip — see
+# docs/runbooks/payment-hardening-rollout.md.
+#
+# What survives is a genuine *policy* switch, not a second code path: it
+# chooses how strictly the one payment path is throttled, and both settings
+# run the same state machine.
 PAYMENT_HARDENING_RATE_LIMITS = os.environ.get(
     "PAYMENT_HARDENING_RATE_LIMITS", ""
 ).lower() in ("1", "true", "yes")
 
-# Phase 5: admin override path creates a ``force_approved`` Payment instead
-# of the legacy synthetic zero-amount ``successful`` row. When False the
-# legacy behaviour is preserved.
-PAYMENT_HARDENING_FORCE_APPROVED = os.environ.get(
-    "PAYMENT_HARDENING_FORCE_APPROVED", ""
+# ---------------------------------------------------------------------------
+# Server-authored fee quotes — admissions-v2 task 8.1 (R12.1, R12.2, R12.6)
+# ---------------------------------------------------------------------------
+# The backend is the sole authority on money. These settings hold the two inputs
+# the frontend used to invent for itself (finding STU-08): how long a quoted price
+# stays honourable, and the provider-fee policy that used to be a hardcoded 1% in
+# ``PaymentForm.tsx``. Changing the policy here changes what every student is
+# quoted — there is no second copy in the client.
+#
+# TTL: long enough for a student on a weak connection to finish a mobile-money
+# approval, short enough that a fee change is not honoured indefinitely.
+FEE_QUOTE_TTL_SECONDS = int(os.environ.get("FEE_QUOTE_TTL_SECONDS", "1800"))
+# Provider-fee policy. ``percent`` is a percentage of the canonical fee (1.0 == 1%,
+# matching the rate Lenco charges and the value the client used to hardcode);
+# ``fixed`` is a flat surcharge in the fee currency; ``cap`` (when > 0) bounds the
+# computed provider fee. ``bearer`` decides who pays it: ``customer`` adds it to
+# the quoted total (the current Lenco collection is sent with bearer=customer),
+# ``merchant`` absorbs it so the student is quoted the bare canonical fee.
+PAYMENT_PROVIDER_FEE_PERCENT = os.environ.get("PAYMENT_PROVIDER_FEE_PERCENT", "1.0")
+PAYMENT_PROVIDER_FEE_FIXED = os.environ.get("PAYMENT_PROVIDER_FEE_FIXED", "0")
+PAYMENT_PROVIDER_FEE_CAP = os.environ.get("PAYMENT_PROVIDER_FEE_CAP", "0")
+PAYMENT_PROVIDER_FEE_BEARER = os.environ.get(
+    "PAYMENT_PROVIDER_FEE_BEARER", "customer"
+)
+# Quote signing key. Falls back to SECRET_KEY so no deployment needs re-keying to
+# get signed quotes; set it explicitly to rotate quote signatures independently of
+# session/JWT signing. Bump FEE_QUOTE_SIGNATURE_VERSION when rotating so historical
+# rows stay attributable to the key that signed them.
+FEE_QUOTE_SIGNING_KEY = os.environ.get("FEE_QUOTE_SIGNING_KEY", "") or SECRET_KEY
+FEE_QUOTE_SIGNATURE_VERSION = int(os.environ.get("FEE_QUOTE_SIGNATURE_VERSION", "1"))
+
+# ---------------------------------------------------------------------------
+# Document-extraction rate-limit gate
+# ---------------------------------------------------------------------------
+# admissions-v2 task 7.4 (R11.9) removed the AI_HARDENING_* family together with
+# the admissions AI it hardened: the circuit breaker, the prompt redactor, the
+# summary cache, and the two summary throttles all went with the endpoints. What
+# survives is the one cap that was never about AI -- the per-user ceiling on
+# local OCR re-extract calls, which is still a real CPU/DoS lever.
+DOCUMENT_EXTRACT_RATE_LIMITS = os.environ.get(
+    "DOCUMENT_EXTRACT_RATE_LIMITS", ""
 ).lower() in ("1", "true", "yes")
 
 # ---------------------------------------------------------------------------
-# AI hardening flags — see docs/ai-data-flows.md and apps/common/ai_*.py
+# Public-tracker failed-attempt gate (admissions-v2 task 10.5, R13.12 / STU-22)
 # ---------------------------------------------------------------------------
-
-# Enables the Redis-backed circuit breaker in ``apps.common.ai_circuit_breaker``
-# around every AI Gateway call. When False the breaker is a pass-through.
-AI_HARDENING_CIRCUIT_BREAKER = os.environ.get(
-    "AI_HARDENING_CIRCUIT_BREAKER", ""
+# Defaults to **True**, unlike the two gates above. Those harden authenticated
+# endpoints, so shipping them off and flipping them on is a rollout choice; this
+# one is the boundary of an *unauthenticated* endpoint, so its absence must not
+# be the same as its disablement. An operator can still turn it off explicitly.
+PUBLIC_TRACKING_RATE_LIMITS = os.environ.get(
+    "PUBLIC_TRACKING_RATE_LIMITS", "true"
 ).lower() in ("1", "true", "yes")
-
-# Enables ``AIUserScopedRateThrottle`` on admin-summary, document-extract,
-# and student-preview endpoints. When False those throttles are no-ops.
-AI_HARDENING_RATE_LIMITS = os.environ.get(
-    "AI_HARDENING_RATE_LIMITS", ""
-).lower() in ("1", "true", "yes")
-
-# Enables Redis caching of admin-summary and student-preview AI responses
-# via ``apps.common.ai_cache``. When False the caching layer is bypassed.
-AI_HARDENING_CACHE = os.environ.get(
-    "AI_HARDENING_CACHE", ""
-).lower() in ("1", "true", "yes")
-
-# Enables PII redaction in ``apps.common.ai_prompt_redactor`` before
-# admin-summary and student-preview prompts are sent to the AI Gateway.
-# Default: ON (opt-out by setting AI_HARDENING_REDACTION=false).
-AI_HARDENING_REDACTION = os.environ.get(
-    "AI_HARDENING_REDACTION", "true"
-).lower() not in ("0", "false", "no", "")
 
 # ---------------------------------------------------------------------------
 # System performance hardening — scoped cache feature flags

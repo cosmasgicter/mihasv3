@@ -297,9 +297,21 @@ class AdminAuditService {
         return { entries: [], page, pageSize, totalPages: 1, totalCount: 0, summary: EMPTY_SUMMARY }
       }
 
-      const rawEntries = result.entries ?? result.results ?? []
-      const entries = rawEntries.map(mapAuditEntry)
-      const totalCount = result.totalCount ?? result.count ?? entries.length
+      // Task 12.2 (R14.5, finding API-02): `result.entries` and `result.count`
+      // are gone. `AdminAuditLogView` returns `paginator.get_paginated_response`,
+      // i.e. `{page, pageSize, totalCount, results}` — it has no `entries` key,
+      // and `count` is *DRF's default* pagination key, not this platform's
+      // (`StandardPagination` publishes `totalCount`). Reading `count` accepted
+      // a rival pagination contract; that is the kind of permissive read R14
+      // exists to stop, because a regression to DRF defaults would have kept
+      // working and stayed invisible.
+      //
+      // `result.totalPages` and `result.summary` below are deliberately KEPT.
+      // They are not rival contracts — the server simply does not send them, the
+      // client derives both, and if a later task publishes them the derivation
+      // steps aside correctly. Named here so the difference is on the record.
+      const entries = (result.results ?? []).map(mapAuditEntry)
+      const totalCount = result.totalCount ?? entries.length
       const totalPages = result.totalPages || Math.ceil(totalCount / pageSize) || 1
 
       return {

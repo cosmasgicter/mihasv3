@@ -5,7 +5,7 @@
  * @requirements 6.3, 6.5 - Enhanced data tables with shadcn/ui and 8starlabs StatusIndicator
  */
 
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Eye, FileText, Mail, User } from 'lucide-react';
 import { EnhancedDataTable, type Column } from '@/components/admin/EnhancedDataTable';
 import { DraftBadge } from '@/components/admin/applications/DraftBadge';
@@ -14,7 +14,6 @@ import { formatDate } from '@/lib/dateFormat';
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus';
 import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi';
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus';
-import { StatusPill } from '@/components/ui/StatusPill';
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData';
 
 interface ApplicationsTableViewProps {
@@ -104,7 +103,7 @@ export function ApplicationsTableView({
         if (row.isDraft) {
           return (
             <DraftBadge
-              completionPercentage={row.completionPercentage || 0}
+              completionPercentage={row.completionPercentage}
               lastUpdated={row.lastUpdated || row.created_at}
             />
           );
@@ -153,7 +152,7 @@ export function ApplicationsTableView({
           <span className={cn('font-semibold', getPointsColor(numValue))}>
             {numValue > 0 ? numValue : '-'}
           </span>
-          {row.total_subjects > 0 && (
+          {typeof row.total_subjects === 'number' && row.total_subjects > 0 && (
             <span className="text-xs text-muted-foreground">
               {row.total_subjects} subj
             </span>
@@ -170,7 +169,7 @@ export function ApplicationsTableView({
       render: (value: unknown, row: ApplicationSummary) => (
         <div className="flex flex-col">
           <span className="text-sm">{formatTableDate(String(value ?? '') || row.created_at)}</span>
-          {row.days_since_submission > 0 && (
+          {typeof row.days_since_submission === 'number' && row.days_since_submission > 0 && (
             <span className="text-xs text-muted-foreground">
               {row.days_since_submission}d ago
             </span>

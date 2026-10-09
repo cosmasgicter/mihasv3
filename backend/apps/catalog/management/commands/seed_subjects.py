@@ -1,105 +1,47 @@
-"""Seed ECZ Grade 12 and A-Level subjects into the subjects table.
+"""Seed the canonical subject catalogue into the ``subjects`` table.
 
-Run: python manage.py seed_subjects
-Idempotent - uses ON CONFLICT DO NOTHING on the code unique constraint.
+Run: ``python manage.py seed_subjects``
+
+Idempotent — upserts on the ``code`` unique constraint. The catalogue itself
+lives in :mod:`apps.catalog.subject_catalog` (admissions-v2 task 7.1), which is
+also what the selector endpoint, the alias catalogue, and
+``backend/scripts/2026_07_25_01_canonical_subject_catalog.sql`` read, so the
+command can no longer drift from the deployed data.
+
+The SQL migration is what production and Neon actually apply at boot; this
+command stays for local/dev seeding and for re-asserting the catalogue after a
+manual data fix.
 """
 
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-
-# ECZ Grade 12 (Senior Secondary Certificate) - complete per ECZ syllabus
-GRADE_12_SUBJECTS = [
-    # Core
-    ("English Language", "ENG", "core", True, "ecz"),
-    ("Mathematics", "MATH", "core", True, "ecz"),
-    ("Civic Education", "CE", "core", True, "ecz"),
-    # Sciences
-    ("Biology", "BIO", "sciences", False, "ecz"),
-    ("Chemistry", "CHEM", "sciences", False, "ecz"),
-    ("Physics", "PHY", "sciences", False, "ecz"),
-    ("Science", "SCI", "sciences", False, "ecz"),
-    ("Integrated Science", "INTSCI", "sciences", False, "ecz"),
-    ("Agricultural Science", "AGR", "sciences", False, "ecz"),
-    ("Additional Mathematics", "ADDMATH", "sciences", False, "ecz"),
-    # "Ordinary Mathematics" (OMATH) and "Ordinary Science" (OSCI) removed
-    # May 2026 - not real ECZ syllabus entries. Canonical names are
-    # "Mathematics" (core) and "Science" (combined elective).
-    # scripts/migrations/0002_remove_phantom_subjects.sql handles the
-    # data migration for existing rows.
-    # Commercial
-    ("Commerce", "COM", "commercial", False, "ecz"),
-    ("Principles of Accounts", "POA", "commercial", False, "ecz"),
-    ("Economics", "ECON", "commercial", False, "ecz"),
-    ("Business Studies", "BS", "commercial", False, "ecz"),
-    ("Office Practice", "OP", "commercial", False, "ecz"),
-    ("Entrepreneurship", "ENT", "commercial", False, "ecz"),
-    # Humanities
-    ("Geography", "GEO", "humanities", False, "ecz"),
-    ("History", "HIST", "humanities", False, "ecz"),
-    ("Religious Education", "RE", "humanities", False, "ecz"),
-    ("Development Studies", "DS", "humanities", False, "ecz"),
-    ("Literature in English", "LIT", "humanities", False, "ecz"),
-    # Technology
-    ("Computer Studies", "CS", "technology", False, "ecz"),
-    ("ICT", "ICT", "technology", False, "ecz"),
-    ("Design & Technology", "DT", "technology", False, "ecz"),
-    ("Metalwork", "MW", "technology", False, "ecz"),
-    ("Woodwork", "WW", "technology", False, "ecz"),
-    ("Technical Drawing", "TD", "technology", False, "ecz"),
-    ("Power Mechanics", "PM", "technology", False, "ecz"),
-    # Practical / Creative
-    ("Home Economics", "HE", "practical", False, "ecz"),
-    ("Food & Nutrition", "FN", "practical", False, "ecz"),
-    ("Art & Design", "ART", "practical", False, "ecz"),
-    ("Music", "MUSIC", "practical", False, "ecz"),
-    ("Physical Education", "PE", "practical", False, "ecz"),
-    ("Fashion & Fabrics", "FF", "practical", False, "ecz"),
-    # Languages
-    ("French", "FRENCH", "languages", False, "ecz"),
-    ("Portuguese", "PORT", "languages", False, "ecz"),
-    ("Bemba", "BEMBA", "languages", False, "ecz"),
-    ("Nyanja", "NYANJA", "languages", False, "ecz"),
-    ("Tonga", "TONGA", "languages", False, "ecz"),
-    ("Lozi", "LOZI", "languages", False, "ecz"),
-    ("Kaonde", "KAONDE", "languages", False, "ecz"),
-    ("Lunda", "LUNDA", "languages", False, "ecz"),
-    ("Luvale", "LUVALE", "languages", False, "ecz"),
-]
-
-# A-Level (GCE Advanced Level / Cambridge)
-A_LEVEL_SUBJECTS = [
-    ("English Language (A-Level)", "AL-ENG", "languages", False, "a_level"),
-    ("Pure Mathematics (A-Level)", "AL-PMATH", "sciences", False, "a_level"),
-    ("Further Mathematics (A-Level)", "AL-FMATH", "sciences", False, "a_level"),
-    ("Biology (A-Level)", "AL-BIO", "sciences", False, "a_level"),
-    ("Chemistry (A-Level)", "AL-CHEM", "sciences", False, "a_level"),
-    ("Physics (A-Level)", "AL-PHY", "sciences", False, "a_level"),
-    ("Geography (A-Level)", "AL-GEO", "humanities", False, "a_level"),
-    ("History (A-Level)", "AL-HIST", "humanities", False, "a_level"),
-    ("Economics (A-Level)", "AL-ECON", "commercial", False, "a_level"),
-    ("Accounting (A-Level)", "AL-ACC", "commercial", False, "a_level"),
-    ("Business Studies (A-Level)", "AL-BS", "commercial", False, "a_level"),
-    ("Computer Science (A-Level)", "AL-CS", "technology", False, "a_level"),
-    ("Sociology (A-Level)", "AL-SOC", "humanities", False, "a_level"),
-    ("Psychology (A-Level)", "AL-PSY", "humanities", False, "a_level"),
-    ("Religious Studies (A-Level)", "AL-RS", "humanities", False, "a_level"),
-    ("French (A-Level)", "AL-FRENCH", "languages", False, "a_level"),
-    ("Literature in English (A-Level)", "AL-LIT", "languages", False, "a_level"),
-    ("Art & Design (A-Level)", "AL-ART", "practical", False, "a_level"),
-    ("Law (A-Level)", "AL-LAW", "humanities", False, "a_level"),
-]
+from apps.catalog.subject_catalog import (
+    CANONICAL_SUBJECTS,
+    LEGACY_DUPLICATE_CODES,
+    SUBJECT_CATALOG_VERSION,
+)
 
 
 class Command(BaseCommand):
-    help = "Seed ECZ Grade 12 and A-Level subjects (idempotent)"
+    help = "Seed the canonical ECZ Grade 12 and A-Level subject catalogue (idempotent)"
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--deactivate-legacy-duplicates",
+            action="store_true",
+            help=(
+                "Also deactivate the inventoried duplicate-identity rows "
+                "(ADD_MATH/MUS/PHYS). Reference repointing is owned by the SQL "
+                "migration; this flag only flips is_active."
+            ),
+        )
 
     def handle(self, *args, **options):
-        all_subjects = GRADE_12_SUBJECTS + A_LEVEL_SUBJECTS
-        inserted = 0
+        written = 0
 
         with connection.cursor() as cursor:
-            for name, code, category, is_core, curriculum_type in all_subjects:
+            for entry in CANONICAL_SUBJECTS:
                 cursor.execute(
                     """
                     INSERT INTO subjects (id, name, code, category, is_core, is_active, curriculum_type, created_at)
@@ -108,16 +50,32 @@ class Command(BaseCommand):
                         name = EXCLUDED.name,
                         category = EXCLUDED.category,
                         is_core = EXCLUDED.is_core,
+                        is_active = true,
                         curriculum_type = EXCLUDED.curriculum_type
-                    WHERE subjects.name != EXCLUDED.name
-                       OR subjects.category != EXCLUDED.category
-                       OR subjects.is_core != EXCLUDED.is_core
+                    WHERE subjects.name IS DISTINCT FROM EXCLUDED.name
+                       OR subjects.category IS DISTINCT FROM EXCLUDED.category
+                       OR subjects.is_core IS DISTINCT FROM EXCLUDED.is_core
+                       OR subjects.is_active IS DISTINCT FROM true
+                       OR subjects.curriculum_type IS DISTINCT FROM EXCLUDED.curriculum_type
                     """,
-                    [name, code, category, is_core, curriculum_type],
+                    [entry.name, entry.code, entry.category, entry.is_core, entry.curriculum_type],
                 )
                 if cursor.rowcount > 0:
-                    inserted += 1
+                    written += 1
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Seeded {inserted} subjects ({len(all_subjects)} total checked)"
-        ))
+            deactivated = 0
+            if options.get("deactivate_legacy_duplicates"):
+                cursor.execute(
+                    "UPDATE subjects SET is_active = false "
+                    "WHERE code = ANY(%s) AND is_active IS DISTINCT FROM false",
+                    [list(LEGACY_DUPLICATE_CODES)],
+                )
+                deactivated = cursor.rowcount
+
+        message = (
+            f"Catalogue {SUBJECT_CATALOG_VERSION}: {written} row(s) written "
+            f"({len(CANONICAL_SUBJECTS)} checked)"
+        )
+        if options.get("deactivate_legacy_duplicates"):
+            message += f"; {deactivated} legacy duplicate row(s) deactivated"
+        self.stdout.write(self.style.SUCCESS(message))

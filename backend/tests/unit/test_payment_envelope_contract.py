@@ -77,18 +77,19 @@ def _build_request(method: str, path: str, data=None):
     return fn(path)
 
 
-def _assert_failure_envelope(test, response, expected_code: str, *, hardened: bool = True):
-    """Assert ``response`` conforms to the failure envelope with ``code``."""
+def _assert_failure_envelope(test, response, expected_code: str):
+    """Assert ``response`` conforms to the failure envelope with ``code``.
+
+    There is one failure shape: ``{"success": false, "error": {"code", "message"}}``.
+    The flat ``{"success": false, "code": ...}`` variant belonged to the payment
+    path deleted in admissions-v2 task 8.2 and is no longer produced.
+    """
     body = response.data
     test.assertFalse(body.get("success"))
-    if hardened:
-        err = body.get("error")
-        test.assertIsInstance(err, dict, f"expected dict error, got {err!r}")
-        test.assertEqual(err.get("code"), expected_code)
-        test.assertIn("message", err)
-    else:
-        test.assertEqual(body.get("code"), expected_code)
-        test.assertIn("error", body)
+    err = body.get("error")
+    test.assertIsInstance(err, dict, f"expected dict error, got {err!r}")
+    test.assertEqual(err.get("code"), expected_code)
+    test.assertIn("message", err)
 
 
 def _assert_success_envelope(test, response):
@@ -102,7 +103,7 @@ def _assert_success_envelope(test, response):
 # ---------------------------------------------------------------------------
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True, LENCO_PUBLIC_KEY="pk_test")
+@override_settings(LENCO_PUBLIC_KEY="pk_test")
 class TestPaymentInitiateEnvelopeHardened(SimpleTestCase):
     def setUp(self):
         self.view = PaymentInitiateView.as_view()
@@ -126,7 +127,11 @@ class TestPaymentInitiateEnvelopeHardened(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
         _assert_failure_envelope(self, response, "APPLICATION_NOT_FOUND")
 
-    def test_non_owner_maps_to_NOT_OWNER(self):
+    def test_non_owner_maps_to_NOT_FOUND_mask(self):
+        # AUTH-07: a valid-but-non-owned application id is masked as an
+        # indistinguishable canonical 404 NOT_FOUND (never a distinguishable
+        # 403 NOT_OWNER that leaks existence). Owner-class action, so no staff
+        # bypass either.
         app_id = uuid.uuid4()
         user = _make_user()
         foreign_app = SimpleNamespace(
@@ -143,8 +148,8 @@ class TestPaymentInitiateEnvelopeHardened(SimpleTestCase):
         ):
             response = self.view(request)
 
-        self.assertEqual(response.status_code, 403)
-        _assert_failure_envelope(self, response, "NOT_OWNER")
+        self.assertEqual(response.status_code, 404)
+        _assert_failure_envelope(self, response, "NOT_FOUND")
 
     def test_max_attempts_exceeded_envelope(self):
         app_id = uuid.uuid4()
@@ -253,43 +258,12 @@ class TestPaymentInitiateEnvelopeHardened(SimpleTestCase):
         self.assertEqual(response.data["data"].get("next_action"), "already_paid")
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=False, LENCO_PUBLIC_KEY="pk_test")
-class TestPaymentInitiateEnvelopeLegacy(SimpleTestCase):
-    def setUp(self):
-        self.view = PaymentInitiateView.as_view()
-
-    def test_max_attempts_exceeded_preserves_legacy_envelope(self):
-        app_id = uuid.uuid4()
-        user = _make_user()
-        application = SimpleNamespace(
-            id=app_id, user_id=user.id, payment_status="pending"
-        )
-        request = _build_request(
-            "post", "/api/v1/payments/initiate/", {"application_id": str(app_id)}
-        )
-        force_authenticate(request, user=user)
-
-        with patch(
-            "apps.applications.models.Application.objects.get",
-            return_value=application,
-        ), patch(
-            "apps.documents.payment_service.PaymentService.initiate_payment",
-            side_effect=ValueError("MAX_PAYMENT_ATTEMPTS_EXCEEDED|0"),
-        ):
-            response = self.view(request)
-
-        self.assertEqual(response.status_code, 400)
-        _assert_failure_envelope(
-            self, response, "MAX_PAYMENT_ATTEMPTS_EXCEEDED", hardened=False
-        )
-
-
 # ---------------------------------------------------------------------------
 # MobileMoneyInitiateView
 # ---------------------------------------------------------------------------
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True, LENCO_PUBLIC_KEY="pk_test")
+@override_settings(LENCO_PUBLIC_KEY="pk_test")
 class TestMobileMoneyEnvelopeHardened(SimpleTestCase):
     def setUp(self):
         self.view = MobileMoneyInitiateView.as_view()
@@ -370,7 +344,6 @@ class TestMobileMoneyEnvelopeHardened(SimpleTestCase):
 # ---------------------------------------------------------------------------
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 class TestPaymentVerifyEnvelopeHardened(SimpleTestCase):
     def setUp(self):
         self.view = PaymentVerifyView.as_view()
@@ -558,53 +531,11 @@ class TestPaymentVerifyEnvelopeHardened(SimpleTestCase):
         _assert_failure_envelope(self, response, "MISSING_PROVIDER_REFERENCE")
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=False)
-class TestPaymentVerifyEnvelopeLegacy(SimpleTestCase):
-    def setUp(self):
-        self.view = PaymentVerifyView.as_view()
-
-    def test_legacy_envelope_preserved_on_error(self):
-        payment = SimpleNamespace(
-            id=uuid.uuid4(),
-            user_id=uuid.uuid4(),
-            status="pending",
-            amount=Decimal("153.00"),
-            currency="ZMW",
-            lenco_reference="lenco-1",
-            payment_method="mobile_money",
-        )
-        user = _make_user(user_id=payment.user_id)
-        request = _build_request("post", f"/api/v1/payments/{payment.id}/verify/")
-        force_authenticate(request, user=user)
-
-        result = PaymentVerificationResult(
-            status="pending",
-            amount=None,
-            currency=None,
-            lenco_reference=None,
-            payment_method=None,
-            error="Lenco unreachable",
-        )
-        with patch(
-            "apps.documents.models.Payment.objects.get",
-            return_value=payment,
-        ), patch(
-            "apps.documents.payment_service.PaymentService.verify_payment",
-            return_value=result,
-        ):
-            response = self.view(request, payment_id=payment.id)
-
-        self.assertEqual(response.status_code, 200)
-        # Legacy envelope uses flat ``code``.
-        _assert_failure_envelope(self, response, "VERIFICATION_ERROR", hardened=False)
-
-
 # ---------------------------------------------------------------------------
 # FeeResolveView
 # ---------------------------------------------------------------------------
 
 
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 class TestFeeResolveEnvelopeHardened(SimpleTestCase):
     def setUp(self):
         self.view = FeeResolveView.as_view()
@@ -663,8 +594,16 @@ class TestFeeResolveEnvelopeHardened(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         _assert_success_envelope(self, response)
         self.assertIn("customer_total", response.data["data"])
-        # provider_fee_estimate defaults to 0 → customer_total == amount
-        self.assertEqual(response.data["data"]["customer_total"], "153.00")
+        # admissions-v2 task 8.1: the provider fee comes from the SERVER's
+        # provider-fee policy (default 1%, customer-borne) — the same authority
+        # that mints a binding quote — so the preview total includes it. The
+        # client no longer computes this (finding STU-08). The endpoint is a
+        # preview: ``is_binding_quote`` is False and only
+        # POST /api/v1/payments/quote/ can fund a payment.
+        self.assertEqual(response.data["data"]["provider_fee_estimate"], "1.53")
+        self.assertEqual(response.data["data"]["customer_total"], "154.53")
+        self.assertEqual(response.data["data"]["bearer"], "customer")
+        self.assertFalse(response.data["data"]["is_binding_quote"])
 
 
 # ---------------------------------------------------------------------------

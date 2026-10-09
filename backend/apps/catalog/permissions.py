@@ -144,6 +144,53 @@ class HasPlatformCapability(BasePermission):
             return False
 
 
+class HasTenantCapability(BasePermission):
+    """Require tenant scope and, optionally, one ``tenant.*`` capability.
+
+    ``required_capability`` on the view may be ``None`` for self/aggregate
+    admin-tier reads such as ``/admin/capabilities/`` and ``/admin/scope/``.
+    The disclosure contract is delegated to ``authorize_tenant_surface``:
+    actors with no tenant scope receive a masked 404, while an in-scope actor
+    missing the named capability receives a non-revealing 403. Platform
+    all-access actors pass.
+
+    A view may set ``capability_self_description = True`` to declare that its
+    payload describes only the caller's own authority and discloses no tenant
+    fact — the two Capability_Endpoints. On such a view an unassigned staff-tier
+    actor is answered with its empty capability set instead of being masked,
+    which is what R2.1 requires and what the frontend's "no school access"
+    state is rendered from. Every other view keeps the tenant-data contract
+    unchanged, and role is still never evaluated *here* — the bounded role read
+    lives in ``authorize_tenant_surface`` next to the reasoning for it
+    (13.6 remediation M3).
+    """
+
+    message = "You do not have permission to perform this action."
+
+    def has_permission(self, request, view) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+
+        capability = getattr(view, "required_capability", None)
+        resource_type = getattr(view, "audit_resource_type", "tenant_surface")
+        self_description = bool(getattr(view, "capability_self_description", False))
+        allow_target_scope = bool(getattr(view, "allow_target_scope", False))
+        try:
+            from apps.common.tenant_authorization import authorize_tenant_surface
+
+            authorize_tenant_surface(
+                request,
+                capability=capability,
+                self_description=self_description,
+                allow_target_scope=allow_target_scope,
+            )
+            return True
+        except PermissionDenied:
+            _emit_auth_denied(request, user, capability, resource_type)
+            raise
+
+
 class TenantScopedCapabilityMixin:
     """Scope object lookups through ``visible_institution_queryset`` (R3.5, R4.3, R4.5).
 
@@ -239,6 +286,7 @@ class TenantScopedCapabilityMixin:
 
 __all__ = [
     "HasPlatformCapability",
+    "HasTenantCapability",
     "TenantScopedCapabilityMixin",
     "ACTION_AUTH_DENIED",
 ]

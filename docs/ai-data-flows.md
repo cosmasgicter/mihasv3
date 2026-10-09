@@ -1,186 +1,178 @@
 # AI Data Flows
 
-Everything that leaves the platform and reaches the Vercel AI Gateway
-(or any other AI provider), what it contains, how long it can live
-outside our infrastructure, and the protective layers we wrap around
-it.
+Everything that leaves the platform and reaches a generative model: which product
+sends it, what it contains, and what protects it.
 
-## Scope
+> **Rewritten by admissions-v2 task 12.4 (R11.1, R11.9).** Every path this
+> document previously described has been deleted. Until this rewrite it told the
+> reader that the admissions runtime sent applicant **full names, NRC/passport
+> numbers, dates of birth and raw result-slip images** to the Vercel AI Gateway,
+> and that four `AI_HARDENING_*` flags controlled the protections. None of that is
+> true any more, and a false statement in this direction is not a stale
+> paragraph — it is a data-protection claim about a live system holding real
+> applicant records. The dated record of what those paths used to do lives in
+> `docs/audits/ai-and-ocr-final.md` and in `docs/v2-evidence/7.4/` – `7.5/`; this
+> file describes the present.
 
-This document covers the four AI-touching code paths in
-`backend/apps/common/ai_service.py`:
+## Scope: one product, four calls
 
-1. `extract_text_from_image` — vision OCR on uploaded result slips
-   and identity documents.
-2. `analyze_document` — structured extraction from OCR text (grades,
-   exam number, year).
-3. `generate_admin_review_summary` — admin-facing review brief.
-4. `generate_student_preview_summary` — student-facing encouraging
-   summary on the wizard review step.
+**Admissions makes no generative AI call.** Task 7.4 removed the admissions AI
+service, its two endpoints, its cache, circuit breaker, prompt redactor,
+throttles, flags and copy (R11.1). Task 12.4 scoped the remaining SDK
+declaration to jobs-ops and added the guard below. The admissions surfaces that
+used to be generative are now deterministic:
 
-`summarize_application` also exists but is currently unreferenced by
-any view or task; it inherits the same protections because it shares
-the Vercel AI Gateway backend.
+| Admissions surface | What it is now |
+|---|---|
+| Reviewer review brief | a deterministic readiness checklist computed by the same evaluator submission re-runs (payment gate, required documents, identity, grades/eligibility, duplicate/late flags, allowed next actions) |
+| Student review-step summary | composed from stored fields and current validation results; names blockers, no generated prose |
+| Grade extraction from a result slip | **server-side Tesseract** + a deterministic parser. No model. Candidates resolve only through the versioned alias catalogue, carry confidence and provenance, and require explicit student confirmation; a manual entry always wins and an unrecognised label stays unresolved rather than being guessed |
+| Document classification, eligibility, verification, routing, decisions | deterministic services; never a model |
+
+The **only** generative integration on the platform is `backend/apps/jobs/ai_service.py`,
+which serves the jobs-ops operator dashboard. It has four functions, all
+best-effort: a failure returns `None` and never blocks a flow.
 
 ## Gateway and models
 
-| Setting | Default | Used by |
-|---------|---------|---------|
-| `AI_GATEWAY_API_KEY` | (env) | OpenAI-compatible client |
-| `AI_GATEWAY_BASE_URL` | `https://ai-gateway.vercel.sh/v1` | OpenAI-compatible client |
-| `AI_MODEL_VISION` | `google/gemini-2.5-flash` | `extract_text_from_image` |
-| `AI_MODEL_FAST` | `google/gemini-2.5-flash` | `generate_student_preview_summary`, `summarize_application` |
-| `AI_MODEL_ANALYSIS` | `openai/gpt-4o-mini` | `analyze_document`, `generate_admin_review_summary` |
-| `AI_MODEL_SMART` | `deepseek-v3` | (configured, not currently invoked) |
+| Django setting | Env var | Default | Used by |
+|---|---|---|---|
+| `JOBS_OPS_AI_GATEWAY_API_KEY` | `AI_GATEWAY_API_KEY` | (env) | the OpenAI-compatible client |
+| `JOBS_OPS_AI_GATEWAY_BASE_URL` | `AI_GATEWAY_BASE_URL` | `https://ai-gateway.vercel.sh/v1` | the same |
+| `JOBS_OPS_AI_MODEL_FAST` | `AI_MODEL_FAST` | `google/gemini-2.5-flash` | `score_job_match`, `generate_outreach_message`, `analyze_job_posting` |
+| `JOBS_OPS_AI_MODEL_SMART` | `AI_MODEL_SMART` | `deepseek/deepseek-v3` | `tailor_resume` |
+| `JOBS_OPS_AI_MODEL_ANALYSIS` | `AI_MODEL_ANALYSIS` | `openai/gpt-4o-mini` | configured, not currently invoked |
 
-The OpenAI Python SDK is pointed at the Vercel AI Gateway base URL;
-from the platform's perspective there is only one outbound HTTP
-destination for AI traffic.
+The setting names are namespaced; the **env var** names are not, deliberately, so
+no deployment had to be re-keyed when task 7.4 moved them out of the shared
+namespace. The `openai` package is the SDK, not the destination: it is pointed at
+the Vercel AI Gateway base URL, so there is one outbound HTTP destination for all
+AI traffic. `openai` is declared in `backend/requirements.txt` under an explicit
+**jobs-ops-only** section, and its single importer in the whole backend is
+`apps/jobs/ai_service.py`.
 
-## Call-by-call data map
+If the key is absent, `_get_client()` returns `None` and every function below
+returns `None`. An unconfigured platform makes no AI call at all.
 
-### 1. `extract_text_from_image` — vision OCR
+## Call-by-call data map (jobs-ops)
 
-| Field | Value |
-|-------|-------|
-| Caller | `apps.documents.tasks.extract_document_text_task` (Celery) |
-| Model | `AI_MODEL_VISION` (Gemini 2.5 Flash) |
-| Outbound payload | Raw document bytes (JPEG/PNG/PDF first page), base64-encoded, plus a fixed instruction prompt |
-| Outbound PII | High: slip images by construction contain candidate full name, exam number, DOB, school name, signature |
-| Response | Extracted text (≤ 2000 tokens) |
-| Stored as | `application_documents.extracted_text` (TEXT) |
-| Retention | Persisted to the Neon database indefinitely (subject to the 365-day security retention policy) |
+Read from `apps/jobs/ai_service.py`. The truncation limits are the ones in the
+source, because "what leaves" is a function of them.
 
-**Protections applied:**
-
-- Circuit breaker (`ai.vision`).
-- No per-user rate limit on the initial upload (the upload itself is
-  rate-limited by Celery concurrency), but force re-extraction is
-  capped at 5 per hour per user (`ai_document_extract` scope).
-- Non-redactable: the whole value proposition of OCR is reading the
-  document. The mitigations are prevention of *accidental* retries
-  and graceful degradation (Tesseract fallback, `ocr_skipped`
-  status).
-
-### 2. `analyze_document` — structured OCR extraction
+### 1. `score_job_match`
 
 | Field | Value |
-|-------|-------|
-| Caller | `apps.documents.tasks.extract_document_text_task` (Celery), called on the OCR text output |
-| Model | `AI_MODEL_ANALYSIS` (gpt-4o-mini) |
-| Outbound payload | The OCR text from step 1, wrapped in `<<<DOC>>>` delimiters with an anti-injection system instruction, plus the canonical ECZ subject whitelist |
-| Outbound PII | Same content as the slip text (name, exam number, DOB if printed) |
-| Response | JSON: `{subjects: [{name, grade}], exam_number, year}` |
-| Stored as | `application_documents.verification_notes` (JSON), plus `ecz_exam_number` + `ecz_exam_year` columns |
-| Retention | Same as step 1 |
+|---|---|
+| Model | `JOBS_OPS_AI_MODEL_FAST` |
+| Outbound | job title, company, location, `description[:500]`, `requirements[:300]`; candidate skills, experience, education, location |
+| Outbound PII | the **candidate's** own profile signals. No name, no contact details, no identity number |
+| Response | `{"score": 0-100, "reasons": [], "missing_skills": [], "strengths": []}`, `max_tokens=400`, `temperature=0` |
+| Stored as | jobs-ops match/score fields |
 
-**Protections applied:**
-
-- Circuit breaker (`ai.analyze_document`).
-- `max_tokens=800`, `temperature=0` — deterministic for the same
-  input and bounded in cost.
-- Post-parse schema validation (element count cap, grade coercion,
-  exam-number format check) in `analyze_document` itself plus second
-  layer in `documents.tasks` (only accepts 10- or 12-digit exam
-  numbers; clamps year to `current - 10` … `current + 1`).
-- Prompt injection: untrusted document text is wrapped in delimiters
-  and the system prompt explicitly instructs the model to treat the
-  block as data.
-
-### 3. `generate_admin_review_summary` — admin review brief
+### 2. `tailor_resume`
 
 | Field | Value |
-|-------|-------|
-| Caller | `ApplicationAdminSummaryView.get` (`GET /api/v1/applications/{id}/admin-summary/`) |
-| Model | `AI_MODEL_ANALYSIS` (gpt-4o-mini) |
-| Outbound payload (flag off) | full_name, program, institution, intake, NRC **or** passport number, nationality, sex, date_of_birth, payment_status, documents_summary, grades_summary |
-| Outbound payload (flag on, `AI_HARDENING_REDACTION=true`) | program, institution, intake, age_bracket, identity_status (`on_file`/`not_provided`), nationality, sex, payment_status, documents_summary, grades_summary |
-| Outbound PII (flag on) | Low — no direct identifier, only reasoning signals |
-| Response | 3-4 sentence plain text |
-| Stored as | Not stored; cached in Redis for 24 h (Phase 1.3) |
-| Retention | Prompt retention depends on Vercel AI Gateway policy (see below) |
+|---|---|
+| Model | `JOBS_OPS_AI_MODEL_SMART` |
+| Outbound | job title, company, `requirements[:500]`; **`resume_text[:1000]`** |
+| Outbound PII | **highest on the platform.** A résumé excerpt is by construction the candidate's name, contact details and employment history. This is the one call whose payload is a person's own document |
+| Response | tailored summary, achievements, cover letter, keywords; `max_tokens=1000`, `temperature=0.3` |
+| Stored as | jobs-ops document/tailoring records |
 
-**Protections applied:**
-
-- Circuit breaker (`ai.admin_review`).
-- Per-admin rate throttle (`ai_admin_summary`, 60/hour).
-- 24-hour Redis cache keyed by `(application_id, updated_at, payment_status, status)`.
-- Super-admin bypass via `?refresh=1` query param — audit-logged.
-- PII redaction via `redact_for_admin_summary` (Phase 2) — strips
-  full_name, NRC, passport, DOB, contact details; adds age_bracket
-  + identity_status.
-
-### 4. `generate_student_preview_summary` — student review personalisation
+### 3. `generate_outreach_message`
 
 | Field | Value |
-|-------|-------|
-| Caller | `ApplicationPreviewSummaryView.get` (`GET /api/v1/applications/{id}/preview-summary/`) |
-| Model | `AI_MODEL_FAST` (Gemini 2.5 Flash) |
-| Outbound payload (flag off) | full_name, program, institution, intake, grades_summary, subjects_count |
-| Outbound payload (flag on) | first_name (derived), program, institution, intake, grades_summary, subjects_count |
-| Outbound PII (flag on) | Low — first name only; no direct identifier |
-| Response | 2-3 sentence encouraging prose, temperature 0.7 |
-| Stored as | Not stored; cached in Redis for 24 h keyed by grades fingerprint |
-| Retention | Prompt retention depends on Vercel AI Gateway policy |
+|---|---|
+| Model | `JOBS_OPS_AI_MODEL_FAST` |
+| Outbound | contact name, company, role; free-text context |
+| Outbound PII | a **third party's** name and employer — someone who is not a platform user and did not consent |
+| Response | `{"subject", "body", "follow_up_days"}`, `max_tokens=400`, `temperature=0.4`; the prompt forbids fabricated claims about the sender, which is the `product.md` hard constraint stated to the model as well as enforced by human review |
+| Stored as | jobs-ops outreach drafts (approval-gated before sending) |
 
-**Protections applied:**
+### 4. `analyze_job_posting`
 
-- Circuit breaker (`ai.student_preview`).
-- Per-student rate throttle (`ai_student_preview`, 10/hour).
-- 24-hour Redis cache keyed by `(application_id, updated_at, grades_fingerprint, intake)`.
-- PII redaction via `redact_for_student_preview` (Phase 2).
-- Existing 15-second client-side timeout + deterministic template
-  fallback on AI failure.
+| Field | Value |
+|---|---|
+| Model | `JOBS_OPS_AI_MODEL_FAST` |
+| Outbound | `description[:2000]` — third-party published text |
+| Outbound PII | none |
+| Response | structured posting fields; `max_tokens=500`, `temperature=0` |
 
-## Feature flags
+## Protections
 
-All four AI-hardening behaviours are independently toggleable so each
-can be enabled and measured in isolation, and any phase can be rolled
-back with a flag flip (no schema changes across Phases 1–3).
+There is no longer a circuit-breaker, cache, redactor or per-user AI throttle
+layer: all four were part of the admissions AI hardening and were deleted with it.
+What protects these calls today:
 
-| Flag | Default | Scope | Disabling reverts to |
-|------|---------|-------|----------------------|
-| `AI_HARDENING_CIRCUIT_BREAKER` | `False` | Every AI call | No protection — direct upstream call |
-| `AI_HARDENING_RATE_LIMITS` | `False` | `ai_admin_summary`, `ai_student_preview`, `ai_document_extract` | No per-user throttle |
-| `AI_HARDENING_CACHE` | `False` | `admin_summary`, `student_preview` | Every page view triggers a fresh call |
-| `AI_HARDENING_REDACTION` | `False` | `admin_summary`, `student_preview` | Full PII sent to AI Gateway |
+- **Fail-open-to-nothing.** Every function wraps its call in `try/except`, logs
+  through `logger.exception`, and returns `None`. Jobs-ops callers already treat
+  `None` as "AI unavailable, degrade gracefully", so no operator flow blocks on
+  the gateway (`product.md`: never block core flows on third-party APIs).
+- **Bounded cost and bounded output.** Every call sets `max_tokens`; the two
+  extraction-style calls set `temperature=0`.
+- **Human approval before anything leaves the platform toward a person.**
+  Outreach drafts and application packages are approval-gated; the model writes a
+  suggestion, an operator sends it.
+- **Absent key ⇒ no call.**
 
-## Vercel AI Gateway retention
+## The admissions boundary, as a test
 
-**Status: unconfirmed.** As of the time of this document, the Vercel
-AI Gateway's public pricing page states prompt and completion logs
-are stored for billing + abuse detection but does not publish a
-retention window. **Follow-up (not in this code change):** request
-written confirmation from Vercel and document the number here.
+`backend/tests/unit/test_no_admissions_generative_ai_guard.py` (task 12.4) fails
+if any of the following becomes true:
 
-**Assume** prompts are logged until proven otherwise. The redaction
-layer (Phase 2) is the pragmatic response to that assumption for the
-two summary endpoints.
+- a module under `apps/{accounts,applications,catalog,common,documents}` imports a
+  generative client (`openai`, `anthropic`, `google.generativeai`, `litellm`,
+  `cohere`) or reads a gateway/model setting;
+- `openai`'s importer set in the backend grows beyond `apps/jobs/ai_service.py`;
+- a retired module (`ai_service`, `ai_cache`, `ai_circuit_breaker`,
+  `ai_prompt_redactor`), a retired flag (`AI_HARDENING_*`), a retired
+  un-namespaced setting, or a retired route (`admin-summary`, `preview-summary`)
+  comes back;
+- `openai` leaves the jobs-ops-only section of `requirements.txt`;
+- the admissions **frontend** declares any AI or browser-OCR package;
+- and — the other direction — if `apps/jobs/ai_service.py` or the server-side OCR
+  dependencies (`pytesseract`, `Pillow`) disappear. Isolation that could be
+  satisfied by deleting the other product is not isolation.
+
+A new backend app is also a failure until it is placed on one side of the
+boundary, so the guard cannot quietly stop covering the surface.
+
+## Gateway retention
+
+**Still unconfirmed.** The Vercel AI Gateway states that prompt and completion
+logs are kept for billing and abuse detection without publishing a retention
+window. **Assume prompts are logged until proven otherwise.** With admissions out
+of scope this now bears only on jobs-ops, where the sensitive payload is
+`tailor_resume`'s résumé excerpt and `generate_outreach_message`'s third-party
+contact details.
+
+Open items, owned by jobs-ops rather than admissions-v2:
+
+- obtain written confirmation of the retention window and record it here;
+- decide whether a résumé excerpt should be redacted or truncated further before
+  transmission, and whether an outreach contact's name is needed at all for the
+  draft to be useful;
+- decide whether candidates should be able to opt out of AI processing of their
+  own résumé.
 
 ## What we deliberately do *not* do
 
-- **We do not move off Vercel AI Gateway in this phase.** The gateway
-  is an explicit choice and switching providers is a separate
-  evaluation.
-- **We do not retroactively delete prompts that were sent before
-  Phase 2 shipped.** That requires a Vercel API / support ticket
-  that is out of scope for the platform code.
-- **We do not provide student opt-out UI for AI processing.** That is
-  a future consent-flow task and is tracked separately.
-- **OCR image bytes are not redacted before transmission.** The
-  content is the task; the mitigations are retry limits and a
-  circuit breaker.
+- We do not send anything from the admissions product to a model (R11.1). Not a
+  summary, not a slip image, not an eligibility decision.
+- We do not redact the jobs-ops payloads today. Stating that plainly is the point:
+  the protections listed above are availability and cost protections, not privacy
+  ones.
+- We do not retroactively delete prompts sent before task 7.4 removed the
+  admissions paths; that needs a provider request and is not platform code.
 
 ## Reference
 
-- Code: `backend/apps/common/ai_service.py`,
-  `backend/apps/common/ai_circuit_breaker.py`,
-  `backend/apps/common/ai_cache.py`,
-  `backend/apps/common/ai_prompt_redactor.py`,
-  `backend/apps/common/throttling.py`.
-- Tests: `backend/tests/unit/test_ai_*.py`.
-- Flags: `backend/config/settings/base.py` (`AI_HARDENING_*`).
-- Consumers: `backend/apps/applications/admin_views.py`,
-  `backend/apps/applications/student_views.py`,
-  `backend/apps/documents/views.py`,
-  `backend/apps/documents/tasks.py`.
+- Code: `backend/apps/jobs/ai_service.py`.
+- Settings: `backend/config/settings/base.py` (`JOBS_OPS_AI_*`).
+- Dependency: `backend/requirements.txt`, jobs-ops-only section.
+- Guard: `backend/tests/unit/test_no_admissions_generative_ai_guard.py`.
+- Deterministic admissions replacements: `backend/apps/documents/grade_extraction.py`
+  (candidates), the review-workspace readiness query, and the wizard's
+  deterministic submission summary.
+- Historical record of the removed admissions paths: `docs/audits/ai-and-ocr-final.md`,
+  `docs/v2-evidence/7.4/`, `docs/v2-evidence/7.5/`, `docs/v2-evidence/9.4/`.

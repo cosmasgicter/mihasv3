@@ -10,6 +10,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_STUDENT_DASHBOARD, platform_base_url
 
 
 def render(context: dict) -> tuple[str, str]:
@@ -24,7 +25,7 @@ def render(context: dict) -> tuple[str, str]:
     tracking = context.get("tracking_code") or "—"
     program = context.get("program_name") or "your selected programme"
     intake = context.get("intake_name") or "the current intake"
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
 
     subject = f"Application received — {app_no}"
 
@@ -58,7 +59,7 @@ def render(context: dict) -> tuple[str, str]:
                 "You can sign in any time to check progress, update your details, "
                 "or download your application slip."
             ),
-            cta_button("Open your application", portal + "/student"),
+            cta_button("Open your application", portal + ROUTE_STUDENT_DASHBOARD),
             signature_block(),
         ]
     )

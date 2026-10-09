@@ -10,34 +10,50 @@ fails if any flag is misconfigured.
 
 ## Backend payment-hardening flags
 
-These four flags gate the payment-hardening rollout (spec
-`.kiro/specs/payment-hardening/`). All four are hardcoded `True` in
-`prod.py` and `staging.py`.
+One flag remains. admissions-v2 task 8.2 deleted the other three
+(`PAYMENT_HARDENING_FORWARD_ONLY`, `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`,
+`PAYMENT_HARDENING_FORCE_APPROVED`) together with the duplicate implementations
+they selected, so setting them now does nothing. The payment state machine,
+webhook dedup contract, and admin-override ledger shape are unconditional and
+roll back only by code revert — see
+`docs/runbooks/payment-hardening-rollout.md`.
 
 | Flag | Type | Default in `base.py` | Production value | Rollback |
 |------|------|---------------------|------------------|----------|
-| `PAYMENT_HARDENING_FORWARD_ONLY` | hardcoded in `base.py` | `True` | `True` | None — forward-only is canonical now |
-| `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT` | env-gated | `False` | `True` (via `prod.py:54`) | Set env `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=false`, redeploy |
-| `PAYMENT_HARDENING_RATE_LIMITS` | env-gated | `False` | `True` (via `prod.py:55`) | Set env to false, redeploy |
-| `PAYMENT_HARDENING_FORCE_APPROVED` | env-gated | `False` | `True` (via `prod.py:56`) | Set env to false, redeploy |
+| `PAYMENT_HARDENING_RATE_LIMITS` | env-gated | `False` | `True` (via `prod.py`) | Set env to false, redeploy |
 
 ## Backend AI-hardening flags
 
-Mandatory in production for PII protection. Override applied in `prod.py`
-and `staging.py` to mirror the payment-hardening pattern (Decision A5).
+**None remain.** Admissions-v2 task 7.4 deleted all four
+(`AI_HARDENING_CIRCUIT_BREAKER`, `AI_HARDENING_RATE_LIMITS`, `AI_HARDENING_CACHE`,
+`AI_HARDENING_REDACTION`) together with the admissions AI they hardened (R11.1:
+the admissions runtime makes no generative call), and task 12.4 removed the last
+of that surface's documentation. Setting any of them now does nothing.
+
+This section previously called them "mandatory in production for PII protection",
+which is the most dangerous kind of stale flag entry: an operator reading it
+during an incident would go looking for a redaction switch that no longer exists
+instead of treating unexpected AI traffic as unauthorised code. Admissions has no
+prompt to redact.
+
+The one surviving per-user cap that used to be counted in this family is
+**`DOCUMENT_EXTRACT_RATE_LIMITS`** — the ceiling on local OCR re-extract calls,
+which was never about AI and is a CPU/DoS lever:
 
 | Flag | Type | Default in `base.py` | Production value | Rollback |
 |------|------|---------------------|------------------|----------|
-| `AI_HARDENING_CIRCUIT_BREAKER` | env-gated | `False` | `True` (via `prod.py`) | Set env to false |
-| `AI_HARDENING_RATE_LIMITS` | env-gated | `False` | `True` (via `prod.py`) | Set env to false |
-| `AI_HARDENING_CACHE` | env-gated | `False` | `True` (via `prod.py`) | Set env to false |
-| `AI_HARDENING_REDACTION` | env-gated | `False` | `True` (via `prod.py`) | Set env to false **with extreme caution** — disabling redaction sends PII to upstream |
+| `DOCUMENT_EXTRACT_RATE_LIMITS` | env-gated | `False` | `True` (via `prod.py`) | Set env to false, redeploy |
+
+The only generative integration left on the platform is jobs-ops'
+(`backend/apps/jobs/ai_service.py`, `JOBS_OPS_AI_*`). It is not flag-gated: an
+absent `AI_GATEWAY_API_KEY` disables it and every call already returns `None` on
+failure. Data map: `docs/ai-data-flows.md`. Boundary guard:
+`backend/tests/unit/test_no_admissions_generative_ai_guard.py`.
 
 ## Frontend build-time flags
 
 | Flag | Set in | Production value | Rollback |
 |------|--------|-----------------|----------|
-| `VITE_PAYMENT_HARDENING_UI` | Vercel project env | `true` | Set to `false`, redeploy |
 | `VITE_PAYMENT_DEV_BYPASS` | Vercel project env | `false` (must be) | n/a — must remain false in prod |
 | `VITE_STUDENT_DASHBOARD_PRIORITY` | Vercel project env | (future) | Set to false |
 | `VITE_LENCO_PUBLIC_KEY` | Vercel project env | live key | swap to sandbox key |
@@ -104,10 +120,17 @@ For build-time `VITE_*` flags:
 
 ## Rollback Order If Multiple Flags Misbehave
 
-1. Frontend `VITE_PAYMENT_HARDENING_UI` (visible UX).
-2. Backend `AI_HARDENING_REDACTION` only if confirmed to break the AI path AND PII implications are accepted.
-3. Backend `PAYMENT_HARDENING_RATE_LIMITS` if causing legitimate-user lockouts.
-4. Backend `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT` if causing missed webhook events.
-5. Backend `PAYMENT_HARDENING_FORCE_APPROVED` (highest data-integrity risk to roll back).
+1. Backend `PAYMENT_HARDENING_RATE_LIMITS` if causing legitimate-user lockouts.
+2. Backend `DOCUMENT_EXTRACT_RATE_LIMITS` if legitimate re-extract attempts are
+   being refused.
+
+(The first entry here used to be `AI_HARDENING_REDACTION`. It is gone with the
+admissions AI — see the AI-hardening section above.)
+
+The payment state machine, webhook dedup, admin-override ledger shape, and the
+payment UI have **no flag** — admissions-v2 task 8.2 deleted the duplicate
+implementations those flags selected. Rolling any of them back is a code revert,
+not a flip; see `docs/runbooks/payment-hardening-rollout.md` § "Rollback
+reality".
 
 Always document the rollback in `docs/runbooks/` and capture the incident.

@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - link "Skip to main content":
+    - /url: "#app-main-content"
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - button "Go back" [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+      - heading "Application Status" [level=2] [ref=e11]
+      - generic [ref=e13]:
+        - button "Open profile settings" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+        - button "Notifications (1 unread)" [ref=e20] [cursor=pointer]:
+          - img
+          - generic [ref=e21]: "1"
+        - button "Log out" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+    - main [ref=e26]:
+      - generic [ref=e30]:
+        - heading "Application Status" [level=1] [ref=e36]
+        - region "Application Status" [ref=e37]:
+          - alert [ref=e38]:
+            - img [ref=e40]
+            - generic [ref=e44]:
+              - heading "Application Not Found" [level=3] [ref=e45]
+              - paragraph [ref=e46]: Application not found or access denied
+            - generic [ref=e47]:
+              - button "Try Again" [ref=e48] [cursor=pointer]:
+                - img
+                - text: Try Again
+              - link "Contact Support" [ref=e49] [cursor=pointer]:
+                - /url: /contact
+                - img [ref=e50]
+                - text: Contact Support
+      - generic "Frontend build 2.0.0-harness. Backend build 2.0.0." [ref=e55]:
+        - generic [ref=e56]: Runtime
+        - 'generic "Frontend build: 2.0.0-harness" [ref=e57]': Frontend 2.0.0-harnes
+        - 'generic "Backend build: 2.0.0" [ref=e58]': Backend 2.0.0
+  - navigation "Bottom navigation" [ref=e59]:
+    - generic [ref=e60]:
+      - link [ref=e61] [cursor=pointer]:
+        - /url: /student/dashboard
+        - img [ref=e63]
+      - link [ref=e66] [cursor=pointer]:
+        - /url: /student/application-wizard
+        - img [ref=e68]
+      - link [ref=e71] [cursor=pointer]:
+        - /url: /student/communications
+        - img [ref=e73]
+      - link [ref=e75] [cursor=pointer]:
+        - /url: /student/payment
+        - img [ref=e77]
+      - button "More navigation items" [ref=e79] [cursor=pointer]:
+        - img [ref=e80]
+```

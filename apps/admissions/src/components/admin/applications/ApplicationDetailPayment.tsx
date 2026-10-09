@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/lib/dateFormat'
 import { CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, Mail, Phone, Send } from 'lucide-react'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { formatServerAmount } from '@/lib/serverAmount'
 import type { ApplicationWithDetails, ApplicationDetailResponse, PaymentRecord } from './applicationDetailTypes'
 
 interface ApplicationDetailPaymentProps {
@@ -114,8 +115,18 @@ export function ApplicationDetailPayment({
                   </div>
                 </div>
                 <div className="text-right">
+                  {/*
+                    Task 8.4: this was `Number(payment.amount).toFixed(2)` — the
+                    browser re-quantising a ledger amount on an admin surface. The
+                    server sends the already-quantised decimal string, so it is
+                    rendered verbatim through the one canonical formatter; a
+                    missing amount stays an em dash rather than becoming 0.00.
+                  */}
                   <p className="text-lg font-bold text-foreground">
-                    {payment.currency || 'ZMW'} {payment.amount != null ? Number(payment.amount).toFixed(2) : '—'}
+                    {formatServerAmount(
+                      payment.amount == null ? null : String(payment.amount),
+                      payment.currency || 'ZMW',
+                    ) || '—'}
                   </p>
                 </div>
               </div>

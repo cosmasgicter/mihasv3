@@ -19,6 +19,7 @@ import { SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { toast } from '@/hooks/useToast'
+import { catalogService } from '@/services/catalog'
 import {
   tenantAdminService,
   TENANT_PROFILE_CAPS,
@@ -198,8 +199,33 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
     enabled: Boolean(institutionId),
   })
 
+  /*
+    Scoped selector sources for the "Applies to" fieldset (task 11.4, TEN-05).
+    The canonical-programme and intake fields were `<Input placeholder="Optional
+    UUID">`, so narrowing a document profile's resolution scope meant pasting an
+    identifier found somewhere else. Both are `<select>`s over scoped lists now —
+    task 4.3's selector, reused rather than reinvented.
+  */
+  const canonicalQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'canonical-programs'],
+    queryFn: () => catalogService.getCanonicalPrograms(),
+  })
+
+  const intakesQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'intakes'],
+    queryFn: () => catalogService.getIntakes(),
+  })
+
   const profiles = profilesQuery.data || []
   const offerings = offeringsQuery.data || []
+  const canonicalPrograms = useMemo(
+    () => [...(canonicalQuery.data?.programs || [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [canonicalQuery.data?.programs],
+  )
+  const intakes = useMemo(
+    () => [...(intakesQuery.data?.intakes || [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [intakesQuery.data?.intakes],
+  )
 
   // Group every version by resolution scope; surface the latest version per scope.
   const scopes = useMemo(() => {
@@ -396,22 +422,34 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
             </select>
           </label>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-foreground">Canonical program ID</span>
-            <Input
+            <span className="font-medium text-foreground">Canonical program</span>
+            <select
               value={draft.canonical_program_id}
               onChange={event => setDraft(prev => ({ ...prev, canonical_program_id: event.target.value }))}
-              placeholder="Optional UUID"
+              className={TENANT_SELECT_CLASS}
               aria-label="Applies to canonical program"
-            />
+              disabled={canonicalQuery.isLoading}
+            >
+              <option value="">Any canonical program</option>
+              {canonicalPrograms.map(program => (
+                <option key={program.id} value={program.id}>{program.name}</option>
+              ))}
+            </select>
           </label>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-foreground">Intake ID</span>
-            <Input
+            <span className="font-medium text-foreground">Intake</span>
+            <select
               value={draft.intake_id}
               onChange={event => setDraft(prev => ({ ...prev, intake_id: event.target.value }))}
-              placeholder="Optional UUID"
+              className={TENANT_SELECT_CLASS}
               aria-label="Applies to intake"
-            />
+              disabled={intakesQuery.isLoading}
+            >
+              <option value="">Any intake</option>
+              {intakes.map(intake => (
+                <option key={intake.id} value={intake.id}>{intake.name}</option>
+              ))}
+            </select>
           </label>
         </fieldset>
 

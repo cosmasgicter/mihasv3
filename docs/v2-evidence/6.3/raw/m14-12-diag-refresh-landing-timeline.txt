@@ -1,0 +1,139 @@
+# Task 6.3 M14 — DIAGNOSTIC (root cause of m14-11 F3): what a refresh on Personal paints, and when. Temporary spec, deleted after this run; its source is appended below.
+# captured: 2026-10-08T23:05:10Z
+# stack: harness of m14-07; served entry = assets/js/index-DFYqzK57.js; host held awake
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.0s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.3s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.1s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+  ✓   6 [mobile-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.3s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts:38:1 › diagnostic: what a refresh on Personal paints, and when (12.2s)
+
+  10 passed (2.2m)
+PW EXIT: 0
+[chromium-required] repeat None: samples=[[2, '(none)'], [121, 'Step 1 of 6'], [188, '(none)'], [313, 'Step 3 of 6']] transientMs=192 rowRead=[244] preview=[282]
+[chromium-required] repeat None: samples=[[15, '(none)'], [113, 'Step 1 of 6'], [195, '(none)'], [278, 'Step 4 of 6'], [315, 'Step 3 of 6']] transientMs=202 rowRead=[227] preview=[269]
+[chromium-required] repeat None: samples=[[8, '(none)'], [120, 'Step 1 of 6'], [182, '(none)'], [299, 'Step 3 of 6']] transientMs=179 rowRead=[242] preview=[287]
+[chromium-required] repeat None: samples=[[7, '(none)'], [111, 'Step 1 of 6'], [189, '(none)'], [295, 'Step 4 of 6'], [327, 'Step 3 of 6']] transientMs=216 rowRead=[244] preview=[290]
+[chromium-required] repeat None: samples=[[2, '(none)'], [109, 'Step 1 of 6'], [186, '(none)'], [301, 'Step 4 of 6'], [340, 'Step 3 of 6']] transientMs=231 rowRead=[241] preview=[292]
+[mobile-required] repeat None: samples=[[20, '(none)'], [98, 'Step 1 of 6'], [170, '(none)'], [286, 'Step 4 of 6'], [313, 'Step 3 of 6']] transientMs=215 rowRead=[224] preview=[275]
+[mobile-required] repeat None: samples=[[8, '(none)'], [110, 'Step 1 of 6'], [182, '(none)'], [312, 'Step 4 of 6'], [337, 'Step 3 of 6']] transientMs=227 rowRead=[244] preview=[297]
+[mobile-required] repeat None: samples=[[17, '(none)'], [123, 'Step 1 of 6'], [213, '(none)'], [334, 'Step 4 of 6'], [361, 'Step 3 of 6']] transientMs=238 rowRead=[271] preview=[321]
+[mobile-required] repeat None: samples=[[10, '(none)'], [129, 'Step 1 of 6'], [222, '(none)'], [342, 'Step 4 of 6'], [385, 'Step 3 of 6']] transientMs=256 rowRead=[269] preview=[324]
+[mobile-required] repeat None: samples=[[3, '(none)'], [137, 'Step 1 of 6'], [202, '(none)'], [313, 'Step 4 of 6'], [353, 'Step 3 of 6']] transientMs=216 rowRead=[261] preview=[307]
+
+## reading the timeline
+# Each row: [ms since the reloaded document started, the wizard's 'Step N of 6' line]. '(none)' = no progress summary rendered (the loader is restoring).
+# 8/10 reloads paint the derived resume step 'Step 4 of 6' (Education) for 25-45 ms before the address bar's ?step=personal moves the wizard to 'Step 3 of 6'; 2/10 go straight to Personal.
+# The draft row read and the assignment preview answer at ~225-325 ms; the deep link waits for the preview (the R10.3 gate), the derived step does not.
+# m14-11's F3 helper read 'Step 4 of 6' in that window, saw 'Step 3: Personal' enabled, and clicked as the wizard moved: the control became the current (disabled) step and Playwright waited the full 30 s action timeout.
+
+## source of the deleted diagnostic spec (tests/harness-e2e/required/_m14-diag-refresh-landing.spec.ts)
+/**
+ * TEMPORARY task 6.3 M14 diagnostic — deleted after its run; source kept in
+ * docs/v2-evidence/6.3/raw/m14-12-*.
+ *
+ * Measures what a refresh on Personal paints, and when: the step line is sampled
+ * every animation frame from the first paint after the reload until it has held
+ * one value for 3 s, together with the time the assignment preview answered.
+ * Root-causing F3's one failure (m14-11): the hypothesis is that the resume
+ * machine paints the derived resume step (Education) first and the address bar's
+ * `?step=personal` moves the wizard to Personal only once the preview resolves —
+ * so a helper that reads the step in that window and clicks "Step 3: Personal"
+ * can click into the move.
+ */
+import { test, expect } from '../harness-fixtures';
+import { createDraftApplication, superAdminContext, type AuthedContext } from '../helpers/api';
+import {
+  allowHarnessNoise,
+  configureWizardOffering,
+  loginStudentInPage,
+  openPersonalStep,
+  waitForNetworkQuiet,
+  wizardStepLine,
+} from '../helpers/wizard-draft';
+
+let sharedAdmin: Promise<AuthedContext> | null = null;
+function platformAdmin(): Promise<AuthedContext> {
+  sharedAdmin ??= superAdminContext();
+  return sharedAdmin;
+}
+test.afterAll(async () => {
+  if (sharedAdmin) {
+    const admin = await sharedAdmin;
+    await admin.ctx.dispose();
+    sharedAdmin = null;
+  }
+});
+
+test('diagnostic: what a refresh on Personal paints, and when', async ({ page, gate }) => {
+  test.setTimeout(180_000);
+  allowHarnessNoise(gate);
+  const offering = await configureWizardOffering(await platformAdmin(), 'Diag Landing', 'T63D');
+  const { email, csrf } = await loginStudentInPage(page);
+  const { applicationId } = await createDraftApplication(page.request, csrf, {
+    canonicalProgramId: offering.canonicalProgramId,
+    intakeId: offering.intakeId,
+    email,
+  });
+  await page.goto(`/student/application-wizard?mode=resume&draftId=${encodeURIComponent(applicationId)}`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
+  await openPersonalStep(page);
+  await waitForNetworkQuiet(page);
+  expect(new URL(page.url()).searchParams.get('step')).toBe('personal');
+
+  await page.addInitScript(() => {
+    const samples: Array<[number, string]> = [];
+    (window as unknown as { __m14StepSamples: typeof samples }).__m14StepSamples = samples;
+    const t0 = performance.now();
+    const sample = () => {
+      const line = document.querySelector('[data-testid="wizard-progress-summary"] p');
+      const text = line?.textContent?.trim() ?? '(none)';
+      if (samples.length === 0 || samples[samples.length - 1]![1] !== text) {
+        samples.push([Math.round(performance.now() - t0), text]);
+      }
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+  const navStart = Date.now();
+  const previewAt: number[] = [];
+  page.on('response', (response) => {
+    if (new URL(response.url()).pathname.startsWith('/api/v1/catalog/assignment-preview/')) {
+      previewAt.push(Date.now() - navStart);
+    }
+  });
+  const readAt: number[] = [];
+  page.on('response', (response) => {
+    if (new URL(response.url()).pathname === `/api/v1/applications/${applicationId}/`) {
+      readAt.push(Date.now() - navStart);
+    }
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(wizardStepLine(page)).toHaveText('Step 3 of 6', { timeout: 60_000 });
+  await page.waitForTimeout(3_000);
+  const samples = await page.evaluate(
+    () => (window as unknown as { __m14StepSamples: Array<[number, string]> }).__m14StepSamples,
+  );
+  const firstStep = samples.find(([, text]) => /^Step \d of 6$/.test(text));
+  const firstPersonal = samples.find(([, text]) => text === 'Step 3 of 6');
+  test.info().annotations.push({
+    type: 'refresh on Personal: step-line timeline (ms since the document started)',
+    description: JSON.stringify({
+      samples,
+      firstStep,
+      firstPersonal,
+      transientMs: firstStep && firstPersonal ? firstPersonal[0] - firstStep[0] : null,
+      draftRowReadAtMsSinceReload: readAt,
+      assignmentPreviewAnsweredAtMsSinceReload: previewAt,
+    }),
+  });
+});

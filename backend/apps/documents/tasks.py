@@ -82,7 +82,6 @@ def poll_pending_payments_task(self):
         from apps.documents import payment_metrics
         from apps.documents.payment_service import PaymentService
 
-        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
         service = PaymentService()
 
         # Bounded poll configuration (R6.1, R6.2). Overrides are clamped so a
@@ -127,206 +126,83 @@ def poll_pending_payments_task(self):
         )
         twenty_four_hours_ago = now - timedelta(hours=24)
 
-        # --- Hardened path: delegate expiry + verify to PaymentService ---
-        if forward_only:
-            try:
-                expired_count = service.expire_stale(older_than_hours=24, batch_cap=50)
-                if expired_count:
-                    logger.info(
-                        "poll_pending_payments_task: expired %d payments via PaymentService.expire_stale",
-                        expired_count,
-                    )
-            except Exception:
-                logger.exception("poll_pending_payments_task: expire_stale failed")
-
-            pending_payments = list(
-                Payment.objects.filter(
-                    status='pending',
-                    created_at__lt=five_minutes_ago,
-                    created_at__gt=twenty_four_hours_ago,
-                )[:poll_batch]
-            )
-            count = len(pending_payments)
-            logger.info(
-                "poll_pending_payments_task (forward_only): %d payments to verify (batch<=%d)",
-                count, poll_batch,
-            )
-            if count == 0:
-                return
-
-            try:
-                for payment in pending_payments:
-                    try:
-                        # Celery worker has no authenticated actor. Use the
-                        # hardened verifier with actor_id=None so reconciliation
-                        # follows the same state machine and integrity gates as
-                        # student/admin verification. Bound the external call so
-                        # one flaky provider cannot block the run (R6.2).
-                        result = service.verify(
-                            payment.id,
-                            actor_id=None,
-                            lenco_timeout=poll_timeout,
-                            lenco_max_retries=poll_retries,
-                        )
-                        # A provider-unavailable result means the call exhausted
-                        # its timeout/retries — skip without transition (R6.3).
-                        _record_poll_outcome(
-                            payment.id,
-                            failed=result.error in _PROVIDER_UNAVAILABLE_CODES,
-                            reason=result.error,
-                        )
-                    except SoftTimeLimitExceeded:
-                        raise
-                    except Exception:
-                        logger.exception(
-                            "Failed to verify payment %s during reconcile", payment.id
-                        )
-                        _record_poll_outcome(payment.id, failed=True, reason="exception")
-            except SoftTimeLimitExceeded:
-                logger.warning(
-                    "poll_pending_payments_task (forward_only): soft time limit reached, "
-                    "ending run early; remaining payments retry next run",
+        # --- Expiry then bounded verification, both through PaymentService ---
+        # The reconciliation sweep uses exactly the same state machine and
+        # integrity gates as student/admin verification (task 8.2): there is no
+        # separate worker mutator, so a replayed sweep converges instead of
+        # re-deciding.
+        try:
+            expired_count = service.expire_stale(older_than_hours=24, batch_cap=50)
+            if expired_count:
+                logger.info(
+                    "poll_pending_payments_task: expired %d payments via PaymentService.expire_stale",
+                    expired_count,
                 )
-            return
+        except Exception:
+            logger.exception("poll_pending_payments_task: expire_stale failed")
 
-        # --- Legacy path: expire payments pending > 24 hours (Req 8.1, 8.2, 8.3) ---
-        expired_payments = list(
+        pending_payments = list(
             Payment.objects.filter(
                 status='pending',
-                created_at__lt=twenty_four_hours_ago,
-            )[:50]
+                created_at__lt=five_minutes_ago,
+                created_at__gt=twenty_four_hours_ago,
+            )[:poll_batch]
         )
-        expired_count = 0
-        for payment in expired_payments:
-            try:
-                with transaction.atomic():
-                    # Re-fetch with lock to prevent race with concurrent webhook
-                    locked_payment = (
-                        Payment.objects.select_for_update()
-                        .filter(id=payment.id, status='pending')
-                        .first()
-                    )
-                    if locked_payment is None:
-                        # Status already changed (e.g., webhook marked successful)
-                        continue
-                    locked_payment.status = 'expired'
-                    locked_payment.updated_at = now
-                    locked_payment.save(update_fields=['status', 'updated_at'])
-                expired_count += 1
-                logger.info("Payment %s expired (pending > 24h)", payment.id)
-
-                # Sync application payment_status
-                service._update_application_payment_status(
-                    payment.application_id, 'not_paid'
-                )
-
-                # Emit audit via service (ADR-007 compliance)
-                service._emit_audit(
-                    "payment.transitioned",
-                    payment,
-                    None,
-                    {
-                        "source": "reconciliation",
-                        "from_status": "pending",
-                        "target_status": "expired",
-                        "reason": "pending > 24h",
-                    },
-                )
-
-                # Notify student via CommunicationService
-                try:
-                    from apps.applications.models import Application
-                    from apps.common.communication_service import CommunicationService
-
-                    app = Application.objects.filter(id=payment.application_id).first()
-                    if app:
-                        CommunicationService.send("payment_expired", app)
-                except Exception:
-                    logger.exception("Failed to notify student about expired payment %s", payment.id)
-            except Exception:
-                logger.exception("Failed to expire payment %s", payment.id)
-
-        if expired_count:
-            logger.info("poll_pending_payments_task: expired %d payments", expired_count)
-
-        # --- Verify payments 5min–24hr old via Lenco API (bounded, R6.1/6.2) ---
-        pending_payments = Payment.objects.filter(
-            status='pending',
-            created_at__lt=five_minutes_ago,
-            created_at__gt=twenty_four_hours_ago,
-        )[:poll_batch]
-
         count = len(pending_payments)
         logger.info(
-            "poll_pending_payments_task: found %d pending payments to verify (batch<=%d)",
+            "poll_pending_payments_task: %d payments to verify (batch<=%d)",
             count, poll_batch,
         )
-
         if count == 0:
             return
 
-        failures = 0
         try:
             for payment in pending_payments:
                 try:
-                    logger.info(
-                        "Verifying pending payment %s (ref=%s, created=%s)",
+                    # Celery worker has no authenticated actor. Use the
+                    # hardened verifier with actor_id=None so reconciliation
+                    # follows the same state machine and integrity gates as
+                    # student/admin verification. Bound the external call so
+                    # one flaky provider cannot block the run (R6.2).
+                    result = service.verify(
                         payment.id,
-                        payment.transaction_reference,
-                        payment.created_at,
-                    )
-                    result = service.verify_payment(
-                        payment.id,
+                        actor_id=None,
                         lenco_timeout=poll_timeout,
                         lenco_max_retries=poll_retries,
                     )
-                    logger.info(
-                        "Verification result for payment %s: status=%s error=%s",
-                        payment.id,
-                        result.status,
-                        result.error,
-                    )
-                    # An error left the payment un-transitioned: the external
-                    # call could not yield a verdict (timeout/retry exhaustion
-                    # or provider error) — skip without transition (R6.3).
-                    failed = result.error is not None
-                    if failed:
-                        failures += 1
+                    # A provider-unavailable result means the call exhausted
+                    # its timeout/retries — skip without transition (R6.3).
                     _record_poll_outcome(
-                        payment.id, failed=failed, reason=result.error,
+                        payment.id,
+                        failed=result.error in _PROVIDER_UNAVAILABLE_CODES,
+                        reason=result.error,
                     )
                 except SoftTimeLimitExceeded:
                     raise
                 except Exception:
                     logger.exception(
-                        "Failed to verify payment %s during polling", payment.id
+                        "Failed to verify payment %s during reconcile", payment.id
                     )
-                    failures += 1
                     _record_poll_outcome(payment.id, failed=True, reason="exception")
         except SoftTimeLimitExceeded:
             logger.warning(
-                "poll_pending_payments_task: soft time limit reached, ending run "
-                "early; remaining payments retry next run",
+                "poll_pending_payments_task: soft time limit reached, "
+                "ending run early; remaining payments retry next run",
             )
-
-        if failures > 0 and failures == count:
-            # All verifications failed - likely Lenco API outage
-            import sentry_sdk
-            msg = f"Payment polling: all {failures} verifications failed. Possible Lenco API outage."
-            logger.error(msg)
-            sentry_sdk.capture_message(msg, level="error")
     finally:
         _release_task_lock("poll_pending_payments_task")
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=120, time_limit=180)
 def extract_document_text_task(self, document_id, force=False):
-    """Run OCR on an uploaded document and store extracted text + AI analysis.
+    """Run local OCR on an uploaded document and store the extracted text.
 
-    Downloads the file from S3/R2, extracts text using AI vision,
-    and saves results to the ApplicationDocument record.
-    Falls back to pytesseract if AI is unavailable.
+    Downloads the file from S3/R2, extracts text with local Tesseract, and saves
+    that text on the ``ApplicationDocument`` record.
+
+    admissions-v2 task 7.4 (R11.1, R11.9): there is no generative AI in this
+    path - no vision model, no classifier, no outbound model call. Extraction is
+    local, deterministic, and never becomes application data on its own.
     """
-    import json as _json
     from apps.documents.models import ApplicationDocument
     from apps.common.storage import get_document_storage_key
 
@@ -340,11 +216,24 @@ def extract_document_text_task(self, document_id, force=False):
         logger.info("Document %s already has extracted text, skipping", document_id)
         return
 
+    # admissions-v2 task 7.3 (R11.7): extraction state lives in
+    # ``extraction_state``; it must never overwrite a human reviewer's decision.
+    # Before this change a re-extract set ``verification_status = None`` and then
+    # ``"ocr_processing"`` — silently erasing a reviewer's ``verified`` while
+    # ``verified_by``/``verified_at`` still claimed a decision had been made,
+    # because OCR progress and the human verdict shared one column.
+    from apps.documents import document_evidence as evidence
+
+    human_decided = evidence.lifecycle_of(document) in (evidence.VERIFIED, evidence.REJECTED)
+
     if force:
         document.extracted_text = None
-        document.verification_notes = None
-        document.verification_status = None
-        document.save(update_fields=["extracted_text", "verification_notes", "verification_status"])
+        reset_fields = ["extracted_text", "extraction_state"]
+        document.extraction_state = "pending"
+        if not human_decided:
+            document.verification_notes = None
+            reset_fields.append("verification_notes")
+        document.save(update_fields=reset_fields)
 
     file_key = get_document_storage_key(document)
     if not file_key:
@@ -352,8 +241,7 @@ def extract_document_text_task(self, document_id, force=False):
         return
 
     # Mark as processing so the frontend can distinguish "in progress" from "not started"
-    document.verification_status = "ocr_processing"
-    document.save(update_fields=["verification_status"])
+    evidence.record_extraction_state(document, "ocr_processing")
 
     try:
         from apps.common.storage import MediaStorage
@@ -368,8 +256,7 @@ def extract_document_text_task(self, document_id, force=False):
             file_obj.close()
             if len(file_bytes) > MAX_OCR_FILE_SIZE:
                 logger.warning("Document %s exceeds OCR size limit (%d bytes)", document_id, len(file_bytes))
-                document.verification_status = "ocr_skipped"
-                document.save(update_fields=["verification_status"])
+                evidence.record_extraction_state(document, "ocr_skipped")
                 return
         except Exception:
             logger.exception("Failed to download document %s from storage", document_id)
@@ -381,91 +268,105 @@ def extract_document_text_task(self, document_id, force=False):
             tmp.flush()
 
             extracted_text = None
-            ai_analysis = None
 
-            # Try AI vision first
+            # admissions-v2 task 7.4 (R11.1, R11.9, STU-06): the vision-model
+            # text extraction and the generative ``analyze_document`` grade /
+            # identity classifier that used to run here are gone. Admissions
+            # makes no generative AI call for document classification or grade
+            # extraction - local Tesseract is the only extraction path, it never
+            # leaves the host, and the deterministic candidate parser that maps
+            # its text through the versioned alias catalogue lands with task 7.5
+            # (R11.4). Manual entry is, and remains, the authoritative way a
+            # grade becomes application data.
+            #
+            # Local OCR (deterministic, no outbound call)
             try:
-                from apps.common.ai_service import extract_text_from_image, analyze_document
+                import pytesseract
+                from PIL import Image
 
-                mime = "image/jpeg"
-                if file_key.lower().endswith(".png"):
-                    mime = "image/png"
-                elif file_key.lower().endswith(".pdf"):
-                    # Convert first page of PDF to image for vision models
+                if file_key.lower().endswith(".pdf"):
                     try:
                         from pdf2image import convert_from_path
-                        images = convert_from_path(tmp.name, first_page=1, last_page=1)
-                        if images:
-                            import io
-                            buf = io.BytesIO()
-                            images[0].save(buf, format="JPEG", quality=85)
-                            file_bytes = buf.getvalue()
-                            mime = "image/jpeg"
+                        images = convert_from_path(tmp.name)
+                        text_parts = [pytesseract.image_to_string(img) for img in images]
+                        extracted_text = "\n".join(text_parts)
                     except ImportError:
-                        logger.info("pdf2image not available, sending raw PDF to vision model")
-                        mime = "application/pdf"
-
-                extracted_text = extract_text_from_image(file_bytes, mime)
-
-                if extracted_text:
-                    doc_type = "result_slip" if "slip" in (document.document_type or "").lower() else "identity"
-                    ai_analysis = analyze_document(extracted_text, doc_type)
-
+                        extracted_text = pytesseract.image_to_string(tmp.name)
+                else:
+                    image = Image.open(tmp.name)
+                    extracted_text = pytesseract.image_to_string(image)
             except Exception:
-                logger.info("AI vision unavailable, falling back to Tesseract for document %s", document_id)
+                logger.warning("Local OCR failed for document %s", document_id)
 
-            # Fallback to Tesseract
-            if not extracted_text:
-                try:
-                    import pytesseract
-                    from PIL import Image
-
-                    if file_key.lower().endswith(".pdf"):
-                        try:
-                            from pdf2image import convert_from_path
-                            images = convert_from_path(tmp.name)
-                            text_parts = [pytesseract.image_to_string(img) for img in images]
-                            extracted_text = "\n".join(text_parts)
-                        except ImportError:
-                            extracted_text = pytesseract.image_to_string(tmp.name)
-                    else:
-                        image = Image.open(tmp.name)
-                        extracted_text = pytesseract.image_to_string(image)
-                except Exception:
-                    logger.warning("Tesseract fallback also failed for document %s", document_id)
-
+        # A whitespace-only read is a *no text* read. Deciding the outcome from the
+        # raw value instead of the normalised one reported "text found, no grades"
+        # for a blank scan, which tells the student to fix their subjects when the
+        # real problem is the photo.
+        extracted_text = extracted_text.strip() if extracted_text else None
         if extracted_text:
-            document.extracted_text = extracted_text.strip()
-        if ai_analysis:
-            document.verification_notes = _json.dumps({"ai_analysis": ai_analysis})
-            # Persist ECZ exam metadata when available. Strict validation:
-            # exam_number must be 10 or 12 digits; year must be within the
-            # last 10 years (defensive against AI hallucination).
-            if isinstance(ai_analysis, dict):
-                exam_number = ai_analysis.get("exam_number")
-                if isinstance(exam_number, (str, int)):
-                    digits = "".join(c for c in str(exam_number) if c.isdigit())
-                    if len(digits) in (10, 12):
-                        document.ecz_exam_number = digits
-                exam_year = ai_analysis.get("year")
-                if exam_year is not None:
-                    try:
-                        year_int = int(str(exam_year).strip())
-                        current_year = timezone.now().year
-                        if current_year - 10 <= year_int <= current_year + 1:
-                            document.ecz_exam_year = year_int
-                    except (ValueError, TypeError):
-                        pass
-        subjects = ai_analysis.get("subjects") if isinstance(ai_analysis, dict) else None
+            document.extracted_text = extracted_text
+
+        # Task 7.4: no generated analysis is produced any more, so nothing is
+        # written into ``verification_notes`` - that column stays a human
+        # verification field (R11.7). Rows written before this change keep their
+        # historical extraction blob and are surfaced read-only as labeled
+        # provenance by ``apps.documents.extraction_provenance``; this task does
+        # not rewrite or delete them.
+        #
+        # admissions-v2 task 7.5 (R11.4, R11.7): structured subject/grade
+        # candidates come from the deterministic parser, which maps labels through
+        # the task-7.1 versioned alias catalogue and attaches confidence +
+        # provenance + the source line. They are stored as their own structured
+        # record in the append-only evidence history - never in
+        # ``verification_notes`` - and they are suggestions: nothing here writes
+        # ``application_grades``. A candidate becomes application data only when
+        # the student explicitly confirms it in the wizard.
+        extraction = None
+        if extracted_text and document.document_type == "result_slip":
+            try:
+                from apps.documents import grade_extraction
+
+                extraction = grade_extraction.extract_candidates(document.extracted_text)
+            except Exception:
+                # Assistance is optional by design: a parser failure must not
+                # fail the upload or lose the extracted text.
+                logger.warning(
+                    "Deterministic candidate parse failed for document %s", document_id, exc_info=True
+                )
+                extraction = None
+
+        confirmable = len(extraction.confirmable_candidates) if extraction else 0
         if not extracted_text:
-            document.verification_status = "ocr_no_text"
-        elif document.document_type == "result_slip" and not subjects:
-            document.verification_status = "ocr_no_grades"
-            logger.info("OCR found text but no grade subjects for document %s", document_id)
+            outcome = "ocr_no_text"
+        elif document.document_type == "result_slip" and confirmable == 0:
+            outcome = "ocr_no_grades"
+            logger.info("OCR found text but no confirmable grade candidates for document %s", document_id)
         else:
-            document.verification_status = "ocr_complete"
-        document.save()
-        logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text or ""))
+            outcome = "ocr_complete"
+        # Persist the extracted payload first (its own columns), then record the
+        # extraction outcome through the evidence authority so a reviewer's
+        # decision stays intact.
+        # Only the column this task actually produces is written. Task 7.4
+        # removed the generated analysis, so ``verification_notes`` (a human
+        # field) and the ECZ metadata columns are no longer touched here - and
+        # narrowing ``update_fields`` means a concurrent reviewer note can no
+        # longer be clobbered by a stale in-memory value.
+        document.save(update_fields=["extracted_text", "updated_at"])
+        evidence.record_extraction_state(
+            document,
+            outcome,
+            details={"confirmable_candidates": confirmable} if extraction else None,
+        )
+        if extraction is not None:
+            from apps.documents import grade_extraction
+
+            grade_extraction.record_candidates(document, extraction)
+        logger.info(
+            "OCR completed for document %s (%d chars, %d confirmable candidates)",
+            document_id,
+            len(document.extracted_text or ""),
+            confirmable,
+        )
 
     except Exception as exc:
         logger.warning(
@@ -477,8 +378,10 @@ def extract_document_text_task(self, document_id, force=False):
         )
 
         if self.request.retries >= self.max_retries:
-            document.verification_status = "ocr_failed"
-            document.save()
+            # Retries exhausted: the extraction is a terminal
+            # ``processing_failed`` on the lifecycle (design §9.3) while the
+            # evidence itself remains reviewable by a human.
+            evidence.record_extraction_state(document, "ocr_failed")
             logger.error("OCR permanently failed for document %s", document_id)
             return
 
@@ -663,3 +566,138 @@ def overdue_docs_with_age(docs, now):
     for doc in docs:
         age = (now - doc.created_at).days if doc.created_at else 0
         yield doc, age
+
+
+# ---------------------------------------------------------------------------
+# Document storage reconciliation sweeper (admissions-v2 task 7.3)
+# ---------------------------------------------------------------------------
+#
+# Requirements: R11.8 (object-storage compensation), R17.1 (compensation +
+#               stable operator-visible event), R17.4 (bounded retries and
+#               durable reconciliation for an optional provider).
+# Findings:     STU-19.
+# Design:       §9.3 ("on failure, compensation deletes the staged object or a
+#               sweeper reconciles it"), §17 (operational queues expose age and
+#               terminal-failure counts for document processing).
+
+#: A stage row is only reconciled once it is old enough that no in-flight request
+#: could still be about to commit it. 15 minutes comfortably exceeds the request
+#: timeout plus the client's single retry, so the sweeper can never delete an
+#: object a live upload is seconds away from committing.
+DOCUMENT_STAGE_RECONCILE_AFTER_SECONDS = 15 * 60
+
+#: Bounded work per run (R17.4). A backlog drains over several runs instead of
+#: one run holding the single worker for an unbounded number of provider calls.
+DOCUMENT_STAGE_SWEEP_LIMIT = 50
+
+
+@shared_task(soft_time_limit=120, time_limit=180)
+def reconcile_document_storage_task():
+    """Reconcile staged document objects that never became committed evidence.
+
+    Two classes of row are drained, oldest first:
+
+    * ``staged`` and older than :data:`DOCUMENT_STAGE_RECONCILE_AFTER_SECONDS` —
+      the process died between the object write and the metadata commit (or the
+      write itself never returned). The object, if any, is deleted and the row is
+      marked ``compensated``.
+    * ``compensation_pending`` — in-request compensation ran but the provider
+      delete failed. Retried here with a bounded attempt count; after
+      :data:`~apps.documents.document_evidence.MAX_COMPENSATION_ATTEMPTS` the row
+      becomes terminal ``orphaned``, which is an operator-visible queue entry
+      rather than a retry loop that never ends.
+
+    Self-healing first: if a stage row can be matched to a committed document
+    (same object key), it is marked ``committed`` instead of deleted — the
+    metadata commit *did* land and only the stage bookkeeping was lost, so
+    deleting that object would destroy live evidence. That check is the reason
+    this task is safe to run while uploads are in flight.
+
+    Fail-safe: never propagates an exception, and every outcome is counted for
+    the operator queue. Returns a summary dict.
+    """
+    from apps.common.metrics import emit_metric
+    from apps.documents import document_evidence as evidence
+    from apps.documents.models import ApplicationDocument, DocumentUploadStage
+
+    if not cache.add("celery_lock:reconcile_document_storage", "1", timeout=300):
+        logger.info("reconcile_document_storage_task: skipped (already running)")
+        return {"skipped": True}
+
+    summary = {"reconciled": 0, "recovered": 0, "pending": 0, "orphaned": 0}
+    try:
+        cutoff = timezone.now() - timedelta(seconds=DOCUMENT_STAGE_RECONCILE_AFTER_SECONDS)
+        candidates = list(
+            DocumentUploadStage.objects.filter(
+                state__in=[evidence.STAGE_STAGED, evidence.STAGE_COMPENSATION_PENDING],
+                created_at__lt=cutoff,
+            ).order_by("created_at")[:DOCUMENT_STAGE_SWEEP_LIMIT]
+        )
+
+        for stage in candidates:
+            try:
+                committed = ApplicationDocument.objects.filter(
+                    application_id=stage.application_id,
+                    storage_key=stage.object_key,
+                ).first()
+                if committed is not None:
+                    # The evidence exists: this is stale bookkeeping, not an
+                    # orphan. Never delete the object of a committed version.
+                    evidence.mark_stage(
+                        stage,
+                        evidence.STAGE_COMMITTED,
+                        document=committed,
+                        error="reconciled: committed document found for staged key",
+                    )
+                    summary["recovered"] += 1
+                    continue
+
+                if (stage.attempts or 0) >= evidence.MAX_COMPENSATION_ATTEMPTS:
+                    evidence.mark_stage(
+                        stage,
+                        evidence.STAGE_ORPHANED,
+                        error="compensation attempts exhausted; operator review required",
+                    )
+                    emit_metric(
+                        evidence.EVENT_STAGE_ORPHANED,
+                        stage_id=str(stage.id),
+                        document_type=stage.document_type,
+                        attempts=stage.attempts,
+                    )
+                    summary["orphaned"] += 1
+                    continue
+
+                resulting = evidence.compensate_stage(
+                    stage, reason="reconciliation sweep: metadata never committed"
+                )
+                if resulting == evidence.STAGE_COMPENSATED:
+                    emit_metric(
+                        evidence.EVENT_STAGE_RECONCILED,
+                        stage_id=str(stage.id),
+                        document_type=stage.document_type,
+                    )
+                    summary["reconciled"] += 1
+                else:
+                    summary["pending"] += 1
+            except Exception:
+                # One bad row must not stop the sweep.
+                logger.warning(
+                    "reconcile_document_storage_task: stage %s could not be reconciled",
+                    stage.id,
+                    exc_info=True,
+                )
+                summary["pending"] += 1
+
+        logger.info(
+            "reconcile_document_storage_task: %d reconciled, %d recovered, "
+            "%d still pending, %d orphaned",
+            summary["reconciled"],
+            summary["recovered"],
+            summary["pending"],
+            summary["orphaned"],
+        )
+    except Exception:
+        logger.exception("reconcile_document_storage_task: unexpected error")
+    finally:
+        cache.delete("celery_lock:reconcile_document_storage")
+    return summary

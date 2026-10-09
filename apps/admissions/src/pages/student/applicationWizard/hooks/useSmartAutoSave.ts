@@ -1,137 +1,63 @@
-import { useEffect, useRef, useState } from 'react'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useAutoSave } from '@/hooks/useAutoSave'
-import { AuthenticationError } from '@/services/client'
-import { logger } from '@/lib/logger'
-import { BROWSER_EVENTS, LEGACY_BROWSER_EVENTS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
+/**
+ * The wizard's autosave VIEW (admissions-v2 task 6.3 — R10.2, R10.7; finding
+ * STU-02).
+ *
+ * This hook used to be one of the draft's cooperating owners: it detected edits,
+ * debounced, ran the 8-second interval, queued offline work, retried, tracked
+ * conflicts and decided the save state — while `useWizardDraftPersistence`
+ * separately chose start-versus-update and `index.tsx` wrote on step navigation.
+ * All of that now lives in one place, the draft machine
+ * (`lib/wizardDraftController.ts`).
+ *
+ * What is left is a view: it applies the wizard's autosave gate to the machine
+ * (paused while an upload, a payment in progress or a step command is running)
+ * and projects the machine's snapshot onto the save-state vocabulary the action
+ * bar renders — saving, saved, offline, retrying, conflict (R10.7). It never
+ * writes the draft and never blocks typing.
+ */
+import { useEffect } from 'react'
+
+import { wizardDraftSaveLabel } from '@/lib/wizardDraftMachine'
+import {
+  deriveWizardDraftSaveView,
+  type WizardDraftController,
+  type WizardDraftSnapshot,
+} from '@/lib/wizardDraftController'
 
 interface UseSmartAutoSaveProps {
-  onSave: (context?: { isManual: boolean }) => Promise<void>
-  watchValues: () => Record<string, unknown>
+  machine: WizardDraftController
+  snapshot: WizardDraftSnapshot
+  /**
+   * The autosave gate. False while an upload, a payment in progress or a step
+   * command is running; edits are still recorded and are written when it opens.
+   */
   enabled?: boolean
-  interval?: number
 }
 
-/**
- * Enhanced smart auto-save hook with 8-second intervals and network resilience
- * Requirements: 9.3 - Implement reliable 8-second auto-save intervals
- */
-export const useSmartAutoSave = ({ 
-  onSave, 
-  watchValues, 
-  enabled = true,
-  interval = 8000 // 8 seconds as per requirements
-}: UseSmartAutoSaveProps) => {
-  const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  const [changedFields, setChangedFields] = useState<string[]>([])
-  const [isAuthExpired, setIsAuthExpired] = useState(false)
-  const previousValues = useRef<Record<string, unknown> | null>(null)
-  const currentValues = watchValues()
-  const debouncedValues = useDebounce(currentValues, 2000)
-
-  // Use enhanced auto-save hook
-  const autoSave = useAutoSave(currentValues, {
-    interval,
-    key: 'wizard_autosave',
-    enabled,
-    onSave: async (_data, context) => {
-      await onSave(context)
-      setLastSaved(new Date())
-    },
-    onError: (error) => {
-      if (error instanceof AuthenticationError) {
-        setIsAuthExpired(true)
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authExpired))
-        }
-        logger.error('Auto-save auth expired:', error.message)
-        return
-      }
-      logger.error('Auto-save error:', error)
-    }
-  })
-
-  // Propagate session-expired state from useAutoSave's saveError
+export const useSmartAutoSave = ({ machine, snapshot, enabled = true }: UseSmartAutoSaveProps) => {
   useEffect(() => {
-    if (autoSave.saveError?.includes('Session expired')) {
-      setIsAuthExpired(true)
-    }
-  }, [autoSave.saveError])
+    machine.setPaused(!enabled)
+  }, [machine, enabled])
 
-  // Reset auth-expired state when session recovers
-  useEffect(() => {
-    const handleRecovered = () => { setIsAuthExpired(false) }
-    return listenWithLegacyEventFallback(
-      window,
-      BROWSER_EVENTS.authRecovered,
-      [LEGACY_BROWSER_EVENTS.authRecovered],
-      handleRecovered,
-    )
-  }, [])
-
-  // Track changed fields for user feedback
-  useEffect(() => {
-    if (!enabled || !previousValues.current) {
-      previousValues.current = currentValues
-      return
-    }
-
-    const changed: string[] = []
-    const previousValuesSnapshot = previousValues.current
-    Object.keys(currentValues).forEach(key => {
-      if (JSON.stringify(currentValues[key]) !== JSON.stringify(previousValuesSnapshot?.[key])) {
-        changed.push(key)
-      }
-    })
-
-    if (changed.length > 0) {
-      setChangedFields(changed)
-    } else {
-      setChangedFields([])
-    }
-  }, [currentValues, enabled])
-
-  // Update previous values when auto-save completes
-  useEffect(() => {
-    if (autoSave.saveStatus === 'saved') {
-      previousValues.current = currentValues
-      setChangedFields([])
-    }
-  }, [autoSave.saveStatus, currentValues])
-
-  const getTimeSinceLastSave = () => {
-    const savedTime = autoSave.lastSaved || lastSaved
-    if (!savedTime) return null
-    
-    const seconds = Math.floor((Date.now() - savedTime.getTime()) / 1000)
-    if (seconds < 60) return `${seconds}s ago`
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes}m ago`
-  }
+  const view = deriveWizardDraftSaveView(snapshot)
 
   return {
-    // Legacy compatibility
-    lastSaved: autoSave.lastSaved || lastSaved,
-    changedFields,
-    timeSinceLastSave: getTimeSinceLastSave(),
-    
-    // Enhanced auto-save features
-    isDirty: autoSave.isDirty,
-    isSaving: autoSave.isSaving,
-    hasUnsavedChanges: autoSave.hasUnsavedChanges || changedFields.length > 0,
-    saveStatus: autoSave.saveStatus,
-    isOnline: autoSave.isOnline,
-    saveError: autoSave.saveError,
-    saveAttempts: autoSave.saveAttempts,
-    nextSaveTime: autoSave.nextSaveTime,
-    saveQueue: autoSave.saveQueue,
-    timeUntilNextSave: autoSave.timeUntilNextSave,
-    isAuthExpired,
-    
-    // Actions
-    forceSave: autoSave.saveData,
-    restoreData: autoSave.restoreData,
-    clearSavedData: autoSave.clearSavedData,
-    resolveConflict: autoSave.resolveConflict
+    saveStatus: view.status,
+    saveError: view.message,
+    lastSaved: snapshot.lastSavedAt === null ? null : new Date(snapshot.lastSavedAt),
+    isDirty: snapshot.pending,
+    isSaving: snapshot.state === 'saving',
+    hasUnsavedChanges: snapshot.hasUnsyncedWork,
+    isOnline: snapshot.online,
+    isAuthExpired: snapshot.authExpired,
+    saveAttempts: snapshot.retryAttempts,
+    draftState: snapshot.state,
+    draftSaveLabel: wizardDraftSaveLabel(snapshot.state),
+    /** Save now. An unchanged draft writes nothing. */
+    forceSave: () => machine.saveNow(),
+    /** Conflict: take the newer version. */
+    reloadLatest: () => machine.resolveReload(),
+    /** Conflict: keep the student's changes on top of the newer version (explicit merge). */
+    keepMyChanges: () => machine.resolveMerge(),
   }
 }

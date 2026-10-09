@@ -33,7 +33,22 @@ import { AuthenticationError } from '@/services/client';
 // AuthenticationError re-throw pattern. We also functionally test the
 // expected queryFn behavior.
 
+/*
+  The student workspace's one detail read now lives in
+  `hooks/student/useApplicationWorkspace.ts` (admissions-v2 task **12.1**,
+  MAINT-01). The `queryFn` — including the `AuthenticationError` re-throw these
+  cases exist to defend — was lifted verbatim out of the page; the page composes
+  the hook and renders the result.
+
+  This is a **source-location** repoint only: every behavioural claim below is the
+  same claim, about the same code, made of the same strings.
+*/
 const APPLICATION_STATUS_PATH = path.resolve(
+  __dirname,
+  '../../src/hooks/student/useApplicationWorkspace.ts',
+);
+/** The page that composes it, for the claims that are about the page's own gate. */
+const APPLICATION_STATUS_PAGE_PATH = path.resolve(
   __dirname,
   '../../src/pages/student/ApplicationStatus.tsx',
 );

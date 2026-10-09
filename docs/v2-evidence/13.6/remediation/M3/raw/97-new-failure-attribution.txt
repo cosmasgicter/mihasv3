@@ -1,0 +1,37 @@
+# M3 — the 1 new failure in the after run: a latent flake, not a regression
+
+]633;E;echo "## the assertion, and what it actually matched";715352ad-34ac-42ac-93ac-f87c642b8bc7]633;C## the assertion, and what it actually matched
+  tests/unit/test_notification_preferences_10_1.py:646  assert "535" not in body
+  E  '535' is contained here:
+  E    :30:37.942535Z', 'category': 'application_updates', ...
+
+'535' is an SMTP response code the history must never publish. It matched the
+SIX-DIGIT MICROSECOND FRACTION of an ISO timestamp in the same payload. The test
+passes in isolation and fails on the wall clock, which is why it appears as 'new'
+in M3's after run and was absent from the before run: nothing in M3 touched this
+module, this endpoint, or this payload.
+
+## passes in isolation (before the fix)
+.                                                                        [100%]
+=============================== warnings summary ===============================
+tests/unit/test_api_quality_script.py:31
+  /home/cosmas/Downloads/mihasv3/backend/tests/unit/test_api_quality_script.py:31: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/unit/test_notification_preferences_10_1.py::TestTheCommunicationsHistory::test_the_history_never_publishes_provider_text_or_the_address
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 5520 deselected, 2 warnings in 3.53s
+
+## after the fix: the whole 10.1 suite
+........................................................................ [ 78%]
+....................                                                     [100%]
+=============================== warnings summary ===============================
+tests/unit/test_notification_preferences_10_1.py: 30 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+92 passed, 30 warnings in 1.80s

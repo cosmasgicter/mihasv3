@@ -1,3 +1,5 @@
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
+
 // Consolidated ECZ subject name matcher — single source of truth for
 // both OCR grade extraction and wizard controller subject resolution.
 
@@ -140,11 +142,10 @@ const ALIASES: Record<string, string> = {
   'general science': 'science',
 }
 
-const BACKEND_SUBJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-function isBackendSubjectId(value: string): boolean {
-  return BACKEND_SUBJECT_ID_PATTERN.test(value)
-}
+// Admissions-v2 task 7.1: "an identity the server issued" has one definition,
+// in `@/lib/canonicalSubjectId`. This module used to carry a second copy of the
+// same regex, which is how a denylist and an allowlist can silently disagree.
+const isBackendSubjectId = isCanonicalSubjectId
 
 function levenshtein(a: string, b: string): number {
   const al = a.length

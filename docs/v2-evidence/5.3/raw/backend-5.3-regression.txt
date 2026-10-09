@@ -1,0 +1,8 @@
+...................................................................      [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+
+tests/integration/test_assignment_snapshot_isolation.py::TestCreateEndpointIsolation::test_create_snapshots_only_requesting_tenant_config
+tests/integration/test_assignment_config_failure.py::TestCreateEndpointFailsClosed::test_create_returns_503_configuration_unavailable_not_empty_requirements
+
+67 passed, 3 warnings in 6.32s

@@ -1,0 +1,140 @@
+### 2026-08-12T19:50:21Z [C6] reconciliation sweeps: payment/document/domain/communication + capacity
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+
+==============================================================================
+clause 6: reconciliation - payment / document / domain / communication
+==============================================================================
+python       : 3.14.4
+settings     : config.settings.dev
+database     : v2_fresh_13_4 (PostgreSQL 17.10 (29ad1b7) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit)
+base tables  : 89
+cache backend: RedisCache
+cache live   : True
+pre-existing rows in sweep-written tables: notifications=0, email_queue=0, outbox_events=0, audit_logs=0
+PROBE ok   | setup: shared fixtures | profile + institution + canonical + offering + intake + program_intake
+
+==============================================================================
+S1 payment reconciliation - apps.documents.tasks.poll_pending_payments_task
+==============================================================================
+PROBE ok   | payment: uq_payments_one_active_per_application is live on the expanded schema | two pending collections needed two applications - one open collection per application is enforced
+{"time": "2026-08-12T19:50:57.048074+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment 00000000-0000-0000-0000-000136a10101 transitioned to expired (lenco_ref=None)"}
+{"time": "2026-08-12T19:50:57.709022+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 00000000-0000-0000-0000-000136a10001 payment_status set to not_paid"}
+{"time": "2026-08-12T19:51:05.158072+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+{"time": "2026-08-12T19:51:05.158312+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: expired 1 payments via PaymentService.expire_stale"}
+{"time": "2026-08-12T19:51:05.497607+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: 1 payments to verify (batch<=10)"}
+{"time": "2026-08-12T19:51:05.899605+00:00", "level": "WARNING", "logger": "apps.documents.payment_service_mixins._verification", "message": "verify: Lenco credentials missing \u2014 payment 00000000-0000-0000-0000-000136a10102 remains pending"}
+{"time": "2026-08-12T19:51:05.900164+00:00", "level": "WARNING", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: skipping payment 00000000-0000-0000-0000-000136a10102 without status transition (PROVIDER_UNAVAILABLE)"}
+{"time": "2026-08-12T19:51:05.900301+00:00", "level": "INFO", "logger": "apps.documents.payment_metrics", "message": "payment_metric", "type": "metric", "metric": "payment.reconcile.processed", "amount": 1}
+  before: stale(30h)=pending  in-window(30m)=pending
+  LENCO_API_SECRET_KEY configured: False
+    [sweep run 1] wall=10242 ms
+  after 1: stale=expired  in-window=pending
+PROBE ok   | payment: >24h pending is expired by the sweep | pending -> expired (PaymentService.expire_stale, 24h cutoff)
+PROBE ok   | payment: provider-unavailable leaves status UNCHANGED (R6.3) | in-window payment stayed 'pending' - the sweep skipped it instead of deciding for the provider
+{"time": "2026-08-12T19:51:06.937429+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 0/50 candidates, expired=0"}
+{"time": "2026-08-12T19:51:07.330612+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: 1 payments to verify (batch<=10)"}
+{"time": "2026-08-12T19:51:07.717636+00:00", "level": "WARNING", "logger": "apps.documents.payment_service_mixins._verification", "message": "verify: Lenco credentials missing \u2014 payment 00000000-0000-0000-0000-000136a10102 remains pending"}
+{"time": "2026-08-12T19:51:07.717941+00:00", "level": "WARNING", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: skipping payment 00000000-0000-0000-0000-000136a10102 without status transition (PROVIDER_UNAVAILABLE)"}
+{"time": "2026-08-12T19:51:07.718044+00:00", "level": "INFO", "logger": "apps.documents.payment_metrics", "message": "payment_metric", "type": "metric", "metric": "payment.reconcile.processed", "amount": 1}
+    [sweep run 2 (replay)] wall=1133 ms
+PROBE ok   | payment: replay converges | run1=(expired,pending) run2=(expired,pending)
+{"time": "2026-08-12T19:51:08.765667+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "poll_pending_payments_task: skipped (already running)"}
+PROBE ok   | payment: a concurrent run is skipped by the celery_lock | held lock -> sweep returned without touching rows
+
+==============================================================================
+S2 document reconciliation - apps.documents.tasks.reconcile_document_storage_task (7.3)
+==============================================================================
+{"time": "2026-08-12T19:51:25.046733+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-08-12T19:51:25.047006+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-08-12T19:51:25.758182+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.orphaned", "type": "app_metric", "metric": "document.stage.orphaned"}
+{"time": "2026-08-12T19:51:25.758446+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "reconcile_document_storage_task: 0 reconciled, 1 recovered, 1 still pending, 1 orphaned"}
+  reconcile-after: 900s   MAX_COMPENSATION_ATTEMPTS=5
+  before: recover-candidate=staged  orphan-candidate=staged  exhausted=compensation_pending(attempts=5)
+    [sweep run 1] wall=5012 ms
+  after 1: recover=committed  orphan=compensation_pending  exhausted=orphaned   summary={'reconciled': 0, 'recovered': 1, 'pending': 1, 'orphaned': 1}
+PROBE ok   | document: self-heal wins over delete when the evidence exists | staged -> committed; the committed object key matched, so the sweep did NOT delete live evidence
+PROBE ok   | document: exhausted compensation becomes a terminal operator queue entry | compensation_pending(attempts=5) -> orphaned
+PROBE ok   | document: uncommitted stage is compensated or deferred, never silently dropped | staged -> compensation_pending
+{"time": "2026-08-12T19:51:30.269554+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-08-12T19:51:30.269877+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-08-12T19:51:30.270088+00:00", "level": "INFO", "logger": "apps.documents.tasks", "message": "reconcile_document_storage_task: 0 reconciled, 0 recovered, 1 still pending, 0 orphaned"}
+    [sweep run 2 (replay)] wall=3469 ms
+  after 2: recover=committed  orphan=compensation_pending  exhausted=orphaned   summary={'reconciled': 0, 'recovered': 0, 'pending': 1, 'orphaned': 0}
+PROBE ok   | document: terminal states are not re-decided on replay | recover committed->committed, exhausted orphaned->orphaned
+PROBE ok   | document: retry is bounded, not a loop | attempts=2 <= 5
+
+==============================================================================
+S3 domain reconciliation - apps.catalog.tasks sweep + verify (4.4)
+==============================================================================
+  retry-after: 600s
+  before: status=pending_dns last_checked_at=None last_error=None
+PROBE ok   | domain: the committed-but-undispatched backlog row is what the sweep is for | last_checked_at IS NULL = the broker was down when the domain was created
+{"time": "2026-08-12T19:51:34.163057+00:00", "level": "INFO", "logger": "apps.common.celery_signals", "message": "task_lifecycle", "type": "task_lifecycle", "event": "task_started", "task_name": "apps.catalog.tasks.verify_institution_domain_task", "task_id": "3960ef6e-060b-4cb5-9c6c-80069363703e"}
+{"time": "2026-08-12T19:51:34.979670+00:00", "level": "INFO", "logger": "apps.catalog.tasks", "message": "verify_institution_domain_task: domain 00000000-0000-0000-0000-000136a30001 verification failed: DNS lookup failed for hostname 'rehearsal-13-4.example.invalid': gaierror: [Errno -2] Name or service not known"}
+{"time": "2026-08-12T19:51:34.980058+00:00", "level": "INFO", "logger": "celery.app.trace", "message": "Task apps.catalog.tasks.verify_institution_domain_task[3960ef6e-060b-4cb5-9c6c-80069363703e] succeeded in 0.8170808190043317s: None"}
+{"time": "2026-08-12T19:51:34.980253+00:00", "level": "INFO", "logger": "apps.common.celery_signals", "message": "task_lifecycle", "type": "task_lifecycle", "duration_ms": 817.2, "event": "task_completed", "task_name": "apps.catalog.tasks.verify_institution_domain_task", "task_id": "3960ef6e-060b-4cb5-9c6c-80069363703e"}
+{"time": "2026-08-12T19:51:34.981631+00:00", "level": "INFO", "logger": "apps.catalog.tasks", "message": "sweep_pending_domain_verifications_task: dispatched 1 verification job(s)"}
+    [sweep run 1 (eager dispatch)] wall=1218 ms
+  after 1: dispatched=1 status=pending_dns last_checked_at=set
+           last_error=DNS lookup failed for hostname 'rehearsal-13-4.example.invalid': gaierror: [Errno -2] Name or service not known
+PROBE ok   | domain: the NULL-last_checked_at backlog row is dispatched | dispatched=1
+PROBE ok   | domain: an unresolvable host does NOT advance the lifecycle (R7.5) | status stayed 'pending_dns' - no pending_dns -> pending_review jump on a failed lookup
+PROBE ok   | domain: the failure is recorded for the operator, not swallowed | last_error set (111 chars, cap 1000), last_checked_at stamped
+{"time": "2026-08-12T19:51:35.798881+00:00", "level": "INFO", "logger": "apps.catalog.tasks", "message": "sweep_pending_domain_verifications_task: dispatched 0 verification job(s)"}
+    [sweep run 2 (immediate replay)] wall=407 ms
+PROBE ok   | domain: replay inside the retry window does NOT re-dispatch | dispatched=0 - the 600s cutoff bounds the sweep
+{"time": "2026-08-12T19:51:38.463848+00:00", "level": "INFO", "logger": "apps.catalog.tasks", "message": "verify_institution_domain_task: domain 00000000-0000-0000-0000-000136a30002 is active, not pending_dns; skipping"}
+PROBE ok   | domain: the verifier is a no-op on a non-pending_dns row | status still 'active'
+
+==============================================================================
+S4 communication reconciliation - apps.common.tasks.process_pending_emails_task (9.5/10.4)
+==============================================================================
+{"time": "2026-08-12T19:51:43.172155+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "process_pending_emails_task: starting sweep"}
+{"time": "2026-08-12T19:51:44.389520+00:00", "level": "WARNING", "logger": "apps.common.tasks", "message": "Email sweep: reclaimed 1 stale processing emails"}
+{"time": "2026-08-12T19:51:44.389706+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "Email sweep: dispatched 2 stale email tasks"}
+  pending-sweep-age=0:02:00  processing-reclaim-age=0:10:00
+  broker eager: False (OFF - the broker-down path is the one being rehearsed)
+  before: stuck=processing stale-pending=pending
+    [sweep run 1] wall=1219 ms
+  after 1: stuck=retrying (Recovered stale processing email for re-dispatch)  stale-pending=pending
+PROBE ok   | communication: an email stuck in 'processing' is reclaimed for re-dispatch | processing -> retrying: 'Recovered stale processing email for re-dispatch'
+PROBE ok   | communication: the stale pending row is left in a re-dispatchable state, not lost | status=pending (no broker: the sweep stops dispatching rather than dropping rows)
+{"time": "2026-08-12T19:51:45.529181+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "process_pending_emails_task: starting sweep"}
+{"time": "2026-08-12T19:51:46.657645+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "Email sweep: dispatched 2 stale email tasks"}
+    [sweep run 2 (replay)] wall=1129 ms
+PROBE ok   | communication: replay does not re-reclaim an already-reclaimed row | retrying -> retrying
+{"time": "2026-08-12T19:51:49.623682+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "process_pending_emails_task: starting sweep"}
+{"time": "2026-08-12T19:51:50.610689+00:00", "level": "INFO", "logger": "apps.common.tasks", "message": "Email sweep: dispatched 2 stale email tasks"}
+PROBE ok   | communication: the email sweep does not silently mutate outbox_events | outbox status pending -> pending (the outbox is a separate durable ledger)
+  outbox_events failed rows (13.2 gate 9 metric): 0
+PROBE ok   | communication: the payment expiry from S1 notified the student through the outbox | 1 queued email + 1 outbox 'email.queued' row - reconciliation is not silent, and the notification is durable rather than fire-and-forget
+  communication_templates: total=19 legacy-branded=19 institution_id IS NULL=19
+  the queued expiry subject actually sent to the student: 'MIHAS Admissions — Payment Expired'
+PROBE FAIL | EXPECT-DEFECT communication: the seeded template fallback carries a legacy tenant's identity (GATE-13.4-01) | all 19 rows seeded by 2026_05_19_seed_communication_templates.sql are legacy-branded AND have institution_id IS NULL, so the PLATFORM-WIDE fallback is one tenant's brand. The rehearsal saw it reach a real queued email: 'MIHAS Admissions — Payment Expired'. Ships to every database the sweep touches, including a fresh tenant's. Measured, not fixed - communication/tenancy lane owns it.
+
+==============================================================================
+S5 capacity reconciliation - GATE-13.2-02 measured, not repaired
+==============================================================================
+  SEAT_STATUSES = ('submitted', 'under_review', 'approved', 'waitlisted')
+  'enrolled' in SEAT_STATUSES: False
+  isolated capacity row: 1 enrolled application, 0 other applications
+  before: current_enrollment=1, seat-status rows on this offering+intake=0
+    [CapacityService.reconcile] wall=1879 ms
+  after : reconcile() returned 0, current_enrollment=0
+PROBE ok   | EXPECT-DEFECT capacity: reconcile() hands an enrolled student's seat back (GATE-13.2-02) | 1 enrolled application on an otherwise empty offering+intake; counter 1 -> 0, reconcile() counted 0. The seat is released while the student is still enrolled, because 'enrolled' is not in SEAT_STATUSES. Measured, not fixed - capacity lane owns it.
+
+==============================================================================
+cleanup
+==============================================================================
+  rows the sweeps themselves created, now removed: {'notifications': 0, 'email_queue': 1, 'outbox_events': 1, 'audit_logs': 0}
+PROBE ok   | cleanup: schema left as found | rehearsal rows removed ({'applications': 0, 'payments': 0, 'stages': 0, 'domains': 0}); sweep-written tables back to their pre-rehearsal baseline (expected={'notifications': 0, 'email_queue': 0, 'outbox_events': 0, 'audit_logs': 0}, actual={'notifications': 0, 'email_queue': 0, 'outbox_events': 0, 'audit_logs': 0})
+
+==============================================================================
+RESULT
+==============================================================================
+elapsed: 116s
+1 probe(s) FAILED: ["EXPECT-DEFECT communication: the seeded template fallback carries a legacy tenant's identity (GATE-13.4-01)"]
+C6-DONE rc=1
+C6-EXIT rc=1

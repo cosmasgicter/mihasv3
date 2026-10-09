@@ -78,11 +78,34 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
   /**
    * **Validates: Requirements 2.5, 4.4, 8.1**
    *
-   * For any Django response shaped as {applications: [...], count, page},
-   * normalizePaginatedApplications shall return a PaginatedApplicationsResponse where
-   * applications contains exactly the input records and totalCount is non-negative.
+   * REPOINTED BY admissions-v2 task 12.2 (R14.5, finding API-02) — read this
+   * before changing it back.
+   *
+   * This case was titled "normalizes {applications: [...], count, page} shape
+   * correctly" and asserted that `normalizePaginatedApplications` accepted a
+   * **rival pagination contract**: `applications` for the list, `count` for the
+   * total. This platform's paginator is `StandardPagination`
+   * (`backend/apps/common/pagination.py`), which publishes exactly
+   * `{page, pageSize, totalCount, results}` and none of those keys, and
+   * admissions-v2 R14.5 requires that "permissive array/result/data/application
+   * normalizers ... SHALL be deleted rather than retained indefinitely" after
+   * cutover. So the tolerance is gone.
+   *
+   * What was preserved, deliberately:
+   *
+   * - **Property 4's own claim is untouched.** The case immediately above this
+   *   one exercises the canonical `{results, totalCount, page, pageSize}` shape
+   *   over the same generators and still passes; that is the case that carries
+   *   the property. This one was a DUPLICATE over a second input shape.
+   * - **The requirement links are unchanged** (2.5, 4.4, 8.1).
+   * - **The retired shape is still generated**, so the removal is pinned rather
+   *   than forgotten — the expectation is inverted, not deleted.
+   *
+   * The refusal is total and visible: an empty list and a zero total, not a
+   * partial read. A normalizer that half-accepted a rival contract is the shape
+   * R14 calls out, because the drift would keep rendering.
    */
-  it('normalizes {applications: [...], count, page} shape correctly', () => {
+  it('REFUSES the {applications, count} rival contract, totally and visibly', () => {
     fc.assert(
       fc.property(
         fc.array(applicationRecordArb, { minLength: 0, maxLength: 15 }),
@@ -95,18 +118,15 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
             page,
           };
 
-          const result = normalizePaginatedApplications(response);
+          const result = normalizePaginatedApplications(response as never);
 
-          expect(result.applications).toHaveLength(records.length);
-          expect(result.applications).toStrictEqual(
-            [...records].sort((left, right) => {
-              const rightTime = new Date(right.created_at || 0).getTime()
-              const leftTime = new Date(left.created_at || 0).getTime()
-              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
-            }),
-          );
-          expect(result.totalCount).toBe(count);
+          // `applications` is not the published list key.
+          expect(result.applications).toStrictEqual([]);
+          // `count` is DRF's default total key, not this platform's.
+          expect(result.totalCount).toBe(0);
           expect(result.totalCount).toBeGreaterThanOrEqual(0);
+          // `page` IS canonical, so it is still honoured — the refusal is scoped
+          // to the two rival keys rather than discarding the whole payload.
           expect(result.page).toBe(page);
         },
       ),
@@ -252,7 +272,22 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
 import { normalizeStats } from '@/services/admin/dashboard';
 import type { AdminDashboardStats } from '@/services/admin/dashboard';
 
+/**
+ * The read-health vocabulary, plus `null`.
+ *
+ * Task 9.2 replaced the four adjectives (`excellent`/`good`/`warning`/`critical`)
+ * with three states the backend **derives** from whether each metric source
+ * answered, and made an unrecognised or absent value normalise to `null` rather
+ * than to the friendliest option (ADM-02). `null` is therefore a valid outcome
+ * here — that is exactly the assertion this property is making.
+ */
 const VALID_SYSTEM_HEALTH_VALUES: AdminDashboardStats['systemHealth'][] = [
+  null,
+  'operational',
+  'degraded',
+  'unknown',
+]
+const RETIRED_SYSTEM_HEALTH_VALUES = [
   'excellent',
   'good',
   'warning',
@@ -306,7 +341,7 @@ const validStatsArb = fc.record({
   decisionVelocity24h: fc.float({ min: 0, max: 1000, noNaN: true }),
   activeUsers: fc.integer({ min: 0, max: 100000 }),
   activeUsersLast7d: fc.integer({ min: 0, max: 100000 }),
-  systemHealth: fc.constantFrom('excellent', 'good', 'warning', 'critical'),
+  systemHealth: fc.constantFrom('operational', 'degraded', 'unknown'),
 });
 
 /** Snake_case variant of valid stats (Django-style) */
@@ -328,7 +363,7 @@ const snakeCaseStatsArb = fc.record({
   decision_velocity_24h: fc.float({ min: 0, max: 1000, noNaN: true }),
   active_users: fc.integer({ min: 0, max: 100000 }),
   active_users_last_7d: fc.integer({ min: 0, max: 100000 }),
-  system_health: fc.constantFrom('excellent', 'good', 'warning', 'critical'),
+  system_health: fc.constantFrom('operational', 'degraded', 'unknown'),
 });
 
 /** Arbitrary value that could appear in a malformed response */
@@ -445,6 +480,12 @@ describe('Feature: frontend-django-alignment, Property 5: Admin dashboard normal
    * For any object with wrong value types for all fields, normalizeStats shall still
    * return finite numerics and a valid systemHealth. The function shall never throw.
    */
+  it('never resurrects the retired four-value health vocabulary', () => {
+    for (const retired of RETIRED_SYSTEM_HEALTH_VALUES) {
+      expect(normalizeStats({ system_health: retired }).systemHealth).toBeNull();
+    }
+  });
+
   it('returns finite numerics and valid systemHealth for wrong value types', () => {
     fc.assert(
       fc.property(wrongTypesStatsArb, (input) => {
@@ -527,28 +568,39 @@ describe('Feature: frontend-django-alignment, Property 6: No double envelope unw
     );
   });
 
-  it('preserves applications array from non-envelope response', () => {
+  /**
+   * **Validates: Requirements 4.1**
+   *
+   * REPOINTED BY admissions-v2 task 12.2 (R14.5, finding API-02).
+   *
+   * Property 6's claim is "no double envelope unwrap" — an already-unwrapped
+   * payload must not have its keys stripped. That claim is carried by the case
+   * immediately above, which uses the canonical `{results, …}` shape and still
+   * passes. This case was a DUPLICATE of it over the retired
+   * `{applications, count}` shape, and "does not strip a key" is not a reason to
+   * keep reading a key the producer never sends. Inverted, not deleted, so the
+   * removal stays pinned.
+   */
+  it('REFUSES the retired {applications, count} shape without stripping canonical keys', () => {
     fc.assert(
       fc.property(
         fc.array(applicationRecordArb, { minLength: 1, maxLength: 10 }),
         fc.integer({ min: 0, max: 100000 }),
         (records, count) => {
-          // Already-unwrapped data with applications key
           const nonEnvelopePayload = {
             applications: records,
             count,
           };
 
-          const result = normalizePaginatedApplications(nonEnvelopePayload);
+          const result = normalizePaginatedApplications(nonEnvelopePayload as never);
 
-          expect(result.applications).toStrictEqual(
-            [...records].sort((left, right) => {
-              const rightTime = new Date(right.created_at || 0).getTime()
-              const leftTime = new Date(left.created_at || 0).getTime()
-              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
-            }),
-          );
-          expect(result.totalCount).toBe(count);
+          expect(result.applications).toStrictEqual([]);
+          expect(result.totalCount).toBe(0);
+          // And the canonical shape is unaffected — the same records under
+          // `results` are still read in full. This is the half of the property
+          // that actually defends against a second unwrap.
+          const canonical = normalizePaginatedApplications({ results: records } as never);
+          expect(canonical.applications).toHaveLength(records.length);
         },
       ),
       { numRuns: 100 },

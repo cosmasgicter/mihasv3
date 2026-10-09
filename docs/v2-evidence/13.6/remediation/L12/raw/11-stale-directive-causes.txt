@@ -1,0 +1,123 @@
+]633;E;printf '=== COMMAND: bash raw/l12-config-cause-probe.sh   (eslint --print-config per site) ===\\n';ef53f62a-14fe-492e-bd85-3e8296d8d9c4]633;C=== COMMAND: bash raw/l12-config-cause-probe.sh   (eslint --print-config per site) ===
+=== DATE: 2026-08-14T15:33:44Z ===
+=== WHY: 6 of the 15 errors were stale eslint-disable directives. This measures WHY
+===      each went stale, from ESLint own resolved config, so the causes in the
+===      README are read off an instrument rather than argued. ===
+
+##################################################################
+# B1 — 3 stale directives for no-restricted-imports on '@/lib/eligibilityEngine'
+#      useWizardController.ts:14 · EducationStep.tsx:13 · SubmitStep.tsx:36
+#
+# CLAIM: flat config REPLACES a rule's options, it does not merge them. The R14.3
+# block comes after the migratedModuleFiles block and also matches 'src/pages/**',
+# so for these three files the effective no-restricted-imports carries the R14.3
+# transport patterns and NOT the eligibilityEngine pattern the directives named.
+# A directive for a pattern that is not in the effective config can never be used.
+##################################################################
+
+    file: src/pages/student/applicationWizard/hooks/useWizardController.ts
+    no-restricted-imports: severity 2, 1 pattern group(s)
+      group: ['@/services/client', '@/services/httpClient', '@/services/csrf', '@/services/csrfManager', '@/services/retry', '@/services/authInterceptor', '@/services/apiHelpers']
+    -> '@/lib/eligibilityEngine' in the effective patterns? False
+    -> '@/services/client'       in the effective patterns? True
+    @typescript-eslint/no-explicit-any: OFF (not enabled -> any disable for it is unused)
+    no-constant-condition: OFF (not enabled -> any disable for it is unused)
+    rules ON for this file (3): ['import/first', 'no-restricted-imports', 'react-hooks/rules-of-hooks']
+    @typescript-eslint plugin registered? False
+
+    file: src/pages/student/applicationWizard/steps/EducationStep.tsx
+    no-restricted-imports: severity 2, 1 pattern group(s)
+      group: ['@/services/client', '@/services/httpClient', '@/services/csrf', '@/services/csrfManager', '@/services/retry', '@/services/authInterceptor', '@/services/apiHelpers']
+    -> '@/lib/eligibilityEngine' in the effective patterns? False
+    -> '@/services/client'       in the effective patterns? True
+    @typescript-eslint/no-explicit-any: OFF (not enabled -> any disable for it is unused)
+    no-constant-condition: OFF (not enabled -> any disable for it is unused)
+    rules ON for this file (3): ['import/first', 'no-restricted-imports', 'react-hooks/rules-of-hooks']
+    @typescript-eslint plugin registered? False
+
+#### CONTROL — a migratedModuleFiles file that is NOT under src/pages, so no R14.3
+#### override applies and the eligibilityEngine pattern IS effective there:
+
+    file: src/hooks/queries/useApplicationQueries.ts
+    no-restricted-imports: severity 2, 2 pattern group(s)
+      group: ['@supabase/supabase-js', '@/lib/supabase*', '**/supabase*']
+      group: ['@/lib/eligibilityEngine', '@/lib/notificationService', '@/lib/duplicateApplicationCheck']
+    -> '@/lib/eligibilityEngine' in the effective patterns? True
+    -> '@/services/client'       in the effective patterns? False
+    @typescript-eslint/no-explicit-any: OFF (not enabled -> any disable for it is unused)
+    no-constant-condition: OFF (not enabled -> any disable for it is unused)
+    rules ON for this file (3): ['import/first', 'no-restricted-imports', 'react-hooks/rules-of-hooks']
+    @typescript-eslint plugin registered? False
+
+##################################################################
+# B2 — 2 stale directives for @typescript-eslint/no-explicit-any
+#      tests/harness-e2e/harness-fixtures.ts:161,163
+# CLAIM: the plugin is registered but this rule is never enabled, so a disable for
+#        it is unused by construction — at every line of every file.
+##################################################################
+
+    file: tests/harness-e2e/harness-fixtures.ts
+    no-restricted-imports: severity 2, 14 pattern group(s)
+      group: ['@/components/ui/Card', '@/components/ui/Badge', '@/components/ui/Tooltip', '@/components/ui/Skeleton']
+      group: ['@/components/ui/LightweightButton', '@/components/ui/MobileOptimizedButton', '@/components/ui/TouchButton', '@/components/ui/TouchOptimizedButton', '@/components/ui/LoadingSpinner', '@/components/ui/Spinner', '@/components/ui/Radio']
+      group: ['@/utils/logger']
+      group: ['@/utils/errorMessages']
+      group: ['@/lib/sanitizer', '@/lib/securityEnhancements']
+      group: ['@/utils/keyboardNavigation', '@/utils/contrastChecker']
+      group: ['@/lib/draftCleanup']
+      group: ['@/lib/networkChecker', '@/lib/networkDiagnostics']
+      group: ['@/stores/toastStore']
+      group: ['@/lib/notificationService', '@/lib/adminNotifications']
+      group: ['@/lib/securityPatches', '@/lib/securityHeaders', '@/lib/securityUtils']
+      group: ['@/hooks/useErrorHandling', '@/hooks/useErrorHandler', '@/hooks/useAsyncOperation']
+      group: ['@/hooks/useNotificationPreferences']
+      group: ['@/components/ErrorBoundary']
+    -> '@/lib/eligibilityEngine' in the effective patterns? False
+    -> '@/services/client'       in the effective patterns? False
+    @typescript-eslint/no-explicit-any: OFF (not enabled -> any disable for it is unused)
+    no-constant-condition: OFF (not enabled -> any disable for it is unused)
+    rules ON for this file (2): ['no-restricted-imports', 'react-hooks/rules-of-hooks']
+    @typescript-eslint plugin registered? False
+    grep for the rule name in eslint.config.js:
+      (not mentioned anywhere — never enabled)
+
+##################################################################
+# B3 — 1 stale directive for no-constant-condition
+#      tests/harness-e2e/helpers/ops.ts:320, guarding 'while (true)'
+# CLAIM: the rule is not enabled here either. (Even if it were, its own default
+#        checkLoops:'allExceptWhileTrue' permits while(true) — so the directive
+#        was unnecessary under both readings.)
+##################################################################
+
+    file: tests/harness-e2e/helpers/ops.ts
+    no-restricted-imports: severity 2, 14 pattern group(s)
+      group: ['@/components/ui/Card', '@/components/ui/Badge', '@/components/ui/Tooltip', '@/components/ui/Skeleton']
+      group: ['@/components/ui/LightweightButton', '@/components/ui/MobileOptimizedButton', '@/components/ui/TouchButton', '@/components/ui/TouchOptimizedButton', '@/components/ui/LoadingSpinner', '@/components/ui/Spinner', '@/components/ui/Radio']
+      group: ['@/utils/logger']
+      group: ['@/utils/errorMessages']
+      group: ['@/lib/sanitizer', '@/lib/securityEnhancements']
+      group: ['@/utils/keyboardNavigation', '@/utils/contrastChecker']
+      group: ['@/lib/draftCleanup']
+      group: ['@/lib/networkChecker', '@/lib/networkDiagnostics']
+      group: ['@/stores/toastStore']
+      group: ['@/lib/notificationService', '@/lib/adminNotifications']
+      group: ['@/lib/securityPatches', '@/lib/securityHeaders', '@/lib/securityUtils']
+      group: ['@/hooks/useErrorHandling', '@/hooks/useErrorHandler', '@/hooks/useAsyncOperation']
+      group: ['@/hooks/useNotificationPreferences']
+      group: ['@/components/ErrorBoundary']
+    -> '@/lib/eligibilityEngine' in the effective patterns? False
+    -> '@/services/client'       in the effective patterns? False
+    @typescript-eslint/no-explicit-any: OFF (not enabled -> any disable for it is unused)
+    no-constant-condition: OFF (not enabled -> any disable for it is unused)
+    rules ON for this file (2): ['no-restricted-imports', 'react-hooks/rules-of-hooks']
+    @typescript-eslint plugin registered? False
+    grep for the rule name in eslint.config.js:
+      (not mentioned anywhere — never enabled)
+
+##################################################################
+# A — the nine cluster-A errors were real violations, not config noise
+##################################################################
+    Above, for both src/pages files: '@/services/client in the effective patterns? True'.
+    And the directive report is part of the gate command itself, not an extra flag:
+17:    "lint": "bun x eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+EXIT=0

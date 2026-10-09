@@ -6,9 +6,19 @@
  * mobile navigation. The only capability-variant tenant entry on every admin
  * nav surface is resolved through the single pure helper `resolveTenantNavItem`,
  * and the super-admin-only static admin paths are gated through the single pure
- * helper `canSeeAdminNavPath` / `filterAdminNavItems`. Because `DesktopSidebar`,
- * `MobileBottomNav`, and `AppLayout` all inject the SAME helper's single result,
+ * helper `canSeeAdminNavPath` / `filterAdminNavItems`. Because `DesktopSidebar`
+ * and `AppLayout` — which owns the mobile surface, injecting capability-filtered
+ * items into `BottomNavigation` — both inject the SAME helper's single result,
  * the capability decision is, by construction, identical across surfaces.
+ *
+ * Note (admissions-v2 task 12.4): this docstring used to name a third witness,
+ * `MobileBottomNav`. That component had **zero** importers and was never
+ * rendered, so citing it as evidence of *mobile* capability parity was citing a
+ * surface no user could reach. It was removed and this text now names the two
+ * surfaces that ship. The property's own claim is unchanged and its subject was
+ * never the components: every case below drives the real pure helpers
+ * (`resolveTenantNavItem`, `canSeeAdminNavPath`) directly, with the same
+ * generators at the same `numRuns`, and no case imported `MobileBottomNav`.
  *
  * This property pins that invariant: for arbitrary capability states
  * (`isSuperAdmin`, `isTenantAdmin`, `can(capability)` over the relevant

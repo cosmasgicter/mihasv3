@@ -12,6 +12,10 @@ import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+// Task 13.6 remediation L6 (GATE-13.3-10): the boundary's copy is now chosen by a
+// pure classifier, so Property 9 asserts the classifier's output rather than a
+// substring of the file that renders it.
+import { classifyBoundaryError, leaksInternalError } from '../../src/lib/errorBoundaryCopy';
 
 // Read the AutoSaveIndicator source once
 const COMPONENT_PATH = resolve(
@@ -413,22 +417,87 @@ describe('Feature: website-ui-ux-fix, Property 9: ErrorBoundary renders recovery
    * Property: For any error caught by ErrorBoundary, the page-level variant
    * renders a friendly error message with a reload button.
    */
-  it('page-level variant renders "Something went wrong" heading', () => {
-    const errorArb = fc.string({ minLength: 1, maxLength: 200 }).filter(s => s.trim().length > 0);
+  /*
+    Task 13.6 remediation L6 (GATE-13.3-10): this case used to assert that the
+    page-level block **contained the literal strings** `'Something went wrong'` and
+    `'Please try reloading the page'`. Both moved into
+    `src/lib/errorBoundaryCopy.ts`, because the boundary no longer has one sentence
+    — it has four, chosen by classifying the exception, and it no longer renders
+    `error.message` at a student (13.3 measured *"Cannot read properties of
+    undefined (reading 'SessionMonitor')"* on that path).
+
+    So the claim is asserted against the copy the boundary actually renders rather
+    than against the file that renders it, which is strictly stronger: a source
+    substring cannot tell whether the sentence reaches the screen, and 13.3 §13's
+    own lesson is that a guard reading a declaration cannot answer a question about
+    a rendered page. Requirement 10.3 is unchanged: a friendly message, always.
+  */
+  it('every classified error still yields a friendly message and recovery guidance', () => {
+    const errorArb = fc.oneof(
+      fc.string({ minLength: 1, maxLength: 200 }).map((m) => new Error(m)),
+      fc.constant(new Error('Failed to fetch dynamically imported module: /assets/js/x.js')),
+      fc.constant(new TypeError("Cannot read properties of undefined (reading 'SessionMonitor')")),
+      fc.constant(undefined),
+    );
 
     fc.assert(
-      fc.property(errorArb, (_errorMessage) => {
-        // 1. The page-level block exists
-        expect(pageLevelBlock.length).toBeGreaterThan(0);
+      fc.property(errorArb, fc.boolean(), (error, online) => {
+        const copy = classifyBoundaryError(error, online);
 
-        // 2. It contains the friendly heading text
-        expect(pageLevelBlock).toContain('Something went wrong');
+        // 1. There is always a title and a message, and neither is empty.
+        expect(copy.title.trim().length).toBeGreaterThan(0);
+        expect(copy.message.trim().length).toBeGreaterThan(0);
 
-        // 3. It contains the reload guidance message
-        expect(pageLevelBlock).toContain('Please try reloading the page');
+        // 2. The message always tells the student what to do next.
+        expect(copy.message).toMatch(/try again|reload|reconnect|contact support/i);
+
+        // 3. R16.8 / GATE-13.3-10: it never leaks an internal error shape.
+        expect(leaksInternalError(`${copy.title} ${copy.message}`)).toBe(false);
+
+        // 4. The unknown case keeps the original friendly heading.
+        if (copy.kind === 'unknown') expect(copy.title).toBe('Something went wrong');
+      }),
+      { numRuns: 200 }
+    );
+  });
+
+  /*
+    The source-level half of the same claim, and the one that can regress silently:
+    neither fallback may pass the caught exception into copy again. The *rendered*
+    half is `tests/unit/errorBoundaryOfflineCopy.test.tsx`, because this file runs
+    in the `node` environment and cannot mount a component.
+  */
+  it('neither fallback renders the caught exception message', () => {
+    fc.assert(
+      fc.property(fc.constant(true), () => {
+        for (const [name, block] of [
+          ['page-level', pageLevelBlock],
+          ['section-level', sectionLevelBlock],
+        ] as const) {
+          expect(block.length, `${name} block should be extractable`).toBeGreaterThan(0);
+          expect(block, `${name} block must not render error.message (GATE-13.3-10)`).not.toMatch(
+            /state\.error\??\.message/
+          );
+          expect(block, `${name} block should render the classified copy`).toMatch(/copy\.(title|message)/);
+        }
       }),
       { numRuns: 100 }
     );
+  });
+
+  it('an offline failure names the connection (GATE-13.3-10)', () => {
+    const offline = classifyBoundaryError(new Error('anything at all'), false);
+    expect(offline.kind).toBe('offline');
+    expect(offline.title + ' ' + offline.message).toMatch(
+      /offline|connection|network|internet|reconnect/i
+    );
+
+    const chunk = classifyBoundaryError(
+      new Error('Failed to fetch dynamically imported module: /assets/js/SessionMonitor-abc.js'),
+      true
+    );
+    expect(chunk.kind).toBe('chunk');
+    expect(chunk.title + ' ' + chunk.message).toMatch(/connection|network|downloaded/i);
   });
 
   it('page-level variant renders a Reload Page button', () => {
@@ -445,6 +514,16 @@ describe('Feature: website-ui-ux-fix, Property 9: ErrorBoundary renders recovery
 
         // 4. The button includes a RefreshCw icon
         expect(pageLevelBlock).toContain('RefreshCw');
+
+        /*
+          5. Task 13.6 remediation L6: and a `Try Again` that does *not* discard the
+          page. Reloading was the only page-level recovery, which for an offline
+          chunk failure is the one action guaranteed to fail again; `handleReset`
+          re-renders the subtree in place, and `Reload Page` is now offered beside
+          it only when `copy.offerReload` says a reload is the useful control.
+        */
+        expect(pageLevelBlock).toMatch(/onClick=\{this\.handleReset\}/);
+        expect(pageLevelBlock).toContain('copy.offerReload');
       }),
       { numRuns: 100 }
     );
@@ -496,11 +575,28 @@ describe('Feature: website-ui-ux-fix, Property 9: ErrorBoundary renders recovery
     );
   });
 
-  it('page-level reload button meets 44px minimum touch target', () => {
+  it('page-level recovery buttons meet the 44px minimum touch target', () => {
     fc.assert(
       fc.property(fc.constant(true), () => {
-        expect(pageLevelBlock).toContain('min-h-[44px]');
-        expect(pageLevelBlock).toContain('min-w-[44px]');
+        /*
+          Task 13.6 remediation L6: the arbitrary-value pair `min-h-[44px]` /
+          `min-w-[44px]` was carried *alongside* `min-h-touch` / `min-w-touch` on
+          the same element — the same 44 px stated twice, once as a magic number.
+          The named utilities are the repo's own (`tailwind.config.js` →
+          `minHeight.touch`), and `design-skills.md` names them as the way to
+          express this, so a change to the touch floor cannot be half-applied.
+
+          Both buttons are checked, not one: the page-level fallback now offers
+          `Try Again` as well as `Reload Page` (GATE-13.3-10).
+        */
+        const buttons = pageLevelBlock.match(/<Button[\s\S]*?>/g) ?? [];
+        expect(buttons.length, 'page-level fallback should render recovery buttons').toBeGreaterThan(0);
+        for (const button of buttons) {
+          expect(button, `every page-level recovery button needs a 44px floor: ${button}`).toContain(
+            'min-h-touch'
+          );
+          expect(button).toContain('min-w-touch');
+        }
       }),
       { numRuns: 100 }
     );
@@ -518,8 +614,10 @@ describe('Feature: website-ui-ux-fix, Property 9: ErrorBoundary renders recovery
         // 3. It passes an onRetry prop for recovery
         expect(sectionLevelBlock).toMatch(/onRetry=\{this\.handleReset\}/);
 
-        // 4. It passes a title
-        expect(sectionLevelBlock).toContain('Something went wrong');
+        // 4. It passes a title — the classified one (13.6 L6, GATE-13.3-10). The
+        //    literal `'Something went wrong'` now lives in `errorBoundaryCopy.ts`
+        //    as the `unknown` case, which the property above pins by name.
+        expect(sectionLevelBlock).toMatch(/title=\{copy\.title\}/);
       }),
       { numRuns: 100 }
     );

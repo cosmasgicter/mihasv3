@@ -79,45 +79,47 @@ vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
-// ── Mock catalog services ─────────────────────────────────────────────
+// ── Mock canonical catalog admin service (task 5.1) ───────────────────
+// Intakes.tsx now reads/writes global intake periods through the canonical
+// catalog domain hooks/service (/api/v1/admin/intakes/), not the legacy
+// `intakeService` (/api/v1/catalog/intakes/). `listIntakes` returns a bare
+// array (the envelope is unwrapped by the service).
 const mockIntakeList = vi.fn()
 
-vi.mock('@/services/catalog', () => ({
-  intakeService: {
-    list: (...args: unknown[]) => mockIntakeList(...args),
-    create: vi.fn().mockResolvedValue({ intake: null }),
-    update: vi.fn().mockResolvedValue({ intake: null }),
-    delete: vi.fn().mockResolvedValue({}),
+vi.mock('@/services/admin/catalog', () => ({
+  catalogAdminService: {
+    listIntakes: (...args: unknown[]) => mockIntakeList(...args),
+    createIntake: vi.fn().mockResolvedValue({ id: 'new-intake' }),
+    updateIntake: vi.fn().mockResolvedValue({ id: 'edited-intake' }),
+    deactivateIntake: vi.fn().mockResolvedValue(undefined),
   },
 }))
 
-// ── Django API response shapes for catalog intakes ────────────────────
-const MOCK_DJANGO_INTAKES_RESPONSE = {
-  intakes: [
-    {
-      id: 'intake-001',
-      name: 'January 2025 Intake',
-      year: 2025,
-      start_date: '2025-01-15',
-      end_date: '2025-06-30',
-      application_deadline: '2025-01-10',
-      max_capacity: 120,
-      current_enrollment: 75,
-      is_active: true,
-    },
-    {
-      id: 'intake-002',
-      name: 'September 2024 Intake',
-      year: 2024,
-      start_date: '2024-09-01',
-      end_date: '2025-03-31',
-      application_deadline: '2024-08-15',
-      max_capacity: 80,
-      current_enrollment: 80,
-      is_active: true,
-    },
-  ],
-}
+// ── Canonical /admin/intakes/ list shape (bare array after unwrap) ────
+const MOCK_DJANGO_INTAKES_RESPONSE = [
+  {
+    id: 'intake-001',
+    name: 'January 2025 Intake',
+    year: 2025,
+    start_date: '2025-01-15',
+    end_date: '2025-06-30',
+    application_deadline: '2025-01-10',
+    max_capacity: 120,
+    current_enrollment: 75,
+    is_active: true,
+  },
+  {
+    id: 'intake-002',
+    name: 'September 2024 Intake',
+    year: 2024,
+    start_date: '2024-09-01',
+    end_date: '2025-03-31',
+    application_deadline: '2024-08-15',
+    max_capacity: 80,
+    current_enrollment: 80,
+    is_active: true,
+  },
+]
 
 // ── Import the component under test ───────────────────────────────────
 import AdminIntakes from '@/pages/admin/Intakes'
@@ -216,7 +218,7 @@ describe('Admin intakes page verification', () => {
   // ── Empty state ─────────────────────────────────────────────────────
 
   it('renders empty state when no intakes exist', async () => {
-    mockIntakeList.mockResolvedValue({ intakes: [] })
+    mockIntakeList.mockResolvedValue([])
 
     await renderAndWait()
     const text = container.textContent || ''

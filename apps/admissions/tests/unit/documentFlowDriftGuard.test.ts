@@ -80,37 +80,75 @@ const GENERATOR_CALL_RE = new RegExp(
  * Keep this list tight: a new entry must be a genuine dev/draft-preview module.
  * A production student official-download component appearing here would be a
  * real defect, not an allowlist candidate.
+ *
+ * `owner` and `removeBy` were added by admissions-v2 task 13.6's remediation item
+ * **L10** (finding **GATE-13.6-01**): task 12.5's clause allows a remaining match
+ * only as *"a registered Legacy_Exception with owner/removal date"*, and this
+ * register carried a reason and a staleness check but neither an owner nor a
+ * date. Evidence: `docs/v2-evidence/13.6/remediation/L9-L11/README.md` §4.
  */
 interface AllowlistEntry {
   path: string
   reason: string
+  /** Who is accountable for removing the exemption. */
+  owner: string
+  /** The announced end date for the exemption, ISO `YYYY-MM-DD`. */
+  removeBy: string
 }
+
+/**
+ * The owner recorded for every entry below — 13.6 §7.1 named this register as
+ * *"admissions-v2's own"*, and `platform-admissions` is the owner string the
+ * canonical compatibility register already uses for this spec's surfaces
+ * (`backend/apps/common/compatibility_register.py`).
+ */
+const PREVIEW_ALLOWLIST_OWNER = 'platform-admissions'
+
+/**
+ * The announced end date for every entry below.
+ *
+ * **Task 12.2's existing window, not a new commitment**:
+ * `compatibility_register.ANNOUNCED_ON` (2026-08-11) + `COMPATIBILITY_WINDOW_DAYS`
+ * (180) = 2027-02-07. `backend/tests/unit/test_compatibility_surfaces_12_2.py::test_frontend_register_windows_match_the_canonical_register`
+ * reads this literal and fails if it drifts from the register.
+ */
+const PREVIEW_ALLOWLIST_REMOVE_BY = '2027-02-07'
 
 const PREVIEW_ALLOWLIST: readonly AllowlistEntry[] = [
   {
     path: 'apps/admissions/src/pages/dev/DocumentPreview.tsx',
     reason:
       'Dev-only PDF preview page (under /dev). Renders draft previews for engineers; not a student official-download path.',
+    owner: PREVIEW_ALLOWLIST_OWNER,
+    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
   {
     path: 'apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx',
     reason:
       'Dev-only acceptance-letter preview page (under /dev). Preview/QA surface only; not a student official-download path.',
+    owner: PREVIEW_ALLOWLIST_OWNER,
+    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
   {
     path: 'apps/admissions/src/lib/slipService.ts',
     reason:
       'Legacy/manual slip preview helper (non-official draft preview, R7.6). Not wired into production student or public document actions.',
+    owner: PREVIEW_ALLOWLIST_OWNER,
+    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
   {
     path: 'apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts',
     reason:
       'Dev-only client-generation hook retained for local PDF preview tests. Not wired into the student official-download components (those use useOfficialDocument).',
+    owner: PREVIEW_ALLOWLIST_OWNER,
+    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
   {
     path: 'apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts',
     reason:
       'Dev-only client receipt-preview hook. Not wired into the student official-download path (DownloadReceiptButton uses useOfficialDocument).',
+    owner: PREVIEW_ALLOWLIST_OWNER,
+    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
 ] as const
 
@@ -126,8 +164,12 @@ const ALLOWLIST_PATHS = new Set(PREVIEW_ALLOWLIST.map((e) => e.path))
 // backend-stored Official_Document, never a `@/lib/pdf` client render
 // (R6.2, R6.3, R16.5).
 const PRODUCTION_OFFICIAL_COMPONENTS = [
+  // `ApplicationSlipActions.tsx` was in this list until admissions-v2 task 11.3
+  // folded it into `DocumentButtons.tsx`: it existed to render the slip's two
+  // equally prominent buttons plus an inline email form, which is the surface
+  // finding STU-05 names. The slip's download and email are commands of the one
+  // document surface now, and this guard still covers them at that path.
   'apps/admissions/src/components/student/DocumentButtons.tsx',
-  'apps/admissions/src/components/student/ApplicationSlipActions.tsx',
   'apps/admissions/src/components/student/DownloadReceiptButton.tsx',
   'apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationSlip.ts',
   'apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts',
@@ -268,6 +310,41 @@ describe('Document-flow drift guard (R18.1)', () => {
         `allowlist entry missing 'reason': ${JSON.stringify(entry)}`,
       ).toBeTruthy()
     }
+  })
+
+  it('every PREVIEW_ALLOWLIST entry carries an owner and an unexpired removal date', () => {
+    // Added by admissions-v2 task 13.6 remediation item L10 (GATE-13.6-01).
+    //
+    // The staleness check above answers "is the exempted reference still there?".
+    // It cannot answer "who removes it, and by when?" — so an entry that stays a
+    // genuine dev-preview forever stays exempt forever. 12.5's clause and
+    // scripts/v1_surface_telemetry.py half 5b both call that an exemption rather
+    // than an exception. The window is enforced, not merely announced: when it
+    // closes this test fails, so renewing it is a decision somebody makes.
+    const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+    const today = new Date().toISOString().slice(0, 10)
+    const problems: string[] = []
+
+    for (const entry of PREVIEW_ALLOWLIST) {
+      if (!entry.owner?.trim()) problems.push(`${entry.path} — no owner`)
+      if (!ISO_DATE.test(entry.removeBy ?? '')) {
+        problems.push(`${entry.path} — removeBy '${entry.removeBy}' is not an ISO date`)
+        continue
+      }
+      if (entry.removeBy < today) {
+        problems.push(
+          `${entry.path} — its announced window closed on ${entry.removeBy} (today ${today}); ` +
+            'remove the preview module or renew the window deliberately',
+        )
+      }
+    }
+
+    expect(
+      problems,
+      'Legacy_Exception register (R18.1, task 12.5 clause): every entry needs an owner\n' +
+        'and an announced, unexpired removal date.\n  ' +
+        problems.join('\n  '),
+    ).toEqual([])
   })
 
   it('production student official-download components stay clean and are never allowlisted (R7.1)', () => {

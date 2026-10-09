@@ -10,7 +10,6 @@ import { Suspense, lazy } from 'react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils';
-import { SkipLink } from '@/components/ui/SkipLink';
 import { PublicSiteHeader } from '@/components/layout/PublicSiteHeader';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 
@@ -29,7 +28,14 @@ export function PublicLayout({ children, showFooter = true, className }: PublicL
 
   return (
     <div className={cn('relative min-h-screen overflow-x-hidden bg-background', className)}>
-      <SkipLink href={`#${APP_MAIN_CONTENT_ID}`}>Skip to main content</SkipLink>
+      {/*
+        One skip link (admissions-v2 task 11.5, R16.5 / WCAG 2.4.1).
+
+        `PublicSiteHeader` already renders one, so every public page shipped two
+        identical "Skip to main content" links pointing at the same target — a
+        keyboard user tabbed past the same affordance twice before reaching the
+        page. It is the header's, because the header is the thing being skipped.
+      */}
       <PublicSiteHeader />
       <main id={APP_MAIN_CONTENT_ID} tabIndex={-1}>{children}</main>
       {showFooter && footerHydrated && (

@@ -60,15 +60,45 @@ SETTLEMENT_URL = "/api/v1/payments/settlements/"
 def _resolvable_application(world):
     """Point the world's application at a program the fee resolver can resolve.
 
-    ``PaymentService.initiate*`` resolves the fee via
-    ``IdentifierResolver.resolve_program(application.program)``; pointing the
-    legacy ``program`` string at the offering's ``code`` makes that resolve to
-    the world's offering. The four canonical FK columns (already populated by
-    ``build_tenant_world``) drive the settlement snapshot.
+    ``PaymentService.initiate*`` resolves the fee from the application's
+    canonical ``program_offering`` binding via
+    ``FeeResolver.resolve_for_application`` (admissions-v2 task 5.4). The
+    resolver now **fails closed** with ``FEE_NOT_CONFIGURED`` when the offering
+    has no active canonical ``FeeSchedule`` — there is no default fee (DATA-05,
+    STU-08) — so seed one active application fee per residency for the world's
+    offering. The four canonical FK columns (populated by ``build_tenant_world``)
+    drive the settlement snapshot.
     """
+    import uuid
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from apps.documents.models import ProgramFee
+
     application = world.application
     application.program = world.offering.code
     application.save(update_fields=["program"])
+
+    now = timezone.now()
+    for residency in ("local", "international"):
+        if not ProgramFee.objects.filter(
+            program_id=world.offering_id,
+            fee_type="application",
+            residency_category=residency,
+            is_active=True,
+        ).exists():
+            ProgramFee.objects.create(
+                id=uuid.uuid4(),
+                program_id=world.offering_id,
+                fee_type="application",
+                residency_category=residency,
+                amount=Decimal("300.00"),
+                currency="ZMW",
+                is_active=True,
+                created_at=now,
+                updated_at=now,
+            )
     return application
 
 
@@ -124,13 +154,13 @@ class TestSettlementMetadataTagging:
     # -- R7.1 / R14.6: collector marker + snapshot on every initiation path -
 
     def test_card_initiate_writes_collector_marker_and_snapshot(self, tenant_world):
-        """The card-initiate path (`PaymentService.initiate_payment`) stamps the
+        """The card-initiate path (`PaymentService.initiate`) stamps the
         Beanola collector marker + the four-ID snapshot (R7.1).
 
         **Validates: Requirements R7.1, R14.6**
         """
         application = _resolvable_application(tenant_world)
-        result = PaymentService().initiate_payment(application.id, tenant_world.student.id)
+        result = PaymentService().initiate(application.id, tenant_world.student.id)
         assert result.payment_id is not None
         payment = Payment.objects.get(id=result.payment_id)
         _assert_settlement_snapshot(payment.metadata or {}, tenant_world)
@@ -284,14 +314,21 @@ class TestSettlementSummaryScoping:
         # The Unassigned bucket carries the orphan payment without crashing.
         assert sum(row["payment_count"] for row in unassigned) >= 1
 
-    def test_no_scope_staff_settlement_summary_is_empty(self, two_tenant_worlds, monkeypatch):
-        """A staff actor with no scope to a school sees no settlement rows from
-        that school — never a global total (R7.4).
+    def test_no_scope_staff_settlement_summary_is_masked(self, two_tenant_worlds, monkeypatch):
+        """A staff actor with no scope to any school sees no settlement data at
+        all — never a global total (R7.4), and never a confirmation either.
 
-        Builds a fresh no-scope staff actor and confirms their summary contains
-        none of either world's payments. The test-settings-only legacy-admin
-        all-access compatibility path is disabled here so the production
-        membership/grant-driven scope is what is asserted (R4.9).
+        Admissions-v2 task 8.4 strengthened this response (R3.2). It used to be
+        ``200`` with an empty ``results`` list, which told a no-scope actor two
+        things: that the settlement surface exists, and that they had zero rows.
+        The capability contract now masks the surface as not-found, so "you have
+        no scope" is indistinguishable from "there is nothing here". The original
+        claim — a no-scope actor never receives another school's rows or a global
+        total — is preserved and strictly stronger.
+
+        The test-settings-only legacy-admin all-access compatibility path is
+        disabled here so the production membership/grant-driven scope is what is
+        asserted (R4.9).
         """
         from tests.tenant_fixtures import build_profile
 
@@ -327,8 +364,13 @@ class TestSettlementSummaryScoping:
         )
 
         response = client.get(SETTLEMENT_URL)
-        assert response.status_code == 200, response.content
-        results = response.json()["data"]["results"]
-        institution_ids = {row["institution_id"] for row in results}
-        assert world_a.institution_id not in institution_ids
-        assert world_b.institution_id not in institution_ids
+        assert response.status_code == 404, response.content
+        blob = json.dumps(response.json())
+        assert "results" not in blob
+        for leak in (
+            world_a.institution_id,
+            world_b.institution_id,
+            world_a.institution.name,
+            world_b.institution.name,
+        ):
+            assert leak not in blob

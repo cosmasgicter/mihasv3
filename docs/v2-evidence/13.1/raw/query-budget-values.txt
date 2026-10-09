@@ -1,0 +1,18 @@
+]633;E;echo "=== the asserted query budgets themselves (the numbers this gate holds) ===";c7222fb5-d43b-457e-9c32-6dc75e027aaa]633;C=== the asserted query budgets themselves (the numbers this gate holds) ===
+--- backend/tests/unit/test_perf_dashboard_query_count.py
+111:    """R2.6: the collapsed application+user aggregate block issues <=3 count/aggregate queries."""
+--- backend/tests/unit/test_perf_grade_query_count.py
+149:    assert small_grade_queries == large_grade_queries, (
+155:    assert large_grade_queries == 1
+180:    assert grade_queries <= count, (
+--- backend/tests/unit/test_perf_canonical_offerings_query_count.py
+191:    assert offering_queries == 0, (
+232:    assert small_offering_queries == large_offering_queries, (
+239:    assert large_offering_queries == 1
+--- backend/tests/property/test_perf_query_counts.py
+--- backend/tests/property/test_perf_notification_cursor.py
+210:    assert not any("count(" in q["sql"].lower() for q in ctx.captured_queries), (
+312:    assert not any("count(" in q["sql"].lower() for q in ctx.captured_queries)
+--- backend/tests/unit/test_application_query_contract_9_1.py
+1114:        assert len(first.captured_queries) == len(second.captured_queries)
+--- backend/tests/unit/test_settlement_fee_authority_8_4.py

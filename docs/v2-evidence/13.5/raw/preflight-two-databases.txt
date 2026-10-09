@@ -1,0 +1,123 @@
+]633;E;echo "===========================================================================";8177b146-562b-434e-9f2d-472b22d0f163]633;C===========================================================================
+Task 13.5 - canary pre-flight (gates 20-25) run on TWO databases
+===========================================================================
+Where            : Neon rehearsal branch br-jolly-pine-ahybtg2e
+                   (endpoint ep-proud-cherry-ah8n4q0f, project wild-bar-37055823)
+                   REUSED, not created - the project is at its branch cap.
+Databases        : v2_snap_13_4  = 13.4's restored PRODUCTION-LINEAGE snapshot
+                   v2_fresh_13_4 = 13.4's expanded RELEASE schema (fingerprint 19c5216b...)
+Session          : SET default_transaction_read_only = on before every run
+Production       : NOT CONTACTED. No SSH, no query, no write.
+Captured (UTC)   : 2026-08-12T20:56:31Z
+psql client      : psql (PostgreSQL) 18.4 (Ubuntu 18.4-0ubuntu0.26.04.1)
+===========================================================================
+
+############### A. v2_snap_13_4 - restored production-lineage snapshot ####
+
+SET
+Pager usage is off.
+              gate              |     snapshot_column      |   source_column   | snapshot_width | source_width | longest_source_value | rows_exceeding_ceiling |                                   verdict                                   
+--------------------------------+--------------------------+-------------------+----------------+--------------+----------------------+------------------------+-----------------------------------------------------------------------------
+ gate20 snapshot column ceiling | applications.institution | institutions.name |             50 |          255 |                   46 |                      0 | WARN - latent: a legal name longer than the ceiling will 500 (GATE-13.3-13)
+ gate20 snapshot column ceiling | applications.intake      | intakes.name      |             50 |          255 |                   19 |                      0 | WARN - latent: a legal name longer than the ceiling will 500 (GATE-13.3-13)
+ gate20 snapshot column ceiling | applications.program     | programs.name     |             50 |          255 |                   39 |                      0 | WARN - latent: a legal name longer than the ceiling will 500 (GATE-13.3-13)
+(3 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+              gate              | colliding_intake_names | colliding_offering_names | active_institutions |                                      verdict                                      
+--------------------------------+------------------------+--------------------------+---------------------+-----------------------------------------------------------------------------------
+ gate21 name-collision exposure |                      3 |                        0 |                   2 | FAIL - GATE-13.2-01 is LIVE: a staff read can publish the other tenant's capacity
+(1 row)
+
+                 gate                  | id_default_present | canonical_program_rows | june_migration_recorded | migrations_recorded |                                  verdict                                   
+---------------------------------------+--------------------+------------------------+-------------------------+---------------------+----------------------------------------------------------------------------
+ gate22 forward-migration prerequisite | f                  |                      0 | f                       |                  50 | FAIL - GATE-13.4-02: apply_sql_migrations will abort at 2026_06_08_01 here
+(1 row)
+
+               gate               | domain_rows | marked_active | resolves_a_tenant | not_yet_active | institutions_with_a_domain 
+----------------------------------+-------------+---------------+-------------------+----------------+----------------------------
+ gate23 resolvable host inventory |           0 |             0 |                 0 |              0 |                          0
+(1 row)
+
+ gate | hostname | institution_code | status | is_active | institution_active | resolution 
+------+----------+------------------+--------+-----------+--------------------+------------
+(0 rows)
+
+                 gate                  | institution_code | institution_active | offerings | open_intakes | drafts_in_flight | submitted_or_beyond 
+---------------------------------------+------------------+--------------------+-----------+--------------+------------------+---------------------
+ gate24 open-intake exposure by tenant | KATC             | t                  |         2 |            2 |                0 |                   0
+ gate24 open-intake exposure by tenant | MIHAS            | t                  |         2 |            2 |                0 |                   0
+(2 rows)
+
+        gate        |   database   | server_version  | base_tables | migrations_recorded | institutions | applications | payments |          measured_at          
+--------------------+--------------+-----------------+-------------+---------------------+--------------+--------------+----------+-------------------------------
+ gate25 fingerprint | v2_snap_13_4 | 17.10 (29ad1b7) |          77 |                  50 |            2 |           33 |       21 | 2026-08-12 20:56:37.223325+00
+(1 row)
+
+
+############### B. v2_fresh_13_4 - expanded release schema ################
+
+SET
+Pager usage is off.
+              gate              |     snapshot_column      |   source_column   | snapshot_width | source_width | longest_source_value | rows_exceeding_ceiling |                                   verdict                                   
+--------------------------------+--------------------------+-------------------+----------------+--------------+----------------------+------------------------+-----------------------------------------------------------------------------
+ gate20 snapshot column ceiling | applications.institution | institutions.name |            255 |          255 |                    0 |                      0 | PASS
+ gate20 snapshot column ceiling | applications.intake      | intakes.name      |            100 |          255 |                    0 |                      0 | WARN - latent: a legal name longer than the ceiling will 500 (GATE-13.3-13)
+ gate20 snapshot column ceiling | applications.program     | programs.name     |            255 |          255 |                    0 |                      0 | PASS
+(3 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+ gate | id | name_length | name_head 
+------+----+-------------+-----------
+(0 rows)
+
+              gate              | colliding_intake_names | colliding_offering_names | active_institutions |                             verdict                              
+--------------------------------+------------------------+--------------------------+---------------------+------------------------------------------------------------------
+ gate21 name-collision exposure |                      0 |                        0 |                   0 | PASS - GATE-13.2-01 is dormant here (no shared name to cross to)
+(1 row)
+
+                 gate                  | id_default_present | canonical_program_rows | june_migration_recorded | migrations_recorded |                                 verdict                                 
+---------------------------------------+--------------------+------------------------+-------------------------+---------------------+-------------------------------------------------------------------------
+ gate22 forward-migration prerequisite | t                  |                      0 | t                       |                  44 | PASS - the June script is already recorded; the sweep will not retry it
+(1 row)
+
+               gate               | domain_rows | marked_active | resolves_a_tenant | not_yet_active | institutions_with_a_domain 
+----------------------------------+-------------+---------------+-------------------+----------------+----------------------------
+ gate23 resolvable host inventory |           0 |             0 |                 0 |              0 |                          0
+(1 row)
+
+ gate | hostname | institution_code | status | is_active | institution_active | resolution 
+------+----------+------------------+--------+-----------+--------------------+------------
+(0 rows)
+
+ gate | institution_code | institution_active | offerings | open_intakes | drafts_in_flight | submitted_or_beyond 
+------+------------------+--------------------+-----------+--------------+------------------+---------------------
+(0 rows)
+
+        gate        |   database    | server_version  | base_tables | migrations_recorded | institutions | applications | payments |         measured_at         
+--------------------+---------------+-----------------+-------------+---------------------+--------------+--------------+----------+-----------------------------
+ gate25 fingerprint | v2_fresh_13_4 | 17.10 (29ad1b7) |          89 |                  44 |            0 |            0 |        0 | 2026-08-12 20:56:42.7569+00
+(1 row)
+
+
+############### C. read-only proof: the session refused a write ###########
+SET
+ERROR:  cannot execute CREATE TABLE in a read-only transaction

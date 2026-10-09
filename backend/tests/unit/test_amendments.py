@@ -115,7 +115,16 @@ class TestPendingAmendmentLimit:
             patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
         ):
             _mock_locked_application(mq, app)
-            amq.filter.return_value.count.return_value = 3
+            # Task 10.2 reads the pending set once, under the same lock, and
+            # answers both questions from it (how many are outstanding, and
+            # whether this field already has one), so the mock supplies rows
+            # rather than a count. Three pending requests on *other* fields keep
+            # this case about the limit — the same-field rule has its own test.
+            amq.filter.return_value.values.return_value = [
+                {"id": uuid.uuid4(), "field_name": "email", "created_at": None},
+                {"id": uuid.uuid4(), "field_name": "address_line_1", "created_at": None},
+                {"id": uuid.uuid4(), "field_name": "next_of_kin_name", "created_at": None},
+            ]
 
             try:
                 AmendmentService.request_amendment(
@@ -134,7 +143,18 @@ class TestPendingAmendmentLimit:
 
 
 class TestApprovalAppliesFieldChange:
-    """3. Approval applies field change (Req 14.8)."""
+    """3. Approval applies field change (Req 14.8).
+
+    The mock wiring reflects the **locked** call shape task 9.5 introduced
+    (finding AUTH-06: "review lacks locking"): the service reads both rows through
+    ``select_for_update()`` inside one transaction, so the mocks stand in for the
+    locked queryset rather than the bare manager and the transaction is faked with
+    ``nullcontext`` — the same seam the ``request_amendment`` cases above already
+    use, which keeps these DB-free unit tests DB-free. The behavioural claim is
+    unchanged: an approval writes the application field exactly once. The lock
+    itself is proved against a real database in
+    ``test_tenant_audit_amendment_scope_9_5.py``.
+    """
 
     def test_approved_amendment_applies_change(self):
         amendment = MagicMock()
@@ -152,9 +172,10 @@ class TestApprovalAppliesFieldChange:
             patch("apps.applications.amendment_service.Application.objects") as mq,
             patch("apps.applications.amendment_service.ApplicationStatusHistory.objects"),
             patch("apps.applications.amendment_service.timezone"),
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
         ):
-            amq.get.return_value = amendment
-            mq.get.return_value = app
+            amq.select_for_update.return_value.get.return_value = amendment
+            _mock_locked_application(mq, app)
 
             result = AmendmentService.review_amendment(
                 amendment_id=str(amendment.id),
@@ -167,7 +188,12 @@ class TestApprovalAppliesFieldChange:
 
 
 class TestRejectionLeavesApplicationUnchanged:
-    """4. Rejection leaves application unchanged (Req 14.7)."""
+    """4. Rejection leaves application unchanged (Req 14.7).
+
+    Same locked call shape as the approval case above (task 9.5, AUTH-06): the
+    application row is locked because an *approval* would write it, so a rejection
+    locks it and then leaves it alone — which is what this asserts.
+    """
 
     def test_rejected_amendment_no_change(self):
         amendment = MagicMock()
@@ -181,9 +207,11 @@ class TestRejectionLeavesApplicationUnchanged:
             patch("apps.applications.amendment_service.Application.objects") as mq,
             patch("apps.applications.amendment_service.timezone"),
             patch("apps.common.communication_service.CommunicationService"),
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
         ):
-            amq.get.return_value = amendment
-            mq.get.return_value = MagicMock()
+            application = MagicMock()
+            amq.select_for_update.return_value.get.return_value = amendment
+            _mock_locked_application(mq, application)
 
             result = AmendmentService.review_amendment(
                 amendment_id=str(amendment.id),
@@ -192,9 +220,10 @@ class TestRejectionLeavesApplicationUnchanged:
             )
 
             assert result.status == "rejected"
-            # Application is fetched for notification but NOT modified
+            # The application is locked (an approval would write it) and fetched for
+            # the notification, but NOT modified.
             amendment.save.assert_called()  # amendment status saved
-            mq.get.return_value.save.assert_not_called()  # application not saved
+            application.save.assert_not_called()  # application not saved
 
 
 class TestOnlyValidStatusesAllowAmendments:
@@ -253,7 +282,9 @@ class TestAmendmentEndpointOwnerOnly:
         self.f = APIRequestFactory()
         self.v = ApplicationAmendmentView.as_view()
 
-    def test_non_owner_403(self):
+    def test_non_owner_404_mask(self):
+        # AUTH-07: owner-only endpoint masks a valid-but-non-owned id as an
+        # indistinguishable canonical 404 (never a distinguishable 403).
         a = _app(uuid.uuid4())
         other = _user(uuid.uuid4())
 
@@ -265,8 +296,8 @@ class TestAmendmentEndpointOwnerOnly:
             force_authenticate(req, user=other)
             resp = self.v(req, application_id=a.id)
 
-        assert resp.status_code == 403
-        assert resp.data["code"] == "INSUFFICIENT_PERMISSIONS"
+        assert resp.status_code == 404
+        assert resp.data["code"] == "NOT_FOUND"
 
     def test_owner_create_returns_201(self):
         owner_id = uuid.uuid4()
@@ -318,14 +349,43 @@ class TestAmendmentReviewEndpoint:
         mock_amendment.field_name = "phone"
         mock_amendment.status = "approved"
 
-        # The view now scope-masks an out-of-scope application as not-found
-        # (R5.2/R5.9) before mutating, so patch the application load + scope
-        # check alongside the service. The in-scope path then reaches the
-        # mocked ``review_amendment``.
+        # Patch the seam that replaced the two helpers this test used to patch.
+        # Admissions-v2 task 9.4 moved this command to scope-*before*-lookup: the
+        # view no longer fetches the row and then asks
+        # ``_staff_can_access_application`` whether the actor was allowed to have
+        # it — one call, ``resolve_scoped_application``, now decides the Student,
+        # the out-of-tenant id, the unknown id and the unassigned Reviewer as one
+        # indistinguishable 404 and a capability-less in-scope actor as a
+        # non-revealing 403 (the reasoning is in ``admin_amendment_views.py`` at
+        # the call site). Patching the retired pair left the real seam running
+        # against a database this class cannot reach, so the in-scope path this
+        # test is about returned 500. The seam is imported inside ``post``, so the
+        # patch target is its defining module. Same fix 13.6 §5.3 applied to
+        # ``test_interview_status_validation.py`` — "patch the seam that replaced
+        # them". ``assert_version`` is the other thing 9.4 added here and it reads
+        # the row's version, so it is neutralised alongside; the versioned-command
+        # contract itself is asserted by ``test_review_workspace_9_4.py``.
         with (
             patch("apps.applications.amendment_service.AmendmentService.review_amendment") as ms,
-            patch("apps.applications.admin_amendment_views.Application.objects.get", return_value=MagicMock()),
-            patch("apps.applications.admin_amendment_views._staff_can_access_application", return_value=True),
+            patch(
+                "apps.common.tenant_authorization.resolve_scoped_application",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "apps.applications.review_workspace_service."
+                "ApplicationReviewWorkspaceService.assert_version",
+                return_value=None,
+            ),
+            patch(
+                "apps.applications.review_workspace_service."
+                "ApplicationReviewWorkspaceService.bump_version",
+                return_value=2,
+            ),
+            patch(
+                "apps.applications.review_workspace_service."
+                "ApplicationReviewWorkspaceService.allowed_transitions",
+                return_value=[],
+            ),
         ):
             ms.return_value = mock_amendment
 

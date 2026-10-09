@@ -1,0 +1,27 @@
+$ bun run check:imports && bun run check:entry && bun run check:html
+$ bun scripts/check-dynamic-imports.ts
+✓ All dynamic imports resolve to installed dependencies.
+  Scanned 526 source files.
+$ bun scripts/check-entry-chunk.ts
+Entry + preloaded chunks (3):
+
+  ✓ /assets/js/index-exqO7jO7.js
+    97.3 KB raw / 29.1 KB gz
+  ✓ /assets/js/vendor-react-DXgsMsgo.js
+    170.8 KB raw / 55.9 KB gz
+  ✓ /assets/js/LandingPage-7ZRCDckZ.js
+    12.7 KB raw / 4.0 KB gz
+
+Total entry path (gzipped): 89.0 KB
+
+✓ entry-chunk guard passed.
+$ bun scripts/check-html-csp.ts
+
+check-html-csp: scanned /home/cosmas/Downloads/mihasv3/apps/admissions/dist/index.html
+  CSP script-src 'unsafe-inline': NO
+  CSP style-src 'unsafe-inline':  YES
+  inline <style> total bytes:     15038
+  main <link rel=stylesheet>:     present
+
+✓ check-html-csp: HTML is compatible with the production CSP.
+EXIT=0

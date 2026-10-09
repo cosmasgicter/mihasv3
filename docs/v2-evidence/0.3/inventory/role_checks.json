@@ -1,0 +1,898 @@
+{
+  "available": true,
+  "total_hits": 135,
+  "file_count": 36,
+  "files": [
+    {
+      "file": "backend/apps/accounts/admin_user_views.py",
+      "hit_count": 17,
+      "hits": [
+        {
+          "line": 97,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 266,
+          "signal": "getattr_role",
+          "snippet": "\"role\": capability_set.role or getattr(user, \"role\", None),"
+        },
+        {
+          "line": 482,
+          "signal": "is_super_admin_call",
+          "snippet": "caller_is_super_admin = is_super_admin(request.user)"
+        },
+        {
+          "line": 576,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 599,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 627,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 634,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 642,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 740,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 809,
+          "signal": "is_super_admin_call",
+          "snippet": "actor_is_super = is_super_admin(request.user)"
+        },
+        {
+          "line": 812,
+          "signal": "getattr_role",
+          "snippet": "actor_role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 984,
+          "signal": "getattr_role",
+          "snippet": "actor_role = getattr(request.user, \"role\", None)"
+        },
+        {
+          "line": 986,
+          "signal": "user_role_attr",
+          "snippet": "target_level = _role_level(user.role)"
+        },
+        {
+          "line": 1044,
+          "signal": "user_role_attr",
+          "snippet": "changes[\"role\"] = {\"old\": user.role, \"new\": data[\"role\"]}"
+        },
+        {
+          "line": 1045,
+          "signal": "user_role_attr",
+          "snippet": "user.role = data[\"role\"]"
+        },
+        {
+          "line": 1116,
+          "signal": "is_super_admin_call",
+          "snippet": "full_export = is_super_admin(request.user)"
+        },
+        {
+          "line": 1150,
+          "signal": "user_role_attr",
+          "snippet": "user.role,"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/admin_views.py",
+      "hit_count": 13,
+      "hits": [
+        {
+          "line": 237,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 256,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 410,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 533,
+          "signal": "is_super_admin_call",
+          "snippet": "if not institution_ids and not is_super_admin(request.user):"
+        },
+        {
+          "line": 577,
+          "signal": "is_super_admin_call",
+          "snippet": "if not institution_ids and not is_super_admin(request.user):"
+        },
+        {
+          "line": 1155,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 1365,
+          "signal": "is_super_admin_call",
+          "snippet": "if not institution_ids and not is_super_admin(request.user):"
+        },
+        {
+          "line": 1426,
+          "signal": "is_super_admin_call",
+          "snippet": "elif not is_super_admin(request.user):"
+        },
+        {
+          "line": 1447,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 1475,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 1509,
+          "signal": "is_super_admin_call",
+          "snippet": "elif not is_super_admin(request.user):"
+        },
+        {
+          "line": 1544,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 1786,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/admin_review_views.py",
+      "hit_count": 11,
+      "hits": [
+        {
+          "line": 145,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 146,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\"):"
+        },
+        {
+          "line": 182,
+          "signal": "role_in_tuple",
+          "snippet": "is_priority_sort = sort_param == \"priority\" and role in (\"admin\", \"super_admin\")"
+        },
+        {
+          "line": 280,
+          "signal": "getattr_role",
+          "snippet": "audit_actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 302,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None) or \"unknown\","
+        },
+        {
+          "line": 450,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 502,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(reviewer, \"role\", \"admin\"),"
+        },
+        {
+          "line": 617,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 641,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        },
+        {
+          "line": 704,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 852,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/services.py",
+      "hit_count": 9,
+      "hits": [
+        {
+          "line": 743,
+          "signal": "getattr_role",
+          "snippet": "and str(getattr(user, \"role\", \"\")).lower() == \"admin\""
+        },
+        {
+          "line": 747,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 974,
+          "signal": "getattr_role",
+          "snippet": "role = (getattr(user, \"role\", \"\") or \"\").strip().lower()"
+        },
+        {
+          "line": 983,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 1170,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 1195,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 1232,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 1255,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        },
+        {
+          "line": 1263,
+          "signal": "getattr_role",
+          "snippet": "inviter_role = (getattr(user, \"role\", \"\") or \"\").strip().lower()"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/documents/document_storage_views.py",
+      "hit_count": 9,
+      "hits": [
+        {
+          "line": 113,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 114,
+          "signal": "role_equals",
+          "snippet": "if role == \"admin\":"
+        },
+        {
+          "line": 146,
+          "signal": "getattr_role",
+          "snippet": "actor_role = getattr(request.user, \"role\", None)"
+        },
+        {
+          "line": 197,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 300,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 306,
+          "signal": "role_equals",
+          "snippet": "if role == \"admin\":"
+        },
+        {
+          "line": 415,
+          "signal": "role_equals",
+          "snippet": "# (R3.2, R3.3, R3.6) and never authorizes on ``role == \"admin\"`` alone"
+        },
+        {
+          "line": 582,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 645,
+          "signal": "role_equals",
+          "snippet": "if role == \"super_admin\" and document.system_generated:"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/official_document_views.py",
+      "hit_count": 8,
+      "hits": [
+        {
+          "line": 19,
+          "signal": "role_equals",
+          "snippet": "for staff comes only from ``AccessScopeService`` \u2014 never from ``role == \"admin\"``"
+        },
+        {
+          "line": 129,
+          "signal": "role_equals",
+          "snippet": "``role == \"admin\"`` alone (R5.6)."
+        },
+        {
+          "line": 141,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(request.user):"
+        },
+        {
+          "line": 144,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 145,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"reviewer\"):"
+        },
+        {
+          "line": 356,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        },
+        {
+          "line": 461,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user) and getattr(request.user, \"role\", \"student\") not in ("
+        },
+        {
+          "line": 461,
+          "signal": "getattr_role",
+          "snippet": "if not is_super_admin(request.user) and getattr(request.user, \"role\", \"student\") not in ("
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/student_draft_views.py",
+      "hit_count": 8,
+      "hits": [
+        {
+          "line": 174,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, 'role', 'student')"
+        },
+        {
+          "line": 175,
+          "signal": "role_in_tuple",
+          "snippet": "return role in ('admin', 'super_admin') or app.status == 'draft'"
+        },
+        {
+          "line": 183,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, 'role', 'student')"
+        },
+        {
+          "line": 184,
+          "signal": "role_in_tuple",
+          "snippet": "if role in ('admin', 'super_admin', 'admissions_officer'):"
+        },
+        {
+          "line": 225,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, 'role', 'student')"
+        },
+        {
+          "line": 287,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, 'role', 'student')"
+        },
+        {
+          "line": 288,
+          "signal": "role_equals",
+          "snippet": "if role == 'admin' and not AccessScopeService().filter_applications("
+        },
+        {
+          "line": 551,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/student_submission_views.py",
+      "hit_count": 8,
+      "hits": [
+        {
+          "line": 334,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 335,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\") and str(app.user_id) != str(getattr(request.user, \"id\", \"\")) and not _staff_can_access_application(request, app):"
+        },
+        {
+          "line": 369,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 370,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\", \"reviewer\"):"
+        },
+        {
+          "line": 451,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 452,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\") and str(app.user_id) != str(getattr(request.user, \"id\", \"\")) and not _staff_can_access_application(request, app):"
+        },
+        {
+          "line": 473,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, 'role', 'student')"
+        },
+        {
+          "line": 474,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\") and str(app.user_id) != str(getattr(request.user, \"id\", \"\")) and not _staff_can_access_application(request, app):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_query_views.py",
+      "hit_count": 8,
+      "hits": [
+        {
+          "line": 166,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 168,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\"):"
+        },
+        {
+          "line": 225,
+          "signal": "getattr_role",
+          "snippet": "if getattr(request.user, \"role\", None) != \"super_admin\":"
+        },
+        {
+          "line": 361,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 367,
+          "signal": "role_equals",
+          "snippet": "if role == \"admin\" and not AccessScopeService().filter_payments(Payment.objects.filter(id=payment.id), user).exists():"
+        },
+        {
+          "line": 459,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 466,
+          "signal": "role_equals",
+          "snippet": "if role == \"admin\" and not AccessScopeService().filter_payments(Payment.objects.filter(id=payment.id), user).exists():"
+        },
+        {
+          "line": 669,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/student_document_views.py",
+      "hit_count": 6,
+      "hits": [
+        {
+          "line": 123,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 124,
+          "signal": "role_equals",
+          "snippet": "if role == \"admin\" and not AccessScopeService().filter_applications("
+        },
+        {
+          "line": 215,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 216,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(request.user):"
+        },
+        {
+          "line": 218,
+          "signal": "role_in_tuple",
+          "snippet": "elif role in (\"admin\", \"reviewer\"):"
+        },
+        {
+          "line": 326,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/student_withdrawal_views.py",
+      "hit_count": 4,
+      "hits": [
+        {
+          "line": 210,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"\")"
+        },
+        {
+          "line": 211,
+          "signal": "role_in_tuple",
+          "snippet": "is_admin = role in (\"admin\", \"super_admin\")"
+        },
+        {
+          "line": 270,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"\")"
+        },
+        {
+          "line": 271,
+          "signal": "role_in_tuple",
+          "snippet": "is_admin = role in (\"admin\", \"super_admin\")"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/permissions.py",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 26,
+          "signal": "is_super_admin_call",
+          "snippet": "def is_super_admin(user) -> bool:"
+        },
+        {
+          "line": 32,
+          "signal": "getattr_role",
+          "snippet": "return getattr(user, \"role\", None) == \"super_admin\""
+        },
+        {
+          "line": 37,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", None)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_widget_views.py",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 196,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 322,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        },
+        {
+          "line": 398,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/auth_views.py",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 274,
+          "signal": "user_role_attr",
+          "snippet": "\"role\": user.role,"
+        },
+        {
+          "line": 637,
+          "signal": "user_role_attr",
+          "snippet": "\"role\": user.role,"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/tokens.py",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 68,
+          "signal": "getattr_role",
+          "snippet": "permissions = _get_permissions_for_role(getattr(user, \"role\", \"student\"))"
+        },
+        {
+          "line": 74,
+          "signal": "getattr_role",
+          "snippet": "\"role\": getattr(user, \"role\", \"student\"),"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/interview_views.py",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 198,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", \"student\")"
+        },
+        {
+          "line": 199,
+          "signal": "role_in_tuple",
+          "snippet": "if role in (\"admin\", \"super_admin\") and not _staff_can_access_application(request, application):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/permissions.py",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 51,
+          "signal": "getattr_role",
+          "snippet": "return getattr(user, \"role\", None)"
+        },
+        {
+          "line": 222,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/views.py",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 113,
+          "signal": "getattr_role",
+          "snippet": "return getattr(user, \"role\", \"\") in (\"admin\", \"super_admin\")"
+        },
+        {
+          "line": 119,
+          "signal": "is_super_admin_call",
+          "snippet": "return bool(user and getattr(user, \"is_authenticated\", False) and is_super_admin(user))"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/admin_audit_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 198,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/admin_serializers.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 301,
+          "signal": "getattr_role",
+          "snippet": "and getattr(user, \"role\", None) == \"super_admin\""
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/admin_settings_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 70,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(request.user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/batch_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 99,
+          "signal": "getattr_role",
+          "snippet": "actor_role = getattr(request.user, \"role\", None)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/analytics/admissions_analytics.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 33,
+          "signal": "is_super_admin_call",
+          "snippet": "return is_super_admin(self.user)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/analytics/views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 56,
+          "signal": "is_super_admin_call",
+          "snippet": "if is_super_admin(request.user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/admin_amendment_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 319,
+          "signal": "getattr_role",
+          "snippet": "if getattr(request.user, \"role\", None) == \"super_admin\":"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/admin_export_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 129,
+          "signal": "is_super_admin_call",
+          "snippet": "full_export = is_super_admin(request.user)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/document_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 260,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/history_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 74,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(request.user, \"role\", None)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/applications/serializers.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 447,
+          "signal": "getattr_role",
+          "snippet": "user_role = getattr(request.user, 'role', 'student')"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/admin_program_intake_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 158,
+          "signal": "getattr_role",
+          "snippet": "actor_role=getattr(request.user, \"role\", None),"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/common/dev_bypass.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 218,
+          "signal": "getattr_role",
+          "snippet": "getattr(user, \"role\", None) if user is not None and is_authenticated else None"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/common/exceptions.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 44,
+          "signal": "getattr_role",
+          "snippet": "str(getattr(user, \"role\", \"\") or \"\").strip() or \"student\""
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/common/notification_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 895,
+          "signal": "is_super_admin_call",
+          "snippet": "if not is_super_admin(request.user):"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/common/scoped_cache.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 107,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(capabilities, \"role\", \"\") or \"\""
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/common/template_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 32,
+          "signal": "is_super_admin_call",
+          "snippet": "return is_super_admin(user)"
+        }
+      ]
+    },
+    {
+      "file": "backend/apps/documents/mobile_money_views.py",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 192,
+          "signal": "getattr_role",
+          "snippet": "role = getattr(user, \"role\", \"student\")"
+        }
+      ]
+    }
+  ]
+}

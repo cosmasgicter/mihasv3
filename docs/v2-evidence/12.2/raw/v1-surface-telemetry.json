@@ -1,0 +1,414 @@
+{
+  "source": {
+    "half": "source",
+    "passed": true,
+    "failures": [],
+    "surfaces": [
+      {
+        "id": "normalizer.catalog.collection_key_sniff",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/catalog.ts normalizeCollection: the `{[key]: [...]}` branch (`{programs:[]}` / `{intakes:[]}` / `{subjects:[]}` / `{institutions:[]}`) and the 'first array-valued property' fallback",
+        "pattern": "first array-valued property|unexpected response shape for",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the one paginated shape {page,pageSize,totalCount,results}",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/catalog.ts",
+            "line": "396",
+            "class": "self",
+            "text": "* - the \"first array-valued property\" fallback with its `logger.warn`. It could"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.catalog.mutation_key_sniff",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/catalog.ts mutation unwrappers: the `'program' in response` / `'intake' in response` / `'institution' in response` re-unwrap of an already-unwrapped envelope",
+        "pattern": "'(program|intake|institution)' in response",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "apiClient.request already unwrapped exactly one {success,data}",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 2
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/catalog.ts",
+            "line": "452",
+            "class": "self",
+            "text": "// it to the domain type. Task 12.2 (R14.5) deleted the `'program' in response`"
+          },
+          {
+            "file": "apps/admissions/src/services/catalog.ts",
+            "line": "453",
+            "class": "self",
+            "text": "// / `'intake' in response` / `'institution' in response` pre-step each one had:"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.admin_catalog.listFrom",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/admin/catalog.ts listFrom: the `.programs`, `.data`, `.data.results` and `.data.programs` branches (a double envelope and a domain-keyed list the backend never emits)",
+        "pattern": "response\\.data\\.(results|programs)|Array\\.isArray\\(response\\.programs\\)",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the one paginated shape {page,pageSize,totalCount,results}",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/admin/catalog.ts",
+            "line": "160",
+            "class": "self",
+            "text": "*   (`httpClient.unwrapApiResponse`), so reaching `response.data.results` means"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.admin_tenants.listFromResponse",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/admin/tenants.ts listFromResponse: the `.data` and `.data.results` double-envelope branches, and listResult's `count` (DRF default) totalCount fallback",
+        "pattern": "response\\.data\\.results|response\\.totalCount \\?\\? response\\.count",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the one paginated shape {page,pageSize,totalCount,results}",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/admin/catalog.ts",
+            "line": "160",
+            "class": "self",
+            "text": "*   (`httpClient.unwrapApiResponse`), so reaching `response.data.results` means"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.notifications.response_sniff",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/notifications.ts normalizeNotificationsResponse: the bare array, `{data:[\u2026]}`, `{data:{results}}`, `{data:{notifications}}` and `{notifications:[\u2026]}` branches, plus the `firstArrayValue` helper whose length>0 test made an empty page fall through to the next candidate key. The FUNCTION stays (3 legitimate callers); only the sniff is gone, and it now reads `.results` and nothing else",
+        "pattern": "firstArrayValue|envelope\\.notifications|nested\\.notifications",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the one paginated shape the notification list publishes",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/notifications.ts",
+            "line": "150",
+            "class": "self",
+            "text": "* - `firstArrayValue`, the helper that tried keys in order and returned the"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.payments.row_sniff",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "the payments-list envelope sniff, in TWO copies over ONE endpoint: services/payments.ts normalizePaymentRows and hooks/usePaymentStatus.ts normalizeRecords. The `.payments`, `.data` and `.data.results` branches are deleted and the hook's copy is gone",
+        "pattern": "Array\\.isArray\\(pay(load|ment)?\\.(payments|data)\\)|payload\\.data\\.results",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "one strict normalizePaymentRows over {page,pageSize,totalCount,results}",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "normalizer.applications.rival_pagination",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/applications.ts normalizePaginatedApplications: the `.applications` list key, the `.count` DRF-default total and the `.limit` limit/offset page size \u2014 three keys from two rival pagination contracts. Also narrowed out of `BackendPaginatedApplications`",
+        "pattern": "Array\\.isArray\\(response\\?\\.applications\\)|response\\?\\.totalCount \\?\\? response\\?\\.count|response\\?\\.pageSize \\?\\? response\\?\\.limit",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "{page,pageSize,totalCount,results} from StandardPagination",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "normalizer.admin_audit.rival_pagination",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/admin/audit.ts: the `result.entries` list-key sniff and the `result.count` DRF-default pagination-key sniff",
+        "pattern": "result\\.entries|result\\.totalCount \\?\\? result\\.count",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "{page,pageSize,totalCount,results} from StandardPagination",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {
+          "self": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/services/admin/audit.ts",
+            "line": "300",
+            "class": "self",
+            "text": "// Task 12.2 (R14.5, finding API-02): `result.entries` and `result.count`"
+          }
+        ]
+      },
+      {
+        "id": "normalizer.sessions.triple_shape",
+        "kind": "normalizer",
+        "disposition": "removed",
+        "what": "services/sessionService.ts: the bare-array / `{sessions:[...]}` / `{count}` triple sniff over GET /sessions/",
+        "pattern": "Array\\.isArray\\(result\\?\\.sessions\\)",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the registered {success,data:[...]} envelope",
+        "note": "",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "workspace.student_application_detail",
+        "kind": "workspace",
+        "disposition": "already_closed",
+        "what": "the SECOND student application workspace at /student/application/:id (its own getById under its own cache key, its own payment / document / interview / timeline rendering, a different action set)",
+        "pattern": "pages/student/ApplicationDetail|student\\.applicationDetail",
+        "roots": [
+          "apps/admissions/src",
+          "apps/admissions/tests"
+        ],
+        "successor": "/student/status (task 10.6 chose it; the duplicate now redirects)",
+        "note": "closed by task 10.6, re-measured here",
+        "production_callers": 0,
+        "matches_by_class": {
+          "test": 3
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/tests/unit/studentWorkspaceConsolidation.test.tsx",
+            "line": "252",
+            "class": "test",
+            "text": "it('there is no longer a separate student.applicationDetail route id', () => {"
+          },
+          {
+            "file": "apps/admissions/tests/unit/studentWorkspaceConsolidation.test.tsx",
+            "line": "253",
+            "class": "test",
+            "text": "expect(() => routeById('student.applicationDetail' as never)).toThrow()"
+          },
+          {
+            "file": "apps/admissions/tests/unit/pageShellRenderSmoke.test.tsx",
+            "line": "139",
+            "class": "test",
+            "text": "// `pages/student/ApplicationDetail.tsx` removed by admissions-v2 task 10.6"
+          }
+        ]
+      },
+      {
+        "id": "route.applications.email_slip",
+        "kind": "route",
+        "disposition": "already_closed",
+        "what": "POST /api/v1/applications/{id}/email-slip/",
+        "pattern": "email-slip",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": ".../official-documents/{document_type}/email/",
+        "note": "route removed by 10.6; registry entry de-registered by 12.2",
+        "production_callers": 0,
+        "matches_by_class": {
+          "comment": 2
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/lib/slipService.ts",
+            "line": "88",
+            "class": "comment",
+            "text": "It used to POST the deprecated `/applications/{id}/email-slip/` route, which"
+          },
+          {
+            "file": "apps/admissions/src/services/officialDocuments.ts",
+            "line": "231",
+            "class": "comment",
+            "text": "* Task 10.4 left the legacy `/email-slip/` route in place as a thin proxy onto"
+          }
+        ]
+      },
+      {
+        "id": "route.applications.preview_summary",
+        "kind": "route",
+        "disposition": "already_closed",
+        "what": "GET /api/v1/applications/{id}/preview-summary/",
+        "pattern": "preview-summary|previewSummary",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "the deterministic review step (no generative call) \u2014 R11.1",
+        "note": "route removed by 7.4; registry entry de-registered by 12.2",
+        "production_callers": 0,
+        "matches_by_class": {
+          "comment": 1
+        },
+        "matches": [
+          {
+            "file": "apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx",
+            "line": "6",
+            "class": "comment",
+            "text": "* that fetched `GET /applications/{id}/preview-summary/` on every mount, retried"
+          }
+        ]
+      },
+      {
+        "id": "alias.applications.generate_star",
+        "kind": "alias",
+        "disposition": "already_closed",
+        "what": "applicationService.generate* (5 legacy document-generation methods)",
+        "pattern": "applicationService\\.generate",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "services/officialDocuments.ts (backend official-document pipeline)",
+        "note": "removed by 10.6; re-measured here",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "route.catalog.legacy_institution_write",
+        "kind": "route",
+        "disposition": "kept_external",
+        "what": "POST/PATCH/DELETE /api/v1/catalog/institutions/[{id}/]",
+        "pattern": "catalog/institutions/[^']*'\\s*,\\s*\\{\\s*method:\\s*'(POST|PATCH|PUT|DELETE)",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "/api/v1/admin/institutions/",
+        "note": "frozen by task 5.1; published /api/v1 surface, external callers possible",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "route.catalog.legacy_intake_write",
+        "kind": "route",
+        "disposition": "kept_external",
+        "what": "POST/PATCH/DELETE /api/v1/catalog/intakes/[{id}/]",
+        "pattern": "catalog/intakes/[^']*'\\s*,\\s*\\{\\s*method:\\s*'(POST|PATCH|PUT|DELETE)",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "/api/v1/admin/intakes/",
+        "note": "frozen by task 5.1",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "route.catalog.legacy_program_write",
+        "kind": "route",
+        "disposition": "kept_external",
+        "what": "PATCH/DELETE /api/v1/catalog/programs/{id}/",
+        "pattern": "catalog/programs/\\$\\{[^}]*\\}/'\\s*,\\s*\\{\\s*method:\\s*'(PATCH|PUT|DELETE)",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": "/api/v1/admin/institutions/{id}/programs/{id}/",
+        "note": "frozen by task 5.1; POST /catalog/programs/ is the CANONICAL offering create",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      },
+      {
+        "id": "route.applications.condition_verify",
+        "kind": "route",
+        "disposition": "kept_external",
+        "what": "POST /api/v1/applications/{id}/conditions/{cid}/verify/",
+        "pattern": "conditions/\\$\\{[^}]*\\}/verify/",
+        "roots": [
+          "apps/admissions/src"
+        ],
+        "successor": ".../conditions/{cid}/review/ (three outcomes)",
+        "note": "deprecated by 10.6, which measured zero use for the FIRST time",
+        "production_callers": 0,
+        "matches_by_class": {},
+        "matches": []
+      }
+    ]
+  },
+  "routes": {
+    "half": "routes",
+    "measured": true,
+    "live_route_count": 230,
+    "registry_entry_count": 182,
+    "stale_registry_entries": [],
+    "retired_routes_still_served": [],
+    "kept_external_route_surfaces": [
+      "route.applications.condition_verify",
+      "route.catalog.legacy_institution_write",
+      "route.catalog.legacy_intake_write",
+      "route.catalog.legacy_program_write"
+    ],
+    "passed": true
+  },
+  "headers": {
+    "half": "headers",
+    "passed": true,
+    "surfaces_without_announced_end_date": [],
+    "findings": [
+      {
+        "surface": "catalog legacy writes (institution / intake / program)",
+        "emits_deprecation": true,
+        "emits_sunset": true,
+        "emits_successor_link": true,
+        "source": "backend/apps/catalog/legacy_write_telemetry.py"
+      },
+      {
+        "surface": "applications .../conditions/{cid}/verify/",
+        "emits_deprecation": true,
+        "emits_sunset": true,
+        "emits_successor_link": true,
+        "source": "backend/apps/applications/admin_amendment_views.py"
+      }
+    ],
+    "register_exists": true,
+    "registered_surfaces": [
+      "applications.condition_verify",
+      "catalog.legacy_institution_write",
+      "catalog.legacy_intake_write",
+      "catalog.legacy_program_write"
+    ]
+  },
+  "passed": true
+}

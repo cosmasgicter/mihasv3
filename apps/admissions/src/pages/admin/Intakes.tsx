@@ -1,8 +1,8 @@
 import { toError } from '@/lib/toError'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { intakeService } from '@/services/catalog'
+import { useCatalogIntakes, useIntakeMutations } from '@/hooks/admin/useCatalogAdmin'
+import type { CatalogIntake } from '@/services/admin/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { normalizeDateInputValue } from '@/lib/profileFieldMapping'
@@ -37,6 +37,22 @@ interface Intake {
   semester?: string
 }
 
+/** Map a canonical intake period (nullable fields) to the page's display shape. */
+function toIntake(raw: CatalogIntake): Intake {
+  return {
+    id: raw.id,
+    name: raw.name,
+    year: raw.year,
+    start_date: raw.start_date ?? '',
+    end_date: raw.end_date ?? '',
+    application_deadline: raw.application_deadline ?? '',
+    max_capacity: raw.max_capacity ?? 0,
+    current_enrollment: raw.current_enrollment ?? 0,
+    is_active: raw.is_active,
+    semester: raw.semester ?? undefined,
+  }
+}
+
 /**
  * Returns Tailwind classes for the utilization indicator based on
  * enrollment/capacity ratio.
@@ -46,6 +62,12 @@ interface Intake {
  * semantic source of truth — callers should pair the badge with the
  * matching icon (see `getUtilizationIcon`) so status colour is never
  * communicated alone.
+ *
+ * The tone is the fill and the border; the label is `text-foreground`
+ * (admissions-v2 task 11.5, R16.2). `text-destructive` on `bg-destructive/10`
+ * measures 4.20 : 1 and `text-warning` on `bg-warning/10` 4.37 : 1 — both under
+ * AA, and both are the branches this badge takes when an intake is in trouble.
+ * `StatusPill` and `StatusBadge` were corrected the same way in the same task.
  */
 export type UtilizationTone = 'destructive' | 'warning' | 'success' | 'muted'
 
@@ -55,7 +77,7 @@ export function getUtilizationColor(
 ): { bg: string; text: string; label: string; tone: UtilizationTone } {
   if (capacity <= 0) {
     return {
-      bg: 'bg-muted',
+      bg: 'bg-muted border-border/60',
       text: 'text-muted-foreground',
       label: 'N/A',
       tone: 'muted',
@@ -64,23 +86,23 @@ export function getUtilizationColor(
   const ratio = enrollment / capacity
   if (ratio >= 1) {
     return {
-      bg: 'bg-destructive/10',
-      text: 'text-destructive',
+      bg: 'bg-destructive/10 border-destructive/40',
+      text: 'text-foreground',
       label: 'Over capacity',
       tone: 'destructive',
     }
   }
   if (ratio >= 0.8) {
     return {
-      bg: 'bg-warning/10',
-      text: 'text-warning',
+      bg: 'bg-warning/10 border-warning/40',
+      text: 'text-foreground',
       label: 'Near capacity',
       tone: 'warning',
     }
   }
   return {
-    bg: 'bg-success/10',
-    text: 'text-success',
+    bg: 'bg-success/10 border-success/40',
+    text: 'text-foreground',
     label: 'Available',
     tone: 'success',
   }
@@ -165,7 +187,6 @@ function getMutationErrorMessage(err: unknown): string {
 }
 
 export default function AdminIntakes() {
-  const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
@@ -190,16 +211,15 @@ export default function AdminIntakes() {
     },
   })
 
-  const { data: intakes = [], isLoading: loading, error: queryError, refetch } = useQuery({
-    queryKey: ['admin', 'intakes'],
-    queryFn: async () => {
-      const response = await intakeService.list()
-      // After unwrap, response is { intakes: Intake[] } directly
-      return (response?.intakes || []).sort((a: Intake, b: Intake) => b.year - a.year)
-    },
-  })
+  // Canonical intake-period reads through the catalog domain hook (R7.3). The
+  // legacy `intakeService` (/catalog/intakes/) writes are retired here.
+  const { data: intakesRaw = [], isLoading: loading, error: queryError, refetch } = useCatalogIntakes()
+  const intakes = useMemo<Intake[]>(
+    () => intakesRaw.map(toIntake).sort((a, b) => b.year - a.year),
+    [intakesRaw],
+  )
 
-  const error = queryError?.message || ''
+  const error = queryError instanceof Error ? queryError.message : ''
 
   const openCreate = () => {
     setMutationError(null)
@@ -236,95 +256,59 @@ export default function AdminIntakes() {
     setShowDelete(true)
   }
 
-  const mutationOptions = {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'intakes'] })
-    },
-  }
+  const { create, update, deactivate } = useIntakeMutations()
+  const saving = create.isPending || update.isPending || deactivate.isPending
 
-  const createMutation = useMutation({
-    mutationFn: async (data: IntakeForm) => {
-      await intakeService.create({
-        name: data.name,
-        year: data.year,
-        semester: data.semester,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        application_deadline: data.application_deadline,
-        max_capacity: data.max_capacity,
-      })
-    },
-    ...mutationOptions,
-    onSuccess: () => {
-      mutationOptions.onSuccess()
-      setMutationError(null)
-      setShowCreate(false)
-    },
-    onError: (err: unknown) => {
-      setMutationError(getMutationErrorMessage(err))
-    },
+  const buildPayload = (data: IntakeForm) => ({
+    name: data.name,
+    year: data.year,
+    semester: data.semester || undefined,
+    start_date: data.start_date,
+    end_date: data.end_date,
+    // Intakes open at their start date unless a separate window is configured.
+    application_start_date: data.start_date,
+    application_deadline: data.application_deadline,
+    max_capacity: data.max_capacity,
   })
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: IntakeForm) => {
-      if (!currentIntake) return
-      await intakeService.update({
-        id: currentIntake.id,
-        name: data.name,
-        year: data.year,
-        semester: data.semester,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        application_deadline: data.application_deadline,
-        max_capacity: data.max_capacity,
-      })
-    },
-    ...mutationOptions,
-    onSuccess: () => {
-      mutationOptions.onSuccess()
-      setMutationError(null)
-      setShowEdit(false)
-      setCurrentIntake(null)
-    },
-    onError: (err: unknown) => {
-      setMutationError(getMutationErrorMessage(err))
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentIntake) return
-      await intakeService.delete(currentIntake.id)
-    },
-    ...mutationOptions,
-    onSuccess: () => {
-      mutationOptions.onSuccess()
-      setMutationError(null)
-      setShowDelete(false)
-      setCurrentIntake(null)
-    },
-    onError: (err: unknown) => {
-      setMutationError(getMutationErrorMessage(err))
-    },
-  })
-
-  const saving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
 
   const createIntake = (data: IntakeForm) => {
     setMutationError(null)
-    createMutation.mutate(data)
+    create.mutate(buildPayload(data), {
+      onSuccess: () => {
+        setMutationError(null)
+        setShowCreate(false)
+      },
+      onError: (err: unknown) => setMutationError(getMutationErrorMessage(err)),
+    })
   }
 
   const updateIntake = (data: IntakeForm) => {
     if (!currentIntake) return
     setMutationError(null)
-    updateMutation.mutate(data)
+    update.mutate(
+      { id: currentIntake.id, data: buildPayload(data) },
+      {
+        onSuccess: () => {
+          setMutationError(null)
+          setShowEdit(false)
+          setCurrentIntake(null)
+        },
+        onError: (err: unknown) => setMutationError(getMutationErrorMessage(err)),
+      },
+    )
   }
 
   const deleteIntake = () => {
     if (!currentIntake) return
     setMutationError(null)
-    deleteMutation.mutate()
+    deactivate.mutate(currentIntake.id, {
+      onSuccess: () => {
+        setMutationError(null)
+        setShowDelete(false)
+        setCurrentIntake(null)
+      },
+      onError: (err: unknown) => setMutationError(getMutationErrorMessage(err)),
+    })
   }
 
   return (
@@ -341,12 +325,17 @@ export default function AdminIntakes() {
       subtitle="Manage admission intakes, windows, deadlines, and readiness for upcoming cohorts."
       maxWidth="7xl"
       tone="admin"
-      metrics={[
-        { label: 'Configured intakes', value: intakes.length, helper: 'Admission windows currently available' },
-        { label: 'Year focus', value: intakes[0]?.year || 'None', helper: 'Latest intake year in this list' },
-        { label: 'State', value: loading ? 'Loading' : error ? 'Needs attention' : 'Ready', helper: error || 'Create, edit, and retire intake periods' },
-        { label: 'Next action', value: 'Add intake', helper: 'Create the next admission window when ready' },
-      ]}
+      /*
+        No `metrics` row (task 11.5, R16.5; task 11.4 §11 named these four).
+
+        None of the four was a number an operator acts on: a count the record
+        list below states by existing, a "Year focus" reading the first row's
+        year, a "State" tile reading this page's own loading/error state, and a
+        "Next action" tile whose value was the literal label of the "Add intake"
+        button in this same header. Four passive tiles held the first viewport,
+        which is why 11.4's journey had to scroll an intake record into view to
+        photograph it.
+      */
       actions={
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Link to="/admin" className="w-full sm:w-auto">
@@ -374,7 +363,13 @@ export default function AdminIntakes() {
             ) : error ? (
               <div className="rounded-lg bg-destructive/5 border border-destructive/30 p-6 text-center">
                 <AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-4" aria-hidden="true" />
-                <p className="text-destructive font-medium text-lg">{error}</p>
+                {/*
+                  The tone is the icon above; the message is `text-foreground`.
+                  On `PageShell`'s `bg-muted` surface `text-destructive` is
+                  4.44 : 1 — under AA (admissions-v2 task 11.5, R16.2) — and an
+                  icon is a non-text graphic held to 3 : 1, which it clears.
+                */}
+                <p className="text-foreground font-medium text-lg">{error}</p>
                 <Button 
                   onClick={() => refetch()} 
                   variant="outline" 
@@ -434,8 +429,17 @@ export default function AdminIntakes() {
                     key: 'application_deadline',
                     header: 'Deadline',
                     priority: 'always',
+                    // A deadline is **data**, not an alarm (admissions-v2 task
+                    // 11.5, R16.4). This date was printed in `text-destructive`
+                    // for every intake, including ones with months to run — a
+                    // colour-alone signal that said "problem" unconditionally —
+                    // and on `PageShell`'s `bg-muted` surface #dc2626 measures
+                    // 4.44 : 1, which is under AA. axe flagged it on every row of
+                    // the desktop table. The column header already says
+                    // "Deadline"; the utilization badge beside it is where a
+                    // tone belongs.
                     render: (_value, row) => (
-                      <span className="text-sm font-medium text-destructive">
+                      <span className="text-sm font-medium text-foreground">
                         {formatDate(row.application_deadline)}
                       </span>
                     ),
@@ -444,8 +448,12 @@ export default function AdminIntakes() {
                     key: 'max_capacity',
                     header: 'Capacity',
                     priority: 'desktop',
+                    // `text-primary` #2563eb on a 10 % wash of itself is
+                    // 4.48 : 1 — axe called it `[serious] color-contrast` on
+                    // every record in this list (admissions-v2 task 11.5, R16.2).
+                    // The tint stays; the number is `text-foreground`.
                     render: (_value, row) => (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-sm font-medium text-foreground">
                         {row.max_capacity}
                       </span>
                     ),
@@ -460,7 +468,7 @@ export default function AdminIntakes() {
                       const Icon = getUtilizationIcon(tone)
                       return (
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium ${bg} ${text}`}
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium ${bg} ${text}`}
                           title={label}
                           aria-label={`${enrollment} of ${row.max_capacity} enrolled — ${label}`}
                         >
@@ -477,9 +485,16 @@ export default function AdminIntakes() {
                     priority: 'always',
                     render: (_value, row) => {
                       const available = Math.max(row.max_capacity - (row.current_enrollment ?? 0), 0)
+                      // `text-destructive-foreground` is **white**, and it was
+                      // being painted on a 10 % destructive wash over white — a
+                      // full intake printed its seat count at roughly 1.1 : 1,
+                      // which is invisible (admissions-v2 task 11.5, R16.2). The
+                      // tone belongs to the fill and the border; the number is
+                      // `text-foreground`, the same correction `StatusPill` and
+                      // `StatusBadge` took.
                       return (
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
-                          available > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-sm font-medium text-foreground ${
+                          available > 0 ? 'border-border/60 bg-accent/40' : 'border-destructive/40 bg-destructive/10'
                         }`}>
                           {available}/{row.max_capacity}
                         </span>
@@ -533,7 +548,7 @@ export default function AdminIntakes() {
           <form onSubmit={handleSubmit(createIntake)}>
             <IntakeFormFields register={register} errors={errors} />
             {mutationError && showCreate && (
-              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
+              <p className="text-sm text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
                 {mutationError}
               </p>
             )}
@@ -564,7 +579,7 @@ export default function AdminIntakes() {
           <form onSubmit={handleSubmit(updateIntake)}>
             <IntakeFormFields register={register} errors={errors} />
             {mutationError && showEdit && (
-              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
+              <p className="text-sm text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
                 {mutationError}
               </p>
             )}
@@ -595,7 +610,7 @@ export default function AdminIntakes() {
             </DialogDescription>
           </DialogHeader>
           {mutationError && showDelete && (
-            <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2" role="alert">
+            <p className="text-sm text-destructive bg-destructive/5 border border-destructive/30 rounded-md px-3 py-2" role="alert">
               {mutationError}
             </p>
           )}

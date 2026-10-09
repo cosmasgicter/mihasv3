@@ -1,0 +1,320 @@
+# Task 6.3 M14 — outbox characterisation + minimisation suite run against the UNCHANGED M13 tree (BEFORE any M14 source change)
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T20:33:21Z
+# CHARACTERISATION C1-C4 must pass here (they pin what reads an attached record today); MINIMISED M1-M5 are expected to FAIL here — each failure shows what M13 stores
+# source sha256 (M13 state): 7a370b43a09bf9db src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts;31b96e1c1b130ce4 src/lib/wizardDraftController.ts;f5c1ea12049e395c src/lib/draftLocalCache.ts;
+$ bun x vitest run --reporter=verbose tests/unit/wizardDraftOutboxMinimisation.test.tsx
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+[90mstderr[2m | tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22m[2mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22m[2mC1: a resume takes the step, grades, upload flags and payment state from the server, never from the record
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/home/cosmas/Downloads/mihasv3/node_modules/.bun/@testing-library+react@16.3.2+e9cc401744b55d0d/node_modules/@testing-library/react/dist/pure.js:328:5)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at wrapper (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardDraftOutboxMinimisation.test.tsx:158:19)
+
+[90mstderr[2m | tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22m[2mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22m[2mM2: an unsent edit is stored as the pending answer, its base and version, and the full address
+[22m[39mWarning: An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TestComponent (/home/cosmas/Downloads/mihasv3/node_modules/.bun/@testing-library+react@16.3.2+e9cc401744b55d0d/node_modules/@testing-library/react/dist/pure.js:328:5)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at wrapper (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/unit/wizardDraftOutboxMinimisation.test.tsx:158:19)
+
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC1: a resume takes the step, grades, upload flags and payment state from the server, never from the record[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC2: in production storage the key-less local reader cannot see an attached record at all[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC3: an unattached new application keeps the whole form on this device (all of it is pending)[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mCHARACTERISATION — what reads an attached outbox record (before and after M14)[2m > [22mC4: a legacy pending record made on the loaded version is still replayed once[32m 5[2mms[22m[39m
+ [31m×[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM1: a draft hydrated with nothing pending keeps no record on this device[32m 7[2mms[22m[39m
+[31m   → expected { formData: { …(14) }, …(12) } to be null[39m
+ [31m×[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM2: an unsent edit is stored as the pending answer, its base and version, and the full address[32m 6[2mms[22m[39m
+[31m   → expected [ 'applicationId', …(12) ] to deeply equal [ 'answers', 'applicationId', …(7) ][39m
+ [31m×[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM3: a successful sync clears the record entirely[32m 3[2mms[22m[39m
+[31m   → expected { formData: { …(14) }, …(12) } to be null[39m
+ [31m×[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM4: a pending record addressed to another assignment is never replayed: it opens the explicit conflict[32m 3[2mms[22m[39m
+[31m   → expected "vi.fn()" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m    Array [
+      "app-1",
+      Object {
+        "country": "Zambia",
+        "date_of_birth": "2004-05-04",
+        "email": "student@example.com",
+        "full_name": "Student Name",
+        "nationality": "Zambian",
+        "next_of_kin_name": "Next Of Kin",
+        "next_of_kin_phone": "+260977654321",
+        "nrc_number": "123456/78/9",
+        "passport_number": undefined,
+        "phone": "+260971234567",
+        "residence_town": "Pending town",
+        "sex": "male",
+      },
+      3,
+      "update-3f01a995-f212-4024-a88a-1bd4bba961df",
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+ [31m×[39m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM5: a draft the server no longer has (404) loses its attached record; the answers stay in the form[32m 6[2mms[22m[39m
+[31m   → expected { formData: { …(14) }, …(12) } to be null[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 5 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM1: a draft hydrated with nothing pending keeps no record on this device
+[31m[1mAssertionError[22m: expected { formData: { …(14) }, …(12) } to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+{
+  "applicationId": "app-1",
+  "currentStep": 3,
+  "currentStepKey": "personal",
+  "formData": {
+    "country": "Zambia",
+    "date_of_birth": "2004-05-04",
+    "email": "student@example.com",
+    "full_name": "Student Name",
+    "intake": "intake-a",
+    "nationality": "Zambian",
+    "next_of_kin_name": "Next Of Kin",
+    "next_of_kin_phone": "+260977654321",
+    "nrc_number": "123456/78/9",
+    "passport_number": "",
+    "phone": "+260971234567",
+    "program": "program-1",
+    "residence_town": "Kabwe",
+    "sex": "Male",
+  },
+  "paymentStatus": null,
+  "pending": false,
+  "pendingBase": null,
+  "savedAt": "2026-10-08T20:33:23.583Z",
+  "selectedGrades": [],
+  "serverVersion": 3,
+  "uploadedFiles": {
+    "extra_kyc": true,
+    "result_slip": true,
+  },
+  "userId": "user-1",
+  "version": 2,
+}
+
+[36m [2m❯[22m tests/unit/wizardDraftOutboxMinimisation.test.tsx:[2m340:28[22m[39m
+    [90m338| [39m    [35mconst[39m system [33m=[39m [34mmountDraftSystem[39m()
+    [90m339| [39m    [35mawait[39m system[33m.[39m[34mhydrate[39m()
+    [90m340| [39m    [34mexpect[39m([34mstoredRecord[39m())[33m.[39m[34mtoBeNull[39m()
+    [90m   | [39m                           [31m^[39m
+    [90m341| [39m  })
+    [90m342| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM2: an unsent edit is stored as the pending answer, its base and version, and the full address
+[31m[1mAssertionError[22m: expected [ 'applicationId', …(12) ] to deeply equal [ 'answers', 'applicationId', …(7) ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  [[22m
+[32m-   "answers",[39m
+[2m    "applicationId",[22m
+[32m-   "assignment",[39m
+[31m+   "currentStep",[39m
+[31m+   "currentStepKey",[39m
+[31m+   "formData",[39m
+[31m+   "paymentStatus",[39m
+[2m    "pending",[22m
+[2m    "pendingBase",[22m
+[2m    "savedAt",[22m
+[31m+   "selectedGrades",[39m
+[2m    "serverVersion",[22m
+[31m+   "uploadedFiles",[39m
+[2m    "userId",[22m
+[2m    "version",[22m
+[2m  ][22m
+
+[36m [2m❯[22m tests/unit/wizardDraftOutboxMinimisation.test.tsx:[2m357:41[22m[39m
+    [90m355| [39m    [35mconst[39m record [33m=[39m [34mstoredRecord[39m()
+    [90m356| [39m    [34mexpect[39m(record)[33m.[39mnot[33m.[39m[34mtoBeNull[39m()
+    [90m357| [39m    [34mexpect[39m([33mObject[39m[33m.[39m[34mkeys[39m(record[33m![39m)[33m.[39m[34msort[39m())[33m.[39m[34mtoEqual[39m(
+    [90m   | [39m                                        [31m^[39m
+    [90m358| [39m      ['answers', 'applicationId', 'assignment', 'pending', 'pendingBa…
+    [90m359| [39m    )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM3: a successful sync clears the record entirely
+[31m[1mAssertionError[22m: expected { formData: { …(14) }, …(12) } to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+{
+  "applicationId": "app-1",
+  "currentStep": 3,
+  "currentStepKey": "personal",
+  "formData": {
+    "country": "Zambia",
+    "date_of_birth": "2004-05-04",
+    "email": "student@example.com",
+    "full_name": "Student Name",
+    "intake": "intake-a",
+    "nationality": "Zambian",
+    "next_of_kin_name": "Next Of Kin",
+    "next_of_kin_phone": "+260977654321",
+    "nrc_number": "123456/78/9",
+    "passport_number": "",
+    "phone": "+260971234567",
+    "program": "program-1",
+    "residence_town": "Chipata",
+    "sex": "Male",
+  },
+  "paymentStatus": null,
+  "pending": false,
+  "pendingBase": null,
+  "savedAt": "2026-10-08T20:33:25.596Z",
+  "selectedGrades": [],
+  "serverVersion": 4,
+  "uploadedFiles": {
+    "extra_kyc": true,
+    "result_slip": true,
+  },
+  "userId": "user-1",
+  "version": 2,
+}
+
+[36m [2m❯[22m tests/unit/wizardDraftOutboxMinimisation.test.tsx:[2m384:28[22m[39m
+    [90m382| [39m    [34mexpect[39m(api[33m.[39mupdateDraft)[33m.[39m[34mtoHaveBeenCalledTimes[39m([34m1[39m)
+    [90m383| [39m    expect(system.current.machine.getSnapshot()).toMatchObject({ state…
+    [90m384| [39m    [34mexpect[39m([34mstoredRecord[39m())[33m.[39m[34mtoBeNull[39m()
+    [90m   | [39m                           [31m^[39m
+    [90m385| [39m  })
+    [90m386| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM4: a pending record addressed to another assignment is never replayed: it opens the explicit conflict
+[31m[1mAssertionError[22m: expected "vi.fn()" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m    Array [
+      "app-1",
+      Object {
+        "country": "Zambia",
+        "date_of_birth": "2004-05-04",
+        "email": "student@example.com",
+        "full_name": "Student Name",
+        "nationality": "Zambian",
+        "next_of_kin_name": "Next Of Kin",
+        "next_of_kin_phone": "+260977654321",
+        "nrc_number": "123456/78/9",
+        "passport_number": undefined,
+        "phone": "+260971234567",
+        "residence_town": "Pending town",
+        "sex": "male",
+      },
+      3,
+      "update-3f01a995-f212-4024-a88a-1bd4bba961df",
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m tests/unit/wizardDraftOutboxMinimisation.test.tsx:[2m395:33[22m[39m
+    [90m393| [39m    [35mawait[39m system[33m.[39m[34madvance[39m([33mWIZARD_DRAFT_DEBOUNCE_MS[39m [33m*[39m [34m4[39m)
+    [90m394| [39m
+    [90m395| [39m    [34mexpect[39m(api[33m.[39mupdateDraft)[33m.[39mnot[33m.[39m[34mtoHaveBeenCalled[39m()
+    [90m   | [39m                                [31m^[39m
+    [90m396| [39m    [35mconst[39m snapshot [33m=[39m system[33m.[39mcurrent[33m.[39mmachine[33m.[39m[34mgetSnapshot[39m()
+    [90m397| [39m    [34mexpect[39m(snapshot[33m.[39mstate)[33m.[39m[34mtoBe[39m([32m'conflict'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/wizardDraftOutboxMinimisation.test.tsx[2m > [22mMINIMISED — an attached record holds only what recovery needs (M14)[2m > [22mM5: a draft the server no longer has (404) loses its attached record; the answers stay in the form
+[31m[1mAssertionError[22m: expected { formData: { …(14) }, …(12) } to be null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+{
+  "applicationId": "app-1",
+  "currentStep": 3,
+  "currentStepKey": "personal",
+  "formData": {
+    "country": "Zambia",
+    "date_of_birth": "2004-05-04",
+    "email": "student@example.com",
+    "full_name": "Student Name",
+    "intake": "intake-a",
+    "nationality": "Zambian",
+    "next_of_kin_name": "Next Of Kin",
+    "next_of_kin_phone": "+260977654321",
+    "nrc_number": "123456/78/9",
+    "passport_number": "",
+    "phone": "+260971234567",
+    "program": "program-1",
+    "residence_town": "After delete",
+    "sex": "Male",
+  },
+  "paymentStatus": null,
+  "pending": true,
+  "pendingBase": {
+    "residence_town": "Kabwe",
+  },
+  "savedAt": "2026-10-08T20:33:25.602Z",
+  "selectedGrades": [],
+  "serverVersion": 3,
+  "uploadedFiles": {
+    "extra_kyc": true,
+    "result_slip": true,
+  },
+  "userId": "user-1",
+  "version": 2,
+}
+
+[36m [2m❯[22m tests/unit/wizardDraftOutboxMinimisation.test.tsx:[2m430:28[22m[39m
+    [90m428| [39m    [34mexpect[39m(api[33m.[39mupdateDraft)[33m.[39m[34mtoHaveBeenCalledTimes[39m([34m1[39m)
+    [90m429| [39m    expect(system.current.machine.getSnapshot().applicationId).toBeNul…
+    [90m430| [39m    [34mexpect[39m([34mstoredRecord[39m())[33m.[39m[34mtoBeNull[39m()
+    [90m   | [39m                           [31m^[39m
+    [90m431| [39m    expect(system.current.form.getValues().residence_town).toBe('After…
+    [90m432| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 22:33:22
+[2m   Duration [22m 1.31s[2m (transform 417ms, setup 31ms, import 693ms, tests 63ms, environment 408ms)[22m
+
+PROCESS EXIT: 1

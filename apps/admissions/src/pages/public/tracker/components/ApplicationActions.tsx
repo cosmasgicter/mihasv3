@@ -1,43 +1,43 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Rocket, Eye, HelpCircle } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
+/**
+ * The foot of a resolved tracking result: how to see the whole application.
+ *
+ * Admissions-v2 task 11.5 (R16.5, MAINT-02) removed two things from this strip.
+ *
+ * **The second "Need Help?" block.** It carried the heading "Need Help?" and the
+ * sentence "Contact our admissions office for assistance and support" — no
+ * address, no route, no affordance of any kind — directly above `HelpSection`,
+ * which is the panel that actually answers it and now resolves a real support
+ * contact from tenant context. Two help headings on one page, one of which could
+ * not help.
+ *
+ * **The `Rocket` icon on "Create Account".** Decoration standing in for meaning
+ * on a control whose consequence is an account (R16.4's restraint, and the
+ * `PRODUCT.md` rule that icons carry meaning). The two commands are now
+ * distinguished by their labels, and only the one that leads somewhere specific
+ * keeps an icon.
+ *
+ * Both remaining controls are `Button asChild` over a router `Link` — the repo
+ * convention for a semantic link — rather than a `Button` nested inside a `Link`,
+ * which produced an anchor wrapping a button and two focus stops for one target.
+ */
 export const ApplicationActions: React.FC = () => {
   return (
     <div className="border-t border-border bg-muted/30 p-6 sm:p-8">
-      <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-        <div className="text-center lg:text-left">
-          <p className="text-base font-semibold text-foreground flex items-center justify-center lg:justify-start gap-2">
-            <HelpCircle className="h-5 w-5 text-primary" />
-            Need Help?
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Contact our admissions office for assistance and support.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Link to="/auth/signup">
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="h-12 w-full rounded-lg border border-border transition-colors hover:bg-muted sm:w-auto"
-            >
-              <Rocket className="h-5 w-5 mr-2" />
-              Create Account
-            </Button>
-          </Link>
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <Button asChild variant="outline" size="lg" className="min-h-touch w-full justify-center sm:w-auto">
+          <Link to="/auth/signup">Create account</Link>
+        </Button>
+        <Button asChild size="lg" className="min-h-touch w-full justify-center gap-2 sm:w-auto">
           <Link to="/auth/signin">
-            <Button 
-              size="lg" 
-              className="h-12 w-full rounded-lg bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:w-auto"
-            >
-              <Eye className="h-5 w-5 mr-2" />
-              View Full Details
-            </Button>
+            <Eye className="h-5 w-5" aria-hidden="true" />
+            <span>Sign in for full details</span>
           </Link>
-        </div>
+        </Button>
       </div>
     </div>
   )

@@ -179,7 +179,6 @@ def _audits_for(entity_id, action):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_expire_stale_expires_all_candidates_older_than_cutoff(seed_owner):
     """10 pending payments aged 25h all expire in one sweep.
 
@@ -242,7 +241,6 @@ def test_expire_stale_expires_all_candidates_older_than_cutoff(seed_owner):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_expire_stale_is_idempotent_on_second_run(seed_owner):
     """Running ``expire_stale`` twice back-to-back only mutates once.
 
@@ -310,7 +308,6 @@ def test_expire_stale_is_idempotent_on_second_run(seed_owner):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_expire_stale_ignores_recent_pending_payments(seed_owner):
     """A pending payment aged < 24h is NOT touched by reconciliation.
 
@@ -340,7 +337,6 @@ def test_expire_stale_ignores_recent_pending_payments(seed_owner):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_expire_stale_expires_payment_just_past_cutoff(seed_owner):
     """A pending payment just past the 24h cutoff is expired.
 
@@ -380,7 +376,6 @@ def test_expire_stale_expires_payment_just_past_cutoff(seed_owner):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_expire_stale_honours_batch_cap(seed_owner):
     """With 10 candidates and batch_cap=3, only 3 expire; 7 remain pending.
 
@@ -422,10 +417,9 @@ def test_expire_stale_honours_batch_cap(seed_owner):
 # ===========================================================================
 #
 # Tests 1–5 above pin down ``PaymentService.expire_stale()`` in isolation.
-# The next block exercises ``poll_pending_payments_task`` as a whole under
-# ``PAYMENT_HARDENING_FORWARD_ONLY=True`` so the reconciliation sweep's
-# batching logic (expire first, then verify pending rows in the 5 min –
-# 24 h window) is covered end-to-end.
+# The next block exercises ``poll_pending_payments_task`` as a whole, so the
+# reconciliation sweep's batching logic (expire first, then verify pending rows
+# in the 5 min – 24 h window) is covered end-to-end.
 #
 # Validates: Requirements R18.1, R18.2, R18.3, R18.4, R18.5
 # ---------------------------------------------------------------------------
@@ -456,7 +450,6 @@ def _clear_task_lock():
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_pending_below_reconcile_min_age_is_skipped(seed_owner, _clear_task_lock):
     """A ``pending`` Payment younger than ``PAYMENT_RECONCILE_MIN_AGE_SECONDS``
     (default 300s) MUST NOT be verified by the reconciliation sweep.
@@ -497,7 +490,6 @@ def test_pending_below_reconcile_min_age_is_skipped(seed_owner, _clear_task_lock
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_pending_above_reconcile_min_age_triggers_verify(seed_owner, _clear_task_lock):
     """A 10-minute-old ``pending`` Payment is verified via Lenco.
 
@@ -536,7 +528,6 @@ def test_pending_above_reconcile_min_age_triggers_verify(seed_owner, _clear_task
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
     """A 25-hour-old ``pending`` Payment MUST be expired before verify.
 
@@ -594,7 +585,6 @@ def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )

@@ -1,21 +1,48 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+/**
+ * The wizard's review-and-submit step.
+ *
+ * **No generative summary (admissions-v2 task 11.5, R16.5 / MAINT-02).** This
+ * step used to open with a "Application Preview" card under a `Sparkles` icon
+ * that fetched `GET /applications/{id}/preview-summary/` on every mount, retried
+ * once after 1.2 s, spun a "Personalizing your preview…" indicator, and offered a
+ * "Load personalized preview" button that fired the same request again.
+ *
+ * Task **7.4** deleted that endpoint together with the rest of admissions
+ * generative AI (`backend/config/settings/base.py` retired the
+ * `ai_student_preview` throttle scope with it), so every one of those requests
+ * was a 404 and the card always rendered the locally-built fallback sentence.
+ * That sentence restated the programme, the intake, the subject count and the
+ * payment state — each of which the **Submission readiness** checklist directly
+ * below states as its own row, with a completion state and a link to the step
+ * that fixes it. AI framing over a dead route, wrapped around a duplicate of the
+ * checklist.
+ *
+ * The checklist is what remains. This is the student-side counterpart of what
+ * tasks 7.4 / 9.4 did on the admin side, where `AISummaryPanel` became the
+ * deterministic `ReviewReadinessPanel`.
+ *
+ * The jobs-ops AI surfaces (`apps/jobs-ops`, `AI_GATEWAY_API_KEY`) are a
+ * different application with a different boundary and are untouched.
+ */
+import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { AlertTriangle, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
 import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
-import { apiClient } from '@/services/client'
-// eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import { cn } from '@/lib/utils'
 
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
 import type { WizardReadiness } from '../lib/wizardReadiness'
 import type { StepKey } from '../steps/config'
-import { toError } from '@/lib/toError'
+import {
+  documentReviewChecks,
+  type DocumentReviewCheck,
+} from '../lib/requiredDocumentSurfaces'
 
 interface SubmitStepProps {
   title: string
@@ -26,6 +53,13 @@ interface SubmitStepProps {
   resultSlipFile: File | null
   extraKycFile: File | null
   uploadedFiles: Record<string, boolean>
+  /**
+   * Review rows for this application's required documents, derived from the
+   * versioned requirement contract (task 7.2, R11.6, finding STU-13). Omitted
+   * only by a caller with no contract access, which keeps the legacy two-row
+   * fallback.
+   */
+  documentChecks?: DocumentReviewCheck[]
   confirmSubmission: boolean
   onConfirmChange: (value: boolean) => void
   selectedProgramName?: string
@@ -33,14 +67,7 @@ interface SubmitStepProps {
   selectedInstitutionLabel?: string
   paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   wizardReadiness?: WizardReadiness
-  applicationId?: string | null
   onNavigateToStep?: (stepKey: StepKey) => void
-}
-
-/** Exported for unit testing — determines if an AI/fallback summary is display-worthy. */
-export const summaryLooksComplete = (s: string | null | undefined): boolean => {
-  const trimmed = (s ?? '').trim()
-  return trimmed.length >= 50 && /[.!?]$/.test(trimmed)
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -55,47 +82,6 @@ const gradeLabelMap: Record<number, string> = {
   9: 'F'
 }
 
-function buildFallbackPreviewSummary({
-  fullName,
-  program,
-  intake,
-  institution,
-  subjectsCount,
-  paymentStatus,
-}: {
-  fullName?: string | null
-  program?: string | null
-  intake?: string | null
-  institution?: string | null
-  subjectsCount: number
-  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
-}) {
-  const firstName = fullName?.trim()?.split(/\s+/)[0] || 'Student'
-  const programLabel = program?.trim() || 'your chosen programme'
-  const institutionLabel = institution?.trim() || 'Beanola Admissions'
-  const intakeLabel = intake?.trim()
-  const paymentLine = paymentStatus === 'successful'
-    ? 'Your payment has already been confirmed.'
-    : paymentStatus === 'deferred'
-      ? 'Your payment is marked as deferred, so you can submit now and pay later from the dashboard.'
-      : paymentStatus === 'pending'
-        ? 'Your payment is still being confirmed, so keep this page open while we check for updates.'
-        : 'Complete payment in the previous step before you submit.'
-
-  const parts = [
-    `${firstName}, you are preparing an application to ${institutionLabel} for ${programLabel}.`,
-    subjectsCount > 0
-      ? `You currently have ${subjectsCount} recorded subject${subjectsCount === 1 ? '' : 's'} in this application.`
-      : 'Your subjects will appear here once you finish the education step.',
-    intakeLabel
-      ? `The application will be reviewed for the ${intakeLabel} intake once you submit it.`
-      : 'The admissions team will review the selected intake once you submit it.',
-    paymentLine,
-  ]
-
-  return parts.join(' ')
-}
-
 const SubmitStep = ({
   title,
   form,
@@ -105,6 +91,7 @@ const SubmitStep = ({
   resultSlipFile,
   extraKycFile,
   uploadedFiles,
+  documentChecks,
   confirmSubmission,
   onConfirmChange,
   selectedProgramName,
@@ -112,7 +99,6 @@ const SubmitStep = ({
   selectedInstitutionLabel,
   paymentStatus,
   wizardReadiness,
-  applicationId,
   onNavigateToStep
 }: SubmitStepProps) => {
   const formValues = form.watch()
@@ -123,56 +109,6 @@ const SubmitStep = ({
       .map(grade => grade.subject_id)
   ).size, [selectedGrades])
 
-  // AI-powered personalized summary
-  const [aiSummary, setAiSummary] = useState<string | null>(null)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiError, setAiError] = useState<string | null>(null)
-  const [aiRetryNonce, setAiRetryNonce] = useState(0)
-  const fallbackSummary = useMemo(() => buildFallbackPreviewSummary({
-    fullName: formValues.full_name,
-    program: programLabel,
-    intake: selectedIntakeLabel || ((formValues as Record<string, unknown>).intake_name as string | undefined) || formValues.intake,
-    institution: selectedInstitutionLabel,
-    subjectsCount: uniqueValidSubjectCount,
-    paymentStatus,
-  }), [formValues.full_name, formValues.intake, paymentStatus, programLabel, uniqueValidSubjectCount, selectedInstitutionLabel, selectedIntakeLabel])
-
-  const loadAiSummary = useCallback(async () => {
-    if (!applicationId) return
-
-    let finalError: string | null = null
-    setAiLoading(true)
-    setAiError(null)
-
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const data = await apiClient.request<{ summary: string | null; source?: string }>(`/applications/${applicationId}/preview-summary/`)
-        const summary = data?.summary?.trim() || ''
-        const looksComplete = summary.length >= 50 && /[.!?]$/.test(summary)
-        if (looksComplete) {
-          setAiSummary(summary)
-          setAiError(null)
-          setAiLoading(false)
-          return
-        }
-        finalError = summary ? 'The personalized summary was incomplete.' : 'No personalized summary was returned.'
-      } catch (error) {
-        finalError = toError(error).message || 'Unable to load the personalized summary.'
-      }
-
-      if (attempt === 0) {
-        await new Promise(resolve => window.setTimeout(resolve, 1200))
-      }
-    }
-
-    setAiSummary(null)
-    setAiError(finalError)
-    setAiLoading(false)
-  }, [applicationId])
-
-  useEffect(() => {
-    void loadAiSummary()
-  }, [aiRetryNonce, loadAiSummary])
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
   const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
   const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
@@ -196,18 +132,25 @@ const SubmitStep = ({
       completed: isRequirementComplete('grades', uniqueValidSubjectCount >= 5),
       stepKey: 'education' as StepKey,
     },
-    {
-      label: 'Result slip attached',
-      detail: resultSlipFile ? resultSlipFile.name : hasResultSlip ? 'Already uploaded' : 'Upload your result slip to complete this step',
-      completed: isRequirementComplete('result_slip', hasResultSlip),
+    // Documents come from the versioned requirement contract (task 7.2, R11.6).
+    // The contract state is the persisted state, so it is authoritative over the
+    // advisory client readiness — the review must never ask for a document the
+    // server already holds, nor stay silent about one the tenant requires.
+    ...(documentChecks ??
+      documentReviewChecks(null, {
+        hasResultSlip,
+        hasIdentityDocument,
+        resultSlipName: resultSlipFile?.name ?? null,
+        identityName: extraKycFile?.name ?? null,
+      })
+    ).map(check => ({
+      label: check.label,
+      detail: check.detail,
+      completed: documentChecks
+        ? check.completed
+        : isRequirementComplete(check.field, check.completed),
       stepKey: 'education' as StepKey,
-    },
-    {
-      label: 'Identity document attached (NRC or Passport)',
-      detail: extraKycFile ? extraKycFile.name : hasIdentityDocument ? 'Already uploaded' : 'Upload your NRC or passport to complete this step',
-      completed: isRequirementComplete('extra_kyc', hasIdentityDocument),
-      stepKey: 'education' as StepKey,
-    },
+    })),
     {
       label: isSuccessfulPayment
         ? 'Payment completed via Lenco'
@@ -217,7 +160,7 @@ const SubmitStep = ({
       detail: isSuccessfulPayment
         ? 'Payment confirmed through the secure Lenco gateway.'
         : isDeferredPayment
-          ? 'You chose to pay later. You can pay from your dashboard after submission.'
+          ? 'You chose to pay later. You can pay from the payment page after submission.'
           : 'Please complete payment in the payment step before submitting.',
       completed: isRequirementComplete('payment', isSuccessfulPayment || isDeferredPayment),
       stepKey: 'payment' as StepKey,
@@ -232,39 +175,6 @@ const SubmitStep = ({
         description="Review the details below before you submit. Once the application is sent, you cannot edit it from this wizard."
         contentClassName="space-y-6"
       >
-        {/* AI-powered personalized summary */}
-        {(aiSummary || fallbackSummary || aiLoading) && (
-          <div className={`rounded-lg border border-primary/20 bg-primary/5 p-5 ${animateClasses.fadeIn}`}>
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-foreground" role="status">
-                  {aiSummary || fallbackSummary}
-                </p>
-                {aiLoading && (
-                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
-                    <span>Personalizing your preview…</span>
-                  </div>
-                )}
-                {aiError && !aiLoading && applicationId && (
-                  <button
-                    type="button"
-                    onClick={() => setAiRetryNonce((count) => count + 1)}
-                    className="mt-2 min-h-touch inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                    Load personalized preview
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section className="space-y-4" aria-labelledby="submit-readiness-heading">
             <div>

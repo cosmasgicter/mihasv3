@@ -11,6 +11,7 @@ and program/intake identifier resolution.
 import os
 import uuid
 from datetime import date
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
@@ -20,8 +21,9 @@ import django  # noqa: E402
 
 django.setup()
 
+import pytest  # noqa: E402
 from django.test import SimpleTestCase  # noqa: E402
-from hypothesis import given, settings  # noqa: E402
+from hypothesis import HealthCheck, given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 from apps.applications.identifier_resolver import (  # noqa: E402
@@ -407,7 +409,7 @@ nationalities = st.sampled_from(["Zambian", "Kenyan", "Tanzanian", "Nigerian", "
 countries = st.sampled_from(["Zambia", "ZM", "Kenya", "Tanzania", "Nigeria", "South Africa", "UK"])
 currencies = st.sampled_from(["ZMW", "USD", "GBP"])
 residency_categories = st.sampled_from(["local", "international"])
-fee_sources = st.sampled_from(["program_fee", "program_default"])
+fee_sources = st.sampled_from(["program_fee"])
 fee_amounts = st.decimals(min_value=1, max_value=10000, places=2, allow_nan=False, allow_infinity=False)
 
 
@@ -419,12 +421,13 @@ fee_amounts = st.decimals(min_value=1, max_value=10000, places=2, allow_nan=Fals
 class TestFeeResolutionRoundTrip(SimpleTestCase):
     """# Feature: admissions-logic-canonicalization, Property 1: Fee resolution round-trip consistency
 
-    For any Application with a program field that matches an active Program
-    record by name, resolving the fee through PaymentService.initiate_payment()
-    (name → code → FeeResolver) SHALL produce the same ResolvedFee as calling
-    FeeResolver.resolve_fee() directly with the Program's code.
+    Updated for admissions-v2 task 5.4 (DATA-05): the payment path resolves the
+    fee from the application's canonical ``program_offering`` binding via
+    ``FeeResolver.resolve_for_application`` — never a display-name lookup and
+    never a default amount — and produces the same canonical ``ResolvedFee`` as
+    ``FeeResolver.resolve_fee`` does for the same offering.
 
-    **Validates: Requirements 1.1, 1.2, 1.5**
+    **Validates: Requirements 1.1, 1.2, 1.5 (superseded by R7.4/R7.5, R12.2)**
     """
 
     @given(
@@ -485,34 +488,60 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
                 country=country,
             )
 
-        # --- PaymentService path: name → IdentifierResolver → code → FeeResolver ---
+        # --- PaymentService path: canonical offering → FeeSchedule ---
+        # admissions-v2 task 5.4 (DATA-05): the payment path resolves the fee
+        # from the application's canonical ``program_offering`` binding via
+        # ``FeeResolver.resolve_for_application`` — never a display-name lookup
+        # and never a default amount.
         with patch(
-            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-            return_value=mock_resolved_identifier,
-        ) as mock_resolve_program, patch(
-            "apps.documents.payment_service.FeeResolver.resolve_fee",
-            return_value=expected_fee,
-        ) as mock_ps_fee_resolve, patch(
+            "apps.documents.payment_service.FeeResolver.resolve_for_application",
+            return_value=(MagicMock(), expected_fee),
+        ) as mock_ps_resolve_for_application, patch(
+            # admissions-v2 task 8.1: initiation also redeems a server-authored
+            # fee quote, which resolves the fee again through the same canonical
+            # resolver. This property is about the *payment path's* resolution, so
+            # the quote service is stubbed; the quote's own resolution is proven in
+            # tests/unit/test_fee_quote_contract_8_1.py.
+            "apps.documents.fee_quote_service.FeeQuoteService"
+        ), patch(
             "apps.applications.models.Application.objects"
         ) as mock_app_qs, patch(
             "apps.documents.models.Payment.objects"
         ) as mock_payment_qs, patch(
             "django.db.transaction.atomic"
         ) as mock_atomic:
-            # No existing pending payment
+            application_id = uuid.uuid4()
+            user_id = uuid.uuid4()
+
+            # No existing pending payment. ``initiate`` is idempotent by
+            # construction (task 8.2): it looks for an active row under
+            # ``select_for_update().filter(...).order_by(...).first()`` and
+            # returns it instead of creating a second one, so this probe has to
+            # say "no active row" through that exact chain or the fee is never
+            # resolved at all.
             mock_payment_qs.filter.return_value.first.return_value = None
             mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            (
+                mock_payment_qs.select_for_update.return_value.filter.return_value
+                .order_by.return_value.first.return_value
+            ) = None
             mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
             mock_atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_atomic.return_value.__exit__ = MagicMock(return_value=False)
 
-            # Mock application with program name and nationality
+            # Mock application bound to a canonical offering (not a name string).
             mock_app = MagicMock()
-            mock_app.program = program_name
+            mock_app.id = application_id
+            mock_app.program_offering = MagicMock()
             mock_app.nationality = nationality
             mock_app.country = country
             mock_app.application_number = "APP-2025-0001"
+            mock_app.payment_status = "pending"
+            mock_app.user_id = user_id
             mock_app_qs.get.return_value = mock_app
+            # Ownership is re-checked under the row lock, so the locked read has
+            # to return the same application.
+            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
 
             # Mock payment creation
             mock_payment = MagicMock()
@@ -525,19 +554,18 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
             from apps.documents.payment_service import PaymentService
 
             service = PaymentService()
-            ps_result = service.initiate_payment(
-                application_id=uuid.uuid4(),
-                user_id=uuid.uuid4(),
+            ps_result = service.initiate(
+                application_id=application_id,
+                user_id=user_id,
             )
 
-            # Verify IdentifierResolver was called with the program name
-            mock_resolve_program.assert_called_once_with(program_name)
-
-            # Verify FeeResolver was called with the resolved code (not the name)
-            mock_ps_fee_resolve.assert_called_once_with(
-                program_code=program_code,
-                nationality=nationality,
-                country=country,
+            # The payment path resolved the fee from the canonical offering.
+            # ``resolve_for_payment_snapshot`` is the entry point and it delegates
+            # to ``resolve_for_application`` with the canonical fee type — the
+            # assertion is that the *application* (its offering binding) is what
+            # gets resolved, never a display-name lookup.
+            mock_ps_resolve_for_application.assert_called_once_with(
+                mock_app, fee_type="application"
             )
 
         # --- Round-trip consistency: both paths produce the same fee ---
@@ -1728,119 +1756,150 @@ canonical_payment_confirmations = st.sampled_from(["verified", "paid", "force_ap
 # ---------------------------------------------------------------------------
 
 
-class TestPaymentStatusCanonicalMapping(SimpleTestCase):
-    """# Feature: admissions-logic-canonicalization, Property 17: Payment status canonical mapping
+# admissions-v2 task 8.2 rewrote this property. It previously called the payment
+# service with mocked querysets and a positional ``provider_data`` argument, so
+# "the application summary follows the payment" was asserted about a MagicMock's
+# ``.filter().update()`` call. ``_transition`` is now the sole status writer
+# (ADR-007), takes its provider payload as a keyword argument, and locks the row
+# it mutates — so the property is asserted against a real database instead.
 
-    For any Payment that transitions to `successful`, the associated
-    Application's `payment_status` SHALL be set to `verified`. For any
-    Payment that transitions to `failed`, the Application's `payment_status`
-    SHALL be set to `failed`.
+
+def _seed_projection_probe(amount):
+    """A submitted application with one pending, snapshot-bearing payment."""
+    from apps.accounts.models import Profile
+    from apps.applications.models import Application
+    from apps.documents.models import Payment
+    from django.utils import timezone as _tz
+
+    now = _tz.now()
+    token = uuid.uuid4().hex[:8]
+    profile = Profile.objects.create(
+        id=uuid.uuid4(),
+        email=f"proj-{token}@example.com",
+        first_name="Projection",
+        last_name="Probe",
+        role="student",
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
+    application = Application.objects.create(
+        id=uuid.uuid4(),
+        application_number=f"APP-{now:%Y%m%d}-{token.upper()}",
+        user=profile,
+        full_name="Projection Probe",
+        date_of_birth=now.date().replace(year=2000),
+        sex="Female",
+        phone="+260977000000",
+        email=profile.email,
+        residence_town="Lusaka",
+        nationality="Zambian",
+        country="Zambia",
+        program="Projection Program",
+        intake="January 2025",
+        institution="MIHAS",
+        status="submitted",
+        payment_status="pending_review",
+        version=1,
+        created_at=now,
+        updated_at=now,
+    )
+    payment = Payment.objects.create(
+        id=uuid.uuid4(),
+        application=application,
+        user=profile,
+        amount=amount,
+        currency="ZMW",
+        status="pending",
+        transaction_reference=f"BNL-{application.application_number}-{token}",
+        metadata={
+            "snapshot": {
+                "expected_amount": str(amount),
+                "currency": "ZMW",
+                "residency_category": "local",
+                "program_code": "PRJ",
+                "intake_id": None,
+                "waiver_applied": False,
+                "original_amount": str(amount),
+                "fee_source": "program_fee",
+            },
+        },
+        created_at=now,
+        updated_at=now,
+    )
+    return application, payment
+
+
+@pytest.mark.django_db(transaction=True)
+@given(amount=st.decimals(min_value=Decimal("1.00"), max_value=Decimal("9999.99"), places=2))
+@settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_successful_payment_maps_to_verified(amount):
+    """# Feature: admissions-logic-canonicalization, Property 17
+
+    For any Payment that transitions to ``successful``, the associated
+    Application's ``payment_status`` is set to ``verified``.
 
     **Validates: Requirements 8.2, 8.3**
     """
+    from apps.applications.models import Application
+    from apps.documents.payment_service import PaymentService
 
-    @given(data=st.data())
-    @settings(max_examples=5)
-    def test_successful_payment_maps_to_verified(self, data):
-        """When a payment transitions to 'successful', the application's
-        payment_status is set to 'verified'."""
-        from apps.documents.payment_service import PaymentService
+    application, payment = _seed_projection_probe(amount)
 
-        app_id = uuid.uuid4()
-        payment_id = uuid.uuid4()
+    result = PaymentService()._transition(
+        payment,
+        "successful",
+        source="verify",
+        actor=None,
+        provider_data={
+            "status": "successful",
+            "lencoReference": "LEN-123",
+            "amount": str(amount),
+            "currency": "ZMW",
+            "type": "card",
+        },
+    )
 
-        mock_payment = MagicMock()
-        mock_payment.id = payment_id
-        mock_payment.status = "pending"
-        mock_payment.amount = 153
-        mock_payment.application_id = app_id
-        mock_payment.lenco_reference = None
-        mock_payment.payment_method = None
-        mock_payment.fee = None
-        mock_payment.bearer = None
-        mock_payment.metadata = {}
+    assert result.risk_flag is None
+    assert result.status == "successful"
+    application.refresh_from_db()
+    assert application.payment_status == "verified"
 
-        lenco_data = {"status": "successful", "lencoReference": "LEN-123", "type": "card"}
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_payment_qs, patch(
-            "apps.applications.models.Application.objects"
-        ) as mock_app_qs, patch(
-            "django.db.transaction.atomic",
-            return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock(return_value=False)),
-        ):
-            # select_for_update returns the locked payment with pending status
-            mock_locked = MagicMock()
-            mock_locked.id = payment_id
-            mock_locked.status = "pending"
-            mock_locked.amount = 153
-            mock_locked.application_id = app_id
-            mock_locked.lenco_reference = None
-            mock_locked.payment_method = None
-            mock_locked.fee = None
-            mock_locked.bearer = None
-            mock_locked.metadata = {}
-            mock_payment_qs.select_for_update.return_value.get.return_value = mock_locked
+@pytest.mark.django_db(transaction=True)
+@given(amount=st.decimals(min_value=Decimal("1.00"), max_value=Decimal("9999.99"), places=2))
+@settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_failed_payment_maps_to_failed(amount):
+    """# Feature: admissions-logic-canonicalization, Property 17
 
-            service = PaymentService()
-            service._update_payment_status(mock_payment, "successful", lenco_data)
+    For any Payment that transitions to ``failed``, the associated
+    Application's ``payment_status`` is set to ``failed``.
 
-            # Verify application payment_status was set to 'verified'
-            mock_app_qs.filter.assert_called_once_with(id=app_id)
-            update_kwargs = mock_app_qs.filter.return_value.update.call_args
-            self.assertEqual(update_kwargs.kwargs.get("payment_status"), "verified")
+    **Validates: Requirements 8.2, 8.3**
+    """
+    from apps.documents.payment_service import PaymentService
 
-    @given(data=st.data())
-    @settings(max_examples=5)
-    def test_failed_payment_maps_to_failed(self, data):
-        """When a payment transitions to 'failed', the application's
-        payment_status is set to 'failed'."""
-        from apps.documents.payment_service import PaymentService
+    application, payment = _seed_projection_probe(amount)
 
-        app_id = uuid.uuid4()
-        payment_id = uuid.uuid4()
+    result = PaymentService()._transition(
+        payment,
+        "failed",
+        source="verify",
+        actor=None,
+        provider_data={"status": "failed"},
+    )
 
-        mock_payment = MagicMock()
-        mock_payment.id = payment_id
-        mock_payment.status = "pending"
-        mock_payment.amount = 153
-        mock_payment.application_id = app_id
-        mock_payment.lenco_reference = None
-        mock_payment.payment_method = None
-        mock_payment.fee = None
-        mock_payment.bearer = None
-        mock_payment.metadata = {}
-
-        lenco_data = {"status": "failed"}
-
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_payment_qs, patch(
-            "apps.applications.models.Application.objects"
-        ) as mock_app_qs, patch(
-            "django.db.transaction.atomic",
-            return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock(return_value=False)),
-        ):
-            mock_locked = MagicMock()
-            mock_locked.id = payment_id
-            mock_locked.status = "pending"
-            mock_locked.amount = 153
-            mock_locked.application_id = app_id
-            mock_locked.lenco_reference = None
-            mock_locked.payment_method = None
-            mock_locked.fee = None
-            mock_locked.bearer = None
-            mock_locked.metadata = {}
-            mock_payment_qs.select_for_update.return_value.get.return_value = mock_locked
-
-            service = PaymentService()
-            service._update_payment_status(mock_payment, "failed", lenco_data)
-
-            # Verify application payment_status was set to 'failed'
-            mock_app_qs.filter.assert_called_once_with(id=app_id)
-            update_kwargs = mock_app_qs.filter.return_value.update.call_args
-            self.assertEqual(update_kwargs.kwargs.get("payment_status"), "failed")
+    assert result.status == "failed"
+    application.refresh_from_db()
+    assert application.payment_status == "failed"
 
 
 # ---------------------------------------------------------------------------
@@ -1886,6 +1945,11 @@ class TestSubmissionAcceptsCanonicalPaymentConfirmations(SimpleTestCase):
         mock_locked_app.program = "Test Program"
         mock_locked_app.intake = "January 2026"
         mock_locked_app.submitted_at = None
+        # The locked row IS the same row, so it carries the same canonical
+        # payment status. Submission re-evaluates the payment gate on the LOCKED
+        # row (admissions-v2 task 6.5, R10.6), so the fixture must model that —
+        # this property is precisely "a canonical payment_status is accepted".
+        mock_locked_app.payment_status = payment_status
 
         with patch(
             "apps.applications.services._application_has_completed_payment",

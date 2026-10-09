@@ -1,0 +1,566 @@
+
+Running 206 tests using 1 worker
+
+DIAG [3.1s] draft created 4e68681b-421d-434b-855e-e2989aeabd67
+DIAG [3.7s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+DIAG [3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/required-documents/ 
+DIAG [4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [4.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [4.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [4.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [4.3s] education-step visible
+DIAG [4.3s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [4.9s] personal step visible
+DIAG [5.1s] typed; town=Kabwe
+DIAG [5.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [6.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [6.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [7.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [7.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [8.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [8.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [9.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [9.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [10.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [10.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [11.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [11.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [12.2s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+DIAG [12.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [12.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [13.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [13.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [14.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [14.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [15.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [15.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [16.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [16.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [17.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [17.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [18.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [18.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [19.4s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [19.4s] __DIAG before save renders=-1 total=0 armed=0 interesting=[]
+DIAG [19.4s] save-now matches: 1
+DIAG [19.4s]   [0] <button class="relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold ring-offset-background transition-[color,background-col
+DIAG [19.4s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+DIAG [19.4s] clicked save now
+DIAG [21.4s] __DIAG mid total=0 interesting=[]
+DIAG [21.5s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+DIAG [21.5s] dispatched el.click()
+DIAG [23.5s] __DIAG after save renders=-1 total=0 armed=0 interesting=[]
+DIAG [24.5s] SERVER town=Kabwe nrc=123456/78/9 phone=+260971234567 || FORM Kabwe|123456/78/9|+260971234567
+DIAG [24.5s] SERVER CONVERGED
+DIAG [24.8s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+DIAG [24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+DIAG [24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/required-documents/ 
+DIAG [25.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [25.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [25.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [25.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+DIAG [25.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+DIAG [27.1s] RESUME REHYDRATED town|nrc|phone|name = Kabwe|123456/78/9|+260971234567|Characterisation Student
+
+========= DIAG TIMELINE =========
+[3.1s] draft created 4e68681b-421d-434b-855e-e2989aeabd67
+[3.7s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+[3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[3.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/required-documents/ 
+[4.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[4.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[4.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[4.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[4.3s] education-step visible
+[4.3s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[4.9s] personal step visible
+[5.1s] typed; town=Kabwe
+[5.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[6.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[6.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[7.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[7.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[8.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[8.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[9.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[9.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[10.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[10.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[11.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[11.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[12.2s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+[12.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[12.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[13.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[13.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[14.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[14.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[15.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[15.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[16.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[16.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[17.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[17.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[18.3s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[18.8s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[19.4s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[19.4s] __DIAG before save renders=-1 total=0 armed=0 interesting=[]
+[19.4s] save-now matches: 1
+[19.4s]   [0] <button class="relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold ring-offset-background transition-[color,background-col
+[19.4s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+[19.4s] clicked save now
+[21.4s] __DIAG mid total=0 interesting=[]
+[21.5s] REQ  PUT /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635115322964864@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+[21.5s] dispatched el.click()
+[23.5s] __DIAG after save renders=-1 total=0 armed=0 interesting=[]
+[24.5s] SERVER town=Kabwe nrc=123456/78/9 phone=+260971234567 || FORM Kabwe|123456/78/9|+260971234567
+[24.5s] SERVER CONVERGED
+[24.8s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+[24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/ 
+[24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[24.9s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/required-documents/ 
+[25.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[25.0s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[25.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[25.1s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/documents/ 
+[25.2s] REQ  GET /api/v1/applications/4e68681b-421d-434b-855e-e2989aeabd67/grades/ 
+[27.1s] RESUME REHYDRATED town|nrc|phone|name = Kabwe|123456/78/9|+260971234567|Characterisation Student
+========= END =========
+
+  ✓    1 [chromium-required] › tests/harness-e2e/required/_diag-hydration.spec.ts:56:1 › diagnostic hydration race (27.3s)
+  ✓    2 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:362:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (1.4s)
+  ✓    3 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:403:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (1.7s)
+  ✓    4 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:438:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (1.1s)
+  ✓    5 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:461:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (985ms)
+  ✓    6 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:476:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (1.4s)
+  ✓    7 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (4.2s)
+  ✓    8 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (1.1s)
+  ✓    9 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (1.2s)
+  ✓   10 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.3s)
+  ✓   11 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.6s)
+  ✓   12 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:370:1 › the applications roster keeps its filters, its pages and every command at 390 (2.2s)
+  ✓   13 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:498:1 › the user directory keeps its sort, its pages and every command at 390 (3.9s)
+  ✓   14 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:592:1 › the audit trail keeps its filters, its pages and its detail at 390 (2.1s)
+  ✓   15 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:688:1 › the catalog record lists carry every field and command at 390 (2.6s)
+  ✓   16 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:739:1 › a keyboard reaches every command an admin record hides at 390 (1.6s)
+  ✓   17 [chromium-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:789:1 › the tenant console offers scoped selectors, not UUID fields, at 390 (1.5s)
+  ✓   18 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:384:1 › a Tenant_Admin opens an application with one read and none of the six retired calls (4.3s)
+  ✓   19 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:483:1 › the readiness tab is deterministic and there is no AI tab (2.2s)
+  ✓   20 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:531:1 › a decision carries the version it read, and a replay of the old version is refused (2.5s)
+  ✓   21 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:593:1 › a scoped Reviewer reaches the workspace for their assigned application and decides (2.1s)
+  ✓   22 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:634:1 › a Reviewer is refused an application they are not assigned to, by the endpoint (942ms)
+  ✓   23 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:674:1 › a read-only Tenant_Admin reads the workspace and is refused the command by the endpoint (2.1s)
+  ✓   24 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.3s)
+  ✓   25 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.4s)
+  ✓   26 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (2.8s)
+  ✓   27 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (2.3s)
+  ✓   28 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (3.0s)
+  ✓   29 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (1.5s)
+  ✓   30 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (1.6s)
+  ✓   31 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.3s)
+  ✓   32 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:269:1 › turning the email channel off persists across a reload (2.4s)
+  ✓   33 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:326:1 › a mandatory channel and category are stated, not offered as switches (1.9s)
+  ✓   34 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:387:1 › every unsupported field is named with the server reason and rendered as no control (2.0s)
+{"time": "2026-08-10T08:42:25.219406+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+{"time": "2026-08-10T08:42:25.224204+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+  ✓   35 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:453:1 › a failed email states its channel, offers one retry, and the retry shows in the history (6.6s)
+  ✓   36 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:546:1 › the inbox is a navigation destination and the retired second inbox is gone (2.2s)
+  ✓   37 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:297:1 › a student sends condition evidence, is asked for something different, and is told why (3.9s)
+  ✓   38 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:358:1 › a replacement supersedes the first version and can then be accepted (4.0s)
+  ✓   39 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:425:1 › an amendment appears in the student history, is approved, and the history says so (3.4s)
+  ✓   40 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:490:1 › a second pending request for the same field is refused, and a rejection is visible (1.6s)
+  ✓   41 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (2.3s)
+  ✓   42 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (2.7s)
+  ✓   43 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (2.9s)
+  ✓   44 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.5s)
+  ✓   45 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:20:3 › Admissions V2 isolated harness › edge serves the admissions SPA cleanly (no console errors, no unasserted failed requests) (1.8s)
+  ✓   46 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:39:3 › Admissions V2 isolated harness › provisions a fresh user through the public API with no stored state (1.5s)
+  ✓   47 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:48:3 › Admissions V2 isolated harness › resolves two isolated tenants and a neutral context by host (TEN-07 / TEN-10) (789ms)
+  ✓   48 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:64:3 › Admissions V2 isolated harness › super-admin can create a tenant institution + domain via the admin API (593ms)
+  ✓   49 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:76:3 › Admissions V2 isolated harness › deterministic payment adapter honours the Lenco collection contract (167ms)
+  ✓   50 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:93:3 › Admissions V2 isolated harness › deterministic domain adapter publishes and returns DNS records (174ms)
+  ✓   51 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:107:3 › Admissions V2 isolated harness › zz required background jobs are drained (R18.4) (189ms)
+  ✓   52 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (12.0s)
+  ✓   53 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (305ms)
+  ✓   54 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:464:1 › a request the broker never received is still recorded, and the dispatcher serves it (9.6s)
+  ✓   55 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:550:1 › an issued document stays readable, and stays offered, once the application is terminal (2.2s)
+  ✓   56 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:633:1 › the one canonical email route sends the stored record and lands in the history (5.4s)
+  ✓   57 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:735:1 › a document the school cannot issue tells the student nothing about its configuration (5.6s)
+  ✓   58 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (9.3s)
+  ✓   59 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (6.3s)
+  ✓   60 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (8.3s)
+  ✓   61 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (7.1s)
+  ✓   62 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (10.0s)
+{"time": "2026-08-10T08:44:29.747969+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment ed9f89cd-9200-426d-92d7-4d1f7afff2a1 transitioned to expired (lenco_ref=LNC-1F3F96571FFB)"}
+{"time": "2026-08-10T08:44:29.753757+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 4ebb5fb1-4cdd-4402-8251-9ca8400b335b payment_status set to not_paid"}
+{"time": "2026-08-10T08:44:29.807276+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-10T08:44:29.810237+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-10T08:44:29.937135+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓   63 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (8.1s)
+  ✓   64 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (2.4s)
+  ✓   65 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:374:1 › an application number does not open tracking, and the issued link does (2.2s)
+  ✓   66 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:420:1 › the share dialog offers the token URL, and that URL opens the status (3.8s)
+  ✓   67 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:466:1 › a school host reveals only its own application; the neutral portal resolves by token (2.2s)
+  ✓   68 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:518:1 › failed attempts are rate-limited while a valid token keeps working (4.4s)
+  ✓   69 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:599:1 › the tracker renders the published contract and publishes no applicant data (2.1s)
+  ✓   70 [chromium-required] › tests/harness-e2e/required/staff-invitation.spec.ts:29:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › atomic invite by email returns no credential and rejects duplicates (850ms)
+  ✓   71 [chromium-required] › tests/harness-e2e/required/staff-invitation.spec.ts:101:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › public accept page renders the password handoff and fails closed on a bad token (1.1s)
+  ✓   72 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:226:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (2.7s)
+  ✓   73 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:296:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (3.1s)
+  ✓   74 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:340:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (2.4s)
+  ✓   75 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:400:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (3.6s)
+  ✓   76 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:480:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (4.0s)
+  ✓   77 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:583:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (2.8s)
+  ✓   78 [chromium-required] › tests/harness-e2e/required/student-document-density.spec.ts:293:1 › the document panel is status, then one action, then one counted sheet (3.5s)
+  ✓   79 [chromium-required] › tests/harness-e2e/required/student-document-density.spec.ts:410:1 › the dashboard row leads with the next action and contributes one document control (1.7s)
+  ✓   80 [chromium-required] › tests/harness-e2e/required/student-document-density.spec.ts:517:1 › every command the sheet hides is reachable and operable by keyboard (1.4s)
+  ✓   81 [chromium-required] › tests/harness-e2e/required/student-document-density.spec.ts:605:1 › one live region, one name per document, and the platform authors the words (1.8s)
+  ✓   82 [chromium-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace (10.0s)
+  ✓   83 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (5.4s)
+  ✓   84 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (16.8s)
+  ✓   85 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (3.9s)
+  ✓   86 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (3.0s)
+  ✓   87 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:279:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (7.1s)
+  ✓   88 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:420:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (2.9s)
+  ✓   89 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:463:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (2.8s)
+  ✓   90 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:502:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.2s)
+  ✓   91 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:548:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (11.8s)
+  ✓   92 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:620:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (3.4s)
+  ✓   93 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:682:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (3.3s)
+  ✓   94 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:757:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (3.8s)
+  ✓   95 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (1.4s)
+  ✓   96 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (2.5s)
+  ✓   97 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (1.6s)
+  ✓   98 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (1.6s)
+  ✓   99 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (1.7s)
+  ✓  100 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (1.7s)
+  ✓  101 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (1.4s)
+  ✓  102 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.7s)
+  ✘  103 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.6s)
+DIAG [1.9s] draft created 929c6b96-e54b-499f-b76c-5659848dd66e
+DIAG [2.3s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+DIAG [2.4s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/required-documents/ 
+DIAG [2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [2.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [2.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [2.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [2.9s] education-step visible
+DIAG [3.9s] personal step visible
+DIAG [4.1s] typed; town=Kabwe
+DIAG [4.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [5.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [5.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [6.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [6.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [7.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [7.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [8.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [8.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [9.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [9.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [10.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [10.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [10.7s] REQ  PUT /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635163153430854@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+DIAG [11.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [11.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [12.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [12.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [13.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [13.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [14.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [14.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [15.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [15.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [16.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [16.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [17.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [17.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [18.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+DIAG [18.2s] __DIAG before save renders=-1 total=0 armed=0 interesting=[]
+DIAG [18.3s] save-now matches: 1
+DIAG [18.3s]   [0] <button class="relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold ring-offset-background transition-[color,background-col
+DIAG [18.3s] clicked save now
+DIAG [20.3s] __DIAG mid total=0 interesting=[]
+DIAG [20.4s] REQ  PUT /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635163153430854@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+DIAG [20.4s] dispatched el.click()
+DIAG [22.4s] __DIAG after save renders=-1 total=0 armed=0 interesting=[]
+DIAG [23.4s] SERVER town=Kabwe nrc=123456/78/9 phone=+260971234567 || FORM Kabwe|123456/78/9|+260971234567
+DIAG [23.4s] SERVER CONVERGED
+DIAG [23.6s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+DIAG [23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+DIAG [23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/required-documents/ 
+DIAG [23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [23.9s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [23.9s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+DIAG [24.0s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+DIAG [25.9s] RESUME REHYDRATED town|nrc|phone|name = Kabwe|123456/78/9|+260971234567|Characterisation Student
+
+========= DIAG TIMELINE =========
+[1.9s] draft created 929c6b96-e54b-499f-b76c-5659848dd66e
+[2.3s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+[2.4s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[2.5s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/required-documents/ 
+[2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[2.6s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[2.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[2.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[2.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[2.9s] education-step visible
+[3.9s] personal step visible
+[4.1s] typed; town=Kabwe
+[4.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[5.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[5.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[6.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[6.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[7.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[7.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[8.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[8.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[9.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[9.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[10.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[10.6s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[10.7s] REQ  PUT /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635163153430854@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+[11.1s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[11.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[12.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[12.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[13.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[13.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[14.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[14.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[15.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[15.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[16.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[16.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[17.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[17.7s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[18.2s] FORM town=Kabwe nrc=123456/78/9 phone=+260971234567 name=Characterisation Student h=Harness Student
+[18.2s] __DIAG before save renders=-1 total=0 armed=0 interesting=[]
+[18.3s] save-now matches: 1
+[18.3s]   [0] <button class="relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold ring-offset-background transition-[color,background-col
+[18.3s] clicked save now
+[20.3s] __DIAG mid total=0 interesting=[]
+[20.4s] REQ  PUT /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ {"full_name":"Characterisation Student","nrc_number":"123456/78/9","date_of_birth":"2004-05-04","sex":"male","phone":"+260971234567","email":"harness.student.178635163153430854@example.com","residence_town":"Kabwe","country":"Zambia","nationality":"Zambian"}
+[20.4s] dispatched el.click()
+[22.4s] __DIAG after save renders=-1 total=0 armed=0 interesting=[]
+[23.4s] SERVER town=Kabwe nrc=123456/78/9 phone=+260971234567 || FORM Kabwe|123456/78/9|+260971234567
+[23.4s] SERVER CONVERGED
+[23.6s] REQ  GET /api/v1/applications/?page=1&pageSize=100&status=draft&sortBy=date&sortOrder=desc&mine=true&includeStats=true 
+[23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/ 
+[23.7s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/required-documents/ 
+[23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[23.8s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[23.9s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[23.9s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/documents/ 
+[24.0s] REQ  GET /api/v1/applications/929c6b96-e54b-499f-b76c-5659848dd66e/grades/ 
+[25.9s] RESUME REHYDRATED town|nrc|phone|name = Kabwe|123456/78/9|+260971234567|Characterisation Student
+========= END =========
+
+  ✓  104 [mobile-required] › tests/harness-e2e/required/_diag-hydration.spec.ts:56:1 › diagnostic hydration race (26.2s)
+  ✓  105 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:362:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (1.5s)
+  ✓  106 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:403:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (1.9s)
+  ✓  107 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:438:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (1.5s)
+  ✓  108 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:461:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (1.2s)
+  ✓  109 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:476:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (1.7s)
+  ✓  110 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (4.2s)
+  ✓  111 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (1.3s)
+  ✓  112 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (1.2s)
+  ✓  113 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.4s)
+  ✓  114 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.6s)
+  ✓  115 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:370:1 › the applications roster keeps its filters, its pages and every command at 390 (2.7s)
+  ✓  116 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:498:1 › the user directory keeps its sort, its pages and every command at 390 (4.2s)
+  ✓  117 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:592:1 › the audit trail keeps its filters, its pages and its detail at 390 (2.3s)
+  ✓  118 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:688:1 › the catalog record lists carry every field and command at 390 (2.9s)
+  ✓  119 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:739:1 › a keyboard reaches every command an admin record hides at 390 (1.7s)
+  ✓  120 [mobile-required] › tests/harness-e2e/required/admin-mobile-journeys.spec.ts:789:1 › the tenant console offers scoped selectors, not UUID fields, at 390 (1.8s)
+  ✓  121 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:384:1 › a Tenant_Admin opens an application with one read and none of the six retired calls (10.4s)
+  ✓  122 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:483:1 › the readiness tab is deterministic and there is no AI tab (2.5s)
+  ✓  123 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:531:1 › a decision carries the version it read, and a replay of the old version is refused (2.5s)
+  ✓  124 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:593:1 › a scoped Reviewer reaches the workspace for their assigned application and decides (2.4s)
+  ✓  125 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:634:1 › a Reviewer is refused an application they are not assigned to, by the endpoint (917ms)
+  ✓  126 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:674:1 › a read-only Tenant_Admin reads the workspace and is refused the command by the endpoint (2.4s)
+  ✓  127 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.4s)
+  ✓  128 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.2s)
+  ✓  129 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (2.9s)
+  ✓  130 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (2.2s)
+  ✓  131 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (3.5s)
+  ✓  132 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (4.0s)
+  ✓  133 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (1.6s)
+  ✓  134 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.4s)
+  ✓  135 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:269:1 › turning the email channel off persists across a reload (3.1s)
+  ✓  136 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:326:1 › a mandatory channel and category are stated, not offered as switches (2.0s)
+  ✓  137 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:387:1 › every unsupported field is named with the server reason and rendered as no control (2.1s)
+{"time": "2026-08-10T08:50:37.453641+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+{"time": "2026-08-10T08:50:37.457903+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+  ✓  138 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:453:1 › a failed email states its channel, offers one retry, and the retry shows in the history (6.2s)
+  ✓  139 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:546:1 › the inbox is a navigation destination and the retired second inbox is gone (2.5s)
+  ✓  140 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:297:1 › a student sends condition evidence, is asked for something different, and is told why (4.2s)
+  ✓  141 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:358:1 › a replacement supersedes the first version and can then be accepted (4.8s)
+  ✓  142 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:425:1 › an amendment appears in the student history, is approved, and the history says so (4.1s)
+  ✓  143 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:490:1 › a second pending request for the same field is refused, and a rejection is visible (1.8s)
+  ✓  144 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (2.3s)
+  ✓  145 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (2.5s)
+  ✓  146 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (2.9s)
+  ✓  147 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.6s)
+  ✓  148 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:20:3 › Admissions V2 isolated harness › edge serves the admissions SPA cleanly (no console errors, no unasserted failed requests) (1.8s)
+  ✓  149 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:39:3 › Admissions V2 isolated harness › provisions a fresh user through the public API with no stored state (1.6s)
+  ✓  150 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:48:3 › Admissions V2 isolated harness › resolves two isolated tenants and a neutral context by host (TEN-07 / TEN-10) (831ms)
+  ✓  151 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:64:3 › Admissions V2 isolated harness › super-admin can create a tenant institution + domain via the admin API (561ms)
+  ✓  152 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:76:3 › Admissions V2 isolated harness › deterministic payment adapter honours the Lenco collection contract (204ms)
+  ✓  153 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:93:3 › Admissions V2 isolated harness › deterministic domain adapter publishes and returns DNS records (235ms)
+  ✓  154 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:107:3 › Admissions V2 isolated harness › zz required background jobs are drained (R18.4) (207ms)
+  ✓  155 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (13.5s)
+  ✓  156 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (387ms)
+  ✓  157 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:464:1 › a request the broker never received is still recorded, and the dispatcher serves it (14.4s)
+  ✓  158 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:550:1 › an issued document stays readable, and stays offered, once the application is terminal (3.1s)
+  ✓  159 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:633:1 › the one canonical email route sends the stored record and lands in the history (6.2s)
+  ✓  160 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:735:1 › a document the school cannot issue tells the student nothing about its configuration (7.0s)
+  ✓  161 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (12.3s)
+  ✓  162 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (8.6s)
+  ✓  163 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (11.6s)
+  ✓  164 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (9.1s)
+  ✓  165 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (11.6s)
+{"time": "2026-08-10T08:53:09.698060+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment 5aecbc92-b0e6-412c-8d10-c20ba95cb96e transitioned to expired (lenco_ref=LNC-926FEA46EC07)"}
+{"time": "2026-08-10T08:53:09.704886+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 8ce73d77-152c-4d2a-a513-292cb4ddcc1e payment_status set to not_paid"}
+{"time": "2026-08-10T08:53:09.777059+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-10T08:53:09.781778+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-10T08:53:09.992769+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓  166 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (12.4s)
+  ✓  167 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (3.3s)
+  ✓  168 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:374:1 › an application number does not open tracking, and the issued link does (3.2s)
+  ✓  169 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:420:1 › the share dialog offers the token URL, and that URL opens the status (4.6s)
+  ✓  170 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:466:1 › a school host reveals only its own application; the neutral portal resolves by token (3.1s)
+  ✓  171 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:518:1 › failed attempts are rate-limited while a valid token keeps working (5.9s)
+  ✓  172 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:599:1 › the tracker renders the published contract and publishes no applicant data (3.4s)
+  ✓  173 [mobile-required] › tests/harness-e2e/required/staff-invitation.spec.ts:29:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › atomic invite by email returns no credential and rejects duplicates (1.1s)
+  ✓  174 [mobile-required] › tests/harness-e2e/required/staff-invitation.spec.ts:101:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › public accept page renders the password handoff and fails closed on a bad token (1.3s)
+  ✓  175 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:226:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (3.9s)
+  ✓  176 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:296:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (4.3s)
+  ✓  177 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:340:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (3.4s)
+  ✓  178 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:400:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (5.1s)
+  ✓  179 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:480:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (6.7s)
+  ✓  180 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:583:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (4.3s)
+  ✓  181 [mobile-required] › tests/harness-e2e/required/student-document-density.spec.ts:293:1 › the document panel is status, then one action, then one counted sheet (3.4s)
+  ✓  182 [mobile-required] › tests/harness-e2e/required/student-document-density.spec.ts:410:1 › the dashboard row leads with the next action and contributes one document control (1.9s)
+  ✓  183 [mobile-required] › tests/harness-e2e/required/student-document-density.spec.ts:517:1 › every command the sheet hides is reachable and operable by keyboard (1.6s)
+  ✓  184 [mobile-required] › tests/harness-e2e/required/student-document-density.spec.ts:605:1 › one live region, one name per document, and the platform authors the words (2.1s)
+  ✓  185 [mobile-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace (9.7s)
+  ✓  186 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (5.7s)
+  ✓  187 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (16.6s)
+  ✓  188 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (3.7s)
+  ✓  189 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (3.3s)
+  ✓  190 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:279:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (8.4s)
+  ✓  191 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:420:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (3.7s)
+  ✓  192 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:463:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (3.0s)
+  ✓  193 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:502:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.3s)
+  ✓  194 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:548:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (12.2s)
+  ✓  195 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:620:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (4.6s)
+  ✓  196 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:682:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (4.3s)
+  ✓  197 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:757:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (4.0s)
+  ✓  198 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (1.6s)
+  ✓  199 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (3.2s)
+  ✓  200 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (3.0s)
+  ✓  201 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (1.6s)
+  ✓  202 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (1.5s)
+  ✓  203 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (1.6s)
+  ✓  204 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (1.2s)
+  ✓  205 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.9s)
+  ✘  206 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.6s)
+
+
+  1) [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/error-context.md
+
+  2) [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/error-context.md
+
+  2 failed
+    [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+    [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+  204 passed (17.1m)
+EXIT=1

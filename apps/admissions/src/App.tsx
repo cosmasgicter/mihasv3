@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef } from 'react'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/lib/queryClient'
 import {
   DashboardSkeleton,
   AuthSkeleton,
@@ -26,10 +28,30 @@ const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
-// DEV-ONLY: live PDF document previews. Tree-shaken out of production
-// builds because the routes are guarded by `import.meta.env.DEV`.
-const AcceptanceLetterPreview = lazy(() => import('@/pages/dev/AcceptanceLetterPreview'))
-const DocumentPreview = lazy(() => import('@/pages/dev/DocumentPreview'))
+// DEV-ONLY: live PDF document previews.
+//
+// The `import.meta.env.DEV` guard has to sit on the **`lazy(() => import(…))`
+// expression**, not only on the `<Route>` that renders it. admissions-v2 task
+// 12.4 measured what happens when it sits only on the route: Vite replaces
+// `import.meta.env.DEV` with `false` and Rollup does drop the two unreachable
+// `<Route>` elements — but these two module-scope `lazy()` calls survive, so the
+// dynamic imports were still emitted and the **production** bundle shipped
+// `AcceptanceLetterPreview-*.js`, `DocumentPreview-*.js` and the 1.43 MB
+// `vendor-react-pdf-*.js` engine they pull, to every student on every device.
+// The comment that used to sit here claimed they were "tree-shaken out of
+// production builds"; the build output said otherwise.
+//
+// With the guard on the expression, `false ? lazy(() => import(…)) : null` is
+// dead code and the dynamic import goes with it, so `@/lib/pdf` stays a
+// dev/preview-only surface **by measurement** rather than by convention (the
+// steering rule in `tech.md`: frontend `@/lib/pdf` is legacy/preview-only and
+// must not be reachable from a student/admin official flow). The previews
+// themselves are unchanged in `bun run dev`.
+// Pinned by `tests/unit/devPreviewChunkAbsence.test.ts`.
+const AcceptanceLetterPreview = import.meta.env.DEV
+  ? lazy(() => import('@/pages/dev/AcceptanceLetterPreview'))
+  : null
+const DocumentPreview = import.meta.env.DEV ? lazy(() => import('@/pages/dev/DocumentPreview')) : null
 
 function App() {
   useEffect(() => {
@@ -173,6 +195,25 @@ function RouteAwareApp() {
   return (
     <>
       {marketingRoute ? (
+        /*
+          The public routes get the same `queryClient` the authenticated shell
+          uses (admissions-v2 task 11.5, findings STU-24 / TEN-09; R2.2, R2.3).
+
+          Until this task the marketing branch had **no** `QueryClientProvider`,
+          so a public page could not read `GET /api/v1/catalog/context/` at all —
+          which is why the tracker and the landing page brand themselves from
+          hardcoded constants, and why a white-label host's public tracker showed
+          the platform's name and the platform's inbox to that school's
+          applicants. A public page cannot resolve a tenant it cannot read.
+
+          It is the same module-level singleton, not a second client, so a value
+          the shell already fetched is reused across the boundary rather than
+          refetched, and nothing about the authenticated path changes. The
+          fail-closed rule is unaffected: `usePortalBrand` still resolves the
+          neutral Beanola brand while the read is in flight, on the shared portal,
+          and on any failure — it never guesses an institution.
+        */
+        <QueryClientProvider client={queryClient}>
         <LazyLoadErrorBoundary>
           <Suspense
             fallback={
@@ -188,16 +229,17 @@ function RouteAwareApp() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/404" element={<NotFoundPage />} />
-              {import.meta.env.DEV ? (
+              {AcceptanceLetterPreview ? (
                 <Route path="/dev/acceptance-letter" element={<AcceptanceLetterPreview />} />
               ) : null}
-              {import.meta.env.DEV ? (
+              {DocumentPreview ? (
                 <Route path="/dev/documents" element={<DocumentPreview />} />
               ) : null}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </LazyLoadErrorBoundary>
+        </QueryClientProvider>
       ) : (
         <Suspense fallback={getShellFallback(location.pathname)}>
           <AuthenticatedRouteShell />

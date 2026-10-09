@@ -1,0 +1,8 @@
+]633;E;echo "# manage.py check with the REAL backend/.env — TESTING not exported, REDIS_URL not substituted";f33224a7-1261-4023-8d91-f8f0c6255c02]633;C# manage.py check with the REAL backend/.env — TESTING not exported, REDIS_URL not substituted
+2026-08-15T13:17:17Z
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+System check identified no issues (1 silenced).
+exit=0

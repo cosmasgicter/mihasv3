@@ -52,8 +52,13 @@ export interface ForbiddenMarker {
 /**
  * Markers that must never appear in the entry/preload set of any route
  * (Requirement 5.1): the two PDF engines and their helpers, the HTML-to-canvas
- * dependency, OCR (`tesseract`) chunks, chart (`recharts`) chunks, and
- * admin-only page chunks.
+ * dependency, OCR (`tesseract`) chunks, chart (`recharts`) chunks, admin-only
+ * page chunks, and the `vendor-framer-motion` chunk (R10.2 — full-platform-
+ * remediation-2026-07, task 9.2). `vite.config.ts` pins framer-motion into its
+ * own named chunk specifically so pages using only the CSS-only
+ * `StaggerContainer`/`StaggerItem` primitives never statically pull in the
+ * framer-motion engine; this check is the launch-gate enforcement of that
+ * intent — it must never appear on any entry/preload path.
  *
  * `vendor-sentry` is intentionally **not** here: it is only forbidden on a
  * Public_Route entry path and has its own check (`checkSentryOnPublicEntry`,
@@ -79,6 +84,10 @@ export const FORBIDDEN_ENTRY_MARKERS: readonly ForbiddenMarker[] = [
   {
     name: 'admin-only page chunks',
     markers: ['admin-', '-admin', 'page-admin', 'admindashboard'],
+  },
+  {
+    name: 'framer-motion',
+    markers: ['vendor-framer-motion', 'framer-motion'],
   },
 ] as const
 

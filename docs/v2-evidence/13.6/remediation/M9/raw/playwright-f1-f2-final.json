@@ -1,0 +1,190 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../apps/admissions/test-results/harness-evidence/m9-f1-f2-final/0.4/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/two-tenant-adversarial-matrix.spec.ts",
+      "file": "required/two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4360,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T22:35:08.256Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-a0feabcf42f227f14c89",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 286,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T22:35:17.384Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-198e36f51f2439a8bdba",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 367,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-15T22:35:07.032Z",
+    "duration": 12664.065,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

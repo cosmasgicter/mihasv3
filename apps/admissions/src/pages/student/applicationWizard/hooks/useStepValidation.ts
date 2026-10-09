@@ -14,8 +14,12 @@ interface StepValidationOptions {
   paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
   selectedGrades?: SubjectGrade[]
-  hasResultSlip?: boolean
-  hasIdentityDocument?: boolean
+  /**
+   * One row per required document, derived from the application's versioned
+   * requirement contract (task 7.2, R11.6, finding STU-13). The caller resolves
+   * the fallback, so this hook never names a document type itself.
+   */
+  requiredDocuments?: Array<{ label: string; completed: boolean }>
   uploading?: boolean
   /** True once the backend has resolved the assigned school + fee (R10.2/R10.3). */
   assignmentResolved?: boolean
@@ -38,8 +42,7 @@ export const useStepValidation = (
     paymentStatus = null,
     confirmSubmission = false,
     selectedGrades = [],
-    hasResultSlip = false,
-    hasIdentityDocument = false,
+    requiredDocuments = [],
     uploading = false,
     assignmentResolved = false,
   } = options
@@ -107,8 +110,10 @@ export const useStepValidation = (
         const hasAnyGrades = validGrades.length > 0
         const fields = [
           { label: 'At least 5 unique subjects', complete: hasEnoughGrades },
-          { label: 'Result slip', complete: hasResultSlip },
-          { label: 'Identity document', complete: hasIdentityDocument },
+          ...requiredDocuments.map(document => ({
+            label: document.label,
+            complete: document.completed,
+          })),
           { label: 'Uploads finished', complete: !uploading },
         ]
         const completedFields = fields.filter(f => f.complete).length
@@ -161,5 +166,5 @@ export const useStepValidation = (
       totalFields: 0,
       missingFields: []
     }
-  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades, hasResultSlip, hasIdentityDocument, uploading, assignmentResolved])
+  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades, requiredDocuments, uploading, assignmentResolved])
 }

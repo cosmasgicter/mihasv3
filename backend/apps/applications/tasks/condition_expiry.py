@@ -41,9 +41,21 @@ def condition_expiry_task(self):
         now = timezone.now()
         today = now.date()
 
+        # Task 10.2: the states the **student** still owes, not just ``pending``.
+        # ``changes_required`` is a condition a reviewer sent back, so the student
+        # owes a replacement and the deadline still bites. ``evidence_submitted``
+        # is deliberately NOT expired: the student did their part and the school
+        # owes a review, and auto-rejecting an application for the school's own
+        # queue would be the platform punishing the applicant for its own delay.
+        # The source states come from the one condition state machine
+        # (``CONDITION_STUDENT_OWED_STATES``) rather than a second list here.
+        from apps.applications.condition_evidence_service import (
+            CONDITION_STUDENT_OWED_STATES,
+        )
+
         expired_conditions = list(
             ApplicationCondition.objects.filter(
-                status="pending",
+                status__in=sorted(CONDITION_STUDENT_OWED_STATES),
                 deadline__lt=today,
             ).select_related("application")[:MAX_CONDITIONS_PER_RUN]
         )

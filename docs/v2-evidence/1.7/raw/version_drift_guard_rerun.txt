@@ -1,0 +1,13 @@
+# Task 1.2 version drift guard re-run after task 1.7 pyproject change
+# date: 2026-07-15T10:47:15Z
+
+$ pytest tests/unit/test_version_drift_guard.py -q
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+11 passed, 1 warning in 7.46s
+
+$ python scripts/generate_version_manifest.py --check-only
+version-drift status: passed
+labels: {'product': '2.0.0', 'api_major': 'v1', 'target_schema': 'v2'}
+OK — all maintained product-version sources equal 2.0.0; api-major and target-schema labels distinct.

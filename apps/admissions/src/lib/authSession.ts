@@ -1,5 +1,4 @@
 import type { User } from '@/types/auth'
-import { isAdminRole } from '@/lib/auth/roles'
 
 type AuthUserEnvelope = {
   user?: (Partial<User> & { first_name?: string; last_name?: string }) | null

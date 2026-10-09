@@ -1,0 +1,268 @@
+{
+  "available": true,
+  "beat_entry_count": 17,
+  "beat_schedule": [
+    {
+      "name": "keep-alive",
+      "task": "apps.common.tasks.keep_alive_task",
+      "schedule": "240.0"
+    },
+    {
+      "name": "check-uptime",
+      "task": "apps.common.tasks.check_uptime_task",
+      "schedule": "900.0"
+    },
+    {
+      "name": "cleanup-stale-sessions",
+      "task": "apps.accounts.tasks.cleanup_stale_sessions_task",
+      "schedule": "crontab(hour=2, minute=30)"
+    },
+    {
+      "name": "cleanup-audit-logs",
+      "task": "apps.common.tasks.cleanup_audit_logs_task",
+      "schedule": "crontab(hour=3, minute=0)"
+    },
+    {
+      "name": "poll-pending-payments",
+      "task": "apps.documents.tasks.poll_pending_payments_task",
+      "schedule": "600.0"
+    },
+    {
+      "name": "manage-intakes",
+      "task": "apps.catalog.tasks.intake_manager_task",
+      "schedule": "crontab(hour=4, minute=0)"
+    },
+    {
+      "name": "interview-auto-complete",
+      "task": "apps.applications.tasks.interview_auto_complete_task",
+      "schedule": "7200.0"
+    },
+    {
+      "name": "interview-reminder",
+      "task": "apps.applications.tasks.interview_reminder_task",
+      "schedule": "3600.0"
+    },
+    {
+      "name": "draft-expiry-reminder",
+      "task": "apps.applications.tasks.draft_expiry_reminder_task",
+      "schedule": "crontab(hour=6, minute=0)"
+    },
+    {
+      "name": "review-sla-reminder",
+      "task": "apps.applications.tasks.review_sla_reminder_task",
+      "schedule": "crontab(hour=7, minute=0)"
+    },
+    {
+      "name": "condition-expiry",
+      "task": "apps.applications.tasks.condition_expiry_task",
+      "schedule": "crontab(hour=5, minute=0)"
+    },
+    {
+      "name": "document-verification-sla",
+      "task": "apps.documents.tasks.document_verification_sla_task",
+      "schedule": "crontab(hour=8, minute=0)"
+    },
+    {
+      "name": "deferred-payment-reminder",
+      "task": "apps.documents.tasks.deferred_payment_reminder_task",
+      "schedule": "crontab(hour=11, minute=0)"
+    },
+    {
+      "name": "enrollment-confirmation-expiry",
+      "task": "apps.applications.tasks.enrollment_confirmation_expiry_task",
+      "schedule": "crontab(hour=9, minute=0)"
+    },
+    {
+      "name": "waitlist-cascade",
+      "task": "apps.applications.tasks.waitlist_cascade_task",
+      "schedule": "crontab(hour=10, minute=0)"
+    },
+    {
+      "name": "cleanup-idempotency-keys",
+      "task": "apps.common.tasks.cleanup_idempotency_keys_task",
+      "schedule": "crontab(hour=3, minute=0)"
+    },
+    {
+      "name": "process-pending-emails",
+      "task": "apps.common.tasks.process_pending_emails_task",
+      "schedule": "120.0"
+    }
+  ],
+  "shared_task_count": 31,
+  "shared_tasks": [
+    {
+      "function": "cleanup_stale_sessions_task",
+      "file": "backend/apps/accounts/tasks.py",
+      "line": 14
+    },
+    {
+      "function": "condition_expiry_task",
+      "file": "backend/apps/applications/tasks/condition_expiry.py",
+      "line": 17
+    },
+    {
+      "function": "draft_expiry_reminder_task",
+      "file": "backend/apps/applications/tasks/draft_expiry.py",
+      "line": 19
+    },
+    {
+      "function": "enrollment_confirmation_expiry_task",
+      "file": "backend/apps/applications/tasks/enrollment.py",
+      "line": 18
+    },
+    {
+      "function": "interview_auto_complete_task",
+      "file": "backend/apps/applications/tasks/interview.py",
+      "line": 15
+    },
+    {
+      "function": "interview_reminder_task",
+      "file": "backend/apps/applications/tasks/interview.py",
+      "line": 55
+    },
+    {
+      "function": "generate_application_slip_task",
+      "file": "backend/apps/applications/tasks/pdf_generation.py",
+      "line": 61
+    },
+    {
+      "function": "generate_acceptance_letter_task",
+      "file": "backend/apps/applications/tasks/pdf_generation.py",
+      "line": 66
+    },
+    {
+      "function": "generate_conditional_offer_task",
+      "file": "backend/apps/applications/tasks/pdf_generation.py",
+      "line": 71
+    },
+    {
+      "function": "generate_finance_receipt_task",
+      "file": "backend/apps/applications/tasks/pdf_generation.py",
+      "line": 76
+    },
+    {
+      "function": "generate_payment_receipt_task",
+      "file": "backend/apps/applications/tasks/pdf_generation.py",
+      "line": 81
+    },
+    {
+      "function": "review_sla_reminder_task",
+      "file": "backend/apps/applications/tasks/review_sla.py",
+      "line": 15
+    },
+    {
+      "function": "waitlist_cascade_task",
+      "file": "backend/apps/applications/tasks/waitlist.py",
+      "line": 15
+    },
+    {
+      "function": "execute_run_scaffold",
+      "file": "backend/apps/automation/tasks.py",
+      "line": 7
+    },
+    {
+      "function": "intake_manager_task",
+      "file": "backend/apps/catalog/tasks.py",
+      "line": 64
+    },
+    {
+      "function": "verify_institution_domain_task",
+      "file": "backend/apps/catalog/tasks.py",
+      "line": 251
+    },
+    {
+      "function": "process_pending_emails_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 53
+    },
+    {
+      "function": "send_email_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 192
+    },
+    {
+      "function": "send_bulk_notifications_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 237
+    },
+    {
+      "function": "keep_alive_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 320
+    },
+    {
+      "function": "check_uptime_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 344
+    },
+    {
+      "function": "cleanup_audit_logs_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 433
+    },
+    {
+      "function": "cleanup_idempotency_keys_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 498
+    },
+    {
+      "function": "write_audit_log_task",
+      "file": "backend/apps/common/tasks.py",
+      "line": 530
+    },
+    {
+      "function": "poll_pending_payments_task",
+      "file": "backend/apps/documents/tasks.py",
+      "line": 58
+    },
+    {
+      "function": "extract_document_text_task",
+      "file": "backend/apps/documents/tasks.py",
+      "line": 322
+    },
+    {
+      "function": "deferred_payment_reminder_task",
+      "file": "backend/apps/documents/tasks.py",
+      "line": 498
+    },
+    {
+      "function": "document_verification_sla_task",
+      "file": "backend/apps/documents/tasks.py",
+      "line": 536
+    },
+    {
+      "function": "send_telegram_alert_scaffold",
+      "file": "backend/apps/integrations/tasks.py",
+      "line": 7
+    },
+    {
+      "function": "run_discovery_scaffold",
+      "file": "backend/apps/jobs/tasks.py",
+      "line": 7
+    },
+    {
+      "function": "score_job_scaffold",
+      "file": "backend/apps/jobs/tasks.py",
+      "line": 16
+    }
+  ],
+  "scheduled_task_dotted_names": [
+    "apps.accounts.tasks.cleanup_stale_sessions_task",
+    "apps.applications.tasks.condition_expiry_task",
+    "apps.applications.tasks.draft_expiry_reminder_task",
+    "apps.applications.tasks.enrollment_confirmation_expiry_task",
+    "apps.applications.tasks.interview_auto_complete_task",
+    "apps.applications.tasks.interview_reminder_task",
+    "apps.applications.tasks.review_sla_reminder_task",
+    "apps.applications.tasks.waitlist_cascade_task",
+    "apps.catalog.tasks.intake_manager_task",
+    "apps.common.tasks.check_uptime_task",
+    "apps.common.tasks.cleanup_audit_logs_task",
+    "apps.common.tasks.cleanup_idempotency_keys_task",
+    "apps.common.tasks.keep_alive_task",
+    "apps.common.tasks.process_pending_emails_task",
+    "apps.documents.tasks.deferred_payment_reminder_task",
+    "apps.documents.tasks.document_verification_sla_task",
+    "apps.documents.tasks.poll_pending_payments_task"
+  ]
+}

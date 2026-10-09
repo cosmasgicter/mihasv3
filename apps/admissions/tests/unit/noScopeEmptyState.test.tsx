@@ -131,6 +131,33 @@ function loaderResult(noSchoolAccess: boolean): UseAdminDashboardLoaderResult {
   return {
     phase: 'success',
     stats: ZERO_STATS,
+    /**
+     * The metric registry the dashboard actually renders (task 9.2).
+     *
+     * `{}` for a no-scope caller, and for the scoped/super-admin control cases a
+     * single measured metric — enough for those two cases to prove the page
+     * renders *metrics* rather than the no-scope state. Nothing here is a zero:
+     * an absent entry renders "Unknown".
+     */
+    metrics: noSchoolAccess
+      ? {}
+      : {
+          total_applications: {
+            key: 'total_applications',
+            value: 7,
+            state: 'ok',
+            definition: 'Applications matching the current filters, in your scope.',
+            scope: 'institution',
+            source: 'applications',
+          },
+        },
+    health: noSchoolAccess
+      ? null
+      : { state: 'operational', definition: 'Every metric source answered this request.' },
+    freshness: noSchoolAccess
+      ? null
+      : { generatedAt: new Date().toISOString(), staleAfterSeconds: 120 },
+    loadedInstitutionId: null,
     recentActivity: [],
     error: null,
     errorIsNetwork: false,
@@ -139,6 +166,7 @@ function loaderResult(noSchoolAccess: boolean): UseAdminDashboardLoaderResult {
     noSchoolAccess,
     load: vi.fn(),
     patchStats: vi.fn(),
+    patchMetrics: vi.fn(),
     patchActivity: vi.fn(),
     isInitialLoading: false,
     isRefreshing: false,
@@ -223,9 +251,14 @@ describe('P19: scope-aware admin Dashboard no-scope surface (R11.6)', () => {
     const { container } = renderDashboard()
     const text = container.textContent ?? ''
 
-    // Contract B: none of the global metrics-widget aggregates leak through,
-    // and the no-scope surface renders no standalone numeric counts.
+    // Contract B: none of the global aggregates leak through, and the no-scope
+    // surface renders no standalone numeric counts. "Total Applications" was the
+    // retired `RealtimeMetricsDisplay` label; "Needs attention" and "Volume and
+    // outcomes" are the blocks task 9.2 renders in its place, and neither may
+    // appear here.
     expect(text).not.toContain('Total Applications')
+    expect(text).not.toContain('Volume and outcomes')
+    expect(text).not.toContain('Data sources:')
     expect(text).not.toContain('Weekly Overview')
     expect(text).not.toContain('Needs attention')
     expect(text).not.toMatch(/\b\d+\b/)
@@ -272,8 +305,15 @@ describe('P19: scope-aware admin Dashboard no-scope surface (R11.6)', () => {
     const { queryByText, container } = renderDashboard()
 
     expect(queryByText(NO_SCOPE_HEADING)).toBeNull()
-    // The scoped admin sees the real operational surface (metrics widget).
-    expect(container.textContent ?? '').toContain('Total Applications')
+    // The scoped admin sees the real operational surface. Task 9.2 replaced the
+    // `RealtimeMetricsDisplay` widget (whose "Total Applications" label this
+    // used to look for) with the metric registry, so the check is now that a
+    // *measured, definition-carrying* number is on screen.
+    const text = container.textContent ?? ''
+    expect(text).toContain('Needs attention')
+    expect(text).toContain('Data sources: operational')
+    expect(text).toContain('7')
+    expect(text).toContain('Applications matching the current filters, in your scope.')
   })
 
   it('does NOT render the no-scope state for a super-admin even if the flag is set', () => {
@@ -285,6 +325,12 @@ describe('P19: scope-aware admin Dashboard no-scope surface (R11.6)', () => {
     const { queryByText, container } = renderDashboard()
 
     expect(queryByText(NO_SCOPE_HEADING)).toBeNull()
-    expect(container.textContent ?? '').toContain('Total Applications')
+    // A super-admin is never stranded by the flag: they get the operational
+    // surface. Their metrics are unknown here only because this stub carries no
+    // registry for the flagged case — which renders "Unknown", not a zero.
+    const text = container.textContent ?? ''
+    expect(text).toContain('Needs attention')
+    expect(text).toContain('Unknown')
+    expect(text).not.toMatch(/\b0\b/)
   })
 })

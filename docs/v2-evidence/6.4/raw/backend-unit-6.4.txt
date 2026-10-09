@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 24 items
+
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_identical_selection_is_unchanged PASSED [  4%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_different_program_is_reassignment PASSED [  8%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_different_intake_is_reassignment PASSED [ 12%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_same_name_other_tenant_offering_is_reassignment PASSED [ 16%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_stale_display_snapshot_on_same_target_is_canonicalization PASSED [ 20%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_drifted_configuration_version_on_same_target_is_canonicalization PASSED [ 25%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_legacy_row_without_canonical_ids_same_display_is_canonicalization PASSED [ 29%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_legacy_row_with_different_display_is_reassignment PASSED [ 33%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_partially_canonical_row_is_reassignment_not_repair PASSED [ 37%]
+tests/unit/test_change_selection_service.py::TestClassifySelectionChange::test_display_comparison_ignores_case_and_padding PASSED [ 41%]
+tests/unit/test_change_selection_service.py::TestDependentAnswerFields::test_dependent_answers_are_the_assignment_derived_ones PASSED [ 45%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_not_draft_safe PASSED [ 50%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[program] PASSED [ 54%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[intake] PASSED [ 58%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[institution] PASSED [ 62%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[program_id] PASSED [ 66%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[intake_id] PASSED [ 70%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[institution_id] PASSED [ 75%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_without_request_context[program_offering_id] PASSED [ 79%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_on_patch_for_every_role[student] PASSED [ 83%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_on_patch_for_every_role[admin] PASSED [ 87%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_fields_are_read_only_on_patch_for_every_role[super_admin] PASSED [ 91%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_personal_draft_fields_remain_writable_on_patch PASSED [ 95%]
+tests/unit/test_change_selection_service.py::TestGenericPatchAssignmentLock::test_assignment_display_fields_are_declared_read_only_in_meta PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 24 passed, 1 warning in 1.64s =========================

@@ -11,6 +11,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_STUDENT_PAYMENT, platform_base_url
 
 
 _CURRENCY_SYMBOL = {
@@ -55,7 +56,7 @@ def render(context: dict) -> tuple[str, str]:
     raw_amount = context.get("amount")
     currency = context.get("currency") or "ZMW"
     method = context.get("payment_method") or "—"
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
 
     amount_label = _format_amount(raw_amount, currency) if raw_amount not in (None, "") else f"— {currency}"
 
@@ -85,7 +86,7 @@ def render(context: dict) -> tuple[str, str]:
                 "Your official receipt is available for download from the "
                 "payments page in the portal. Keep it for your records."
             ),
-            cta_button("Download your receipt", portal + "/student/payment"),
+            cta_button("Download your receipt", portal + ROUTE_STUDENT_PAYMENT),
             signature_block(),
         ]
     )

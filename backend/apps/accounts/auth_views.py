@@ -400,14 +400,18 @@ class RegisterView(APIView):
         # Check if email already exists - return generic success to not reveal existence
         if Profile.objects.filter(email__iexact=data["email"]).exists():
             try:
+                from apps.common.email_links import forgot_password_url, signin_url
                 from django.core.mail import send_mail
+
+                sign_in_link = signin_url()
+                forgot_link = forgot_password_url()
 
                 send_mail(
                     subject="Beanola Account — Sign-in Attempt",
                     message=(
                         "Someone tried to create an account with this email address. "
-                        "If this was you, try signing in instead at https://apply.beanola.com/signin. "
-                        "If you forgot your password, reset it at https://apply.beanola.com/forgot-password."
+                        f"If this was you, try signing in instead at {sign_in_link}. "
+                        f"If you forgot your password, reset it at {forgot_link}."
                     ),
                     from_email=None,
                     recipient_list=[data["email"]],
@@ -419,12 +423,15 @@ class RegisterView(APIView):
             return Response(
                 {
                     "success": True,
-                    "data": {"message": "Registration successful. Please check your email."},
+                    "data": {"message": "Registration successful. You can now sign in."},
                 },
                 status=status.HTTP_201_CREATED,
             )
 
         # Create profile
+        # NOTE: email_verified is set to True because email verification is
+        # deliberately not implemented (Task 1.6, R9.7). The field is retained
+        # for backward compatibility but has no enforcement anywhere.
         profile = Profile.objects.create(
             email=data["email"],
             password_hash=hash_password(data["password"]),
@@ -434,14 +441,14 @@ class RegisterView(APIView):
             nationality=data.get("nationality", "Zambian"),
             role="student",
             is_active=True,
-            email_verified=False,
+            email_verified=True,
         )
 
         return Response(
             {
                 "success": True,
                 "data": {
-                    "message": "Registration successful. Please check your email.",
+                    "message": "Registration successful. You can now sign in.",
                     "user": {
                         "id": str(profile.id),
                         "email": profile.email,

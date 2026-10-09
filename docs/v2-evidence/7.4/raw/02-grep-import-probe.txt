@@ -1,0 +1,28 @@
+]633;E;echo "=== TASK 7.4 — supplementary grep/import probe (RETROSPECTIVE, 13.6 remediation L11) ===";8d6a7a4a-7404-45a5-a5bd-c523f73a8cdd]633;C=== TASK 7.4 — supplementary grep/import probe (RETROSPECTIVE, 13.6 remediation L11) ===
+=== DATE: 2026-08-14T05:05:31Z ===
+=== COMMIT: bae29a28d9657f288b3339062adb31285959c966 ===
+
+--- 1. every backend importer of the generative SDK (expect: apps/jobs only) ---
+backend/apps/jobs/ai_service.py:30:    from openai import OpenAI
+
+--- 2. retired admissions AI modules (expect: absent) ---
+absent: backend/apps/common/ai_service.py
+absent: backend/apps/common/ai_cache.py
+absent: backend/apps/common/ai_circuit_breaker.py
+absent: backend/apps/common/ai_prompt_redactor.py
+
+--- 3. retired generative routes in the URLconf source (expect: no route registration) ---
+backend/apps/applications/admin_review_workspace_views.py:18:generative ``/admin-summary/`` task 7.4 deleted. It returns named sections, the
+
+--- 4. un-namespaced gateway settings on Django settings modules (expect: none) ---
+(no match)
+
+--- 5. jobs-ops namespaced settings (expect: present — isolation proven by keeping the other product, not deleting it) ---
+663:JOBS_OPS_AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")
+664:JOBS_OPS_AI_GATEWAY_BASE_URL = os.environ.get(
+668:JOBS_OPS_AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")
+670:JOBS_OPS_AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
+672:JOBS_OPS_AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")
+
+--- 6. frontend AI / browser-OCR packages (expect: none declared) ---
+(no match)

@@ -145,9 +145,28 @@ class IntakeSerializer(serializers.ModelSerializer):
 
 
 class SubjectSerializer(serializers.ModelSerializer):
-    """Subject serializer."""
+    """Subject serializer.
+
+    ``aliases`` publishes the server-owned versioned alias catalogue for this
+    subject (R11.4, admissions-v2 task 7.1). Deterministic OCR/import assistance
+    maps a written subject name through these aliases; they are never selectable
+    identities and never become application data without explicit confirmation.
+    """
+
+    aliases = serializers.SerializerMethodField()
 
     class Meta:
         model = Subject
-        fields = ["id", "name", "code", "category", "is_core", "is_active", "curriculum_type", "created_at"]
+        fields = [
+            "id", "name", "code", "category", "is_core", "is_active",
+            "curriculum_type", "aliases", "created_at",
+        ]
         read_only_fields = ["id", "created_at"]
+
+    def get_aliases(self, obj) -> list[str]:
+        from apps.catalog.subject_catalog import aliases_by_code
+
+        alias_map = self.context.get("alias_map")
+        if alias_map is None:
+            alias_map = aliases_by_code()
+        return alias_map.get((getattr(obj, "code", "") or "").upper(), [])

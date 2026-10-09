@@ -1,5 +1,6 @@
 {
   "description": "Brand_Allowlist (R2.2/R2.3/R2.4, R10.2). The small, reviewed set of single files permitted to contain the legacy brand strings MIHAS / KATC / Mukuba / Kalulushi and legacy MIHAS domains. Every other file under apps/admissions/src, apps/admissions/index.html, backend/apps, and backend/config is scanned by the brand drift guards (backend/tests/unit/test_brand_drift_guard.py and apps/admissions/tests/unit/brandDriftGuard.test.ts) and must NOT contain these strings. Paths are repo-root-relative and each entry names a SINGLE file (R2.3 — no whole-directory entries). Each entry is classified as exactly one of the four allowed classes (R2.2) and states why it cannot be removed yet. A new entry is a deliberate decision that the strings are legitimate tenant data, an allowlisted historical reference, named legacy-compatibility code with a guard, or a dev/PDF-preview fixture not reachable from official-download paths (R2.4) — never a reintroduced platform fallback.",
+  "legacyExceptionPolicy": "Every entry is in exactly one of two populations, decided per entry by admissions-v2 task 12.5 pass 2 (2026-10-09, finding GATE-13.6-01) under the user's authorization, on behalf of this register's owning spec (beanola-production-readiness: Property 28 in both brand guards, and its task 3.2 wrote each entry's reason; the register was created by multi-tenant-beanola-remediation R10). (1) A Legacy_Exception carries 'owner' and 'removeBy'. 'removeBy' is task 12.2's announced window, backend/apps/common/compatibility_register.py COMPATIBILITY_SURFACES['catalog.legacy_institution_write'].end_date; test_brand_drift_guard.py fails if it drifts from that register, and both brand guards fail once the window closes, naming the two legitimate answers (remove the strings and the entry, or announce a new window in compatibility_register.py on purpose). The nine client-preview entries share the window of documentFlowDriftGuard's PREVIEW_ALLOWLIST, whose five modules are @/lib/pdf's only importers. (2) An entry that is permanent by design carries 'owner', a 'reviewBucket' from task 12.5's vocabulary (canonical, test-fixture, immutable-evidence or comment) and 'permanentBecause', and NO removal date — a date on it would assert a removal nobody intends. Both populations stay staleness-checked. Owners are records, not inventions: beanola-production-readiness for the entries its review wrote, platform-admissions (admissions-v2's owner string in compatibility_register.py) for the three admissions-v2 registered. Evidence: docs/v2-evidence/12.5/README.md section 13.",
   "classifications": [
     "seeded tenant data",
     "historical archived document",
@@ -22,86 +23,143 @@
   "allowlist": [
     {
       "path": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "canonical",
+      "permanentBecause": "Tenant data, permanent by design: the command writes the existing MIHAS/KATC tenants' own InstitutionDocumentProfile rows (letter content, signatory, bank-account names) — the backend tenant configuration tech.md makes the official-document authority. Naming a tenant in its own seed is what tenant data is, so there is no removal to date; the entry ends only if the file stops naming them (staleness check).",
       "classification": "seeded tenant data",
       "reason": "Tenant seed fixture (R6.7): seeds the MIHAS RN, KATC COG, KATC EHT acceptance-letter document profiles as tenant rows. MIHAS/KATC are legitimate tenant data here, confined to this seed command. Cannot be removed: deleting the strings would break seeding the existing MIHAS/KATC tenant profiles."
     },
     {
       "path": "backend/apps/catalog/management/commands/brand_institutions.py",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "canonical",
+      "permanentBecause": "Tenant data, permanent by design: seeds brand_name/colours/contacts/domains for the existing MIHAS/KATC tenants, idempotently and only into blank columns, and is the template for branding any future school. A tenant's identity is tenant data; no removal is intended, so no date.",
       "classification": "seeded tenant data",
       "reason": "Tenant branding seed command: seeds brand_name/full_name/colours/contacts/domains (incl. admissions@mihas.beanola.com, support@mihas.beanola.com, https://mihas.beanola.com) for the existing MIHAS/KATC tenants so official documents render styled. MIHAS/KATC are legitimate tenant fixture data here. Cannot be removed: required to seed the existing tenants' brand identity."
     },
     {
       "path": "backend/apps/applications/_view_helpers.py",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "named legacy-compatibility code with a guard",
-      "reason": "Application-number resolver. MIHAS appears only behind the clearly-named, tested legacy single-tenant path (_LEGACY_INSTITUTION_CODE / _resolve_institution_code_legacy); the default flow uses the assigned institution code. Cannot be removed: legacy application numbers must stay resolvable for existing records (covered by the canonical-tenant drift guard)."
+      "reason": "Application-number resolver. MIHAS appears only behind the clearly-named, tested legacy single-tenant path (_LEGACY_INSTITUTION_CODE / _resolve_institution_code_legacy); the default flow uses the assigned institution code and falls back to the brand-neutral BNL. Transitional, so dated: _resolve_institution_code_legacy has zero production callers (its only consumers are two cases in backend/tests/unit/test_institution_code_resolution.py). Existing MIHAS application numbers are stored values on their own records and never pass through it, and the public tracking pattern (tracking_secret.LEGACY_IDENTIFIER_PATTERN) recognises any 2-10-letter institution code with no hardcoded prefix (admissions-v2 12.5 section 7.3, re-measured in pass 2)."
     },
     {
       "path": "backend/apps/applications/models.py",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "comment",
+      "permanentBecause": "Prose, permanent by design: the only brand string is one '#' comment giving the student-number format example 'MIHAS/26/00001' — an example tenant's code in documentation, with no runtime branch. Half 5 of scripts/v1_surface_telemetry.py classifies the hit as a comment; a brand string on a non-comment line here would surface there as unregistered.",
       "classification": "historical archived document",
       "reason": "Docstring example of the student-number format ('MIHAS/26/00001') — a historical sample reference in a docstring, not a runtime fallback. Cannot be removed without losing the documented historical format example."
     },
     {
-      "path": "backend/apps/applications/public_views.py",
+      "path": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+      "owner": "platform-admissions",
+      "reviewBucket": "test-fixture",
+      "permanentBecause": "Test fixture, permanent by design: seeds the V2 harness's two example tenants (MIHAS on mihas.localhost, KATC on katc.localhost) for the two-tenant isolation journeys; local/CI only, never production. Any harness seeding mechanism has to name two distinguishable example tenants — the module's 'Phase-0 interim note' is about seeding through models instead of the onboarding API, not about the names. If seeding moves into API-driven test code, this file stops containing the strings and the staleness check retires the entry.",
+      "classification": "seeded tenant data",
+      "reason": "V2 harness tenant seed (admissions-v2 task 0.4), REGISTERED by task 12.5. Creates the two same-shaped example tenants the two-tenant isolation journeys need — MIHAS on mihas.localhost, KATC on katc.localhost — sharing one canonical program, which is the realistic 'same program name across two schools' case TEN-07 and R18 exercise. MIHAS/KATC are legitimate tenant fixture data here and the module's own docstring says so: 'Both are example Institution tenants of the Beanola platform — never the platform identity itself.' Cannot be removed: the two-tenant harness journeys cannot seed two distinguishable tenants without naming them. Local/CI only — this command is never run against production."
+    },
+    {
+      "path": "backend/config/settings/harness.py",
+      "owner": "platform-admissions",
+      "reviewBucket": "test-fixture",
+      "permanentBecause": "Test fixture, permanent by design: the harness-only settings module lists the two example tenant hosts in ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS so host-based tenant resolution works locally. It is loaded only by the harness stack, never by prod.py or staging.py, and it lives exactly as long as harness_seed_tenants.py's hosts do.",
+      "classification": "seeded tenant data",
+      "reason": "V2 harness Django settings (admissions-v2 task 0.4), REGISTERED by task 12.5. ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS must list the two example tenant hosts mihas.localhost / katc.localhost so host-based tenant resolution (InstitutionContextService.resolve) works locally; without them the two-tenant isolation journeys cannot reach a resolved tenant context. Cannot be removed: they are the hostnames harness_seed_tenants.py creates. This settings module is loaded only by the harness stack, never by prod.py or staging.py."
+    },
+    {
+      "path": "backend/apps/common/email_links.py",
+      "owner": "platform-admissions",
+      "reviewBucket": "comment",
+      "permanentBecause": "Prose, permanent by design: one line of module docstring uses 'apply.mihas.edu.zm' as the worked example of a resolved tenant domain. The code resolves the tenant's own active InstitutionDomain and falls back to the neutral FRONTEND_URL, with no hardcoded host. Half 5 classifies the hit as a comment.",
       "classification": "historical archived document",
-      "reason": "Comment documenting the historical MIHAS/KATC application-number pair; the validator accepts any institution code with no hard-coded prefix. Cannot be removed: the comment records the historical format the validator must keep accepting."
+      "reason": "Docstring example only, REGISTERED by task 12.5. One line of module prose illustrates a resolved tenant domain as 'apply.mihas.edu.zm'; the code itself resolves the base URL from the tenant's own active InstitutionDomain and falls back to the neutral FRONTEND_URL (https://apply.beanola.com), with no hardcoded host anywhere. Cannot be removed without losing the worked example that makes the tenant-vs-neutral distinction concrete."
     },
     {
       "path": "backend/apps/documents/payment_helpers.py",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "comment",
+      "permanentBecause": "Prose, permanent by design: the brand string is in _generate_reference's docstring, which states that reconciliation, webhook dedup and verification join on the exact stored Payment.transaction_reference and never on a prefix. There is no MIHAS-specific matching code to remove: historical MIHAS- references are permanent payment records matched by value. Half 5 classifies the hit as a comment.",
       "classification": "named legacy-compatibility code with a guard",
       "reason": "Comment noting legacy MIHAS- payment references stay matchable. New references use the BNL- prefix and outbound payment HTTP calls identify as Beanola. Cannot be removed: dropping legacy-reference matching would break reconciliation of pre-existing payments."
     },
     {
       "path": "backend/apps/documents/payment_service.py",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "comment",
+      "permanentBecause": "Prose, permanent by design: the brand string is in the _generate_reference docstring, which states that reconciliation joins on the exact stored reference and never on the prefix. No MIHAS-specific code exists to remove; historical MIHAS- references are permanent payment records matched by value. Half 5 classifies the hit as a comment.",
       "classification": "named legacy-compatibility code with a guard",
       "reason": "Comment noting legacy MIHAS- payment references remain matchable by value (backward compatibility). No new MIHAS- references are generated. Cannot be removed: existing payment records carry MIHAS- references that must stay matchable."
     },
     {
       "path": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Dev-only, non-official document preview harness with MIHAS/KATC sample fixtures. Route /dev/documents is import.meta.env.DEV-gated in App.tsx and tree-shaken from prod; not reachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Dev-only, non-official acceptance-letter preview harness with MIHAS/KATC sample fixtures. Route /dev/acceptance-letter is import.meta.env.DEV-gated and tree-shaken from prod; not reachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client-side preview/draft acceptance profiles (MIHAS RN, KATC COG, KATC EHT). Preview/draft only; backend tenant profiles are the official source. The client @/lib/pdf barrel is unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview/draft renderer docstring referencing the historical MIHAS/KATC official letters it reproduces. Preview/draft only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/documents/intakeSchedule.ts",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview intake-schedule docstring referencing MIHAS/KATC's two annual intakes. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview receipt docstring referencing the MIHAS FINANCE OFFICE tagline. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/documents/types.ts",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview PDF type docstrings with MIHAS/KATC examples. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/theme/index.ts",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview PDF theme: MIHAS/KATC registered as preview tenant data, with info@mihas.edu.zm / info@katc.edu.zm tenant contacts. Unknown institutions fall back to a Beanola-generic preview; MIHAS is never silently rendered for an unknown school (R2.5). Preview-only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",
+      "owner": "beanola-production-readiness",
+      "removeBy": "2027-02-07",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview signature block referencing the shared MIHAS/KATC Managing Director signatory. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/locationOptions.ts",
+      "owner": "beanola-production-readiness",
+      "reviewBucket": "canonical",
+      "permanentBecause": "Canonical, permanent by design: 'Kalulushi' here is a real Zambian town in the location picker's city list — a collision with the brand pattern, not a brand reference. There is nothing to remove; the entry ends only if the town leaves the list.",
       "classification": "named legacy-compatibility code with a guard",
       "reason": "Active code: 'Kalulushi' is a real Zambian town in the location dropdown option list — a brand-pattern false-positive (the word collides with the Kalulushi brand pattern), not a brand reference. Covered by the brand drift guard via this single-file entry. Cannot be removed: dropping the town would break the Zambian location picker."
     }

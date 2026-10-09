@@ -41,7 +41,6 @@ from apps.applications.serializers import (
     ApplicationAmendmentRequestSerializer,
     ApplicationConfirmEnrollmentRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
-    ApplicationAiSummaryResponseSerializer,
     ApplicationWaitlistPositionResponseSerializer,
 )
 from apps.applications.services import (
@@ -49,11 +48,16 @@ from apps.applications.services import (
     submit_application,
 )
 from apps.common.idempotency import idempotent
+from apps.common.object_authorization import (
+    authorize_owned_application,
+    not_found_response,
+    resolve_owned_application,
+)
 from apps.common.openapi_helpers import ErrorResponseSerializer
+from apps.common.pagination import StandardPagination
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
-from apps.common.throttling import AIUserScopedRateThrottle
 
 from ._view_helpers import (
     ApplicationConditionSerializer,
@@ -69,8 +73,6 @@ from ._view_helpers import (
     ApplicationSummarySerializer,
     ApplicationGradesResponseSerializer,
     ConditionVerifyRequestSerializer,
-    EmailSlipEnvelopeResponseSerializer,
-    EmailSlipSerializer,
     WithdrawalReasonSerializer,
     WithdrawalResponseSerializer,
     _generate_application_number,
@@ -89,16 +91,69 @@ logger = logging.getLogger(__name__)
 
 
 class ApplicationAmendmentView(APIView):
-    """Request an amendment to a submitted application.
+    """Request an amendment to a submitted application, and read your own history.
 
-    POST /api/v1/applications/{id}/amendments/
-    Owner only.
+    POST /api/v1/applications/{id}/amendments/ — owner only.
+    GET  /api/v1/applications/{id}/amendments/ — owner only (task 10.2, STU-17).
 
-    Requirements: 14.2
+    The GET is the half finding **STU-17** names: a student could submit an
+    amendment and then had no way to see whether it had been approved, rejected,
+    or was still waiting. Owner-scoped, paginated in the registered envelope
+    (``page``/``pageSize``/``totalCount``/``results`` inside ``data``), and a
+    valid-but-non-owned application id is the canonical 404 mask (AUTH-07) — the
+    same authority the POST already used.
+
+    Requirements: 14.2, R13.9-R13.10
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationAmendmentRequestSerializer
+
+    @extend_schema(
+        # Named explicitly: an auto-generated id collides with the detail read
+        # below, and drf-spectacular would resolve it with a numeral suffix — which
+        # is exactly the schema drift R14.2 forbids.
+        operation_id="applications_amendments_list",
+        request=None,
+        responses={
+            200: OpenApiResponse(description="This student's amendment history."),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="List your own amendment requests for one application",
+    )
+    def get(self, request, application_id):
+        from apps.applications.amendment_service import amendment_history_payload
+
+        # Owner-only: an amendment is a change to the applicant's own record, and
+        # the staff view of the same work is the review workspace (task 9.4) under
+        # its own capability. Reusing that surface here would give the student
+        # endpoint two authorities.
+        app, denied = resolve_owned_application(
+            request, application_id, allow_scoped_staff=False
+        )
+        if denied is not None:
+            return denied
+
+        paginator = StandardPagination()
+        queryset = ApplicationAmendment.objects.filter(
+            application_id=app.id
+        ).order_by("-created_at", "-id")
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        rows = [amendment_history_payload(row) for row in (page if page is not None else queryset)]
+        if page is None:  # pragma: no cover - paginator always returns a page here
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "page": 1,
+                        "pageSize": len(rows),
+                        "totalCount": len(rows),
+                        "results": rows,
+                    },
+                }
+            )
+        return paginator.get_paginated_response(rows)
 
     @extend_schema(
         request=ApplicationAmendmentRequestSerializer,
@@ -107,6 +162,7 @@ class ApplicationAmendmentView(APIView):
             400: OpenApiResponse(response=ErrorResponseSerializer),
             403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
         },
         tags=["applications"],
         summary="Request an amendment to a submitted application",
@@ -123,15 +179,11 @@ class ApplicationAmendmentView(APIView):
             )
 
         user_id = str(getattr(request.user, "id", ""))
-        if str(app.user_id) != user_id:
-            return Response(
-                {
-                    "success": False,
-                    "error": "Only the application owner can request amendments.",
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # AUTH-07: owner-only endpoint. A valid-but-non-owned id is masked as a
+        # canonical 404 (never a distinguishable 403 that leaks existence).
+        denied = authorize_owned_application(request, app, allow_scoped_staff=False)
+        if denied is not None:
+            return denied
 
         data = request.data or {}
         field_name = data.get("field_name")
@@ -174,9 +226,18 @@ class ApplicationAmendmentView(APIView):
                 user_id=user_id,
             )
         except AmendmentError as exc:
+            # Task 10.2: a second pending request for the *same field* is a
+            # conflict with an existing request, not a malformed one, so it
+            # carries 409 and names the request already in flight. Every other
+            # refusal keeps the 400 it has always returned.
             return Response(
-                {"success": False, "error": exc.message, "code": exc.code},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "success": False,
+                    "error": exc.message,
+                    "code": exc.code,
+                    **({"details": exc.details} if getattr(exc, "details", None) else {}),
+                },
+                status=getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST,
             )
 
         return Response({
@@ -189,3 +250,48 @@ class ApplicationAmendmentView(APIView):
                 "status": amendment.status,
             },
         }, status=status.HTTP_201_CREATED)
+
+
+class ApplicationAmendmentDetailView(APIView):
+    """Read one of your own amendment requests.
+
+    GET /api/v1/applications/{id}/amendments/{aid}/ — owner only (task 10.2,
+    STU-17). Two scopes, in order: the **application** is resolved through the
+    owner disclosure policy, then the amendment is looked up *within* that
+    application. So another student's amendment id, an amendment id belonging to a
+    different application, and an unknown id are one indistinguishable 404.
+
+    Requirements: R13.9-R13.10
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        operation_id="applications_amendment_retrieve",
+        request=None,
+        responses={
+            200: OpenApiResponse(description="One amendment request with its status."),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Read one of your own amendment requests",
+    )
+    def get(self, request, application_id, amendment_id):
+        from apps.applications.amendment_service import amendment_history_payload
+
+        app, denied = resolve_owned_application(
+            request, application_id, allow_scoped_staff=False
+        )
+        if denied is not None:
+            return denied
+
+        try:
+            amendment = ApplicationAmendment.objects.filter(application_id=app.id).get(
+                id=amendment_id
+            )
+        except (ApplicationAmendment.DoesNotExist, ValueError, TypeError):
+            return not_found_response("Amendment")
+
+        return Response(
+            {"success": True, "data": amendment_history_payload(amendment, detailed=True)}
+        )

@@ -365,17 +365,11 @@ jobs:
         run: bun run build
         working-directory: apps/admissions
       # Bundle_Guard (Gate 5 — R5.1, R5.3). Measures the built dist/ entry path
-      # against the launch budget and writes docs/launch-evidence/05-bundle/.
-      # EVIDENCE-CAPTURING / NON-BLOCKING for now: the current build exceeds the
-      # 150 KB-gz entry budget (known pre-existing regression), so the guard
-      # exits non-zero. `continue-on-error: true` keeps CI green while still
-      # capturing the evidence artifact every run. Flip this to a blocking gate
-      # (remove `continue-on-error`) once the entry-path / vendor-sentry / PDF
-      # budgets are met.
-      - name: Bundle_Guard (Gate 5, evidence capture — non-blocking)
+      # against the launch budget, blocks on any violation, and writes
+      # docs/launch-evidence/05-bundle/ for artifact upload.
+      - name: Bundle_Guard (Gate 5)
         run: bun scripts/launch-bundle-guard.ts
         working-directory: apps/admissions
-        continue-on-error: true
       - name: Upload Bundle_Guard evidence (Gate 5)
         if: always()
         uses: actions/upload-artifact@v4
@@ -389,6 +383,24 @@ jobs:
         working-directory: apps/admissions
       - name: Dependency audit
         run: bun pm scan
+        working-directory: apps/admissions
+        continue-on-error: true
+      # Design_Quality_Gate (R10.1). Informational Impeccable anti-pattern scan
+      # of the admissions source tree, verified locally (`impeccable --version`
+      # → 2.1.9; `impeccable detect src/` from `apps/admissions/` runs cleanly
+      # and currently reports 2 overused-font findings). Path is relative to
+      # `working-directory: apps/admissions` below — an earlier revision of
+      # this step doubled the prefix (`impeccable detect apps/admissions/src/`
+      # while already inside `apps/admissions/`), which silently no-opped
+      # (`Warning: cannot access apps/admissions/src/`, exit 0) instead of
+      # scanning anything; fixed to match the relative-path convention every
+      # other step in this job already uses. `continue-on-error: true` keeps
+      # this non-blocking for now — the stricter, blocking Impeccable gate
+      # already lives in the separate `design-audit` job below
+      # (scripts/design-audit-gate.ts). This step just surfaces the raw
+      # detector output inline on every admissions job run.
+      - name: Impeccable design quality scan (informational, non-blocking)
+        run: impeccable detect src/
         working-directory: apps/admissions
         continue-on-error: true
       # Suite_Execution_Gate (Gate 6 — R6.1, R6.2, R6.7). Records this job's

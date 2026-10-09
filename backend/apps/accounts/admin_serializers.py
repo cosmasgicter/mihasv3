@@ -329,22 +329,76 @@ class AdminDashboardActivitySerializer(serializers.Serializer):
 
 
 class AdminDashboardApplicationStatsSerializer(serializers.Serializer):
-    by_status = serializers.JSONField()
-    today = serializers.IntegerField()
-    this_week = serializers.IntegerField()
-    this_month = serializers.IntegerField()
-    total = serializers.IntegerField()
+    """The legacy application block. Any key may be absent (task 9.2)."""
+
+    by_status = serializers.JSONField(required=False)
+    today = serializers.IntegerField(required=False)
+    # 9.2 publishes the same number under its registry key as well, so an
+    # existing consumer reading either name gets the same answer.
+    today_activity = serializers.IntegerField(required=False)
+    this_week = serializers.IntegerField(required=False)
+    this_month = serializers.IntegerField(required=False)
+    total = serializers.IntegerField(required=False)
+
+
+# ---------------------------------------------------------------------------
+# The legacy dashboard blocks (task 9.2's ``_legacy_blocks``)
+# ---------------------------------------------------------------------------
+#
+# Realigned with the shipped payload by 13.6 remediation **M3**. Task 9.2
+# rewrote ``AdminDashboardView``: ``users.active`` became ``users.enabled``
+# (MAINT-02 -- the number counts accounts permitted to sign in and never
+# measured presence), the three counters that were rendered but never computed
+# became real metrics, and a key whose source failed is now **omitted** rather
+# than written as a reassuring ``0``. These serializers were not moved with it,
+# so ``AdminDashboardSerializer`` -- the view's declared ``serializer_class``,
+# and therefore what drf-spectacular publishes -- still promised the pre-9.2
+# shape.
+#
+# That is not a stale golden; it is a live contract drift, and it is what
+# ``tests/contract/test_serializer_response_contract.py`` was reporting
+# (``{'label': 'dashboard.users', 'missing': ['active']}``): the response was
+# right and the declaration was wrong.
+#
+# Every field is ``required=False`` because omission is now the documented way
+# the payload declines to answer. ``metrics`` is the authority a consumer should
+# read; these blocks are compatibility.
 
 
 class AdminDashboardUserStatsSerializer(serializers.Serializer):
-    total = serializers.IntegerField()
-    active = serializers.IntegerField()
+    """The legacy account block.
+
+    ``active`` is **gone**, not renamed-with-an-alias: it claimed to count users
+    currently online and never did (MAINT-02). Re-publishing it under any name
+    would re-publish the claim, so only the key that says what it counts remains.
+    """
+
+    total = serializers.IntegerField(required=False)
+    enabled = serializers.IntegerField(
+        required=False,
+        help_text=(
+            "Accounts in scope that are enabled to sign in. This is not a count "
+            "of users currently online - the platform does not measure presence."
+        ),
+    )
 
 
 class AdminDashboardNeedsAttentionSerializer(serializers.Serializer):
-    pending_payments = serializers.IntegerField()
-    pending_documents = serializers.IntegerField()
-    upcoming_interviews = serializers.IntegerField()
+    """The legacy exception block, with the three counters 9.2 made real.
+
+    ``pending_payments`` is **gone**: 9.2 replaced it with ``payment_review``,
+    whose definition states that it counts applications whose payment is marked
+    for review and is waiting on a staff decision -- which is what the old key
+    was being read as without ever saying so. The admissions frontend already
+    projects the legacy name from that metric itself
+    (``services/admin/dashboard.ts``), so nothing consumes the payload key.
+    """
+
+    pending_documents = serializers.IntegerField(required=False)
+    payment_review = serializers.IntegerField(required=False)
+    upcoming_interviews = serializers.IntegerField(required=False)
+    overdue_reviews = serializers.IntegerField(required=False)
+    deadline_pressure = serializers.IntegerField(required=False)
 
 
 class AdminDashboardSerializer(serializers.Serializer):

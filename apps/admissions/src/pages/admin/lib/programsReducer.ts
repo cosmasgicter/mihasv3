@@ -20,6 +20,8 @@ export interface Program {
   description?: string
   duration_years: number
   institution_id: string
+  /** Canonical program link (R7.1). An offering must reference a Canonical_Program. */
+  canonical_program_id?: string
   is_active?: boolean
   institutions?: Institution | null
   tuition_fee?: string

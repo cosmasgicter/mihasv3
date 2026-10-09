@@ -1,0 +1,24 @@
+# Task 6.3 M14 — wizard-draft-offline-outbox.spec.ts, both variants (normal speed + slow key derivation), --repeat-each=3, chromium-required + mobile-required, FINAL bundle
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T22:51:37Z
+# stack: harness of m14-07; served entry = assets/js/index-DFYqzK57.js; spec UNCHANGED since M13 (sha256 88fb194fb868dc59); host held awake
+$ HARNESS_PW_CHANNEL=chrome V2_EVIDENCE_RUN_ID=t63-m14-offline-outbox-x3 PLAYWRIGHT_BASE_URL=http://localhost:8090 systemd-inhibit --what=sleep:idle --mode=block bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required --repeat-each=3 tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts
+
+Running 12 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.3s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (15.2s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.5s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (14.8s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.5s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (14.7s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.2s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (15.0s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.1s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (15.0s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — normal speed (13.6s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/wizard-draft-offline-outbox.spec.ts:192:3 › an edit typed offline survives closing the tab and is sent once when the draft is reopened — slow key derivation (+1.5 s, a low-end phone) (14.9s)
+
+  12 passed (2.9m)
+PW EXIT: 0
+stats: {"expected": 12, "unexpected": 0, "flaky": 0, "skipped": 0, "duration": 176355.629}

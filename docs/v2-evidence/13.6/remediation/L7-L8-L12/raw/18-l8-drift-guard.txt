@@ -1,0 +1,108 @@
+]633;E;echo "### $(date -u +%Y-%m-%dT%H:%M:%SZ) L8 - the drift guard, final: 39 cases";30ea824e-8ee3-418f-b99d-a60e3b2e6573]633;C### 2026-08-14T17:22:17Z L8 - the drift guard, final: 39 cases
+# One rule, three languages (TS / Python / bash) plus the CI wiring. The guard reads
+# all four sources and fails if any stops agreeing with the others.
+$ cd backend && pytest tests/unit/test_evidence_dir_convention_l8.py -v
+
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_DIR] PASSED [  2%]
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_TASK_DIRS] PASSED [  5%]
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_RUN_ID] PASSED [  7%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_python_names_are_the_ones_l5_l6_established PASSED [ 10%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_declares_no_fourth_v2_evidence_variable PASSED [ 12%]
+tests/unit/test_evidence_dir_convention_l8.py::test_override_wins_over_the_canonical_home_flag PASSED [ 15%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_canonical_home_flag_writes_the_task_directory PASSED [ 17%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_default_is_run_scoped_and_is_not_anyones_evidence PASSED [ 20%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_run_scoped_default_is_also_outside_the_evidence_tree PASSED [ 23%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[1] PASSED [ 25%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[true] PASSED [ 28%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[TRUE] PASSED [ 30%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[yes] PASSED [ 33%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[on] PASSED [ 35%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[ On ] PASSED [ 38%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[None] PASSED [ 41%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[] PASSED [ 43%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[0] PASSED [ 46%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[false] PASSED [ 48%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[no] PASSED [ 51%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[off] PASSED [ 53%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[maybe] PASSED [ 56%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[2] PASSED [ 58%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_accepts_exactly_the_same_flag_spellings PASSED [ 61%]
+tests/unit/test_evidence_dir_convention_l8.py::test_an_override_that_escapes_the_repo_is_refused PASSED [ 64%]
+tests/unit/test_evidence_dir_convention_l8.py::test_a_legitimate_override_inside_the_repo_is_accepted PASSED [ 66%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_also_refuses_an_escaping_override PASSED [ 69%]
+tests/unit/test_evidence_dir_convention_l8.py::test_run_id_falls_back_to_a_stable_value PASSED [ 71%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_backend_authority_suite_no_longer_hardcodes_task_2_2 PASSED [ 74%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_harness_config_no_longer_hardcodes_task_0_4 PASSED [ 76%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_harness_runner_script_no_longer_hardcodes_task_0_4 PASSED [ 79%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_three_spellings_share_one_run_scoped_root PASSED [ 82%]
+tests/unit/test_evidence_dir_convention_l8.py::test_ci_still_publishes_task_0_4s_evidence_deliberately PASSED [ 84%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[admin-mobile-journeys.spec.ts-11.4] PASSED [ 87%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[design-system-defluff.spec.ts-11.5] PASSED [ 89%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-dashboard-task-first.spec.ts-11.1] PASSED [ 92%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-document-density.spec.ts-11.3] PASSED [ 94%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-wizard-mobile.spec.ts-11.2] PASSED [ 97%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_required_directory_gained_no_new_hardcoded_evidence_writer PASSED [100%]
+============================== 39 passed in 0.94s ==============================
+]633;E;echo;30ea824e-8ee3-418f-b99d-a60e3b2e6573]633;C
+--- py_compile on every Python file this batch created or edited ---
+  py_compile: clean (3 files)
+
+--- bash -n on the harness runner ---
+  bash -n harness/bin/harness: clean
+
+--- YAML parse on the workflow ---
+  v2-harness-smoke.yml: parses
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_DIR] PASSED [  2%]
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_TASK_DIRS] PASSED [  5%]
+tests/unit/test_evidence_dir_convention_l8.py::test_every_env_var_this_side_reads_is_read_by_the_other_side[V2_EVIDENCE_RUN_ID] PASSED [  7%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_python_names_are_the_ones_l5_l6_established PASSED [ 10%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_declares_no_fourth_v2_evidence_variable PASSED [ 12%]
+tests/unit/test_evidence_dir_convention_l8.py::test_override_wins_over_the_canonical_home_flag PASSED [ 15%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_canonical_home_flag_writes_the_task_directory PASSED [ 17%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_default_is_run_scoped_and_is_not_anyones_evidence PASSED [ 20%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_run_scoped_default_is_also_outside_the_evidence_tree PASSED [ 23%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[1] PASSED [ 25%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[true] PASSED [ 28%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[TRUE] PASSED [ 30%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[yes] PASSED [ 33%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[on] PASSED [ 35%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_accepted[ On ] PASSED [ 38%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[None] PASSED [ 41%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[] PASSED [ 43%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[0] PASSED [ 46%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[false] PASSED [ 48%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[no] PASSED [ 51%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[off] PASSED [ 53%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[maybe] PASSED [ 56%]
+tests/unit/test_evidence_dir_convention_l8.py::test_flag_spellings_rejected[2] PASSED [ 58%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_accepts_exactly_the_same_flag_spellings PASSED [ 61%]
+tests/unit/test_evidence_dir_convention_l8.py::test_an_override_that_escapes_the_repo_is_refused PASSED [ 64%]
+tests/unit/test_evidence_dir_convention_l8.py::test_a_legitimate_override_inside_the_repo_is_accepted PASSED [ 66%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_ts_half_also_refuses_an_escaping_override PASSED [ 69%]
+tests/unit/test_evidence_dir_convention_l8.py::test_run_id_falls_back_to_a_stable_value PASSED [ 71%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_backend_authority_suite_no_longer_hardcodes_task_2_2 PASSED [ 74%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_harness_config_no_longer_hardcodes_task_0_4 PASSED [ 76%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_harness_runner_script_no_longer_hardcodes_task_0_4 PASSED [ 79%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_three_spellings_share_one_run_scoped_root PASSED [ 82%]
+tests/unit/test_evidence_dir_convention_l8.py::test_ci_still_publishes_task_0_4s_evidence_deliberately PASSED [ 84%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[admin-mobile-journeys.spec.ts-11.4] PASSED [ 87%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[design-system-defluff.spec.ts-11.5] PASSED [ 89%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-dashboard-task-first.spec.ts-11.1] PASSED [ 92%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-document-density.spec.ts-11.3] PASSED [ 94%]
+tests/unit/test_evidence_dir_convention_l8.py::test_no_required_spec_hardcodes_a_task_screenshot_directory[student-wizard-mobile.spec.ts-11.2] PASSED [ 97%]
+tests/unit/test_evidence_dir_convention_l8.py::test_the_required_directory_gained_no_new_hardcoded_evidence_writer PASSED [100%]
+============================== 39 passed in 1.00s ==============================
+]633;E;echo;2b2e1e27-58ff-48a8-886f-fe5000ab75af]633;C
+--- py_compile on every Python file this batch created or edited ---
+  py_compile: clean (3 files)
+--- bash -n on the harness runner ---
+  bash -n harness/bin/harness: clean
+--- YAML parse on the workflow ---
+  v2-harness-smoke.yml: parses
+--- and the L8 guard is the ONLY thing the whole tree gained: +39 cases ---
+  baseline 94 failed / 5239 passed (../L9-L11/raw/18)
+  now      94 failed / 5278 passed (raw/28)   ->  +39 passed, exactly this guard
+  The batch's FIRST whole-tree run (raw/28a) read 5277, one short, because the 39th case
+  (test_ci_still_publishes_task_0_4s_evidence_deliberately) did not exist yet - it was
+  added when the CI dependency on docs/v2-evidence/0.4/ was found. Rather than footnote a
+  mismatch, the tree was re-measured (raw/28) and both runs are kept.

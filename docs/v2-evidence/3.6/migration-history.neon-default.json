@@ -1,0 +1,333 @@
+{
+  "report_version": "1",
+  "generated_at": "2026-07-22T11:02:21.835397+00:00",
+  "source": "database-introspection (apps.common.schema_manifest)",
+  "environment": {
+    "label": "neon-default-branch",
+    "identity": "host=ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech db=neondb",
+    "vendor": "postgresql",
+    "server_version": "17.10 (2947584)",
+    "schema": "public",
+    "reduced": false
+  },
+  "schema_fingerprint": "sha256:084d296de285769f359455bf7da2b1761caa590bf385fcfdf420d5760d31ce67",
+  "manifest_generated_at": "2026-07-22T11:02:16.137743+00:00",
+  "migration_count": 44,
+  "june_2026_plus_count": 0,
+  "migrations": [
+    {
+      "migration_name": "001_extensions.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:31:03.111420+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "002_core_schema.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:31:57.964547+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "003_supporting_tables.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:41:03.725022+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "004_functions.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:47:22.019804+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "005_triggers.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:48:15.976752+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "006_data_migration.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T07:48:58.721063+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "007_password_reset.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T08:47:54.771285+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "008_notification_idempotency.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T10:43:44.370282+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "009_document_migration_log.sql",
+      "checksum": null,
+      "applied_at": "2026-02-19T14:17:14.266644+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "010_user_permission_overrides.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:36:34.106140+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "011_payment_review_indexes.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:36:47.887041+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_audit_retention_category.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:37:02.236831+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_csrf_tokens_table.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:37:02.236831+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_login_attempts_table.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:37:02.236831+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_password_reset_tokens_table.sql",
+      "checksum": null,
+      "applied_at": "2026-03-07T13:37:02.236831+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_idempotency_and_status_history.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_version_and_nationality.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "fix_forensic_analysis_round2.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "normalize_data.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "normalize_data_corrected.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "seed_and_normalize_data.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "seed_program_intakes_and_requirements.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:14:27.506077+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "data_cleanup_round4.sql",
+      "checksum": null,
+      "applied_at": "2026-03-10T08:15:30.649507+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "V2_013_PROF_COUNTRY",
+      "checksum": null,
+      "applied_at": "2026-03-27T14:39:21.915277+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "drop_dead_columns_and_tables.sql",
+      "checksum": null,
+      "applied_at": "2026-03-27T14:43:52.921311+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "register_ghost_migrations.sql",
+      "checksum": null,
+      "applied_at": "2026-03-27T14:43:52.921311+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "add_audit_remediation_indexes.sql",
+      "checksum": null,
+      "applied_at": "2026-03-28T05:52:02.883504+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "drop_redundant_indexes.sql",
+      "checksum": null,
+      "applied_at": "2026-03-28T05:52:02.883504+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "lenco_payment_integration.sql",
+      "checksum": null,
+      "applied_at": "2026-04-07T14:55:04.066451+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_22_migration_history_extend.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:45:01.455014+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_18_expand_application_status_columns.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:45:18.795302+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_18_hot_query_indexes.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:45:41.125191+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_19_seed_communication_templates.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:46:03.627413+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "payment_hardening_indexes.sql",
+      "checksum": "58baf5811de5276f44b4420ab9f43038b13c43a9d308328443d203c7e42dcc30",
+      "applied_at": "2026-05-25T13:46:22.041834+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "payment_hardening_preflight.sql",
+      "checksum": "21b331f104216558f371ba962633371f01a0da58a97f7122f48ce158ea6dd067",
+      "applied_at": "2026-05-25T13:46:22.395350+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_22_migration_history_reconcile.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:46:24.898247+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "application_number_sequences.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:46:46.032733+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "system_actor_seed.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:47:06.292480+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_22_fk_index_backfill.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:47:46.060221+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "2026_05_22_device_sessions_refresh_jti.sql",
+      "checksum": null,
+      "applied_at": "2026-05-25T13:47:51.770854+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "backfill_application_documents_from_legacy_urls.sql",
+      "checksum": "bdb0f8e28ecea943f4e5be27f6e9dd060ce337a6a5766a3e99a7ee0194f4f354",
+      "applied_at": "2026-05-29T08:23:36.287434+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "backfill_profiles_sex_lowercase.sql",
+      "checksum": "9f201dca36a715896756aeed444f4942dfc1216e8fdb99e92f0ae8f43b14d00c",
+      "applied_at": "2026-05-29T08:23:36.655300+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "schema_cleanup_drop_stale_columns.sql",
+      "checksum": "629381770d61",
+      "applied_at": "2026-07-12T13:12:37.913716+00:00",
+      "june_2026_plus": false
+    },
+    {
+      "migration_name": "schema_cleanup_device_session_default.sql",
+      "checksum": "dd4ad056bfa4",
+      "applied_at": "2026-07-12T13:12:38.243597+00:00",
+      "june_2026_plus": false
+    }
+  ],
+  "forward_scripts_on_disk": [
+    "2026_05_18_expand_application_status_columns.sql",
+    "2026_05_18_hot_query_indexes.sql",
+    "2026_05_19_seed_communication_templates.sql",
+    "2026_05_22_device_sessions_refresh_jti.sql",
+    "2026_05_22_fk_index_backfill.sql",
+    "2026_05_22_migration_history_extend.sql",
+    "2026_05_22_migration_history_reconcile.sql",
+    "2026_06_08_01_multi_tenant_beanola_admissions.sql",
+    "2026_06_08_03_institution_document_profiles.sql",
+    "2026_06_08_04_communication_templates_tenant.sql",
+    "2026_06_08_student_number.sql",
+    "2026_06_18_01_institution_domain_lifecycle.sql",
+    "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
+    "2026_06_25_02_jobs_ops_scaffold_tables.sql",
+    "2026_07_16_01_canonical_assignment_expand.sql",
+    "2026_07_16_02_canonical_assignment_backfill.sql",
+    "2026_07_16_03_canonical_assignment_validate.sql",
+    "2026_07_17_01_integrity_constraints_expand.sql",
+    "2026_07_17_02_communication_template_unique_switch.sql",
+    "2026_07_18_01_tenant_fk_validate.sql",
+    "2026_07_19_01_payments_documents_expand.sql",
+    "2026_07_19_02_payments_documents_backfill.sql",
+    "2026_07_19_03_payments_documents_validate.sql",
+    "application_number_sequences.sql",
+    "backfill_application_documents_from_legacy_urls.sql",
+    "backfill_profiles_sex_lowercase.sql",
+    "perf_idx_applications_status_submitted_at.sql",
+    "schema_cleanup_device_session_default.sql",
+    "schema_cleanup_drop_stale_columns.sql",
+    "system_actor_seed.sql"
+  ],
+  "june_2026_plus_on_disk": [
+    "2026_06_08_01_multi_tenant_beanola_admissions.sql",
+    "2026_06_08_03_institution_document_profiles.sql",
+    "2026_06_08_04_communication_templates_tenant.sql",
+    "2026_06_08_student_number.sql",
+    "2026_06_18_01_institution_domain_lifecycle.sql",
+    "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
+    "2026_06_25_02_jobs_ops_scaffold_tables.sql",
+    "2026_07_16_01_canonical_assignment_expand.sql",
+    "2026_07_16_02_canonical_assignment_backfill.sql",
+    "2026_07_16_03_canonical_assignment_validate.sql",
+    "2026_07_17_01_integrity_constraints_expand.sql",
+    "2026_07_17_02_communication_template_unique_switch.sql",
+    "2026_07_18_01_tenant_fk_validate.sql",
+    "2026_07_19_01_payments_documents_expand.sql",
+    "2026_07_19_02_payments_documents_backfill.sql",
+    "2026_07_19_03_payments_documents_validate.sql"
+  ]
+}

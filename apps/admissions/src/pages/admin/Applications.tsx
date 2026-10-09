@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   FiltersPanel,
@@ -8,11 +8,25 @@ import {
   ApplicationDetailModal
 } from '@/components/admin/applications'
 import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
-import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
+import { RosterPagination } from '@/components/admin/applications/RosterPagination'
+import {
+  APPLICATION_FILTER_KEYS,
+  applicationFiltersFromSearchParams,
+  applicationFiltersToSearchParams,
+  useApplicationsData,
+  useApplicationFilters,
+} from '@/hooks/admin'
+import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
+import type {
+  ApplicationAggregates,
+  Facet,
+  FacetOption,
+} from '@/services/admin/applications'
+import type { FilterSelectOption } from '@/components/admin/applications/FiltersPanel'
+import type { ApplicationWithDetails } from '@/components/admin/applications/applicationDetailTypes'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
-import { documentService } from '@/services/documents'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
@@ -22,21 +36,11 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
-import {
-  exportToCSV,
-  exportToExcel,
-  exportToPDF,
-  type ApplicationData
-} from '@/lib/exportUtils'
-import { calculatePointsFromSummary } from '@/lib/grades'
-import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOverview'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
 import { BULK_ACTION_STATUS_MAP, type BulkApplicationAction } from '@/lib/applicationStatusUi'
-import type { Application } from '@/types/database'
 import {
   FileDown, 
-  FileSpreadsheet, 
   FileText, 
   Filter, 
   RefreshCw, 
@@ -46,18 +50,113 @@ import {
 } from 'lucide-react'
 import { toError } from '@/lib/toError'
 
-const EXPORT_BATCH_SIZE = 500
-
 // Admin card-grid virtualization threshold (R10.6): a single fixed integer
 // within the inclusive range 30–50. The card grid switches to the virtualized
 // renderer once the loaded application count exceeds this value.
 export const ADMIN_CARD_VIRTUALIZATION_THRESHOLD = 40
 
-const sanitizeSearchTerm = (value: string) => {
-  return value
-    .trim()
-    .replace(/[%_]/g, match => `\\${match}`)
-    .replace(/,/g, '\\,')
+/**
+ * A server facet rendered as a select's options (task 9.1, ADM-01).
+ *
+ * The option list is the server's — complete for the query, each option
+ * carrying its own count — instead of `[...new Set(rows.map(...))]`, which only
+ * ever offered what happened to be on the loaded page.
+ */
+export const facetToOptions = (facet?: Facet): FilterSelectOption[] =>
+  (facet?.options ?? [])
+    .filter((option): option is FacetOption & { value: string } => Boolean(option.value))
+    .map(option => ({
+      value: option.value,
+      label: `${option.label} (${option.count})`,
+    }))
+
+/**
+ * The roster's headline metrics, read from the server's whole-set aggregates.
+ *
+ * `aggregates === null` means the server has not answered — so every value is
+ * an explicit unknown rather than a zero (R8.6). The helper text carries the
+ * server's own definition for the metric, so a number on screen can be
+ * explained without reading the query service.
+ */
+export function buildRosterMetrics(
+  aggregates: ApplicationAggregates | null,
+  context: { loadedCount: number }
+): Array<{ label: string; value: string | number; helper: string }> {
+  if (!aggregates) {
+    return [
+      { label: 'Portfolio', value: '—', helper: 'Waiting for the server’s totals' },
+      { label: 'Decision queue', value: '—', helper: 'Waiting for the server’s totals' },
+      { label: 'Payment follow-up', value: '—', helper: 'Waiting for the server’s totals' },
+      { label: 'Deadline pressure', value: '—', helper: 'Waiting for the server’s totals' },
+    ]
+  }
+
+  const definition = (key: string, fallback: string) => aggregates.definitions[key] || fallback
+
+  return [
+    {
+      label: 'Portfolio',
+      value: `${aggregates.total} total`,
+      helper: `${context.loadedCount} on this page · ${definition('total', 'Applications matching the current filters, in your scope.')}`,
+    },
+    {
+      label: 'Decision queue',
+      value: aggregates.decision_queue_count,
+      helper: definition('decision_queue_count', 'Waiting on a staff decision.'),
+    },
+    {
+      label: 'Payment follow-up',
+      value: aggregates.payment_pending_count + aggregates.payment_unpaid_count,
+      helper: `${aggregates.payment_pending_count} awaiting confirmation + ${aggregates.payment_unpaid_count} with no attempt yet`,
+    },
+    {
+      label: 'Deadline pressure',
+      value: aggregates.deadline_pressure_count,
+      helper: `Due within ${aggregates.deadline_pressure_hours}h · ${definition('deadline_pressure_count', 'An open condition or enrollment confirmation falls due soon.')}`,
+    },
+  ]
+}
+
+/**
+ * The roster row the detail sheet opens with (task 9.1).
+ *
+ * The scoped roster contract carries triage data only, so the detail-only fields
+ * arrive as `null` — "this surface does not know" — while the detail contract
+ * spells the same absence `undefined`. Translating one to the other keeps the
+ * absence intact; coercing it to `0` would put an invented grade total and a
+ * K0.00 fee on screen while the workspace's own read is still in flight (R8.6).
+ *
+ * This is a seed, not the answer: the review workspace (task 9.4) fetches the
+ * full application for the one row an operator opened.
+ */
+export function rosterRowToDetailSeed(row: ApplicationSummary): ApplicationWithDetails {
+  const present = <T,>(value: T | null): T | undefined => (value === null ? undefined : value)
+
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    application_number: row.application_number,
+    full_name: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    program: row.program,
+    intake: row.intake,
+    institution: row.institution,
+    status: row.status,
+    payment_status: row.payment_status,
+    submitted_at: row.submitted_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    assigned_reviewer_id: row.assigned_reviewer_id,
+    is_late_submission: row.is_late_submission,
+    application_fee: present(row.application_fee),
+    total_subjects: present(row.total_subjects),
+    points: present(row.points),
+    grades_summary: present(row.grades_summary),
+    result_slip_url: present(row.result_slip_url),
+    extra_kyc_url: present(row.extra_kyc_url),
+    last_payment_audit_notes: row.last_payment_audit_notes,
+  }
 }
 
 type WarningResult = { warning: true; message?: string }
@@ -74,91 +173,6 @@ const getErrorStatus = (error: unknown): number =>
   error && typeof error === 'object' && 'status' in error && typeof error.status === 'number'
     ? error.status
     : 0
-
-type ExportApplicationRecord = Application & {
-  institution?: string
-  grades_summary?: string
-  total_subjects?: number
-  points?: number
-  age?: number
-  days_since_submission?: number
-}
-
-const mapRecordToApplication = (record: ExportApplicationRecord): ApplicationData => {
-  const points = record.points && Number(record.points) > 0 
-    ? Number(record.points) 
-    : calculatePointsFromSummary(record.grades_summary)
-
-  const paymentReviewedAt = record.last_payment_audit_at ?? record.payment_verified_at ?? ''
-  const paymentReviewedBy =
-    record.last_payment_audit_by_name ??
-    record.last_payment_audit_by_email ??
-    record.payment_verified_by_name ??
-    record.payment_verified_by_email ??
-    ''
-  
-  return {
-    application_number: record.application_number ?? '',
-    full_name: record.full_name ?? '',
-    email: record.email ?? '',
-    phone: record.phone ?? '',
-    program: record.program ?? '',
-    intake: record.intake ?? '',
-    institution: record.institution ?? '',
-    status: record.status ?? '',
-    payment_status: record.payment_status ?? 'not_paid',
-    application_fee: Number(record.application_fee ?? 0),
-    paid_amount: Number(record.paid_amount ?? 0),
-    submitted_at: record.submitted_at || record.created_at || '',
-    updated_at: record.updated_at || '',
-    created_at: record.created_at || record.submitted_at || '',
-    grades_summary: record.grades_summary ?? '',
-    total_subjects: Number(record.total_subjects ?? 0),
-    points,
-    age: Number(record.age ?? 0),
-    days_since_submission: Number(record.days_since_submission ?? 0),
-    payment_reviewed_at: paymentReviewedAt,
-    payment_reviewed_by: paymentReviewedBy,
-    payment_review_notes: record.last_payment_audit_notes ?? '',
-    payment_reference: record.last_payment_reference ?? ''
-  }
-}
-
-const buildApplicationsExportFileName = (filters: {
-  statusFilter?: string
-  paymentFilter?: string
-  programFilter?: string
-  institutionFilter?: string
-}) => {
-  const datePart = new Date().toISOString().split('T')[0]!
-  const segments = ['applications']
-
-  if (filters.statusFilter) {
-    segments.push(`status-${filters.statusFilter}`)
-  }
-
-  if (filters.paymentFilter) {
-    segments.push(`payment-${filters.paymentFilter}`)
-  }
-
-  if (filters.programFilter) {
-    segments.push(`program-${filters.programFilter}`)
-  }
-
-  if (filters.institutionFilter) {
-    segments.push(`institution-${filters.institutionFilter}`)
-  }
-
-  segments.push(datePart)
-
-  return segments
-    .join('_')
-    .replace(/\s+/g, '_')
-    .replace(/[^a-zA-Z0-9_\-]/g, '')
-    .replace(/_+/g, '_')
-}
-
-const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
 function useIsMobileViewport() {
   const [isMobile, setIsMobile] = useState(() => {
@@ -196,29 +210,36 @@ export default function Applications() {
     filtersRef.current = filters
   }, [filters])
 
+  /*
+    A link is a query (task 9.1, ADM-01).
+
+    The address bar is read and written in the **registered** parameter names —
+    the same names the request carries — so a dashboard tile, a backend
+    notification's `action_url`, a saved filter, and an operator's bookmark all
+    describe the roster in one vocabulary. This surface used to read only its own
+    UI-state keys out of the URL, which is why `?deadlinePressureFilter=true`
+    (the tile) and `?status=submitted,under_review` (the review-SLA
+    notification) both opened an unfiltered list.
+
+    Legacy UI-name links are still understood, and rewritten to the registered
+    spelling on arrival, so an old bookmark is upgraded rather than broken.
+  */
   useEffect(() => {
     const params = new URLSearchParams(searchParamsString)
-    const hasRelevantParams = APPLICATION_FILTER_KEYS.some(key => params.has(key))
+    const incoming = applicationFiltersFromSearchParams(params)
+    const hasRelevantParams = Object.keys(incoming).length > 0
 
     if (!hasProcessedSearchParamsRef.current && !hasRelevantParams) {
       hasProcessedSearchParamsRef.current = true
       return
     }
 
-    const updates: Array<[keyof typeof filters, string]> = []
-
     APPLICATION_FILTER_KEYS.forEach(key => {
-      const value = params.get(key) ?? ''
+      const value = incoming[key] ?? ''
       if (value !== filtersRef.current[key]) {
-        updates.push([key, value])
+        updateFilter(key, value)
       }
     })
-
-    if (updates.length > 0) {
-      updates.forEach(([key, value]) => {
-        updateFilter(key, value)
-      })
-    }
 
     hasProcessedSearchParamsRef.current = true
   }, [searchParamsString, updateFilter])
@@ -228,24 +249,11 @@ export default function Applications() {
       return
     }
 
-    const params = new URLSearchParams(window.location.search)
-    let changed = false
+    const current = new URLSearchParams(window.location.search)
+    const next = applicationFiltersToSearchParams(filters, new URLSearchParams(window.location.search))
 
-    APPLICATION_FILTER_KEYS.forEach(key => {
-      const value = filters[key]
-      if (value) {
-        if (params.get(key) !== value) {
-          params.set(key, value)
-          changed = true
-        }
-      } else if (params.has(key)) {
-        params.delete(key)
-        changed = true
-      }
-    })
-
-    if (changed) {
-      setSearchParams(params, { replace: true })
+    if (next.toString() !== current.toString()) {
+      setSearchParams(next, { replace: true })
     }
   }, [filters, setSearchParams])
 
@@ -253,18 +261,22 @@ export default function Applications() {
     applications,
     isInitialLoading,
     isRefreshing,
-    isLoadingMore,
     error,
     pagination,
-    hasMore,
-    loadNextPage,
+    aggregates,
+    facets,
+    unknownParameters,
+    canExport,
+    rowVersions,
+    goToPage,
     refreshCurrentPage,
+    exportRoster,
     updateStatus,
     updatePaymentStatus
   } = useApplicationsData(filters)
 
   const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
-  const [exportingFormat, setExportingFormat] = useState<'csv' | 'excel' | 'pdf' | null>(null)
+  const [isExportingRoster, setIsExportingRoster] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -276,8 +288,18 @@ export default function Applications() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
   const isMobileViewport = useIsMobileViewport()
 
-  const programOptions = useMemo(() => [...new Set(applications.map(a => a.program).filter(Boolean))].sort(), [applications])
-  const institutionOptions = useMemo(() => [...new Set(applications.map(a => a.institution).filter(Boolean))].sort(), [applications])
+  // Filter options are the server's facets over the whole filtered set, not a
+  // `Set` harvested from the rows this page happened to load (ADM-01). An
+  // offering with no application on page 1 is still offered as a filter, and
+  // each option carries its own count.
+  const programOptions = useMemo(
+    () => facetToOptions(facets.program_offering),
+    [facets.program_offering]
+  )
+  const institutionOptions = useMemo(
+    () => facetToOptions(facets.institution),
+    [facets.institution]
+  )
   const confirmDialog = useConfirmDialog()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -292,76 +314,33 @@ export default function Applications() {
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
 
-  const activeFilters = useMemo(() => ({ ...filters }), [filters])
+  /**
+   * The export is the server's file (task 9.1, R6.5).
+   *
+   * This used to walk `/applications/export/` page by page in the browser,
+   * accumulate every row in memory, and render CSV/XLSX/PDF client-side — so the
+   * document depended on how far the walk got, and the authority to produce it
+   * was never checked. One request now returns the whole *filtered* set,
+   * independent of the page on screen, gated on `tenant.application.export`,
+   * redacted by capability, bounded rather than truncated, and recorded as an
+   * Audit_Event.
+   */
+  const handleExport = useCallback(async () => {
+    if (isExportingRoster) return
 
-  const createExportStream = useCallback(() => {
-    const filtersSnapshot = activeFilters
-
-    return (async function* generate() {
-      let page = 0
-      while (true) {
-        const response = await applicationService.exportApplications({
-          page,
-          limit: EXPORT_BATCH_SIZE,
-          search: filtersSnapshot.searchTerm || undefined,
-          status: filtersSnapshot.statusFilter || undefined,
-          payment: filtersSnapshot.paymentFilter || undefined,
-          program: filtersSnapshot.programFilter || undefined,
-          institution: filtersSnapshot.institutionFilter || undefined,
-        })
-
-        if (!response?.applications) {
-          throw new Error('Failed to fetch applications for export')
-        }
-
-        const rows = response.applications.map(mapRecordToApplication)
-
-        if (!rows.length) {
-          break
-        }
-
-        yield rows
-
-        if (!response.hasMore || rows.length < EXPORT_BATCH_SIZE) {
-          break
-        }
-
-        page += 1
-        await yieldToBrowser()
-      }
-    })()
-  }, [activeFilters])
-
-  const handleExport = useCallback(async (format: 'csv' | 'excel' | 'pdf') => {
-    if (exportingFormat) {
-      return
-    }
-
-    setExportingFormat(format)
-    showInfo('Preparing export', 'Formatting applications for download…')
+    setIsExportingRoster(true)
+    showInfo('Preparing export', 'The server is building your applications file…')
 
     try {
-      const stream = createExportStream()
-      const filenameBase = buildApplicationsExportFileName(activeFilters)
-
-      if (format === 'csv') {
-        await exportToCSV(stream, `${filenameBase}.csv`)
-      } else if (format === 'excel') {
-        await exportToExcel(stream, `${filenameBase}.xlsx`)
-      } else {
-        await exportToPDF(stream, `${filenameBase}.pdf`)
-      }
-
+      await exportRoster()
       showSuccess('Export complete', 'Your applications report has been downloaded.')
     } catch (error) {
-      logApiError('admin-applications', '/applications/export/', error)
+      logApiError('admin-applications', '/admin/applications/?export=csv', error)
       showError('Export failed', toError(error).message || 'Unable to export applications right now.')
     } finally {
-      setExportingFormat(null)
+      setIsExportingRoster(false)
     }
-  }, [createExportStream, exportingFormat, showError, showInfo, showSuccess])
-
-  const isExporting = exportingFormat !== null
+  }, [exportRoster, isExportingRoster, showError, showInfo, showSuccess])
 
   const handleViewDetails = useCallback((applicationId: string) => {
     setSelectedApplication(applicationId)
@@ -375,7 +354,8 @@ export default function Applications() {
 
   const selectedApp = useMemo(() => {
     if (!selectedApplication) return null
-    return applications.find(app => app.id === selectedApplication) || null
+    const row = applications.find(app => app.id === selectedApplication)
+    return row ? rosterRowToDetailSeed(row) : null
   }, [selectedApplication, applications])
 
   const handleSendNotification = useCallback(async (title: string, message: string) => {
@@ -396,57 +376,17 @@ export default function Applications() {
     }
   }, [selectedApplication, showSuccess, showError])
 
-  const handleViewDocuments = useCallback(async () => {
-    if (!selectedApp) return
-
-    try {
-      const documents = await applicationService.getDocuments(selectedApp.id) as Array<{ id?: string; document_name?: string }> | undefined
-      const realDocuments = (documents || []).filter((doc) => doc.id)
-
-      if (realDocuments.length === 0) {
-        showInfo('No documents', 'Open the application details to review any legacy document references.')
-        return
-      }
-
-      const signedUrls = await Promise.all(
-        realDocuments.map(async (doc) => {
-          const result = await documentService.getSignedUrl(doc.id!)
-          return result?.url
-        }),
-      )
-
-      const opened = signedUrls.filter(Boolean)
-      opened.forEach((url) => {
-        window.open(url, '_blank', 'noopener,noreferrer')
-      })
-
-      if (opened.length === 0) {
-        showError('Documents unavailable', 'No document links could be prepared.')
-        return
-      }
-
-      showInfo('Documents opened', `Opened ${opened.length} document(s) in new tabs.`)
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApp.id}/documents/`, error)
-      showError('Documents unavailable', toError(error).message || 'Unable to prepare document links.')
-    }
-  }, [selectedApp, showError, showInfo])
-
-  const handleViewHistory = useCallback(async () => {
-    if (!selectedApplication) return
-    
-    try {
-      const response = await applicationService.getById(selectedApplication, { include: ['statusHistory'] })
-      if (response && response.statusHistory && response.statusHistory.length > 0) {
-        showInfo('Status History', `Application has ${response.statusHistory.length} status changes. Check the application timeline for details.`)
-      } else {
-        showInfo('No history', 'No status changes recorded for this application.')
-      }
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/summary/`, error)
-      showError('Failed to load history', toError(error).message || 'Unable to load application history.')
-    }
-  }, [selectedApplication, showError, showInfo])
+  /*
+   * `handleViewDocuments` and `handleViewHistory` used to live here.
+   *
+   * Both were parallel legacy detail calls (task 9.4, R8.5): one fetched
+   * `/applications/{id}/documents/` and opened every signed URL in a tab, the
+   * other fetched `/applications/{id}/summary/` only to toast how many status
+   * changes there were. The review workspace now returns evidence and history in
+   * its one read, and renders both — so these two calls could only ever disagree
+   * with what the operator was already looking at. Deleted rather than left
+   * unused: an unused fetch is still shipped code that can be re-wired.
+   */
 
   const handleRefresh = useCallback(async () => {
     await refreshCurrentPage()
@@ -551,9 +491,19 @@ export default function Applications() {
     setBulkActionLoading(true)
     try {
       const targetStatus = BULK_ACTION_STATUS_MAP[action]
+      // The versions these rows were read at (task 9.4, R8.4). A bulk decision
+      // changes up to 25 applications on one press, so it states which versions
+      // the operator was looking at; any that moved since fails the batch rather
+      // than being silently overwritten.
+      const expectedVersions = ids.reduce<Record<string, number>>((acc, id) => {
+        const version = rowVersions[id]
+        if (typeof version === 'number') acc[id] = version
+        return acc
+      }, {})
       await applicationService.bulkStatus({
         applicationIds: ids,
         status: targetStatus,
+        expectedVersions,
       })
 
       showSuccess('Bulk action completed', `${ids.length} applications updated successfully.`)
@@ -577,11 +527,20 @@ export default function Applications() {
     } finally {
       setBulkActionLoading(false)
     }
-  }, [showSuccess, showError, refreshCurrentPage])
+  }, [showSuccess, showError, refreshCurrentPage, rowVersions])
 
-  const stats = useMemo(() => {
-    return buildApplicationsOverview(applications, pagination.totalCount)
-  }, [applications, pagination.totalCount])
+  /**
+   * The headline numbers are the server's aggregates over the whole filtered
+   * set (task 9.1, ADM-01). They used to be counted over the loaded page and
+   * read as portfolio facts, so page 1 of 9 described 25 rows.
+   *
+   * `null` while there is no answer yet: a loading or failed read shows "—" and
+   * says so, never a zero that reads as "nothing to do" (R8.6).
+   */
+  const metrics = useMemo(
+    () => buildRosterMetrics(aggregates, { loadedCount: pagination.loadedCount }),
+    [aggregates, pagination.loadedCount]
+  )
 
   // P1-2: Keyboard shortcuts for admin power users
   useEffect(() => {
@@ -618,28 +577,7 @@ export default function Applications() {
       subtitle="Review intake volume, payment proof, and decision readiness from a single triage surface built for fast, accurate approvals."
       maxWidth="7xl"
       tone="admin"
-      metrics={[
-        {
-          label: 'Portfolio',
-          value: `${stats.total} total`,
-          helper: `${stats.loadedCount} currently loaded in this view`,
-        },
-        {
-          label: 'Decision queue',
-          value: stats.decisionQueue,
-          helper: `${stats.pendingReview} new + ${stats.underReview} under review`,
-        },
-        {
-          label: 'Payment proof review',
-          value: stats.paymentPending,
-          helper: `${stats.paymentNotPaid + stats.paymentRejected} still need follow-up`,
-        },
-        {
-          label: 'Accepted path',
-          value: stats.accepted,
-          helper: `${stats.conditionallyApproved} conditional + ${stats.approved} approved + ${stats.enrolled} enrolled`,
-        },
-      ]}
+      metrics={metrics}
       actions={
         <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
           {/* View Toggle */}
@@ -717,46 +655,57 @@ export default function Applications() {
     >
       {/* Filters and content */}
       <div className="px-4 py-4 pb-28 sm:px-6 sm:pb-4">
-        {/* Export bar */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { void handleExport('csv') }}
-            loading={exportingFormat === 'csv'}
-            disabled={isExporting && exportingFormat !== 'csv'}
-            className="min-h-touch text-xs"
-          >
-            <FileDown className="mr-1 h-3 w-3" />
-            CSV
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { void handleExport('excel') }}
-            loading={exportingFormat === 'excel'}
-            disabled={isExporting && exportingFormat !== 'excel'}
-            className="min-h-touch text-xs"
-          >
-            <FileSpreadsheet className="mr-1 h-3 w-3" />
-            Excel
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { void handleExport('pdf') }}
-            loading={exportingFormat === 'pdf'}
-            disabled={isExporting && exportingFormat !== 'pdf'}
-            className="min-h-touch text-xs"
-          >
-            <FileText className="mr-1 h-3 w-3" />
-            PDF
-          </Button>
-        </div>
-        {/* Mobile Filters Panel */}
+        {/*
+          Export bar. One button, because there is one export: the server's
+          page-independent CSV over the whole filtered set. It appears only when
+          the backend says this actor holds `tenant.application.export` — and the
+          backend refuses regardless, so the absence is convenience, not the
+          boundary.
+        */}
+        {canExport && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { void handleExport() }}
+              loading={isExportingRoster}
+              className="min-h-touch text-xs"
+            >
+              <FileDown className="mr-1 h-3 w-3" aria-hidden="true" />
+              Export CSV
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Covers every application matching these filters, not just this page.
+            </span>
+          </div>
+        )}
+
+        {/*
+          A deep link carrying a parameter this contract does not implement is
+          reported rather than silently dropped — the ignored-filter half of
+          ADM-01 made visible instead of invisible.
+        */}
+        {unknownParameters.length > 0 && (
+          <div className="mb-4">
+            <ErrorDisplay
+              title="Some link filters were not applied"
+              message={`The server does not implement: ${unknownParameters.join(', ')}. The list below ignores them.`}
+              variant="inline"
+            />
+          </div>
+        )}
+        {/*
+          Mobile filters sheet. It carries its own control-id namespace: both
+          panels used to emit the same ids, so on a small viewport a label
+          resolved to the hidden desktop control instead of the one on screen.
+        */}
         {showFilters && (
-          <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm sm:hidden">
+          <div
+            className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm sm:hidden"
+            data-roster-filters="mobile"
+          >
             <FiltersPanel
+              idPrefix="mobile-"
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
               paymentFilter={filters.paymentFilter}
@@ -770,15 +719,20 @@ export default function Applications() {
               overdueReviewFilter={filters.overdueReviewFilter}
               pendingDocumentsFilter={filters.pendingDocumentsFilter}
               upcomingInterviewsFilter={filters.upcomingInterviewsFilter}
+              deadlinePressureFilter={filters.deadlinePressureFilter}
               programOptions={programOptions}
               institutionOptions={institutionOptions}
+              deadlinePressureHours={aggregates?.deadline_pressure_hours ?? null}
               onFilterChange={updateFilter}
             />
           </div>
         )}
 
         {/* Desktop Filters */}
-        <div className="mb-6 hidden rounded-lg border border-border bg-card p-4 shadow-sm sm:block">
+        <div
+          className="mb-6 hidden rounded-lg border border-border bg-card p-4 shadow-sm sm:block"
+          data-roster-filters="desktop"
+        >
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -793,8 +747,10 @@ export default function Applications() {
             overdueReviewFilter={filters.overdueReviewFilter}
             pendingDocumentsFilter={filters.pendingDocumentsFilter}
             upcomingInterviewsFilter={filters.upcomingInterviewsFilter}
+            deadlinePressureFilter={filters.deadlinePressureFilter}
             programOptions={programOptions}
             institutionOptions={institutionOptions}
+            deadlinePressureHours={aggregates?.deadline_pressure_hours ?? null}
             onFilterChange={updateFilter}
           />
         </div>
@@ -852,11 +808,6 @@ export default function Applications() {
         ) : (
           <ApplicationsTable
             applications={applications}
-            totalCount={pagination.totalCount}
-            loadedCount={pagination.loadedCount}
-            hasMore={hasMore}
-            isLoadingMore={isLoadingMore}
-            onLoadMore={loadNextPage}
             onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
             onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
@@ -864,6 +815,23 @@ export default function Applications() {
             onSelectionChange={setSelectedIds}
           />
         )}
+          {/*
+            One page navigator for every view mode (task 9.1, ADM-01). The
+            roster used to append the next page to the rows on screen and show a
+            "% loaded" figure, which is what made a page-derived total look
+            plausible — the list really did hold everything it was counting. The
+            page number, the page count, and the total are all the server's.
+          */}
+          <div className="mt-6">
+            <RosterPagination
+              page={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalCount={pagination.totalCount}
+              loadedCount={pagination.loadedCount}
+              isPaging={isRefreshing}
+              onPageChange={goToPage}
+            />
+          </div>
           </ErrorBoundary>
         )}
 
@@ -879,10 +847,7 @@ export default function Applications() {
           updating={null}
           onClose={handleCloseDetails}
           onSendNotification={handleSendNotification}
-          onViewDocuments={handleViewDocuments}
-          onViewHistory={handleViewHistory}
           onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>}
-          onPaymentStatusUpdate={handlePaymentStatusUpdate}
         />
       </div>
     </PageShell>

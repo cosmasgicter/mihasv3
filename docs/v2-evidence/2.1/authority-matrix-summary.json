@@ -1,0 +1,39 @@
+{
+  "generator": "scripts/authority_matrix_v2.py",
+  "spec_task": "2.1",
+  "generated_at_utc": "2026-07-25T21:24:21.129788+00:00",
+  "repo_root": "/home/cosmas/Downloads/mihasv3",
+  "git_commit": "bae29a28d9657f288b3339062adb31285959c966",
+  "django_available": true,
+  "artifacts": {
+    "authority_matrix": "authority-matrix.json",
+    "authority_matrix_csv": "authority-matrix.csv",
+    "zero_unclassified_report": "zero-unclassified-endpoint-report.md",
+    "zero_unclassified_report_json": "zero-unclassified-endpoint-report.json",
+    "authority_case_matrix": "authority-case-matrix.json",
+    "disclosure_policy": "disclosure-policy.json"
+  },
+  "counts": {
+    "total_routes": 216,
+    "target_seven": 169,
+    "boundary": 47,
+    "weak_bucket_resolved": 74,
+    "class_overridden": 78,
+    "protected_endpoint_methods": 204,
+    "total_generated_cases": 1940
+  },
+  "by_approved_class": {
+    "infra": 8,
+    "internal_callback": 3,
+    "jobs_ops": 39,
+    "owner": 52,
+    "platform_capability": 64,
+    "public": 16,
+    "tenant_capability": 34
+  },
+  "zero_unclassified": true,
+  "passed": true,
+  "unresolved_count": 0,
+  "weak_bucket_remaining_count": 0,
+  "stale_registry_entries": []
+}

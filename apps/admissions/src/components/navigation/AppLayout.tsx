@@ -40,7 +40,10 @@ const pageTitles: Record<string, string> = {
   [pathFor('student.payment')]: 'Payment',
   [pathFor('student.interview')]: 'Interview',
   [pathFor('student.settings')]: 'Settings',
-  [pathFor('student.notifications')]: 'Notifications',
+  // Task 10.1 (R13.8): the two are named apart. "Notifications" for the
+  // preferences screen was half of why the inbox was hard to find.
+  [pathFor('student.notifications')]: 'Notification settings',
+  [pathFor('student.communications')]: 'Communications',
   [pathFor('student.status')]: 'Application Status',
   [pathFor('admin.dashboard')]: 'Admin Dashboard',
   [pathFor('admin.applications')]: 'Applications',
@@ -89,10 +92,28 @@ const adminNavItems = [
   navItemFromRoute(routeById('admin.settings')),
 ]
 
-/** Student mobile navigation (4 primary + overflow in More menu) */
+/**
+ * Student navigation for the shell (desktop sidebar and the mobile drawer).
+ *
+ * Task 10.1 (R13.8, STU-14): the **inbox** is a navigation destination here, not
+ * only on the mobile bottom bar. The (since-removed, never-rendered)
+ * `MobileBottomNav` was corrected to point its primary tab at
+ * `student.communications`, but this list still offered only
+ * `student.notifications` — the preferences screen — under the label
+ * "Notifications". So a desktop student had no way to reach the one
+ * communications history from the shell, and the item that *looked* like the
+ * inbox was settings. Navigation rules are identical on desktop and mobile, so
+ * "one inbox, reachable" has to hold on both.
+ *
+ * The order follows `routeRegistry` (`student.communications` is `order: 25`),
+ * and each label is the registry's own, so the two entries read as what they are:
+ * "Communications" is where messages are, "Notification settings" is where the
+ * switches are.
+ */
 const studentNavItems = [
   navItemFromRoute(routeById('student.dashboard')),
   navItemFromRoute(routeById('student.applicationWizard')),
+  navItemFromRoute(routeById('student.communications')),
   navItemFromRoute(routeById('student.payment')),
   navItemFromRoute(routeById('student.interview')),
   navItemFromRoute(routeById('student.notifications')),
@@ -148,12 +169,30 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     }
   }
 
+  /*
+    The authenticated mobile header's controls, at 44 x 44 (GATE-13.3-01, 13.6
+    §8.1 item L6; R16.2, finding STU-03).
+
+    These were `h-10 w-10` — 40.000 x 40.000, measured by task 13.3 on **every**
+    authenticated route, 86 times across 8 surfaces x 6 viewports x 2 device
+    profiles, and the admin header rendered the same pattern. R16.2 is
+    *"EVERY pointer target SHALL be at least 44 by 44 CSS pixels"*, so a control
+    present on every route was 4 px short everywhere.
+
+    `min-h-touch` / `min-w-touch` are the repo's own utilities for exactly this
+    (`tailwind.config.js` → `minHeight.touch` / `minWidth.touch` = 44px). The
+    glyph stays at `h-5 w-5`; only the hit area grew, so nothing about the header's
+    look changes beyond 2 px of radius on each control.
+  */
+  const mobileActionClass =
+    'inline-flex min-h-touch min-w-touch items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent'
+
   const mobileActions = !isAdmin && isStudentRoute ? (
     <div className="flex items-center justify-end gap-1 pr-1">
       <button
         type="button"
         onClick={() => navigate(pathFor('student.settings'))}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent"
+        className={mobileActionClass}
         aria-label="Open profile settings"
       >
         <UserCircle2 className="h-5 w-5" />
@@ -163,7 +202,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         type="button"
         onClick={() => { void handleSignOut() }}
         disabled={isSigningOut}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+        className={cn(mobileActionClass, 'disabled:opacity-60')}
         aria-label="Log out"
         aria-busy={isSigningOut}
       >
@@ -176,7 +215,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         type="button"
         onClick={() => { void handleSignOut() }}
         disabled={isSigningOut}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+        className={cn(mobileActionClass, 'disabled:opacity-60')}
         aria-label="Sign out"
         aria-busy={isSigningOut}
       >

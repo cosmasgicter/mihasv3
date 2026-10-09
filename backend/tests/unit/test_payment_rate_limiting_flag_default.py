@@ -98,15 +98,13 @@ def test_flag_default_allows_50_requests_without_429():
 @pytest.mark.django_db
 @override_settings(
     PAYMENT_HARDENING_RATE_LIMITS=False,
-    PAYMENT_HARDENING_FORCE_APPROVED=False,
 )
 def test_all_phase5_flags_disabled_preserves_legacy_behaviour():
     """Validates: Requirements R19.1, R22.6.
 
-    Cross-phase regression (Task 49.1). With every Phase 5 backend
-    feature flag disabled — ``PAYMENT_HARDENING_RATE_LIMITS=False`` and
-    ``PAYMENT_HARDENING_FORCE_APPROVED=False`` — the payment surface
-    must behave exactly like the pre-hardening baseline. Specifically:
+    Cross-phase regression (Task 49.1). With ``PAYMENT_HARDENING_RATE_LIMITS``
+    disabled the payment surface must behave exactly like the pre-throttle
+    baseline. Specifically:
 
     * No request returns HTTP 429, even when the burst would exceed the
       hardened per-minute budget (6/min for initiate + mobile-money,

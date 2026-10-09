@@ -200,6 +200,13 @@ describe('Property 2b: Preservation — Successful 401 refresh retries exactly o
    * This is existing correct behavior that must be preserved.
    *
    * **Validates: Requirements 3.10**
+   *
+   * Updated for admissions-v2 R9.2 replay guard: a state-changing (unsafe)
+   * request is replayed after a successful refresh ONLY when it carries an
+   * idempotency guarantee. Each request below supplies an `Idempotency-Key`,
+   * so the "retries exactly once" invariant holds without a blind replay.
+   * (The no-idempotency-key path throws REFRESH_NO_REPLAY and is covered in
+   * apiClientUnified.test.ts / apiClient401Retry.test.ts.)
    */
   it('retries original request exactly once after successful 401 refresh', async () => {
     await fc.assert(
@@ -270,6 +277,9 @@ describe('Property 2b: Preservation — Successful 401 refresh retries exactly o
             method,
             body: JSON.stringify({ test: true }),
             retries: 0,
+            // Idempotency guarantee: allows the unsafe method to be safely
+            // replayed exactly once after a successful refresh (R9.2).
+            headers: { 'Idempotency-Key': `bug4-${method}-${endpoint}` },
           });
 
           // Verify refresh was attempted

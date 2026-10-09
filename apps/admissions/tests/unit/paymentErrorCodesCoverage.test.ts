@@ -17,9 +17,11 @@ import {
   type PaymentStableCode,
 } from '@/lib/paymentErrorCodes'
 import {
+  PAYMENT_CODE_RECOVERY,
   PAYMENT_NEXT_ACTION_COPY,
   PAYMENT_NEXT_ACTIONS,
   isPaymentNextAction,
+  recoveryActionForStableCode,
   type PaymentNextAction,
 } from '@/lib/paymentNextActions'
 
@@ -84,5 +86,43 @@ describe('PAYMENT_NEXT_ACTIONS — coverage', () => {
         guidance: PAYMENT_NEXT_ACTION_COPY[action as PaymentNextAction].guidance,
       }))
     expect(snapshot).toMatchSnapshot()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Recovery map coverage (admissions-v2 task 8.1, R12.6)
+// ---------------------------------------------------------------------------
+
+describe('PAYMENT_CODE_RECOVERY — every refusal has a decided recovery', () => {
+  it('covers every stable code, with an explicit null for "no self-service step"', () => {
+    for (const code of PAYMENT_STABLE_CODES) {
+      const decided = Object.prototype.hasOwnProperty.call(
+        PAYMENT_CODE_RECOVERY,
+        code as PaymentStableCode,
+      )
+      expect(decided, `no recovery decision for ${code}`).toBe(true)
+    }
+    // No stale keys: a removed stable code must not linger with an action.
+    const known = new Set<string>(PAYMENT_STABLE_CODES)
+    expect(Object.keys(PAYMENT_CODE_RECOVERY).filter((code) => !known.has(code))).toEqual([])
+  })
+
+  it('every non-null recovery is a real next-action with copy', () => {
+    for (const code of PAYMENT_STABLE_CODES) {
+      const action = PAYMENT_CODE_RECOVERY[code as PaymentStableCode]
+      if (action === null) continue
+      expect(isPaymentNextAction(action), `${code} -> ${action} is not a next-action`).toBe(true)
+      expect(PAYMENT_NEXT_ACTION_COPY[action].label.trim().length).toBeGreaterThan(0)
+    }
+  })
+
+  it('recoveryActionForStableCode agrees with the map and tolerates absence', () => {
+    for (const code of PAYMENT_STABLE_CODES) {
+      expect(recoveryActionForStableCode(code as PaymentStableCode)).toBe(
+        PAYMENT_CODE_RECOVERY[code as PaymentStableCode],
+      )
+    }
+    expect(recoveryActionForStableCode(null)).toBeNull()
+    expect(recoveryActionForStableCode(undefined)).toBeNull()
   })
 })

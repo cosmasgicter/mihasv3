@@ -36,40 +36,48 @@ describe('[PBT] Preservation — Settings dirty detection', () => {
    * We verify this by reading the Settings.tsx source and confirming the
    * isDirty-driven UI guard is present.
    */
-  it('Settings renders "You have unsaved changes" text gated on isDirty', () => {
+  // admissions-v2 task 6.1 makes profile/settings autosave canonical (finding
+  // STU-20): manual submit + a Settings-owned beforeunload confirm are replaced
+  // by per-section autosave with explicit save state, and the single unload
+  // guard now lives in the autosave hook. The preserved invariant is that a
+  // user edit is detected and surfaced as visible save state, and unsaved work
+  // is still protected on unload — just relocated to the canonical owner.
+
+  it('Settings surfaces edits as explicit per-section save state', () => {
     const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
     const fileContent = fs.readFileSync(filePath, 'utf-8')
 
-    // The component must conditionally render the unsaved changes indicator
-    // based on isDirty from React Hook Form
+    // Edits route through the canonical per-section autosave hook and render a
+    // visible save-state indicator (dirty/saving/saved/offline/…).
+    expect(fileContent).toContain('useProfileSectionAutosave')
+    expect(fileContent).toContain('SaveIndicator')
+    // isDirty is still consulted (hydration guard) so autosave never clobbers
+    // in-progress edits with background profile refreshes.
     expect(fileContent).toContain('isDirty')
-    expect(fileContent).toContain('You have unsaved changes')
-
-    // The isDirty guard should gate the unsaved changes text
-    // Pattern: {isDirty && ( ... "You have unsaved changes" ... )}
-    const isDirtyGuardPattern = /isDirty\s*&&\s*\(/
-    expect(fileContent).toMatch(isDirtyGuardPattern)
   })
 
-  it('Settings registers beforeunload handler when isDirty is true', () => {
-    const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
+  it('the autosave hook owns the beforeunload guard for unsynced work', () => {
+    const hookPath = path.resolve(__dirname, '../../src/hooks/student/useProfileSectionAutosave.ts')
+    const hookContent = fs.readFileSync(hookPath, 'utf-8')
 
-    // The beforeunload handler must be present and gated on isDirty
-    expect(fileContent).toContain('beforeunload')
-    expect(fileContent).toContain('isDirty')
+    // The guard moved from Settings to the hook and fires only when there is
+    // genuinely unsynchronised work still queued.
+    expect(hookContent).toContain('beforeunload')
+    expect(hookContent).toContain('hasPendingWork')
 
-    // The useEffect for beforeunload should check isDirty
-    const beforeUnloadPattern = /useEffect\(\s*\(\)\s*=>\s*\{[\s\S]*?if\s*\(\s*!isDirty\s*\)[\s\S]*?beforeunload/
-    expect(fileContent).toMatch(beforeUnloadPattern)
+    // Settings.tsx no longer owns a beforeunload handler.
+    const settingsPath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
+    expect(fs.readFileSync(settingsPath, 'utf-8')).not.toContain('beforeunload')
   })
 
-  it('Settings submit button is disabled when form is not dirty', () => {
+  it('Settings autosaves instead of gating a manual submit button on dirty', () => {
     const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
     const fileContent = fs.readFileSync(filePath, 'utf-8')
 
-    // The submit button should be disabled when !isDirty
-    expect(fileContent).toMatch(/disabled=\{!isDirty/)
+    // Manual-submit-only save is retired; the page schedules autosave on edit.
+    expect(fileContent).toContain('scheduleSave')
+    // The retired native window.confirm navigation guard is gone (STU-10).
+    expect(fileContent).not.toContain('window.confirm')
   })
 })
 
@@ -98,15 +106,17 @@ describe('[PBT] Preservation — Settings validation errors via setError()', () 
     expect(fileContent).toMatch(setErrorPattern)
   })
 
-  it('Settings displays error status banner when save fails with field errors', () => {
+  it('Settings surfaces save failures with an accessible alert save state', () => {
     const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
     const fileContent = fs.readFileSync(filePath, 'utf-8')
 
-    // The error status message for field errors
-    expect(fileContent).toContain('Please correct the highlighted fields and try again')
-
-    // The save status banner uses role="alert" for error tone
-    expect(fileContent).toMatch(/role=\{saveStatus\.tone === 'error' \? 'alert'/)
+    // admissions-v2 task 6.1: the per-section SaveIndicator renders error and
+    // conflict states with role="alert" + aria-live="assertive" (accessible
+    // inline feedback), replacing the single manual-submit status banner.
+    expect(fileContent).toContain('SaveIndicator')
+    const indicatorPath = filePath // SaveIndicator is defined in Settings.tsx
+    const indicatorContent = fs.readFileSync(indicatorPath, 'utf-8')
+    expect(indicatorContent).toMatch(/role=\{status === 'error' \|\| status === 'conflict' \? 'alert'/)
   })
 })
 

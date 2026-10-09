@@ -58,14 +58,20 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
 ### Admissions
 
 - Student onboarding, profile management, application wizard, document upload, payment via Lenco gateway, interview progression, and decisions
-- Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight. AI-powered admin review summaries are available via `GET /api/v1/applications/{id}/admin-summary/`.
+- Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight. Reviewers get a **deterministic** review-readiness checklist computed by the same evaluator submission re-runs — payment gate, required documents, identity verification, grade/eligibility results, duplicate/late flags, and allowed next actions. There is no generative review summary: admissions-v2 task 7.4 removed `GET /api/v1/applications/{id}/admin-summary/` under R11.1.
 - Payment is processed in real-time via the Lenco inline widget — no manual proof-of-payment uploads
-- AI-powered OCR extracts grades from uploaded result slips (never overwrites manual entries). AI preview summaries personalize the review step.
+- **No generative AI touches admissions data or decisions** (R11.1). Server-side Tesseract OCR may *propose* grade candidates from an uploaded result slip with confidence and provenance; the student confirms each row before it becomes application data, a manual entry always wins, and an unrecognised subject label stays unresolved rather than being guessed. The wizard's review-step summary is composed deterministically from stored fields and current validation results. The only generative integration on the platform is jobs-ops' (`backend/apps/jobs/ai_service.py`).
 
 #### Current Admissions Flow Contract
 
 - Student submission is finalized through the dedicated backend endpoint `POST /api/v1/applications/{id}/submit/`, not by generic application updates.
-- Student payment outside the wizard is read-only. `/student/payment` is a history and guidance surface, not a payment entry form.
+- Payment ownership is split at submission (R12.3, finding STU-09). The **wizard**
+  owns pre-submission pay-or-defer. **`/student/payment`** owns every
+  post-submission state — deferred, failed, expired, and pending recovery
+  (`action_required` / `provider_processing`) — plus payment history, and it may
+  take a payment for a fee still owed after submission. It is not a read-only
+  surface, and it never shows a draft: a student with only a draft is handed back
+  to the wizard. The wizard renders no history and no recovery.
 - Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
 - `deferred` is a distinct canonical payment status. Students who deferred payment see a reminder to complete payment. Submission is allowed with deferred payment status.

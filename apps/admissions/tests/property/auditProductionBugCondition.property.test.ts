@@ -58,12 +58,14 @@ describe('[PBT] Bug 1 — Settings isDirty resets to false after save', () => {
   const arbOptionalField = fc.constantFrom(...optionalFields)
 
   it('Settings onSubmit reset handles null server values with explicit fallbacks for all optional fields', () => {
-    const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
+    // admissions-v2 task 6.1 moved the canonical null-safe reset merge out of
+    // Settings.tsx into the shared `buildProfileResetValues` helper (single
+    // source of truth). The isDirty-after-save invariant is unchanged — only
+    // its location. Assert the null-safe field-by-field fallback lives there.
+    const filePath = path.resolve(__dirname, '../../src/lib/profileAutosave.ts')
     const fileContent = fs.readFileSync(filePath, 'utf-8')
 
-    // Find the reset() call inside the onSubmit/try block
-    // The UNFIXED code does: reset({ ...formValues, ...updatedProfile, ... })
-    // The FIXED code should have explicit field-by-field merge with ?? fallbacks
+    // The FIXED code has explicit field-by-field merge with ?? fallbacks
 
     fc.assert(
       fc.property(arbOptionalField, (field) => {

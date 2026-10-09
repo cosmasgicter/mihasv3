@@ -1,0 +1,20 @@
+$ python3 scripts/validate_spec_governance.py
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 0  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=70 tasks=73 (checked=2)
+
+RESULT: PASS
+
+# Validator self-tests (stdlib unittest; includes intentional failing fixtures)
+$ python3 scripts/tests/test_validate_spec_governance.py
+Ran 20 tests in 0.025s
+OK
+$ python3 scripts/tests/test_validate_spec_metadata.py
+Ran 9 tests in 0.006s
+OK

@@ -1,0 +1,18 @@
+# `cd apps/admissions && bun run test` — CANDIDATE, task 12.2
+# Full log trimmed to FAIL lines + the summary block (ANSI stripped, deduped).
+
+ ✓ tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts (11 tests) 83ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/unit/authPageFormMarkup.test.tsx > auth page form markup > uses honest helper copy instead of fake email availability states
+ Test Files  1 failed | 491 passed | 1 skipped (493)
+      Tests  1 failed | 4592 passed | 1 skipped (4594)
+   Start at  07:01:32
+   Duration  80.07s (transform 29.43s, setup 8.22s, import 169.38s, tests 232.85s, environment 435.22s)
+EXIT=1
+
+# Baseline: 1 failed / 4584 passed / 1 skipped over 493 files.
+# +8 passing, 0 new failures, 0 cases deleted, file count unchanged:
+#   serviceNormalization.test.ts        34 -> 40  (+6)
+#   page-verification/wizard-step1.tsx        (+2)
+# The one failure is the pre-existing sign-up-page helper-copy assertion that
+# 11.1-11.5, both 12.1 passes and this task have each recorded. Not touched here.

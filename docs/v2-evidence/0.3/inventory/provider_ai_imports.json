@@ -1,0 +1,516 @@
+{
+  "available": true,
+  "backend_provider_file_count": 54,
+  "backend_provider_files": [
+    {
+      "file": "backend/apps/accounts/auth_views.py",
+      "app": "accounts",
+      "providers": [
+        "email_smtp"
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/authentication.py",
+      "app": "accounts",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/management/commands/recover_jti_blacklist.py",
+      "app": "accounts",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/accounts/tokens.py",
+      "app": "accounts",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/applications/models.py",
+      "app": "applications",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/applications/official_document_views.py",
+      "app": "applications",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/applications/student_document_views.py",
+      "app": "applications",
+      "providers": [
+        "email_resend"
+      ]
+    },
+    {
+      "file": "backend/apps/applications/tasks/_locks.py",
+      "app": "applications",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/services.py",
+      "app": "catalog",
+      "providers": [
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/catalog/tasks.py",
+      "app": "catalog",
+      "providers": [
+        "redis",
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/ai_cache.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/ai_circuit_breaker.py",
+      "app": "common",
+      "providers": [
+        "redis",
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/celery_signals.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/error_views.py",
+      "app": "common",
+      "providers": [
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/exceptions.py",
+      "app": "common",
+      "providers": [
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/health.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/launch_verification/evidence.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/common/launch_verification/redaction.py",
+      "app": "common",
+      "providers": [
+        "email_resend",
+        "lenco_payment",
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/legacy_columns.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/common/management/commands/check_missed_tasks.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/management/commands/check_production_state.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/common/middleware.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment",
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/middleware_compat.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/models.py",
+      "app": "common",
+      "providers": [
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/openapi.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/common/openapi_helpers.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/public_endpoint_policy.py",
+      "app": "common",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/common/scoped_cache.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/storage.py",
+      "app": "common",
+      "providers": [
+        "object_storage_r2_s3"
+      ]
+    },
+    {
+      "file": "backend/apps/common/tasks.py",
+      "app": "common",
+      "providers": [
+        "email_resend",
+        "email_smtp",
+        "http_requests",
+        "redis",
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/common/throttling.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/common/views.py",
+      "app": "common",
+      "providers": [
+        "redis"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/lenco_webhook_views.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/mobile_money_views.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/models.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_constants.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_helpers.py",
+      "app": "documents",
+      "providers": [
+        "http_requests",
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_metrics.py",
+      "app": "documents",
+      "providers": [
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_query_views.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment",
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_service.py",
+      "app": "documents",
+      "providers": [
+        "http_requests",
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_service_mixins/_core.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_service_mixins/_initiation.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_service_mixins/_verification.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_state_machine.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_types.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/payment_widget_views.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/tasks.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment",
+        "sentry_glitchtip"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/urls.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/views.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/documents/webhook_processor.py",
+      "app": "documents",
+      "providers": [
+        "lenco_payment"
+      ]
+    },
+    {
+      "file": "backend/apps/integrations/models.py",
+      "app": "integrations",
+      "providers": [
+        "email_smtp"
+      ]
+    },
+    {
+      "file": "backend/apps/integrations/tasks.py",
+      "app": "integrations",
+      "providers": [
+        "telegram"
+      ]
+    },
+    {
+      "file": "backend/apps/integrations/urls.py",
+      "app": "integrations",
+      "providers": [
+        "telegram"
+      ]
+    },
+    {
+      "file": "backend/apps/integrations/views.py",
+      "app": "integrations",
+      "providers": [
+        "telegram"
+      ]
+    }
+  ],
+  "backend_ai_file_count": 10,
+  "backend_ai_files": [
+    {
+      "file": "backend/apps/applications/admin_amendment_views.py",
+      "app": "applications",
+      "ai_markers": [
+        "ai_cache",
+        "ai_prompt_redactor",
+        "ai_summary_symbol"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/applications/student_submission_views.py",
+      "app": "applications",
+      "ai_markers": [
+        "ai_cache",
+        "ai_prompt_redactor",
+        "ai_summary_symbol"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/common/ai_cache.py",
+      "app": "common",
+      "ai_markers": [
+        "ai_cache",
+        "ai_summary_symbol"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/common/ai_circuit_breaker.py",
+      "app": "common",
+      "ai_markers": [
+        "ai_circuit_breaker"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/common/ai_prompt_redactor.py",
+      "app": "common",
+      "ai_markers": [
+        "ai_summary_symbol"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/common/ai_service.py",
+      "app": "common",
+      "ai_markers": [
+        "ai_circuit_breaker",
+        "ai_gateway_key",
+        "ai_model_setting",
+        "ai_summary_symbol",
+        "openai_sdk"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/common/scoped_cache.py",
+      "app": "common",
+      "ai_markers": [
+        "ai_cache"
+      ],
+      "admissions_boundary": true
+    },
+    {
+      "file": "backend/apps/integrations/urls.py",
+      "app": "integrations",
+      "ai_markers": [
+        "openai_sdk"
+      ],
+      "admissions_boundary": false
+    },
+    {
+      "file": "backend/apps/integrations/views.py",
+      "app": "integrations",
+      "ai_markers": [
+        "openai_sdk"
+      ],
+      "admissions_boundary": false
+    },
+    {
+      "file": "backend/apps/jobs/ai_service.py",
+      "app": "jobs",
+      "ai_markers": [
+        "ai_gateway_key",
+        "ai_model_setting",
+        "openai_sdk"
+      ],
+      "admissions_boundary": false
+    }
+  ],
+  "backend_ai_admissions_boundary_count": 7,
+  "frontend_ai_file_count": 7,
+  "frontend_ai_files": [
+    {
+      "file": "apps/admissions/src/components/admin/applications/AISummaryPanel.tsx"
+    },
+    {
+      "file": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx"
+    },
+    {
+      "file": "apps/admissions/src/components/student/ExtractedResultsCard.tsx"
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts"
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts"
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx"
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx"
+    }
+  ]
+}

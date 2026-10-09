@@ -39,10 +39,26 @@ export function MobilePageHeader({
         ) : null}
       </div>
 
-      {/* Center: page title */}
-      <h2 className="flex-1 truncate px-2 text-center text-base font-bold tracking-tight text-foreground">
+      {/*
+        Center: the page title as a **label, not a heading** (GATE-13.3-08, 13.6
+        §8.1 item L6; WCAG 1.3.1).
+        
+        This was an `h2`, and because the header is rendered before `main` in the
+        shell it was the *first* heading in the document — so every authenticated
+        surface opened `h2 -> h1`, which task 13.3 measured on the dashboard, the
+        status workspace and the payment page. One shell-level cause, three
+        surfaces.
+        
+        A page has one accessible title and `PageShell` already renders it as the
+        `h1`. This bar restates it for orientation on a 64 px mobile header, which
+        is a label's job: as a `<p>` the text is unchanged, still announced in
+        reading order, and no longer a second — earlier, higher — heading competing
+        with the page's own. `aria-hidden` would be wrong (a sighted screen-magnifier
+        user reads it); demoting it to `h3` would still precede the `h1`.
+      */}
+      <p className="flex-1 truncate px-2 text-center text-base font-bold tracking-tight text-foreground">
         {title}
-      </h2>
+      </p>
 
       {/* Right: actions slot or spacer */}
       <div className="flex-shrink-0 min-w-touch pr-2 flex items-center justify-end">

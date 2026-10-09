@@ -10,7 +10,7 @@ Split files:
   - admin_assignment_views.py  - ApplicationAssignView, ApplicationAutoAssignView, ApplicationFeeWaiverView
   - admin_export_views.py      - ApplicationExportView
   - admin_bulk_views.py        - ApplicationBulkStatusView
-  - admin_amendment_views.py   - ApplicationAmendmentReviewView, ApplicationConditionVerifyView, ApplicationAdminSummaryView
+  - admin_amendment_views.py   - ApplicationAmendmentReviewView, ApplicationConditionVerifyView
 """
 
 # View classes
@@ -37,7 +37,6 @@ from apps.accounts.permissions import is_super_admin  # noqa: F401
 _is_super_admin = is_super_admin
 from apps.applications.admin_bulk_views import ApplicationBulkStatusView  # noqa: F401
 from apps.applications.admin_amendment_views import (  # noqa: F401
-    ApplicationAdminSummaryView,
     ApplicationAmendmentReviewView,
     ApplicationConditionVerifyView,
 )
@@ -54,7 +53,6 @@ from apps.documents.models import Payment  # noqa: F401
 from apps.common.communication_service import CommunicationService  # noqa: F401
 
 __all__ = [
-    "ApplicationAdminSummaryView",
     "ApplicationAmendmentReviewView",
     "ApplicationAssignView",
     "ApplicationAutoAssignView",

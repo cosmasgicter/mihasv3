@@ -2,6 +2,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Seo } from '@/components/seo/Seo'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from '@/lib/zod'
 import { useAuth } from '@/contexts/AuthContext'
@@ -19,9 +21,11 @@ import {
   ArrowLeft,
   Bell,
   CheckCircle2,
+  CloudOff,
+  Loader2,
   Mail,
   MapPin,
-  Save,
+  RefreshCw,
   Shield,
   User,
   Users,
@@ -41,12 +45,42 @@ import {
   RESIDENCE_TOWN_MIN_LENGTH_MESSAGE,
 } from '@/lib/residenceTown'
 import { NATIONALITY_OPTIONS, DEFAULT_NATIONALITY } from '@/lib/nationalityOptions'
+import {
+  buildProfileResetValues,
+  extractSectionDelta,
+  isAlignedZambianPhone,
+  PROFILE_SECTIONS,
+  PROFILE_SECTION_IDS,
+  sectionForField,
+  type ProfileSectionId,
+  type SectionSaveStatus,
+} from '@/lib/profileAutosave'
+import {
+  useProfileSectionAutosave,
+  type ProfileAutosaveResult,
+} from '@/hooks/student/useProfileSectionAutosave'
+import type { UserProfile } from '@/types/auth'
 
-const optionalString = () => z.string().optional().or(z.literal(''))
+const optionalString = (max?: number) => {
+  const base = max ? z.string().max(max, `Must be at most ${max} characters`) : z.string()
+  return base.optional().or(z.literal(''))
+}
 
+// Field validation is aligned with the backend ProfileUpdateSerializer
+// (max lengths) and validate_zambian_phone (+260 followed by 9 digits).
 const profileSchema = z.object({
-  full_name: z.string().min(2, 'Full name must be at least 2 characters'),
-  phone: z.string().min(10, 'Please enter a valid phone number').or(z.literal('')).optional(),
+  full_name: z
+    .string()
+    .min(2, 'Full name must be at least 2 characters')
+    .max(255, 'Full name must be at most 255 characters'),
+  phone: z
+    .string()
+    .optional()
+    .transform((value) => (value ?? '').trim())
+    .refine(
+      (value) => value.length === 0 || isAlignedZambianPhone(value),
+      'Enter a Zambian number in the format +260970000000',
+    ),
   date_of_birth: optionalString(),
   sex: z.enum(['Male', 'Female'], { error: 'Please select a sex' }).optional(),
   residence_town: z
@@ -54,12 +88,16 @@ const profileSchema = z.object({
     .transform(normalizeResidenceTown)
     .refine(value => value.length === 0 || value.length >= 2, RESIDENCE_TOWN_MIN_LENGTH_MESSAGE)
     .optional(),
-  country: optionalString(),
-  nrc_number: optionalString(),
+  country: optionalString(255),
+  nrc_number: optionalString(20),
   address: optionalString(),
-  nationality: z.string().min(1, 'Nationality is required').default('Zambian'),
-  next_of_kin_name: optionalString(),
-  next_of_kin_phone: optionalString(),
+  nationality: z
+    .string()
+    .min(1, 'Nationality is required')
+    .max(100, 'Nationality must be at most 100 characters')
+    .default('Zambian'),
+  next_of_kin_name: optionalString(255),
+  next_of_kin_phone: optionalString(50),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
@@ -69,34 +107,116 @@ const sexOptions = [
   { value: 'Female', label: 'Female' },
 ]
 
+const SECTION_LABELS: Record<ProfileSectionId, string> = {
+  applicant: 'Applicant profile',
+  residence: 'Residence and identity',
+  emergency: 'Emergency contact',
+}
+
+interface SaveIndicatorProps {
+  status: SectionSaveStatus
+  error: string | null
+}
+
+/**
+ * Accessible inline save-state indicator. Every non-idle state pairs a colour
+ * with an icon + label (never colour alone) and announces politely so the
+ * autosave state stays understandable under zoom/reduced-motion/offline.
+ */
+function SaveIndicator({ status, error }: SaveIndicatorProps) {
+  if (status === 'idle') return null
+
+  const config: Record<
+    Exclude<SectionSaveStatus, 'idle'>,
+    { label: string; className: string; icon: React.ReactNode; live: 'polite' | 'assertive' }
+  > = {
+    dirty: {
+      label: 'Unsaved changes',
+      className: 'text-muted-foreground',
+      icon: <Loader2 className="h-4 w-4" />,
+      live: 'polite',
+    },
+    saving: {
+      label: 'Saving…',
+      className: 'text-muted-foreground',
+      icon: <Loader2 className="h-4 w-4 motion-safe:animate-spin" />,
+      live: 'polite',
+    },
+    saved: {
+      label: 'All changes saved',
+      className: 'text-success',
+      icon: <CheckCircle2 className="h-4 w-4" />,
+      live: 'polite',
+    },
+    offline: {
+      label: error ?? 'Offline — changes will sync when you reconnect',
+      className: 'text-warning',
+      icon: <CloudOff className="h-4 w-4" />,
+      live: 'polite',
+    },
+    retrying: {
+      label: error ?? 'Retrying…',
+      className: 'text-warning',
+      icon: <RefreshCw className="h-4 w-4 motion-safe:animate-spin" />,
+      live: 'polite',
+    },
+    error: {
+      label: error ?? 'Could not save changes',
+      className: 'text-destructive',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      live: 'assertive',
+    },
+    conflict: {
+      label: error ?? 'Profile changed elsewhere',
+      className: 'text-destructive',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      live: 'assertive',
+    },
+  }
+
+  const entry = config[status]
+  return (
+    <span
+      role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}
+      aria-live={entry.live}
+      className={`inline-flex items-center gap-2 text-xs font-medium ${entry.className}`}
+    >
+      <span className="flex-shrink-0" aria-hidden="true">{entry.icon}</span>
+      {entry.label}
+    </span>
+  )
+}
+
 function getDisplayValue(value?: string | null, fallback = 'Not provided') {
   return value && value.trim().length > 0 ? value : fallback
 }
 
 export default function StudentSettings() {
   const navigate = useNavigate()
+  const { brandName } = usePortalBrand()
   const { user } = useAuth()
-  const { profile, updateProfile, updatingProfile, isLoading: profileLoading } = useProfileQuery()
+  const { profile, updateProfile, isLoading: profileLoading } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
   const toast = useToastStore()
 
   React.useEffect(() => { onSettingsMount(user?.id) }, [user?.id])
 
   const profileEditingEnabled = true
-  const [saveStatus, setSaveStatus] = React.useState<{ tone: 'success' | 'error'; message: string } | null>(null)
 
   const {
     register,
     setValue,
     reset,
+    resetField,
     watch,
     getValues,
+    trigger,
     setError,
-    handleSubmit,
     control,
     formState: { errors, isDirty, dirtyFields },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema) as never,
+    mode: 'onChange',
     defaultValues: {
       country: DEFAULT_RESIDENCE_COUNTRY,
       nrc_number: '',
@@ -110,6 +230,97 @@ export default function StudentSettings() {
   const { countryOptions, cityOptions, loadingCountries, loadingCities } = useResidenceLocationOptions(selectedCountry)
   const residenceTownDatalistId = 'settings-residence-town-options'
   const hasHydratedInitialValues = React.useRef(false)
+
+  // Keep refs current so stable autosave callbacks read the latest form state.
+  const dirtyFieldsRef = React.useRef(dirtyFields)
+  const errorsRef = React.useRef(errors)
+  React.useEffect(() => { dirtyFieldsRef.current = dirtyFields }, [dirtyFields])
+  React.useEffect(() => { errorsRef.current = errors }, [errors])
+
+  const save = React.useCallback(
+    async (delta: Record<string, unknown>): Promise<ProfileAutosaveResult> => {
+      const updated = await updateProfile(delta as Partial<UserProfile>)
+      return updated as ProfileAutosaveResult
+    },
+    [updateProfile],
+  )
+
+  const onSaved = React.useCallback(
+    (result: ProfileAutosaveResult, delta: Record<string, unknown>) => {
+      // Null-safe field-by-field merge so isDirty clears only for saved fields
+      // (preserves the audit-production Settings fix; see profileAutosave.ts).
+      const merged = buildProfileResetValues(
+        getValues() as Record<string, string | undefined>,
+        result as Record<string, string | null | undefined>,
+      )
+      for (const field of Object.keys(delta)) {
+        resetField(field as keyof ProfileForm, {
+          defaultValue: merged[field] as never,
+        })
+      }
+    },
+    [getValues, resetField],
+  )
+
+  const onError = React.useCallback((error: unknown) => {
+    const err = error as Error & { fieldErrors?: Record<string, string> }
+    if (err?.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+      Object.entries(err.fieldErrors).forEach(([field, message]) => {
+        setError(field as keyof ProfileForm, { type: 'server', message })
+      })
+    }
+  }, [setError])
+
+  const {
+    sections,
+    scheduleSave,
+    markDirty,
+    saveNow,
+    retry,
+    registerServerVersion,
+    resolveConflict,
+    isOnline,
+  } = useProfileSectionAutosave({
+    save,
+    onSaved,
+    onError,
+    enabled: profileEditingEnabled,
+  })
+
+  // Surface the profile version so a change made in another tab/device is
+  // detected as a conflict rather than silently overwritten.
+  React.useEffect(() => {
+    registerServerVersion(typeof profile?.updated_at === 'string' ? profile.updated_at : undefined)
+  }, [profile?.updated_at, registerServerVersion])
+
+  const handleSectionEdit = React.useCallback(
+    async (sectionId: ProfileSectionId) => {
+      const fields = PROFILE_SECTIONS[sectionId]
+      const valid = await trigger(fields as never)
+      const values = getValues() as Record<string, unknown>
+      const invalidFields = new Set(
+        fields.filter((field) => Boolean((errorsRef.current as Record<string, unknown>)[field])),
+      )
+      const delta = extractSectionDelta(fields, values, dirtyFieldsRef.current, invalidFields)
+      if (Object.keys(delta).length === 0) {
+        if (!valid) markDirty(sectionId)
+        return
+      }
+      scheduleSave(sectionId, delta)
+    },
+    [trigger, getValues, markDirty, scheduleSave],
+  )
+
+  // Watch user edits and route each change to its section's autosave.
+  React.useEffect(() => {
+    const subscription = watch((_values, { name, type }) => {
+      if (!name || type !== 'change') return
+      const sectionId = sectionForField(name)
+      if (!sectionId) return
+      void handleSectionEdit(sectionId)
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, handleSectionEdit])
 
   React.useEffect(() => {
     if (!profile && !metadata) {
@@ -150,111 +361,52 @@ export default function StudentSettings() {
     })
   }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
-  const onSubmit = handleSubmit(async (formValues) => {
-    setSaveStatus(null)
-
-    // Extract only the dirty fields
-    const dirtyFieldValues: Partial<ProfileForm> = {}
-    for (const key of Object.keys(dirtyFields) as (keyof ProfileForm)[]) {
-      dirtyFieldValues[key] = formValues[key] as never
-    }
-
-    if (Object.keys(dirtyFieldValues).length === 0) return
-
-    try {
-      const updatedProfile = await updateProfile(dirtyFieldValues)
-      setSaveStatus({
-        tone: 'success',
-        message: 'Profile changes saved successfully.',
-      })
-      toast.success('Profile updated', 'Your changes have been saved.')
-      // Reset form dirty state with explicit field-by-field merge to prevent null/undefined gaps
-      reset({
-        full_name: updatedProfile.full_name ?? formValues.full_name,
-        phone: updatedProfile.phone ?? formValues.phone ?? '',
-        date_of_birth: normalizeDateInputValue(updatedProfile.date_of_birth ?? formValues.date_of_birth ?? ''),
-        sex: (updatedProfile.sex as 'Male' | 'Female') ?? formValues.sex,
-        residence_town: updatedProfile.residence_town ?? formValues.residence_town ?? '',
-        country: updatedProfile.country ?? formValues.country ?? '',
-        nrc_number: (updatedProfile.nrc_number as string | undefined) ?? formValues.nrc_number ?? '',
-        address: updatedProfile.address ?? formValues.address ?? '',
-        nationality: updatedProfile.nationality ?? formValues.nationality ?? 'Zambian',
-        next_of_kin_name: updatedProfile.next_of_kin_name ?? formValues.next_of_kin_name ?? '',
-        next_of_kin_phone: updatedProfile.next_of_kin_phone ?? formValues.next_of_kin_phone ?? '',
-      })
-    } catch (error: unknown) {
-      const err = error as Error & { fieldErrors?: Record<string, string> }
-      if (err.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
-        setSaveStatus({
-          tone: 'error',
-          message: 'Please correct the highlighted fields and try again.',
-        })
-        Object.entries(err.fieldErrors).forEach(([field, message]) => {
-          setError(field as keyof ProfileForm, { type: 'server', message })
-        })
-      } else {
-        setSaveStatus({
-          tone: 'error',
-          message: 'Something went wrong while saving your profile. Please try again.',
-        })
-        toast.error('Save failed', 'Something went wrong. Please try again.')
-      }
-    }
-  })
-
   const notificationPhone =
     currentPhone?.trim() ||
     profile?.phone?.trim() ||
     metadata?.phone?.trim() ||
     ''
 
-  const confirmDiscardChanges = React.useCallback(() => {
-    if (!isDirty) {
-      return true
-    }
-
-    return window.confirm('You have unsaved changes. Leave this page and discard them?')
-  }, [isDirty])
-
   const handleNavigate = React.useCallback((path: string) => {
-    if (confirmDiscardChanges()) {
-      navigate(path)
-    }
-  }, [confirmDiscardChanges, navigate])
+    // Autosave is canonical: flush any queued edits, then navigate. No blocking
+    // confirm dialog — the autosave hook owns unload protection.
+    saveNow()
+    navigate(path)
+  }, [saveNow, navigate])
 
-  React.useEffect(() => {
-    if (!isDirty) {
-      return undefined
-    }
+  const conflictedSections = PROFILE_SECTION_IDS.filter((id) => sections[id].status === 'conflict')
+  const hasConflict = conflictedSections.length > 0
 
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
+  const handleReloadLatest = React.useCallback(() => {
+    if (!profile) return
+    // Discard local edits and re-hydrate from the authoritative server profile.
+    reset(buildProfileResetValues(
+      getValues() as Record<string, string | undefined>,
+      profile as unknown as Record<string, string | null | undefined>,
+    ) as ProfileForm)
+    conflictedSections.forEach((id) => resolveConflict(id, 'reload'))
+    registerServerVersion(typeof profile?.updated_at === 'string' ? profile.updated_at : undefined)
+    toast.success('Reloaded', 'Showing the latest saved profile.')
+  }, [profile, reset, getValues, conflictedSections, resolveConflict, registerServerVersion, toast])
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isDirty])
+  const handleKeepMine = React.useCallback(() => {
+    conflictedSections.forEach((id) => resolveConflict(id, 'keep'))
+  }, [conflictedSections, resolveConflict])
 
   return (
     <>
       <Seo
-        title="My Settings | Beanola Admissions"
-        description="Manage your profile details, residence information, and security settings for your Beanola admissions account."
+        title={brandedPageTitle('My Settings', brandName)}
+        description="Manage your profile details, residence information, and security settings for your admissions account."
         path="/student/settings"
+        siteName={brandName}
         noindex
       />
     <PageShell
       title="Profile and security settings"
-      subtitle="Review your account details, residence information, notification contact, and active sessions before you continue with applications and payments."
+      subtitle="Your profile changes save automatically as you edit. Review your account details, residence information, notification contact, and active sessions before you continue with applications and payments."
       eyebrow="Profile"
       tone="student"
-      metrics={[
-        { label: 'Profile status', value: isDirty ? 'Unsaved changes' : 'Up to date', helper: 'Form edit state for this session' },
-        { label: 'Notifications', value: 'Managed', helper: 'Channel preferences available from the linked page' },
-        { label: 'Sessions', value: 'Managed', helper: 'Review and revoke active browser sessions below' },
-        { label: 'Country', value: watch('country') || 'Not set', helper: 'Residence country currently selected' },
-      ]}
       actions={
         <Button type="button" variant="secondary" onClick={() => handleNavigate('/student/notifications')}>
           <Bell className="h-4 w-4" />
@@ -302,28 +454,44 @@ export default function StudentSettings() {
           </div>
         ) : (
 
-        <form className="space-y-6" onSubmit={onSubmit}>
-          {saveStatus && (
+        <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
+          {hasConflict && (
             <div
-              role={saveStatus.tone === 'error' ? 'alert' : 'status'}
-              aria-live={saveStatus.tone === 'error' ? 'assertive' : 'polite'}
-              className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm ${
-                saveStatus.tone === 'error'
-                  ? 'border-destructive/30 bg-destructive/5 text-destructive'
-                  : 'border-success/30 bg-success/5 text-success'
-              }`}
+              role="alert"
+              aria-live="assertive"
+              className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
             >
-              {saveStatus.tone === 'error'
-                ? <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                : <CheckCircle2 className="h-4 w-4 flex-shrink-0" />}
-              {saveStatus.message}
+              <span className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                Your profile was updated in another session. Reload the latest version or keep the changes you just made.
+              </span>
+              <span className="flex flex-shrink-0 gap-2">
+                <Button type="button" size="sm" variant="outline" className="min-h-touch" onClick={handleReloadLatest}>
+                  Reload latest
+                </Button>
+                <Button type="button" size="sm" variant="destructive" className="min-h-touch" onClick={handleKeepMine}>
+                  Keep my changes
+                </Button>
+              </span>
+            </div>
+          )}
+
+          {!isOnline && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning"
+            >
+              <CloudOff className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              You are offline. Your edits are kept on this device and will save automatically when you reconnect.
             </div>
           )}
 
           <SectionCard
-            title="Applicant profile"
+            title={SECTION_LABELS.applicant}
             description="These are the core account details that appear throughout the student portal."
             icon={<User className="h-5 w-5" />}
+            actions={<SaveIndicator status={sections.applicant.status} error={sections.applicant.error} />}
           >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Input
@@ -352,10 +520,11 @@ export default function StudentSettings() {
               <Input
                 {...register('phone')}
                 type="tel"
+                inputMode="tel"
                 label="Phone number"
                 autoComplete="tel"
-                placeholder="+260-123-456-789"
-                helperText="This number is reused for SMS notification delivery."
+                placeholder="+260970000000"
+                helperText="Zambian format (+260 and 9 digits). Reused for SMS notification delivery."
                 error={errors.phone?.message}
                 disabled={!profileEditingEnabled}
               />
@@ -382,9 +551,10 @@ export default function StudentSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Residence and identity"
+            title={SECTION_LABELS.residence}
             description="These details feed the application wizard so your residence data does not drift from your student profile."
             icon={<MapPin className="h-5 w-5" />}
+            actions={<SaveIndicator status={sections.residence.status} error={sections.residence.error} />}
           >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <FormSelect
@@ -459,9 +629,10 @@ export default function StudentSettings() {
           </SectionCard>
 
           <SectionCard
-            title="Emergency contact"
+            title={SECTION_LABELS.emergency}
             description="Provide a trusted contact in case the admissions team cannot reach you directly."
             icon={<Users className="h-5 w-5" />}
+            actions={<SaveIndicator status={sections.emergency.status} error={sections.emergency.error} />}
           >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Input
@@ -477,9 +648,10 @@ export default function StudentSettings() {
               <Input
                 {...register('next_of_kin_phone')}
                 type="tel"
+                inputMode="tel"
                 label="Next of kin phone"
                 autoComplete="tel"
-                placeholder="+260-123-456-789"
+                placeholder="+260970000000"
                 error={errors.next_of_kin_phone?.message}
                 disabled={!profileEditingEnabled}
               />
@@ -488,7 +660,7 @@ export default function StudentSettings() {
 
           <SectionCard
             title="Notification delivery"
-            description="Portal inbox notifications stay available in-app, while SMS delivery uses the phone number stored on this profile."
+            description="Portal inbox notifications stay available in-app. SMS delivery uses the phone number stored on this profile."
             icon={<Bell className="h-5 w-5" />}
             actions={
               <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => handleNavigate('/student/notifications')}>
@@ -496,22 +668,9 @@ export default function StudentSettings() {
               </Button>
             }
           >
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Delivery phone</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {getDisplayValue(notificationPhone, 'No phone number on file')}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In-app inbox</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">Always available in the portal</p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Channel controls</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">SMS delivery settings</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              SMS delivery phone: <span className="font-semibold text-foreground">{getDisplayValue(notificationPhone, 'No phone number on file')}</span>
+            </p>
           </SectionCard>
 
           <SectionCard
@@ -525,28 +684,20 @@ export default function StudentSettings() {
             <ActiveSessions />
           </SectionCard>
 
-          <div className="flex flex-col gap-3 md:flex-row md:justify-end">
-            {isDirty && (
-              <p className="text-sm text-muted-foreground md:mr-auto md:self-center">
-                You have unsaved changes.
-              </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+            {PROFILE_SECTION_IDS.some((id) => sections[id].status === 'error') && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full md:mr-auto md:w-auto"
+                onClick={() => PROFILE_SECTION_IDS.forEach((id) => sections[id].status === 'error' && retry(id))}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry saving
+              </Button>
             )}
-            <Button type="button" variant="outline" className="w-full md:w-auto" onClick={() => handleNavigate('/student/dashboard')}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!isDirty || updatingProfile}
-              variant="gradient"
-              className="w-full md:w-auto"
-              loading={updatingProfile}
-            >
-              {updatingProfile ? 'Saving…' : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Save changes
-                </>
-              )}
+            <Button type="button" variant="secondary" className="w-full md:w-auto" onClick={() => handleNavigate('/student/dashboard')}>
+              Done
             </Button>
           </div>
         </form>

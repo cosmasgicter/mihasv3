@@ -1,0 +1,2632 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.13-6-L5-L6.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-13-6-L5-L6",
+        "name": "chromium-13-6-L5-L6",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/viewport-pixel-matrix\\.spec\\.ts$/",
+          "/required\\/a11y-zoom-dimensions\\.spec\\.ts$/",
+          "/required\\/axe-viewport-sweep\\.spec\\.ts$/",
+          "/required\\/long-content-tenant-strings\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-13-6-L5-L6",
+        "name": "mobile-13-6-L5-L6",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/viewport-pixel-matrix\\.spec\\.ts$/",
+          "/required\\/a11y-zoom-dimensions\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.6/remediation/L5-L6/raw/playwright-report.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "../../docs/v2-evidence/13.6/remediation/L5-L6/raw/html-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "a11y-zoom-dimensions.spec.ts",
+      "file": "a11y-zoom-dimensions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the dashboard is fully operable by keyboard, with a visible focus indicator at every stop",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1905,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:34:42.646Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-5d1af7c3b1c203d80ba6",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 114,
+          "column": 1
+        },
+        {
+          "title": "the student surfaces expose a coherent accessibility tree to a screen reader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3383,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:34:49.037Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-9d6f1037e9454e724b7b",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 233,
+          "column": 1
+        },
+        {
+          "title": "a product dialog contains focus and returns it to the trigger on dismissal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:34:52.548Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-bb04f18154d005028186",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 368,
+          "column": 1
+        },
+        {
+          "title": "a refused sign-in reaches a user who cannot see the layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1661,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:34:55.033Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-a65774e010bea966c9ac",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 491,
+          "column": 1
+        },
+        {
+          "title": "reduced motion is honoured on every animated surface",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3888,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:34:56.829Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-a9c57bbc3a2098a08fb7",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 592,
+          "column": 1
+        },
+        {
+          "title": "the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4341,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:35:00.902Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-93a7a0e6b5971de0b893",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 693,
+          "column": 3
+        },
+        {
+          "title": "the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4520,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:35:05.445Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-f014417ca14af7ed16ce",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 693,
+          "column": 3
+        },
+        {
+          "title": "the next action and autosave state stay understandable on slow 3G and offline",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 126142,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('student-next-action')\nExpected: visible\nTimeout: 120000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 120000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('student-next-action')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('student-next-action')\nExpected: visible\nTimeout: 120000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 120000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('student-next-action')\u001b[22m\n\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:885:57",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                      "column": 57,
+                      "line": 885
+                    },
+                    "snippet": "  883 |   const warmStarted = Date.now();\n  884 |   await page.reload({ waitUntil: 'domcontentloaded' });\n> 885 |   await expect(page.getByTestId('student-next-action')).toBeVisible({ timeout: 120_000 });\n      |                                                         ^\n  886 |   const slowMs = Date.now() - warmStarted;\n  887 |   const slowLabel = (await page.locator('[data-testid=\"next-action-primary\"]').first().innerText())\n  888 |     .trim()"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                        "column": 57,
+                        "line": 885
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('student-next-action')\nExpected: visible\nTimeout: 120000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 120000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('student-next-action')\u001b[22m\n\n\n  883 |   const warmStarted = Date.now();\n  884 |   await page.reload({ waitUntil: 'domcontentloaded' });\n> 885 |   await expect(page.getByTestId('student-next-action')).toBeVisible({ timeout: 120_000 });\n      |                                                         ^\n  886 |   const slowMs = Date.now() - warmStarted;\n  887 |   const slowLabel = (await page.locator('[data-testid=\"next-action-primary\"]').first().innerText())\n  888 |     .trim()\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:885:57"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:35:10.164Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-chromium-13-6-L5-L6/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-chromium-13-6-L5-L6/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                    "column": 57,
+                    "line": 885
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-0f3d2f3367c6f0123c2a",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 841,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5097,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:37:19.408Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-b7b4e5e52d9a3bb67463",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 1189,
+          "column": 1
+        },
+        {
+          "title": "the dashboard is fully operable by keyboard, with a visible focus indicator at every stop",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2490,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:17.918Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-04f3ff719106c16def99",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 114,
+          "column": 1
+        },
+        {
+          "title": "the student surfaces expose a coherent accessibility tree to a screen reader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3522,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:24.892Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-6acf91ce3bb725fcd9d0",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 233,
+          "column": 1
+        },
+        {
+          "title": "a product dialog contains focus and returns it to the trigger on dismissal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2910,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:28.642Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-29d8a19eeb3524fc966a",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 368,
+          "column": 1
+        },
+        {
+          "title": "a refused sign-in reaches a user who cannot see the layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1940,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:31.797Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-ea02a68ad1a70a8f741b",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 491,
+          "column": 1
+        },
+        {
+          "title": "reduced motion is honoured on every animated surface",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4553,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:33.942Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-9765f567b6c7ed932c03",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 592,
+          "column": 1
+        },
+        {
+          "title": "the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4664,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:38.716Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-6940dee0dea54c78279d",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 693,
+          "column": 3
+        },
+        {
+          "title": "the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6091,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:43.581Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-3aa3332d92cb9d8bbb0e",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 693,
+          "column": 3
+        },
+        {
+          "title": "the next action and autosave state stay understandable on slow 3G and offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 26841,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:49.886Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-da3aad0187192d166476",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 841,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5253,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:59:17.173Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-bb954dce0231d6f882d3",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 1189,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "axe-viewport-sweep.spec.ts",
+      "file": "axe-viewport-sweep.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12267,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:37:30.183Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-b618d-ocking-violation-at-320x568-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-b618d-ocking-violation-at-320x568-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-dccfe16d4a298c3a547c",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12391,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:37:48.408Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-b8be9-ocking-violation-at-375x667-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-b8be9-ocking-violation-at-375x667-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-f05cd67af0c35ae638fe",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:38:03.386Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-a8b77-ocking-violation-at-390x844-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-a8b77-ocking-violation-at-390x844-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-94f44d6291c3e575ecc8",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12745,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:38:18.397Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-3e471-cking-violation-at-768x1024-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-3e471-cking-violation-at-768x1024-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-52fe9e6bbf5d5ed5a292",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11724,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:38:33.758Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-ba795-cking-violation-at-1280x800-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-ba795-cking-violation-at-1280x800-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-6f73532c1613d0f68149",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13918,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:38:48.062Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-ec2a8-cking-violation-at-1440x900-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-axe-WCA-ec2a8-cking-violation-at-1440x900-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-bddc33508553a093bf6d",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "GATE-13.3-11 (closed): the bottom navigation has accessible names at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2938,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:39:04.954Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-GATE-13-239a5-accessible-names-at-320x568-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/axe-viewport-sweep-GATE-13-239a5-accessible-names-at-320x568-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-1a71275810a3083069d0",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 280,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "long-content-tenant-strings.spec.ts",
+      "file": "long-content-tenant-strings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a 180-character program name and 120-character intake name hold at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 170452,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:39:08.558Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-86466-name-hold-at-all-six-widths-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-86466-name-hold-at-all-six-widths-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-d07657e9be1c5bd0899d",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 421,
+          "column": 1
+        },
+        {
+          "title": "localized program names (RTL, CJK, Devanagari) hold at the narrowest and widest widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:44:44.806Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-e8bd2-narrowest-and-widest-widths-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-e8bd2-narrowest-and-widest-widths-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-7b941d11b5d925977741",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 491,
+          "column": 1
+        },
+        {
+          "title": "a 150-character tenant name resolves through context without breaking a layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 42369,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:45:14.662Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-73c9e-t-without-breaking-a-layout-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-73c9e-t-without-breaking-a-layout-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-53053f8512f450521e77",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 563,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-13: an application can be created for a legally-named long intake (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "line": 697,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1728,
+                  "error": {
+                    "message": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"fb668bca-2427-4fdb-8961-26ee9c048835\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m",
+                    "stack": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"fb668bca-2427-4fdb-8961-26ee9c048835\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:778:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                      "column": 7,
+                      "line": 778
+                    },
+                    "snippet": "  776 |       `application create should not be a server error for an intake name the ` +\n  777 |         `catalogue accepted (${OVERLONG_INTAKE_NAME.length} chars); got ${status}: ${body.slice(0, 200)}`,\n> 778 |     ).toBeLessThan(500);\n      |       ^\n  779 |   },\n  780 | );\n  781 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "column": 7,
+                        "line": 778
+                      },
+                      "message": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"fb668bca-2427-4fdb-8961-26ee9c048835\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m\n\n  776 |       `application create should not be a server error for an intake name the ` +\n  777 |         `catalogue accepted (${OVERLONG_INTAKE_NAME.length} chars); got ${status}: ${body.slice(0, 200)}`,\n> 778 |     ).toBeLessThan(500);\n      |       ^\n  779 |   },\n  780 | );\n  781 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:778:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:45:57.231Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "line": 697,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-ef28a-ng-intake-expected-failure--chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-ef28a-ng-intake-expected-failure--chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "column": 7,
+                    "line": 778
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-8776605caed304f70592",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 697,
+          "column": 6
+        },
+        {
+          "title": "GATE-13.3-14 (closed): the rendered font stack is the full declared chain",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 824,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:45:59.028Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-dccdf--is-the-full-declared-chain-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/long-content-tenant-string-dccdf--is-the-full-declared-chain-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-a5162ac3e0df3cc23787",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 839,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "viewport-pixel-matrix.spec.ts",
+      "file": "viewport-pixel-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "every student surface holds at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113128,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:46:00.082Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-c7b89cb5540cf5419b95",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113401,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:47:57.502Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-8f06870e3b4e18b5d9b0",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113109,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:49:51.250Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-fdafaa59d34fc779592a",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114261,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:51:44.711Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-d3e0dc5a2bd131c261ec",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113921,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:53:39.442Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-de1303e75ca688830466",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114407,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:55:33.786Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-115e3e585a13c663fa59",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "the server-derived next action is fully visible, unscrolled, at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1975,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:57:28.612Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-058d479fbec81016caf5",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 340,
+          "column": 1
+        },
+        {
+          "title": "the wizard action bar and bottom navigation respect the bottom safe area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3272,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:57:30.703Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-c461daee0e3477a6e813",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 449,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-01 (closed): every pointer target is >= 44x44 on the dashboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1699,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:57:34.142Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-af64c-t-is-44x44-on-the-dashboard-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-af64c-t-is-44x44-on-the-dashboard-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-1a8ff0dfa22d2170de9c",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 557,
+          "column": 1
+        },
+        {
+          "title": "cumulative layout shift stays within budget at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 34104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:57:35.935Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-cea2cd49f45a7029eae8",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 613,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-09/-04 (closed): the bare /student/status route resolves and its controls meet 44px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2839,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:10.882Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-64f15--and-its-controls-meet-44px-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-64f15--and-its-controls-meet-44px-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-1aba2a8138f7d552062e",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 725,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-16 (closed): no fixed bar overlaps the next action at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-6-L5-L6",
+              "projectName": "chromium-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1857,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:58:13.805Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-d91ad--the-next-action-at-320x568-chromium-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-d91ad--the-next-action-at-320x568-chromium-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-ca6ead186e8a23128e71",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 885,
+          "column": 1
+        },
+        {
+          "title": "every student surface holds at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113962,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T03:59:22.644Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-962d6b75c64652a82774",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114784,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:11:07.802Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-4b66f4d94fa3f98fc092",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114799,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:13:03.027Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-f74ba03276d486bdbad8",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 116791,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:14:58.283Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-d1dbdf56ff0e6bd1d625",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 118468,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:16:55.574Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-dba3ccd6d18f65bb801f",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 120011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:18:54.546Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-a0596b31a0dddbe02251",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 293,
+          "column": 3
+        },
+        {
+          "title": "the server-derived next action is fully visible, unscrolled, at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2089,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:20:54.979Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-5f8e56985d21c3ee390b",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 340,
+          "column": 1
+        },
+        {
+          "title": "the wizard action bar and bottom navigation respect the bottom safe area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3592,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:20:57.188Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-b8d3029d899121aa7984",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 449,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-01 (closed): every pointer target is >= 44x44 on the dashboard",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2001,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:21:01.011Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-af64c-t-is-44x44-on-the-dashboard-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-af64c-t-is-44x44-on-the-dashboard-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-ac6736c3493468731d1d",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 557,
+          "column": 1
+        },
+        {
+          "title": "cumulative layout shift stays within budget at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 34847,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:21:03.191Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-86a9059c2093fae6a5ad",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 613,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-09/-04 (closed): the bare /student/status route resolves and its controls meet 44px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3110,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:21:38.836Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-64f15--and-its-controls-meet-44px-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-64f15--and-its-controls-meet-44px-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-1b2ec74fa85edf8ab0bc",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 725,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-16 (closed): no fixed bar overlaps the next action at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-6-L5-L6",
+              "projectName": "mobile-13-6-L5-L6",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2250,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-14T04:21:42.061Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-d91ad--the-next-action-at-320x568-mobile-13-6-L5-L6/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/viewport-pixel-matrix-GATE-d91ad--the-next-action-at-320x568-mobile-13-6-L5-L6/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-9347a09339c89bcd355b",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 885,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-14T03:34:40.885Z",
+    "duration": 2077287.301,
+    "expected": 53,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

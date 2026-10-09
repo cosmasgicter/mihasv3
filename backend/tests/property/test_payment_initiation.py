@@ -2,513 +2,123 @@
 
 # Feature: lenco-payment-integration, Property 2: Payment initiation creates a complete record
 
-For any valid application ID, user ID, and resolved fee, initiating a payment
-should create a Payment record with status `pending`, the correct amount and
-currency, a non-empty transaction reference, the application FK set, and the
-Lenco public key stored in metadata.
+For any valid application and fee configuration, initiating a payment creates a
+Payment row with status ``pending``, the server-resolved amount and currency, a
+non-empty transaction reference, the application foreign key set, and the fee
+context in metadata.
+
+admissions-v2 task 8.2 rewrote this module. It previously drove the deleted
+``PaymentService.initiate_payment`` through five near-identical mock fortresses;
+the mocks asserted the arguments passed to ``Payment.objects.create`` rather than
+what ended up in the database. It now exercises the one surviving initiation path
+(``PaymentService.initiate``) against a real database, so the assertions cover
+the row that was actually written — including the task 8.1 fee-quote binding that
+funds it.
 
 **Validates: Requirements 2.1, 2.2**
 """
 
-import os
 import uuid
 from decimal import Decimal
-from unittest.mock import MagicMock, call, patch
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
-os.environ["TESTING"] = "1"
+import pytest
+from django.utils import timezone
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
-import django  # noqa: E402
-
-django.setup()
-
-from django.test import SimpleTestCase  # noqa: E402
-from hypothesis import given, settings  # noqa: E402
-from hypothesis import strategies as st  # noqa: E402
-
-from apps.applications.identifier_resolver import ResolvedIdentifier  # noqa: E402
-from apps.documents.fee_resolver import ResolvedFee  # noqa: E402
-from apps.documents.payment_service import PaymentService  # noqa: E402
-
-from contextlib import contextmanager  # noqa: E402
-
-
-@contextmanager
-def _noop_atomic():
-    """A no-op context manager that replaces transaction.atomic()."""
-    yield
-
-
-def _mock_resolved_program(program_code):
-    """Return a ResolvedIdentifier for a program code (simulates successful resolution)."""
-    return ResolvedIdentifier(
-        id=str(uuid.uuid4()), code=program_code, name=program_code, source="name"
-    )
+from apps.documents.models import Payment, ProgramFee
+from apps.documents.payment_service import PaymentService
+from tests.tenant_fixtures import build_tenant_world
 
 # ---------------------------------------------------------------------------
-# Strategies
+# Strategies — constrained to the real input space
 # ---------------------------------------------------------------------------
 
-# UUIDs for application and user IDs
-uuids = st.uuids()
-
-# Positive decimal amounts for fees
+# Fee amounts a school can actually configure: positive, 2 decimal places, and
+# within the ``numeric(10,2)`` column.
 fee_amounts = st.decimals(
-    min_value=Decimal("0.01"),
+    min_value=Decimal("1.00"),
     max_value=Decimal("99999.99"),
     places=2,
     allow_nan=False,
     allow_infinity=False,
 )
 
-# Currency codes (3-letter ISO)
-currency_codes = st.sampled_from(["ZMW", "USD", "EUR", "GBP", "ZAR"])
-
-# Residency categories
 residency_categories = st.sampled_from(["local", "international"])
 
-# Fee sources
-fee_sources = st.sampled_from(["program_fee", "program_default"])
 
-# Application numbers (alphanumeric with dashes, like "APP-2025-0001")
-application_numbers = st.from_regex(r"APP-[0-9]{4}-[0-9]{4}", fullmatch=True)
-
-# Nationalities
-nationalities = st.one_of(st.just("Zambian"), st.just("Nigerian"), st.none())
-
-# Countries
-countries = st.one_of(
-    st.just("Zambia"), st.just("ZM"), st.just("Nigeria"), st.none()
-)
-
-# Program codes
-program_codes = st.text(
-    alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
-    min_size=1,
-    max_size=20,
-)
+def _configure_fee(offering, *, amount: Decimal, residency: str) -> ProgramFee:
+    now = timezone.now()
+    return ProgramFee.objects.create(
+        id=uuid.uuid4(),
+        program=offering,
+        fee_type="application",
+        residency_category=residency,
+        amount=amount,
+        currency="ZMW",
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Tests
+# Property 2 — initiation creates a complete record
 # ---------------------------------------------------------------------------
 
 
-class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
-    """Payment initiation must create a Payment record with all required fields.
+@pytest.mark.django_db(transaction=True)
+@given(fee_amount=fee_amounts, residency=residency_categories)
+@settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_initiation_writes_a_complete_pending_payment(fee_amount, residency):
+    """Whatever the configured fee, the persisted row is complete and pending.
+
+    Completeness here means every field a later stage depends on: the status the
+    state machine starts from, the amount and currency the provider will be
+    asked for, the reference reconciliation joins on, the application the money
+    belongs to, and the fee context that explains the number.
 
     **Validates: Requirements 2.1, 2.2**
     """
+    world = build_tenant_world(application_status="submitted")
+    if residency == "international":
+        # The fixture's applicant is Zambian; residency is derived from the
+        # application, so change the application rather than assume the resolver
+        # can be told what to think.
+        world.application.nationality = "Kenyan"
+        world.application.country = "Kenya"
+        world.application.save(update_fields=["nationality", "country"])
+    _configure_fee(world.offering, amount=fee_amount, residency=residency)
 
-    @given(
-        application_id=uuids,
-        user_id=uuids,
-        fee_amount=fee_amounts,
-        fee_currency=currency_codes,
-        residency=residency_categories,
-        fee_source=fee_sources,
-        app_number=application_numbers,
-        nationality=nationalities,
-        country=countries,
-        program_code=program_codes,
+    result = PaymentService().initiate(world.application.id, world.student.id)
+
+    assert result.payment_id is not None, "Initiation must return the new payment id."
+    payment = Payment.objects.get(id=result.payment_id)
+
+    assert payment.status == "pending"
+    assert payment.amount == fee_amount
+    assert payment.currency == "ZMW"
+    assert payment.transaction_reference, "The reference must be non-empty."
+    assert payment.application_id == world.application.id
+    assert payment.user_id == world.student.id
+
+    metadata = payment.metadata or {}
+    assert metadata.get("residency_category") == residency
+    assert metadata.get("fee_source"), "The fee's provenance must be recorded."
+    assert metadata.get("snapshot"), (
+        "The immutable amount snapshot must be written at creation — the "
+        "integrity gate compares provider answers against it."
     )
-    @settings(max_examples=5)
-    def test_payment_created_with_pending_status(
-        self,
-        application_id,
-        user_id,
-        fee_amount,
-        fee_currency,
-        residency,
-        fee_source,
-        app_number,
-        nationality,
-        country,
-        program_code,
-    ):
-        """For any valid inputs, initiate_payment creates a Payment with
-        status='pending'."""
-        service = PaymentService()
-
-        # Mock application lookup
-        mock_application = MagicMock()
-        mock_application.id = application_id
-        mock_application.program = program_code
-        mock_application.nationality = nationality
-        mock_application.country = country
-        mock_application.application_number = app_number
-
-        # Mock resolved fee
-        resolved_fee = ResolvedFee(
-            amount=fee_amount,
-            currency=fee_currency,
-            residency_category=residency,
-            source=fee_source,
-        )
-
-        # Mock the created payment object
-        mock_payment = MagicMock()
-        mock_payment.id = uuid.uuid4()
-
-        with (
-            patch(
-                "apps.applications.models.Application.objects"
-            ) as mock_app_qs,
-            patch.object(
-                service, "_fee_resolver"
-            ) as mock_resolver,
-            patch(
-                "apps.documents.payment_service.Payment.objects"
-            ) as mock_payment_qs,
-            patch(
-                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-                return_value=_mock_resolved_program(program_code),
-            ),
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_app_qs.get.return_value = mock_application
-            mock_resolver.resolve_fee.return_value = resolved_fee
-            mock_payment_qs.create.return_value = mock_payment
-            mock_payment_qs.filter.return_value.first.return_value = None
-            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
-
-            service.initiate_payment(application_id, user_id)
-
-            # Verify Payment.objects.create was called
-            mock_payment_qs.create.assert_called_once()
-            create_kwargs = mock_payment_qs.create.call_args[1]
-
-            # Status must be 'pending'
-            self.assertEqual(
-                create_kwargs["status"],
-                "pending",
-                "Payment status must be 'pending' on initiation",
-            )
-
-    @given(
-        application_id=uuids,
-        user_id=uuids,
-        fee_amount=fee_amounts,
-        fee_currency=currency_codes,
-        residency=residency_categories,
-        fee_source=fee_sources,
-        app_number=application_numbers,
-        nationality=nationalities,
-        country=countries,
-        program_code=program_codes,
+    assert metadata.get("fee_quote"), (
+        "A payment must be funded by a server-authored quote (task 8.1, R12.1)."
     )
-    @settings(max_examples=5)
-    def test_payment_created_with_correct_amount_and_currency(
-        self,
-        application_id,
-        user_id,
-        fee_amount,
-        fee_currency,
-        residency,
-        fee_source,
-        app_number,
-        nationality,
-        country,
-        program_code,
-    ):
-        """For any valid inputs, initiate_payment creates a Payment with
-        the resolved fee amount and currency."""
-        service = PaymentService()
 
-        mock_application = MagicMock()
-        mock_application.id = application_id
-        mock_application.program = program_code
-        mock_application.nationality = nationality
-        mock_application.country = country
-        mock_application.application_number = app_number
-
-        resolved_fee = ResolvedFee(
-            amount=fee_amount,
-            currency=fee_currency,
-            residency_category=residency,
-            source=fee_source,
-        )
-
-        mock_payment = MagicMock()
-        mock_payment.id = uuid.uuid4()
-
-        with (
-            patch(
-                "apps.applications.models.Application.objects"
-            ) as mock_app_qs,
-            patch.object(service, "_fee_resolver") as mock_resolver,
-            patch(
-                "apps.documents.payment_service.Payment.objects"
-            ) as mock_payment_qs,
-            patch(
-                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-                return_value=_mock_resolved_program(program_code),
-            ),
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_app_qs.get.return_value = mock_application
-            mock_resolver.resolve_fee.return_value = resolved_fee
-            mock_payment_qs.create.return_value = mock_payment
-            mock_payment_qs.filter.return_value.first.return_value = None
-            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
-
-            service.initiate_payment(application_id, user_id)
-
-            create_kwargs = mock_payment_qs.create.call_args[1]
-
-            self.assertEqual(
-                create_kwargs["amount"],
-                fee_amount,
-                f"Payment amount should be {fee_amount}, got {create_kwargs['amount']}",
-            )
-            self.assertEqual(
-                create_kwargs["currency"],
-                fee_currency,
-                f"Payment currency should be {fee_currency}, got {create_kwargs['currency']}",
-            )
-
-    @given(
-        application_id=uuids,
-        user_id=uuids,
-        fee_amount=fee_amounts,
-        fee_currency=currency_codes,
-        residency=residency_categories,
-        fee_source=fee_sources,
-        app_number=application_numbers,
-        nationality=nationalities,
-        country=countries,
-        program_code=program_codes,
-    )
-    @settings(max_examples=5)
-    def test_payment_created_with_non_empty_reference(
-        self,
-        application_id,
-        user_id,
-        fee_amount,
-        fee_currency,
-        residency,
-        fee_source,
-        app_number,
-        nationality,
-        country,
-        program_code,
-    ):
-        """For any valid inputs, initiate_payment creates a Payment with
-        a non-empty transaction reference."""
-        service = PaymentService()
-
-        mock_application = MagicMock()
-        mock_application.id = application_id
-        mock_application.program = program_code
-        mock_application.nationality = nationality
-        mock_application.country = country
-        mock_application.application_number = app_number
-
-        resolved_fee = ResolvedFee(
-            amount=fee_amount,
-            currency=fee_currency,
-            residency_category=residency,
-            source=fee_source,
-        )
-
-        mock_payment = MagicMock()
-        mock_payment.id = uuid.uuid4()
-
-        with (
-            patch(
-                "apps.applications.models.Application.objects"
-            ) as mock_app_qs,
-            patch.object(service, "_fee_resolver") as mock_resolver,
-            patch(
-                "apps.documents.payment_service.Payment.objects"
-            ) as mock_payment_qs,
-            patch(
-                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-                return_value=_mock_resolved_program(program_code),
-            ),
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_app_qs.get.return_value = mock_application
-            mock_resolver.resolve_fee.return_value = resolved_fee
-            mock_payment_qs.create.return_value = mock_payment
-            mock_payment_qs.filter.return_value.first.return_value = None
-            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
-
-            service.initiate_payment(application_id, user_id)
-
-            create_kwargs = mock_payment_qs.create.call_args[1]
-
-            ref = create_kwargs["transaction_reference"]
-            self.assertIsNotNone(ref, "Transaction reference must not be None")
-            self.assertTrue(
-                len(ref) > 0,
-                "Transaction reference must not be empty",
-            )
-
-    @given(
-        application_id=uuids,
-        user_id=uuids,
-        fee_amount=fee_amounts,
-        fee_currency=currency_codes,
-        residency=residency_categories,
-        fee_source=fee_sources,
-        app_number=application_numbers,
-        nationality=nationalities,
-        country=countries,
-        program_code=program_codes,
-    )
-    @settings(max_examples=5)
-    def test_payment_created_with_application_fk(
-        self,
-        application_id,
-        user_id,
-        fee_amount,
-        fee_currency,
-        residency,
-        fee_source,
-        app_number,
-        nationality,
-        country,
-        program_code,
-    ):
-        """For any valid inputs, initiate_payment creates a Payment with
-        the application_id foreign key set correctly."""
-        service = PaymentService()
-
-        mock_application = MagicMock()
-        mock_application.id = application_id
-        mock_application.program = program_code
-        mock_application.nationality = nationality
-        mock_application.country = country
-        mock_application.application_number = app_number
-
-        resolved_fee = ResolvedFee(
-            amount=fee_amount,
-            currency=fee_currency,
-            residency_category=residency,
-            source=fee_source,
-        )
-
-        mock_payment = MagicMock()
-        mock_payment.id = uuid.uuid4()
-
-        with (
-            patch(
-                "apps.applications.models.Application.objects"
-            ) as mock_app_qs,
-            patch.object(service, "_fee_resolver") as mock_resolver,
-            patch(
-                "apps.documents.payment_service.Payment.objects"
-            ) as mock_payment_qs,
-            patch(
-                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-                return_value=_mock_resolved_program(program_code),
-            ),
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_app_qs.get.return_value = mock_application
-            mock_resolver.resolve_fee.return_value = resolved_fee
-            mock_payment_qs.create.return_value = mock_payment
-            mock_payment_qs.filter.return_value.first.return_value = None
-            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
-
-            service.initiate_payment(application_id, user_id)
-
-            create_kwargs = mock_payment_qs.create.call_args[1]
-
-            self.assertEqual(
-                create_kwargs["application_id"],
-                application_id,
-                f"application_id should be {application_id}, "
-                f"got {create_kwargs['application_id']}",
-            )
-
-    @given(
-        application_id=uuids,
-        user_id=uuids,
-        fee_amount=fee_amounts,
-        fee_currency=currency_codes,
-        residency=residency_categories,
-        fee_source=fee_sources,
-        app_number=application_numbers,
-        nationality=nationalities,
-        country=countries,
-        program_code=program_codes,
-    )
-    @settings(max_examples=5)
-    def test_payment_metadata_contains_fee_context(
-        self,
-        application_id,
-        user_id,
-        fee_amount,
-        fee_currency,
-        residency,
-        fee_source,
-        app_number,
-        nationality,
-        country,
-        program_code,
-    ):
-        """For any valid inputs, initiate_payment creates a Payment with
-        metadata containing residency_category and fee_source from the
-        resolved fee."""
-        service = PaymentService()
-
-        mock_application = MagicMock()
-        mock_application.id = application_id
-        mock_application.program = program_code
-        mock_application.nationality = nationality
-        mock_application.country = country
-        mock_application.application_number = app_number
-
-        resolved_fee = ResolvedFee(
-            amount=fee_amount,
-            currency=fee_currency,
-            residency_category=residency,
-            source=fee_source,
-        )
-
-        mock_payment = MagicMock()
-        mock_payment.id = uuid.uuid4()
-
-        with (
-            patch(
-                "apps.applications.models.Application.objects"
-            ) as mock_app_qs,
-            patch.object(service, "_fee_resolver") as mock_resolver,
-            patch(
-                "apps.documents.payment_service.Payment.objects"
-            ) as mock_payment_qs,
-            patch(
-                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
-                return_value=_mock_resolved_program(program_code),
-            ),
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_app_qs.get.return_value = mock_application
-            mock_resolver.resolve_fee.return_value = resolved_fee
-            mock_payment_qs.create.return_value = mock_payment
-            mock_payment_qs.filter.return_value.first.return_value = None
-            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
-
-            service.initiate_payment(application_id, user_id)
-
-            create_kwargs = mock_payment_qs.create.call_args[1]
-            metadata = create_kwargs["metadata"]
-
-            self.assertIsInstance(metadata, dict, "metadata must be a dict")
-            self.assertEqual(
-                metadata.get("residency_category"),
-                residency,
-                f"metadata.residency_category should be '{residency}'",
-            )
-            self.assertEqual(
-                metadata.get("fee_source"),
-                fee_source,
-                f"metadata.fee_source should be '{fee_source}'",
-            )
+    # The returned result and the row agree — a caller cannot be shown one
+    # amount while another is persisted.
+    assert result.amount == payment.amount
+    assert result.currency == payment.currency
+    assert result.reference == payment.transaction_reference

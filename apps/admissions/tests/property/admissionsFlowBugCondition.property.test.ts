@@ -16,33 +16,59 @@ import * as path from 'path'
 // ---------------------------------------------------------------------------
 // Bug 1 — Auth failure stops retries
 // ---------------------------------------------------------------------------
+// Originally source scans of `src/hooks/useAutoSave.ts`. Admissions-v2 task 6.3
+// retired that hook; the wizard's draft writes are owned by the draft machine,
+// and the authentication classification lives in its adapter
+// (`classifyDraftCommandError`, via `isAuthSaveError`).
 describe('[PBT] Bug 1 — Auth failure immediately stops retries', () => {
-  it('useAutoSave source contains AuthenticationError handling', () => {
-    const hookPath = path.resolve(__dirname, '../../src/hooks/useAutoSave.ts')
-    const source = fs.readFileSync(hookPath, 'utf-8')
-    expect(source).toMatch(/AuthenticationError/)
-    expect(source).toMatch(/import.*AuthenticationError.*from/)
-  })
-
-  it('useAutoSave sets session-expired message', () => {
-    const hookPath = path.resolve(__dirname, '../../src/hooks/useAutoSave.ts')
-    const source = fs.readFileSync(hookPath, 'utf-8')
-    expect(/SESSION_EXPIRED/i.test(source)).toBe(true)
-  })
-
-  it('property: instanceof AuthenticationError check exists', () => {
-    const hookPath = path.resolve(__dirname, '../../src/hooks/useAutoSave.ts')
-    const source = fs.readFileSync(hookPath, 'utf-8')
-    fc.assert(
-      fc.property(
-        fc.constantFrom('instanceof AuthenticationError', 'AuthenticationError'),
-        (pattern) => { expect(source).toContain(pattern) }
-      ),
-      { numRuns: 2 }
+  it('the draft adapter classifies an AuthenticationError as an auth failure', async () => {
+    const { AuthenticationError } = await import('@/services/errors')
+    const { classifyDraftCommandError } = await import(
+      '@/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence'
     )
+    expect(classifyDraftCommandError(new AuthenticationError('expired'), 'update')).toBe('auth')
+    expect(classifyDraftCommandError(new AuthenticationError('expired'), 'start')).toBe('auth')
+    const utils = fs.readFileSync(
+      path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/wizard/wizardControllerUtils.ts'),
+      'utf-8',
+    )
+    expect(utils).toMatch(/import.*AuthenticationError.*from/)
+  })
+
+  it('the draft machine sets the session-expired message', async () => {
+    const { WIZARD_DRAFT_MESSAGES } = await import('@/lib/wizardDraftController')
+    expect(WIZARD_DRAFT_MESSAGES.sessionExpired).toMatch(/saved on this device/i)
+  })
+
+  it('property: an auth failure schedules no retry, whatever was being saved', async () => {
+    vi.useFakeTimers()
+    try {
+      const { AuthenticationError } = await import('@/services/errors')
+      const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
+      await fc.assert(
+        fc.asyncProperty(fc.constantFrom('Lusaka', 'Ndola', 'Mongu', 'Chipata'), async (town) => {
+          const h = createDraftHarness()
+          h.adapters.classifyError = (error, phase) =>
+            error instanceof AuthenticationError ? 'auth' : phase === 'update' ? 'retryable' : 'retryable'
+          h.machine.activate()
+          h.hydrate()
+          h.server.failures.push(new AuthenticationError('expired'))
+          h.edit('residence_town', town)
+          await vi.advanceTimersByTimeAsync(2_000)
+          await settle()
+          const calls = h.server.updateCalls.length
+          await vi.advanceTimersByTimeAsync(60_000)
+          await settle()
+          expect(h.server.updateCalls.length).toBe(calls)
+          h.machine.dispose()
+        }),
+        { numRuns: 4 },
+      )
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
-
 // ---------------------------------------------------------------------------
 // Bug 2 — Phone normalization
 // ---------------------------------------------------------------------------

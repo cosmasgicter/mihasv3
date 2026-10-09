@@ -126,8 +126,20 @@ def _strip_line_comments(sql: str) -> str:
 # blocks (as in 2026_05_18_hot_query_indexes_rollback.sql) match
 # independently. The trailing ``;`` is required by Postgres syntax for
 # anonymous code blocks.
+# 13.6 remediation M3 — INSTRUMENT-A. This pattern required WHITESPACE either
+# side of the dollar quotes (``DO\s+\$\$`` … ``END\s+\$\$``). Postgres does not:
+# ``DO $$ … END$$;`` is the same statement, and four rollback files in this
+# repository are written that way. The block therefore was not stripped, its
+# ``IF EXISTS … THEN ALTER TABLE …`` interior was split on ``;`` like ordinary
+# SQL, and 16 fragments were reported as violations — every one of them a piece
+# of a guard block Requirement 9.4 explicitly allows.
+#
+# The whitespace is now optional and the dollar-quote **tag** is honoured
+# (``$$`` or ``$name$``), with the closing tag required to match the opening one
+# via a backreference. That is stricter about pairing than the old pattern while
+# accepting the two spellings Postgres accepts.
 _DO_BLOCK_RE = re.compile(
-    r"DO\s+\$\$.*?END\s+\$\$\s*;",
+    r"DO\s*(\$[A-Za-z_]*\$).*?END\s*\1\s*;",
     flags=re.DOTALL | re.IGNORECASE,
 )
 
@@ -183,8 +195,18 @@ _DELETE_FROM_TABLE_RE = re.compile(
 # for dropping multiple columns in one statement. Allowed only when EVERY
 # clause inside the ALTER TABLE body is a DROP COLUMN — any ADD, ALTER
 # COLUMN TYPE, or other operation re-introduces forward-additive shape.
+#
+# 13.6 remediation M3 — INSTRUMENT-B. ``(?:ONLY\s+)?`` admitted
+# ``ALTER TABLE ONLY t`` but not ``ALTER TABLE IF EXISTS t``, which is standard
+# Postgres and strictly *more* defensive than the bare form — it makes the
+# rollback idempotent when the table is already gone. Six statements in
+# ``2026_07_26_01_document_evidence_lifecycle_rollback.sql`` were reported for
+# using it. ``_ALTER_TABLE_TARGET`` is now shared by both allowed forms so the
+# two cannot drift apart again.
+_ALTER_TABLE_TARGET = r"ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:ONLY\s+)?[A-Za-z_][A-Za-z0-9_.]*\s+"
+
 _ALTER_TABLE_DROP_COLUMN_RE = re.compile(
-    r"^ALTER\s+TABLE\s+(?:ONLY\s+)?[A-Za-z_][A-Za-z0-9_.]*\s+DROP\s+COLUMN\b",
+    r"^" + _ALTER_TABLE_TARGET + r"DROP\s+COLUMN\b",
     re.IGNORECASE,
 )
 
@@ -193,7 +215,7 @@ _ALTER_TABLE_DROP_COLUMN_RE = re.compile(
 # foreign key). Dropping a named constraint removes only metadata; it cannot
 # destroy a row, so it is strictly inverse-additive and safe in a rollback.
 _ALTER_TABLE_DROP_CONSTRAINT_RE = re.compile(
-    r"^ALTER\s+TABLE\s+(?:ONLY\s+)?[A-Za-z_][A-Za-z0-9_.]*\s+DROP\s+CONSTRAINT\b",
+    r"^" + _ALTER_TABLE_TARGET + r"DROP\s+CONSTRAINT\b",
     re.IGNORECASE,
 )
 
@@ -287,7 +309,7 @@ def _classify_statement(stmt: str) -> tuple[bool, str]:
         # Strip the ``ALTER TABLE [ONLY] <name>`` prefix to inspect the
         # body. The remaining text is a comma-separated list of clauses.
         body = re.sub(
-            r"^ALTER\s+TABLE\s+(?:ONLY\s+)?[A-Za-z_][A-Za-z0-9_.]*\s+",
+            r"^" + _ALTER_TABLE_TARGET,
             "",
             normalised,
             flags=re.IGNORECASE,
@@ -310,6 +332,25 @@ def _classify_statement(stmt: str) -> tuple[bool, str]:
     #     ``ADD`` elsewhere in the statement (already rejected in step 2).
     if _ALTER_TABLE_DROP_CONSTRAINT_RE.match(normalised):
         return True, "alter-drop-constraint"
+
+    # 6c. Allow a strictly READ-ONLY statement (13.6 remediation M3 —
+    #     INSTRUMENT-C). Two rollback files are deliberately inert: the forward
+    #     script they undo only *validated* an already-present NOT VALID
+    #     constraint, and a validation has no inverse worth writing, so the
+    #     rollback is a single ``SELECT 1`` documenting that on purpose rather
+    #     than an empty file that looks like an oversight. A read moves no data
+    #     and cannot destroy a row, so it belongs in the allowed set.
+    #
+    #     The guard is that it must be read-*only*: Postgres lets a CTE carry
+    #     DML (``WITH x AS (DELETE FROM t RETURNING *) SELECT …``), which is a
+    #     data-modifying statement wearing a SELECT's clothes. A statement
+    #     naming INSERT / UPDATE / DELETE / MERGE anywhere is therefore not
+    #     accepted here and falls through to the rejection below —
+    #     ``test_a_select_wrapping_dml_is_still_rejected`` pins that.
+    if re.match(r"^(SELECT|WITH)\b", normalised, re.IGNORECASE) and not re.search(
+        r"\b(INSERT|UPDATE|DELETE|MERGE)\b", normalised, re.IGNORECASE
+    ):
+        return True, "read-only"
 
     # 7. Anything else is rejected.
     return False, (
@@ -424,3 +465,113 @@ def test_every_discovered_rollback_file_is_individually_safe() -> None:
         "Rollback file(s) contain non-inverse-additive operations.\n"
         "Violations:\n  - " + "\n  - ".join(all_failures)
     )
+
+
+# ---------------------------------------------------------------------------
+# The widened patterns must still say NO (13.6 remediation M3)
+# ---------------------------------------------------------------------------
+#
+# Widening an over-narrow lint is only defensible if the dangerous forms are
+# still caught. Each case below is a statement the widened classifier could
+# plausibly have started accepting by accident, and none of them is accepted.
+
+
+def test_do_block_stripping_accepts_both_dollar_quote_spellings() -> None:
+    """``END $$;`` and ``END$$;`` are the same statement to Postgres.
+
+    **Validates: Requirements 9.2, 9.4**
+    """
+    spaced = "DO $$ BEGIN RAISE NOTICE 'x'; END $$;\nDROP TABLE t;"
+    tight = "DO $$ BEGIN RAISE NOTICE 'x'; END$$;\nDROP TABLE t;"
+    tagged = "DO $blk$ BEGIN RAISE NOTICE 'x'; END$blk$;\nDROP TABLE t;"
+    for sql in (spaced, tight, tagged):
+        assert _split_statements(_strip_do_blocks(sql)) == ["DROP TABLE t"], sql
+
+
+def test_do_block_stripping_requires_matching_tags() -> None:
+    """A mismatched dollar-quote tag is not treated as a closed block.
+
+    Stricter than the pattern it replaced, which had no tag concept at all.
+
+    **Validates: Requirements 9.2**
+    """
+    sql = "DO $a$ BEGIN RAISE NOTICE 'x'; END$b$;\nDROP TABLE t;"
+    assert "DO $a$" in _strip_do_blocks(sql)
+
+
+def test_alter_table_if_exists_drop_is_allowed_but_add_is_not() -> None:
+    """``IF EXISTS`` makes a rollback idempotent; it must not smuggle in ADD.
+
+    **Validates: Requirements 9.2**
+    """
+    for allowed in (
+        "ALTER TABLE IF EXISTS t DROP CONSTRAINT IF EXISTS c",
+        "ALTER TABLE IF EXISTS ONLY t DROP COLUMN c",
+        "ALTER TABLE ONLY t DROP COLUMN c",
+    ):
+        ok, reason = _classify_statement(allowed)
+        assert ok, (allowed, reason)
+
+    for rejected in (
+        "ALTER TABLE IF EXISTS t ADD COLUMN c integer",
+        "ALTER TABLE IF EXISTS t ADD CONSTRAINT c CHECK (x > 0)",
+        "ALTER TABLE IF EXISTS t DROP COLUMN a, ADD COLUMN b integer",
+        "ALTER TABLE IF EXISTS t ALTER COLUMN c TYPE text",
+    ):
+        ok, reason = _classify_statement(rejected)
+        assert not ok, (rejected, reason)
+
+
+def test_a_select_wrapping_dml_is_still_rejected() -> None:
+    """A read-only statement is allowed; a CTE carrying DML is not.
+
+    This is the one that matters: Postgres lets ``WITH x AS (DELETE FROM t
+    RETURNING *) SELECT * FROM x`` destroy rows while beginning with ``WITH``.
+
+    **Validates: Requirements 9.2**
+    """
+    for allowed in ("SELECT 1", "select 1", "WITH x AS (SELECT 1) SELECT * FROM x"):
+        ok, reason = _classify_statement(allowed)
+        assert ok, (allowed, reason)
+
+    for rejected in (
+        "WITH x AS (DELETE FROM subjects RETURNING *) SELECT * FROM x",
+        "WITH x AS (UPDATE subjects SET is_active = true RETURNING *) SELECT * FROM x",
+        "WITH x AS (INSERT INTO subjects (code) VALUES ('A') RETURNING *) SELECT * FROM x",
+        "SELECT * FROM (DELETE FROM t RETURNING *) s",
+    ):
+        ok, reason = _classify_statement(rejected)
+        assert not ok, (rejected, reason)
+
+
+def test_the_destructive_forms_requirement_9_2_forbids_are_still_rejected() -> None:
+    """The whole rejected set, re-asserted after the widening.
+
+    **Validates: Requirements 9.2**
+    """
+    for rejected in (
+        "TRUNCATE subjects",
+        "TRUNCATE TABLE subjects",
+        "DELETE FROM subjects",
+        "INSERT INTO subjects (code) VALUES ('A')",
+        "CREATE TABLE t (id uuid)",
+        "CREATE INDEX i ON t (id)",
+        "UPDATE subjects SET is_active = true WHERE code = 'MUS'",
+        "DROP DATABASE mihas",
+    ):
+        ok, reason = _classify_statement(rejected)
+        assert not ok, (rejected, reason)
+
+    # And the forms Requirement 9.2 does allow are unchanged by the widening.
+    for allowed in (
+        "DROP INDEX CONCURRENTLY IF EXISTS i",
+        "DROP TABLE IF EXISTS t",
+        "DROP SEQUENCE IF EXISTS s",
+        "DELETE FROM migration_history",
+        "DELETE FROM migration_history WHERE migration_name = 'x'",
+        "DELETE FROM subjects WHERE code = 'MUS'",
+        "BEGIN",
+        "COMMIT",
+    ):
+        ok, reason = _classify_statement(allowed)
+        assert ok, (allowed, reason)

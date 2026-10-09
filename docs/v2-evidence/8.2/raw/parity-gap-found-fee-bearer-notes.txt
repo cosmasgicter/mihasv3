@@ -1,0 +1,57 @@
+Parity harness, FIRST RUN — before the hardened path was corrected.
+Command:
+  cd backend && DATABASE_URL=<localtest 5433> TESTING=1 \
+    python3 -m pytest tests/unit/test_payment_path_parity_8_2.py -q -p no:randomly
+
+Result: 4 failed, 10 passed, 1 warning in 8.57s
+
+The four failures are the parity gaps the harness was written to find. They are
+real: promoting the hardened path with the fallback deleted would have silently
+stopped recording the provider's own settlement facts.
+
+--- verify(success) / webhook collection.successful: fee + bearer dropped ------
+
+FAILED tests/unit/test_payment_path_parity_8_2.py::test_verify_ledger_parity[verify-success]
+FAILED tests/unit/test_payment_path_parity_8_2.py::test_webhook_ledger_parity[webhook-successful]
+
+E   AssertionError: collection.successful diverges between the legacy and hardened paths.
+E       legacy   = LedgerObservables(payment_status='successful', application_payment_status='verified', lenco_reference='LR-PARITY-OK', payment_method='mobile-money', fee='1.53', bearer='customer', notes=None, has_lenco_response=True, metadata_keys=())
+E       hardened = LedgerObservables(payment_status='successful', application_payment_status='verified', lenco_reference='LR-PARITY-OK', payment_method='mobile-money', fee=None, bearer=None, notes=None, has_lenco_response=True, metadata_keys=())
+E     Differing attributes:
+E     ['fee', 'bearer']
+E     Drill down into differing attribute fee:
+E       fee: '1.53' != None...
+
+FAILED tests/unit/test_payment_path_parity_8_2.py::test_verify_provider_fee_and_bearer_parity
+E   AssertionError: Provider fee/bearer capture diverges: legacy=('1.53', 'customer') hardened=(None, None).
+E   assert ('1.53', 'customer') == (None, None)
+E     At index 0 diff: '1.53' != None
+
+--- verify(failed): the provider's failure reason dropped ---------------------
+
+FAILED tests/unit/test_payment_path_parity_8_2.py::test_verify_ledger_parity[verify-failed]
+
+E   AssertionError: verify(failed) diverges between the legacy and hardened paths.
+E       legacy   = LedgerObservables(payment_status='failed', application_payment_status='failed', lenco_reference='LR-PARITY-FAIL', payment_method='mobile-money', fee=None, bearer=None, notes='Insufficient balance', has_lenco_response=True, metadata_keys=())
+E       hardened = LedgerObservables(payment_status='failed', application_payment_status='failed', lenco_reference='LR-PARITY-FAIL', payment_method='mobile-money', fee=None, bearer=None, notes=None, has_lenco_response=True, metadata_keys=())
+E     Differing attributes:
+E     ['notes']
+E     Drill down into differing attribute notes:
+E       notes: 'Insufficient balance' != None
+
+--- Diagnosis ----------------------------------------------------------------
+
+The legacy mutator ``_update_payment_status`` persisted four provider fields
+that ``_transition`` did not: ``fee``, ``bearer``, and (on failure) ``notes``
+from ``reasonForFailure``. The hardened webhook branch worked around the notes
+gap with its own out-of-band ``payment.save(update_fields=["notes", ...])``
+before calling ``_transition`` — so the webhook path had notes and the verify
+path did not, and ``fee``/``bearer`` were lost on both.
+
+Fix (one place, the sole writer — ADR-007):
+``PaymentCoreMixin._transition`` now captures ``fee`` (via ``_parse_amount``),
+``bearer``, and ``notes`` (only for ``target_status == "failed"``, truncated to
+500 chars) from ``provider_data``, matching the legacy conditions exactly. The
+duplicate out-of-band notes write in ``apply_webhook_event`` was removed.
+
+Re-run: 14 passed — see parity-matrix-two-paths.txt

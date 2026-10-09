@@ -177,7 +177,23 @@ describe('Mobile Responsiveness - Requirement 22', () => {
 
   describe('22.4: Interactive elements meet 44px tap target', () => {
     it.each(ALL_PAGES)('%s uses Button component or delegates to child components with buttons', (pagePath) => {
-      const content = readComponent(pagePath)
+      /*
+        Read the page **plus the sections it composes** (admissions-v2 task 12.1,
+        MAINT-01).
+
+        This case used the narrow single-file read, which measured where a control
+        happens to be declared rather than whether the page's surface has one. Task
+        12.1 moved `ApplicationStatus.tsx`'s two `onClick` handlers into the aside
+        it extracted, and the pin failed on a page whose rendered controls did not
+        change at all.
+
+        `readPageWithExtractedComponents` is this file's own answer to exactly that
+        — its docstring says so ("so that extracted sub-components are still
+        considered part of the page's surface area"), and the sibling cases in 22.3
+        already use it. It is a strict superset of the single-file read, so no page
+        that passed before can fail now.
+      */
+      const content = readPageWithExtractedComponents(pagePath)
       // All pages should use the Button component for interactive elements,
       // or delegate to child components that use Button, or use touch-target class
       const hasButtons =

@@ -27,7 +27,6 @@ build/
 
 # Bundled API files (temporary build artifacts)
 api/*.bundle.js
-apps/admissions/public/ocr/tesseract/
 
 # Environment variables
 .env

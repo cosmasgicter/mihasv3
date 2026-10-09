@@ -1,0 +1,11 @@
+### 2026-08-14T10:17:49Z L7 - boot gate on v2_snap_13_6 after L7
+# L2-L3 left this database at exit 0 under --strict (78 managed=False models).
+# L7 adds no column, table, index or constraint, so the gate must be unchanged.
+
+--- manage.py check_schema_drift ---
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift exit=0
+
+--- manage.py check_schema_drift --strict ---
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift --strict exit=0

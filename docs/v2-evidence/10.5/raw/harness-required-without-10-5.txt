@@ -1,0 +1,221 @@
+
+Running 136 tests using 1 worker
+
+  ✓    1 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (2.7s)
+  ✓    2 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:367:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (2.5s)
+  ✓    3 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:402:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (1.9s)
+  ✓    4 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:425:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (1.1s)
+  ✓    5 [chromium-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:440:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (2.3s)
+  ✓    6 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (6.1s)
+  ✓    7 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (2.0s)
+  ✓    8 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (1.9s)
+  ✓    9 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (40.1s)
+  ✓   10 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (19.0s)
+  ✓   11 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:375:1 › a Tenant_Admin opens an application with one read and none of the six retired calls (3.0s)
+  ✓   12 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:474:1 › the readiness tab is deterministic and there is no AI tab (2.7s)
+  ✓   13 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:522:1 › a decision carries the version it read, and a replay of the old version is refused (3.0s)
+  ✓   14 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:584:1 › a scoped Reviewer reaches the workspace for their assigned application and decides (2.4s)
+  ✓   15 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:625:1 › a Reviewer is refused an application they are not assigned to, by the endpoint (1.2s)
+  ✓   16 [chromium-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:665:1 › a read-only Tenant_Admin reads the workspace and is refused the command by the endpoint (2.4s)
+  ✓   17 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.8s)
+  ✓   18 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.4s)
+  ✓   19 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (3.3s)
+  ✓   20 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (3.2s)
+  ✓   21 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (4.0s)
+  ✓   22 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (3.3s)
+  ✓   23 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (2.1s)
+  ✓   24 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.6s)
+  ✓   25 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:269:1 › turning the email channel off persists across a reload (3.1s)
+  ✓   26 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:326:1 › a mandatory channel and category are stated, not offered as switches (2.3s)
+  ✓   27 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:387:1 › every unsupported field is named with the server reason and rendered as no control (2.5s)
+{"time": "2026-08-09T06:53:54.696691+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+{"time": "2026-08-09T06:53:54.704520+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+  ✓   28 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:453:1 › a failed email states its channel, offers one retry, and the retry shows in the history (8.1s)
+  ✓   29 [chromium-required] › tests/harness-e2e/required/communications-preferences.spec.ts:546:1 › the inbox is a navigation destination and the retired second inbox is gone (2.5s)
+  ✓   30 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:297:1 › a student sends condition evidence, is asked for something different, and is told why (4.5s)
+  ✓   31 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:358:1 › a replacement supersedes the first version and can then be accepted (4.1s)
+  ✓   32 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:425:1 › an amendment appears in the student history, is approved, and the history says so (4.5s)
+  ✓   33 [chromium-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:490:1 › a second pending request for the same field is refused, and a rejection is visible (1.9s)
+  ✓   34 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (3.4s)
+  ✓   35 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (3.0s)
+  ✓   36 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (3.6s)
+  ✓   37 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.9s)
+  ✓   38 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:20:3 › Admissions V2 isolated harness › edge serves the admissions SPA cleanly (no console errors, no unasserted failed requests) (1.9s)
+  ✓   39 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:39:3 › Admissions V2 isolated harness › provisions a fresh user through the public API with no stored state (2.1s)
+  ✓   40 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:48:3 › Admissions V2 isolated harness › resolves two isolated tenants and a neutral context by host (TEN-07 / TEN-10) (945ms)
+  ✓   41 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:64:3 › Admissions V2 isolated harness › super-admin can create a tenant institution + domain via the admin API (861ms)
+  ✓   42 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:76:3 › Admissions V2 isolated harness › deterministic payment adapter honours the Lenco collection contract (237ms)
+  ✓   43 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:93:3 › Admissions V2 isolated harness › deterministic domain adapter publishes and returns DNS records (225ms)
+  ✓   44 [chromium-required] › tests/harness-e2e/required/harness-smoke.spec.ts:107:3 › Admissions V2 isolated harness › zz required background jobs are drained (R18.4) (240ms)
+  ✓   45 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (20.3s)
+  ✓   46 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (399ms)
+  ✓   47 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:450:1 › a request the broker never received is still recorded, and the dispatcher serves it (12.0s)
+  ✓   48 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:536:1 › an issued document stays readable, and stays offered, once the application is terminal (2.6s)
+  ✓   49 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:619:1 › the one canonical email route sends the stored record and lands in the history (6.0s)
+  ✓   50 [chromium-required] › tests/harness-e2e/required/official-document-durability.spec.ts:721:1 › a document the school cannot issue tells the student nothing about its configuration (6.9s)
+  ✓   51 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (11.3s)
+  ✓   52 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (7.8s)
+  ✓   53 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (11.7s)
+  ✓   54 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (8.6s)
+  ✓   55 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (13.5s)
+{"time": "2026-08-09T07:10:59.677445+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment fa2dbbaf-bc53-4a62-8630-ffa21a56b137 transitioned to expired (lenco_ref=LNC-CB1AFAA763D5)"}
+{"time": "2026-08-09T07:10:59.684494+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 6d56f7df-205f-448d-b944-c2b71b837827 payment_status set to not_paid"}
+{"time": "2026-08-09T07:10:59.755270+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-09T07:10:59.761330+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-09T07:10:59.968197+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓   56 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (12.7s)
+  ✓   57 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (2.9s)
+  ✓   58 [chromium-required] › tests/harness-e2e/required/staff-invitation.spec.ts:29:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › atomic invite by email returns no credential and rejects duplicates (600ms)
+  ✓   59 [chromium-required] › tests/harness-e2e/required/staff-invitation.spec.ts:101:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › public accept page renders the password handoff and fails closed on a bad token (1.0s)
+  ✓   60 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (1.2s)
+  ✓   61 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (1.4s)
+  ✓   62 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (1.4s)
+  ✓   63 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (1.1s)
+  ✓   64 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (1.3s)
+  ✓   65 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (1.0s)
+  ✓   66 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (884ms)
+  ✓   67 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.3s)
+  ✘   68 [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.3s)
+  ✓   69 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:325:3 › The applications roster is one scoped server query (R8.1, ADM-01) › page 2 changes the rows and never the portfolio total (1.5s)
+  ✓   70 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:367:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a filter is sent to the server and moves the totals with the rows (1.4s)
+  ✓   71 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:402:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a dashboard deep link in registered parameters arrives applied (1.0s)
+  ✓   72 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:425:3 › The applications roster is one scoped server query (R8.1, ADM-01) › a pre-9.1 bookmark still opens its view, in the registered spelling (812ms)
+  ✓   73 [mobile-required] › tests/harness-e2e/required/admin-applications-roster.spec.ts:440:3 › The applications roster is one scoped server query (R8.1, ADM-01) › the filter options are the server facets, counts and all (1.2s)
+  ✓   74 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (3.3s)
+  ✓   75 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (969ms)
+  ✓   76 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (901ms)
+  ✓   77 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.1s)
+  ✓   78 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.5s)
+  ✓   79 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:375:1 › a Tenant_Admin opens an application with one read and none of the six retired calls (10.6s)
+  ✓   80 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:474:1 › the readiness tab is deterministic and there is no AI tab (2.7s)
+  ✓   81 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:522:1 › a decision carries the version it read, and a replay of the old version is refused (1.9s)
+  ✓   82 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:584:1 › a scoped Reviewer reaches the workspace for their assigned application and decides (1.8s)
+  ✓   83 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:625:1 › a Reviewer is refused an application they are not assigned to, by the endpoint (665ms)
+  ✓   84 [mobile-required] › tests/harness-e2e/required/admin-review-workspace.spec.ts:665:1 › a read-only Tenant_Admin reads the workspace and is refused the command by the endpoint (1.8s)
+  ✓   85 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.2s)
+  ✓   86 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.0s)
+  ✓   87 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (2.2s)
+  ✓   88 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (1.9s)
+  ✓   89 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (2.2s)
+  ✓   90 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (1.3s)
+  ✓   91 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (1.2s)
+  ✓   92 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.1s)
+  ✓   93 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:269:1 › turning the email channel off persists across a reload (2.5s)
+  ✓   94 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:326:1 › a mandatory channel and category are stated, not offered as switches (1.5s)
+  ✓   95 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:387:1 › every unsupported field is named with the server reason and rendered as no control (1.6s)
+{"time": "2026-08-09T07:13:47.486353+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+{"time": "2026-08-09T07:13:47.490695+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "email.send_failed", "type": "app_metric", "metric": "email.send_failed", "error": "both_smtp_and_resend_failed"}
+  ✓   96 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:453:1 › a failed email states its channel, offers one retry, and the retry shows in the history (4.7s)
+  ✓   97 [mobile-required] › tests/harness-e2e/required/communications-preferences.spec.ts:546:1 › the inbox is a navigation destination and the retired second inbox is gone (1.8s)
+  ✓   98 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:297:1 › a student sends condition evidence, is asked for something different, and is told why (3.8s)
+  ✓   99 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:358:1 › a replacement supersedes the first version and can then be accepted (4.4s)
+  ✓  100 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:425:1 › an amendment appears in the student history, is approved, and the history says so (3.9s)
+  ✓  101 [mobile-required] › tests/harness-e2e/required/condition-evidence-amendment-history.spec.ts:490:1 › a second pending request for the same field is refused, and a rejection is visible (1.5s)
+  ✓  102 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (2.0s)
+  ✓  103 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (3.8s)
+  ✓  104 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (2.2s)
+  ✓  105 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.1s)
+  ✓  106 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:20:3 › Admissions V2 isolated harness › edge serves the admissions SPA cleanly (no console errors, no unasserted failed requests) (1.7s)
+  ✓  107 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:39:3 › Admissions V2 isolated harness › provisions a fresh user through the public API with no stored state (1.2s)
+  ✓  108 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:48:3 › Admissions V2 isolated harness › resolves two isolated tenants and a neutral context by host (TEN-07 / TEN-10) (806ms)
+  ✓  109 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:64:3 › Admissions V2 isolated harness › super-admin can create a tenant institution + domain via the admin API (457ms)
+  ✓  110 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:76:3 › Admissions V2 isolated harness › deterministic payment adapter honours the Lenco collection contract (172ms)
+  ✓  111 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:93:3 › Admissions V2 isolated harness › deterministic domain adapter publishes and returns DNS records (173ms)
+  ✓  112 [mobile-required] › tests/harness-e2e/required/harness-smoke.spec.ts:107:3 › Admissions V2 isolated harness › zz required background jobs are drained (R18.4) (168ms)
+  ✓  113 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.4s)
+  ✓  114 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (312ms)
+  ✓  115 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:450:1 › a request the broker never received is still recorded, and the dispatcher serves it (7.3s)
+  ✓  116 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:536:1 › an issued document stays readable, and stays offered, once the application is terminal (1.8s)
+  ✓  117 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:619:1 › the one canonical email route sends the stored record and lands in the history (4.5s)
+  ✓  118 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:721:1 › a document the school cannot issue tells the student nothing about its configuration (5.6s)
+  ✓  119 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (9.8s)
+  ✓  120 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (6.2s)
+  ✓  121 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (9.0s)
+  ✓  122 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (6.5s)
+  ✓  123 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (9.5s)
+{"time": "2026-08-09T07:15:46.179617+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment ab951929-02bb-461c-81c5-a42148db6720 transitioned to expired (lenco_ref=LNC-7E48FB84F46E)"}
+{"time": "2026-08-09T07:15:46.183682+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 5422070d-8dd7-44b1-b52a-8b5fdbba62cb payment_status set to not_paid"}
+{"time": "2026-08-09T07:15:46.221545+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-09T07:15:46.222994+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-09T07:15:46.290909+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓  124 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (8.8s)
+  ✓  125 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (2.0s)
+  ✓  126 [mobile-required] › tests/harness-e2e/required/staff-invitation.spec.ts:29:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › atomic invite by email returns no credential and rejects duplicates (683ms)
+  ✓  127 [mobile-required] › tests/harness-e2e/required/staff-invitation.spec.ts:101:3 › Tenant staff invitation handoff (R4.3-R4.4, R6.3) › public accept page renders the password handoff and fails closed on a bad token (1.1s)
+  ✓  128 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (1.1s)
+  ✓  129 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (1.3s)
+  ✓  130 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (3.0s)
+  ✓  131 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (1.3s)
+  ✓  132 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (1.4s)
+  ✓  133 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (1.2s)
+  ✓  134 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:75:3 › Clean-database tenant A/B launch journey (R4.2, R4.5-R4.7, TEN-02/03/07) › two same-shaped tenants configure via canonical mutations and stay isolated (1.0s)
+  ✓  135 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on desktop (1.6s)
+  ✘  136 [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile (6.5s)
+
+
+  1) [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-chromium-required/error-context.md
+
+  2) [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByText('Fees').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Fees').first()[22m
+    [2m    9 × locator resolved to <span class="font-medium truncate transition-opacity duration-150 motion-reduce:transition-none text-muted-foreground">Program Fees</span>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      156 |       await expect(page.getByText('Program offerings', { exact: false }).first()).toBeVisible();
+      157 |       await expect(page.getByText('Intake & capacity', { exact: false }).first()).toBeVisible();
+    > 158 |       await expect(page.getByText('Fees', { exact: false }).first()).toBeVisible();
+          |                                                                      ^
+      159 |       await expect(page.getByText('Routing simulation', { exact: false }).first()).toBeVisible();
+      160 |     });
+      161 |   }
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/tenant-launch.spec.ts:158:70
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-tenant-launch-Onb-6b20a-fee-routing-steps-on-mobile-mobile-required/error-context.md
+
+  2 failed
+    [chromium-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+    [mobile-required] › tests/harness-e2e/required/tenant-launch.spec.ts:139:5 › Onboarding wizard renders the real canonical steps (TEN-02, R7.3) › the wizard exposes program / intake / fee / routing steps on mobile 
+  134 passed (11.0m)

@@ -1,3 +1,4 @@
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
 import { normalizePaymentStatus } from '@/lib/paymentStatus'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import type { SubjectGrade, WizardFormData } from '../types'
@@ -36,6 +37,20 @@ export interface BuildWizardReadinessInput {
   uploadedFiles?: Record<string, boolean>
   hasResultSlipFile?: boolean
   hasIdentityFile?: boolean
+  /**
+   * The required-document rail entries derived from the application's versioned
+   * requirement contract (task 7.2, R11.6, finding STU-13). Resolved by the
+   * caller through `requiredDocumentSurfaces.documentReadinessItems`, so this
+   * module names no document type of its own. Omitted (or `undefined`) keeps the
+   * legacy result-slip + identity pair, which is what the caller supplies when
+   * the contract could not be read.
+   */
+  requiredDocumentItems?: Array<{
+    field: string
+    label: string
+    message: string
+    completed: boolean
+  }>
   paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
   /** True once the backend has resolved the assigned school + fee (R10.2/R10.3). */
@@ -51,8 +66,13 @@ const isCompleteValue = (value: unknown): boolean => {
   }
 }
 
+/**
+ * A grade row counts only when its subject is a canonical server identity
+ * (R11.5, finding STU-11). Counting any non-empty `subject_id` is what let the
+ * wizard show "5/5 subjects" for rows the server then dropped on persist.
+ */
 const isValidGrade = (grade: SubjectGrade): boolean =>
-  Boolean(grade.subject_id) && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
+  isCanonicalSubjectId(grade.subject_id) && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
 
 const createItem = (
   stepKey: StepKey,
@@ -90,6 +110,7 @@ export const buildWizardReadiness = ({
   uploadedFiles = {},
   hasResultSlipFile = false,
   hasIdentityFile = false,
+  requiredDocumentItems,
   paymentStatus = null,
   confirmSubmission = false,
   assignmentResolved = false,
@@ -97,6 +118,9 @@ export const buildWizardReadiness = ({
   const validGrades = selectedGrades.filter(isValidGrade)
   const validGradeCount = new Set(validGrades.map(grade => grade.subject_id)).size
   const hasDuplicateGrades = validGrades.length !== validGradeCount
+  const unresolvedGradeCount = selectedGrades.filter(
+    grade => Boolean(grade.subject_id?.trim()) && !isCanonicalSubjectId(grade.subject_id)
+  ).length
   const hasNrcOrPassport = isCompleteValue(values.nrc_number) || isCompleteValue(values.passport_number)
   const hasResultSlip = hasResultSlipFile || uploadedFiles.result_slip === true
   const hasIdentityDocument = hasIdentityFile || uploadedFiles.extra_kyc === true
@@ -137,13 +161,37 @@ export const buildWizardReadiness = ({
       'education',
       'grades',
       'Grade 12 subjects',
-      validGradeCount >= 5 && !hasDuplicateGrades,
+      validGradeCount >= 5 && !hasDuplicateGrades && unresolvedGradeCount === 0,
       hasDuplicateGrades
         ? 'Each subject can only be selected once.'
-        : `Add at least 5 unique Grade 12 subjects (${validGradeCount}/5 selected).`
+        : unresolvedGradeCount > 0
+          ? `Add at least 5 unique Grade 12 subjects (${validGradeCount}/5 selected). ` +
+            `${unresolvedGradeCount} ${unresolvedGradeCount === 1 ? 'row needs' : 'rows need'} ` +
+            'a subject re-selected from the list.'
+          : `Add at least 5 unique Grade 12 subjects (${validGradeCount}/5 selected).`
     ),
-    createItem('education', 'result_slip', 'Result slip', hasResultSlip, 'Upload your result slip.'),
-    createItem('education', 'extra_kyc', 'Identity document', hasIdentityDocument, 'Upload your NRC or passport document.'),
+    // Documents come from the versioned requirement contract (task 7.2, R11.6):
+    // a tenant that requires `nursing_council_letter` sees that name in the rail,
+    // and is never told to upload a result slip nobody asked for. With no
+    // contract the caller passes the legacy pair, so the rail is never weaker.
+    ...(
+      requiredDocumentItems ?? [
+        {
+          field: 'result_slip',
+          label: 'Result slip',
+          message: 'Upload your result slip.',
+          completed: hasResultSlip,
+        },
+        {
+          field: 'extra_kyc',
+          label: 'Identity document',
+          message: 'Upload your NRC or passport document.',
+          completed: hasIdentityDocument,
+        },
+      ]
+    ).map(document =>
+      createItem('education', document.field, document.label, document.completed, document.message),
+    ),
   ]
 
   const paymentItems = [

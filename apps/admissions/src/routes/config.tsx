@@ -4,16 +4,17 @@ import LandingPage from '@/pages/LandingPage'
 // Special components that don't need lazy loading
 import { DashboardRedirect } from '@/components/DashboardRedirect'
 import { Navigate } from 'react-router-dom'
+import { DuplicateRouteRedirect } from './DuplicateRouteRedirect'
 import {
-  CANONICAL_ADMIN_DASHBOARD_PATH,
-  CANONICAL_SIGN_IN_PATH,
   CANONICAL_STUDENT_DASHBOARD_PATH,
+  duplicateRedirectPaths,
   pathFor,
   routeById,
   studentApplicationNewPath,
+  studentApplicationWorkspacePath,
   type ProductRouteId,
   type RouteGuard,
-  type SkeletonType,
+  type SkeletonType
 } from './routeRegistry'
 
 // Lazy load secondary routes for optimal code splitting.
@@ -25,6 +26,7 @@ const SignInPage = React.lazy(() => import('@/pages/auth/SignInPage'))
 const SignUpPage = React.lazy(() => import('@/pages/auth/SignUpPage'))
 const ForgotPasswordPage = React.lazy(() => import('@/pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = React.lazy(() => import('@/pages/auth/ResetPasswordPage'))
+const AcceptInvitationPage = React.lazy(() => import('@/pages/auth/AcceptInvitationPage'))
 const TermsPage = React.lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = React.lazy(() => import('@/pages/PrivacyPage'))
 
@@ -34,7 +36,6 @@ const AuthCallbackPage = React.lazy(() => import('@/pages/auth/AuthCallbackPage'
 const PaymentCallback = React.lazy(() => import('@/pages/student/PaymentCallback'))
 const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index'))
 const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationStatus'))
-const ApplicationDetail = React.lazy(() => import('@/pages/student/ApplicationDetail'))
 const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
 const StudentNotificationSettings = React.lazy(() => import('@/pages/student/NotificationSettings'))
 const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
@@ -100,6 +101,7 @@ export const routes: RouteConfig[] = [
   fromRegistry('auth.signUp', SignUpPage, { lazy: true }),
   fromRegistry('auth.forgotPassword', ForgotPasswordPage, { lazy: true }),
   fromRegistry('auth.resetPassword', ResetPasswordPage, { lazy: true }),
+  fromRegistry('auth.acceptInvitation', AcceptInvitationPage, { lazy: true }),
   fromRegistry('auth.callback', AuthCallbackPage, { lazy: true }),
   fromRegistry('payment.callback', PaymentCallback, { lazy: true }),
   
@@ -117,7 +119,26 @@ export const routes: RouteConfig[] = [
   fromRegistry('student.status', ApplicationStatus, { lazy: true }),
   fromRegistry('student.status', ApplicationStatus, { lazy: true, path: '/application/:id' }),
   fromRegistry('student.status', ApplicationStatus, { lazy: true, path: '/student/application/:id/status' }),
-  fromRegistry('student.applicationDetail', ApplicationDetail, { lazy: true }),
+  // Task 10.6 (R13.13, STU-23): `/student/application/:id` was a second student
+  // workspace over the same application — its own `getById` query under its own
+  // cache key, its own payment/document/interview/timeline rendering, and a
+  // different set of actions from the canonical one. It is now a redirect. The
+  // page is gone rather than aliased: two live URLs for one surface is the shape
+  // R13.13 names, and a redirect is the only version of this a student can
+  // observe.
+  ...duplicateRedirectPaths(routeById('student.status')).map((path) => ({
+    path,
+    element: (
+      <DuplicateRouteRedirect
+        canonicalPath={(params) =>
+          params.id ? studentApplicationWorkspacePath(params.id) : null
+        }
+        fallback={CANONICAL_STUDENT_DASHBOARD_PATH}
+      />
+    ),
+    guard: routeById('student.status').guard,
+    skeletonType: routeById('student.status').skeletonType,
+  })),
   { path: '/settings', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
   { path: '/student/profile', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
   { path: '/student/profile/edit', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },

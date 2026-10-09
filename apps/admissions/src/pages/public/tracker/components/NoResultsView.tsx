@@ -24,11 +24,16 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
           <h2 className="text-xl font-semibold text-foreground">
             No application found
           </h2>
+          {/*
+            admissions-v2 task 10.5 (R13.12, STU-22): a tracking link can also stop
+            working because it was replaced by a newer one, so the recovery advice
+            names that rather than assuming the visitor mistyped.
+          */}
           <p className="text-base leading-7 text-muted-foreground max-w-md mx-auto">
-            We could not find an application matching that number. Double-check the code in your confirmation email and try again.
+            That tracking link did not open an application. It may have been replaced by a newer link.
           </p>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Codes look like <span className="font-mono">BNL123456</span> or <span className="font-mono">TRK-XXXXXXXXXXXX</span>.
+            Sign in and choose &ldquo;Get tracking link&rdquo; on your application to get the current one.
           </p>
         </div>
         

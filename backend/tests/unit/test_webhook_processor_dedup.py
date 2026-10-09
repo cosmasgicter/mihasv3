@@ -14,7 +14,7 @@ Identity extraction priority (R8.3, R8.4):
 4. empty string — dedup then falls back to ``(reference, event_type)``
    in :meth:`WebhookProcessor.is_duplicate` (R8.5, R8.6).
 
-When strict dedup is enabled (``PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True``),
+Strict identity-based dedup is unconditional (admissions-v2 task 8.2):
 a duplicate hit persists a marker ``WebhookEventLog`` row with
 ``processed=False`` and ``processing_error='Duplicate event already
 processed'`` without invoking ``PaymentService`` (R8.5).
@@ -326,7 +326,6 @@ def test_is_duplicate_falls_back_to_reference_event_type(seed_owner):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True)
 def test_duplicate_marker_row_written_on_dedup(seed_owner):
     """Strict dedup: duplicate hit writes a marker ``WebhookEventLog`` row.
 

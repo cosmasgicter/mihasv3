@@ -10,7 +10,6 @@ import hashlib
 import io
 import logging
 
-from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import (
@@ -26,13 +25,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
-from apps.common.throttling import AIUserScopedRateThrottle
+from apps.accounts.session_lifecycle import revoke_sessions_for_authority_change
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
 from apps.applications.models import (
     Application,
     ApplicationCondition,
-    ApplicationStatusHistory,
 )
 from apps.applications.review_queue import ReviewQueueScorer
 from apps.applications.serializers import (
@@ -48,7 +46,6 @@ from apps.applications.serializers import (
     ApplicationAutoAssignRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
     ApplicationFeeWaiverRequestSerializer,
-    ApplicationAiSummaryResponseSerializer,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -102,20 +99,141 @@ def _redact_phone(value: str | None) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Reviewer Assignment (Req 11)
+# Reviewer Assignment (Req 11 / Admissions V2 task 2.5, AUTH-01/AUTH-03)
 # ---------------------------------------------------------------------------
+
+
+def _notify_reviewer_assigned(app, reviewer_id, *, auto: bool) -> None:
+    """Best-effort in-app notification for a newly-assigned reviewer."""
+    try:
+        from apps.common.outbox import create_notification
+
+        if auto:
+            message = (
+                f"Application {app.application_number} has been assigned to you "
+                "for review."
+            )
+            notif_type = "assignment"
+        else:
+            message = (
+                f"Application {app.application_number} for {app.program} "
+                f"({app.intake}) has been assigned to you for review."
+            )
+            notif_type = "info"
+        create_notification(
+            user_id=reviewer_id,
+            title="Application Assigned to You" if not auto else "Application Assigned",
+            message=message,
+            type=notif_type,
+            priority="normal",
+            action_url=f"/admin/applications/{app.id}",
+        )
+    except Exception:
+        logger.warning(
+            "Failed to notify reviewer %s for app=%s", reviewer_id, app.id, exc_info=True
+        )
+
+
+class AssignmentCandidatesView(APIView):
+    """List tenant-scoped reviewer candidates for an application (R8.2).
+
+    GET /api/v1/applications/{id}/assignment-candidates/?search=<q>
+
+    Returns only members eligible to review for the application's tenant
+    (active membership + reviewer-capable role), so the assignment UI never has
+    to post a raw or empty reviewer id (AUTH-03).
+
+    Authority (admissions-v2 task 9.4, AUTH-02/AUTH-03): the derived
+    ``tenant.application.review`` capability for **this application's**
+    institution, composed with scope-before-lookup. This used to be
+    ``IsSuperAdmin`` — a raw role class — which meant a Tenant_Admin could not
+    staff their own review queue at all. Design §5.3 puts reviewer assignment
+    behind "active membership in the application's tenant and an eligible
+    reviewer policy", and ``ReviewerAssignmentService`` enforces the eligible-
+    member half under row locks, so no cross-tenant reviewer can be selected
+    however the actor is authorised.
+
+    Requirements: R8.2, R8.3, R3
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="List eligible reviewer candidates for an application",
+    )
+    def get(self, request, application_id):
+        from apps.applications.reviewer_assignment_service import ReviewerAssignmentService
+        from apps.common.tenant_authorization import resolve_scoped_application
+
+        app = resolve_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.review",
+            # An assignment-scoped Reviewer is not restricted to their own
+            # assigned work here: choosing *who* reviews is a queue-staffing act,
+            # and a Reviewer who holds the review capability but has not been
+            # assigned this application would otherwise be unable to see the
+            # candidate list for work they are being asked to hand over.
+            enforce_reviewer_assignment=False,
+        )
+
+        institution_id = app.institution_ref_id
+        if not institution_id:
+            # No tenant to scope candidates to → empty candidate set (fail
+            # closed: never fall back to a global reviewer list).
+            return Response({"success": True, "data": []})
+
+        search = request.query_params.get("search")
+        candidates = (
+            ReviewerAssignmentService.eligible_reviewers_queryset(
+                [institution_id], search=search
+            )
+            .order_by("first_name", "last_name", "email")
+            .values("id", "email", "first_name", "last_name", "role")[:50]
+        )
+
+        data = [
+            {
+                "id": str(row["id"]),
+                "email": row["email"],
+                "first_name": row["first_name"] or "",
+                "last_name": row["last_name"] or "",
+                "full_name": (
+                    f"{row['first_name'] or ''} {row['last_name'] or ''}".strip()
+                    or row["email"]
+                ),
+                "role": row["role"],
+            }
+            for row in candidates
+        ]
+        return Response({"success": True, "data": data})
 
 
 class ApplicationAssignView(APIView):
     """Assign an application to a specific reviewer.
 
     POST /api/v1/applications/{id}/assign/
-    Super admin only.
 
-    Requirements: 11.1–11.4, 11.10
+    Authority (admissions-v2 task 9.4, AUTH-02/AUTH-03): the derived
+    ``tenant.application.review`` capability for this application's institution,
+    composed with scope-before-lookup, replacing the ``IsSuperAdmin`` role class.
+    The *assigned reviewer* must still be an eligible member of the application's
+    tenant — enforced under row locks by ``ReviewerAssignmentService`` — so the
+    widened actor set cannot select a reviewer outside the tenant (design §5.3).
+
+    Versioned command (task 9.4): assignment changes who may act on the
+    application, so a stale command is refused rather than applied.
+
+    Requirements: R3, R8.2-R8.4
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationAssignRequestSerializer
 
     @extend_schema(
@@ -123,84 +241,100 @@ class ApplicationAssignView(APIView):
         responses={
             200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
             400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
         },
         tags=["applications"],
-        summary="Assign an application to a reviewer (super-admin only)",
+        summary="Assign an application to a reviewer",
     )
     def post(self, request, application_id):
-        from apps.accounts.models import Profile
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
+        from apps.applications.reviewer_assignment_service import (
+            ReviewerAssignmentError,
+            ReviewerAssignmentService,
+        )
+        from apps.common.tenant_authorization import resolve_scoped_application
 
-        try:
-            app = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        scoped_app = resolve_scoped_application(
+            request,
+            application_id,
+            capability="tenant.application.review",
+            enforce_reviewer_assignment=False,
+        )
+        ApplicationReviewWorkspaceService.assert_version(
+            scoped_app, read_expected_version(request)
+        )
 
-        reviewer_id = (request.data or {}).get("reviewer_id")
-        if not reviewer_id:
-            return Response(
-                {"success": False, "error": "reviewer_id is required.", "code": "VALIDATION_ERROR"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            reviewer = Profile.objects.get(id=reviewer_id)
-        except Profile.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Reviewer not found.", "code": "REVIEWER_NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if reviewer.role not in ("admin", "reviewer", "super_admin"):
+        # Validate the payload contract: reviewer_id must be a present, valid
+        # UUID. This rejects the empty/blank reviewer_id the old client posted
+        # (AUTH-03) with a stable VALIDATION_ERROR before any DB work.
+        serializer = ApplicationAssignRequestSerializer(data=request.data)
+        if not serializer.is_valid():
             return Response(
                 {
                     "success": False,
-                    "error": "Target user must have admin or reviewer role.",
-                    "code": "INVALID_REVIEWER_ROLE",
+                    "error": "reviewer_id is required and must be a valid UUID.",
+                    "code": "VALIDATION_ERROR",
+                    "details": serializer.errors,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        old_reviewer_id = str(app.assigned_reviewer_id_id) if app.assigned_reviewer_id_id else None
-        app.assigned_reviewer_id = reviewer
-        app.save(update_fields=["assigned_reviewer_id"])
-
-        ApplicationStatusHistory.objects.create(
-            application=app,
-            status=app.status,
-            old_status=app.status,
-            new_status=app.status,
-            changed_by_id=str(request.user.id),
-            notes=f"Reviewer assigned: {reviewer.email} (was: {old_reviewer_id or 'unassigned'})",
-        )
+        reviewer_id = serializer.validated_data["reviewer_id"]
 
         try:
-            from apps.common.outbox import create_notification
-            create_notification(
-                user_id=reviewer.id,
-                title="Application Assigned to You",
-                message=f"Application {app.application_number} for {app.program} ({app.intake}) has been assigned to you for review.",
-                type="info",
-                priority="normal",
-                action_url=f"/admin/applications/{app.id}",
+            outcome = ReviewerAssignmentService.assign_reviewer(
+                application_id=application_id,
+                reviewer_id=reviewer_id,
+                actor_id=getattr(request.user, "id", None),
             )
-        except Exception:
-            logger.exception("Failed to notify reviewer for app=%s", app.id)
+        except ReviewerAssignmentError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
 
+        # R3.5: a reviewer assignment changes the assignment-scoped authority of
+        # both the new reviewer (gains access) and the prior reviewer (loses
+        # it) — revoke their in-flight sessions so stale assignment authority
+        # does not persist. Done after the assignment transaction commits.
+        revoke_sessions_for_authority_change(
+            outcome.reviewer_id,
+            reason="reviewer_assigned",
+            actor_id=getattr(request.user, "id", None),
+        )
+        if outcome.old_reviewer_id and outcome.old_reviewer_id != outcome.reviewer_id:
+            revoke_sessions_for_authority_change(
+                outcome.old_reviewer_id,
+                reason="reviewer_unassigned",
+                actor_id=getattr(request.user, "id", None),
+            )
+
+        # Best-effort notifications (outside the assignment transaction).
         try:
-            CommunicationService.send('reviewer_assigned', app)
-        except Exception:
-            logger.warning("Failed to send reviewer_assigned notification for app=%s", app.id, exc_info=True)
+            app = Application.objects.get(id=outcome.application_id)
+            _notify_reviewer_assigned(app, outcome.reviewer_id, auto=False)
+            try:
+                CommunicationService.send("reviewer_assigned", app)
+            except Exception:
+                logger.warning(
+                    "Failed to send reviewer_assigned notification for app=%s",
+                    app.id,
+                    exc_info=True,
+                )
+        except Application.DoesNotExist:  # pragma: no cover - defensive
+            pass
 
         return Response({
             "success": True,
             "data": {
-                "application_id": str(app.id),
-                "assigned_reviewer_id": str(reviewer.id),
-                "assigned_reviewer_email": reviewer.email,
+                "application_id": outcome.application_id,
+                "assigned_reviewer_id": outcome.reviewer_id,
+                "assigned_reviewer_email": outcome.reviewer_email,
+                "version": ApplicationReviewWorkspaceService.bump_version(scoped_app),
             },
         })
 
@@ -209,12 +343,23 @@ class ApplicationAutoAssignView(APIView):
     """Auto-assign unassigned submitted applications using round-robin.
 
     POST /api/v1/applications/auto-assign/
-    Super admin only.
 
-    Requirements: 11.5–11.7
+    Authority (admissions-v2 task 9.4, AUTH-02): the **platform**
+    ``platform.user.manage_all`` capability, resolved through
+    ``AdminCapabilityService`` rather than compared as a role string. Deliberately
+    *not* widened to the tenant matrix like the manual assign command: this
+    command sweeps every unassigned application the platform holds, so a
+    tenant-scoped actor issuing it would act far outside their own scope. A
+    tenant operator staffs their own queue with ``/assign/``.
+
+    Selects only reviewers with an active membership in each application's tenant
+    and locks workload counters so concurrent runs never exceed
+    ``max_reviewer_workload`` (design §5.3).
+
+    Requirements: R3, R8.2-R8.4
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationAutoAssignRequestSerializer
 
     @extend_schema(
@@ -227,94 +372,55 @@ class ApplicationAutoAssignView(APIView):
         summary="Auto-assign unassigned applications via round-robin",
     )
     def post(self, request):
-        from apps.accounts.models import Profile
-        from apps.common.models import Setting
+        from apps.applications.reviewer_assignment_service import (
+            ReviewerAssignmentError,
+            ReviewerAssignmentService,
+        )
+        from apps.catalog.services import AdminCapabilityService
 
-        max_workload = 20
-        try:
-            setting = Setting.objects.filter(key="max_reviewer_workload").first()
-            if setting and setting.value:
-                max_workload = int(setting.value)
-        except Exception:
-            logger.debug("Could not read max_reviewer_workload setting, using default=%s", max_workload, exc_info=True)
-
-        reviewers = list(
-            Profile.objects.filter(
-                role__in=["admin", "reviewer", "super_admin"],
-                is_active=True,
-            ).order_by("created_at")
+        # Raises a non-revealing PermissionDenied (403) when the capability is
+        # absent, and fails closed on a resolution error.
+        AdminCapabilityService().require_capability(
+            request.user, "platform.user.manage_all"
         )
 
-        if not reviewers:
+        try:
+            result = ReviewerAssignmentService.auto_assign(
+                actor_id=getattr(request.user, "id", None)
+            )
+        except ReviewerAssignmentError as exc:
             return Response(
-                {"success": False, "error": "No active reviewers available.", "code": "NO_REVIEWERS"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
             )
 
-        assigned_count = 0
-        assignments = []
-        reviewer_idx = 0
+        assignments = result["assignments"]
 
-        with transaction.atomic():
-            unassigned = Application.objects.select_for_update(
-                skip_locked=True
-            ).filter(
-                status__in=["submitted", "under_review"],
-                assigned_reviewer_id__isnull=True,
-            ).order_by("created_at")
+        # Best-effort in-app notifications (after the assignment transaction).
+        for outcome in assignments:
+            try:
+                app = Application.objects.get(id=outcome.application_id)
+                _notify_reviewer_assigned(app, outcome.reviewer_id, auto=True)
+            except Application.DoesNotExist:  # pragma: no cover - defensive
+                continue
 
-            for app in unassigned:
-                assigned = False
-                for _ in range(len(reviewers)):
-                    reviewer = reviewers[reviewer_idx % len(reviewers)]
-                    reviewer_idx += 1
-
-                    current_workload = Application.objects.filter(
-                        assigned_reviewer_id=reviewer.id,
-                        status__in=["submitted", "under_review", "waitlisted"],
-                    ).count()
-
-                    if current_workload < max_workload:
-                        app.assigned_reviewer_id = reviewer
-                        app.save(update_fields=["assigned_reviewer_id"])
-
-                        ApplicationStatusHistory.objects.create(
-                            application=app,
-                            status=app.status,
-                            old_status=app.status,
-                            new_status=app.status,
-                            changed_by_id=str(request.user.id),
-                            notes=f"Auto-assigned to reviewer: {reviewer.email}",
-                        )
-
-                        try:
-                            from apps.common.outbox import create_notification
-                            create_notification(
-                                user_id=reviewer.id,
-                                title="Application Assigned",
-                                message=f"Application {app.application_number} has been assigned to you for review.",
-                                type="assignment",
-                                action_url=f"/admin/applications/{app.id}",
-                            )
-                        except Exception:
-                            logger.warning("Failed to notify reviewer %s for auto-assigned app=%s", reviewer.id, app.id, exc_info=True)
-
-                        assignments.append({
-                            "application_id": str(app.id),
-                            "reviewer_id": str(reviewer.id),
-                        })
-                        assigned_count += 1
-                        assigned = True
-                        break
-
-                if not assigned:
-                    break
+        # R3.5: revoke each newly-assigned reviewer's sessions once so their new
+        # assignment-scoped authority is re-resolved on the next request.
+        for reviewer_id in {o.reviewer_id for o in assignments}:
+            revoke_sessions_for_authority_change(
+                reviewer_id,
+                reason="reviewer_auto_assigned",
+                actor_id=getattr(request.user, "id", None),
+            )
 
         return Response({
             "success": True,
             "data": {
-                "assigned_count": assigned_count,
-                "assignments": assignments,
+                "assigned_count": result["assigned_count"],
+                "assignments": [
+                    {"application_id": o.application_id, "reviewer_id": o.reviewer_id}
+                    for o in assignments
+                ],
             },
         })
 
@@ -328,12 +434,22 @@ class ApplicationFeeWaiverView(APIView):
     """Grant a fee waiver for an application.
 
     POST /api/v1/applications/{id}/fee-waiver/
-    Super admin only.
 
-    Requirements: 12.2, 12.7
+    Authority (admissions-v2 task 9.4, AUTH-02): the **platform**
+    ``platform.settings.manage`` capability resolved through
+    ``AdminCapabilityService``, replacing the ``IsSuperAdmin`` role class — the
+    same actors, but the decision now comes from the capability service. A waiver
+    forgives money the tenant is owed, so it stays a platform act rather than
+    joining the tenant matrix; task 8.4 put fee *writes* behind a platform
+    capability for the same reason.
+
+    Scope-before-lookup is applied so the not-found mask is consistent with every
+    other application route, and the command is version-guarded.
+
+    Requirements: 12.2, 12.7, R8.3, R8.4
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationFeeWaiverRequestSerializer
 
     @extend_schema(
@@ -341,22 +457,30 @@ class ApplicationFeeWaiverView(APIView):
         responses={
             200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
             400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
         },
         tags=["applications"],
-        summary="Grant a fee waiver (super-admin only)",
+        summary="Grant a fee waiver (platform settings authority)",
     )
     @idempotent
     def post(self, request, application_id):
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
+        from apps.catalog.services import AdminCapabilityService
+        from apps.common.tenant_authorization import resolve_scoped_application
         from apps.documents.fee_waiver_service import FeeWaiverError, FeeWaiverService
 
-        try:
-            app = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        AdminCapabilityService().require_capability(
+            request.user, "platform.settings.manage"
+        )
+        app = resolve_scoped_application(request, application_id)
+        ApplicationReviewWorkspaceService.assert_version(
+            app, read_expected_version(request)
+        )
 
         data = request.data or {}
         waiver_type = data.get("waiver_type")
@@ -397,6 +521,7 @@ class ApplicationFeeWaiverView(APIView):
                 "waiver_type": waiver.waiver_type,
                 "reason_code": waiver.reason_code,
                 "discount_percentage": waiver.discount_percentage,
+                "version": ApplicationReviewWorkspaceService.bump_version(app),
             },
         })
 

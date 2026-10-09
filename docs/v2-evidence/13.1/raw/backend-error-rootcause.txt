@@ -1,0 +1,46 @@
+]633;E;echo "=== root cause of the 72 setup errors ===";04d47e3e-695f-4478-9141-3b0837a91cef]633;C=== root cause of the 72 setup errors ===
+9 test modules patch 'apps.applications.document_views.AccessScopeService' unconditionally.
+That symbol no longer exists in the module:
+8:import logging
+10:from django.utils import timezone
+11:from drf_spectacular.utils import (
+18:from rest_framework import status
+19:from rest_framework.permissions import IsAuthenticated
+20:from rest_framework.response import Response
+21:from rest_framework.views import APIView
+23:from apps.applications.models import Application
+24:from apps.common.openapi_helpers import ErrorResponseSerializer
+25:from apps.common.tenant_authorization import resolve_scoped_application
+26:from apps.documents.models import ApplicationDocument, Payment
+27:from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
+28:from apps.documents.serializers import DocumentSerializer
+29:from apps.applications.official_document_views import (
+35:from ._view_helpers import (
+
+One module already guards the same patch with hasattr() — so the correct shape exists in-tree:
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point
+        # this fixture began raising ``AttributeError`` **at setup** and every case
+        # in this file errored rather than ran. Guarding the patch target (rather
+        # than only the import) is what makes the fixture describe the code that
+        # exists (admissions-v2 task 9.4).
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
+    except Exception:
+        pass
+    targets.append("apps.catalog.services.AccessScopeService")
+    import contextlib
+    with contextlib.ExitStack() as stack:
+
+=== the 9 unguarded modules ===
+backend/tests/property/test_application_endpoints.py
+backend/tests/unit/test_admin_export_hardening.py
+backend/tests/unit/test_application_endpoints.py
+backend/tests/unit/test_application_number_generator.py
+backend/tests/unit/test_application_review_force_approved.py
+backend/tests/unit/test_application_review_payment_gate.py
+backend/tests/unit/test_live_500_fixes.py
+backend/tests/unit/test_payment_review_reopen.py
+backend/tests/unit/test_review_notifications.py
+backend/tests/unit/test_student_number_generation.py
+backend/tests/unit/test_waitlist.py

@@ -46,7 +46,9 @@ EXPECTED_VIEW_CLASSES = [
     "ApplicationVerifyDocumentView",
     "ApplicationWaitlistPositionView",
     "ApplicationWithdrawView",
-    "EmailSlipView",
+    # ``EmailSlipView`` removed by admissions-v2 task 10.6 (R13.5, API-04) with the
+    # deprecated ``/email-slip/`` route. The canonical official-document email is
+    # ``OfficialDocumentEmailView``.
     "FinanceReceiptView",
 ]
 

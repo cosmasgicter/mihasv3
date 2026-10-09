@@ -40,22 +40,22 @@ type NotificationType = 'info' | 'success' | 'warning' | 'error'
 const TYPE_CONFIG: Record<NotificationType, { icon: React.ReactNode; color: string; label: string }> = {
   info: {
     icon: <Info className="h-4 w-4" aria-hidden="true" />,
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-blue-100 text-blue-700',
     label: 'Info',
   },
   success: {
     icon: <CheckCircle className="h-4 w-4" aria-hidden="true" />,
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-green-100 text-green-700',
     label: 'Success',
   },
   warning: {
     icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
-    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    color: 'bg-amber-100 text-amber-700',
     label: 'Warning',
   },
   error: {
     icon: <XCircle className="h-4 w-4" aria-hidden="true" />,
-    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    color: 'bg-red-100 text-red-700',
     label: 'Error',
   },
 }

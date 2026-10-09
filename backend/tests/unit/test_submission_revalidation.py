@@ -26,6 +26,7 @@ from apps.applications.services import (
 )
 from tests.tenant_fixtures import (
     build_document,
+    build_grades,
     build_tenant_world,
 )
 
@@ -40,14 +41,17 @@ pytestmark = pytest.mark.django_db
 def _make_submittable_world(**kwargs):
     """Build a draft tenant world whose payment + identity-doc gates pass.
 
-    Sets ``payment_status='verified'`` (a RESOLVED_PAYMENT_STATUSES value) and
-    attaches an NRC document so the only thing left to exercise is the
-    submission-time offering revalidation. Returns the ``TenantWorld``.
+    Sets ``payment_status='verified'`` (a RESOLVED_PAYMENT_STATUSES value),
+    attaches an NRC document, and seeds the five persisted canonical grades the
+    authoritative in-lock readiness gate requires (admissions-v2 task 6.5,
+    R11.5/STU-11) so the only thing left to exercise is the submission-time
+    offering revalidation. Returns the ``TenantWorld``.
     """
     world = build_tenant_world(application_status="draft", **kwargs)
     Application.objects.filter(id=world.application.id).update(payment_status="verified")
     world.application.refresh_from_db()
     build_document(application=world.application, document_type="nrc")
+    build_grades(application=world.application, count=5)
     return world
 
 

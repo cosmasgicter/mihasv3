@@ -1,0 +1,6 @@
+]633;E;echo "=== COMMAND: bun run type-check   (apps/admissions) ===";05aa2edc-cad3-4902-a0ae-e955a7b52112]633;C=== COMMAND: bun run type-check   (apps/admissions) ===
+=== DATE: 2026-08-14T06:47:53Z ===
+=== L5-L6 raw/13 recorded exit 0 ===
+
+$ tsc -p tsconfig.build.json --noEmit
+EXIT=0

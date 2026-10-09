@@ -14,6 +14,8 @@ from apps.documents.document_storage_views import (
     DocumentSignedUrlView,
     DocumentUploadView,
 )
+from apps.documents.fee_admin_views import AdminFeeListView
+from apps.documents.fee_quote_views import FeeQuoteView
 from apps.documents.lenco_webhook_views import LencoWebhookView
 from apps.documents.mobile_money_views import MobileMoneyInitiateView
 from apps.documents.payment_admin_views import SuperAdminPaymentCorrectionView
@@ -112,6 +114,13 @@ payment_urlpatterns = [
         FeeResolveView.as_view(),
         name="fee-resolve",
     ),
+    # Task 8.1: the server-authored, expiring fee quote (design §10.1). POST mints
+    # or reuses the live quote; GET reads it back after a refresh.
+    path(
+        "quote/",
+        FeeQuoteView.as_view(),
+        name="fee-quote",
+    ),
     path(
         "webhook/lenco/",
         LencoWebhookView.as_view(),
@@ -141,6 +150,18 @@ payment_urlpatterns = [
         "<uuid:payment_id>/correct/",
         SuperAdminPaymentCorrectionView.as_view(),
         name="payment-super-admin-correct",
+    ),
+]
+
+# Fee administration: /api/v1/admin/fees/ (admissions-v2 task 8.4, ADM-06).
+# The scoped, paginated, aggregated, exportable fee report. Registered in
+# config/urls.py under the canonical /api/v1/admin/ namespace; fee *writes* stay
+# on the canonical /api/v1/programs/<id>/fees/ path below.
+fee_admin_urlpatterns = [
+    path(
+        "fees/",
+        AdminFeeListView.as_view(),
+        name="admin-fee-list",
     ),
 ]
 

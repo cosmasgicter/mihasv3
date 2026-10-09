@@ -5,6 +5,15 @@
  * Verifies the admin users page renders its user management UI with
  * directory listing, filters, and action buttons when the users API
  * returns data with Django API shapes.
+ *
+ * Updated by admissions-v2 task 9.3 (R6.1, finding ADM-03). The page no longer
+ * calls `usersData.useList()` — a bare first-page fetch it then filtered,
+ * sorted, paginated, and exported in the browser. It reads the scoped directory
+ * report (`useUserDirectory`), so the mock supplies that shape: rows plus the
+ * server's totals, aggregates, definitions, facets, and page arithmetic. The
+ * assertions below additionally pin the two claims a rendered page can make
+ * about ADM-03 — the headline numbers are the server's aggregates, and the role
+ * options are the server's facet.
  */
 
 import React from 'react'
@@ -97,18 +106,76 @@ const mockUsersList = [
 
 vi.mock('@/data/users', () => ({
   usersData: {
-    useList: () => ({
-      data: { users: mockUsersList, totalCount: 2 },
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    }),
     useCreate: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useUpdate: () => ({ mutateAsync: vi.fn(), isPending: false }),
     useRemove: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    useUpdatePermissions: () => ({ mutateAsync: vi.fn(), isPending: false }),
-    usePermissions: () => ({ data: null, isLoading: false }),
+    useEffectiveCapabilities: () => ({ data: null, isLoading: false, isError: false }),
   },
+}))
+
+// The server's report. Note the deliberate asymmetry: the page holds 2 rows and
+// the directory holds 57 accounts. Any number on screen that reads 2 would be a
+// page-derived number, which is the finding.
+const mockReport = {
+  page: 1,
+  pageSize: 25,
+  totalCount: 57,
+  totalPages: 3,
+  results: mockUsersList,
+  aggregates: {
+    total_count: 57,
+    enabled_count: 55,
+    disabled_count: 2,
+    with_membership_count: 9,
+    without_membership_count: 48,
+    staff_without_membership_count: 4,
+    role_breakdown: { student: 50, reviewer: 4, admin: 2, super_admin: 1 },
+  },
+  aggregate_definitions: {
+    total_count: 'Accounts matching the current filters, in your scope.',
+    enabled_count: 'Matching accounts that are permitted to sign in.',
+    staff_without_membership_count:
+      'Matching staff accounts with no active school membership, and therefore no tenant access at all.',
+  },
+  facets: {
+    role: {
+      options: [
+        { value: 'student', label: 'Student', count: 50 },
+        { value: 'reviewer', label: 'Reviewer', count: 4 },
+        { value: 'admin', label: 'Administrator', count: 2 },
+      ],
+      truncated: false,
+    },
+  },
+  filters: {
+    institution_id: null,
+    role: [],
+    search: null,
+    is_active: null,
+    has_membership: null,
+    start_date: null,
+    end_date: null,
+    sort: 'created_at',
+    order: 'desc',
+    unknown_parameters: [],
+  },
+  redaction: { applied: false, withheld_fields: [] },
+  can_export: true,
+  supported_roles: ['student', 'reviewer', 'admin', 'super_admin'],
+}
+
+vi.mock('@/hooks/admin/useUserDirectory', () => ({
+  useUserDirectory: () => ({
+    data: mockReport,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUserDirectoryExport: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUserBulkCommand: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUserImportPreview: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUserImportCommit: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  userDirectoryKeys: { all: ['admin', 'users', 'directory'] },
 }))
 
 vi.mock('@/hooks/useToast', () => ({
@@ -194,9 +261,44 @@ describe('Admin users page verification', () => {
     expect(select).not.toBeNull()
   })
 
-  it('renders the active user directory section', async () => {
+  it('renders the user directory section', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Active user directory')
+    expect(text).toContain('User directory')
+  })
+
+  it('renders the server aggregate, not the page length (ADM-03)', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    // 57 accounts match; 2 rows are on screen.
+    expect(text).toContain('57')
+    expect(text).toContain('55')
+    expect(text).toContain('Accounts matching the current filters')
+    // The old page published `users.length` as the directory total.
+    expect(text).not.toContain('2 active accounts')
+  })
+
+  it('renders the server page arithmetic', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('Page 1 of 3')
+  })
+
+  it('renders role options from the server facet with their whole-set counts', async () => {
+    await renderAndWait()
+    const options = Array.from(container.querySelectorAll('option')).map(
+      (option) => option.textContent || '',
+    )
+    // Each option carries the count for the whole filtered directory. A pick
+    // list harvested from the loaded rows could offer neither the count nor a
+    // role with no row on this page.
+    expect(options.some((label) => label.includes('Student (50)'))).toBe(true)
+    expect(options.some((label) => label.includes('Reviewer (4)'))).toBe(true)
+  })
+
+  it('offers the export only when the server says the actor may export', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('Export')
   })
 })

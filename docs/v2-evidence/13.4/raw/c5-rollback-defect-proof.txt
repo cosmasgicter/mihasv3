@@ -1,0 +1,48 @@
+### 2026-08-12T15:32:52Z [C5] GATE-13.1-06: shipped rollback UPDATE vs the CHECK it must satisfy
+== 0. the constraint under discussion ==
+                conname                | convalidated |                                                                                                      def                                                                                                       
+---------------------------------------+--------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ chk_applications_canonical_assignment | t            | CHECK ((((status)::text = 'draft'::text) OR (assignment_quarantined = true) OR ((institution_id IS NOT NULL) AND (program_id IS NOT NULL) AND (program_offering_id IS NOT NULL) AND (intake_id IS NOT NULL))))
+(1 row)
+
+
+== 1a. a profile to own the application (the FK is real on this schema) ==
+INSERT 0 1
+
+== 1. manufacture the exact row the backfill leaves behind ==
+   non-draft, no canonical ids, quarantined = true (the CHECK exempts it)
+INSERT 0 1
+                  id                  |  status   | assignment_quarantined | institution_id_null | program_id_null | offering_id_null | intake_id_null 
+--------------------------------------+-----------+------------------------+---------------------+-----------------+------------------+----------------
+ 00000000-0000-0000-0000-0000134a0001 | submitted | t                      | t                   | t               | t                | t
+(1 row)
+
+
+== 2. run the rollback statement AS SHIPPED - expect SQLSTATE 23514 ==
+psql:/tmp/v2_13_4/c5-rollback-defect.sql:54: ERROR:  new row for relation "applications" violates check constraint "chk_applications_canonical_assignment"
+DETAIL:  Failing row contains (00000000-0000-0000-0000-0000134a0001, APP-13-4-ROLLBACK-1, 00000000-0000-0000-0000-0000134b0001, Rehearsal Row, null, null, 2000-01-01, female, +260000000000, rehearsal-13-4@example.invalid, Lusaka, null, null, null, null, null, null, Legacy Program Snapshot, Legacy Intake Snapshot, Legacy Institution Snapshot, null, null, null, null, null, null, submitted, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1, null, null, f, null, null, null, null, null, null, null, f, null, null, null, 1, null, null, null, null, null).
+
+== 3. the row is untouched: the rollback aborted, it did not partially apply ==
+                  id                  | assignment_quarantined 
+--------------------------------------+------------------------
+ 00000000-0000-0000-0000-0000134a0001 | t
+(1 row)
+
+
+== 4. the corrected rollback - scoped DELETE of the ledger rows only ==
+   (nothing to delete here; the point is that it runs and is allow-listed)
+DELETE 0
+
+== 5. and the flag column itself is removed wholesale by the 01_ expand rollback ==
+   ALTER TABLE applications DROP COLUMN IF EXISTS assignment_quarantined;
+   which is why resetting the flag was never needed - exactly the reading
+   task 3.5 wrote into its own sibling rollback.
+ applications_still_quarantined 
+--------------------------------
+                              1
+(1 row)
+
+
+== 6. clean up the rehearsal rows ==
+DELETE 1
+DELETE 1

@@ -43,26 +43,36 @@ if not LENCO_API_SECRET_KEY or not LENCO_PUBLIC_KEY:  # noqa: F405
 if not AUDIT_LOG_ENCRYPTION_KEY:  # noqa: F405
     raise ImproperlyConfigured("AUDIT_LOG_ENCRYPTION_KEY is required in production.")
 
-# Payment hardening is mandatory in production. These settings intentionally
-# override the rollout flags from base.py so a missing env var cannot silently
-# leave the legacy payment paths active.
-PAYMENT_HARDENING_FORWARD_ONLY = True
-PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
+# Payment rate limiting is mandatory in production, so a missing env var cannot
+# silently leave the payment endpoints unthrottled. The forward-only,
+# strict-dedup, and force-approved flags no longer exist: admissions-v2 task 8.2
+# deleted the alternative implementations they used to select, so their
+# behaviour is now unconditional.
 PAYMENT_HARDENING_RATE_LIMITS = True
-PAYMENT_HARDENING_FORCE_APPROVED = True
 
 # AI hardening is mandatory in production for PII protection. Mirrors the
 # payment-hardening pattern: env vars cannot silently leave PII redaction off.
-AI_HARDENING_CIRCUIT_BREAKER = True
-AI_HARDENING_RATE_LIMITS = True
-AI_HARDENING_CACHE = True
-AI_HARDENING_REDACTION = True
+DOCUMENT_EXTRACT_RATE_LIMITS = True
 
 # Production log volume: sample healthy 200s at 10%. Slow requests (>1s)
 # and 4xx/5xx responses are always logged regardless of sample rate.
-# Override via REQUEST_METRIC_SAMPLE_RATE env var if needed.
-import os as _os  # noqa: E402
-_os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
+# Override via the REQUEST_METRIC_SAMPLE_RATE env var, which still wins.
+#
+# This is a SETTING, not an ``os.environ.setdefault``. Until task 13.6
+# remediation M2 it was the latter, and that made *importing* this module — which
+# is inspection, not activation — silently re-sample every ``MetricsMiddleware``
+# constructed later in the same process. One test does exactly that import
+# (``tests/property/test_production_cors_pagination_fix_exploration.py:78``), and
+# on the day its environment-conditional skip stopped firing, two unrelated
+# metrics properties in ``tests/property/test_production_readiness_metrics.py``
+# began measuring 0.1 instead of the 1.0 they assert under. Measured, with the
+# mechanism and the 1.0 -> 0.1 / 200-of-200 -> 26-of-200 readings, in
+# docs/v2-evidence/13.6/remediation/M1-M2/raw/11-m2-mechanism.txt.
+#
+# The env var keeps precedence so an operator override behaves exactly as it did
+# under ``setdefault``; ``MetricsMiddleware`` resolves env first, then this
+# setting, then 1.0.
+REQUEST_METRIC_SAMPLE_RATE = 0.1
 
 # CORS — production frontend only (explicit origins, no regexes)
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405

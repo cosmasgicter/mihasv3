@@ -1,0 +1,21 @@
+]633;E;echo "=== frontend gates (apps/admissions) ===";4070fc94-4faa-48f4-bcf4-8f5910a5449a]633;C=== frontend gates (apps/admissions) ===
+
+bun run lint      : 0 errors, exit 0   (--max-warnings 0, so a warning fails it too)
+bun run type-check: exit 0             (tsc -p tsconfig.build.json --noEmit)
+bun run test      : 494 passed | 1 skipped (495 files); 4620 passed | 1 skipped (4621 tests); exit 0
+
+Identical to M4-M5-M6's raw/55 recording (0 failed / 4620 passed / 1 skipped / 495 files),
+which is expected: M8 changed no frontend file.
+
+--- M4-M5-M6's recording, for comparison ---
+lint exit=0
+type-check exit=0
+[90mstderr[2m | tests/unit/apiClientTimeoutRetry.test.ts[2m > [22m[2mApiClient timeout and retry[2m > [22m[2mReq 24.4 — Retry for network/5xx errors[2m > [22m[2mretries on network error and succeeds on later attempt
+[90mstderr[2m | tests/unit/page-verification/student-interview.test.tsx[2m > [22m[2mStudent interview page verification[2m > [22m[2mrenders without errors and shows the page heading
+
+--- M8 changed 0 files under apps/ ---
+`git status --porcelain apps/` reports 480 entries, but every one of them is `??`:
+the whole V2 working tree is untracked, so git cannot answer 'modified' here. The
+meaningful check is mtime, and raw/40-evidence-isolation.txt lists every file in the
+repository newer than M8's first artifact: 17 backend test files and M8's own evidence
+directory. Zero files under apps/.

@@ -1,0 +1,23 @@
+COMMAND:
+  DATABASE_URL=postgresql://cosmas@127.0.0.1:5435/mihas \
+  DJANGO_SETTINGS_MODULE=config.settings.dev \
+  ./.venv/bin/python -m pytest -q --disable-warnings \
+  tests/integration/test_draft_update_concurrency_6_3.py
+DATABASE: local PostgreSQL 18 on 127.0.0.1:5435
+CAPTURED STDOUT (verbatim):
+  ......                                                                   [100%]
+  6 passed, 6 warnings in 1.69s
+PROCESS EXIT: 0
+
+Cases include:
+- Idempotency-Key is mandatory.
+- expected_version is mandatory.
+- a successful command increments version exactly once.
+- replaying the same key returns the original response and does not bump again.
+- a distinct stale command returns 409 VERSION_CONFLICT + current_version.
+- two real concurrent commands based on the same version produce exactly one
+  200 winner and one 409 loser under select_for_update.
+
+The same focused authority/route registry set on SQLite: 56 passed, 1 skipped;
+the sole skip is the deliberately PostgreSQL-only row-lock race. The PostgreSQL
+run exercised that case rather than counting it as green through a skip.

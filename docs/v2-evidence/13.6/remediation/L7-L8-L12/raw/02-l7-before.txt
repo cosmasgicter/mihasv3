@@ -1,0 +1,101 @@
+# L7 BEFORE - platform-wide communication fallback templates
+# Neon branch br-jolly-pine-ahybtg2e, database v2_snap_13_6 (13.4's restored
+# production-lineage snapshot, brought fully forward by L2-L3: 44/44, 75 ledger rows).
+# READ-ONLY session. taken 2026-08-14T09:39:18Z
+
+SET
+Pager usage is off.
+Output format is aligned.
+## 1. totals
+ total | platform_wide | tenant_scoped | legacy_branded_fallbacks 
+-------+---------------+---------------+--------------------------
+    33 |            33 |             0 |                       31
+(1 row)
+
+
+## 2. the three known legacy-brand forms, and whether the set is closed
+ form1_subject_prefix | form2_body_signoff | form3_body_welcome | katc_rows | uncovered_rows 
+----------------------+--------------------+--------------------+-----------+----------------
+                   19 |                 31 |                  1 |         0 |              0
+(1 row)
+
+
+## 3. every distinct window around a legacy-brand occurrence (platform-wide rows)
+                    window                     
+-----------------------------------------------
+ <p>Best regards,<br>MIHAS Admissions</p>
+ MIHAS Admissions — Amendm
+ MIHAS Admissions — Applic
+ MIHAS Admissions — Comple
+ MIHAS Admissions — Condit
+ MIHAS Admissions — Confir
+ MIHAS Admissions — Congra
+ MIHAS Admissions — Docume
+ MIHAS Admissions — Enroll
+ MIHAS Admissions — Fee Wa
+ MIHAS Admissions — Paymen
+ MIHAS Admissions — Review
+ MIHAS Admissions — You Ha
+ MIHAS Admissions — Your A
+ d.</p><p>Welcome to MIHAS! Please log in for 
+(15 rows)
+
+
+## 4. per-row: which forms, and the subject as stored
+            template_key            | version | is_active | channel | f1 | f2 | f3 |                           subject_as_stored                            
+------------------------------------+---------+-----------+---------+----+----+----+------------------------------------------------------------------------
+ amendment_reviewed                 |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Amendment Request Reviewed
+ application_approved               |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Congratulations! Your Application Has Been Approved
+ application_rejected               |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Application Decision
+ application_submitted              |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Your Application Has Been Submitted
+ application_under_review           |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Your Application Is Under Review
+ application_withdrawn_confirmation |       1 | t         | both    | f  | t  | f  | Application Withdrawal Confirmed
+ condition_assigned                 |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Conditional Offer Issued
+ condition_expired                  |       1 | t         | both    | f  | t  | f  | Condition Deadline Passed
+ condition_expiry_warning           |       1 | t         | both    | f  | t  | f  | Condition Deadline Approaching
+ condition_verified                 |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Condition Met
+ deferred_payment_reminder          |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Complete Your Payment
+ document_rejected                  |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Document Requires Attention
+ document_verification_needed       |       1 | t         | email   | f  | f  | f  | ALERT: Documents Pending Verification
+ document_verified                  |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Document Verified
+ draft_expired                      |       1 | t         | both    | f  | t  | f  | Application Draft Expired
+ draft_expiry_reminder              |       1 | t         | both    | f  | t  | f  | Your Application Draft Will Expire Soon
+ enrollment_confirmation_reminder   |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Confirm Your Enrollment Soon
+ enrollment_confirmed               |       1 | t         | both    | t  | t  | t  | MIHAS Admissions — Enrollment Confirmed
+ enrollment_expired                 |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Enrollment Confirmation Expired
+ fee_waiver_granted                 |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Fee Waiver Granted
+ interview_cancelled                |       1 | t         | both    | f  | t  | f  | Interview Cancelled — {{program_name}}
+ interview_reminder                 |       1 | t         | both    | f  | t  | f  | Reminder: Interview Tomorrow — {{program_name}}
+ interview_rescheduled              |       1 | t         | both    | f  | t  | f  | Interview Rescheduled — {{program_name}}
+ interview_scheduled                |       1 | t         | both    | f  | t  | f  | Interview Scheduled — {{program_name}}
+ late_application_accepted          |       1 | t         | both    | f  | t  | f  | Late Application Received
+ payment_expired                    |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Payment Expired
+ payment_failed                     |       1 | t         | both    | f  | t  | f  | Payment Issue — Action Required
+ payment_rejected                   |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Payment Could Not Be Verified
+ payment_verified                   |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Payment Confirmed
+ review_sla_breach                  |       1 | t         | email   | f  | f  | f  | ALERT: Applications Pending Review Beyond SLA
+ reviewer_assigned                  |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — Reviewer Assigned
+ waitlist_position_assigned         |       1 | t         | both    | t  | t  | f  | MIHAS Admissions — You Have Been Waitlisted
+ waitlist_promoted                  |       1 | t         | both    | f  | t  | f  | Great News — You Have Been Accepted!
+(33 rows)
+
+
+## 5. the two rows 13.4 gate 19 found already clean, in full
+         template_key         |               subject_template                |                                                                  body_head                                                                  
+------------------------------+-----------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------
+ document_verification_needed | ALERT: Documents Pending Verification         | <p>The following documents have been pending verification beyond the SLA threshold:</p><p>{{document_list}}</p>
+ review_sla_breach            | ALERT: Applications Pending Review Beyond SLA | <p>The following applications have exceeded the review SLA threshold:</p><p>{{application_list}}</p><p>Please prioritize these reviews.</p>
+(2 rows)
+
+
+## 6. ledger rows for the seed script and for L7
+               migration_name                | sha256_12 |          applied_at           
+---------------------------------------------+-----------+-------------------------------
+ 2026_05_19_seed_communication_templates.sql |           | 2026-05-25 13:46:03.627413+00
+(1 row)
+
+ migration_history_rows 
+------------------------
+                     75
+(1 row)
+

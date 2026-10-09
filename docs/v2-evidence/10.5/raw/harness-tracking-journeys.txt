@@ -1,0 +1,15 @@
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:348:1 › an application number does not open tracking, and the issued link does (1.9s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:394:1 › the share dialog offers the token URL, and that URL opens the status (3.2s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:440:1 › a school host reveals only its own application; the neutral portal resolves by token (1.4s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:492:1 › failed attempts are rate-limited while a valid token keeps working (3.3s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:573:1 › the tracker renders the published contract and publishes no applicant data (2.0s)
+  ✓   6 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:348:1 › an application number does not open tracking, and the issued link does (1.9s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:394:1 › the share dialog offers the token URL, and that URL opens the status (3.4s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:440:1 › a school host reveals only its own application; the neutral portal resolves by token (1.4s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:492:1 › failed attempts are rate-limited while a valid token keeps working (2.9s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/public-tracking-secret.spec.ts:573:1 › the tracker renders the published contract and publishes no applicant data (1.6s)
+
+  10 passed (32.1s)

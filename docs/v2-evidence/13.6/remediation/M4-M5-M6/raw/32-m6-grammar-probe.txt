@@ -1,0 +1,15 @@
+parse_findings: 110 definitions  (71 plain + 39 dotted)
+dotted: 39 -> ['GATE-13.1-01', 'GATE-13.1-02', 'GATE-13.1-03'] … ['GATE-13.6-03', 'GATE-13.6-04']
+phantom truncated ids among definitions: []
+
+# _FINDING_ID_RE over every live spec's trio — ids matched that are NOT a defined finding anywhere
+truncated-looking matches anywhere: 0
+
+# The 71 plain ids must be BYTE-IDENTICAL to what the pre-M6 grammar parsed
+pre-M6 grammar definitions : 71
+post-M6 plain definitions  : 71
+identical, in order        : True
+post-M6 total definitions  : 110  = 71 + 39 dotted
+
+owned by requirements.md: pre-M6=71  post-M6=71
+plain ids lost by the widen: none

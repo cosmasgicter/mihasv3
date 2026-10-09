@@ -1,0 +1,61 @@
+=== COMMAND: git status / git diff --cached / git stash list ===
+=== DATE: 2026-08-14T15:29:38Z ===
+=== HEAD: bae29a28d9657f288b3339062adb31285959c966  (unchanged by L12) ===
+
+bae29a28d chore: regenerate API schema + lint baseline (883 issues, +2 from ProgramIntake endpoint)
+
+--- staged (git diff --cached --name-only)
+--- NOT EMPTY, and NOT L12's. Nine backend AI modules were already in the index when
+--- L12 started — the de-AI lane's deletions (task 7.4 / 12.4, R11.1). L12 ran no
+--- `git add` and no `git commit`; it did not stage these and has not unstaged them,
+--- because unstaging another lane's index is not L12's call. Recorded here so the
+--- claim is "L12 staged nothing", not the stronger and false "the index is clean".
+backend/apps/common/ai_cache.py
+backend/apps/common/ai_circuit_breaker.py
+backend/apps/common/ai_prompt_redactor.py
+backend/apps/common/ai_service.py
+backend/tests/unit/test_ai_cache.py
+backend/tests/unit/test_ai_circuit_breaker.py
+backend/tests/unit/test_ai_prompt_redactor.py
+backend/tests/unit/test_ai_rate_throttling.py
+backend/tests/unit/test_ai_redaction_canonical.py
+(zero apps/admissions paths above = L12 staged nothing of its own)
+
+--- git stash list: expect EMPTY
+
+--- total worktree entries (whole admissions-v2 spec is uncommitted, not just L12)
+963
+
+--- the files L12 itself changed, as git sees them
+ M apps/admissions/eslint.config.js
+ M apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts
+ M apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts
+ M apps/admissions/src/pages/student/PaymentCallback.tsx
+ M apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts
+ M apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts
+ M apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts
+ M apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts
+ M apps/admissions/src/pages/student/applicationWizard/hooks/wizard/wizardControllerUtils.ts
+ M apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx
+ M apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx
+ M apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx
+ M apps/admissions/src/services/authInterceptor.ts
+ M apps/admissions/src/services/catalog.ts
+ M apps/admissions/src/services/client.ts
+ M apps/admissions/src/services/documents.ts
+ M apps/admissions/src/services/payments.ts
+ M apps/admissions/tests/unit/useDocumentGeneration.test.tsx
+?? apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardSubmission.ts
+?? apps/admissions/src/services/errors.ts
+?? apps/admissions/src/services/sessionProbe.ts
+?? apps/admissions/tests/harness-e2e/harness-fixtures.ts
+?? apps/admissions/tests/harness-e2e/helpers/ops.ts
+?? apps/admissions/tests/unit/architectureEnforcement.test.ts
+
+--- forbidden paths: expect each to be untouched by L12
+  .kiro/specs/admissions-v2-canonical-rebuild/tasks.md                   
+  .kiro/specs/admissions-v2-canonical-rebuild/.config.kiro               
+  docs/canonical-truth-map.md                                             1 file changed, 1025 insertions(+), 18 deletions(-)
+  .kiro/specs/admissions-v2-canonical-rebuild/findings.md                
+(the numbers above are the whole spec worktree, not L12: L12 opened none of these
+ four files. Its own change set is the list above them.)

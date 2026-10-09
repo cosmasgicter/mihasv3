@@ -69,7 +69,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       return makeJsonResponse(200, {
         success: true,
-        data: [{ subject_id: 'subj-1', grade: 1 }],
+        data: [{ subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 }],
       });
     });
 
@@ -77,7 +77,7 @@ describe('Grades Sync POST Unit Tests', () => {
 
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
-    await syncGradesWithRecovery('app-123', [{ subject_id: 'subj-1', grade: 1 }]);
+    await syncGradesWithRecovery('app-123', [{ subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 }]);
 
     // Verify fetch was called with POST method
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -96,8 +96,8 @@ describe('Grades Sync POST Unit Tests', () => {
       return makeJsonResponse(200, {
         success: true,
         data: [
-          { subject_id: 'subj-1', grade: 1 },
-          { subject_id: 'subj-2', grade: 2 },
+          { subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 },
+          { subject_id: '22222222-2222-4222-8222-222222222222', grade: 2 },
         ],
       });
     });
@@ -107,8 +107,8 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const grades = [
-      { subject_id: 'subj-1', grade: 1 },
-      { subject_id: 'subj-2', grade: 2 },
+      { subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 },
+      { subject_id: '22222222-2222-4222-8222-222222222222', grade: 2 },
     ];
 
     await syncGradesWithRecovery('app-456', grades);
@@ -119,11 +119,15 @@ describe('Grades Sync POST Unit Tests', () => {
     expect(body).toEqual({ grades });
   });
 
-  it('filters unresolved fallback subject ids before posting grades', async () => {
+  // Admissions-v2 task 7.1 (R11.5, STU-11): only canonical server subject
+  // identities are syncable. The previous `fallback-` denylist let any other
+  // malformed reference reach the API to be rejected there; the allowlist keeps
+  // the request honest instead.
+  it('posts only canonical subject identities', async () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
       return makeJsonResponse(200, {
         success: true,
-        data: [{ subject_id: 'subj-1', grade: 1 }],
+        data: [{ subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 }],
       });
     });
 
@@ -132,22 +136,38 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     await syncGradesWithRecovery('app-456', [
-      { subject_id: 'subj-1', grade: 1 },
+      { subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 },
       { subject_id: 'fallback-commerce', grade: 4 },
+      { subject_id: 'not-a-uuid', grade: 4 },
+      { subject_id: '', grade: 4 },
     ]);
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const bodyOptions = mockFetch.mock.calls[0]![1];
     const body = JSON.parse(bodyOptions?.body as string);
-    expect(body).toEqual({ grades: [{ subject_id: 'subj-1', grade: 1 }] });
+    expect(body).toEqual({ grades: [{ subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 }] });
+  });
+
+  it('makes no request when nothing is syncable', async () => {
+    const mockFetch = vi.fn(async () => makeJsonResponse(200, { success: true, data: [] }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
+
+    const result = await syncGradesWithRecovery('app-457', [
+      { subject_id: 'fallback-commerce', grade: 4 },
+    ]);
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(result).toEqual({ grades: [] });
   });
 
   // _Requirements: 10.3_
   it('batch POST returns 200 with the list of upserted grades', async () => {
     const batchGrades = [
-      { subject_id: 'subj-1', grade: 1 },
-      { subject_id: 'subj-2', grade: 2 },
-      { subject_id: 'subj-3', grade: 3 },
+      { subject_id: '11111111-1111-4111-8111-111111111111', grade: 1 },
+      { subject_id: '22222222-2222-4222-8222-222222222222', grade: 2 },
+      { subject_id: '33333333-3333-4333-8333-333333333333', grade: 3 },
     ];
 
     let capturedStatus: number | undefined;
@@ -186,7 +206,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
       const resp = makeJsonResponse(201, {
         success: true,
-        data: { subject_id: 'subj-new', grade: 4, id: 'grade-new' },
+        data: { subject_id: '44444444-4444-4444-8444-444444444444', grade: 4, id: 'grade-new' },
       });
       capturedStatus = resp.status;
       return resp;
@@ -197,11 +217,11 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const result = await syncGradesWithRecovery('app-101', [
-      { subject_id: 'subj-new', grade: 4 },
+      { subject_id: '44444444-4444-4444-8444-444444444444', grade: 4 },
     ]);
 
     // Verify the response contains the new grade
-    expect(result).toEqual({ subject_id: 'subj-new', grade: 4, id: 'grade-new' });
+    expect(result).toEqual({ subject_id: '44444444-4444-4444-8444-444444444444', grade: 4, id: 'grade-new' });
 
     // Verify the mock returned a 201 status for the new grade POST
     expect(capturedStatus).toBe(201);
@@ -217,7 +237,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
       const resp = makeJsonResponse(200, {
         success: true,
-        data: { subject_id: 'subj-existing', grade: 5, id: 'grade-existing' },
+        data: { subject_id: '55555555-5555-4555-8555-555555555555', grade: 5, id: 'grade-existing' },
       });
       capturedStatus = resp.status;
       return resp;
@@ -228,11 +248,11 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const result = await syncGradesWithRecovery('app-102', [
-      { subject_id: 'subj-existing', grade: 5 },
+      { subject_id: '55555555-5555-4555-8555-555555555555', grade: 5 },
     ]);
 
     // Verify the response contains the updated grade
-    expect(result).toEqual({ subject_id: 'subj-existing', grade: 5, id: 'grade-existing' });
+    expect(result).toEqual({ subject_id: '55555555-5555-4555-8555-555555555555', grade: 5, id: 'grade-existing' });
 
     // Verify the mock returned a 200 status for the updated grade POST
     expect(capturedStatus).toBe(200);

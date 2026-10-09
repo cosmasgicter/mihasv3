@@ -1,0 +1,74 @@
+-- Rollback for 2026_08_13_01_widen_application_snapshot_columns.sql
+-- (task 13.6 remediation L2).
+--
+-- Operator-run only: *_rollback.sql files are excluded from the
+-- apply_sql_migrations boot sweep by the suffix filter in
+-- ``_iter_migration_files``, so this is never auto-applied.
+--
+-- ===========================================================================
+-- A WIDEN HAS NO SAFE INVERSE. THIS ROLLBACK IS DELIBERATELY LEDGER-ONLY.
+-- ===========================================================================
+--
+-- Stated plainly rather than dressed up, because the honest answer is the
+-- interesting one:
+--
+--   The mechanical inverse of ``varchar(50) -> varchar(255)`` is
+--   ``varchar(255) -> varchar(50)``, and Postgres will only accept that when
+--   EVERY existing value already fits in 50 characters. If any application
+--   stored a longer name after the widen - which is the entire point of the
+--   widen - the narrowing either fails outright or, with a ``USING
+--   left(col, 50)`` cast, silently truncates a real applicant's stored record.
+--   Requirement 9.2 exists to forbid exactly that trade, and a rollback that
+--   destroys admissions data to restore a column width is not a rollback; it is
+--   a second incident.
+--
+-- So the forward change is intentionally one-way at the data level, and there is
+-- no dishonesty in that: it is the same one-way-ness every ``ADD COLUMN`` has
+-- once rows use it, and it is why the widen was written to converge on the
+-- model's own declared widths (255 / 100 / 255) rather than on some larger
+-- number nobody could later justify.
+--
+-- WHAT THIS FILE THEREFORE UNDOES
+-- -------------------------------
+-- The one thing the migration did that outlives it and CAN be undone without
+-- touching a row: its ``migration_history`` tracking row. Removing it lets the
+-- next ``apply_sql_migrations`` sweep re-attempt the script. On a database that
+-- is already wide, that re-run is a complete no-op (the DO-block guard only
+-- fires while a column is still narrower than its target), so this rollback is
+-- safe to run at any time and converges rather than oscillating.
+--
+-- WHY THAT IS NOT A COP-OUT
+-- -------------------------
+-- Rolling back the *application code* does not require narrow columns. A wider
+-- column is exactly the case ``check_schema_drift``'s docstring already calls
+-- harmless ("Postgres auto-coerces most compatible types"), and 13.4 clause C5
+-- measured old application code running against the fully expanded schema. So
+-- "the schema stays wide while the code goes back" is a supported state, not an
+-- unsupported one - which is what makes a ledger-only rollback the correct
+-- shape here instead of a compromise.
+--
+-- IF AN OPERATOR TRULY NEEDS THE COLUMN NARROW AGAIN
+-- --------------------------------------------------
+-- That is a data decision, not a migration: first establish that no row exceeds
+-- the old ceiling
+--
+--     SELECT count(*) FROM applications
+--     WHERE length(institution) > 50 OR length(intake) > 50
+--        OR length(program) > 50;
+--
+-- and only if that is zero may a narrowing be authored - as its own reviewed,
+-- backup-first, non-additive script under ``--allow-non-additive``, never as
+-- this file. Per ``.kiro/steering/infrastructure.md``, prove it on Neon first
+-- and never run it as the first action on production.
+--
+-- LINT
+-- ----
+-- ``backend/tests/property/test_rollback_safe_operations.py`` (Requirement 9.2)
+-- accepts ``DELETE FROM migration_history`` in any form, and a scoped
+-- ``DELETE ... WHERE`` besides. This file is one such statement and nothing
+-- else, so it passes the lint. It deliberately does NOT add a narrowing
+-- ``ALTER COLUMN ... TYPE``, which the lint would reject and which would be
+-- wrong even if the lint allowed it.
+
+DELETE FROM migration_history
+WHERE migration_name = '2026_08_13_01_widen_application_snapshot_columns.sql';

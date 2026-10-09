@@ -252,9 +252,25 @@ describe('Wizard Step 1 — catalog service normalization', () => {
       expect(result.programs).toHaveLength(3)
     })
 
-    it('normalizes a {programs: [...]} shape', () => {
+    // V1 DEPRECATION TEST (task 12.2, R14.5, finding API-02). Was "normalizes a
+    // {programs: [...]} shape". That was a domain-keyed list `services/catalog.ts`
+    // invented on the way OUT and sniffed for on the way IN; no catalog endpoint
+    // puts a domain key inside `data`. Inverted rather than deleted so the removal
+    // stays pinned on the wizard's own read path.
+    it('REFUSES a {programs: [...]} shape — the domain key is not the contract', () => {
       const wrapped = { programs: djangoProgramsResponse }
       const result = normalizeProgramsResponse(wrapped as any)
+
+      expect(result.programs).toEqual([])
+    })
+
+    it('normalizes the paginated {results: [...]} shape the endpoint publishes', () => {
+      const result = normalizeProgramsResponse({
+        page: 1,
+        pageSize: 20,
+        totalCount: 3,
+        results: djangoProgramsResponse,
+      } as any)
 
       expect(result.programs).toHaveLength(3)
     })
@@ -282,9 +298,22 @@ describe('Wizard Step 1 — catalog service normalization', () => {
       expect(result.intakes).toHaveLength(3)
     })
 
-    it('normalizes an {intakes: [...]} shape', () => {
+    // V1 DEPRECATION TEST (task 12.2, R14.5, finding API-02) — see the programs
+    // case above for the reasoning.
+    it('REFUSES an {intakes: [...]} shape — the domain key is not the contract', () => {
       const wrapped = { intakes: djangoIntakesResponse }
       const result = normalizeIntakesResponse(wrapped as any)
+
+      expect(result.intakes).toEqual([])
+    })
+
+    it('normalizes the paginated {results: [...]} shape the endpoint publishes', () => {
+      const result = normalizeIntakesResponse({
+        page: 1,
+        pageSize: 20,
+        totalCount: 3,
+        results: djangoIntakesResponse,
+      } as any)
 
       expect(result.intakes).toHaveLength(3)
     })

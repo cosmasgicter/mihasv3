@@ -1,0 +1,24 @@
+### 2026-08-15T07:56:33Z whole-tree delta against 13.6 raw/pass2/10 (the recorded baseline). LC_ALL=C.
+before : 94 failed, 5278 passed, 103 skipped, 2 xfailed, 1 xpassed, 2501 warnings, 1 error in 481.20s (0:08:01)
+after  : 93 failed, 5303 passed, 102 skipped, 2 xfailed, 1 xpassed, 2501 warnings, 1 error in 643.88s (0:10:43)
+unique failure headers: before 65, after 64
+
+--- ONLY IN BEFORE (fixed by this batch) ---
+TestMetricsMiddlewareDurationPositive.test_duration_is_non_negative
+TestMetricsMiddlewareStructuredLogs.test_emits_complete_structured_log
+
+--- ONLY IN AFTER (new in this batch) ---
+test_api_quality_script_passes_against_baseline
+
+--- skip reasons ONLY IN BEFORE (a skip that stopped firing) ---
+tests/unit/test_api_quality_script.py:44: Python at /usr/bin/python3 lacks backend deps; run `pip install -r backend/requirements.txt`
+
+--- skip reasons ONLY IN AFTER (a skip this batch would have added - must be empty) ---
+
+--- arithmetic ---
+passes  5278 + 23 (new tests/unit/test_metrics_middleware_sampling.py) + 2 (M2's two) = 5303  measured 5303
+fails   94 - 2 (M2's two) + 1 (test_api_quality_script, whose SKIP stopped firing - see raw/32) = 93  measured 93
+skips   103 - 1 (the same test_api_quality_script skip) = 102  measured 102
+errors  1 -> 1 (unchanged: property/test_ip_address_column.py setup error, 13.1 cluster E)
+xfail/xpass 2/1 -> 2/1 unchanged
+### 2026-08-15T07:56:33Z done

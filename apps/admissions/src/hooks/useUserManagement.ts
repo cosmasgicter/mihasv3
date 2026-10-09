@@ -40,8 +40,8 @@ export function useUserManagement() {
       setLoading(true)
       setError(null)
 
-      const response = await createUserMutation.mutateAsync(userData) as Record<string, unknown> | undefined
-      return (response?.data as UserProfile) ?? null
+      const response = await createUserMutation.mutateAsync(userData)
+      return (response as unknown as UserProfile) ?? null
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
       logger.error('Failed to create user:', sanitizeForLog(errorMessage))

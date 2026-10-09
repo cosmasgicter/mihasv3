@@ -16,6 +16,16 @@ export interface ErrorDisplayProps {
   supportUrl?: string
   variant?: 'inline' | 'section'
   className?: string
+  /**
+   * The heading level for `variant="section"`'s title.
+   *
+   * Task 13.3 measured `h1 -> h3` on the student status surface
+   * (**GATE-13.3-08**): this component hardcoded `h3`, and a section-variant error
+   * rendered directly under a page's `h1` therefore skipped `h2`. `h2` is the
+   * correct default for a region that sits at page level; a caller nesting this
+   * inside a `SectionCard` (which renders its own `h2`) can pass `h3`.
+   */
+  headingLevel?: 'h2' | 'h3'
 }
 
 export function ErrorDisplay({
@@ -26,8 +36,24 @@ export function ErrorDisplay({
   supportUrl = '/contact',
   variant = 'section',
   className,
+  headingLevel = 'h2',
 }: ErrorDisplayProps) {
   if (!message || !message.trim()) return null
+
+  /*
+    Every control in this primitive is a 44 px target (GATE-13.3-04, 13.6 §8.1
+    item L6; R16.2).
+
+    `Contact Support`, `Retry` and `Go Back` were `inline-flex … text-sm` links
+    with no touch floor — measured 126.797 x 20 and ~66 x 20 by task 13.3. Because
+    this is a *shared primitive*, that 20 px height was on **every error state in
+    the product**, which is why one class fixes more than one screen. The links
+    still look like links; `min-h-touch` grows the hit area, and `items-center`
+    keeps the glyph and the label optically centred inside it.
+  */
+  const linkTargetClass =
+    'inline-flex min-h-touch items-center gap-1 rounded-md text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+  const SectionHeading = headingLevel
 
   if (variant === 'inline') {
     return (
@@ -40,12 +66,12 @@ export function ErrorDisplay({
         <div className="flex flex-col gap-1">
           {title && <span className="font-medium text-foreground">{title}</span>}
           <span className="text-destructive">{message}</span>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3">
             {onRetry && (
               <button
                 type="button"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={cn(linkTargetClass, 'font-medium text-primary')}
               >
                 <RefreshCw className="h-3 w-3" aria-hidden="true" />
                 Retry
@@ -55,7 +81,7 @@ export function ErrorDisplay({
               <button
                 type="button"
                 onClick={onGoBack}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={cn(linkTargetClass, 'font-medium text-primary')}
               >
                 <ArrowLeft className="h-3 w-3" aria-hidden="true" />
                 Go Back
@@ -63,7 +89,7 @@ export function ErrorDisplay({
             )}
             <a
               href={supportUrl}
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={cn(linkTargetClass, 'text-muted-foreground hover:text-foreground')}
             >
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
               Contact Support
@@ -89,26 +115,28 @@ export function ErrorDisplay({
       </div>
 
       <div className="space-y-1.5">
-        {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
+        {title && (
+          <SectionHeading className="text-lg font-semibold text-foreground">{title}</SectionHeading>
+        )}
         <p className="max-w-md text-sm text-muted-foreground">{message}</p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 pt-1">
         {onRetry && (
-          <Button onClick={onRetry} variant="default" size="default">
+          <Button onClick={onRetry} variant="default" size="default" className="min-h-touch">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Try Again
           </Button>
         )}
         {!onRetry && onGoBack && (
-          <Button onClick={onGoBack} variant="outline" size="default">
+          <Button onClick={onGoBack} variant="outline" size="default" className="min-h-touch">
             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Back
           </Button>
         )}
         <a
           href={supportUrl}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className={cn(linkTargetClass, 'px-2 text-muted-foreground hover:text-foreground')}
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           Contact Support

@@ -6,21 +6,28 @@ Spec: enterprise-tenant-authority — Task 7.6 (R7.2, R7.6, R7.7); design.md
 "Property 11: Domain status machine allows only defined transitions".
 
 Property 11 (Domain status machine allows only defined transitions): *for all*
-``(from_status, to_status)`` pairs over the six ``InstitutionDomain.STATUS_*``
+``(from_status, to_status)`` pairs over the seven ``InstitutionDomain.STATUS_*``
 values, ``DomainStatusMachine.can_transition(from, to)`` is ``True`` *iff* the
-pair is one of the seven allowed transitions, and ``assert_transition`` raises
+pair is one of the nine allowed transitions, and ``assert_transition`` raises
 ``DomainTransitionError`` for every other pair. The activation rule
 (``verified -> active`` permitted, activating a non-``verified`` domain
 rejected) and the ``verified -> active`` edge that the view layer uses to record
 ``approved_by`` (R7.6, R7.7) are derived directly from this same pure table, so
 they are pinned here without touching the database.
 
-The machine is a pure, table-driven decision function — it holds no state and
-performs no I/O — so this property needs no DB fixture (the seven-edge table is
-the single source of truth reused by the create/activate views and the
-verification Celery task).
+Task 4.4 (R5.1) extended the machine with the ``rejected`` state and its two
+edges — ``pending_review -> rejected`` (platform reject) and
+``rejected -> pending_dns`` (retry after reject) — completing design §6.3's
+``pending_review -> rejected -> pending_verification`` branch. The other seven
+edges are unchanged, so this file now pins the full nine-edge admissions-v2
+machine.
 
-**Validates: Requirements 7.2, 7.6, 7.7**
+The machine is a pure, table-driven decision function — it holds no state and
+performs no I/O — so this property needs no DB fixture (the nine-edge table is
+the single source of truth reused by the create/retry/approve/reject/activate/
+reactivate views and the verification Celery task).
+
+**Validates: Requirements 7.2, 7.6, 7.7, 5.1**
 """
 
 from __future__ import annotations
@@ -32,9 +39,10 @@ from hypothesis import strategies as st
 from apps.catalog.models import InstitutionDomain
 from apps.catalog.services import DomainStatusMachine, DomainTransitionError
 
-# The six canonical domain lifecycle statuses (R7.2). Generating pairs over this
-# closed set keeps the input space exactly the machine's domain — every
-# (from, to) combination is a legitimate question to ask the machine.
+# The seven canonical domain lifecycle statuses (R7.2 + task 4.4 ``rejected``).
+# Generating pairs over this closed set keeps the input space exactly the
+# machine's domain — every (from, to) combination is a legitimate question to
+# ask the machine.
 _ALL_STATUSES = (
     InstitutionDomain.STATUS_PENDING_DNS,
     InstitutionDomain.STATUS_PENDING_REVIEW,
@@ -42,11 +50,14 @@ _ALL_STATUSES = (
     InstitutionDomain.STATUS_ACTIVE,
     InstitutionDomain.STATUS_DISABLED,
     InstitutionDomain.STATUS_FAILED,
+    InstitutionDomain.STATUS_REJECTED,
 )
 
-# The seven transitions the design permits — re-declared here independently of
+# The nine transitions the design permits — re-declared here independently of
 # the implementation so the test pins the *specification*, not whatever the
-# production frozenset happens to contain.
+# production frozenset happens to contain. The last two are task 4.4's
+# ``rejected`` edges (design §6.3 ``pending_review -> rejected ->
+# pending_verification``); the first seven are unchanged.
 _EXPECTED_ALLOWED: frozenset[tuple[str, str]] = frozenset(
     {
         (InstitutionDomain.STATUS_PENDING_DNS, InstitutionDomain.STATUS_PENDING_REVIEW),
@@ -56,6 +67,8 @@ _EXPECTED_ALLOWED: frozenset[tuple[str, str]] = frozenset(
         (InstitutionDomain.STATUS_ACTIVE, InstitutionDomain.STATUS_DISABLED),
         (InstitutionDomain.STATUS_FAILED, InstitutionDomain.STATUS_PENDING_DNS),
         (InstitutionDomain.STATUS_DISABLED, InstitutionDomain.STATUS_ACTIVE),
+        (InstitutionDomain.STATUS_PENDING_REVIEW, InstitutionDomain.STATUS_REJECTED),
+        (InstitutionDomain.STATUS_REJECTED, InstitutionDomain.STATUS_PENDING_DNS),
     }
 )
 
@@ -68,17 +81,17 @@ _PROPERTY_SETTINGS = settings(max_examples=200)
 
 # Feature: enterprise-tenant-authority, Property 11: Domain status machine allows only defined transitions
 class TestDomainStatusMachineTransitions:
-    """Property 11: ``DomainStatusMachine`` permits exactly the seven defined
+    """Property 11: ``DomainStatusMachine`` permits exactly the nine defined
     transitions and rejects every other pair.
 
-    **Validates: Requirements 7.2, 7.6, 7.7**
+    **Validates: Requirements 7.2, 7.6, 7.7, 5.1**
     """
 
     @_PROPERTY_SETTINGS
     @given(from_status=_status, to_status=_status)
     def test_can_transition_iff_in_allowed_set(self, from_status, to_status):
-        """``can_transition`` is ``True`` *iff* the pair is one of the seven
-        allowed transitions — for every pair over the six statuses."""
+        """``can_transition`` is ``True`` *iff* the pair is one of the nine
+        allowed transitions — for every pair over the seven statuses."""
         expected = (from_status, to_status) in _EXPECTED_ALLOWED
         assert DomainStatusMachine.can_transition(from_status, to_status) is expected
 
@@ -130,19 +143,19 @@ class TestDomainStatusMachineTransitions:
     @given(status=_status)
     def test_self_transitions_always_rejected(self, status):
         """No-op self-transitions (``X -> X``) are never permitted for any of the
-        six statuses — the table contains no self-edge."""
+        seven statuses — the table contains no self-edge."""
         assert DomainStatusMachine.can_transition(status, status) is False
 
 
 # Feature: enterprise-tenant-authority, Property 11: Domain status machine allows only defined transitions
 class TestDomainStatusMachineTableIntegrity:
-    """The production table exposes precisely the seven specified edges.
+    """The production table exposes precisely the nine specified edges.
 
-    **Validates: Requirements 7.2**
+    **Validates: Requirements 7.2, 5.1**
     """
 
     def test_allowed_transitions_equals_specification(self):
         """The implementation's ``ALLOWED_TRANSITIONS`` equals the independently
-        declared seven-edge specification — guarding against silent drift."""
+        declared nine-edge specification — guarding against silent drift."""
         assert DomainStatusMachine.ALLOWED_TRANSITIONS == _EXPECTED_ALLOWED
-        assert len(DomainStatusMachine.ALLOWED_TRANSITIONS) == 7
+        assert len(DomainStatusMachine.ALLOWED_TRANSITIONS) == 9

@@ -1,0 +1,9 @@
+# Task 6.3 M14 — admissions full lint + production type-check, FINAL tree
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T23:34:06Z
+## bun run type-check
+$ tsc -p tsconfig.build.json --noEmit
+TYPE-CHECK EXIT: 0
+## bun run lint
+$ bun x eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+LINT EXIT: 0

@@ -1,0 +1,34 @@
+]633;E;echo "task 12.3 — backend, the 11-file selection this change can reach";d051df0b-70c0-43c2-ad98-bb4cd529ec14]633;Ctask 12.3 — backend, the 11-file selection this change can reach
+Captured 2026-08-11 (UTC). Run SERIALLY (no -n), -p no:randomly for a stable order.
+DSN: postgresql:///beanola_v2_scratch  (local socket Postgres, task 3.5's convention).
+
+WHY A SELECTION AND NOT THE 51-FILE BASELINE:
+  This change touches SQL scripts under backend/scripts/ (none swept), the
+  compatibility register, the legacy-column tests, and a repo script. It touches
+  no view, serializer, model, URL, or setting. The 11 files below are every suite
+  that reads any of those: the migration runner and its additive lint, the
+  rollback-pairing property, the schema-drift property, the 12.2 register, both
+  legacy-column suites, and the payment/canonical suites whose invariants this
+  task re-measured (3.5, 8.2, canonical drift guard).
+  The 33 pre-existing failures in the dispatch's 51-file baseline live in files
+  this change cannot reach — see README section 8.
+
+149 passed, 1 warning in 17.10s
+
+FILES:
+  tests/unit/test_legacy_columns_no_writes.py            (2 -> 3 cases; see README §6.1)
+  tests/unit/test_legacy_column_contraction_12_3.py      (NEW, 17 cases)
+  tests/unit/test_compatibility_surfaces_12_2.py         (10 cases; +3 register entries)
+  tests/unit/test_apply_sql_migrations.py
+  tests/unit/test_apply_sql_migrations_additive_lint.py
+  tests/property/test_rollback_pairing.py
+  tests/property/test_schema_drift_strict.py
+  tests/unit/test_payment_document_reconciliation_3_5.py
+  tests/unit/test_payment_single_path_8_2.py
+  tests/unit/test_payment_idempotence_8_2.py
+  tests/unit/test_canonical_tenant_drift_guard.py
+
+RESULT: 149 passed, 0 failed, 0 errors.
+  0 errors matters: 12.1 section 15.1 records that a CONCURRENT pytest run produces
+  spurious psycopg2.errors.DuplicateDatabase errors that make a before/after
+  comparison unmeasurable. This was serial, with no other pytest process.

@@ -1,0 +1,920 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../apps/admissions/test-results/harness-evidence/t63-m14-adversarial/0.4/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/two-tenant-adversarial-matrix.spec.ts",
+      "file": "required/two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5657,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:55:09.565Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-a0feabcf42f227f14c89",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 304,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3086,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:55:22.712Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-198e36f51f2439a8bdba",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 385,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 40265,
+                  "error": {
+                    "message": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Step 3: Personal/i })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"Step 3: Personal (completed)\" class=\"flex flex-col items-center relative flex-1 group outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg min-w-0 cursor-pointer transition-transform duration-200\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m  57 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n",
+                    "stack": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Step 3: Personal/i })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"Step 3: Personal (completed)\" class=\"flex flex-col items-center relative flex-1 group outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg min-w-0 cursor-pointer transition-transform duration-200\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m  57 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\n    at openPersonalStep (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:256:26)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:653:3",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                      "column": 26,
+                      "line": 256
+                    },
+                    "snippet": "  254 |       });\n  255 |       await expect(personalStep).toBeEnabled({ timeout: 60_000 });\n> 256 |       await personalStep.click();\n      |                          ^\n  257 |     }\n  258 |\n  259 |     try {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                        "column": 26,
+                        "line": 256
+                      },
+                      "message": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Step 3: Personal/i })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"Step 3: Personal (completed)\" class=\"flex flex-col items-center relative flex-1 group outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg min-w-0 cursor-pointer transition-transform duration-200\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not stable\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m  57 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\n\n  254 |       });\n  255 |       await expect(personalStep).toBeEnabled({ timeout: 60_000 });\n> 256 |       await personalStep.click();\n      |                          ^\n  257 |     }\n  258 |\n  259 |     try {\n    at openPersonalStep (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:256:26)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:653:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:55:25.818Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/test-failed-2.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                    "column": 26,
+                    "line": 256
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-3cfbbbbdaa6cc694c37a",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        },
+        {
+          "title": "F4 interrupted upload: an aborted upload leaves no document row, and the retry succeeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F4 interrupted upload",
+                  "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3380,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:08.021Z",
+                  "annotations": [
+                    {
+                      "type": "F4 interrupted upload",
+                      "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-ceaa15c5291e71ef97dd",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 694,
+          "column": 1
+        },
+        {
+          "title": "F5 lost submit response: the client never learns the outcome, retries, and the platform submits once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F5 retry of a lost submit",
+                  "description": "replayed 200 from the idempotency record"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4209,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:18.137Z",
+                  "annotations": [
+                    {
+                      "type": "F5 retry of a lost submit",
+                      "description": "replayed 200 from the idempotency record"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-16e32a9be61a8bf75923",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 771,
+          "column": 1
+        },
+        {
+          "title": "F6 provider delay: a slow collection is a wait, not a failure, and no second collection is offered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F6 second collection while one is open",
+                  "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2555,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:22.370Z",
+                  "annotations": [
+                    {
+                      "type": "F6 second collection while one is open",
+                      "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-4656379d070eb1b3e262",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 914,
+          "column": 1
+        },
+        {
+          "title": "F7 duplicate callback: a redelivered signed webhook is rejected as a duplicate, and a webhook with no provider reference never moves money",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F7 duplicate callback",
+                  "description": "reference BNL-MIHAS202600009-1791500186187; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1636,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:24.944Z",
+                  "annotations": [
+                    {
+                      "type": "F7 duplicate callback",
+                      "description": "reference BNL-MIHAS202600009-1791500186187; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-841471a097ef68d94fd0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1027,
+          "column": 1
+        },
+        {
+          "title": "F8 broker outage: a job committed with no dispatch is still served, by the platform's own sweep",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F8 broker outage",
+                  "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9848,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:26.597Z",
+                  "annotations": [
+                    {
+                      "type": "F8 broker outage",
+                      "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-d58abe22e551b047a478",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1162,
+          "column": 1
+        },
+        {
+          "title": "F9 after every injection the queues are drained and no collection is unsettled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "drain after the adversarial matrix",
+                  "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                },
+                {
+                  "type": "unsettled collections present before this file ran",
+                  "description": "none"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:36.459Z",
+                  "annotations": [
+                    {
+                      "type": "drain after the adversarial matrix",
+                      "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                    },
+                    {
+                      "type": "unsettled collections present before this file ran",
+                      "description": "none"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-0edeb3be7e56aeb531e6",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1247,
+          "column": 1
+        },
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4970,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:38.512Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-3e14c9ba71a8688daef0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 304,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:49.331Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-ebf567e085f67ba264c0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 385,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9881,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:56:52.236Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-c86adadcdb0aeee9e10b",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        },
+        {
+          "title": "F4 interrupted upload: an aborted upload leaves no document row, and the retry succeeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F4 interrupted upload",
+                  "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2736,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:02.131Z",
+                  "annotations": [
+                    {
+                      "type": "F4 interrupted upload",
+                      "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-6acd7f89a54627e95d27",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 694,
+          "column": 1
+        },
+        {
+          "title": "F5 lost submit response: the client never learns the outcome, retries, and the platform submits once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F5 retry of a lost submit",
+                  "description": "replayed 200 from the idempotency record"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2975,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:04.880Z",
+                  "annotations": [
+                    {
+                      "type": "F5 retry of a lost submit",
+                      "description": "replayed 200 from the idempotency record"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-e5e2f01302bd5872d07e",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 771,
+          "column": 1
+        },
+        {
+          "title": "F6 provider delay: a slow collection is a wait, not a failure, and no second collection is offered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F6 second collection while one is open",
+                  "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1890,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:07.870Z",
+                  "annotations": [
+                    {
+                      "type": "F6 second collection while one is open",
+                      "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-e8144b16835326bf51d8",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 914,
+          "column": 1
+        },
+        {
+          "title": "F7 duplicate callback: a redelivered signed webhook is rejected as a duplicate, and a webhook with no provider reference never moves money",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F7 duplicate callback",
+                  "description": "reference BNL-MIHAS202600018-1791500230643; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1131,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:09.770Z",
+                  "annotations": [
+                    {
+                      "type": "F7 duplicate callback",
+                      "description": "reference BNL-MIHAS202600018-1791500230643; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-be5ee0f8ba12956642a3",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1027,
+          "column": 1
+        },
+        {
+          "title": "F8 broker outage: a job committed with no dispatch is still served, by the platform's own sweep",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "F8 broker outage",
+                  "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6217,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:10.911Z",
+                  "annotations": [
+                    {
+                      "type": "F8 broker outage",
+                      "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-2d4bc835a1b27808e83c",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1162,
+          "column": 1
+        },
+        {
+          "title": "F9 after every injection the queues are drained and no collection is unsettled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "drain after the adversarial matrix",
+                  "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                },
+                {
+                  "type": "unsettled collections present before this file ran",
+                  "description": "none"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 170,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T22:57:17.141Z",
+                  "annotations": [
+                    {
+                      "type": "drain after the adversarial matrix",
+                      "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                    },
+                    {
+                      "type": "unsettled collections present before this file ran",
+                      "description": "none"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-43e879b2925e950a7cb8",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 1247,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-08T22:55:07.769Z",
+    "duration": 129661.25,
+    "expected": 17,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

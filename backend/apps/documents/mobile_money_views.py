@@ -47,8 +47,11 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.object_authorization import authorize_owned_application, not_found_response
+from apps.common.throttling import PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
+from apps.documents.fee_quote_service import FeeQuoteError
+from apps.documents.fee_resolver import FeeConfigurationError
 
 from django.http import HttpResponseRedirect
 
@@ -75,15 +78,6 @@ def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
     return False
 
 
-def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
-    """Extract AI analysis JSON from verification_notes field."""
-    if not verification_notes:
-        return None
-    try:
-        data = json.loads(verification_notes)
-        return data.get("ai_analysis") if isinstance(data, dict) else None
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def _document_not_found_response():
@@ -190,21 +184,19 @@ class MobileMoneyInitiateView(APIView):
 
         user = request.user
         role = getattr(user, "role", "student")
-        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+        # AUTH-07: mobile-money initiation is an owner-class action (approved
+        # authority matrix — no composed staff). A valid-but-non-owned
+        # application id is masked as a canonical 404 (never a distinguishable
+        # 403 NOT_OWNER that leaks existence).
+        denied = authorize_owned_application(
+            request, application, allow_scoped_staff=False, nested=True
+        )
+        if denied is not None:
             payment_metrics.increment(
                 "payment.initiation.failure",
                 tags={"endpoint": "mobile_money", "outcome": "failure"},
             )
-            return Response(
-                {
-                    "success": False,
-                    "error": {
-                        "code": "NOT_OWNER",
-                        "message": "Not authorized",
-                    },
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return denied
 
         # Already-paid fast path - mirrors the legacy behaviour.
         if application.payment_status in COMPLETED_PAYMENT_STATUSES:
@@ -227,6 +219,17 @@ class MobileMoneyInitiateView(APIView):
                 user_id=user.id,
                 phone_raw=phone_raw,
             )
+        except (FeeConfigurationError, FeeQuoteError) as exc:
+            # Task 8.1 / 5.4: a missing fee or an unusable quote is a named,
+            # recoverable answer with a stable code — never a generic 500, and
+            # never a substituted amount (R12.2, R12.6).
+            from apps.documents.payment_helpers import fee_authority_error_response
+
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "mobile_money", "outcome": "failure"},
+            )
+            return fee_authority_error_response(exc)
         except ValueError as exc:
             error_msg = str(exc)
             if error_msg == "PROVIDER_UNAVAILABLE":
@@ -258,13 +261,10 @@ class MobileMoneyInitiateView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if error_msg == "NOT_OWNER":
-                return Response(
-                    {
-                        "success": False,
-                        "error": {"code": "NOT_OWNER", "message": "Not authorized"},
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+                # AUTH-07: defence-in-depth — the view already 404-masks a
+                # non-owned id above, so a service-raised NOT_OWNER is masked
+                # identically (never a distinguishable 403).
+                return not_found_response(nested=True)
             if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
                 parts = error_msg.split("|")
                 remaining = int(parts[1]) if len(parts) > 1 else 0

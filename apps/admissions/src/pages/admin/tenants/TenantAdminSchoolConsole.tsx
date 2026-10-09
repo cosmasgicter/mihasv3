@@ -4,10 +4,12 @@
  * Rendered by the `Tenants.tsx` switcher when `isTenantAdmin` is true. Shows
  * ONLY the assigned institution(s) — never the platform-wide tenant list, the
  * "New institution" control, or global access-grant tooling (R12.3, R12.4,
- * R12.5). The backend scopes `GET /api/v1/admin/institutions/` to the actor's
- * memberships/grants, so this console can only ever read its own tenant(s);
- * capability gating here is a usability layer and the backend re-enforces every
- * read and write.
+ * R12.5). Capability gating here is a usability layer and the backend
+ * re-enforces every read and write. The platform tenant directory is
+ * intentionally not used by
+ * this console: assigned school identities come from the already-scoped
+ * capability endpoint, and the selected school's profile comes from its
+ * scope-before-lookup detail route.
  *
  * Task 13.2: the console composes the same authority-specific panels as the
  * super-admin console (`TenantBrandingPanel`, `TenantDomainPanel`,
@@ -54,6 +56,7 @@ function ProfileField({ icon: Icon, label, value }: { icon: typeof Building2; la
 export function TenantAdminSchoolConsole() {
   const {
     institutionCapabilities,
+    institutions: scopedInstitutions,
     selectedInstitutionId,
     setSelectedInstitutionId,
     canForInstitution,
@@ -62,16 +65,9 @@ export function TenantAdminSchoolConsole() {
   // Institutions the actor is scoped to, per the backend capability set.
   const scopedIds = useMemo(() => Object.keys(institutionCapabilities), [institutionCapabilities])
 
-  // Backend scopes this list to the actor's memberships/grants, so it only ever
-  // returns the assigned institution(s) — never the full platform tenant list.
-  const institutionsQuery = useQuery({
-    queryKey: ['admin', 'tenants', 'my-institutions'],
-    queryFn: () => tenantAdminService.listInstitutions(),
-  })
-
   const institutions = useMemo(
-    () => [...(institutionsQuery.data?.institutions || [])].sort((a, b) => a.name.localeCompare(b.name)),
-    [institutionsQuery.data?.institutions]
+    () => [...scopedInstitutions].sort((a, b) => a.name.localeCompare(b.name)),
+    [scopedInstitutions]
   )
 
   // Resolve the active institution: the persisted selection when valid, else
@@ -79,6 +75,12 @@ export function TenantAdminSchoolConsole() {
   const activeId =
     (selectedInstitutionId && scopedIds.includes(selectedInstitutionId) ? selectedInstitutionId : null) ??
     (scopedIds.length === 1 ? scopedIds[0]! : institutions[0]?.id ?? null)
+
+  const institutionQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'my-institution', activeId],
+    queryFn: () => tenantAdminService.getInstitution(activeId!),
+    enabled: Boolean(activeId),
+  })
 
   // Lock a single-institution tenant-admin to their one school so the selection
   // is consistent across refresh (shared sessionStorage key).
@@ -88,7 +90,7 @@ export function TenantAdminSchoolConsole() {
     }
   }, [activeId, selectedInstitutionId, setSelectedInstitutionId])
 
-  const activeInstitution = institutions.find((inst) => inst.id === activeId) || null
+  const activeInstitution = institutionQuery.data ?? null
 
   // Tabs are gated by the `tenant.*` read capabilities the actor holds for the
   // active institution (R12.6). Each entry maps a capability to its panel.
@@ -105,7 +107,7 @@ export function TenantAdminSchoolConsole() {
     return defs.filter((def) => canForInstitution(activeId, def.capability))
   }, [activeId, canForInstitution])
 
-  if (institutionsQuery.isLoading) {
+  if (institutionQuery.isLoading) {
     return <DashboardSkeleton />
   }
 
@@ -139,7 +141,7 @@ export function TenantAdminSchoolConsole() {
                       inst.id === activeId ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/40'
                     }`}
                   >
-                    <span className="text-sm font-semibold text-foreground">{inst.brand_name || inst.name}</span>
+                    <span className="text-sm font-semibold text-foreground">{inst.name}</span>
                     <span className="ml-2 text-xs text-muted-foreground">{inst.code}</span>
                   </button>
                 ))}

@@ -1,0 +1,31 @@
+$ HARNESS_PW_CHANNEL=chrome PLAYWRIGHT_BASE_URL=http://localhost:8090 bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required -g "Student payment ownership split"
+
+Running 14 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (9.2s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (6.6s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (12.2s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (8.1s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (11.7s)
+{"time": "2026-08-06T03:43:03.605317+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment dd47d834-83a6-4c99-8ff9-ba6cbc7c54b8 transitioned to expired (lenco_ref=LNC-1E1D7C0509FF)"}
+{"time": "2026-08-06T03:43:03.612890+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 06c5e499-0365-4097-949e-99ac04f3629b payment_status set to not_paid"}
+{"time": "2026-08-06T03:43:03.665951+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-06T03:43:03.675812+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-06T03:43:03.820696+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓   6 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (11.4s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (3.1s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:452:3 › Student payment ownership split (R12.3) › golden: the wizard takes the payment, then the page owns the paid record (11.9s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:551:3 › Student payment ownership split (R12.3) › deferred: the page names the choice and takes the payment after submission (8.3s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:616:3 › Student payment ownership split (R12.3) › failed: the page states nothing was charged and the retry succeeds (12.6s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:670:3 › Student payment ownership split (R12.3) › pending, action_required: the page tells the student to approve, and offers a re-check (6.8s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:733:3 › Student payment ownership split (R12.3) › pending, provider_processing: the page says wait, and never offers a retry (9.3s)
+{"time": "2026-08-06T03:44:06.256105+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Payment 31e7d32e-3e7e-4a62-b0f6-9e88db0f622c transitioned to expired (lenco_ref=LNC-A5372D75B969)"}
+{"time": "2026-08-06T03:44:06.259660+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._core", "message": "Application 7aff2939-e52f-46e4-870c-4f08d393a243 payment_status set to not_paid"}
+{"time": "2026-08-06T03:44:06.289741+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-06T03:44:06.296552+00:00", "level": "INFO", "logger": "apps.common.communication_service", "message": "Template 'payment_expired' not found or inactive \u2014 using fallback"}
+{"time": "2026-08-06T03:44:06.378906+00:00", "level": "INFO", "logger": "apps.documents.payment_service_mixins._admin", "message": "expire_stale: processed 1/50 candidates, expired=1"}
+  ✓  13 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:796:3 › Student payment ownership split (R12.3) › expired: a reconciliation-expired attempt offers a fresh one (8.1s)
+  ✓  14 [mobile-required] › tests/harness-e2e/required/payment-ownership-split.spec.ts:869:3 › Student payment ownership split (R12.3) › support copy comes from tenant context, not from the component (STU-24) (1.8s)
+
+  14 passed (2.1m)
+PW_EXIT=0

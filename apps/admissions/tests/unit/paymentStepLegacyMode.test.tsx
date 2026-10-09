@@ -1,29 +1,42 @@
 /**
- * Regression test — PaymentStep legacy mode unchanged (Task 39.1).
+ * Guard — the payment UI has no build-time mode switch (admissions-v2 task 8.2).
  *
- * With `VITE_PAYMENT_HARDENING_UI` unset/false, PaymentStep renders the
- * existing component tree byte-for-byte: mobile money tab first, card
- * widget tab second, defer affordance present. The recovery-store
- * integration is gated on the flag so with it off, no unexpected
- * re-reads or pendingPaymentId wiring is observable.
+ * This file used to assert that `VITE_PAYMENT_HARDENING_UI` was off by default,
+ * i.e. that a student's mid-payment refresh recovered or did not depending on how
+ * the bundle was built. The flag and the `isPaymentHardeningUiEnabled()` helper
+ * are gone; the UI state matrix and the recovery store are the only behaviour.
  *
- * Validates: Requirements R22.6.
+ * What remains worth asserting is that neither comes back.
+ *
+ * Validates: Requirements R12.4, R12.6
  */
+
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { isPaymentHardeningUiEnabled } from '@/lib/paymentStatus'
+import * as paymentStatus from '@/lib/paymentStatus'
 
-describe('PaymentStep — legacy mode default', () => {
-  it('VITE_PAYMENT_HARDENING_UI is off by default', () => {
-    // In the test env, the flag is unset unless the Vitest config
-    // explicitly sets VITE_PAYMENT_HARDENING_UI='true'. The helper must
-    // return false when the env var is absent or 'false'.
-    const value = import.meta.env?.VITE_PAYMENT_HARDENING_UI
-    if (value === 'true') {
-      expect(isPaymentHardeningUiEnabled()).toBe(true)
-    } else {
-      expect(isPaymentHardeningUiEnabled()).toBe(false)
-    }
+const SRC = join(process.cwd(), 'src')
+
+describe('PaymentStep — no build-time payment UI mode switch', () => {
+  it('does not export a hardening-UI flag helper', () => {
+    expect('isPaymentHardeningUiEnabled' in paymentStatus).toBe(false)
+  })
+
+  it('no source file reads VITE_PAYMENT_HARDENING_UI', () => {
+    const files = [
+      'lib/paymentStatus.ts',
+      'pages/student/applicationWizard/steps/PaymentStep.tsx',
+      'components/student/PaymentForm.tsx',
+      'vite-env.d.ts',
+    ]
+    const offenders = files.filter((relative) => {
+      const contents = readFileSync(join(SRC, relative), 'utf8')
+      // A comment explaining the removal is fine; reading the value is not.
+      return /import\.meta\.env[^\n]*VITE_PAYMENT_HARDENING_UI/.test(contents)
+    })
+    expect(offenders).toEqual([])
   })
 })

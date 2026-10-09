@@ -1,0 +1,16 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/unit/applicationSubmitIdempotencyHeaders.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/submitIdempotency.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/selectionChange.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/wizardDraftMachine.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/changeSelectionService.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 144[2mms[22m[39m
+ [32m✓[39m tests/unit/multiDraftService.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 221[2mms[22m[39m
+ [32m✓[39m tests/unit/useMultiDraft.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m62 passed[39m[22m[90m (62)[39m
+[2m   Start at [22m 06:00:34
+[2m   Duration [22m 1.72s[2m (transform 739ms, setup 147ms, import 600ms, tests 516ms, environment 4.29s)[22m
+

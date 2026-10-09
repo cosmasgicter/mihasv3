@@ -43,12 +43,30 @@ export interface StatusBadgeProps {
   className?: string
 }
 
+/**
+ * The tone lives in the **fill and the border**; the label is `text-foreground`.
+ *
+ * That is a contrast measurement, not a preference (admissions-v2 task 11.5,
+ * R16.2, and `DESIGN.md` §1's "WCAG AA on every text + background pair"). A
+ * tone-coloured label on its own 10 % wash of the same tone does not clear
+ * 4.5 : 1 — `text-warning` #b45309 on `bg-warning/10` is **4.37 : 1**,
+ * `text-destructive` #dc2626 on `bg-destructive/10` is **4.20 : 1**, and
+ * `text-info` #2563eb on `bg-info/10` is **4.48 : 1**. Only `success` passed, at
+ * 4.83 : 1. axe reported the same class of failure on the history timeline's
+ * pills (`[serious] color-contrast @ .bg-info/15`) the first time that map was
+ * tokenized, which is what sent this primitive to be measured too.
+ *
+ * `text-foreground` #0f172a on any of these washes is ≈ 16 : 1. Nothing is lost:
+ * a fill is a large flat area, not text, so it is not held to 4.5 : 1, and the
+ * tone is still carried by the fill, the border, and the icon this component
+ * requires — "never colour alone" was never about the *label's* colour.
+ */
 const TONE_CLASSES: Record<StatusBadgeTone, string> = {
   neutral: 'bg-muted text-foreground border-border/60',
-  info: 'bg-info/10 text-info border-info/25',
-  warning: 'bg-warning/10 text-warning border-warning/25',
-  destructive: 'bg-destructive/10 text-destructive border-destructive/25',
-  success: 'bg-success/10 text-success border-success/25',
+  info: 'bg-info/10 text-foreground border-info/40',
+  warning: 'bg-warning/10 text-foreground border-warning/40',
+  destructive: 'bg-destructive/10 text-foreground border-destructive/40',
+  success: 'bg-success/10 text-foreground border-success/40',
   muted: 'bg-muted/60 text-muted-foreground border-border/40',
 }
 

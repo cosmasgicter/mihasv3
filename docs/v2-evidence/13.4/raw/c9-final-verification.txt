@@ -1,0 +1,59 @@
+== Task 13.4 final verification of the two scripts this task added ==
+Run after every clause, with a clean environment: TESTING unset, REDIS_URL NOT
+substituted (substituting it makes `manage.py check` emit a spurious
+django_ratelimit.E003), local throwaway Postgres on 127.0.0.1:5433.
+
+Scripts under test:
+  backend/scripts/2026_08_12_01_tenant_new_table_fk_validate.sql
+  backend/scripts/2026_08_12_01_tenant_new_table_fk_validate_rollback.sql
+
+--- 1. Django system checks ---------------------------------------------------
+$ ./.venv/bin/python manage.py check
+System check identified no issues (1 silenced).
+
+--- 2. migration-script governance suite --------------------------------------
+$ python -m pytest -p no:randomly -q \
+    tests/property/test_migration_properties.py \
+    tests/property/test_rollback_pairing.py \
+    tests/property/test_schema_reconciliation_invariants.py \
+    tests/unit/test_check_schema_drift_migration_history_coverage.py
+
+4 failed, 18 passed, 1 skipped, 1 warning in 9.75s
+
+FAILED tests/property/test_schema_reconciliation_invariants.py::test_snapshot_invariant_holds_after_simulated_backfill
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_db_table_values_match_expected
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_no_extra_models_outside_expected_tables
+FAILED tests/property/test_migration_properties.py::TestSchemaCompatibility::test_total_model_count_matches_expected_schema
+
+--- 3. attribution of those four failures ------------------------------------
+All four were ALREADY FAILING before this task, in task 13.1's full backend run
+(docs/v2-evidence/13.1/raw/backend-full-inventory.txt):
+
+  [fail] tests/property/test_migration_properties.py::test_db_table_values_match_expected
+  [fail] tests/property/test_migration_properties.py::test_no_extra_models_outside_expected_tables
+  [fail] tests/property/test_migration_properties.py::test_total_model_count_matches_expected_schema
+  [fail] tests/property/test_schema_reconciliation_invariants.py::test_snapshot_invariant_holds_after_simulated_backfill
+
+The three test_migration_properties failures are 13.1's failure cluster "D"
+(9 failures) and finding GATE-13.1-05: verify_schema_static.py's EXPECTED_TABLES
+registry has drifted behind the code and is missing 6 new tables. That is a
+REGISTRY that has not been updated, owned by the data (3.x) lane. Neither of the
+scripts added by this task appears anywhere in the failure output
+(grep '2026_08_12_01_tenant_new_table' -> 0 hits).
+
+NOT FIXED HERE, on purpose: another lane's registry drift is not this bullet's,
+and 13.4 changed nothing outside its own gate.
+
+--- 4. the gate that actually covers the new scripts -------------------------
+tests/property/test_rollback_pairing.py PASSES, both tests:
+  test_every_forward_script_has_rollback_sibling
+  test_forward_script_discovery_is_non_empty
+
+That is the gate that matters here: a forward migration script with no
+*_rollback.sql sibling FAILS it. It passes, which is why the sibling was written
+alongside the validate script rather than after it. Task 3.4's precedent
+(2026_07_18_01_tenant_fk_validate.sql + its rollback) has the same shape.
+
+--- 5. the earlier per-script run -------------------------------------------
+The narrower suite recorded while the script was being written is in
+c4-pytest-validate-script.txt: 23 passed in 4.00s.

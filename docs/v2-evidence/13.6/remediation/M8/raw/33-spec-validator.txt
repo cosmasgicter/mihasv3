@@ -1,0 +1,27 @@
+]633;E;echo "=== spec validator (task 0.2's R1.3 gate) + its self-tests ===";55e1cf9c-d2ac-4876-8730-0ce34574d5cb]633;C=== spec validator (task 0.2's R1.3 gate) + its self-tests ===
+
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 0  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=110 tasks=73 (checked=71)
+
+RESULT: PASS
+EXIT=0
+
+--- self-tests: the summary lines only (the per-test noise is the fixtures' own expected FAIL output) ---
+Ran 24 tests in 0.052s
+OK
+ERRORS (block):
+SELFTEST_EXIT=0
+
+--- metadata validator (task 0.1) ---
+Errors: 0  Warnings: 2
+RESULT: PASS
+
+Ran 9 tests in 0.006s
+OK

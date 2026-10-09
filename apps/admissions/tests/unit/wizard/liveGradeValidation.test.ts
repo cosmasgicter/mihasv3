@@ -26,15 +26,32 @@ import {
 } from '@/pages/student/applicationWizard/lib/liveGradeValidation'
 import type { SubjectGrade } from '@/pages/student/applicationWizard/types'
 
+// Admissions-v2 task 7.1 (R11.5): a picked subject is a canonical server UUID,
+// so "this row has a subject" is expressed with one. `canonicalId` maps each
+// readable placeholder name in these tests to a distinct, stable UUID — the
+// cases are about grade/duplicate/missing classification, not about id shape.
+const canonicalId = (name: string): string => {
+  let hash = 0x811c9dc5
+  for (let index = 0; index < name.length; index += 1) {
+    hash = Math.imul(hash ^ name.charCodeAt(index), 0x01000193) >>> 0
+  }
+  const hex = hash.toString(16).padStart(8, '0')
+  return `${hex}-${hex.slice(0, 4)}-4${hex.slice(1, 4)}-8${hex.slice(2, 5)}-${hex}${hex.slice(0, 4)}`
+}
+
 // Small helpers — the wizard stores subject_id as a string and grade as a
 // number where 0 is the "empty/unset" sentinel (Number('') || 0 ⇒ 0).
+// An empty id stays empty, and a deliberately non-canonical id (a retired
+// `fallback-*` slug) is passed through verbatim so the unresolved-subject branch
+// can be exercised.
 const row = (
   subject_id: string,
   grade: number,
   row_id?: string,
 ): SubjectGrade => ({
   row_id: row_id ?? `row-${subject_id || 'empty'}-${grade}`,
-  subject_id,
+  subject_id:
+    !subject_id || subject_id.startsWith('fallback-') ? subject_id : canonicalId(subject_id),
   grade,
 })
 
@@ -121,11 +138,15 @@ describe('validateLiveGrades — per-row diagnostic branches', () => {
     expect(result.diagnostics[0]?.issue).toBe('invalid_grade_range')
   })
 
-  it('treats a row whose subject_id starts with "fallback-" as valid (resolves at sync time)', () => {
+  // Admissions-v2 task 7.1 (R11.5, STU-11): `fallback-*` IDs are no longer
+  // produced by the selector, so a row still holding one is a stale reference the
+  // student must re-pick — counting it is what let the wizard claim "5/5 subjects"
+  // for rows the server then dropped.
+  it('flags a row whose subject_id is not a canonical server id as unresolved', () => {
     const rows: SubjectGrade[] = [row('fallback-english', 3, 'r1')]
     const result = validateLiveGrades(rows)
-    expect(result.validCount).toBe(1)
-    expect(result.diagnostics[0]?.issue).toBeNull()
+    expect(result.validCount).toBe(0)
+    expect(result.diagnostics[0]?.issue).toBe('unresolved_subject')
   })
 
   it('flags the second occurrence of the same subject_id as duplicate', () => {

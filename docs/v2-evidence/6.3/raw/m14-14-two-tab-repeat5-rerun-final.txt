@@ -1,0 +1,32 @@
+# Task 6.3 M14 — wizard-draft-two-tab.spec.ts RE-RUN with the same bounded click in its openPersonalStep (the instrument fix of m14-13; the spec's claims unchanged), both tests, --repeat-each=5, chromium-required + mobile-required, FINAL bundle
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T23:14:16Z
+# stack: harness of m14-07; served entry = assets/js/index-DFYqzK57.js; spec sha256 38214c0bd385c457 (m14-09 ran the unchanged M12 spec 7fe92788a5c60d15, 20/20); host held awake
+$ HARNESS_PW_CHANNEL=chrome V2_EVIDENCE_RUN_ID=t63-m14-two-tab-x5-2 PLAYWRIGHT_BASE_URL=http://localhost:8090 systemd-inhibit --what=sleep:idle --mode=block bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required --repeat-each=5 tests/harness-e2e/required/wizard-draft-two-tab.spec.ts
+
+Running 20 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (14.1s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (5.3s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (14.2s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (6.3s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (27.5s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (5.6s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (18.2s)
+  ✓   8 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (6.5s)
+  ✓   9 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (18.3s)
+  ✓  10 [chromium-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (5.2s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (13.4s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (5.6s)
+  ✓  13 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (13.7s)
+  ✓  14 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (6.6s)
+  ✓  15 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (13.3s)
+  ✓  16 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (7.3s)
+  ✓  17 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (13.5s)
+  ✓  18 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (6.0s)
+  ✓  19 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:160:1 › two tabs in one browser: the stale tab conflicts and reloads the winner, and the winner tab reopens clean (21.3s)
+  ✓  20 [mobile-required] › tests/harness-e2e/required/wizard-draft-two-tab.spec.ts:302:1 › a refresh right after a new application is saved reopens that application, not a blank one (6.2s)
+
+  20 passed (4.0m)
+PW EXIT: 0
+stats: {"expected": 20, "unexpected": 0, "flaky": 0, "skipped": 0, "duration": 242156.322}

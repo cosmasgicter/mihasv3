@@ -1,0 +1,55 @@
+]633;E;echo "### $(date -u +%FT%TZ) M2 mechanism - a settings module was mutating os.environ at import time";d03f3ff9-63cb-4261-96f1-7ff41225cda2]633;C### 2026-08-15T07:18:10Z M2 mechanism - a settings module was mutating os.environ at import time
+# probe exit codes: 0 = no pollution, 2 = pollution detected, 1 = prod import raised (the SKIP branch)
+
+====================================================================
+BEFORE - prod.py's os.environ.setdefault temporarily restored byte-for-byte
+====================================================================
+76:_os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
+--- 1/2. before importing any settings module other than dev ---
+os.environ REQUEST_METRIC_SAMPLE_RATE : <unset>
+MetricsMiddleware resolved rate       : 1.0
+request_metric logs / 200 healthy 200s: 200/200
+
+--- 3. the import the cors-exploration case performs at :78 ---
+prod import: ok
+
+--- 4. after the import, same process, nothing activated ---
+os.environ REQUEST_METRIC_SAMPLE_RATE : 0.1
+MetricsMiddleware resolved rate       : 0.1
+request_metric logs / 200 healthy 200s: 20/200
+
+--- verdict ---
+POLLUTION - inspecting a settings module moved the sample rate 1.0 -> 0.1 for every MetricsMiddleware built after it.
+At 0.1, 20 of 200 healthy fast 200-responses emit a log, so a property asserting 'exactly 1 log per non-health request' fails on the first 200 the generator produces.
+exit 2
+probe exit=2
+
+====================================================================
+AFTER - prod.py as this batch leaves it (a Django setting, no env write)
+====================================================================
+75:REQUEST_METRIC_SAMPLE_RATE = 0.1
+--- 1/2. before importing any settings module other than dev ---
+os.environ REQUEST_METRIC_SAMPLE_RATE : <unset>
+MetricsMiddleware resolved rate       : 1.0
+request_metric logs / 200 healthy 200s: 200/200
+
+--- 3. the import the cors-exploration case performs at :78 ---
+prod import: ok
+
+--- 4. after the import, same process, nothing activated ---
+os.environ REQUEST_METRIC_SAMPLE_RATE : <unset>
+MetricsMiddleware resolved rate       : 1.0
+request_metric logs / 200 healthy 200s: 200/200
+
+--- verdict ---
+NO POLLUTION - inspecting the production settings module left the
+sample rate at 1.0 and emission at 200/200.
+exit 0
+probe exit=0
+
+--- the line that used to do it, and the line that reads it ---
+was: backend/config/settings/prod.py:60-61  import os as _os / _os.environ.setdefault(...)
+config/settings/prod.py:75:REQUEST_METRIC_SAMPLE_RATE = 0.1
+apps/common/middleware.py:161:    def resolve_sample_rate(cls):
+apps/common/middleware.py:196:        self._sample_rate = self.resolve_sample_rate()
+### 2026-08-15T07:18:12Z done

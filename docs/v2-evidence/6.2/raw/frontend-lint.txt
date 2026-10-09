@@ -1,0 +1,8 @@
+
+# eslint exit code 0 with no output = clean.
+# Files linted (task 6.2 changed source + tests):
+#   src/services/applications.ts
+#   src/pages/student/applicationWizard/hooks/useMultiDraft.ts
+#   src/pages/student/applicationWizard/components/DraftManager.tsx
+#   tests/unit/useMultiDraft.test.tsx
+#   tests/unit/multiDraftService.test.ts

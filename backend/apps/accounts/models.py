@@ -25,7 +25,13 @@ class Profile(models.Model):
     is_active = models.BooleanField(null=True, blank=True, default=True)
     password_hash = models.TextField(null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
-    email_verified = models.BooleanField(null=True, blank=True)
+    # Legacy_Exception (Task 1.6, R9.7/R15.6): email verification is
+    # deliberately NOT implemented — no verify-email endpoint/route/token and
+    # no login/submission enforcement reads this column. It is retained for
+    # backward data compatibility (existing rows keep their value) and defaults
+    # True so no new row is left NULL/ambiguous. Registered with owner/removal
+    # date in docs/v2-evidence/1.6/legacy-exception-email_verified.md.
+    email_verified = models.BooleanField(null=True, blank=True, default=True)
     avatar_url = models.TextField(null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     nrc_number = models.CharField(max_length=20, null=True, blank=True)

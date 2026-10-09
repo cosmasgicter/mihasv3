@@ -1,0 +1,76 @@
+Task 6.5 — pre-existing in-flight failure comparison
+====================================================
+
+Method
+------
+The whole admissions-v2 spec is in-flight/uncommitted, so the tree already
+carries failures owned by other tasks. To prove 6.5 introduces none, the full
+`backend/tests/unit/` surface was run WITH the 6.5 change, then every
+failing/erroring file from that run was re-run at a BASELINE where the 6.5
+change was removed:
+
+  * `git stash` of the tracked 6.5 edits
+    (`backend/apps/applications/services.py`,
+     `backend/apps/applications/student_submission_views.py`,
+     test-fixture updates, `useWizardController.ts`),
+  * the new untracked files moved aside
+    (`readiness_v2_views.py`, `readiness_v2_urls.py`,
+     `tests/integration/test_submission_readiness_6_5.py`),
+  * the `/api/v2/student/applications/` route removed from
+    `apps/common/v2/urls.py`,
+  * the readiness entry removed from `scripts/authority_matrix_registry.py`,
+  * the `build_grades(...)` line removed from
+    `tests/integration/test_assignment_config_failure.py`.
+
+Commands
+--------
+  # after (full unit surface)
+  cd backend && DATABASE_URL="postgresql:///beanola" python -m pytest tests/unit/ -q --tb=short
+    -> 33 failed, 2503 passed, 72 skipped, 2 xfailed, 1 xpassed, 79 errors
+
+  # baseline (the 29 files that failed/errored above, 6.5 removed)
+  cd backend && DATABASE_URL="postgresql:///beanola" python -m pytest <those 29 files> -q --tb=no
+    -> 35 failed, 168 passed, 79 errors
+
+Diff of the failing node sets (LC_ALL=C comm on sorted node ids)
+---------------------------------------------------------------
+NEW failures introduced by 6.5:
+  (none)
+
+Present at baseline, green with 6.5:
+  tests/unit/test_application_student_flow_views.py::TestApplicationDraftListView::test_post_delegates_to_canonical_application_create
+  tests/unit/test_scoped_access_matrix.py::TestGrantScopeDoesNotWiden::test_offering_grant_permits_only_that_offering
+
+Individually confirmed pre-existing (fail identically with 6.5 removed)
+----------------------------------------------------------------------
+  tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+      AccessScopeService.filter_applications not called by the interview list
+      (owned by task 9.1 "one scoped applications query").
+  tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check
+  tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail
+  tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker
+      ApplicationReviewView PermissionDenied / 400 under the capability-gated
+      review permissions (owned by tasks 2.2 / 9.4).
+  tests/integration/test_admin_journey_drill.py::TestAdminJourneyDrill::test_full_admin_journey
+      offering-scoped staff application list is empty (task 9.1).
+  tests/integration/test_tenant_lifecycle_drill.py::TestTenantLifecycleDrill::test_full_tenant_lifecycle
+  tests/integration/test_perf_divergence_regression.py::test_endpoint_output_is_stable_run_to_run[application_list]
+      duplicate key on uq_payments_transaction_reference_present (fixture reuses
+      REF-PAID under the task-3.3 constraints).
+  tests/integration/test_communication_template_coverage.py::TestCommunicationTemplateCoverage::test_all_keys_seeded
+      ON CONFLICT has no matching unique constraint on communication_templates
+      (task 3.3 / 10.1).
+
+One stale fixture repaired by this task (task 5.4 fallout, not 6.5)
+-------------------------------------------------------------------
+  tests/integration/test_student_journey_e2e.py::TestStudentJourneyE2E::test_full_student_journey
+      Failed at the PAYMENT step with
+      `FeeConfigurationError: No active application fee is configured for
+      offering ... (local)` because task 5.4 removed the hardcoded
+      `_DEFAULT_APPLICATION_FEE` fallback (R12.2 / STU-08) and the fixture never
+      seeded a `ProgramFee`. Seeding the canonical fee is the behaviour 5.4
+      intends, so the fixture was corrected here rather than left red — the
+      journey is one of 6.5's own verification gates. The same test also now
+      records five canonical subject grades through the real
+      `POST /api/v1/applications/{id}/grades/` endpoint (new Step 7), which is
+      the 6.5 gate itself.

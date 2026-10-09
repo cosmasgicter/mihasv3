@@ -1,0 +1,151 @@
+{
+  "generated_at_utc": "2026-07-15T07:27:28.568275+00:00",
+  "db_host": "ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech",
+  "mode": "READ ONLY",
+  "server_version": "17.10 (986efc8)",
+  "current_database": "neondb",
+  "schema_fingerprint_sha256": "c48f57d9b789631f041026fa1568e49ca9a22b5e58f3abd9b39dec6755af4a2b",
+  "public_table_count": 73,
+  "public_column_count": 788,
+  "public_tables": [
+    "academic_calendar_events",
+    "access_grants",
+    "analytics_snapshots",
+    "analytics_source_performance_summaries",
+    "application_amendments",
+    "application_conditions",
+    "application_documents",
+    "application_drafts",
+    "application_grades",
+    "application_interviews",
+    "application_status_history",
+    "applications",
+    "audit_logs",
+    "automation_artifacts",
+    "automation_rules",
+    "automation_runs",
+    "canonical_programs",
+    "communication_templates",
+    "course_requirements",
+    "csrf_tokens",
+    "daily_digest_reports",
+    "delivery_events",
+    "device_sessions",
+    "email_accounts",
+    "email_messages",
+    "email_queue",
+    "email_threads",
+    "error_logs",
+    "fee_waivers",
+    "idempotency_keys",
+    "institution_assets",
+    "institution_document_profiles",
+    "institution_document_templates",
+    "institution_domains",
+    "institution_required_documents",
+    "institutions",
+    "intakes",
+    "integration_accounts",
+    "job_application_steps",
+    "job_applications",
+    "jobs_companies",
+    "jobs_company_research_snapshots",
+    "jobs_decisions",
+    "jobs_discovery_runs",
+    "jobs_match_scores",
+    "jobs_postings",
+    "jobs_snapshots",
+    "jobs_sources",
+    "login_attempts",
+    "migration_history",
+    "notifications",
+    "outbox_events",
+    "outreach_campaigns",
+    "outreach_contacts",
+    "outreach_messages",
+    "outreach_opportunities",
+    "password_reset_tokens",
+    "payments",
+    "profiles",
+    "program_fees",
+    "program_intakes",
+    "programs",
+    "provider_credential_audits",
+    "review_tasks",
+    "settings",
+    "subjects",
+    "telegram_subscriptions",
+    "user_institution_memberships",
+    "user_notification_preferences",
+    "user_permission_overrides",
+    "webhook_event_logs"
+  ],
+  "foreign_key_total": 93,
+  "foreign_key_not_valid": [],
+  "foreign_key_not_valid_count": 0,
+  "check_constraint_not_valid_count": 0,
+  "index_count": 299,
+  "migration_history_count": 44,
+  "migration_history_recent": [
+    {
+      "name": "schema_cleanup_device_session_default.sql",
+      "applied_at": "2026-07-12 13:12:38.243597+00:00"
+    },
+    {
+      "name": "schema_cleanup_drop_stale_columns.sql",
+      "applied_at": "2026-07-12 13:12:37.913716+00:00"
+    },
+    {
+      "name": "backfill_profiles_sex_lowercase.sql",
+      "applied_at": "2026-05-29 08:23:36.655300+00:00"
+    },
+    {
+      "name": "backfill_application_documents_from_legacy_urls.sql",
+      "applied_at": "2026-05-29 08:23:36.287434+00:00"
+    },
+    {
+      "name": "2026_05_22_device_sessions_refresh_jti.sql",
+      "applied_at": "2026-05-25 13:47:51.770854+00:00"
+    },
+    {
+      "name": "2026_05_22_fk_index_backfill.sql",
+      "applied_at": "2026-05-25 13:47:46.060221+00:00"
+    },
+    {
+      "name": "system_actor_seed.sql",
+      "applied_at": "2026-05-25 13:47:06.292480+00:00"
+    },
+    {
+      "name": "application_number_sequences.sql",
+      "applied_at": "2026-05-25 13:46:46.032733+00:00"
+    },
+    {
+      "name": "2026_05_22_migration_history_reconcile.sql",
+      "applied_at": "2026-05-25 13:46:24.898247+00:00"
+    },
+    {
+      "name": "payment_hardening_preflight.sql",
+      "applied_at": "2026-05-25 13:46:22.395350+00:00"
+    }
+  ],
+  "invariants": {
+    "applications_total": 33,
+    "applications_null_institution_id": 33,
+    "applications_null_canonical_program_id": {
+      "ok": false,
+      "error": "column \"canonical_program_id\" does not exist"
+    },
+    "applications_null_program_offering_id": 33,
+    "applications_null_intake_id": 33,
+    "applications_null_intake_offering_id": {
+      "ok": false,
+      "error": "column \"intake_offering_id\" does not exist"
+    },
+    "payments_total": 21,
+    "payments_null_application": 0,
+    "institutions_active": 2,
+    "duplicate_active_hostnames": 0,
+    "canonical_programs": 0,
+    "memberships_active": 0
+  }
+}

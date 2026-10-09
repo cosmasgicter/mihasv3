@@ -1,831 +1,744 @@
-import React, { useState, useEffect, useCallback } from 'react'
+/**
+ * The admin review workspace (Admissions V2, task 9.4).
+ *
+ * Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` task 9.4 — "Build one
+ * deterministic admin review workspace".
+ * Requirements: **R8.3** (every command enforces the authority matrix in the
+ * backend), **R8.4** (each command returns allowed next actions), **R8.5** (one
+ * detail query, no parallel legacy detail calls), **R8.7** (Reviewer and
+ * Tenant_Admin journeys complete their allowed work and prove denied work without
+ * relying on UI hiding), **R11.3** (deterministic reviewer readiness).
+ * Findings: **AUTH-01**, **AUTH-02**, **AUTH-03**, **API-02**, **MAINT-01**.
+ * Design: §11.1.
+ *
+ * What changed here, and why
+ * --------------------------
+ *
+ * 1. **One read.** This component used to issue six requests per open
+ *    application — `/details/`, `/documents/`, `/grades/`, `/summary/`,
+ *    `/interviews/`, `/payments/?application_id=` — and merge two overlapping
+ *    copies of the application row with `{...application, ...summary.application}`,
+ *    so which value a reviewer saw depended on response order. It now reads
+ *    `GET /api/v1/admin/applications/{id}/` once and renders the sections the
+ *    server named.
+ *
+ * 2. **No model.** The "AI" tab called `/admin-summary/`, which task 7.4 deleted
+ *    from the backend (R11.1). It is replaced by `ReviewReadinessPanel` — the
+ *    deterministic checklist the server computes with the same evaluator
+ *    submission re-runs under its row locks.
+ *
+ * 3. **Every write is a versioned command.** Each control sends the `version` the
+ *    read returned. A stale command is refused with 409 `VERSION_CONFLICT`, and
+ *    this surface says so and reloads rather than reporting a generic failure —
+ *    someone else decided first, and the reviewer needs to see that decision.
+ *
+ * 4. **Controls are gated on the backend's own answer.** `workspace.capabilities`
+ *    is the per-command capability matrix `AdminCapabilityService` resolved for
+ *    this application's institution. Hiding is *not* the boundary — the backend
+ *    re-enforces every check — but a control that is shown is now one the backend
+ *    will accept, which is what AUTH-02 asks for.
+ *
+ * 5. **The amendment and condition paths exist.** Pending amendments used to be
+ *    rendered read-only with no way to act on them, and offer conditions were not
+ *    shown at all, even though both commands existed on the backend. An admin
+ *    path that cannot be reached is not a completed path (R8.3).
+ */
+import React, { useEffect, useState } from 'react'
+import {
+  AlertCircle,
+  AlertTriangle,
+  Building,
+  Calendar,
+  CheckCircle,
+  ClipboardCheck,
+  Clock,
+  CreditCard,
+  Eye,
+  FileText,
+  GraduationCap,
+  History,
+  Mail,
+  MapPin,
+  Phone,
+  Send,
+  Shield,
+  Tag,
+  User,
+  Users
+} from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
-import { formatDate } from '@/lib/dateFormat'
-import { User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Send, History, Eye, MessageSquare, Shield, Tag, AlertTriangle, ClipboardList } from 'lucide-react'
-import { applicationService } from '@/services/applications'
-import { apiClient } from '@/services/client'
-import { logApiError } from '@/lib/apiErrorLogger'
 import { Skeleton } from '@/components/ui'
-import { calculateBestFivePoints, sanitizeGradeValue } from '@/lib/grades'
-import { SendNotificationModal } from './SendNotificationModal'
-import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { formatDate } from '@/lib/dateFormat'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
-import { ApplicationApprovalActions } from './ApplicationApprovalActions'
-import { CapacityWarning } from './CapacityWarning'
-import { ApplicationDetailHeader } from './ApplicationDetailHeader'
-import { ApplicationDetailTimeline } from './ApplicationDetailTimeline'
-import { ApplicationDetailDocuments } from './ApplicationDetailDocuments'
-import { AdminOfficialDocumentsPanel } from './AdminOfficialDocumentsPanel'
-import { ApplicationDetailPayment, FeeWaiverDialog } from './ApplicationDetailPayment'
-import { ApplicationDetailInterview } from './ApplicationDetailInterview'
-import { AISummaryPanel } from './AISummaryPanel'
 import { formatApplicationStatus } from '@/types/applicationStatus'
-import type {
-  ApplicationWithDetails,
-  ApplicationDetailResponse,
-  PaymentRecord,
-  PaymentListResponse,
-  Grade,
-} from './applicationDetailTypes'
-import { getInstitutionName } from './applicationDetailTypes'
-import { useToastStore } from '@/hooks/useToast'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { toError } from '@/lib/toError'
 
-function AssignReviewerButton({ applicationId, onAssigned }: { applicationId: string; onAssigned: () => void }) {
-  const [loading, setLoading] = useState(false)
-  const { success: showSuccess, error: showError } = useToastStore()
+import { AdminOfficialDocumentsPanel } from './AdminOfficialDocumentsPanel'
+import { ApplicationApprovalActions } from './ApplicationApprovalActions'
+import { ApplicationDetailDocuments } from './ApplicationDetailDocuments'
+import { ApplicationDetailHeader } from './ApplicationDetailHeader'
+import { ApplicationDetailInterview } from './ApplicationDetailInterview'
+import { ApplicationDetailPayment, FeeWaiverDialog } from './ApplicationDetailPayment'
+import { ApplicationDetailTimeline } from './ApplicationDetailTimeline'
+import { CapacityWarning } from './CapacityWarning'
+import { ReviewReadinessPanel } from './ReviewReadinessPanel'
+import { SendNotificationModal } from './SendNotificationModal'
+import { getInstitutionName, type ApplicationWithDetails } from './applicationDetailTypes'
+/*
+  Task 12.1 (R14.3-R14.5, R17.5; finding MAINT-01). Task 9.4 §15 recorded plainly
+  that it had moved the *orchestration* out of this file and that rendering had
+  stayed and grown — 846 → 1,365 lines — so MAINT-01 was explicitly **not** claimed
+  done for it. This task moves the rendering: four sub-components that were
+  declared inline, lifted verbatim into their own files, plus the command plumbing
+  into a hook. Their props, state, service calls, copy and markup are unchanged.
+*/
+import { AssignReviewerControl } from './AssignReviewerControl'
+import { GradesDisplay } from './GradesDisplay'
+import { AmendmentReviewList, ConditionReviewList } from './ReviewDecisionLists'
+import { useReviewWorkspaceSession } from '@/hooks/admin/useReviewWorkspaceSession'
 
-  const handleAutoAssign = async () => {
-    setLoading(true)
-    try {
-      await applicationService.assignReviewer(applicationId, '')
-      showSuccess('Reviewer assigned', 'A reviewer has been assigned to this application.')
-      onAssigned()
-    } catch (error) {
-      logApiError('admin-assign-reviewer', `/applications/${applicationId}/assign/`, error)
-      showError('Assignment failed', toError(error).message || 'Unable to assign reviewer.')
-    } finally {
-      setLoading(false)
-    }
+// ---------------------------------------------------------------------------
+// The workspace
+// ---------------------------------------------------------------------------
+
+interface ApplicationDetailModalProps {
+  application: ApplicationWithDetails | null
+  show: boolean
+  updating: string | null
+  onClose: () => void
+  onSendNotification: (title: string, message: string) => Promise<void>
+  onUpdateStatus: (
+    id: string,
+    status: string,
+    options?: { notes?: string; force?: boolean },
+  ) => Promise<unknown>
+}
+
+const TABS = [
+  { id: 'overview', label: 'Personal', icon: User },
+  { id: 'readiness', label: 'Readiness', icon: ClipboardCheck },
+  { id: 'grades', label: 'Academic', icon: GraduationCap },
+  { id: 'documents', label: 'Documents', icon: FileText },
+  { id: 'payment', label: 'Payment', icon: CreditCard },
+  { id: 'interview', label: 'Interview', icon: Calendar },
+  { id: 'history', label: 'History', icon: History },
+] as const
+
+type TabId = (typeof TABS)[number]['id']
+
+export function ApplicationDetailModal({
+  application,
+  show,
+  updating,
+  onClose,
+  onSendNotification,
+  onUpdateStatus,
+}: ApplicationDetailModalProps) {
+  const [isClient, setIsClient] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
+  const [showNotificationModal, setShowNotificationModal] = useState(false)
+  const focusTrapRef = useFocusTrap(show && !!application)
+  useEscapeKey(show && !!application, onClose)
+
+  /*
+    One read, eleven versioned commands, and the state those commands own
+    (task 12.1, MAINT-01). Extracted verbatim into `useReviewWorkspaceSession`;
+    what stays here is the sheet — its tab, its focus trap, its notification modal
+    and its markup.
+  */
+  const session = useReviewWorkspaceSession({ application, show, onUpdateStatus })
+  const {
+    applicationId,
+    workspace,
+    isLoading,
+    isError,
+    workspaceError,
+    command,
+    resetCommandState,
+    refreshWorkspace,
+    detail,
+    documents,
+    grades,
+    statusHistory,
+    paymentRecords,
+    currentInterview,
+    can,
+    adminFeedback,
+    setAdminFeedback,
+    savingFeedback,
+    handleSaveFeedback,
+    feeWaiverOpen,
+    setFeeWaiverOpen,
+    handleApplyFeeWaiver,
+    handleAmendmentDecision,
+    handleConditionReview,
+    handleDocumentVerify,
+    handlePaymentDecision,
+    handleInterviewSchedule,
+    handleInterviewUpdate,
+    handleInterviewCancel,
+    paymentWarning,
+    setPaymentWarning,
+    handleStatusWithWarning,
+    handlePaymentWarningConfirm,
+  } = session
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    setActiveTab('overview')
+  }, [applicationId, show, resetCommandState])
+
+  if (!show || !application || !detail) return null
+
+  if (!isClient) {
+    return (
+      <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
+        <div className="flex h-dvh max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
+          <div className="flex-shrink-0 border-b border-border bg-card p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
+                <Skeleton className="h-10 w-10 flex-shrink-0 rounded-lg sm:h-12 sm:w-12" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-8" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="space-y-4">
+              <Skeleton className="h-32 rounded-lg" />
+              <Skeleton className="h-48 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => { void handleAutoAssign() }}
-      disabled={loading}
-      className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
-    >
-      <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-      {loading ? 'Assigning...' : 'Assign Reviewer'}
-    </button>
-  )
-}
+    <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
+      <div
+        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Application details for ${detail.full_name}`}
+        data-testid="review-workspace"
+        data-workspace-version={workspace?.version ?? ''}
+        className="flex h-dvh max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
+      >
+        <ApplicationDetailHeader application={detail} onClose={onClose} />
 
-interface ApplicationDetailModalProps {
- application: ApplicationWithDetails | null
- show: boolean
- updating: string | null
- onClose: () => void
- onSendNotification: (title: string, message: string) => Promise<void>
- onViewDocuments: () => void
- onViewHistory: () => void
- onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>
- onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
-}
+        <div className="flex-shrink-0 overflow-x-auto border-b border-border bg-card">
+          <div className="flex min-w-max px-2 sm:px-6" role="tablist" aria-label="Application details">
+            {TABS.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  id={`tab-${tab.id}`}
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`panel-${tab.id}`}
+                  /*
+                   * The label below is `hidden sm:inline` and the icon is
+                   * `aria-hidden`, so under `sm` this tab had **no accessible
+                   * name at all** — seven unlabelled tabs on the mobile review
+                   * surface (WCAG 4.1.2). Naming the control explicitly keeps the
+                   * name at every breakpoint, and because it is the same string
+                   * the label renders, "Label in Name" (2.5.3) holds where the
+                   * text is visible.
+                   */
+                  aria-label={tab.label}
+                  tabIndex={activeTab === tab.id ? 0 : -1}
+                  onClick={() => setActiveTab(tab.id)}
+                  onKeyDown={(e) => {
+                    const ids = TABS.map((t) => t.id)
+                    const cur = ids.indexOf(tab.id)
+                    let next = -1
+                    if (e.key === 'ArrowRight') next = (cur + 1) % ids.length
+                    else if (e.key === 'ArrowLeft') next = (cur - 1 + ids.length) % ids.length
+                    else if (e.key === 'Home') next = 0
+                    else if (e.key === 'End') next = ids.length - 1
+                    if (next >= 0) {
+                      e.preventDefault()
+                      setActiveTab(ids[next]!)
+                      document.getElementById(`tab-${ids[next]}`)?.focus()
+                    }
+                  }}
+                  className={`flex min-h-touch min-w-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
+                    activeTab === tab.id
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  <span className="hidden min-w-0 sm:inline">{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
- if (loading) {
- return (
- <div className="space-y-4" role="status" aria-label="Loading grades">
- <div className="flex justify-between rounded-lg border border-border bg-muted p-4">
- <Skeleton className="h-5 w-24" />
- <Skeleton className="h-6 w-12" />
- </div>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- {[...Array(4)].map((_, i) => (
- <div key={i} className="flex justify-between p-3 border rounded-lg">
- <Skeleton className="h-4 w-28" />
- <Skeleton className="h-6 w-10 rounded-md" />
- </div>
- ))}
- </div>
- </div>
- )
- }
+        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/50">
+          <div
+            id={`panel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${activeTab}`}
+            className="p-4 sm:p-6"
+          >
+            {isLoading ? (
+              <div
+                className="flex items-center justify-center py-12"
+                role="status"
+                aria-label="Loading application details"
+              >
+                <div className="w-full max-w-lg space-y-4">
+                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-48 w-full rounded-lg" />
+                </div>
+              </div>
+            ) : isError || !workspace ? (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6" role="alert">
+                <p className="text-sm font-semibold text-foreground">
+                  This application could not be loaded
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {toError(workspaceError).message ||
+                    'The review workspace is unavailable for this application.'}
+                </p>
+                <Button size="sm" variant="outline" className="mt-3" onClick={refreshWorkspace}>
+                  Try again
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    <CapacityWarning
+                      intake_capacity={workspace.assignment.intake_capacity}
+                      intake_enrollment={workspace.assignment.intake_enrollment}
+                    />
 
- if (grades.length === 0) {
- return (
- <div className="text-center py-8 text-foreground">
- <GraduationCap className="h-8 w-8 mx-auto mb-2 text-foreground" />
- <p className="text-sm">No grades recorded</p>
- </div>
- )
- }
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          {workspace.status === 'approved' ? (
+                            <CheckCircle className="h-5 w-5 text-accent" />
+                          ) : workspace.status === 'under_review' ? (
+                            <Eye className="h-5 w-5 text-accent" />
+                          ) : workspace.status === 'submitted' ? (
+                            <AlertCircle className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Clock className="h-5 w-5 text-foreground" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Application Status</p>
+                            <p className="text-lg font-bold text-foreground">
+                              {formatApplicationStatus(workspace.status)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
- const normalizedGrades = grades
- .map(grade => ({
- ...grade,
- normalized: sanitizeGradeValue(grade.grade)
- }))
- .filter((grade): grade is Grade & { normalized: number } => grade.normalized !== null)
+                      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="h-5 w-5 text-accent" />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Payment Status</p>
+                            <p className="text-lg font-bold text-foreground">
+                              {getPaymentStatusLabel(
+                                workspace.payment.application_payment_status ?? undefined,
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
- const bestFiveGrades = normalizedGrades
- .sort((a, b) => a.normalized - b.normalized)
- .slice(0, 5)
+                      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <Calendar className="h-5 w-5 text-secondary" />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Submitted</p>
+                            <p className="text-lg font-bold text-secondary-foreground">
+                              {workspace.assignment.submitted_at || workspace.assignment.created_at
+                                ? formatDate(
+                                    (workspace.assignment.submitted_at ??
+                                      workspace.assignment.created_at) as string,
+                                  )
+                                : 'Not available'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
- const bestFiveSubjectIds = new Set(bestFiveGrades.map(grade => grade.subject_id))
- const totalPoints = calculateBestFivePoints(normalizedGrades.map(grade => grade.normalized))
- const getGradeBadgeClass = (normalized: number | null) => {
- if (normalized === null) return 'border-border bg-muted text-foreground'
- if (normalized <= 3) return 'border-success/30 bg-success/10 text-success'
- if (normalized <= 6) return 'border-warning/30 bg-warning/10 text-warning'
- return 'border-destructive/30 bg-destructive/10 text-destructive'
- }
+                    {workspace.interview.current && (
+                      <div className="flex flex-col gap-4 rounded-lg border border-primary/20 bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                          <Calendar className="h-10 w-10 text-primary" />
+                          <div>
+                            <p className="text-sm text-foreground">Upcoming interview</p>
+                            <p className="text-base font-semibold text-foreground">
+                              {workspace.interview.current.scheduled_at
+                                ? new Date(workspace.interview.current.scheduled_at).toLocaleString()
+                                : 'Not scheduled'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-foreground">
+                          <p className="font-medium text-foreground">
+                            Mode: {(workspace.interview.current.mode ?? 'Not specified').replace(/_/g, ' ')}
+                          </p>
+                          <p>Status: {workspace.interview.current.status.replace(/_/g, ' ')}</p>
+                        </div>
+                      </div>
+                    )}
 
- return (
- <div className="space-y-4">
- <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
- <div>
- <p className="text-base font-semibold text-foreground">{grades.length} Subjects</p>
- <p className="text-xs font-medium text-muted-foreground">Grade 12 results</p>
- </div>
- <div className="text-right">
- <p className="text-xl font-bold text-foreground">{totalPoints}</p>
- <p className="text-xs font-medium text-muted-foreground">Best 5 points</p>
- </div>
- </div>
+                    <div className="flex flex-wrap gap-2">
+                      {workspace.assignment.assigned_reviewer?.name ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-info/25 bg-info/10 px-3 py-1.5 text-xs font-medium text-info">
+                          <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+                          Reviewer: {workspace.assignment.assigned_reviewer.name}
+                        </span>
+                      ) : (
+                        can.assign_reviewer && (
+                          <AssignReviewerControl
+                            applicationId={workspace.application_id}
+                            expectedVersion={workspace.version}
+                            onAssigned={refreshWorkspace}
+                          />
+                        )
+                      )}
+                      {workspace.payment.fee_waiver ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-success/25 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
+                          <Tag className="h-3.5 w-3.5" aria-hidden="true" />
+                          Fee waiver: {workspace.payment.fee_waiver.reason_code.replace(/_/g, ' ')}
+                          {workspace.payment.fee_waiver.discount_percentage !== 100 && (
+                            <> ({workspace.payment.fee_waiver.discount_percentage}%)</>
+                          )}
+                        </span>
+                      ) : (
+                        can.grant_fee_waiver && (
+                          <button
+                            type="button"
+                            onClick={() => setFeeWaiverOpen(true)}
+                            data-testid="fee-waiver-open"
+                            className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          >
+                            <Tag className="h-3.5 w-3.5" aria-hidden="true" />
+                            Apply Fee Waiver
+                          </button>
+                        )
+                      )}
+                      {workspace.assignment.is_late_submission && (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-warning/25 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning">
+                          <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                          Late submission
+                        </span>
+                      )}
+                    </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- {grades.map((grade, index) => {
- const normalized = sanitizeGradeValue(grade.grade)
- const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
- return (
- <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
- isBestFive ? 'border-success/30 bg-success/5' : 'border-border bg-card'
- }`}>
- <div className="min-w-0 pr-3">
- <span className="break-words text-sm font-semibold text-foreground">{grade.subject_name}</span>
- {isBestFive && <span className="ml-2 inline-flex rounded-md border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">BEST 5</span>}
- </div>
- <span className={`inline-flex min-w-11 items-center justify-center rounded-md border px-3 py-1 text-sm font-bold ${getGradeBadgeClass(normalized)}`}>
- {grade.grade}
- </span>
- </div>
- )
- })}
- </div>
- </div>
- )
-}
+                    <FeeWaiverDialog
+                      open={feeWaiverOpen}
+                      onClose={() => setFeeWaiverOpen(false)}
+                      onApply={(form) => {
+                        void handleApplyFeeWaiver(form)
+                      }}
+                      saving={command.isPending}
+                    />
 
+                    <div className="rounded-lg border border-border bg-card p-6">
+                      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+                        <User className="h-5 w-5 text-primary" />
+                        Personal Information
+                      </h3>
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Mail className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">Email</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.identity.email ?? 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Phone className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">Phone</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.identity.phone ?? 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Calendar className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">Date of Birth</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.identity.date_of_birth
+                                  ? formatDate(workspace.identity.date_of_birth)
+                                  : 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <MapPin className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">Residence</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.answers.residence_town ?? 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Users className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">Next of Kin</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.answers.next_of_kin_name ?? 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-foreground" />
+                            <div>
+                              <p className="text-sm text-foreground">NRC / Passport</p>
+                              <p className="font-medium text-foreground">
+                                {workspace.identity.nrc_number ??
+                                  workspace.identity.passport_number ??
+                                  'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-export function ApplicationDetailModal({
- application,
- show,
- updating,
- onClose,
- onSendNotification,
- onViewDocuments,
-onViewHistory,
-onUpdateStatus,
-onPaymentStatusUpdate
-}: ApplicationDetailModalProps) {
- const [isClient, setIsClient] = useState(false)
- const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'payment' | 'history' | 'ai'>('overview')
- const [applicationData, setApplicationData] = useState<ApplicationDetailResponse | null>(null)
- const [loading, setLoading] = useState(false)
- const [adminFeedback, setAdminFeedback] = useState('')
- const [savingFeedback, setSavingFeedback] = useState(false)
- const [showNotificationModal, setShowNotificationModal] = useState(false)
- const [paymentWarning, setPaymentWarning] = useState<{ applicationId: string; status: string } | null>(null)
- const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([])
- const [loadingPayments, setLoadingPayments] = useState(false)
- const [feeWaiverOpen, setFeeWaiverOpen] = useState(false)
- const [savingFeeWaiver, setSavingFeeWaiver] = useState(false)
- const focusTrapRef = useFocusTrap(show && !!application)
- useEscapeKey(show && !!application, onClose)
+                    <div className="rounded-lg border border-border bg-card p-6">
+                      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+                        <GraduationCap className="h-5 w-5 text-primary" />
+                        Program Information
+                      </h3>
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className="flex items-center gap-3">
+                          <GraduationCap className="h-4 w-4 text-foreground" />
+                          <div>
+                            <p className="text-sm text-foreground">Program</p>
+                            <p className="font-medium text-foreground">
+                              {workspace.assignment.program_offering_name ?? 'Not specified'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Building className="h-4 w-4 text-foreground" />
+                          <div>
+                            <p className="text-sm text-foreground">Institution</p>
+                            <p className="font-medium text-foreground">
+                              {getInstitutionName(workspace.assignment.institution_name ?? undefined)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Calendar className="h-4 w-4 text-foreground" />
+                          <div>
+                            <p className="text-sm text-foreground">Intake</p>
+                            <p className="font-medium text-foreground">
+                              {workspace.assignment.intake_name ?? 'Not specified'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
- // Client-side rendering guard to prevent hydration mismatch
- useEffect(() => {
- setIsClient(true)
- }, [])
+                    {can.review_decision && (
+                      <div className="rounded-lg border border-primary/20 bg-card p-6">
+                        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+                          <AlertCircle className="h-5 w-5" />
+                          Admin Feedback
+                        </h3>
+                        <div className="space-y-4">
+                          <label htmlFor="admin-feedback" className="sr-only">
+                            Feedback for the applicant
+                          </label>
+                          <textarea
+                            id="admin-feedback"
+                            value={adminFeedback}
+                            onChange={(e) => setAdminFeedback(e.target.value)}
+                            placeholder="Add feedback for the applicant..."
+                            rows={4}
+                            className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+                          />
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-info-strong">
+                              {workspace.communication.admin_feedback_at && (
+                                <span>
+                                  Last updated:{' '}
+                                  {formatDate(workspace.communication.admin_feedback_at)}
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={handleSaveFeedback}
+                              loading={savingFeedback}
+                              disabled={!adminFeedback.trim() || savingFeedback}
+                              variant="primary"
+                            >
+                              Save Feedback
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
- const loadPaymentRecords = useCallback(async (applicationId: string): Promise<PaymentRecord[]> => {
-   const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-     `/payments/?application_id=${encodeURIComponent(applicationId)}`
-   )
-   return Array.isArray(data) ? data : (data?.results ?? [])
- }, [])
+                    <AmendmentReviewList
+                      workspace={workspace}
+                      canReview={can.review_amendment}
+                      busy={command.isPending}
+                      onDecide={handleAmendmentDecision}
+                    />
 
- const loadApplicationDetails = useCallback(async (applicationId: string): Promise<ApplicationDetailResponse> => {
-   const response = await applicationService.getById(applicationId, {
-     include: ['grades', 'statusHistory', 'documents', 'interview']
-   })
+                    <ConditionReviewList
+                      workspace={workspace}
+                      canVerify={can.verify_condition}
+                      busy={command.isPending}
+                      onReview={handleConditionReview}
+                    />
+                  </div>
+                )}
 
-   const payload = response || {}
-   const primaryApplication = (payload.application as ApplicationWithDetails | undefined) || application
-   if (!primaryApplication) {
-     throw new Error('Application details are unavailable')
-   }
+                {activeTab === 'readiness' && (
+                  <ReviewReadinessPanel
+                    readiness={workspace.readiness}
+                    definition={workspace.definitions.readiness}
+                  />
+                )}
 
-   return {
-     application: primaryApplication,
-     grades: (payload.grades as Grade[] | undefined) || [],
-     statusHistory: (payload.statusHistory as ApplicationDetailResponse['statusHistory']) || [],
-     documents: (payload.documents as ApplicationDetailResponse['documents']) || [],
-     interview: payload?.interview || payload?.application?.interview || null
-   }
- }, [application])
+                {activeTab === 'payment' && (
+                  <ApplicationDetailPayment
+                    application={detail}
+                    applicationData={{ application: detail, interview: currentInterview }}
+                    paymentRecords={paymentRecords}
+                    loadingPayments={false}
+                    onShowNotificationModal={() => setShowNotificationModal(true)}
+                  />
+                )}
 
- const refreshModalData = useCallback(async (applicationId: string) => {
-   setLoading(true)
-   setLoadingPayments(true)
+                {activeTab === 'interview' && (
+                  <ApplicationDetailInterview
+                    application={detail}
+                    applicationData={{ application: detail, interview: currentInterview }}
+                    canManage={can.manage_interview}
+                    busy={command.isPending}
+                    onSchedule={handleInterviewSchedule}
+                    onUpdate={handleInterviewUpdate}
+                    onCancel={handleInterviewCancel}
+                  />
+                )}
 
-   const [detailsResult, paymentsResult] = await Promise.allSettled([
-     loadApplicationDetails(applicationId),
-     loadPaymentRecords(applicationId),
-   ])
+                {activeTab === 'grades' && <GradesDisplay grades={grades} loading={false} />}
 
-   if (detailsResult.status === 'fulfilled') {
-     setApplicationData(detailsResult.value)
-   } else {
-     logApiError('admin-application-detail', `/applications/${applicationId}/details/`, detailsResult.reason)
-     setApplicationData({
-       application: application!,
-       grades: [],
-       statusHistory: [],
-       documents: [],
-       interview: null
-     })
-   }
+                {activeTab === 'documents' && (
+                  <div className="space-y-6">
+                    <ApplicationDetailDocuments
+                      documents={documents}
+                      loading={false}
+                      application={detail}
+                      applicationId={workspace.application_id}
+                      canVerify={can.verify_document}
+                      verifying={command.isPending}
+                      onVerify={handleDocumentVerify}
+                    />
+                    <div className="border-t border-border pt-6">
+                      <AdminOfficialDocumentsPanel applicationId={workspace.application_id} />
+                    </div>
+                  </div>
+                )}
 
-   if (paymentsResult.status === 'fulfilled') {
-     setPaymentRecords(paymentsResult.value)
-   } else {
-     logApiError('admin-application-detail', `/payments/?application_id=${applicationId}`, paymentsResult.reason)
-     setPaymentRecords([])
-   }
+                {activeTab === 'history' && (
+                  <ApplicationDetailTimeline history={statusHistory} loading={false} />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
-   setLoading(false)
-   setLoadingPayments(false)
- }, [application, loadApplicationDetails, loadPaymentRecords])
+        <div className="max-h-[45dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:max-h-none sm:p-5 sm:pb-5">
+          {can.review_decision ? (
+            <ApplicationApprovalActions
+              applicationId={detail.id}
+              currentStatus={workspace?.status ?? detail.status}
+              currentPaymentStatus={
+                workspace?.payment.application_payment_status ?? detail.payment_status ?? 'not_paid'
+              }
+              onStatusUpdate={handleStatusWithWarning}
+              onPaymentStatusUpdate={handlePaymentDecision}
+              canVerifyPayment={can.verify_payment}
+              disabled={updating === detail.id || command.isPending}
+            />
+          ) : (
+            <p
+              className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground"
+              data-testid="review-read-only"
+            >
+              You have read access to this application. Recording a decision requires the review
+              permission for this school.
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNotificationModal(true)}
+              className="flex items-center gap-1.5"
+            >
+              <Send className="h-3.5 w-3.5" />
+              Notify
+            </Button>
+            <div className="ml-auto">
+              <Button variant="outline" size="sm" onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
- useEffect(() => {
- setActiveTab('overview')
- setApplicationData(null)
- setPaymentRecords([])
- setAdminFeedback(application?.admin_feedback || '')
- }, [application?.id, show])
-
- const handleSaveFeedback = async () => {
- if (!application?.id || !adminFeedback.trim()) return
- 
- try {
- setSavingFeedback(true)
- await applicationService.update(application.id, {
- admin_feedback: adminFeedback.trim(),
- admin_feedback_date: new Date().toISOString()
- })
- // Update local state
- if (applicationData) {
- setApplicationData({
- ...applicationData,
- application: {
- ...applicationData.application,
- admin_feedback: adminFeedback.trim(),
- admin_feedback_date: new Date().toISOString()
- }
- })
- }
- } catch (error) {
- logApiError('admin-application-detail', `/applications/${application.id}/`, error)
- } finally {
- setSavingFeedback(false)
- }
- }
-
- const handleApplyFeeWaiver = async (feeWaiverForm: { waiver_type: string; reason_code: string; discount_percentage: number }) => {
-   if (!application?.id) return
-   try {
-     setSavingFeeWaiver(true)
-     await apiClient.request(`/applications/${application.id}/fee-waiver/`, {
-       method: 'POST',
-       body: JSON.stringify(feeWaiverForm),
-     })
-     setFeeWaiverOpen(false)
-     if (application?.id) { void refreshModalData(application.id) }
-   } catch (error) {
-     logApiError('admin-fee-waiver', `/applications/${application.id}/fee-waiver/`, error)
-   } finally {
-     setSavingFeeWaiver(false)
-   }
- }
-
- useEffect(() => {
- if (show && application?.id) {
- void refreshModalData(application.id)
- }
- }, [show, application?.id, refreshModalData])
-
- // Handle status update with payment warning support (Req 26.4)
- const handleStatusWithWarning = async (appId: string, newStatus: string) => {
-   const result = await onUpdateStatus(appId, newStatus)
-   if (result && typeof result === 'object' && 'warning' in result && result.warning === true) {
-     setPaymentWarning({ applicationId: appId, status: newStatus })
-     return
-   }
-   window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: appId } }))
-   void refreshModalData(appId)
- }
-
- const handlePaymentWarningConfirm = async () => {
-   if (!paymentWarning) return
-   try {
-     await onUpdateStatus(paymentWarning.applicationId, paymentWarning.status, { force: true })
-     window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: paymentWarning.applicationId } }))
-     void refreshModalData(paymentWarning.applicationId)
-   } finally {
-     setPaymentWarning(null)
-   }
- }
-
- if (!show || !application) return null
-
- // Show skeleton during SSR/initial render to prevent hydration mismatch
- if (!isClient) {
- return (
- <div className="fixed inset-0 bg-scrim/60 flex items-center justify-center p-0 sm:p-4 z-modal overflow-hidden">
- <div className="flex h-dvh max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
- {/* Header Skeleton */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-card">
- <div className="flex items-center justify-between gap-2">
- <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
- <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex-shrink-0" />
- <div className="min-w-0 flex-1 space-y-2">
- <Skeleton className="h-6 w-48" />
- <Skeleton className="h-4 w-32" />
- </div>
- </div>
- <Skeleton className="w-8 h-8" />
- </div>
- </div>
- 
- {/* Content Skeleton */}
- <div className="flex-1 overflow-y-auto p-4 sm:p-6">
- <div className="space-y-4">
- <Skeleton className="h-32 rounded-lg" />
- <Skeleton className="h-48 rounded-lg" />
- <Skeleton className="h-48 rounded-lg" />
- </div>
- </div>
- 
- {/* Footer Skeleton */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-muted">
- <div className="flex justify-between gap-4">
- <Skeleton className="h-10 w-32" />
- <Skeleton className="h-10 w-24" />
- </div>
- </div>
- </div>
- </div>
- )
- }
-
- const tabs = [
- { id: 'overview', label: 'Personal', icon: User },
- { id: 'grades', label: 'Academic', icon: GraduationCap },
- { id: 'documents', label: 'Documents', icon: FileText },
- { id: 'payment', label: 'Payment', icon: CreditCard },
- { id: 'interview', label: 'Interview', icon: Calendar },
- { id: 'history', label: 'History', icon: History },
- { id: 'ai', label: 'AI', icon: ClipboardList },
- ] as const
-
- return (
- <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
- <div
- ref={focusTrapRef as React.RefObject<HTMLDivElement>}
- role="dialog"
- aria-modal="true"
- aria-label={`Application details for ${application.full_name}`}
- className="flex h-dvh max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
- >
- {/* Header */}
- <ApplicationDetailHeader application={application} onClose={onClose} />
-
- {/* Tabs */}
- <div className="flex-shrink-0 overflow-x-auto border-b border-border bg-card">
- <div className="flex min-w-max px-2 sm:px-6" role="tablist" aria-label="Application details">
- {tabs.map((tab, index) => {
- const Icon = tab.icon
- return (
- <button
- key={tab.id}
- id={`tab-${tab.id}`}
- role="tab"
- aria-selected={activeTab === tab.id}
- aria-controls={`panel-${tab.id}`}
- tabIndex={activeTab === tab.id ? 0 : -1}
- onClick={() => setActiveTab(tab.id)}
- onKeyDown={(e) => {
- const ids = tabs.map(t => t.id)
- const cur = ids.indexOf(tab.id)
- let next = -1
- if (e.key === 'ArrowRight') next = (cur + 1) % ids.length
- else if (e.key === 'ArrowLeft') next = (cur - 1 + ids.length) % ids.length
- else if (e.key === 'Home') next = 0
- else if (e.key === 'End') next = ids.length - 1
- if (next >= 0) {
- e.preventDefault()
- setActiveTab(ids[next]!)
- document.getElementById(`tab-${ids[next]}`)?.focus()
- }
- }}
- className={`flex min-h-touch min-w-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
- activeTab === tab.id
- ? 'border-primary text-primary'
- : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
- }`}
- >
- <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
- <span className="hidden min-w-0 sm:inline">{tab.label}</span>
- </button>
- )
- })}
- </div>
- </div>
- {/* Content */}
- <div className="min-h-0 flex-1 overflow-y-auto bg-muted/50">
- <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="p-4 sm:p-6">
- {loading ? (
- <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
- <div className="space-y-4 w-full max-w-lg">
- <Skeleton className="h-32 w-full rounded-lg" />
- <Skeleton className="h-48 w-full rounded-lg" />
- <Skeleton className="h-48 w-full rounded-lg" />
- </div>
- </div>
- ) : (
- <div className="space-y-6">
- {activeTab === 'overview' && (
- <div className="space-y-6">
- {/* Capacity Warning (Req 18.1, 18.2, 18.3) */}
- <CapacityWarning
-   intake_capacity={applicationData?.application?.intake_capacity ?? application.intake_capacity}
-   intake_enrollment={applicationData?.application?.intake_enrollment ?? application.intake_enrollment}
- />
- {/* Quick Stats */}
- <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
- <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
- <div className="flex items-center gap-3">
- {application.status === 'approved' ? <CheckCircle className="h-5 w-5 text-accent" /> :
-  application.status === 'under_review' ? <Eye className="h-5 w-5 text-accent" /> :
-  application.status === 'submitted' ? <AlertCircle className="h-5 w-5 text-primary" /> :
-  <Clock className="h-5 w-5 text-foreground" />}
- <div>
- <p className="text-sm font-medium text-foreground">Application Status</p>
- <p className="text-lg font-bold text-foreground">
- {formatApplicationStatus(application.status)}
- </p>
- </div>
- </div>
- </div>
- 
- <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
- <div className="flex items-center gap-3">
- <CreditCard className="h-5 w-5 text-accent" />
- <div>
- <p className="text-sm font-medium text-foreground">Payment Status</p>
- <p className="text-lg font-bold text-foreground">
- {getPaymentStatusLabel(application.payment_status)}
- </p>
- </div>
- </div>
- </div>
- 
- <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
- <div className="flex items-center gap-3">
- <Calendar className="h-5 w-5 text-secondary" />
- <div>
- <p className="text-sm font-medium text-foreground">Submitted</p>
- <p className="text-lg font-bold text-secondary-foreground">
- {formatDate(application.submitted_at || application.created_at)}
- </p>
- </div>
- </div>
- </div>
- </div>
-
- {(() => {
-   const interview = applicationData?.interview || applicationData?.application?.interview || null
-   const hasInterview = Boolean(interview && interview.status !== 'cancelled')
-   if (!hasInterview || !interview) return null
-   const dt = interview.scheduled_at ? new Date(interview.scheduled_at).toLocaleString() : 'Not scheduled'
-   const modeLabel = interview.mode === 'in_person' ? 'In person' : interview.mode === 'virtual' ? 'Virtual' : interview.mode === 'phone' ? 'Phone' : (interview.mode || 'Not specified')
-   return (
-     <div className="bg-card border border-primary/20 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-       <div className="flex items-center gap-3">
-         <Calendar className="h-10 w-10 text-primary" />
-         <div>
-           <p className="text-sm text-foreground">Upcoming interview</p>
-           <p className="text-base font-semibold text-foreground">{dt}</p>
-         </div>
-       </div>
-       <div className="text-sm text-foreground">
-         <p className="font-medium text-foreground">Mode: {modeLabel}</p>
-         <p>Status: {interview.status ? interview.status.replace(/_/g, ' ') : 'Not scheduled'}</p>
-       </div>
-     </div>
-   )
- })()}
-
- {/* Admin badges: reviewer, fee waiver, late submission */}
- <div className="flex flex-wrap gap-2">
- {(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
- <span className="inline-flex items-center gap-1.5 rounded-md border border-info/25 bg-info/10 px-3 py-1.5 text-xs font-medium text-info">
- <Shield className="h-3.5 w-3.5" aria-hidden="true" />
- Reviewer: {applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name}
- </span>
- )}
- {!(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
- <AssignReviewerButton applicationId={application.id} onAssigned={() => { void refreshModalData(application.id) }} />
- )}
- {(applicationData?.application?.fee_waiver || application.fee_waiver) && (
- <span className="inline-flex items-center gap-1.5 rounded-md border border-success/25 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
- <Tag className="h-3.5 w-3.5" aria-hidden="true" />
- Fee waiver: {(applicationData?.application?.fee_waiver || application.fee_waiver)?.reason_code?.replace(/_/g, ' ')}
- {(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage !== 100 && (
- <> ({(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage}%)</>
- )}
- </span>
- )}
- {(applicationData?.application?.is_late_submission || application.is_late_submission) && (
- <span className="inline-flex items-center gap-1.5 rounded-md border border-warning/25 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning">
- <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
- Late submission
- </span>
- )}
- {!(applicationData?.application?.fee_waiver || application.fee_waiver) && (
- <button
-   type="button"
-   onClick={() => setFeeWaiverOpen(true)}
-   className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
- >
-   <Tag className="h-3.5 w-3.5" aria-hidden="true" />
-   Apply Fee Waiver
- </button>
- )}
- </div>
-
- {/* Fee waiver dialog */}
- <FeeWaiverDialog
-   open={feeWaiverOpen}
-   onClose={() => setFeeWaiverOpen(false)}
-   onApply={(form) => { void handleApplyFeeWaiver(form) }}
-   saving={savingFeeWaiver}
- />
-
- {/* Personal Information */}
- <div className="bg-card border border-border rounded-lg p-6">
- <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
- <User className="h-5 w-5 text-primary" />
- Personal Information
- </h3>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
- <div className="flex items-center gap-3">
- <Mail className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Email</p>
- <p className="font-medium text-foreground">{applicationData?.application?.email || application.email}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Phone className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Phone</p>
- <p className="font-medium text-foreground">{applicationData?.application?.phone || application.phone || 'Not provided'}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Date of Birth</p>
- <p className="font-medium text-foreground">{applicationData?.application?.date_of_birth ? formatDate(applicationData.application.date_of_birth) : (application.date_of_birth ? formatDate(application.date_of_birth) : 'Not provided')}</p>
- </div>
- </div>
- </div>
- <div className="space-y-4">
- <div className="flex items-center gap-3">
- <MapPin className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Residence</p>
- <p className="font-medium text-foreground">{applicationData?.application?.residence_town || application.residence_town || 'Not provided'}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Users className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Next of Kin</p>
- <p className="font-medium text-foreground">{applicationData?.application?.next_of_kin_name || application.next_of_kin_name || 'Not provided'}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <FileText className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">NRC Number</p>
- <p className="font-medium text-foreground">{applicationData?.application?.nrc_number || application.nrc_number || applicationData?.application?.passport_number || application.passport_number || 'Not provided'}</p>
- </div>
- </div>
- </div>
- </div>
- </div>
-
- {/* Program Information */}
- <div className="bg-card border border-border rounded-lg p-6">
- <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
- <GraduationCap className="h-5 w-5 text-primary" />
- Program Information
- </h3>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="flex items-center gap-3">
- <GraduationCap className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Program</p>
- <p className="font-medium text-foreground">{application.program}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Building className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Institution</p>
- <p className="font-medium text-foreground">{getInstitutionName(application.institution)}</p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Calendar className="h-4 w-4 text-foreground" />
- <div>
- <p className="text-sm text-foreground">Intake</p>
- <p className="font-medium text-foreground">{application.intake}</p>
- </div>
- </div>
- </div>
- </div>
-
- {/* Admin Feedback */}
- <div className="bg-card border border-primary/20 rounded-lg p-6">
- <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
- <AlertCircle className="h-5 w-5" />
- Admin Feedback
- </h3>
- 
- <div className="space-y-4">
- <textarea
- value={adminFeedback}
- onChange={(e) => setAdminFeedback(e.target.value)}
- placeholder="Add feedback for the applicant..."
- rows={4}
- className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
- />
- 
- <div className="flex items-center justify-between">
- <div className="text-sm text-info-strong">
- {application.admin_feedback_date && (
- <span>Last updated: {formatDate(application.admin_feedback_date)}</span>
- )}
- </div>
- 
- <Button
- size="sm"
- onClick={handleSaveFeedback}
- loading={savingFeedback}
- disabled={!adminFeedback.trim() || savingFeedback}
- variant="primary"
- >
- Save Feedback
- </Button>
- </div>
- </div>
- </div>
-
- {/* Pending Amendment Requests */}
- {((applicationData?.application?.pending_amendments && applicationData.application.pending_amendments.length > 0) || (application.pending_amendments && application.pending_amendments.length > 0)) && (
- <div className="bg-card border border-warning/30 rounded-lg p-6">
- <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
- <ClipboardList className="h-5 w-5 text-warning" aria-hidden="true" />
- Pending Amendment Requests
- </h3>
- <div className="space-y-3">
- {(applicationData?.application?.pending_amendments || application.pending_amendments || []).map((amendment) => (
- <div key={amendment.id} className="flex items-start justify-between p-3 bg-warning/5 border border-warning/20 rounded-lg">
- <div className="flex-1 min-w-0">
- <p className="text-sm font-medium text-foreground capitalize">{amendment.field_name.replace(/_/g, ' ')}</p>
- <p className="text-xs text-muted-foreground mt-0.5">New value: <span className="font-medium text-foreground">{amendment.new_value}</span></p>
- <p className="text-xs text-muted-foreground mt-0.5">Reason: {amendment.reason}</p>
- <p className="text-xs text-muted-foreground mt-0.5">{formatDate(amendment.created_at)}</p>
- </div>
- <span className="inline-flex items-center gap-1 rounded-md border border-warning/25 bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
- <AlertTriangle className="h-3 w-3" aria-hidden="true" />
- {amendment.status}
- </span>
- </div>
- ))}
- </div>
- </div>
- )}
- </div>
- )}
-
- {activeTab === 'payment' && (
- <ApplicationDetailPayment
-   application={application}
-   applicationData={applicationData}
-   paymentRecords={paymentRecords}
-   loadingPayments={loadingPayments}
-   onShowNotificationModal={() => setShowNotificationModal(true)}
- />
- )}
-
- {activeTab === 'interview' && (
- <ApplicationDetailInterview
-   application={application}
-   applicationData={applicationData}
-   onApplicationDataChange={setApplicationData}
- />
- )}
-
- {activeTab === 'grades' && (
- <GradesDisplay
- grades={applicationData?.grades || []}
- loading={loading}
- />
- )}
-
- {activeTab === 'documents' && (
- <div className="space-y-6">
- <ApplicationDetailDocuments 
- documents={applicationData?.documents || []} 
- loading={loading}
- application={application}
- applicationId={application.id}
- onDocumentVerified={() => { void refreshModalData(application.id) }}
- />
- <div className="border-t border-border pt-6">
- <AdminOfficialDocumentsPanel applicationId={application.id} />
- </div>
- </div>
- )}
-
- {activeTab === 'history' && (
- <ApplicationDetailTimeline 
- history={applicationData?.statusHistory || []} 
- loading={loading}
- />
- )}
-
- {activeTab === 'ai' && (
- <AISummaryPanel applicationId={application.id} />
- )}
- </div>
- )}
- </div>
- </div>
- {/* Action Bar — sticky bottom */}
- <div className="max-h-[45dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:max-h-none sm:p-5 sm:pb-5">
- <ApplicationApprovalActions
- applicationId={application.id}
- currentStatus={application.status}
- currentPaymentStatus={application.payment_status || 'not_paid'}
- onStatusUpdate={handleStatusWithWarning}
- onPaymentStatusUpdate={onPaymentStatusUpdate}
- disabled={updating === application.id}
- />
- <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
- <Button
- variant="outline"
- size="sm"
- onClick={() => setShowNotificationModal(true)}
- className="flex items-center gap-1.5"
- >
- <Send className="h-3.5 w-3.5" />
- Notify
- </Button>
- <div className="ml-auto">
- <Button variant="outline" size="sm" onClick={onClose}>
- Close
- </Button>
- </div>
- </div>
- </div>
- </div>
-      
-      {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
-        <div className="fixed inset-0 bg-scrim/60 flex items-center justify-center p-4 z-modal-stacked">
+        <div className="fixed inset-0 z-modal-stacked flex items-center justify-center bg-scrim/60 p-4">
           <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-warning/10 rounded-lg">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-lg bg-warning/10 p-2">
                 <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">Payment Not Verified</h3>
             </div>
-            <p className="text-sm text-foreground mb-6">
-              Payment has not been verified for this application. Are you sure you want to approve it? This action can be overridden.
+            <p className="mb-6 text-sm text-foreground">
+              Payment has not been verified for this application. Are you sure you want to approve
+              it? This action can be overridden.
             </p>
             <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPaymentWarning(null)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setPaymentWarning(null)}>
                 Cancel
               </Button>
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => { void handlePaymentWarningConfirm() }}
+                onClick={() => {
+                  void handlePaymentWarningConfirm()
+                }}
               >
                 Approve Anyway
               </Button>
@@ -836,11 +749,11 @@ onPaymentStatusUpdate
 
       <SendNotificationModal
         show={showNotificationModal}
-        applicationNumber={application.application_number}
-        studentName={application.full_name}
+        applicationNumber={detail.application_number}
+        studentName={detail.full_name}
         onClose={() => setShowNotificationModal(false)}
         onSend={onSendNotification}
       />
- </div>
- )
+    </div>
+  )
 }

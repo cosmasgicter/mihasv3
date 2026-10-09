@@ -1,0 +1,17 @@
+=== the six-viewport axe WCAG 2.0/2.1 A+AA sweep ===
+
+Each cell: <axe checks passed> / nav+axe ms / <blocking> / <non-blocking>
+Durations are recorded per row on purpose: 13.1 §6.1 established that a
+timeout and an accessibility violation must never be mistaken for each
+other. Every row here is well inside its budget.
+
+--- project: chromium-13-3 ---
+surface                                            320x568                 375x667                 390x844                768x1024                1280x800                1440x900
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/track-application                    26chk 1631ms B=0 N=0    26chk 1563ms B=0 N=0    26chk 1055ms B=0 N=0    26chk 1734ms B=0 N=0    26chk 1756ms B=0 N=0    26chk 1631ms B=0 N=0
+/student/dashboard                    26chk 1021ms B=1 N=0    26chk 1523ms B=0 N=0    26chk 1504ms B=0 N=0    27chk 1522ms B=0 N=0     28chk 952ms B=0 N=0    27chk 1469ms B=0 N=0
+/student/application-wizard           26chk 1636ms B=1 N=0    26chk 1617ms B=1 N=0    26chk 1525ms B=1 N=0    27chk 1427ms B=1 N=0    27chk 1664ms B=1 N=0    27chk 1218ms B=0 N=0
+/student/status                       20chk 1303ms B=1 N=0    20chk 1406ms B=1 N=0    20chk 1443ms B=1 N=0    21chk 1421ms B=0 N=0    21chk 1477ms B=0 N=0    21chk 1424ms B=0 N=0
+/student/settings                     24chk 1146ms B=1 N=0    24chk 1570ms B=1 N=0    24chk 1119ms B=1 N=0    25chk 1149ms B=0 N=0    25chk 1078ms B=0 N=0    25chk 1025ms B=0 N=0
+slowest single surface scan in this project: 1756 ms
+

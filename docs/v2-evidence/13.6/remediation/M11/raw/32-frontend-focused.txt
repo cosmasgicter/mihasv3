@@ -1,0 +1,6 @@
+=== M11: focused frontend suites (vitest 4.0.18, --no-cache, cwd=apps/admissions) ===
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m113 passed[39m[22m[90m (113)[39m
+[2m   Start at [22m 19:56:02
+[2m   Duration [22m 3.87s[2m (transform 3.95s, setup 385ms, import 6.12s, tests 2.46s, environment 17.28s)[22m
+files: useSmartAutoSaveCoordinator, wizardDraftLoaderSafety, useAutoSaveSafety, wizardMobileRecomposition, wizardDraftMachine, draftAutosave, multiDraftService, wizardAssignmentPatchLock, wizardDraftResume, applicationSessionDrafts, tenantConsoleSplit, tenantConsoleAuthority, brandDriftGuard, errorCodesDriftGuard

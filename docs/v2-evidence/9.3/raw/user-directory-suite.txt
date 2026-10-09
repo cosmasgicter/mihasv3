@@ -1,0 +1,85 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python3
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 63 items
+
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_paging_walks_the_whole_population_without_repeating_a_row PASSED [  1%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_the_aggregates_equal_an_independent_sql_count PASSED [  3%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_every_headline_number_states_what_it_counts PASSED [  4%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_search_sort_and_filters_are_the_servers PASSED [  6%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_search_covers_the_name_the_table_renders PASSED [  7%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_an_unregistered_parameter_is_echoed_not_dropped PASSED [  9%]
+tests/unit/test_user_directory_9_3.py::TestPageTwoAndBeyond::test_every_registered_parameter_is_understood PASSED [ 11%]
+tests/unit/test_user_directory_9_3.py::TestFacetsAreWholeSetAndOpen::test_a_facet_offers_a_value_that_is_not_on_this_page PASSED [ 12%]
+tests/unit/test_user_directory_9_3.py::TestFacetsAreWholeSetAndOpen::test_a_narrowed_query_still_offers_the_other_values PASSED [ 14%]
+tests/unit/test_user_directory_9_3.py::TestFacetsAreWholeSetAndOpen::test_a_facet_count_is_a_sql_count_over_the_filtered_set PASSED [ 15%]
+tests/unit/test_user_directory_9_3.py::TestFacetsAreWholeSetAndOpen::test_every_open_dimension_names_a_real_filter_field PASSED [ 17%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_the_edit_forms_fields_are_all_implemented PASSED [ 19%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_an_update_actually_changes_email_and_phone PASSED [ 20%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_an_unsupported_field_is_rejected_and_named PASSED [ 22%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_a_duplicate_email_is_a_conflict_not_a_silent_no_op PASSED [ 23%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_the_supported_roles_are_the_platform_hierarchy PASSED [ 25%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_an_unsupported_role_is_rejected PASSED [ 26%]
+tests/unit/test_user_directory_9_3.py::TestIgnoredFieldsAreRejected::test_a_create_rejects_an_unsupported_field PASSED [ 28%]
+tests/unit/test_user_directory_9_3.py::TestRoleCeilingAndSelfDeactivation::test_an_admin_cannot_promote_a_user_above_their_own_role PASSED [ 30%]
+tests/unit/test_user_directory_9_3.py::TestRoleCeilingAndSelfDeactivation::test_an_admin_cannot_modify_an_account_above_their_own_role PASSED [ 31%]
+tests/unit/test_user_directory_9_3.py::TestRoleCeilingAndSelfDeactivation::test_an_actor_cannot_deactivate_their_own_account PASSED [ 33%]
+tests/unit/test_user_directory_9_3.py::TestRoleCeilingAndSelfDeactivation::test_the_ceiling_is_checked_before_the_scope_mask PASSED [ 34%]
+tests/unit/test_user_directory_9_3.py::TestScopePrecedesLookup::test_another_tenants_account_is_masked_exactly_like_an_unknown_one PASSED [ 36%]
+tests/unit/test_user_directory_9_3.py::TestScopePrecedesLookup::test_another_tenants_accounts_never_reach_the_list PASSED [ 38%]
+tests/unit/test_user_directory_9_3.py::TestScopePrecedesLookup::test_an_out_of_scope_institution_filter_is_masked_and_audited PASSED [ 39%]
+tests/unit/test_user_directory_9_3.py::TestScopePrecedesLookup::test_the_platform_only_columns_are_withheld_from_a_tenant_actor PASSED [ 41%]
+tests/unit/test_user_directory_9_3.py::TestScopePrecedesLookup::test_the_service_never_compares_a_role_string PASSED [ 42%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_the_preview_writes_nothing_and_says_what_would_happen PASSED [ 44%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_one_bad_row_rolls_the_whole_batch_back PASSED [ 46%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_per_row_mode_keeps_the_rows_that_worked PASSED [ 47%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_every_created_account_is_bound_to_the_school PASSED [ 49%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_an_import_with_no_school_is_refused_with_an_actionable_code PASSED [ 50%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_an_out_of_scope_school_is_masked PASSED [ 52%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_a_role_above_the_actor_is_a_row_error_not_a_created_account PASSED [ 53%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_row_errors_address_the_operators_own_line_numbers PASSED [ 55%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_the_batch_is_audited_and_carries_no_address PASSED [ 57%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_a_replay_with_the_same_idempotency_key_imports_once PASSED [ 58%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_a_replay_without_a_key_creates_nothing_extra PASSED [ 60%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_an_oversized_batch_is_refused_before_anything_is_validated PASSED [ 61%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_an_unknown_mode_is_refused_rather_than_defaulted PASSED [ 63%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_the_preview_and_the_commit_share_one_validator PASSED [ 65%]
+tests/unit/test_user_directory_9_3.py::TestImportIsPreviewedTenantBoundAtomic::test_a_generated_password_is_never_echoed PASSED [ 66%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_a_bulk_role_change_applies_in_one_command PASSED [ 68%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_a_wrong_confirmation_is_refused_server_side PASSED [ 69%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_one_refused_target_stops_the_whole_command PASSED [ 71%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_the_command_refuses_a_role_above_the_actor PASSED [ 73%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_self_deactivation_is_refused_in_bulk_too PASSED [ 74%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_the_command_is_size_bounded PASSED [ 76%]
+tests/unit/test_user_directory_9_3.py::TestBulkIsOneServerCommand::test_the_command_is_audited_without_pii PASSED [ 77%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_is_the_filtered_set_not_the_page PASSED [ 79%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_honours_the_same_filters PASSED [ 80%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_needs_the_platforms_export_capability PASSED [ 82%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_is_bounded_and_refuses_rather_than_truncates PASSED [ 84%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_is_audited_with_counts_and_filters_but_no_rows PASSED [ 85%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_same_export_is_reachable_from_the_list_route PASSED [ 87%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_a_tenant_export_withholds_the_platform_columns PASSED [ 88%]
+tests/unit/test_user_directory_9_3.py::TestExportIsPageIndependentAndAudited::test_the_export_capability_is_the_platforms_existing_one PASSED [ 90%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_a_row_carries_one_display_name_computed_in_sql PASSED [ 92%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_sorting_by_role_orders_by_authority_not_the_alphabet PASSED [ 93%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_a_null_is_active_is_treated_as_enabled PASSED [ 95%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_the_staff_without_membership_counter_names_the_adm_04_population PASSED [ 96%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_the_envelope_and_pagination_shape_are_preserved PASSED [ 98%]
+tests/unit/test_user_directory_9_3.py::TestTheServiceIsTheOneAuthority::test_a_row_column_set_is_shared_by_json_and_csv PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_user_directory_9_3.py: 58 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 63 passed, 59 warnings in 4.30s ========================

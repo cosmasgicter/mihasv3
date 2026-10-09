@@ -1,0 +1,32 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 10 items
+
+tests/integration/test_draft_start_list_rename_6_2.py::TestStartDraftMinimumSelection::test_start_without_canonical_selection_is_rejected PASSED [ 10%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestStartDraftMinimumSelection::test_start_persists_optional_draft_name PASSED [ 20%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestStartDraftIdempotency::test_same_idempotency_key_returns_same_draft PASSED [ 30%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestStartDraftIdempotency::test_duplicate_start_without_key_conflicts_and_never_adopts PASSED [ 40%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestListAndResumeOwnership::test_two_drafts_started_listed_and_switchable PASSED [ 50%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestListAndResumeOwnership::test_list_and_resume_never_cross_students PASSED [ 60%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestRenameDraft::test_rename_sets_validated_field PASSED [ 70%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestRenameDraft::test_rename_rejects_blank PASSED [ 80%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestRenameDraft::test_rename_foreign_draft_masked_as_404 PASSED [ 90%]
+tests/integration/test_draft_start_list_rename_6_2.py::TestRenameDraft::test_rename_does_not_mutate_assignment PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_draft_start_list_rename_6_2.py: 10 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 10 passed, 11 warnings in 3.08s ========================

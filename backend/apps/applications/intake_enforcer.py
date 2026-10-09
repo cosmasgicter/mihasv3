@@ -19,15 +19,40 @@ class IntakeEnforcer:
     """Enforces intake deadline and capacity rules."""
 
     @staticmethod
-    def check_submission(intake_name: str, program_name: str) -> IntakeCheckResult:
-        """Check deadline and capacity for submission. Returns error if blocked."""
+    def check_submission(
+        intake_name: str,
+        program_name: str,
+        *,
+        offering_id: str | None = None,
+        intake_id: str | None = None,
+    ) -> IntakeCheckResult:
+        """Check deadline and capacity for submission. Returns error if blocked.
+
+        Admissions-v2 task 5.3 (DATA-02): when the canonical ``offering_id`` +
+        ``intake_id`` are supplied (a task-5.2 canonical application), the
+        capacity portion keys on the canonical Intake_Offering identity
+        (``program_offering_id`` + ``intake_ref_id``) instead of the display
+        strings, so a same-name other-tenant offering is never counted. The
+        intake is also resolved by ``intake_id`` (not name) so deadline/grace
+        logic reads the exact canonical intake. Legacy rows without canonical IDs
+        keep the original name-based path.
+
+        NOTE: for canonical applications this is the *advisory* pre-lock / TOCTOU
+        check; the authoritative last-seat decision is made under the
+        ``ProgramIntake`` row lock in
+        :meth:`apps.applications.capacity_service.CapacityService.take_seat_for_submission`.
+        """
         from apps.applications.identifier_resolver import IdentifierResolver
 
-        intake_resolved = IdentifierResolver.resolve_intake(intake_name)
-        if intake_resolved.source == "not_found":
-            return IntakeCheckResult(True)  # Skip enforcement if intake not found
+        canonical = bool(offering_id and intake_id)
 
-        intake = Intake.objects.filter(id=intake_resolved.id).first()
+        if canonical:
+            intake = Intake.objects.filter(id=intake_id).first()
+        else:
+            intake_resolved = IdentifierResolver.resolve_intake(intake_name)
+            if intake_resolved.source == "not_found":
+                return IntakeCheckResult(True)  # Skip enforcement if intake not found
+            intake = Intake.objects.filter(id=intake_resolved.id).first()
         if not intake:
             return IntakeCheckResult(True)
 
@@ -46,27 +71,48 @@ class IntakeEnforcer:
                 f"The application deadline ({intake.application_deadline.isoformat()}) has passed.",
             )
 
-        # Capacity check - use live count of non-rejected applications
+        from apps.applications.models import Application
+
+        # Intake-level capacity check. Count keyed canonically when available.
         if intake.max_capacity is not None:
-            from apps.applications.models import Application
-            live_count = Application.objects.filter(
-                intake=intake_name,
-                status__in=("submitted", "under_review", "approved", "waitlisted"),
-            ).count()
+            if canonical:
+                live_count = Application.objects.filter(
+                    intake_ref_id=intake_id,
+                    status__in=("submitted", "under_review", "approved", "waitlisted"),
+                ).count()
+            else:
+                live_count = Application.objects.filter(
+                    intake=intake_name,
+                    status__in=("submitted", "under_review", "approved", "waitlisted"),
+                ).count()
             if live_count >= intake.max_capacity:
                 return IntakeCheckResult(False, "INTAKE_CAPACITY_REACHED",
                     f"This intake has reached maximum capacity ({live_count}/{intake.max_capacity}).")
 
-        # Per-program capacity check
-        if program_name:
-            from apps.applications.identifier_resolver import IdentifierResolver
+        # Per-offering (Intake_Offering) capacity check.
+        if canonical:
+            from apps.catalog.models import ProgramIntake
+            pi = ProgramIntake.objects.filter(
+                program_id=offering_id, intake_id=intake_id
+            ).first()
+            if pi and pi.max_capacity is not None:
+                live_pi_count = Application.objects.filter(
+                    program_offering_id=offering_id,
+                    intake_ref_id=intake_id,
+                    status__in=("submitted", "under_review", "approved", "waitlisted"),
+                ).count()
+                if live_pi_count >= pi.max_capacity:
+                    return IntakeCheckResult(
+                        False, "PROGRAM_CAPACITY_REACHED",
+                        f"This offering for the selected intake is full ({live_pi_count}/{pi.max_capacity}).",
+                    )
+        elif program_name:
             from apps.catalog.models import ProgramIntake
             prog_resolved = IdentifierResolver.resolve_program(program_name)
             intake_resolved_pi = IdentifierResolver.resolve_intake(intake_name)
             if prog_resolved.id and intake_resolved_pi.id:
                 pi = ProgramIntake.objects.filter(program_id=prog_resolved.id, intake_id=intake_resolved_pi.id).first()
                 if pi and pi.max_capacity is not None:
-                    from apps.applications.models import Application
                     live_pi_count = Application.objects.filter(
                         program=program_name, intake=intake_name,
                         status__in=("submitted", "under_review", "approved", "waitlisted"),
@@ -80,15 +126,27 @@ class IntakeEnforcer:
         return IntakeCheckResult(True)
 
     @staticmethod
-    def check_draft_creation(intake_name: str) -> IntakeCheckResult:
-        """Check if a draft can be created for this intake (deadline + open date)."""
+    def check_draft_creation(
+        intake_name: str,
+        *,
+        intake_id: str | None = None,
+    ) -> IntakeCheckResult:
+        """Check if a draft can be created for this intake (deadline + open date).
+
+        When the canonical ``intake_id`` is supplied (admissions-v2 tasks 5.2 /
+        6.4) the intake is read by id instead of by display name, so a same-name
+        intake in another tenant can never be the one enforced. Legacy callers
+        keep the name-based resolution path.
+        """
         from apps.applications.identifier_resolver import IdentifierResolver
 
-        intake_resolved = IdentifierResolver.resolve_intake(intake_name)
-        if intake_resolved.source == "not_found":
-            return IntakeCheckResult(True)
-
-        intake = Intake.objects.filter(id=intake_resolved.id).first()
+        if intake_id:
+            intake = Intake.objects.filter(id=intake_id).first()
+        else:
+            intake_resolved = IdentifierResolver.resolve_intake(intake_name)
+            if intake_resolved.source == "not_found":
+                return IntakeCheckResult(True)
+            intake = Intake.objects.filter(id=intake_resolved.id).first()
         if not intake:
             return IntakeCheckResult(True)
 

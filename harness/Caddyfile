@@ -1,0 +1,51 @@
+# Admissions V2 harness edge — serves the built SPA and proxies the API on the
+# SAME origin so per-tenant hosts (mihas.localhost / katc.localhost / localhost)
+# resolve the tenant from the request Host header.
+#
+# Caddy's reverse_proxy preserves the incoming Host header by default, so a
+# request to http://mihas.localhost:8090/api/... reaches the backend with
+# Host: mihas.localhost and InstitutionContextService.resolve() binds tenant A.
+#
+# Harness-only: one catch-all :80 site (published to :8090 on the host), no
+# TLS, and a deliberately relaxed CSP so same-origin /api calls, inline styles,
+# and local assets never emit CSP-violation console noise that would trip the
+# strict Playwright gates.
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:80 {
+	encode zstd gzip
+
+	# Relaxed local CSP (harness only — never production).
+	header {
+		Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *; img-src * data: blob:; font-src * data:; frame-src *;"
+		-Server
+	}
+
+	# `handle` blocks are mutually exclusive and evaluated in order, so the SPA
+	# `try_files` fallback below can NEVER rewrite an /api or /health request.
+	# (A bare `try_files {path} /index.html` runs in Caddy's early rewrite phase
+	# and would otherwise shadow the reverse_proxy, turning every API call into
+	# the SPA HTML — the failure mode this harness must avoid.)
+	#
+	# Caddy's reverse_proxy preserves the incoming Host header by default, so a
+	# request to http://mihas.localhost:8090/api/... reaches the backend with
+	# Host: mihas.localhost and InstitutionContextService.resolve() binds the
+	# right tenant.
+	handle /api/* {
+		reverse_proxy web:8000
+	}
+	handle /health/* {
+		reverse_proxy web:8000
+	}
+
+	# Everything else: SPA build output + client-side routing fallback.
+	handle {
+		root * /srv/www
+		try_files {path} /index.html
+		file_server
+	}
+}

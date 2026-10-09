@@ -1,0 +1,23 @@
+]633;E;echo "=== 12-FILE CORPUS — AFTER L1+L4, SERIAL ===";a58e451c-a07a-4f3a-aa0c-3980f3cdeac7]633;C=== 12-FILE CORPUS — AFTER L1+L4, SERIAL ===
+=== DATE: 2026-08-13T20:54:02Z ===
+=== files ===
+tests/unit/test_application_number_generator.py
+tests/unit/test_application_review_force_approved.py
+tests/unit/test_application_review_payment_gate.py
+tests/unit/test_live_500_fixes.py
+tests/unit/test_payment_review_reopen.py
+tests/unit/test_review_notifications.py
+tests/unit/test_student_number_generation.py
+tests/unit/test_waitlist.py
+tests/unit/test_application_endpoints.py
+tests/property/test_application_endpoints.py
+tests/property/test_interview_status_validation.py
+tests/unit/test_admin_export_hardening.py
+=== command ===
+source .localtest-host-env.sh  # DATABASE_URL=<localtest pg 127.0.0.1:5433> REDIS_URL=<local 127.0.0.1:6380>
+TESTING=1 .venv/bin/python3 -m pytest <12 files> -q -p no:cacheprovider -p no:randomly -rf
+=== output ===
+........................................................................ [ 79%]
+...................                                                      [100%]
+91 passed in 7.04s
+EXIT=0

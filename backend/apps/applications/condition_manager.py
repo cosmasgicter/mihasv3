@@ -174,7 +174,19 @@ class ConditionManager:
                 ApplicationCondition.objects.select_for_update().get(id=condition_id)
             )
 
-            if condition.status != "pending":
+            # Task 10.2: the source states come from the one condition state
+            # machine (``ConditionStateMachine.can_transition``) rather than from
+            # an inline ``!= "pending"`` comparison, so this two-outcome front door
+            # and the three-outcome ``/review/`` command cannot disagree about
+            # which conditions may be decided. Widening matters in practice: a
+            # condition that now carries submitted evidence sits in
+            # ``evidence_submitted``, and refusing to verify it would make the
+            # evidence workflow *block* the decision it exists to support.
+            # The stable code and message are unchanged — a terminal condition is
+            # still ``CONDITION_NOT_PENDING`` — because callers branch on it.
+            from apps.applications.condition_evidence_service import ConditionStateMachine
+
+            if not ConditionStateMachine.can_transition(condition.status, status):
                 raise ConditionError(
                     "CONDITION_NOT_PENDING",
                     f"Condition is already '{condition.status}' — only pending conditions can be verified.",

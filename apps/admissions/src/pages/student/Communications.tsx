@@ -1,3 +1,28 @@
+/**
+ * The one communications history: what the platform sent, and what happened.
+ *
+ * Admissions-v2 task 10.1 — R13.4, R13.8; findings **STU-14**, **STU-24**.
+ *
+ * This page is the merge R13.8 asks for. Before 10.1 there were two inboxes: this
+ * one (filters + paging) and a second, unfiltered one embedded in
+ * `/student/notifications` underneath three read-only preference tiles. Both
+ * listed the same rows with different actions. `/student/notifications` is now
+ * preferences only, and this is the single inbox/history — which is also what the
+ * mobile navigation now points at.
+ *
+ * What the page gained with the merge is the thing R13.4 actually asks for:
+ * every message states **delivery state per channel**, and a terminally failed
+ * email offers the platform's own retry command. The vocabulary and the retry
+ * ceiling are read from the published preference schema, so a label here cannot
+ * mean something different from what the server meant.
+ *
+ * STU-24: the page title comes from resolved tenant context (`usePortalBrand`),
+ * not from a hardcoded platform string. The page states no support address of its
+ * own — the support affordance belongs to the preferences screen it links to,
+ * where it is resolved through 8.3's `resolveTenantSupportContact`. Naming a
+ * second one here would be a second answer to "who does a student contact".
+ */
+
 import React, { useState, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -10,8 +35,10 @@ import {
   CheckCircle,
   AlertTriangle,
   XCircle,
-  Trash2,
+ Settings,
+ Trash2,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Seo } from '@/components/seo/Seo'
 import { PageShell } from '@/components/ui/PageShell'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -19,33 +46,37 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Button } from '@/components/ui/Button'
 import { useCommunications, type CommunicationsFilters } from '@/hooks/useCommunications'
+import { useNotificationPreferenceSchema } from '@/hooks/useNotificationPreferenceSchema'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
+import { MessageDeliveryState } from '@/components/student/communications/MessageDeliveryState'
 import { normalizeNotificationContent, notificationService } from '@/services/notifications'
+import { type CommunicationMessage } from '@/lib/notificationPreferences'
 import { formatRelative } from '@/lib/dateFormat'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
-
-// ─── Type indicator config ───
+import { pathFor } from '@/routes/routeRegistry'// ─── Type indicator config ───
 
 type NotificationType = 'info' | 'success' | 'warning' | 'error'
 
 const TYPE_CONFIG: Record<NotificationType, { icon: React.ReactNode; color: string; label: string }> = {
   info: {
     icon: <Info className="h-4 w-4" />,
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-blue-100 text-blue-700',
     label: 'Info',
   },
   success: {
     icon: <CheckCircle className="h-4 w-4" />,
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-green-100 text-green-700',
     label: 'Success',
   },
   warning: {
     icon: <AlertTriangle className="h-4 w-4" />,
-    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    color: 'bg-amber-100 text-amber-700',
     label: 'Warning',
   },
   error: {
     icon: <XCircle className="h-4 w-4" />,
-    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    color: 'bg-red-100 text-red-700',
     label: 'Error',
   },
 }
@@ -73,12 +104,16 @@ const READ_OPTIONS = [
 
 export default function Communications() {
   const queryClient = useQueryClient()
-  const [typeFilter, setTypeFilter] = useState('')
+ const { brandName } = usePortalBrand()
+ const [typeFilter, setTypeFilter] = useState('')
   const [readFilter, setReadFilter] = useState('')
   const [page, setPage] = useState(1)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+ const [retryingId, setRetryingId] = useState<string | null>(null)
+ const [retryErrors, setRetryErrors] = useState<Record<string, string>>({})
+ const [retryNotices, setRetryNotices] = useState<Record<string, string>>({})
 
-  const filters: CommunicationsFilters = {
+ const filters: CommunicationsFilters = {
     page,
     pageSize: 20,
     ...(typeFilter ? { type: typeFilter as NotificationType } : {}),
@@ -86,8 +121,11 @@ export default function Communications() {
   }
 
   const { notifications, isLoading, error, pagination, refetch } = useCommunications(filters)
+ // The delivery-state vocabulary lives on the schema surface, not on every page
+ // of this list, so the read is shared with the settings screen.
+ const { schema } = useNotificationPreferenceSchema()
 
-  const invalidate = useCallback(() => {
+ const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['communications'] })
     queryClient.invalidateQueries({ queryKey: ['student-notifications'] })
   }, [queryClient])
@@ -112,7 +150,44 @@ export default function Communications() {
     },
   })
 
-  // ─── Handlers ───
+ /**
+ * R13.4's retry, as a command.
+ *
+ * The success wording is deliberately "queued again" rather than "sent": the
+ * server writes a durable outbox row and dispatches on commit, so at this
+ * moment nothing has been delivered yet. Claiming delivery here would be the
+ * phantom-progress defect this spec keeps finding elsewhere.
+ */
+ const handleRetry = useCallback(
+ async (messageId: string) => {
+ setRetryingId(messageId)
+ setRetryErrors((prev) => {
+ const { [messageId]: _removed, ...rest } = prev
+ return rest
+ })
+ try {
+ const result = await notificationService.retryDelivery(messageId)
+ setRetryNotices((prev) => ({
+ ...prev,
+ [messageId]: `Queued again — attempt ${result?.attempts ?? 2}.`,
+ }))
+ invalidate()
+ } catch (err) {
+ setRetryErrors((prev) => ({
+ ...prev,
+ [messageId]:
+ err instanceof Error && err.message
+ ? err.message
+ : 'That message could not be queued again.',
+ }))
+ } finally {
+ setRetryingId(null)
+ }
+ },
+ [invalidate],
+ )
+
+ // ─── Handlers ───
 
   const handleNotificationClick = useCallback(
     (notification: Record<string, unknown>) => {
@@ -139,24 +214,26 @@ export default function Communications() {
   return (
     <>
       <Seo
-        title="Communications | Beanola Admissions"
-        description="View all your notifications and messages in one place."
-        path="/student/communications"
-        noindex
+        title={brandedPageTitle('Communications', brandName)}
+        description="Every message this platform has sent you, and what happened to it."
+        path={pathFor('student.communications')}
+ siteName={brandName}
+ noindex
       />
       <PageShell
         title="Communications"
-        subtitle="All your notifications and messages in one place."
+        subtitle="Every message we have sent you, and what happened to it."
         eyebrow="Inbox"
-        tone="student"
-        metrics={[
-          { label: 'Messages', value: pagination.totalCount, helper: `${notifications.length} currently loaded` },
-          { label: 'Unread', value: notifications.filter((n) => !n.is_read).length, helper: 'Messages needing attention' },
-          { label: 'Page', value: `${page}/${totalPages}`, helper: 'Current inbox page' },
-          { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error?.message || 'Your communication history is available' },
-        ]}
+        tone="student"/*
+ No `metrics`row (task 11.5, R16.5). The four tiles here restated the
+ inbox itself: a total the list states by existing, an unread count the
+ rows already carry as unread styling and an aria label, the current
+ page number from the pagination control at the foot of the same page,
+ and a "State"tile reading the page's own loading/error state.
+ */
         actions={
-          hasUnread ? (
+ <div className="flex flex-wrap gap-2">
+ {hasUnread && (
             <Button
               variant="outline"
               size="sm"
@@ -165,8 +242,15 @@ export default function Communications() {
             >
               <CheckCheck className="h-4 w-4" />
               Mark all read
-            </Button>
-          ) : undefined
+ </Button>
+ )}
+ <Button asChild variant="outline" size="sm" className="min-h-touch">
+ <Link to={pathFor('student.notifications')} data-testid="open-notification-settings">
+ <Settings className="h-4 w-4"/>
+ Notification settings
+ </Link>
+ </Button>
+ </div>
         }
       >
         <div className="space-y-6">
@@ -273,7 +357,7 @@ export default function Communications() {
                   return (
                     <li
                       key={id}
-                      className={`group flex items-start gap-3 px-4 py-4 min-h-[60px] transition-colors ${
+                      className={`group flex flex-wrap items-start gap-3 px-4 py-4 min-h-[60px] transition-colors ${
                         !isRead
                           ? 'bg-primary/5 border-l-2 border-primary'
                           : 'border-l-2 border-transparent hover:bg-muted/50'
@@ -328,7 +412,21 @@ export default function Communications() {
                         </div>
                       </div>
 
-                      {/* Delete action */}
+ {/* R13.4: delivery state and channel travel with the message.
+ Outside the clickable region so a retry is never a
+ mark-as-read by accident. */}
+ <div className="w-full order-last basis-full">
+ <MessageDeliveryState
+ message={notification as unknown as CommunicationMessage}
+ schema={schema}
+ onRetry={handleRetry}
+ isRetrying={retryingId === id}
+ retryError={retryErrors[id] ?? null}
+ retryNotice={retryNotices[id] ?? null}
+ />
+ </div>
+
+ {/* Delete action */}
                       <button
                         type="button"
                         onClick={() => deleteMutation.mutate(id)}
@@ -368,11 +466,11 @@ export default function Communications() {
                 >
                   Next
                 </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </PageShell>
+ </div>
+ </div>
+ )}
+ </div>
+ </PageShell>
     </>
   )
 }

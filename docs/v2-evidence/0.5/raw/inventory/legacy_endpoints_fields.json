@@ -1,0 +1,968 @@
+{
+  "available": true,
+  "counts": {
+    "action_query_param": 3,
+    "hardcoded_fee_k150": 5,
+    "fallback_subject_id": 65,
+    "legacy_institution_code": 5,
+    "clear_all_draft_data": 7,
+    "legacy_string_create": 3,
+    "brand_hardcode": 106
+  },
+  "markers": {
+    "action_query_param": [
+      {
+        "file": "backend/apps/accounts/admin_audit_views.py",
+        "line": 219,
+        "snippet": "action = request.query_params.get(\"action\") or request.query_params.get(\"filter_action\")"
+      },
+      {
+        "file": "backend/apps/catalog/admin_views.py",
+        "line": 1753,
+        "snippet": "action = request.query_params.get(\"action\")"
+      },
+      {
+        "file": "backend/apps/catalog/admin_views.py",
+        "line": 1800,
+        "snippet": "action = request.query_params.get(\"action\")"
+      }
+    ],
+    "hardcoded_fee_k150": [
+      {
+        "file": "backend/apps/applications/serializers.py",
+        "line": 374,
+        "snippet": "amount so the admin UI shows e.g. \"K1 / K1\" instead of \"K1 / K150\"."
+      },
+      {
+        "file": "apps/admissions/src/components/landing/LandingPageSections.tsx",
+        "line": 453,
+        "snippet": "Takes about 30 minutes if your documents are ready. K150 for Zambian applicants, USD 20 for international applicants. Mobile money or card \u2014 either works."
+      },
+      {
+        "file": "apps/admissions/src/lib/constants/landing.ts",
+        "line": 295,
+        "snippet": "'International application fee is USD 20, paid by card. Tuition and accommodation invoices are issued in USD for international students.',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx",
+        "line": 17,
+        "snippet": "*   \u2502  K150.00 ZMW          via Airtel Money                   \u2502"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/Payment.tsx",
+        "line": 446,
+        "snippet": "description=\"K150 / USD 20 collected during application. Payment records will appear here once you submit.\""
+      }
+    ],
+    "fallback_subject_id": [
+      {
+        "file": "apps/admissions/src/lib/connectionFix.ts",
+        "line": 155,
+        "snippet": "!grade.subject_id.startsWith('fallback-') &&"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardGrades.ts",
+        "line": 108,
+        "snippet": "const syncable = merged.filter(g => !g.subject_id.startsWith('fallback-'))"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/draftResume.ts",
+        "line": 30,
+        "snippet": ".filter((grade) => grade.subject_id.length > 0 && !grade.subject_id.startsWith('fallback-') && grade.grade >= 1 && grade.grade <= 9)"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 13,
+        "snippet": "{ id: 'fallback-english', name: 'English Language', code: 'ENG', category: 'core', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 14,
+        "snippet": "{ id: 'fallback-mathematics', name: 'Mathematics', code: 'MATH', category: 'core', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 15,
+        "snippet": "{ id: 'fallback-civic-education', name: 'Civic Education', code: 'CE', category: 'core', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 20,
+        "snippet": "{ id: 'fallback-biology', name: 'Biology', code: 'BIO', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 21,
+        "snippet": "{ id: 'fallback-chemistry', name: 'Chemistry', code: 'CHEM', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 22,
+        "snippet": "{ id: 'fallback-physics', name: 'Physics', code: 'PHY', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 23,
+        "snippet": "{ id: 'fallback-science', name: 'Science', code: 'SCI', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 24,
+        "snippet": "{ id: 'fallback-integrated-science', name: 'Integrated Science', code: 'INTSCI', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 25,
+        "snippet": "{ id: 'fallback-agricultural-science', name: 'Agricultural Science', code: 'AGR', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 26,
+        "snippet": "{ id: 'fallback-additional-mathematics', name: 'Additional Mathematics', code: 'ADDMATH', category: 'sciences', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 32,
+        "snippet": "{ id: 'fallback-commerce', name: 'Commerce', code: 'COM', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 33,
+        "snippet": "{ id: 'fallback-principles-of-accounts', name: 'Principles of Accounts', code: 'POA', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 34,
+        "snippet": "{ id: 'fallback-economics', name: 'Economics', code: 'ECON', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 35,
+        "snippet": "{ id: 'fallback-business-studies', name: 'Business Studies', code: 'BS', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 36,
+        "snippet": "{ id: 'fallback-office-practice', name: 'Office Practice', code: 'OP', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 37,
+        "snippet": "{ id: 'fallback-entrepreneurship', name: 'Entrepreneurship', code: 'ENT', category: 'commercial', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 39,
+        "snippet": "{ id: 'fallback-geography', name: 'Geography', code: 'GEO', category: 'humanities', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 40,
+        "snippet": "{ id: 'fallback-history', name: 'History', code: 'HIST', category: 'humanities', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 41,
+        "snippet": "{ id: 'fallback-religious-education', name: 'Religious Education', code: 'RE', category: 'humanities', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 42,
+        "snippet": "{ id: 'fallback-development-studies', name: 'Development Studies', code: 'DS', category: 'humanities', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 43,
+        "snippet": "{ id: 'fallback-literature-in-english', name: 'Literature in English', code: 'LIT', category: 'humanities', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 45,
+        "snippet": "{ id: 'fallback-computer-studies', name: 'Computer Studies', code: 'CS', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 46,
+        "snippet": "{ id: 'fallback-ict', name: 'ICT', code: 'ICT', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 47,
+        "snippet": "{ id: 'fallback-design-and-technology', name: 'Design & Technology', code: 'DT', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 48,
+        "snippet": "{ id: 'fallback-metalwork', name: 'Metalwork', code: 'MW', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 49,
+        "snippet": "{ id: 'fallback-woodwork', name: 'Woodwork', code: 'WW', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 50,
+        "snippet": "{ id: 'fallback-technical-drawing', name: 'Technical Drawing', code: 'TD', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 51,
+        "snippet": "{ id: 'fallback-power-mechanics', name: 'Power Mechanics', code: 'PM', category: 'technology', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 53,
+        "snippet": "{ id: 'fallback-home-economics', name: 'Home Economics', code: 'HE', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 54,
+        "snippet": "{ id: 'fallback-food-and-nutrition', name: 'Food & Nutrition', code: 'FN', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 55,
+        "snippet": "{ id: 'fallback-art-and-design', name: 'Art & Design', code: 'ART', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 56,
+        "snippet": "{ id: 'fallback-music', name: 'Music', code: 'MUSIC', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 57,
+        "snippet": "{ id: 'fallback-physical-education', name: 'Physical Education', code: 'PE', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 58,
+        "snippet": "{ id: 'fallback-fashion-and-fabrics', name: 'Fashion & Fabrics', code: 'FF', category: 'practical', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 60,
+        "snippet": "{ id: 'fallback-french', name: 'French', code: 'FRENCH', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 61,
+        "snippet": "{ id: 'fallback-portuguese', name: 'Portuguese', code: 'PORT', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 62,
+        "snippet": "{ id: 'fallback-bemba', name: 'Bemba', code: 'BEMBA', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 63,
+        "snippet": "{ id: 'fallback-nyanja', name: 'Nyanja', code: 'NYANJA', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 64,
+        "snippet": "{ id: 'fallback-tonga', name: 'Tonga', code: 'TONGA', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 65,
+        "snippet": "{ id: 'fallback-lozi', name: 'Lozi', code: 'LOZI', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 66,
+        "snippet": "{ id: 'fallback-kaonde', name: 'Kaonde', code: 'KAONDE', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 67,
+        "snippet": "{ id: 'fallback-lunda', name: 'Lunda', code: 'LUNDA', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 68,
+        "snippet": "{ id: 'fallback-luvale', name: 'Luvale', code: 'LUVALE', category: 'languages', level: 'grade12' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 74,
+        "snippet": "{ id: 'fallback-al-english', name: 'English Language (A-Level)', code: 'AL-ENG', category: 'languages', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 75,
+        "snippet": "{ id: 'fallback-al-pure-mathematics', name: 'Pure Mathematics (A-Level)', code: 'AL-PMATH', category: 'sciences', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 76,
+        "snippet": "{ id: 'fallback-al-further-mathematics', name: 'Further Mathematics (A-Level)', code: 'AL-FMATH', category: 'sciences', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 77,
+        "snippet": "{ id: 'fallback-al-biology', name: 'Biology (A-Level)', code: 'AL-BIO', category: 'sciences', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 78,
+        "snippet": "{ id: 'fallback-al-chemistry', name: 'Chemistry (A-Level)', code: 'AL-CHEM', category: 'sciences', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 79,
+        "snippet": "{ id: 'fallback-al-physics', name: 'Physics (A-Level)', code: 'AL-PHY', category: 'sciences', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 80,
+        "snippet": "{ id: 'fallback-al-geography', name: 'Geography (A-Level)', code: 'AL-GEO', category: 'humanities', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 81,
+        "snippet": "{ id: 'fallback-al-history', name: 'History (A-Level)', code: 'AL-HIST', category: 'humanities', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 82,
+        "snippet": "{ id: 'fallback-al-economics', name: 'Economics (A-Level)', code: 'AL-ECON', category: 'commercial', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 83,
+        "snippet": "{ id: 'fallback-al-accounting', name: 'Accounting (A-Level)', code: 'AL-ACC', category: 'commercial', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 84,
+        "snippet": "{ id: 'fallback-al-business-studies', name: 'Business Studies (A-Level)', code: 'AL-BS', category: 'commercial', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 85,
+        "snippet": "{ id: 'fallback-al-computer-science', name: 'Computer Science (A-Level)', code: 'AL-CS', category: 'technology', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 86,
+        "snippet": "{ id: 'fallback-al-sociology', name: 'Sociology (A-Level)', code: 'AL-SOC', category: 'humanities', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 87,
+        "snippet": "{ id: 'fallback-al-psychology', name: 'Psychology (A-Level)', code: 'AL-PSY', category: 'humanities', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 88,
+        "snippet": "{ id: 'fallback-al-religious-studies', name: 'Religious Studies (A-Level)', code: 'AL-RS', category: 'humanities', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 89,
+        "snippet": "{ id: 'fallback-al-french', name: 'French (A-Level)', code: 'AL-FRENCH', category: 'languages', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 90,
+        "snippet": "{ id: 'fallback-al-literature', name: 'Literature in English (A-Level)', code: 'AL-LIT', category: 'languages', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 91,
+        "snippet": "{ id: 'fallback-al-art-and-design', name: 'Art & Design (A-Level)', code: 'AL-ART', category: 'practical', level: 'alevel' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts",
+        "line": 92,
+        "snippet": "{ id: 'fallback-al-law', name: 'Law (A-Level)', code: 'AL-LAW', category: 'humanities', level: 'alevel' },"
+      }
+    ],
+    "legacy_institution_code": [
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 154,
+        "snippet": "#: tested legacy resolution path (``_resolve_institution_code_legacy``) so"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 157,
+        "snippet": "_LEGACY_INSTITUTION_CODE = 'MIHAS'"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 203,
+        "snippet": "behind :func:`_resolve_institution_code_legacy`."
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 211,
+        "snippet": "def _resolve_institution_code_legacy(institution_name: str) -> str:"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 224,
+        "snippet": "return _LEGACY_INSTITUTION_CODE"
+      }
+    ],
+    "clear_all_draft_data": [
+      {
+        "file": "apps/admissions/src/lib/draftManager.ts",
+        "line": 155,
+        "snippet": "export const clearAllDraftData = (): boolean => {"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/Dashboard.tsx",
+        "line": 12,
+        "snippet": "import { clearAllDraftData } from '@/lib/draftManager'"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/Dashboard.tsx",
+        "line": 268,
+        "snippet": "clearAllDraftData()"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+        "line": 23,
+        "snippet": "import { clearAllDraftData } from '@/lib/draftManager'"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+        "line": 1367,
+        "snippet": "clearAllDraftData()"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts",
+        "line": 7,
+        "snippet": "import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'"
+      },
+      {
+        "file": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts",
+        "line": 123,
+        "snippet": "clearAllDraftData()"
+      }
+    ],
+    "legacy_string_create": [
+      {
+        "file": "backend/apps/applications/admin_review_views.py",
+        "line": 293,
+        "snippet": "# Legacy string-create path (R15.7): the application is created from"
+      },
+      {
+        "file": "backend/apps/applications/admin_review_views.py",
+        "line": 301,
+        "snippet": "\"legacy_string_create\","
+      },
+      {
+        "file": "backend/apps/applications/admin_review_views.py",
+        "line": 306,
+        "snippet": "\"Legacy string-create path used for application creation \""
+      }
+    ],
+    "brand_hardcode": [
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 157,
+        "snippet": "_LEGACY_INSTITUTION_CODE = 'MIHAS'"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 167,
+        "snippet": "``MIHAS...`` application numbers on KATC applications."
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 181,
+        "snippet": "# 1. Exact code match (caller may pass \"KATC\" directly)."
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 197,
+        "snippet": "\"\"\"Resolve an institution name (or code) to its short code (e.g. KATC)."
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 202,
+        "snippet": "a school brand such as ``MIHAS``. The brand-specific legacy default lives"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 212,
+        "snippet": "\"\"\"Legacy single-tenant resolver \u2014 falls back to ``MIHAS``."
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 215,
+        "snippet": "assigned institution if possible, otherwise returns the legacy ``MIHAS``"
+      },
+      {
+        "file": "backend/apps/applications/_view_helpers.py",
+        "line": 299,
+        "snippet": "Format: ``{CODE}/{YY}/{SEQ5}`` e.g. ``MIHAS/26/00001`` \u2014 deliberately"
+      },
+      {
+        "file": "backend/apps/applications/models.py",
+        "line": 138,
+        "snippet": "# \"{INSTCODE}/{YY}/{SEQ5}\" e.g. \"MIHAS/26/00001\". See"
+      },
+      {
+        "file": "backend/apps/applications/public_views.py",
+        "line": 63,
+        "snippet": "# the historical MIHAS/KATC pair; see R9.9). The leading code segment is a"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/brand_institutions.py",
+        "line": 13,
+        "snippet": "This command seeds branding metadata for the known MIHAS/KATC tenants (and is"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/brand_institutions.py",
+        "line": 18,
+        "snippet": "Brand note: MIHAS/KATC are legitimate tenant fixtures here (allowlisted seed"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/brand_institutions.py",
+        "line": 33,
+        "snippet": "\"MIHAS\": {"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/brand_institutions.py",
+        "line": 43,
+        "snippet": "\"KATC\": {"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 8,
+        "snippet": "mihas.localhost  -> tenant A (MIHAS)"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 9,
+        "snippet": "katc.localhost   -> tenant B (KATC)"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 46,
+        "snippet": "\"code\": \"MIHAS\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 48,
+        "snippet": "\"name\": \"MIHAS\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 51,
+        "snippet": "\"brand_name\": \"MIHAS\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 55,
+        "snippet": "\"code\": \"KATC\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 57,
+        "snippet": "\"name\": \"KATC\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 60,
+        "snippet": "\"brand_name\": \"KATC\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+        "line": 67,
+        "snippet": "help = \"Seed two same-shaped example tenants (MIHAS + KATC) with active domains for the harness.\""
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 1,
+        "snippet": "\"\"\"Seed the MIHAS RN, KATC COG, and KATC EHT acceptance-letter profiles."
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 20,
+        "snippet": "Brand note: this is allowlisted seed/fixture data \u2014 MIHAS/KATC are legitimate"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 21,
+        "snippet": "tenant fixtures here (R10.2). The MIHAS/KATC strings below are expected and"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 37,
+        "snippet": "# MIHAS and KATC (mirrors ``signature_block`` in apps/common/email/components.py"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 71,
+        "snippet": "# program-name substring within that institution, so KATC's two offerings"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 75,
+        "snippet": "# ---- MIHAS \u2014 Diploma in Registered Nursing (RN), full time -------------"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 78,
+        "snippet": "\"institution_code\": \"MIHAS\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 152,
+        "snippet": "# ---- KATC \u2014 Diploma in Clinical Medicine (COG), full time --------------"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 155,
+        "snippet": "\"institution_code\": \"KATC\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 162,
+        "snippet": "\"program_code\": \"KATC-COG\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 224,
+        "snippet": "# ---- KATC \u2014 Diploma in Environmental Health (EHT), distance ------------"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 227,
+        "snippet": "\"institution_code\": \"KATC\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 234,
+        "snippet": "\"program_code\": \"KATC-EHT\","
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 305,
+        "snippet": "\"Seed the MIHAS RN, KATC COG, and KATC EHT acceptance-letter profiles as \""
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 461,
+        "snippet": "(so MIHAS's pre-seeded ``DRN`` offering is reused). When none exists yet"
+      },
+      {
+        "file": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+        "line": 462,
+        "snippet": "\u2014 e.g. the KATC offerings that the base dev seed does not create \u2014 it"
+      },
+      {
+        "file": "backend/apps/documents/payment_helpers.py",
+        "line": 34,
+        "snippet": "legacy ``MIHAS-...`` references already issued remain valid and matchable"
+      },
+      {
+        "file": "backend/apps/documents/payment_service.py",
+        "line": 96,
+        "snippet": "``MIHAS-`` references remain matchable by value."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",
+        "line": 21,
+        "snippet": "*   - MIHAS's official application form carries Dr Musonda's scanned"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",
+        "line": 30,
+        "snippet": "*     convention on MIHAS's own application form: \"Dr Solomon Musonda, MD\"."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
+        "line": 3,
+        "snippet": "* approved. It faithfully reproduces the structure of the official MIHAS and"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
+        "line": 4,
+        "snippet": "* KATC admission letters (see public/mihasacceptance.pdf,"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
+        "line": 39,
+        "snippet": "* MIHAS and KATC) with the new transparent scanned signature."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx",
+        "line": 10,
+        "snippet": "*   BrandHeader (MIHAS FINANCE OFFICE tagLine)"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 6,
+        "snippet": "*   \u2022 MIHAS \u2014 Diploma in Registered Nursing (RN), full time  (mihasacceptance.pdf)"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 7,
+        "snippet": "*   \u2022 KATC  \u2014 Diploma in Clinical Medicine (COG), full time   (katc cog acceptance.docx)"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 8,
+        "snippet": "*   \u2022 KATC  \u2014 Diploma in Environmental Health (EHT), distance  (katc eht acceptance.docx)"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 74,
+        "snippet": "institutionCode: 'MIHAS' | 'KATC' | 'BEANOLA'"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 105,
+        "snippet": "/** Optional second account block (e.g. MIHAS \"other fees\" account). */"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 127,
+        "snippet": "* MIHAS \u2014 Diploma in Registered Nursing (RN), full time"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 131,
+        "snippet": "institutionCode: 'MIHAS',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 184,
+        "snippet": "* KATC \u2014 Diploma in Clinical Medicine (COG), full time"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 188,
+        "snippet": "institutionCode: 'KATC',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 241,
+        "snippet": "* KATC \u2014 Diploma in Environmental Health (EHT), distance"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 245,
+        "snippet": "institutionCode: 'KATC',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 298,
+        "snippet": "* Resolve an institution code from either a short code (\"MIHAS\"/\"KATC\") or a"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 303,
+        "snippet": "): 'MIHAS' | 'KATC' | null {"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 306,
+        "snippet": "if (value.includes('katc') || value.includes('kalulushi')) return 'KATC'"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 307,
+        "snippet": "if (value.includes('mihas') || value.includes('mukuba')) return 'MIHAS'"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 337,
+        "snippet": "institutionCode: 'MIHAS' | 'KATC' | 'BEANOLA',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 340,
+        "snippet": "const isKatc = institutionCode === 'KATC'"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+        "line": 341,
+        "snippet": "const isKnownTenant = institutionCode === 'MIHAS' || institutionCode === 'KATC'"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/intakeSchedule.ts",
+        "line": 4,
+        "snippet": "* MIHAS / KATC run two intakes a year: a JULY intake and a JANUARY intake."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/types.ts",
+        "line": 73,
+        "snippet": "* Student number assigned on full acceptance/enrolment, e.g. \"MIHAS/26/00001\"."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/types.ts",
+        "line": 104,
+        "snippet": "* at MIHAS should read \"Mukuba Institute of Health and Applied Sciences"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/types.ts",
+        "line": 116,
+        "snippet": "* Dr Solomon Musonda is the Managing Director for both MIHAS and KATC."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/types.ts",
+        "line": 118,
+        "snippet": "* official MIHAS application form and correspondence."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/documents/types.ts",
+        "line": 121,
+        "snippet": "* specific document (MIHAS or KATC, resolved from the application's"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 37,
+        "snippet": "* The MIHAS and KATC logos exist as both .png and .webp; @react-pdf requires"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 87,
+        "snippet": "* display name and logo path. MIHAS and KATC are tenant data, not platform"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 91,
+        "snippet": "MIHAS: {"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 92,
+        "snippet": "code: 'MIHAS',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 93,
+        "snippet": "shortName: 'MIHAS',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 107,
+        "snippet": "KATC: {"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 108,
+        "snippet": "code: 'KATC',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 109,
+        "snippet": "shortName: 'KATC',"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 131,
+        "snippet": "*   - \"MIHAS\" / \"KATC\" (any case)      \u2192 the matching known preview tenant."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 135,
+        "snippet": "*     contract drift. This never silently renders a MIHAS identity."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 138,
+        "snippet": "* present an unknown institution as MIHAS."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 145,
+        "snippet": "// 1. Exact short-code match (case-insensitive): \"MIHAS\" / \"KATC\"."
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 153,
+        "snippet": "if (lower.includes('katc') || lower.includes('kalulushi')) return institutions.KATC"
+      },
+      {
+        "file": "apps/admissions/src/lib/pdf/theme/index.ts",
+        "line": 154,
+        "snippet": "if (lower.includes('mihas') || lower.includes('mukuba')) return institutions.MIHAS"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 32,
+        "snippet": "label: 'MIHAS \u2014 Registered Nursing',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 36,
+        "snippet": "label: 'KATC \u2014 Clinical Medicine (COG)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 40,
+        "snippet": "label: 'KATC \u2014 Environmental Health (EHT)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 41,
+        "snippet": "data: { ...baseData, program: 'Diploma in Environmental Health', institution: 'KATC' },"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 44,
+        "snippet": "label: 'MIHAS \u2014 Registered Nursing (Conditional)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+        "line": 48,
+        "snippet": "institution: 'MIHAS',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 30,
+        "snippet": "label: 'MIHAS \u2014 Registered Nursing',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 36,
+        "snippet": "studentNumber: 'MIHAS/26/00042',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 45,
+        "snippet": "label: 'KATC \u2014 Clinical Medicine (COG)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 51,
+        "snippet": "studentNumber: 'KATC/26/00007',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 60,
+        "snippet": "label: 'KATC \u2014 Environmental Health (EHT)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 66,
+        "snippet": "studentNumber: 'KATC/26/00031',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 68,
+        "snippet": "institution: 'KATC',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 75,
+        "snippet": "label: 'MIHAS \u2014 Conditional + edge case (long name, Sept offer \u2192 Jan 2027)',"
+      },
+      {
+        "file": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+        "line": 81,
+        "snippet": "studentNumber: 'MIHAS/26/99999',"
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "baseline_label": "fresh-from-empty-neon",
+  "candidate_label": "fresh-from-empty-neon",
+  "ok": false,
+  "failure_count": 9,
+  "warning_count": 0,
+  "differences": [
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_change_requests.tenant_change_requests_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_change_requests.tenant_change_requests_requested_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (requested_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_change_requests.tenant_change_requests_reviewed_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (reviewed_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_onboarding.tenant_onboarding_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_onboarding.tenant_onboarding_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_staff_invitations.tenant_staff_invitations_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_staff_invitations.tenant_staff_invitations_invited_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (invited_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_staff_invitations.tenant_staff_invitations_membership_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (membership_id) REFERENCES user_institution_memberships(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_staff_invitations.tenant_staff_invitations_profile_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (profile_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    }
+  ]
+}

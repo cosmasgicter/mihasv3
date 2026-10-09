@@ -1,0 +1,137 @@
+Task 9.1 — backend/scripts/2026_08_06_01_admin_saved_filters.sql proven on Neon
+================================================================================
+
+Project : mihasApplication (wild-bar-37055823)
+Branch  : br-jolly-pine-ahybtg2e  ("v2-task-3.2-rehearsal")
+Database: neondb
+Captured: 2026-08-07 (UTC)
+
+Why this branch: the Neon project is at its branch limit, so prior admissions-v2
+tasks reuse this single rehearsal branch rather than creating a new one per task.
+Nothing here touched the Neon DEFAULT branch and nothing touched production.
+
+--------------------------------------------------------------------------------
+1. Re-running the forward script is a no-op (idempotence)
+--------------------------------------------------------------------------------
+All six statements of the forward script were re-executed on the branch, in one
+transaction, against a database where the table already existed:
+
+  CREATE TABLE IF NOT EXISTS admin_saved_filters (...)
+  CREATE UNIQUE INDEX IF NOT EXISTS uq_admin_saved_filters_owner_name ...
+  CREATE INDEX IF NOT EXISTS idx_admin_saved_filters_owner_updated ...
+  CREATE INDEX IF NOT EXISTS idx_admin_saved_filters_institution ...
+  COMMENT ON TABLE admin_saved_filters IS ...
+  COMMENT ON COLUMN admin_saved_filters.query IS ...
+
+  -> [[], [], [], [], [], []]        (six statements, no error, no change)
+
+Every statement is guarded, so a re-run after a migration-tracking wipe converges
+rather than failing. This is the property `apply_sql_migrations` relies on.
+
+--------------------------------------------------------------------------------
+2. The table Postgres actually built
+--------------------------------------------------------------------------------
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name='admin_saved_filters' ORDER BY ordinal_position;
+
+ column_name    | data_type                   | is_nullable | column_default
+----------------+-----------------------------+-------------+-------------------
+ id             | uuid                        | NO          | gen_random_uuid()
+ user_id        | uuid                        | NO          | (none)
+ institution_id | uuid                        | YES         | (none)
+ name           | character varying           | NO          | (none)
+ query          | jsonb                       | NO          | '{}'::jsonb
+ created_at     | timestamp with time zone    | NO          | now()
+ updated_at     | timestamp with time zone    | NO          | now()
+
+`institution_id` is the only nullable column: NULL means "not bound to one
+school" (a platform actor's cross-tenant view). Both timestamps default in the
+database, so a row is never written without them.
+
+--------------------------------------------------------------------------------
+3. Indexes
+--------------------------------------------------------------------------------
+SELECT indexname, indexdef FROM pg_indexes
+WHERE tablename='admin_saved_filters' ORDER BY indexname;
+
+ admin_saved_filters_pkey
+   CREATE UNIQUE INDEX admin_saved_filters_pkey
+     ON public.admin_saved_filters USING btree (id)
+ idx_admin_saved_filters_institution
+   CREATE INDEX idx_admin_saved_filters_institution
+     ON public.admin_saved_filters USING btree (institution_id)
+     WHERE (institution_id IS NOT NULL)
+ idx_admin_saved_filters_owner_updated
+   CREATE INDEX idx_admin_saved_filters_owner_updated
+     ON public.admin_saved_filters USING btree (user_id, updated_at DESC)
+ uq_admin_saved_filters_owner_name
+   CREATE UNIQUE INDEX uq_admin_saved_filters_owner_name
+     ON public.admin_saved_filters USING btree (user_id, lower((name)::text))
+
+The unique index is on `lower(name)`, which is what makes "Overdue" and
+"overdue" one saved view instead of two rows an operator cannot tell apart.
+
+--------------------------------------------------------------------------------
+4. Constraints
+--------------------------------------------------------------------------------
+SELECT conname, confdeltype, pg_get_constraintdef(oid)
+FROM pg_constraint WHERE conrelid = 'admin_saved_filters'::regclass;
+
+ admin_saved_filters_institution_id_fkey | c | FOREIGN KEY (institution_id)
+                                               REFERENCES institutions(id)
+                                               ON DELETE CASCADE
+ admin_saved_filters_pkey                |   | PRIMARY KEY (id)
+ admin_saved_filters_user_id_fkey        | c | FOREIGN KEY (user_id)
+                                               REFERENCES profiles(id)
+                                               ON DELETE CASCADE
+
+`confdeltype = 'c'` on both FKs: a deleted actor or a deleted tenant leaves no
+orphan saved query behind.
+
+--------------------------------------------------------------------------------
+5. The uniqueness claim, exercised
+--------------------------------------------------------------------------------
+-- (a) one owner saves a named, school-bound view
+INSERT INTO admin_saved_filters (user_id, institution_id, name, query)
+SELECT <first profile>, <first institution>, 'Overdue', '{"overdue_review":"true"}';
+  -> id = 239dacc2-fabb-4cd3-b3f0-2143943d47ab, name = 'Overdue',
+     query = {"overdue_review": "true"}, created_at populated
+
+-- (b) the SAME owner saves the same name in different case
+INSERT INTO admin_saved_filters (user_id, name, query)
+SELECT <first profile>, 'overdue', '{}';
+  -> NeonDbError: duplicate key value violates unique constraint
+     "uq_admin_saved_filters_owner_name"
+
+     This is the guard the service relies on: `POST saved-filters/` treats a
+     repeated name as an UPDATE, and the database is the final race guard if two
+     concurrent saves pick the same name (the view catches IntegrityError and
+     converges on the existing row).
+
+-- (c) a DIFFERENT owner saves the same name
+INSERT INTO admin_saved_filters (user_id, name, query)
+SELECT <second profile>, 'Overdue', '{"overdue_review":"true"}';
+  -> id = f8992e29-b44e-436c-8749-17656c463918,
+     user_id = 6e147ead-e34d-41e2-bc05-358a653ff633, institution_id = NULL
+
+     Uniqueness is per owner, not global: two operators may each have their own
+     "Overdue" view, and a saved filter with no school binding is legal.
+
+SELECT count(*), count(institution_id), count(*) - count(institution_id)
+FROM admin_saved_filters;
+ rows_present | bound_to_a_school | unbound
+--------------+-------------------+---------
+            3 |                 1 |       2
+
+--------------------------------------------------------------------------------
+6. What was NOT done
+--------------------------------------------------------------------------------
+* Nothing was applied to the Neon DEFAULT branch by this task.
+* Nothing was applied to production (`mihas-postgres-1` on the EC2 host). Per the
+  repository's infrastructure rules production is an operator step: back up
+  first, then run `apply_sql_migrations`, which picks the script up by filename.
+* No DELETE / DROP / TRUNCATE was run. The three rehearsal rows above (2 written
+  by this run, 1 left by the earlier rehearsal) are still on the branch — that
+  branch is disposable and reused across tasks, and removing rows is a
+  destructive statement this task does not run on its own authority.

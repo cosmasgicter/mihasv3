@@ -1,0 +1,166 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - link "Skip to main content":
+    - /url: "#app-main-content"
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - heading "Dashboard" [level=2] [ref=e7]
+      - generic [ref=e9]:
+        - button "Open profile settings" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - button "Notifications (1 unread)" [ref=e16] [cursor=pointer]:
+          - img
+          - generic [ref=e17]: "1"
+        - button "Log out" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+    - main [ref=e22]:
+      - generic [ref=e26]:
+        - generic [ref=e30]:
+          - heading "Welcome back, Harness" [level=1] [ref=e32]
+          - button "Refresh" [ref=e34] [cursor=pointer]:
+            - img
+            - text: Refresh
+        - region "Welcome back, Harness" [ref=e35]:
+          - generic [ref=e36]:
+            - region "Pay or defer the application fee" [ref=e38]:
+              - generic [ref=e39]:
+                - paragraph [ref=e40]: Next action
+                - generic [ref=e41]:
+                  - img [ref=e42]
+                  - generic [ref=e45]: Draft
+              - heading "Pay or defer the application fee" [level=2] [ref=e46]
+              - paragraph [ref=e47]: Payment must be completed or deferred before submitting the application.
+              - status [ref=e48]: "Next action: Pay or defer the application fee"
+              - link "Pay or defer the application fee" [ref=e50] [cursor=pointer]:
+                - /url: /student/application-wizard?mode=resume&draftId=05b78251-654d-42a8-90d6-678e01324484&step=payment
+                - text: Pay or defer the application fee
+                - img
+              - list [ref=e51]:
+                - listitem [ref=e52]:
+                  - link "Add your Grade 12 results" [ref=e53] [cursor=pointer]:
+                    - /url: /student/application-wizard?mode=resume&draftId=05b78251-654d-42a8-90d6-678e01324484&step=education
+                    - img [ref=e54]
+                    - text: Add your Grade 12 results
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - img [ref=e62]
+                  - heading "Your draft" [level=2] [ref=e66]
+                - link "Start another" [ref=e68] [cursor=pointer]:
+                  - /url: /student/application-wizard?mode=new
+                  - img
+                  - text: Start another
+              - list [ref=e70]:
+                - listitem [ref=e71]:
+                  - generic [ref=e72]:
+                    - paragraph [ref=e73]: Diploma in Registered Nursing
+                    - paragraph [ref=e74]: Saved 12 Aug 2026
+                  - generic [ref=e75]:
+                    - link "Continue" [ref=e76] [cursor=pointer]:
+                      - /url: /student/application-wizard?mode=resume&draftId=05b78251-654d-42a8-90d6-678e01324484
+                    - button "Delete draft Diploma in Registered Nursing" [ref=e77] [cursor=pointer]:
+                      - img
+                      - generic [ref=e78]: Delete
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - generic [ref=e83]:
+                  - img [ref=e85]
+                  - heading "My applications" [level=2] [ref=e89]
+                - generic [ref=e93]:
+                  - generic [ref=e94]:
+                    - generic [ref=e95]:
+                      - img [ref=e97]
+                      - generic [ref=e100]:
+                        - heading "Diploma in Registered Nursing" [level=4] [ref=e101]
+                        - paragraph [ref=e102]: "#MIHAS202600014"
+                    - generic [ref=e103]: SUBMITTED
+                  - generic [ref=e104]:
+                    - generic [ref=e105]:
+                      - paragraph [ref=e106]: Next action
+                      - paragraph [ref=e107]: Pay the application fee
+                      - paragraph [ref=e108]: The application fee has not been settled yet.
+                    - link "Pay the application fee" [ref=e109] [cursor=pointer]:
+                      - /url: /student/payment?applicationId=9c03cf35-1b33-4e23-8577-f5ffd9d5c480
+                      - text: Pay the application fee
+                      - img
+                  - generic [ref=e111]:
+                    - generic [ref=e112]:
+                      - img [ref=e113]
+                      - generic [ref=e115]: "Intake: Task 13.3 matrix Intake 44656836"
+                    - generic [ref=e116]:
+                      - img [ref=e117]
+                      - generic [ref=e120]: "Submitted: 12 Aug 2026"
+                  - generic [ref=e121]:
+                    - link "View Details" [ref=e122] [cursor=pointer]:
+                      - /url: /student/application/9c03cf35-1b33-4e23-8577-f5ffd9d5c480/status
+                      - button "View Details" [ref=e123]
+                    - generic [ref=e125]:
+                      - paragraph [ref=e126]: Your application slip is ready to download.
+                      - button "More document options (2)" [ref=e127] [cursor=pointer]:
+                        - generic [ref=e128]:
+                          - img [ref=e129]
+                          - generic [ref=e132]: More document options (2)
+                        - img [ref=e133]
+              - generic [ref=e135]:
+                - generic [ref=e137]:
+                  - img [ref=e139]
+                  - heading "Intake deadlines" [level=2] [ref=e142]
+                - list [ref=e144]:
+                  - listitem [ref=e145]:
+                    - generic [ref=e146]: January to December Twenty Twenty Seven Extended Enrolment Window for Professionals
+                    - generic [ref=e147]:
+                      - text: Closes
+                      - time [ref=e148]: 30 Jun 2027
+                  - listitem [ref=e149]:
+                    - generic [ref=e150]: January to December Two Thousand and Twenty Seven Extended Enrolment Window for Continuing Professional Education
+                    - generic [ref=e151]:
+                      - text: Closes
+                      - time [ref=e152]: 30 Jun 2027
+                  - listitem [ref=e153]:
+                    - generic [ref=e154]: KATC January 2027
+                    - generic [ref=e155]:
+                      - text: Closes
+                      - time [ref=e156]: 10 Dec 2026
+              - generic [ref=e157]:
+                - generic [ref=e159]:
+                  - img [ref=e161]
+                  - heading "Your details" [level=2] [ref=e165]
+                - generic [ref=e166]:
+                  - generic [ref=e167]:
+                    - generic [ref=e168]:
+                      - term [ref=e169]: Full name
+                      - definition [ref=e170]: Harness Thirteen
+                    - generic [ref=e171]:
+                      - term [ref=e172]: Email
+                      - definition [ref=e173]: harness.13-3.matrix.44656836@example.com
+                    - generic [ref=e174]:
+                      - term [ref=e175]: Phone
+                      - definition [ref=e176]: Not provided
+                    - generic [ref=e177]:
+                      - term [ref=e178]: Residence
+                      - definition [ref=e179]: Not provided
+                  - link "Update your details" [ref=e180] [cursor=pointer]:
+                    - /url: /student/settings
+      - generic "Frontend build 2.0.0-harness. Backend build 2.0.0." [ref=e182]:
+        - generic [ref=e183]: Runtime
+        - 'generic "Frontend build: 2.0.0-harness" [ref=e184]': Frontend 2.0.0-harnes
+        - 'generic "Backend build: 2.0.0" [ref=e185]': Backend 2.0.0
+  - navigation "Bottom navigation" [ref=e186]:
+    - generic [ref=e187]:
+      - link [ref=e188] [cursor=pointer]:
+        - /url: /student/dashboard
+        - img [ref=e190]
+      - link [ref=e193] [cursor=pointer]:
+        - /url: /student/application-wizard
+        - img [ref=e195]
+      - link [ref=e198] [cursor=pointer]:
+        - /url: /student/communications
+        - img [ref=e200]
+      - link [ref=e202] [cursor=pointer]:
+        - /url: /student/payment
+        - img [ref=e204]
+      - button "More navigation items" [ref=e206] [cursor=pointer]:
+        - img [ref=e207]
+```

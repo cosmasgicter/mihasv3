@@ -45,6 +45,36 @@ _EXPECTED: dict[str, tuple[int, str]] = {
         404,
         "Fee is not available for this program and residency",
     ),
+    # admissions-v2 task 5.4 (DATA-05, STU-08): canonical fee resolution fails
+    # closed rather than substituting a hardcoded amount.
+    "FEE_NOT_CONFIGURED": (
+        422,
+        "The application fee is not configured for this option.",
+    ),
+    "FEE_AMBIGUOUS": (
+        409,
+        "More than one active application fee is configured for this option.",
+    ),
+    # admissions-v2 task 8.1 (STU-08, DATA-05): the expiring, signed,
+    # single-use server-authored fee quote. Each refusal is recoverable by
+    # requesting a fresh quote — never by the client picking an amount.
+    "QUOTE_NOT_FOUND": (404, "This fee quote was not found."),
+    "QUOTE_EXPIRED": (
+        409,
+        "This fee quote has expired. Please refresh the fee and try again.",
+    ),
+    "QUOTE_ALREADY_REDEEMED": (
+        409,
+        "This fee quote has already been used for a payment.",
+    ),
+    "QUOTE_INVALID": (
+        409,
+        "This fee quote could not be verified. Please refresh the fee.",
+    ),
+    "QUOTE_CONFIGURATION_CHANGED": (
+        409,
+        "The application fee changed. Please review the new amount before paying.",
+    ),
     "PAYMENT_SENSITIVE_FIELDS_LOCKED": (
         409,
         "Payment-sensitive fields cannot be changed while payment activity exists",

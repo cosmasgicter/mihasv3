@@ -1,0 +1,8 @@
+
+/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts
+  14:1  warning  Unused eslint-disable directive (no problems were reported from 'no-restricted-imports')
+  19:1  error    '@/services/client' import is restricted from being used by a pattern. Pages and components must not import the raw API client or transport internals directly. Import from domain service modules (e.g. @/services/auth, @/services/applications, @/services/payments) instead. (R14.3 architecture enforcement)  no-restricted-imports
+
+✖ 2 problems (1 error, 1 warning)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

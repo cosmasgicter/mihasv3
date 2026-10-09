@@ -114,15 +114,23 @@ class TestIPAddressColumnWidth(SimpleTestCase):
                     "student",
                 ),
             )
+            # `assignment_version` is NOT NULL with a *Python-level* default of 1
+            # (apps/applications/models.py:171). Django keeps such defaults in
+            # Python, not in the column, so a raw INSERT that bypasses the ORM
+            # gets no default and must supply the value itself. This factory did
+            # not, which is why this class errored in `setUpClass` — the one
+            # `error` in the whole-tree run (13.1 cluster E, closed by 13.6
+            # remediation M3). The column is the assignment optimistic-concurrency
+            # version, so 1 is the value the ORM would have written.
             cur.execute(
                 """
                 INSERT INTO applications
                     (id, application_number, user_id, full_name, date_of_birth,
                      sex, phone, email, residence_town, program, intake, institution,
-                     status, version, is_late_submission)
+                     status, version, is_late_submission, assignment_version)
                 VALUES (%s, %s, %s, 'Test', '2000-01-01',
                         'M', '0000000000', 't@t.local', 'Test',
-                        'test-prog', 'test-int', 'MIH', 'draft', 1, false)
+                        'test-prog', 'test-int', 'MIH', 'draft', 1, false, 1)
                 """,
                 (str(cls._app_id), app_number, str(cls._profile_id)),
             )

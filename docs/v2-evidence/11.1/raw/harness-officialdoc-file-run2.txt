@@ -1,0 +1,44 @@
+
+Running 4 tests using 1 worker
+
+  ✓  1 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:450:1 › a request the broker never received is still recorded, and the dispatcher serves it (10.0s)
+  ✘  2 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:536:1 › an issued document stays readable, and stays offered, once the application is terminal (30.2s)
+  -  3 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:619:1 › the one canonical email route sends the stored record and lands in the history
+  -  4 [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:721:1 › a document the school cannot issue tells the student nothing about its configuration
+
+
+  1) [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:536:1 › an issued document stays readable, and stays offered, once the application is terminal 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('[data-testid="official-document-application_slip"]:visible').first()
+    Expected: visible
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-testid="official-document-application_slip"]:visible').first()[22m
+
+
+      606 |   await openApplication(page, applicant.applicationId);
+      607 |   const slip = await documentAction(page, SLIP);
+    > 608 |   await expect(slip).toBeVisible({ timeout: 30_000 });
+          |                      ^
+      609 |   await expect(slip).toHaveAttribute('data-historical', 'true');
+      610 |   await expect(slip).toContainText(/Issued copy on record/i);
+      611 |   await expect(slip.getByRole('button', { name: /Download Slip/i })).toBeEnabled();
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/official-document-durability.spec.ts:608:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-official-document-bd237-the-application-is-terminal-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-official-document-bd237-the-application-is-terminal-mobile-required/error-context.md
+
+  1 failed
+    [mobile-required] › tests/harness-e2e/required/official-document-durability.spec.ts:536:1 › an issued document stays readable, and stays offered, once the application is terminal 
+  2 did not run
+  1 passed (48.0s)
+EXIT=1

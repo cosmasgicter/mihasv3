@@ -1,0 +1,19 @@
+
+Running 9 tests using 1 worker
+
+  ✓  1 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:113:1 › the dashboard is fully operable by keyboard, with a visible focus indicator at every stop (1.7s)
+  ✓  2 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:232:1 › the student surfaces expose a coherent accessibility tree to a screen reader (2.7s)
+  ✓  3 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:350:1 › a product dialog contains focus and returns it to the trigger on dismissal (2.5s)
+  ✓  4 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:473:1 › a refused sign-in reaches a user who cannot see the layout (1.5s)
+  ✓  5 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:574:1 › reduced motion is honoured on every animated surface (3.5s)
+  ✓  6 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:675:3 › the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width) (3.9s)
+  ✓  7 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:675:3 › the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction) (3.9s)
+  ✓  8 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:823:1 › the next action and autosave state stay understandable on slow 3G and offline (25.8s)
+  ✘  9 [chromium-13-3] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1129:6 › GATE-13.3-10: an offline chunk failure tells the student about the connection (expected failure) (4.6s)
+
+  9 passed (56.9s)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report ../../docs/v2-evidence/13.3/raw/html-report[39m
+[36m[39m

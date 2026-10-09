@@ -139,11 +139,21 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           'flex transition-all duration-300',
           collapsed ? 'justify-center mt-3' : 'justify-end mt-2'
         )}>
+          {/*
+            44 x 44, not 36 x 36 (GATE-13.3-05, 13.6 §8.1 item L6; R16.2).
+
+            Task 13.3 measured this at 36.000 x 36.000 on 7 of 8 surfaces at every
+            width >= 768 px — 42 measurements. R16.2 admits no width exemption:
+            a mouse is not the only pointer that reaches a 1280 px viewport, and a
+            touch laptop or tablet in landscape lands here. `min-h-touch` /
+            `min-w-touch` are the repo's own 44 px utilities; the chevron still
+            renders at `var(--icon-size)`.
+          */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-card/10 text-white shadow-sm',
+              'flex min-h-touch min-w-touch items-center justify-center rounded-full border border-white/15 bg-card/10 text-white shadow-sm',
               'transition-colors hover:bg-card/20',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             )}
@@ -176,7 +186,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         ) : (
           <div className="space-y-1">
             {!collapsed && (
-              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/80">
                 Student Workspace
               </div>
             )}
@@ -198,13 +208,13 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'p-2' : 'p-4'
       )}>
         {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-muted-foreground shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-white/80 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/20 text-white">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
             </div>
             <div>
               <p className="font-semibold text-white">Workspace ready</p>
-              <p className="text-[11px] text-muted-foreground">Navigation synced</p>
+              <p className="text-xs text-white/80">Navigation synced</p>
             </div>
           </div>
         ) : (
@@ -250,7 +260,7 @@ function SidebarSection({
           aria-expanded={expanded}
           className={cn(
             'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
-            'text-muted-foreground transition-colors hover:text-white',
+            'text-white/80 transition-colors hover:text-white',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
             hasActiveItem && 'text-white'
           )}
@@ -319,15 +329,15 @@ function SidebarNavItem({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'border-l-2 border-primary bg-primary/10 text-primary font-semibold'
-          : 'text-muted-foreground hover:bg-muted hover:text-white'
+          ? 'border-l-2 border-primary bg-primary/15 text-white font-semibold'
+          : 'text-white/80 hover:bg-white/10 hover:text-white'
       )}
     >
       {/* Icon */}
       <Icon
         className={cn(
           'h-5 w-5 shrink-0 transition-colors duration-150',
-          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-white'
+          isActive ? 'text-white' : 'text-white/80 group-hover:text-white'
         )}
       />
 
@@ -336,7 +346,7 @@ function SidebarNavItem({
         <span
           className={cn(
             'font-medium truncate transition-opacity duration-150 motion-reduce:transition-none',
-            isActive ? 'text-primary' : 'text-muted-foreground'
+            isActive ? 'text-white' : 'text-white/80'
           )}
           style={{ fontSize: 'var(--type-sm)' }}
         >

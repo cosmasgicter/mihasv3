@@ -1,0 +1,35 @@
+$ cd backend && env -u TESTING -u REDIS_URL .venv/bin/python3 manage.py spectacular --file /tmp/schema-12-2.yaml   # exit 0
+$ diff schema/openapi.v2.candidate.yaml /tmp/schema-12-2.yaml
+(no output)
+
+$ sha256sum schema/openapi.v2.candidate.yaml /tmp/schema-12-2.yaml
+35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58  backend/schema/openapi.v2.candidate.yaml
+35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58  /tmp/schema-12-2.yaml
+
+lines: 22135   component schemas: 218
+
+# BYTE-IDENTICAL to task 12.1 pass-2 anchor 35fe05d4… — and that is the correct
+# reading, not a null one: task 12.2 removed NO route. Zero paths removed, zero
+# components removed, 218 component schemas unchanged. The route removals this task
+# closes out were performed by 10.6 (/email-slip/) and 7.4 (/preview-summary/),
+# each of which regenerated the schema at the time. What 12.2 removed is two
+# stale REGISTRY entries (no contract surface) and nine private frontend
+# normalizers (no contract surface). What it ADDED is an RFC 8594 Sunset header
+# on four legacy surfaces; response headers are not described by the schema
+# unless declared, and declaring them for surfaces being retired would extend
+# the surface being retired (10.6 §5.1s own principle).
+
+--- spectacular diagnostics (unchanged, necessarily — identical output) ---
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+
+Schema generation summary:
+Warnings: 3 (3 unique)
+Errors:   116 (26 unique)
+
+
+# Note on the component count: 218 is a count of top-level keys under
+# `components.schemas:`. Task 12.1 §14 recorded 214 by a slightly different
+# method on the SAME file — the schema is byte-identical (same SHA-256), so the
+# 4-key difference is a counting difference, not a schema difference. Recorded
+# rather than silently restated, because the byte-identity is the claim and the
+# count is only a description of it.

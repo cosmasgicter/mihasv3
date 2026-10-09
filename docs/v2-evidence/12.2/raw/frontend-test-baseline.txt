@@ -1,0 +1,19 @@
+# `cd apps/admissions && bun run test` — BASELINE (unchanged tree), task 12.2
+# Full 4.8 MB log trimmed to FAIL lines + the summary block.
+
+ [32m✓[39m tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m491 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (493)[39m
+[2m   Start at [22m 06:14:37
+[2m   Duration [22m 96.77s[2m (transform 41.33s, setup 8.78s, import 220.88s, tests 303.31s, environment 511.29s)[22m
+EXIT=1
+
+# The `Tests` summary line, restored verbatim from the same run's stdout (the
+# trim filter above dropped it — the filter matched `^      Tests ` against a
+# line that begins with a different number of leading spaces):
+#
+#      Tests  1 failed | 4584 passed | 1 skipped (4586)
+#
+# The single failure is `authPageFormMarkup.test.tsx > uses honest helper copy
+# instead of fake email availability states` — the SIGN-UP page's helper copy.
+# Seven lanes have now each recorded it (11.1-11.5, 12.1 both passes, 12.2).
+# Not task 12.2's, not fixed here.

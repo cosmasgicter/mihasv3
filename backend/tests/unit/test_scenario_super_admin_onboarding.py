@@ -90,7 +90,7 @@ def _institution_ids(body) -> set[str]:
         return set()
     data = body.get("data", body)
     if isinstance(data, dict):
-        rows = data.get("results", [])
+        rows = data.get("results", data.get("institutions", []))
     elif isinstance(data, list):
         rows = data
     else:
@@ -298,7 +298,7 @@ class TestScenarioSuperAdminOnboarding:
         # ----------------------------------------------------------------- #
         # R16.3 — disable the legacy admin test-scope shim so genuine          #
         #   production (membership/grant-driven) scope semantics apply, then   #
-        #   list institutions as the invited Tenant_Admin.                     #
+        #   read the invited Tenant_Admin's self-described institution scope.  #
         # ----------------------------------------------------------------- #
         monkeypatch.setattr(
             "apps.catalog.services.AccessScopeService._test_settings_active",
@@ -306,7 +306,13 @@ class TestScenarioSuperAdminOnboarding:
         )
 
         tenant_admin_client = _client_for(tenant_admin)
-        listing = tenant_admin_client.get("/api/v1/admin/institutions/")
+        # The platform tenant directory requires platform.tenant.read_all. A
+        # Tenant_Admin discovers only their assigned schools through the
+        # self-description endpoint that also drives the tenant console.
+        directory = tenant_admin_client.get("/api/v1/admin/institutions/")
+        assert directory.status_code == 403, directory.content
+
+        listing = tenant_admin_client.get("/api/v1/admin/scope/")
         assert listing.status_code == 200, listing.content
         visible_ids = _institution_ids(listing.json())
         # R16.3: the tenant-admin sees ONLY the new tenant, never tenant B.

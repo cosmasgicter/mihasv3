@@ -1,0 +1,27 @@
+$ python3 scripts/validate_spec_metadata.py
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /home/cosmas/Downloads/mihasv3/.kiro/specs
+Live specs: 8
+Errors: 0  Warnings: 2
+Live spec IDs:
+  admin-dashboard-overhaul: 8c3a1e06-83ec-4d86-bea1-a8a53e7ec222
+  admissions-v2-canonical-rebuild: d1300058-e07d-433d-8aac-87e9986794a6
+  beanola-launch-verification: 06876e0c-0ba4-44d5-b3ad-a44493273873
+  communications-history: 1a48f276-e3fe-4fb9-9b0c-496404ffe6b8
+  full-platform-remediation-2026-07: full-platform-remediation-2026-07
+  profile-updates: a7462ced-57e8-4ead-8df5-b89b703a2c48
+  student-payment-interview-pages: <no-config>
+  student-ui-ux-mobile-remediation: <no-id>
+WARNINGS (informational):
+  [student-payment-interview-pages] no .config.kiro file (spec has no tracked metadata)
+  [student-ui-ux-mobile-remediation] no spec id field (expected one of: specId, spec_id, id)
+RESULT: PASS
+EXIT=0
+
+# Test suite
+$ python3 -m pytest scripts/tests/test_validate_spec_metadata.py -q
+.........                                                                [100%]
+9 passed in 0.06s
+EXIT=0

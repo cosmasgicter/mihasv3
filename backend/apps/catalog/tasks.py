@@ -6,12 +6,12 @@ Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.4, 7.4, 7.5
 
 import hashlib
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 from celery import shared_task
 from django.conf import settings
 from django.core.cache import cache
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +168,28 @@ def _lookup_dns_records(hostname: str, timeout: float = DNS_LOOKUP_TIMEOUT_SECON
     addresses, canonical name, aliases). Normalization/matching is the caller's
     responsibility. Any resolution failure or timeout propagates as an exception
     — the task treats that exactly like a mismatch (R7.5).
+
+    Local harness override: when ``settings.HARNESS_DOMAIN_ADAPTER_URL`` is set
+    (only the isolated V2 E2E harness sets it — see
+    ``config.settings.harness``), records are resolved from that deterministic
+    domain adapter over HTTP instead of the real network, so domain-verification
+    journeys are reproducible offline. Production never sets it, so the real
+    resolver below is always used there.
     """
+    from django.conf import settings as _django_settings
+
+    _adapter_url = (getattr(_django_settings, "HARNESS_DOMAIN_ADAPTER_URL", "") or "").strip()
+    if _adapter_url:
+        import json as _json
+        import urllib.parse as _urlparse
+        import urllib.request as _urlrequest
+
+        query = _urlparse.urlencode({"hostname": hostname})
+        request_url = f"{_adapter_url.rstrip('/')}/records?{query}"
+        with _urlrequest.urlopen(request_url, timeout=timeout) as response:  # noqa: S310 (local adapter)
+            payload = _json.loads(response.read().decode("utf-8") or "{}")
+        return {str(record) for record in (payload.get("records") or [])}
+
     values: set[str] = set()
 
     try:
@@ -344,3 +365,124 @@ def verify_institution_domain_task(domain_id):
             domain_id,
         )
         return
+
+
+# ---------------------------------------------------------------------------
+# Durable verification dispatch + broker-down recovery sweep (task 4.4, R5.1)
+# ---------------------------------------------------------------------------
+
+#: A ``pending_dns`` domain whose last check is older than this many seconds is
+#: re-dispatched by the sweeper (DNS may have propagated since — design §6.3's
+#: ``pending_verification`` retry loop). Never-checked rows
+#: (``last_checked_at IS NULL`` — the broker was down at create/retry time) are
+#: always re-dispatched.
+DOMAIN_VERIFICATION_RETRY_AFTER_SECONDS = 600
+
+#: Bound the sweeper batch so one run cannot enqueue an unbounded fan-out
+#: (mirrors ``poll_pending_payments_task``'s per-run cap).
+DOMAIN_VERIFICATION_SWEEP_LIMIT = 50
+
+
+def enqueue_domain_verification(domain_id) -> None:
+    """Commit-then-dispatch the domain-verification job (R5.1; design §6.3/§17).
+
+    The durable committed record is the ``InstitutionDomain`` row itself: a row
+    in ``pending_dns`` *is* a queued verification job (design §17 — "Queued
+    means a committed durable record exists"). This helper schedules the Celery
+    dispatch to fire only **after** the surrounding transaction commits
+    (``transaction.on_commit``), so:
+
+    * the API returns *accepted* only once the domain row is durably committed
+      (design §6.3 — "Creating or retrying commits a domain-verification job
+      before returning accepted");
+    * a broker outage at dispatch time never rolls back or 500s the committed
+      write — the dispatch is best-effort and its failure is swallowed, and
+      :func:`sweep_pending_domain_verifications_task` re-dispatches from the DB
+      once the broker recovers (broker-down/retry durability).
+
+    In a rolled-back test transaction the ``on_commit`` callback never fires, so
+    this performs no network/DNS work in unit tests.
+    """
+    domain_ref = str(domain_id)
+
+    def _dispatch():
+        try:
+            verify_institution_domain_task.delay(domain_ref)
+        except Exception:  # pragma: no cover - broker outage path
+            logger.warning(
+                "verify_institution_domain_task dispatch failed for domain %s; "
+                "the pending_dns row is durable and the sweeper will retry",
+                domain_ref,
+                exc_info=True,
+            )
+
+    transaction.on_commit(_dispatch)
+
+
+@shared_task(soft_time_limit=60, time_limit=90)
+def sweep_pending_domain_verifications_task():
+    """Re-dispatch committed-but-undispatched domain verification jobs (R5.1/R17.3).
+
+    Drains the durable ``pending_dns`` backlog:
+
+    * ``last_checked_at IS NULL`` — a committed verification job whose dispatch
+      never ran (e.g. the broker was down when the domain was created/retried).
+      This is the broker-down recovery path.
+    * ``last_checked_at`` older than
+      :data:`DOMAIN_VERIFICATION_RETRY_AFTER_SECONDS` — a periodic re-check so
+      DNS that propagates after the first failed lookup eventually verifies
+      (design §6.3's ``pending_verification`` retry loop).
+
+    Only ``pending_dns`` rows are touched; the state machine forbids the
+    ``pending_dns -> pending_review`` jump for any other status, so no other
+    lifecycle state is affected. Bounded to
+    :data:`DOMAIN_VERIFICATION_SWEEP_LIMIT` rows per run and fail-safe (never
+    propagates an exception). Returns the number of jobs dispatched.
+    """
+    if not cache.add(
+        "celery_lock:sweep_pending_domain_verifications", "1", timeout=120
+    ):
+        logger.info(
+            "sweep_pending_domain_verifications_task: skipped (already running)"
+        )
+        return 0
+    dispatched = 0
+    try:
+        from django.db.models import Q
+        from django.utils import timezone
+
+        from apps.catalog.models import InstitutionDomain
+
+        cutoff = timezone.now() - timedelta(
+            seconds=DOMAIN_VERIFICATION_RETRY_AFTER_SECONDS
+        )
+        candidate_ids = list(
+            InstitutionDomain.objects.filter(
+                status=InstitutionDomain.STATUS_PENDING_DNS
+            )
+            .filter(Q(last_checked_at__isnull=True) | Q(last_checked_at__lt=cutoff))
+            .order_by("last_checked_at")
+            .values_list("id", flat=True)[:DOMAIN_VERIFICATION_SWEEP_LIMIT]
+        )
+        for domain_id in candidate_ids:
+            try:
+                verify_institution_domain_task.delay(str(domain_id))
+                dispatched += 1
+            except Exception:  # pragma: no cover - broker outage path
+                logger.warning(
+                    "sweep_pending_domain_verifications_task: dispatch failed for %s",
+                    domain_id,
+                    exc_info=True,
+                )
+        logger.info(
+            "sweep_pending_domain_verifications_task: dispatched %d verification job(s)",
+            dispatched,
+        )
+    except Exception:
+        # Fail-safe: a sweep must never crash the worker (R5.2 fail-closed spirit).
+        logger.exception(
+            "sweep_pending_domain_verifications_task: unexpected error"
+        )
+    finally:
+        cache.delete("celery_lock:sweep_pending_domain_verifications")
+    return dispatched

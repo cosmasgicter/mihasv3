@@ -1,0 +1,440 @@
+{
+  "spec_task": "2.2",
+  "requirement": "R3.6",
+  "source_case_matrix": "docs/v2-evidence/2.1/authority-case-matrix.json",
+  "protected_endpoint_method_count": 204,
+  "total_cases_evaluated": 1940,
+  "conformant_cases": 1805,
+  "conformance_pct": 93.0,
+  "hard_guarantee_cases": 591,
+  "hard_guarantee_failures": 0,
+  "hard_guarantee_examples": [],
+  "reported_nonconformant_cases": 135,
+  "reported_nonconformant_examples": [
+    {
+      "endpoint": "DELETE /api/v1/admin/intakes/<uuid:intake_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/admin/settings/<uuid:pk>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/applications/<uuid:application_id>/interviews/",
+      "actor": "tenant_admin_A",
+      "object": "scoped_aggregate",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/applications/<uuid:application_id>/interviews/",
+      "actor": "platform_admin",
+      "object": "scoped_aggregate",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/applications/drafts/<uuid:application_id>/",
+      "actor": "student_A",
+      "object": "own_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/catalog/institutions/<uuid:institution_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/catalog/intakes/<uuid:intake_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/catalog/programs/<uuid:program_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "student_A",
+      "object": "own_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "tenant_admin_A",
+      "object": "own_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "tenant_admin_A",
+      "object": "other_owner_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "platform_admin",
+      "object": "own_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "platform_admin",
+      "object": "other_owner_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/documents/<uuid:document_id>/delete/",
+      "actor": "platform_admin",
+      "object": "cross_tenant_B",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/notifications/<uuid:pk>/",
+      "actor": "student_A",
+      "object": "own_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "DELETE /api/v1/programs/<uuid:program_id>/fees/<uuid:pk>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/access-grants/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/access-grants/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_B",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/audit-logs/",
+      "actor": "reviewer_A",
+      "object": "cross_tenant_B",
+      "expect": "deny",
+      "expected_status": 404,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/audit-logs/",
+      "actor": "tenant_admin_A",
+      "object": "cross_tenant_B",
+      "expect": "deny",
+      "expected_status": 404,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/",
+      "actor": "tenant_admin_A",
+      "object": "global",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/assets/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/document-profiles/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/domains/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/programs/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/programs/<uuid:item_id>/",
+      "actor": "platform_admin",
+      "object": "tenant_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/programs/<uuid:item_id>/",
+      "actor": "platform_admin",
+      "object": "tenant_B",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/readiness/",
+      "actor": "reviewer_A",
+      "object": "in_scope_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 403,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/required-documents/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/institutions/<uuid:institution_id>/templates/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/intakes/<uuid:intake_id>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/memberships/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_A",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/memberships/",
+      "actor": "tenant_admin_A",
+      "object": "tenant_B",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/settings/",
+      "actor": "tenant_admin_A",
+      "object": "global",
+      "expect": "deny",
+      "expected_status": 403,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/settings/<uuid:pk>/",
+      "actor": "platform_admin",
+      "object": "global",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 404,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/staff/candidates/",
+      "actor": "tenant_admin_A",
+      "object": "in_scope_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 403,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/staff/invitations/",
+      "actor": "reviewer_A",
+      "object": "in_scope_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 403,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/staff/invitations/",
+      "actor": "tenant_admin_A",
+      "object": "cross_tenant_B",
+      "expect": "deny",
+      "expected_status": 404,
+      "actual_status": 200,
+      "success": true,
+      "existence_disclosure_403_vs_404": false
+    },
+    {
+      "endpoint": "GET /api/v1/admin/templates/",
+      "actor": "reviewer_A",
+      "object": "in_scope_A",
+      "expect": "allow",
+      "expected_status": 200,
+      "actual_status": 403,
+      "success": false,
+      "existence_disclosure_403_vs_404": false
+    }
+  ],
+  "existence_disclosure_403_vs_404_count": 17,
+  "existence_disclosure_endpoints": [
+    "GET /api/v1/admin/institutions/<uuid:institution_id>/readiness/",
+    "GET /api/v1/admin/staff/candidates/",
+    "GET /api/v1/admin/staff/invitations/",
+    "GET /api/v1/admin/templates/",
+    "POST /api/v1/applications/bulk-status/",
+    "POST /api/v1/email/send/",
+    "POST /api/v1/notifications/"
+  ],
+  "by_authority_class": {
+    "platform_capability": {
+      "total": 705,
+      "conformant": 659
+    },
+    "owner": {
+      "total": 870,
+      "conformant": 815
+    },
+    "tenant_capability": {
+      "total": 365,
+      "conformant": 331
+    }
+  },
+  "note": "Hard guarantees (unauthenticated denial + cross-tenant object masking) are enforced. Remaining reported non-conformances are tracked task-2.2 follow-up where staff endpoints still gate on the raw-role permission class rather than the derived tenant capability (student->tenant endpoint disclosure 403-vs-404 and capability-vs-role). Owner-class AUTH-07 masking is enforced."
+}

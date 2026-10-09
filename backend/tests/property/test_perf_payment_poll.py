@@ -9,9 +9,9 @@ is **skipped with no status transition** (honoring ``PaymentService._transition`
 forward-only rules), the failure is recorded (metric + log), and the run
 **continues** processing the remaining payments.
 
-This property exercises the hardened poll path
-(``PAYMENT_HARDENING_FORWARD_ONLY=True``) — the one that routes every verify
-outcome through ``PaymentService._transition`` — over arbitrary sets of pending
+This property exercises the reconciliation poll path — the only one, and the
+one that routes every verify outcome through ``PaymentService._transition`` —
+over arbitrary sets of pending
 payments whose external verification calls each resolve to one of:
 
 * ``exhausted``         — the bounded Lenco call returned ``(None, error)``
@@ -290,7 +290,6 @@ def _assert_skip_on_exhaustion(outcomes):
 
 @given(outcomes=st.lists(st.sampled_from(_OUTCOMES), min_size=1, max_size=8))
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )
@@ -317,7 +316,6 @@ def test_property_13_skip_on_exhaustion_preserves_forward_only(outcomes):
 
 
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )
@@ -327,7 +325,6 @@ def test_all_exhausted_leaves_every_payment_pending():
 
 
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )
@@ -337,7 +334,6 @@ def test_exhaustion_between_successes_does_not_abort_run():
 
 
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )

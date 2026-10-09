@@ -1,0 +1,42 @@
+# Task 6.3 M14 — required wizard journeys: student-wizard-characterisation, student-wizard-mobile, two-tenant-golden-journey, ocr-manual-fallback; chromium-required + mobile-required, FINAL bundle
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T23:25:44Z
+# stack: harness of m14-07; served entry = assets/js/index-DFYqzK57.js; specs unchanged by M14 (student-wizard-characterisation.spec.ts 90638e74398487de; student-wizard-mobile.spec.ts 6e5129299a620830; two-tenant-golden-journey.spec.ts 188ae424844b5cd2; ocr-manual-fallback.spec.ts 98af37f5ba455325; ); host held awake
+$ HARNESS_PW_CHANNEL=chrome V2_EVIDENCE_RUN_ID=t63-m14-wizard-journeys PLAYWRIGHT_BASE_URL=http://localhost:8090 systemd-inhibit --what=sleep:idle --mode=block bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required tests/harness-e2e/required/student-wizard-characterisation.spec.ts tests/harness-e2e/required/student-wizard-mobile.spec.ts tests/harness-e2e/required/two-tenant-golden-journey.spec.ts tests/harness-e2e/required/ocr-manual-fallback.spec.ts
+
+Running 30 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.7s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (400ms)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (5.9s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (17.1s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (4.4s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (3.5s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:287:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (7.1s)
+  ✓   8 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:428:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (2.8s)
+  ✓   9 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:471:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (2.6s)
+  ✓  10 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:510:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.4s)
+  ✓  11 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:556:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (11.4s)
+  ✓  12 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:628:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (3.6s)
+  ✓  13 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:690:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (3.1s)
+  ✓  14 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:765:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (3.6s)
+  ✓  15 [chromium-required] › tests/harness-e2e/required/two-tenant-golden-journey.spec.ts:155:3 › The complete golden journey on a resolved tenant host (R18.2) › one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal (7.3s)
+  ✓  16 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.2s)
+  ✓  17 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (334ms)
+  ✓  18 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (4.4s)
+  ✓  19 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (16.4s)
+  ✓  20 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (3.1s)
+  ✓  21 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (3.1s)
+  ✓  22 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:287:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (7.7s)
+  ✓  23 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:428:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (3.3s)
+  ✓  24 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:471:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (2.8s)
+  ✓  25 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:510:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.4s)
+  ✓  26 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:556:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (11.9s)
+  ✓  27 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:628:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (4.0s)
+  ✓  28 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:690:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (4.2s)
+  ✓  29 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:765:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (3.0s)
+  ✓  30 [mobile-required] › tests/harness-e2e/required/two-tenant-golden-journey.spec.ts:155:3 › The complete golden journey on a resolved tenant host (R18.2) › one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal (6.9s)
+
+  30 passed (3.2m)
+PW EXIT: 0
+stats: {"expected": 30, "unexpected": 0, "flaky": 0, "skipped": 0, "duration": 193007.07100000003}

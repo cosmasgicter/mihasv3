@@ -1,0 +1,18 @@
+# Task 1.5 generated-client reproducibility proof
+# Captured: 2026-07-15 09:28:25 UTC
+# Base commit: bae29a28d9657f288b3339062adb31285959c966
+
+## Committed artifact hashes (pre-regen):
+984af80bcc63363804b9cf12ced77bd8f3064b29bfdec4f090ef90698bd48696  backend/schema/openapi.v2.candidate.yaml
+cd4f5dc430ceab949fcb5278c617b34d707400d1b83eb43c1c9bfa666fd48f00  apps/admissions/src/generated/api.d.ts
+
+## Regenerate via ./scripts/generate-api-types.sh, then diff vs committed:
+SCHEMA regen diff: EMPTY (reproducible at HEAD)
+TYPES regen diff: EMPTY (reproducible at HEAD)
+
+## Determinism under PYTHONHASHSEED=random (two independent schema gens):
+TWO RANDOM-HASHSEED GENS: byte-identical (deterministic — role enum sorted)
+
+## Post-regen artifact hashes (identical to pre-regen above):
+984af80bcc63363804b9cf12ced77bd8f3064b29bfdec4f090ef90698bd48696  backend/schema/openapi.v2.candidate.yaml
+cd4f5dc430ceab949fcb5278c617b34d707400d1b83eb43c1c9bfa666fd48f00  apps/admissions/src/generated/api.d.ts

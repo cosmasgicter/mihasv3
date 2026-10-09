@@ -27,8 +27,48 @@ import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { queryClient } from '@/lib/queryClient'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 
-const AppLayout = lazy(() => import('@/components/navigation/AppLayout').then((mod) => ({ default: mod.AppLayout })))
-const SessionMonitor = lazy(() => import('@/components/auth/SessionMonitor').then((mod) => ({ default: mod.SessionMonitor })))
+/**
+ * Unwrap a named export for `React.lazy` **without turning a failed fetch into a
+ * `TypeError`** (GATE-13.3-10, 13.6 §8.1 item L6).
+ *
+ * `lazy(() => import(m).then((mod) => ({ default: mod.Name })))` is the ordinary
+ * idiom and it has a sharp edge: when the module cannot be fetched and the loader
+ * hands back something that is not a module namespace, the property access itself
+ * throws — which is how task 13.3's offline reproduction produced *"Cannot read
+ * properties of undefined (reading 'SessionMonitor')"* instead of a recognisable
+ * chunk-load failure. That message then defeated `LazyLoadErrorBoundary`'s own
+ * `isChunkError` classifier as well, so the app's chunk-recovery path never ran.
+ *
+ * Naming the failure for what it is keeps every downstream classifier working and
+ * keeps the module name out of the student's copy.
+ */
+function lazyNamed<T extends React.ComponentType<any>>(
+  moduleName: string,
+  exportName: string,
+  load: () => Promise<Record<string, unknown>>,
+) {
+  return lazy(async () => {
+    const mod = await load()
+    const component = mod?.[exportName]
+    if (!component) {
+      throw new Error(
+        `Failed to fetch dynamically imported module: ${moduleName} (${exportName} unavailable)`,
+      )
+    }
+    return { default: component as T }
+  })
+}
+
+const AppLayout = lazyNamed<typeof import('@/components/navigation/AppLayout')['AppLayout']>(
+  '@/components/navigation/AppLayout',
+  'AppLayout',
+  () => import('@/components/navigation/AppLayout') as unknown as Promise<Record<string, unknown>>,
+)
+const SessionMonitor = lazyNamed<typeof import('@/components/auth/SessionMonitor')['SessionMonitor']>(
+  '@/components/auth/SessionMonitor',
+  'SessionMonitor',
+  () => import('@/components/auth/SessionMonitor') as unknown as Promise<Record<string, unknown>>,
+)
 
 function getSkeletonFallback(route: RouteConfig): React.ReactNode {
   switch (route.skeletonType) {
@@ -172,6 +212,33 @@ function RoutedAuthenticatedApp() {
 
   return (
     <>
+      {/*
+        `SessionMonitor` is deliberately **not** given its own silent boundary
+        (task 13.6 remediation L6, GATE-13.3-10) — and that is a measured decision,
+        not an oversight.
+
+        L6 tried it: wrapping this in `<RouteErrorBoundary fallback={null}>` so a
+        background session watcher failing to download could not take the student's
+        page with it. It worked, and it made the offline screen **worse**. With this
+        subtree silent, the only thing left after an offline chunk failure was the
+        wizard route's own `Suspense` skeleton — a page that spins forever with **no
+        recovery control at all** (measured:
+        `{"wizardUsableAgain":false,"retryAffordance":[]}` after reconnect, on both
+        device profiles). Today's behaviour surfaces a boundary that says what
+        happened and offers `Try Again`, and 13.3 asserted — and this batch
+        re-asserted — that pressing it after reconnect brings the wizard back.
+
+        A recovery affordance the student can use beats a mount they cannot use. The
+        residual (a route whose lazy chunk cannot be fetched cannot be kept mounted,
+        because the platform ships no service worker by design) is recorded in the L6
+        evidence rather than papered over, together with the stuck-skeleton failure
+        mode the experiment exposed.
+
+        What *did* change here is `lazyNamed` above: the failure is now a named
+        chunk-load error rather than a `TypeError` about a property of `undefined`,
+        so `ErrorBoundary`'s classifier and `LazyLoadErrorBoundary`'s own
+        `isChunkError` check can both recognise it.
+      */}
       {deferredSessionHydrated && (
         <Suspense fallback={null}>
           <SessionMonitor />

@@ -1,0 +1,4 @@
+]633;E;echo "### $(date -u +%Y-%m-%dT%H:%M:%SZ) L8 - frontend lint (L12 closed this at 0\x3b must not regress)";66a840ef-d16a-4bfe-9094-88e79b2f05fa]633;C### 2026-08-14T17:02:27Z L8 - frontend lint (L12 closed this at 0; must not regress)
+$ cd apps/admissions && bun run lint
+$ bun x eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+LINT EXIT=0

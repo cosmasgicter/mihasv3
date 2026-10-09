@@ -99,3 +99,31 @@ class LaunchVerificationSpectacularTests(SimpleTestCase):
             "The get_available_offerings schema warning is not resolved:\n"
             + "\n".join(offending),
         )
+
+    def test_canonical_draft_patch_documents_its_concurrency_contract(self):
+        """R10.3: generated clients cannot omit the stale-write preconditions."""
+        schema, _warnings, _errors = _generate_schema_and_collect_stats()
+        operation = schema["paths"][
+            "/api/v1/applications/drafts/{application_id}/"
+        ]["patch"]
+
+        request_schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        self.assertIn("expected_version", request_schema["required"])
+        self.assertEqual(
+            request_schema["properties"]["expected_version"]["minimum"],
+            1,
+        )
+        self.assertFalse(request_schema["additionalProperties"])
+
+        idempotency_header = next(
+            parameter
+            for parameter in operation["parameters"]
+            if parameter.get("in") == "header"
+            and parameter.get("name") == "Idempotency-Key"
+        )
+        self.assertTrue(idempotency_header["required"])
+
+        conflict_ref = operation["responses"]["409"]["content"]["application/json"]["schema"]["$ref"]
+        conflict_name = conflict_ref.rsplit("/", 1)[-1]
+        conflict_schema = schema["components"]["schemas"][conflict_name]
+        self.assertIn("current_version", conflict_schema["properties"])

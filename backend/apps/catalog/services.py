@@ -26,9 +26,10 @@ from __future__ import annotations
 import html
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
+from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
@@ -498,6 +499,12 @@ class OfferingDirectoryService:
     offering, optionally constrained to an intake and/or a single tenant.
     """
 
+    # Explicit public tenant selection is intentionally narrow. Adding an
+    # endpoint here is a tenant-authority decision, not a convenience switch.
+    EXPLICIT_INSTITUTION_SELECTION_ENDPOINTS: frozenset[str] = frozenset(
+        {"canonical_programs", "assignment_preview"}
+    )
+
     def canonical_program_directory(
         self,
         *,
@@ -538,20 +545,35 @@ class OfferingDirectoryService:
             .order_by("name")
         )
 
-    def resolved_institution_id(self, portal_context, requested_institution_id=None):
-        """Resolve the tenant scope for a portal listing (R8.7).
+    def resolved_institution_id(
+        self,
+        portal_context,
+        requested_institution_id=None,
+        *,
+        request_host: str | None = None,
+        endpoint: str | None = None,
+    ) -> str | None:
+        """Resolve one effective canonical institution for a public catalog query.
 
-        An explicit ``requested_institution_id`` wins; otherwise the white-label
-        tenant resolved from the host by :class:`InstitutionContextService` is
-        used. Returns ``None`` for the shared Beanola portal so the listing spans
-        all tenants (R8.6).
+        A trusted white-label host is authoritative and always wins over a
+        query-string value. An explicit selector is accepted only when both the
+        request host is a registered neutral shared-portal host and the endpoint
+        is explicitly allowlisted above. Unknown, configured-but-untrusted, and
+        non-active hosts therefore remain neutral rather than becoming arbitrary
+        tenant selectors.
         """
-        if requested_institution_id:
-            return requested_institution_id
         institution = getattr(portal_context, "institution", None)
         if institution is not None:
             return str(institution.id)
-        return None
+
+        requested = str(requested_institution_id or "").strip()
+        if not requested:
+            return None
+        if endpoint not in self.EXPLICIT_INSTITUTION_SELECTION_ENDPOINTS:
+            return None
+        if not InstitutionContextService.is_registered_shared_portal_host(request_host):
+            return None
+        return requested
 
 
 class InstitutionContextService:
@@ -564,8 +586,38 @@ class InstitutionContextService:
         "secondary_color": "#334155",
     }
 
+    @staticmethod
+    def normalize_host(host: str | None) -> str:
+        """Return the lowercase hostname without an optional port."""
+        return (host or "").split(":", 1)[0].strip().lower()
+
+    @classmethod
+    def is_registered_shared_portal_host(cls, host: str | None) -> bool:
+        """Whether *host* is an exact configured neutral shared-portal host.
+
+        This is deliberately an allowlist, not a fallback for every unresolved
+        hostname: only an operator-registered neutral portal may honor a public
+        explicit institution selector.
+        """
+        hostname = cls.normalize_host(host)
+        if not hostname:
+            return False
+        try:
+            from django.conf import settings
+
+            configured_hosts = getattr(settings, "SHARED_PORTAL_HOSTS", ())
+        except Exception:
+            return False
+        if isinstance(configured_hosts, str):
+            configured_hosts = [configured_hosts]
+        return hostname in {
+            cls.normalize_host(configured_host)
+            for configured_host in configured_hosts
+            if cls.normalize_host(configured_host)
+        }
+
     def resolve(self, host: str | None) -> InstitutionContext:
-        hostname = (host or "").split(":", 1)[0].strip().lower()
+        hostname = self.normalize_host(host)
         if not hostname:
             return InstitutionContext("shared", None, self.BEANOLA_BRAND.copy())
         # Single indexed lookup on ``institution_domains.hostname`` (R7.8 100ms
@@ -765,9 +817,30 @@ class AccessScopeService:
                 return ScopeFilters(True, set(), set(), set())
             raise
         institution_ids = {str(row.institution_id) for row in memberships}
-        institution_ids.update(str(row.institution_id) for row in grants if row.institution_id)
-        offering_ids = {str(row.program_id) for row in grants if row.program_id}
-        application_ids = {str(row.application_id) for row in grants if row.application_id}
+        # The declared scope type, not merely a populated relationship column,
+        # determines grant width.  Serializers may retain an institution id as
+        # target-validation metadata on an offering/application grant; treating
+        # that metadata as authority would silently widen the grant to every
+        # sibling row in the institution.
+        institution_ids.update(
+            str(row.institution_id)
+            for row in grants
+            if str(row.scope_type or "").strip().lower() == "institution"
+            and row.institution_id
+        )
+        offering_ids = {
+            str(row.program_id)
+            for row in grants
+            if str(row.scope_type or "").strip().lower()
+            in {"program_offering", "offering"}
+            and row.program_id
+        }
+        application_ids = {
+            str(row.application_id)
+            for row in grants
+            if str(row.scope_type or "").strip().lower() == "application"
+            and row.application_id
+        }
         return ScopeFilters(False, institution_ids, offering_ids, application_ids)
 
     def filter_applications(self, queryset, user):
@@ -839,8 +912,12 @@ class CapabilitySet:
     ``role`` is the actor's canonical role string; ``is_super_admin`` and
     ``all_access`` mirror the existing scope flags; ``platform_capabilities``
     holds the actor's ``platform.*`` capabilities (full set for a Super_Admin,
-    empty otherwise); ``institution_capabilities`` maps an institution id to the
-    frozenset of ``tenant.*`` capabilities the actor holds for that institution.
+    empty otherwise).  Tenant capabilities retain the grain of their authority:
+    an institution membership/grant is keyed in ``institution_capabilities``;
+    a constrained offering or application grant is keyed only in its matching
+    target map.  Keeping those maps separate is what lets aggregate application
+    queries admit a targeted grant without widening it to sibling rows in the
+    same institution.
     """
 
     role: str
@@ -848,6 +925,8 @@ class CapabilitySet:
     all_access: bool
     platform_capabilities: frozenset[str]
     institution_capabilities: dict[str, frozenset[str]]
+    offering_capabilities: dict[str, frozenset[str]] = field(default_factory=dict)
+    application_capabilities: dict[str, frozenset[str]] = field(default_factory=dict)
 
 
 class AdminCapabilityService:
@@ -951,6 +1030,38 @@ class AdminCapabilityService:
     }
 
     def get_capabilities(self, user) -> CapabilitySet:
+        """Resolve capabilities, sharing the flag-gated per-user authority cache.
+
+        The capability/scope endpoints cache their rendered payload in the
+        ``cap`` namespace.  Their permission class must resolve the same
+        authority *before* the view body runs, so caching only the rendered
+        payload still issued database queries on every apparent cache hit.
+
+        Cache the immutable :class:`CapabilitySet` alongside that payload under
+        a distinct sub-key.  The existing profile/membership/grant/institution
+        signals bump the namespace version, invalidating both values together.
+        Resolution errors are raised by ``compute`` and therefore are never
+        stored by ``cached_or_compute``.  With the feature flag disabled this
+        remains the original direct-compute path.
+        """
+        user_id = getattr(user, "pk", None) or getattr(user, "id", None)
+        if not getattr(settings, "PERF_CACHE_CAPABILITIES", False) or not user_id:
+            return self._compute_capabilities(user)
+
+        # Lazy import avoids a module-loading cycle: scoped_cache's general
+        # tenant key builder also delegates authority resolution to this class.
+        from apps.common.scoped_cache import cached_or_compute
+
+        return cached_or_compute(
+            "cap",
+            str(user_id),
+            lambda: self._compute_capabilities(user),
+            ttl=60,
+            sub_key="capability-set",
+            enabled=True,
+        )
+
+    def _compute_capabilities(self, user) -> CapabilitySet:
         """Resolve the actor's full :class:`CapabilitySet` (R1, R2.2, R2.3, R3.2, R3.3).
 
         Composes the existing authority primitives — ``is_super_admin`` for the
@@ -998,7 +1109,33 @@ class AdminCapabilityService:
                 "Could not resolve access scope for actor."
             ) from exc
 
-        institution_capabilities = self._derive_institution_capabilities(user, filters)
+        # All-access compatibility (never a production non-super-admin): a
+        # caller the scope service resolves as ``all_access`` — the dev/test
+        # legacy-admin compat branch (``AccessScopeService._legacy_admin_test_scope``)
+        # or a call site that injects all-access scope — holds the full
+        # capability set, exactly like the Super_Admin path above. In production
+        # only a Super_Admin ever resolves to ``all_access`` (already returned
+        # above), so this branch is unreachable for a real non-super-admin and
+        # changes no production authority decision (R1.4); it preserves the
+        # historical all-access admin semantics that predate the capability
+        # model so capability-gated endpoints stay green for the same callers
+        # the previous ``IsAdmin`` role gate admitted. The ``production_scope``
+        # fixture disables the compat branch, so the authority conformance suite
+        # still measures the real membership/grant-derived model.
+        if filters.all_access:
+            return CapabilitySet(
+                role=role,
+                is_super_admin=False,
+                all_access=True,
+                platform_capabilities=self.PLATFORM_CAPABILITIES,
+                institution_capabilities={},
+            )
+
+        (
+            institution_capabilities,
+            offering_capabilities,
+            application_capabilities,
+        ) = self._derive_scoped_capabilities(user, filters)
 
         return CapabilitySet(
             role=role,
@@ -1006,6 +1143,8 @@ class AdminCapabilityService:
             all_access=filters.all_access,
             platform_capabilities=frozenset(),
             institution_capabilities=institution_capabilities,
+            offering_capabilities=offering_capabilities,
+            application_capabilities=application_capabilities,
         )
 
     def get_institution_capabilities(self, user, institution) -> frozenset[str]:
@@ -1019,10 +1158,60 @@ class AdminCapabilityService:
         failure (R1.6), propagated from :meth:`get_capabilities`.
         """
         capability_set = self.get_capabilities(user)
-        if capability_set.is_super_admin:
+        # A Super_Admin (or an all-access compat caller — see get_capabilities)
+        # holds platform authority that subsumes every tenant capability.
+        if capability_set.is_super_admin or capability_set.all_access:
             return self.TENANT_CAPABILITIES
         institution_id = str(getattr(institution, "id", institution))
         return capability_set.institution_capabilities.get(institution_id, frozenset())
+
+    def get_application_capabilities(self, user, application) -> frozenset[str]:
+        """Capabilities attributable to one application at every valid grain.
+
+        Institution authority applies to all applications in that institution;
+        an offering grant applies only to applications on that offering; and an
+        application grant applies only to the named row.  The union is computed
+        for the already-resolved target and never promotes either constrained
+        grant into ``institution_capabilities``.
+        """
+        capability_set = self.get_capabilities(user)
+        if capability_set.is_super_admin or capability_set.all_access:
+            return self.TENANT_CAPABILITIES
+
+        institution_id = str(
+            getattr(application, "institution_ref_id", None)
+            or getattr(application, "institution_id", None)
+            or ""
+        )
+        offering_id = str(
+            getattr(application, "program_offering_id", None)
+            or getattr(application, "program_id", None)
+            or ""
+        )
+        application_id = str(getattr(application, "id", application) or "")
+
+        held: set[str] = set()
+        held.update(capability_set.institution_capabilities.get(institution_id, frozenset()))
+        held.update(capability_set.offering_capabilities.get(offering_id, frozenset()))
+        held.update(capability_set.application_capabilities.get(application_id, frozenset()))
+        return frozenset(held)
+
+    def has_any_application_capability(self, user, capability: str) -> bool:
+        """Whether any application-shaped scope carries ``capability``.
+
+        This predicate authorizes only the *surface*.  Its caller must still
+        apply :meth:`AccessScopeService.filter_applications` before returning
+        rows, which preserves offering/application grant width.
+        """
+        capability_set = self.get_capabilities(user)
+        if capability_set.is_super_admin or capability_set.all_access:
+            return True
+        maps = (
+            capability_set.institution_capabilities,
+            capability_set.offering_capabilities,
+            capability_set.application_capabilities,
+        )
+        return any(capability in held for mapping in maps for held in mapping.values())
 
     # -- Internal derivation helpers ----------------------------------------
 
@@ -1037,31 +1226,43 @@ class AdminCapabilityService:
             institution_capabilities={},
         )
 
-    def _derive_institution_capabilities(
+    def _derive_scoped_capabilities(
         self, user, filters: ScopeFilters
-    ) -> dict[str, frozenset[str]]:
-        """Per-institution ``tenant.*`` capabilities for a non-super-admin (R2.3, R3.3).
+    ) -> tuple[
+        dict[str, frozenset[str]],
+        dict[str, frozenset[str]],
+        dict[str, frozenset[str]],
+    ]:
+        """Tenant capabilities at institution, offering, and application grain.
 
         ``filters`` (the single ``AccessScopeService`` scope computation) is the
-        authority for *which* institutions are in scope. Each in-scope
-        institution starts with the read-default bundle; granted-mutation
-        capabilities are then layered on from the ``permissions`` of the active,
-        non-expired memberships/grants for that institution. Institutions not in
-        ``filters.institution_ids`` are never keyed, so the scope stays single-
-        sourced and cross-tenant capabilities cannot appear.
+        authority for which target ids are in scope.  Each target starts with
+        the read-default bundle; mutation capabilities are layered only from
+        the active, non-expired row that addresses that same target.  A narrow
+        grant is deliberately never copied into the institution map.
         """
-        scoped_ids = set(filters.institution_ids)
-        if not scoped_ids:
-            return {}
-
-        # Read-default bundle for every in-scope institution.
-        derived: dict[str, set[str]] = {
-            iid: set(self._DEFAULT_TENANT_READ_CAPABILITIES) for iid in scoped_ids
+        institution_derived: dict[str, set[str]] = {
+            iid: set(self._DEFAULT_TENANT_READ_CAPABILITIES)
+            for iid in filters.institution_ids
         }
+        offering_derived: dict[str, set[str]] = {
+            oid: set(self._DEFAULT_TENANT_READ_CAPABILITIES)
+            for oid in filters.offering_ids
+        }
+        application_derived: dict[str, set[str]] = {
+            aid: set(self._DEFAULT_TENANT_READ_CAPABILITIES)
+            for aid in filters.application_ids
+        }
+        if not (institution_derived or offering_derived or application_derived):
+            return {}, {}, {}
 
         user_id = getattr(user, "id", None)
         if not user_id:
-            return {iid: frozenset(caps) for iid, caps in derived.items()}
+            return (
+                {key: frozenset(caps) for key, caps in institution_derived.items()},
+                {key: frozenset(caps) for key, caps in offering_derived.items()},
+                {key: frozenset(caps) for key, caps in application_derived.items()},
+            )
 
         now = timezone.now()
         try:
@@ -1078,16 +1279,39 @@ class AdminCapabilityService:
                 "Could not resolve tenant capabilities for actor."
             ) from exc
 
-        for row in (*memberships, *grants):
+        for row in memberships:
             institution_id = getattr(row, "institution_id", None)
             if not institution_id:
                 continue
             key = str(institution_id)
-            if key not in derived:
-                continue
-            derived[key].update(self._mutations_from_permissions(row.permissions))
+            if key in institution_derived:
+                institution_derived[key].update(
+                    self._mutations_from_permissions(row.permissions)
+                )
 
-        return {iid: frozenset(caps) for iid, caps in derived.items()}
+        for row in grants:
+            mutations = self._mutations_from_permissions(row.permissions)
+            scope_type = str(getattr(row, "scope_type", "") or "").strip().lower()
+            if scope_type == "institution" and getattr(row, "institution_id", None):
+                key = str(row.institution_id)
+                if key in institution_derived:
+                    institution_derived[key].update(mutations)
+            elif scope_type in {"program_offering", "offering"} and getattr(
+                row, "program_id", None
+            ):
+                key = str(row.program_id)
+                if key in offering_derived:
+                    offering_derived[key].update(mutations)
+            elif scope_type == "application" and getattr(row, "application_id", None):
+                key = str(row.application_id)
+                if key in application_derived:
+                    application_derived[key].update(mutations)
+
+        return (
+            {key: frozenset(caps) for key, caps in institution_derived.items()},
+            {key: frozenset(caps) for key, caps in offering_derived.items()},
+            {key: frozenset(caps) for key, caps in application_derived.items()},
+        )
 
     @classmethod
     def _mutations_from_permissions(cls, permissions) -> set[str]:
@@ -1307,13 +1531,26 @@ class DomainStatusMachine:
     (including no-op self-transitions and any jump into ``active`` that does not
     come from ``verified``) is rejected::
 
-        pending_dns    -> pending_review
-        pending_dns    -> failed
-        pending_review -> verified
-        verified       -> active
-        active         -> disabled
-        failed         -> pending_dns
-        disabled       -> active
+        pending_dns    -> pending_review    (verification proved control)
+        pending_dns    -> failed            (verification exhausted/failed)
+        pending_review -> verified          (platform approve)
+        pending_review -> rejected          (platform reject)
+        verified       -> active            (platform activate)
+        active         -> disabled          (platform disable)
+        failed         -> pending_dns        (retry verification)
+        rejected       -> pending_dns        (retry after reject)
+        disabled       -> active            (platform reactivate)
+
+    This is the canonical admissions-v2 design §6.3 machine. Its
+    ``pending_verification`` / ``verification_failed`` names are the conceptual
+    aliases of the DB values ``pending_dns`` / ``failed`` (see
+    ``InstitutionDomain``), so the nine edges above are design §6.3's
+    ``pending_verification -> verification_failed -> pending_verification``,
+    ``pending_verification -> pending_review -> verified -> active``,
+    ``active -> disabled -> active``, and
+    ``pending_review -> rejected -> pending_verification`` spelled with the
+    stored status values. Task 4.4 (R5.1) added the two ``rejected`` edges; the
+    other seven are unchanged.
     """
 
     ALLOWED_TRANSITIONS: frozenset[tuple[str, str]] = frozenset(
@@ -1321,9 +1558,11 @@ class DomainStatusMachine:
             (InstitutionDomain.STATUS_PENDING_DNS, InstitutionDomain.STATUS_PENDING_REVIEW),
             (InstitutionDomain.STATUS_PENDING_DNS, InstitutionDomain.STATUS_FAILED),
             (InstitutionDomain.STATUS_PENDING_REVIEW, InstitutionDomain.STATUS_VERIFIED),
+            (InstitutionDomain.STATUS_PENDING_REVIEW, InstitutionDomain.STATUS_REJECTED),
             (InstitutionDomain.STATUS_VERIFIED, InstitutionDomain.STATUS_ACTIVE),
             (InstitutionDomain.STATUS_ACTIVE, InstitutionDomain.STATUS_DISABLED),
             (InstitutionDomain.STATUS_FAILED, InstitutionDomain.STATUS_PENDING_DNS),
+            (InstitutionDomain.STATUS_REJECTED, InstitutionDomain.STATUS_PENDING_DNS),
             (InstitutionDomain.STATUS_DISABLED, InstitutionDomain.STATUS_ACTIVE),
         }
     )

@@ -1,0 +1,32 @@
+=== the six-viewport x eight-surface pixel matrix ===
+
+Each cell is four measured numbers:
+  T=<interactive elements scanned>/<offenders>  O=<document overflow px>
+  X=<still-covered after scroll>/<covered at rest>  S=<CLS>
+An offender count counts only UNATTRIBUTED sub-44 controls; the
+attributed ones (GATE-13.3-01..06, -15) are listed in findings.txt.
+
+--- project: chromium-13-3 ---
+surface                                                      320x568                   375x667                   390x844                  768x1024                  1280x800                  1440x900
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/track-application                              T=17/0 O=0 X=0/0 S=0      T=17/0 O=0 X=0/0 S=0      T=17/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0
+/student/dashboard                         T=19/0 O=0 X=0/1 S=0.0942 T=19/0 O=0 X=0/1 S=0.1239 T=19/0 O=0 X=0/0 S=0.1041  T=22/0 O=0 X=0/0 S=0.085 T=22/0 O=0 X=0/0 S=0.0544 T=22/0 O=0 X=0/0 S=0.0485
+/student/application-wizard?mode=resume         T=21/0 O=0 X=0/0 S=0 T=21/0 O=0 X=0/0 S=0.0135 T=21/0 O=0 X=0/0 S=0.0738  T=27/0 O=0 X=0/0 S=0.041 T=28/0 O=0 X=0/0 S=0.0342 T=28/0 O=0 X=0/0 S=0.0269
+/student/application/{id}/status                T=23/0 O=0 X=0/1 S=0      T=23/0 O=0 X=0/0 S=0      T=23/0 O=0 X=0/0 S=0 T=25/0 O=0 X=0/0 S=0.0175 T=25/0 O=0 X=0/0 S=0.0045 T=25/0 O=0 X=0/0 S=0.0086
+/student/payment                                T=12/0 O=0 X=0/0 S=0      T=12/0 O=0 X=0/1 S=0      T=12/0 O=0 X=0/0 S=0 T=14/0 O=0 X=0/0 S=0.0142 T=14/0 O=0 X=0/0 S=0.0045 T=14/0 O=0 X=0/0 S=0.0086
+/student/history                                 T=8/0 O=0 X=0/0 S=0       T=8/0 O=0 X=0/0 S=0       T=8/0 O=0 X=0/0 S=0 T=11/0 O=0 X=0/0 S=0.0142 T=11/0 O=0 X=0/0 S=0.0045 T=11/0 O=0 X=0/0 S=0.0086
+/student/notifications                          T=14/0 O=0 X=0/0 S=0      T=14/0 O=0 X=0/0 S=0      T=14/0 O=0 X=0/0 S=0 T=17/0 O=0 X=0/0 S=0.0142 T=17/0 O=0 X=0/0 S=0.0045 T=17/0 O=0 X=0/0 S=0.0086
+/student/settings                               T=25/0 O=0 X=0/0 S=0      T=25/0 O=0 X=0/1 S=0      T=25/0 O=0 X=0/1 S=0 T=28/0 O=0 X=0/0 S=0.0246 T=28/0 O=0 X=0/0 S=0.0126 T=28/0 O=0 X=0/0 S=0.0129
+
+--- project: mobile-13-3 ---
+surface                                                      320x568                   375x667                   390x844                  768x1024                  1280x800                  1440x900
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/track-application                              T=17/0 O=0 X=0/0 S=0      T=17/0 O=0 X=0/0 S=0      T=17/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0      T=21/0 O=0 X=0/0 S=0
+/student/dashboard                         T=19/0 O=0 X=0/1 S=0.0942 T=19/0 O=0 X=0/1 S=0.1164 T=19/0 O=0 X=0/0 S=0.1085 T=22/0 O=0 X=0/0 S=0.0848 T=22/0 O=0 X=0/0 S=0.0542 T=22/0 O=0 X=0/0 S=0.0497
+/student/application-wizard?mode=resume         T=21/0 O=0 X=0/0 S=0 T=21/0 O=0 X=0/0 S=0.0135 T=21/0 O=0 X=0/0 S=0.0738  T=27/0 O=0 X=0/0 S=0.041 T=28/0 O=0 X=0/0 S=0.0342 T=28/0 O=0 X=0/0 S=0.0269
+/student/application/{id}/status                T=23/0 O=0 X=0/1 S=0      T=23/0 O=0 X=0/0 S=0      T=23/0 O=0 X=0/0 S=0 T=25/0 O=0 X=0/0 S=0.0175 T=25/0 O=0 X=0/0 S=0.0045 T=25/0 O=0 X=0/0 S=0.0086
+/student/payment                                T=12/0 O=0 X=0/0 S=0      T=12/0 O=0 X=0/1 S=0      T=12/0 O=0 X=0/0 S=0 T=14/0 O=0 X=0/0 S=0.0142      T=14/0 O=0 X=0/0 S=0      T=14/0 O=0 X=0/0 S=0
+/student/history                                 T=8/0 O=0 X=0/0 S=0       T=8/0 O=0 X=0/0 S=0       T=8/0 O=0 X=0/0 S=0 T=11/0 O=0 X=0/0 S=0.0142 T=11/0 O=0 X=0/0 S=0.0045      T=11/0 O=0 X=0/0 S=0
+/student/notifications                          T=14/0 O=0 X=0/0 S=0      T=14/0 O=0 X=0/0 S=0      T=14/0 O=0 X=0/0 S=0 T=17/0 O=0 X=0/0 S=0.0142 T=17/0 O=0 X=0/0 S=0.0045      T=17/0 O=0 X=0/0 S=0
+/student/settings                               T=25/0 O=0 X=0/0 S=0      T=25/0 O=0 X=0/1 S=0      T=25/0 O=0 X=0/1 S=0 T=28/0 O=0 X=0/0 S=0.0246 T=28/0 O=0 X=0/0 S=0.0126      T=28/0 O=0 X=0/0 S=0
+

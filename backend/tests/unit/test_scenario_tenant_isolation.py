@@ -201,12 +201,16 @@ class TestScenarioBMihasTenantAdminIsolatedFromKatc:
     **Validates: Requirements 17.1, 17.2, 17.3, 17.4, 17.5, 17.6**
     """
 
-    def test_list_institutions_returns_only_mihas_never_katc(self, production_scope):
-        """``GET /api/v1/admin/institutions/`` returns only MIHAS; KATC is
-        absent from the body entirely (R17.1, R17.2)."""
+    def test_scope_lists_only_mihas_and_platform_directory_is_denied(self, production_scope):
+        """The self-description endpoint returns only MIHAS; the platform-wide
+        tenant directory is denied and neither response discloses KATC."""
         mihas, katc, client = _build_scenario()
 
-        resp = client.get("/api/v1/admin/institutions/")
+        directory = client.get("/api/v1/admin/institutions/")
+        assert directory.status_code == 403, directory.content
+        _assert_no_katc_leak(directory, katc)
+
+        resp = client.get("/api/v1/admin/scope/")
 
         assert resp.status_code == 200, resp.content
         blob = _blob(resp)

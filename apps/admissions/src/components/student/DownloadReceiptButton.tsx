@@ -1,3 +1,4 @@
+import type React from 'react'
 import { AlertTriangle, Download, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useOfficialDocument } from '@/hooks/useOfficialDocument'
@@ -8,6 +9,17 @@ interface DownloadReceiptButtonProps {
   applicationId: string
   paymentStatus: string
   disabled?: boolean
+  /**
+   * What to render when the receipt cannot be issued at all — a tenant whose
+   * document profile, template, logo, or signature is not configured yet.
+   *
+   * Task 8.3 (R12.6, STU-24): the previous behaviour was a button labelled "Setup
+   * Required" that was disabled from then on, with no stated condition for
+   * becoming enabled and no path forward — and it leaked a tenant-configuration
+   * instruction to a student. Callers now supply the recovery path (usually the
+   * tenant support contact) and the control disappears instead of dying.
+   */
+  unavailableFallback?: React.ReactNode
 }
 
 /**
@@ -23,6 +35,7 @@ export function DownloadReceiptButton({
   applicationId,
   paymentStatus,
   disabled,
+  unavailableFallback,
 }: DownloadReceiptButtonProps) {
   const { uiState, isBusy, error, download } = useOfficialDocument(applicationId, 'payment_receipt')
   const { addToast } = useToastStore()
@@ -41,22 +54,39 @@ export function DownloadReceiptButton({
   }
 
   const isWorking = uiState === 'generating' || uiState === 'queued'
-  const isSetupRequired = uiState === 'setup_required'
+
+  // The receipt genuinely cannot be issued for this tenant yet. Say so in the
+  // student's terms — their payment is not in question — and hand over to the
+  // recovery path the caller supplied, rather than leaving a dead control on
+  // screen (task 8.3, R12.6, STU-24).
+  if (uiState === 'setup_required') {
+    return (
+      <div className="space-y-2" role="status" data-testid="receipt-unavailable">
+        <p className="flex items-start gap-2 text-sm text-foreground">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+          <span>
+            Your payment is confirmed. The receipt document is not available to download yet —
+            admissions can send you a copy.
+          </span>
+        </p>
+        {unavailableFallback}
+      </div>
+    )
+  }
+
   const label =
     uiState === 'generating'
       ? 'Generating…'
       : uiState === 'queued'
         ? 'Queued…'
-        : isSetupRequired
-          ? 'Setup Required'
-          : uiState === 'failed'
-            ? 'Retry'
-            : 'Download Receipt'
+        : uiState === 'failed'
+          ? 'Retry'
+          : 'Download Receipt'
 
   return (
     <Button
       onClick={handleDownload}
-      disabled={disabled || isBusy || isSetupRequired}
+      disabled={disabled || isBusy}
       loading={isWorking}
       variant="outline"
       size="sm"
@@ -64,9 +94,7 @@ export function DownloadReceiptButton({
       className="min-h-touch gap-2"
     >
       {!isWorking && (
-        isSetupRequired
-          ? <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-          : uiState === 'failed'
+        uiState === 'failed'
           ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
           : <Download className="h-4 w-4" aria-hidden="true" />
       )}

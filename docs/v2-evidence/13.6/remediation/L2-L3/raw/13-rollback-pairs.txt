@@ -1,0 +1,56 @@
+### 2026-08-13T23:13:42Z rollback - both L2/L3 pairs applied on v2_snap_13_6, then re-converged
+# *_rollback.sql are operator-run only: _iter_migration_files excludes the
+# '_rollback.sql' suffix, so the boot sweep never applies them.
+
+--- 1. state BEFORE rollback ---
+                    migration_name                    | has_checksum 
+------------------------------------------------------+--------------
+ 2026_06_08_00_canonical_programs_id_default.sql      | t
+ 2026_08_13_01_widen_application_snapshot_columns.sql | t
+(2 rows)
+
+ migs |   cp_id_default   |                 widths                 
+------+-------------------+----------------------------------------
+   75 | gen_random_uuid() | institution=255 intake=100 program=255
+(1 row)
+
+
+--- 2. apply 2026_06_08_00_canonical_programs_id_default_rollback.sql ---
+DELETE 1
+psql exit=0
+
+--- 3. apply 2026_08_13_01_widen_application_snapshot_columns_rollback.sql ---
+DELETE 1
+psql exit=0
+
+--- 4. state AFTER rollback: both ledger rows gone, schema deliberately unchanged ---
+ rows_for_the_two_scripts 
+--------------------------
+                        0
+(1 row)
+
+ migs |   cp_id_default   |                 widths                 | rows_over_the_old_ceiling 
+------+-------------------+----------------------------------------+---------------------------
+   73 | gen_random_uuid() | institution=255 intake=100 program=255 |                         0
+(1 row)
+
+
+--- 5. re-converge: the next sweep re-applies exactly those two, both as no-ops ---
+Pending migrations: 2/44
+  applying: 2026_06_08_00_canonical_programs_id_default.sql (sha256=a66ba52e5d8f) ... OK
+  applying: 2026_08_13_01_widen_application_snapshot_columns.sql (sha256=a53d8a78e95d) ... OK
+Applied 2 migration(s) successfully.
+apply_sql_migrations exit=0
+
+--- 6. state after re-converge: identical to step 1 ---
+ migs |   cp_id_default   |                 widths                 | canonical_programs 
+------+-------------------+----------------------------------------+--------------------
+   75 | gen_random_uuid() | institution=255 intake=100 program=255 |                  4
+(1 row)
+
+
+--- 7. boot gate still clean after the rollback/re-apply cycle ---
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift --strict exit=0
+
+### 2026-08-13T23:16:02Z rollback block done

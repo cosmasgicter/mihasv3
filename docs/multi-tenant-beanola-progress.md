@@ -3,6 +3,28 @@
 Last updated: 2026-06-15
 Handoff date: 2026-06-09
 
+> **⚠️ Migration-history claims in this document are superseded (Admissions V2
+> task 3.6 / DATA-09).** This narrative tracker carries migration-completion
+> claims for two earlier specs, and some conflict with each other (e.g. the task
+> 6.3/6.4 block reads "Production migration state UNVERIFIED … NOT yet confirmed"
+> while the task 31.2 block reads "SIGNED OFF … VERIFIED"). Finding **DATA-09**
+> flags exactly this "progress docs contain conflicting completion claims".
+>
+> For **migration-history truth**, do not rely on the prose below. The single
+> current evidence link is the report **generated from a real database** with a
+> runnable freshness gate:
+>
+> - **Evidence + reproduction:** [`docs/v2-evidence/3.6/README.md`](v2-evidence/3.6/README.md)
+> - **Generated history** (June-2026+ ids, full sha256 checksums, applied_at,
+>   schema fingerprint, non-secret identity):
+>   [`docs/v2-evidence/3.6/migration-history.release.md`](v2-evidence/3.6/migration-history.release.md)
+> - **Freshness test** (build-breaking, no skips):
+>   `backend/tests/unit/test_migration_history_report_freshness.py`
+>
+> The historical narrative below is retained for context on the two source specs;
+> treat any inline "applied / verified / signed-off" migration claim as
+> **superseded by the generated report** unless it is re-confirmed there.
+
 ## Current Status
 
 This tracker covers two specs that share these docs: the foundation spec

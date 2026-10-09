@@ -59,12 +59,16 @@ def _get_algorithm() -> str:
 def generate_access_token(user) -> str:
     """Generate a 15-minute access token with user claims.
 
-    Payload includes: user_id, email, role, permissions, token_type, exp, iat, jti.
+    Payload includes: user_id, email, role, token_type, exp, iat, jti. The
+    ``permissions`` claim is present-but-empty (task 2.4): authority is derived
+    from ``role`` via the canonical role hierarchy + ``AdminCapabilityService``,
+    not from an invented token permission list.
     """
     now = datetime.now(timezone.utc)
     lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", timedelta(minutes=15))
 
-    # Build permissions list from role
+    # Authority is derived from ``role``; the permissions claim is intentionally
+    # empty (retired invented vocabulary — task 2.4).
     permissions = _get_permissions_for_role(getattr(user, "role", "student"))
 
     payload = {
@@ -242,41 +246,17 @@ def is_jti_blacklisted(jti: str) -> bool:
 
 
 def _get_permissions_for_role(role: str) -> list[str]:
-    """Return deterministic permissions list for a given role. No DB lookup."""
-    role_permissions = {
-        "super_admin": [
-            "users:read", "users:write",
-            "applications:read", "applications:write", "applications:review",
-            "programs:read", "programs:write",
-            "payments:read", "payments:write", "payments:verify",
-            "documents:read", "documents:write", "documents:verify",
-            "notifications:read", "notifications:write",
-            "analytics:read",
-            "settings:read", "settings:write",
-            "audit:read",
-        ],
-        "admin": [
-            "users:read",
-            "applications:read", "applications:write", "applications:review",
-            "programs:read",
-            "payments:read", "payments:verify",
-            "documents:read", "documents:verify",
-            "notifications:read", "notifications:write",
-            "analytics:read",
-        ],
-        "reviewer": [
-            "applications:read", "applications:review",
-            "documents:read",
-            "notifications:read",
-        ],
-        "student": [
-            "applications:read", "applications:write",
-            "documents:read", "documents:write",
-            "payments:read",
-            "notifications:read",
-        ],
-    }
-    return role_permissions.get(role, role_permissions["student"])
+    """Return the (now empty) token permission list for a given role.
+
+    Retired (admissions-v2 task 2.4, AUTH-04 / R3.4): the access token no longer
+    carries an invented colon-delimited permission vocabulary. Authority is
+    resolved from the ``role`` claim via the canonical
+    role hierarchy and ``AdminCapabilityService``, never from a token permission
+    list, so this function returns an empty list for every role. The ``permissions``
+    claim is kept present-but-empty for backward compatibility with any consumer
+    that reads the key; it grants nothing. Deterministic, no DB lookup.
+    """
+    return []
 
 
 class _UserFromPayload:

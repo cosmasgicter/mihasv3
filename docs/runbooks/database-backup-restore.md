@@ -384,24 +384,31 @@ enable/disable matrix in
 
 | Flag | Scope | Disable effect |
 |------|-------|----------------|
-| `PAYMENT_HARDENING_FORWARD_ONLY` | Backend | Reverts to legacy payment-status transition path |
-| `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT` | Backend | Reverts to prior webhook dedup |
 | `PAYMENT_HARDENING_RATE_LIMITS` | Backend | Disables per-user payment throttles |
-| `PAYMENT_HARDENING_FORCE_APPROVED` | Backend | Reverts to legacy synthetic `successful` admin override |
-| `VITE_PAYMENT_HARDENING_UI` | Frontend (build-time) | Reverts to legacy PaymentStep UI |
 
-**AI hardening flags** (rollback is a flag flip — no schema changes ship with
-Phases 1–3; see `docs/ai-data-flows.md`):
+`PAYMENT_HARDENING_FORWARD_ONLY`, `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`,
+`PAYMENT_HARDENING_FORCE_APPROVED` and the frontend `VITE_PAYMENT_HARDENING_UI`
+were deleted by admissions-v2 task 8.2 along with the duplicate implementations
+they selected. Setting them does nothing; the payment state machine, webhook
+dedup, admin-override ledger shape, and payment UI are unconditional, and their
+rollback is a code revert. See `docs/runbooks/payment-hardening-rollout.md`.
+
+**AI hardening flags — none remain.** Admissions-v2 task 7.4 deleted all four
+(`AI_HARDENING_CIRCUIT_BREAKER`, `AI_HARDENING_RATE_LIMITS`,
+`AI_HARDENING_CACHE`, `AI_HARDENING_REDACTION`) with the admissions AI they
+hardened; task 12.4 removed the rest of that surface's documentation. There is no
+AI flag to flip during a rollback, because admissions makes no generative call
+(R11.1). The one per-user cap that survived is
+**`DOCUMENT_EXTRACT_RATE_LIMITS`** — the ceiling on local OCR re-extract calls,
+which is a CPU/DoS lever, not an AI switch:
 
 | Flag | Scope | Disable effect |
 |------|-------|----------------|
-| `AI_HARDENING_CIRCUIT_BREAKER` | Backend | Disables the Redis-backed AI circuit breaker |
-| `AI_HARDENING_RATE_LIMITS` | Backend | Disables AI per-user throttles |
-| `AI_HARDENING_CACHE` | Backend | Disables the 24h AI response cache |
-| `AI_HARDENING_REDACTION` | Backend | Reverts to non-redacted prompt path |
+| `DOCUMENT_EXTRACT_RATE_LIMITS` | Backend | Removes the per-user cap on OCR re-extract |
 
-All AI callers already treat a `None`/unavailable result as "degrade
-gracefully", so disabling these flags never breaks a core flow.
+OCR is optional deterministic assistance and every caller already treats an
+unavailable extraction as "the student types the grades", so neither enabling nor
+disabling this breaks a core flow. Data map: `docs/ai-data-flows.md`.
 
 **Graceful-degradation rollback levers** (R14.4–R14.6, cross-ref
 `release-and-rollback.md`):

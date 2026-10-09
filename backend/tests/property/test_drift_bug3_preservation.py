@@ -13,6 +13,8 @@ import uuid
 from io import BytesIO
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
@@ -101,69 +103,6 @@ class TestUploadEndpointPreservation(SimpleTestCase):
             response = view(request)
 
         self.assertEqual(response.status_code, 201)
-
-    def test_upload_persists_application_document_url_fields(self):
-        """Result slip and identity uploads update the application draft URLs."""
-        factory = APIRequestFactory()
-        user_id = uuid.uuid4()
-        app_id = uuid.uuid4()
-
-        for document_type, expected_field in (
-            ("result_slip", "result_slip_url"),
-            ("extra_kyc", "extra_kyc_url"),
-        ):
-            upload_file = SimpleUploadedFile(
-                f"{document_type}.pdf",
-                b"%PDF-1.4 fake pdf content",
-                content_type="application/pdf",
-            )
-            request = factory.post(
-                "/api/v1/documents/upload/",
-                data={
-                    "file": upload_file,
-                    "document_type": document_type,
-                    "application_id": str(app_id),
-                },
-                format="multipart",
-            )
-            force_authenticate(request, user=_make_auth_user(user_id=user_id))
-
-            mock_app = MagicMock()
-            mock_app.id = app_id
-            mock_app.user_id = user_id
-            mock_app.status = "draft"
-
-            mock_doc = MagicMock()
-            mock_doc.id = uuid.uuid4()
-            mock_doc.application_id = app_id
-            mock_doc.document_type = document_type
-            mock_doc.document_name = f"{document_type}.pdf"
-            mock_doc.file_url = f"https://r2.example.com/{document_type}.pdf"
-            mock_doc.file_size = len(b"%PDF-1.4 fake pdf content")
-            mock_doc.mime_type = "application/pdf"
-            mock_doc.verification_status = "pending"
-            mock_doc.system_generated = False
-            mock_doc.uploaded_at = "2025-01-15T10:00:00Z"
-            mock_doc.created_at = "2025-01-15T10:00:00Z"
-            mock_doc.updated_at = "2025-01-15T10:00:00Z"
-
-            with patch("apps.applications.models.Application.objects") as mock_app_qs, \
-                 patch("apps.documents.document_storage_views.validate_file_magic_bytes"), \
-                 patch("apps.common.storage.MediaStorage") as mock_storage_cls, \
-                 patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs:
-                mock_app_qs.filter.return_value.exists.return_value = True
-                mock_app_qs.get.return_value = mock_app
-                mock_storage = MagicMock()
-                mock_storage.save.return_value = f"documents/{document_type}.pdf"
-                mock_storage.url.return_value = mock_doc.file_url
-                mock_storage_cls.return_value = mock_storage
-                mock_doc_qs.create.return_value = mock_doc
-
-                response = DocumentUploadView.as_view()(request)
-
-            self.assertEqual(response.status_code, 201)
-            self.assertEqual(getattr(mock_app, expected_field), mock_doc.file_url)
-            mock_app.save.assert_called_once_with(update_fields=[expected_field, "updated_at"])
 
     def test_upload_rejects_missing_file(self):
         """Upload endpoint still returns 400 for missing file."""
@@ -267,3 +206,127 @@ class TestExtractEndpointPreservation(SimpleTestCase):
         response = view(request, document_id=doc_id)
 
         self.assertIn(response.status_code, (401, 403))
+
+
+# ---------------------------------------------------------------------------
+# The legacy ``applications.*_url`` projection — proven against REAL rows
+# ---------------------------------------------------------------------------
+#
+# This claim used to be made from the ``SimpleTestCase`` class above with a
+# blanket ``patch(...ApplicationDocument.objects)``. Admissions-v2 task 7.3
+# (R11.7-R11.8, STU-19) then put the document-evidence lifecycle in front of the
+# write: before creating a version the upload command asks
+# ``find_replay_by_idempotency_key`` / ``find_identical_current_version`` whether
+# this command already produced evidence. Those lookups run through the same
+# manager, so a blanket MagicMock answered "yes, a replay exists" — the view
+# correctly returned that replay with a 201 and never reached the legacy
+# projection, and the assertion read a MagicMock attribute. The replay branch is
+# right (it is what makes the upload idempotent); the mock was too permissive to
+# express "this is a first upload".
+#
+# Reproducing the whole lifecycle under mocks would need the stage ledger, the
+# object verification and the metadata commit neutralised too — more mock, and a
+# test that asserts a line of code exists. So the claim is made where it is
+# actually decidable: real rows, with one deterministic double at the object-store
+# boundary, which is the shape task 7.3's own endpoint evidence uses
+# (``tests/integration/test_document_evidence_compensation_7_3.py``). The claim,
+# the endpoint and both document types are unchanged.
+
+
+@pytest.fixture()
+def _mirror_world():
+    """A draft application whose contract accepts both mirrored document types."""
+    from apps.applications.models import Application as _Application
+    from apps.documents.models import DocumentUploadStage
+
+    from tests.tenant_fixtures import build_tenant_world
+
+    # ``document_upload_stages`` is unmanaged, so pytest-django's flush leaves its
+    # rows behind and the global reconciliation sweeper would see them mid-test.
+    DocumentUploadStage.objects.all().delete()
+    world = build_tenant_world(application_status="draft")
+    _Application.objects.filter(id=world.application.id).update(
+        payment_status="verified",
+        requirements_snapshot=[
+            {
+                "document_type": document_type,
+                "label": label,
+                "required": True,
+                "rules": {"accepted_mime_types": ["application/pdf"]},
+            }
+            for document_type, label in (
+                ("result_slip", "Grade 12 result slip"),
+                ("extra_kyc", "Identity document"),
+            )
+        ],
+        configuration_version="cfg-m8-mirror",
+    )
+    world.application.refresh_from_db()
+    return world
+
+
+@pytest.fixture()
+def _object_store():
+    """One deterministic object-store double at the provider boundary only."""
+    with patch("apps.common.storage.MediaStorage") as storage_cls:
+        storage = MagicMock()
+        storage.save.side_effect = lambda key, file_obj: key
+        storage.url.side_effect = lambda key: f"https://r2.test/{key}"
+        storage.delete.return_value = None
+        storage_cls.return_value = storage
+        yield storage
+
+
+@pytest.mark.django_db(transaction=True)
+def test_upload_persists_application_document_url_fields(_mirror_world, _object_store):
+    """Result slip and identity uploads update the application draft URLs."""
+    from rest_framework.test import APIClient
+
+    from apps.accounts.authentication import JWTUser
+
+    world = _mirror_world
+    student = world.student
+    client = APIClient()
+    client.force_authenticate(
+        user=JWTUser(
+            {
+                "user_id": str(student.id),
+                "email": student.email,
+                "role": student.role,
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+                "token_type": "access",
+            }
+        )
+    )
+
+    for document_type, expected_field in (
+        ("result_slip", "result_slip_url"),
+        ("extra_kyc", "extra_kyc_url"),
+    ):
+        response = client.post(
+            "/api/v1/documents/upload/",
+            {
+                "file": SimpleUploadedFile(
+                    f"{document_type}.pdf",
+                    b"%PDF-1.7\n" + document_type.encode() + b"\n%%EOF",
+                    content_type="application/pdf",
+                ),
+                "application_id": str(world.application.id),
+                "document_type": document_type,
+            },
+            format="multipart",
+            HTTP_IDEMPOTENCY_KEY=f"m8-mirror-{document_type}",
+        )
+        assert response.status_code == 201, (document_type, response.content)
+
+        world.application.refresh_from_db()
+        mirrored = getattr(world.application, expected_field)
+        assert mirrored, (document_type, expected_field, mirrored)
+        # The projection carries the URL of the version that was just committed,
+        # not a stale one: the object key the command built ends the stored URL.
+        assert mirrored == response.json()["data"]["file_url"], (
+            document_type,
+            expected_field,
+            mirrored,
+        )

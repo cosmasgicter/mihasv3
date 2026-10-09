@@ -2,7 +2,7 @@
  * Integration smoke test — PaymentStep rehydrates from paymentRecoveryStore
  * on mount (Task 38.4).
  *
- * When the VITE_PAYMENT_HARDENING_UI flag is on and an entry for the
+ * When an entry for the
  * current application exists in the recovery store, PaymentStep should
  * NOT re-initiate — it should surface the pending `payment_id` and let
  * `usePaymentStatus` verify the existing payment.

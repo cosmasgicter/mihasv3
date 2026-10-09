@@ -1,76 +1,147 @@
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, Send, Trash2 } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState, useRef, useCallback, useSyncExternalStore } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { Seo } from '@/components/seo/Seo'
+/**
+ * The student application wizard (admissions-v2 task 11.2).
+ *
+ * Requirements: **R10.2** (one state machine owns the draft lifecycle; other
+ * modules are pure adapters or views), **R16.1** (320 px first), **R16.2** (44 px
+ * targets, WCAG 2.1 AA), **R16.3** (one mobile bottom action surface; the global
+ * bottom navigation must not compete), **R16.7** (no overflow at the six widths),
+ * **R16.8** (status, autosave and recovery stay understandable under zoom, slow
+ * network and offline). Findings: **STU-02**, **STU-03**, **MAINT-01**.
+ *
+ * ── What this page is, after the recomposition ───────────────────────────────
+ *
+ * A composition of five views over one state machine:
+ *
+ * | View | Owns |
+ * |---|---|
+ * | `WizardProgressSummary` | where the student is, and the **platform's** current blockers (task 6.5) |
+ * | `WizardStepRenderer` | the current step, one branch per state of the machine |
+ * | `WizardContextPanel` | the checklist and context — on **every** viewport, not only `lg` |
+ * | `WizardActionBar` | the one anchored bottom surface: back, forward/submit, and draft state |
+ * | `WizardDraftPicker` | one draft list with continue / rename / delete, used by the choice screen and by "switch draft" |
+ *
+ * Everything those views need is read from `useWizardController`. They decide
+ * nothing: no gate, no validation rule, no save.
+ *
+ * ── The draft machine (task 6.3) ──────────────────────────────────────────────
+ *
+ * Every draft write is the draft machine's (`wizard.draftMachine`,
+ * `lib/wizardDraftController.ts`). This page asks it to act — Save now, leave a
+ * step, reload or merge after a conflict — and renders its snapshot; it never
+ * writes the draft itself. Step navigation used to call a server save directly,
+ * which is how a resume and a click on an earlier step advanced the draft's
+ * version with nothing changed (the residual M9's F3 run recorded). It now asks
+ * the machine to flush, and an unchanged draft has nothing to flush.
+ *
+ * ── The four bottom-surface problems this closes (R16.3, STU-03) ─────────────
+ *
+ * A student on a phone could previously have four things anchored to the viewport
+ * at once: the wizard's sticky footer, the global bottom navigation, a floating
+ * `Drafts (n)` button at `top-20 right-4` sitting over the mobile header's own
+ * controls, and a floating keyboard-shortcuts button. Now there is one — the action
+ * bar. The global bar's suppression is the shell's (`AppLayout` drops it on the
+ * wizard route; `wizardShellSuppression.test.tsx` pins that so it cannot regress),
+ * the drafts button is gone into the picker, and the shortcuts button was already
+ * `lg:`-only and stays there, where no bottom navigation exists.
+ *
+ * ── Deep-linking (task 11.1's deferral, answered) ────────────────────────────
+ *
+ * `?step=` is now honoured on a first load, clamped by the wizard's own
+ * reachability gate, so the platform's next action can address the step that clears
+ * it. See `lib/wizardStepDeepLink.ts` for why an out-of-reach request lands on the
+ * checkpoint and says so rather than being followed or silently dropped.
+ */
+import { AlertCircle, ArrowLeft, FilePlus2, FileText } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Seo } from "@/components/seo/Seo";
 
-import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
-import { Button } from '@/components/ui/Button'
-import { Container } from '@/components/ui/Container'
-import { WizardSkeleton } from '@/components/ui'
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
-import { AutoSaveIndicator } from '@/components/ui/AutoSaveIndicator'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
-import { SectionCard } from '@/components/ui/SectionCard'
-import { PageShell } from '@/components/ui/PageShell'
-import { reportError } from '@/lib/errorReporter'
-import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import { useOptimizedAnimation } from "@/hooks/useOptimizedAnimation";
+import { Button } from "@/components/ui/Button";
+import { Container } from "@/components/ui/Container";
+import { WizardSkeleton } from "@/components/ui";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { PageShell } from "@/components/ui/PageShell";
+import { isPaymentResolvedForProgress } from "@/lib/paymentStatus";
 
-import SubmissionSuccess from './components/SubmissionSuccess'
-import { StepChecklist } from './components/StepChecklist'
-import { ApplicationPreview } from './components/ApplicationPreview'
-import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
-import { DraftManager } from './components/DraftManager'
-import { AnalyticsDashboard } from './components/AnalyticsDashboard'
-import { EnhancedProgressIndicator } from './components/EnhancedProgressIndicator'
-import { WizardErrorSummary, type WizardValidationError } from './components/WizardErrorSummary'
-import BasicKycStep from './steps/BasicKycStep'
-import ProgramStep from './steps/ProgramStep'
-import AssignedSchoolStep from './steps/AssignedSchoolStep'
-import EducationStep from './steps/EducationStep'
-import PaymentStep from './steps/PaymentStep'
-import SubmitStep from './steps/SubmitStep'
-import useWizardController from './hooks/useWizardController'
-import { useStepValidation } from './hooks/useStepValidation'
-import { useOverallProgress } from './hooks/useOverallProgress'
-import { useSmartAutoSave } from './hooks/useSmartAutoSave'
-import { useEstimatedTime } from './hooks/useEstimatedTime'
-import { previousButtonLabel, saveNowLabel, wizardSteps, getStepIndexByKey } from './steps/config'
-import type { StepKey } from './steps/config'
-import type { SubjectGrade } from './types'
-import { WIZARD_COPY } from './constants'
-import { usePortalBrand } from '@/hooks/usePortalBrand'
-import { studentApplicationNewPath, studentApplicationResumePath } from '@/routes/routeRegistry'
-import { parseWizardDraftIntent } from './hooks/wizard/useWizardDraftLoader'
-import { applicationService } from '@/services/applications'
-import { isProtectedDraftPaymentError } from '@/lib/applicationSession'
-import { useDraftStore } from '@/stores/draftStore'
+import SubmissionSuccess from "./components/SubmissionSuccess";
+import { KeyboardShortcutsHelp } from "./components/KeyboardShortcutsHelp";
+import { EnhancedProgressIndicator } from "./components/EnhancedProgressIndicator";
+import {
+  WizardErrorSummary,
+  type WizardValidationError,
+} from "./components/WizardErrorSummary";
+import { WizardActionBar } from "./components/WizardActionBar";
+import { WizardContextPanel } from "./components/WizardContextPanel";
+import { WizardDraftPicker } from "./components/WizardDraftPicker";
+import { WizardProgressSummary } from "./components/WizardProgressSummary";
+import { WizardStepRenderer } from "./components/WizardStepRenderer";
+import useWizardController from "./hooks/useWizardController";
+import { useStepValidation } from "./hooks/useStepValidation";
+import { useOverallProgress } from "./hooks/useOverallProgress";
+import { useSmartAutoSave } from "./hooks/useSmartAutoSave";
+import { useWizardReadiness } from "./hooks/useWizardReadiness";
+import { wizardSteps, getStepIndexByKey } from "./steps/config";
+import type { StepKey } from "./steps/config";
+import type { SubjectGrade } from "./types";
+import { usePortalBrand } from "@/hooks/usePortalBrand";
+import {
+  pathFor,
+  studentApplicationNewPath,
+  studentApplicationResumePath,
+} from "@/routes/routeRegistry";
+import { parseWizardDraftIntent } from "./hooks/wizard/useWizardDraftLoader";
+import {
+  documentReviewChecks,
+  documentValidationFields,
+} from "./lib/requiredDocumentSurfaces";
+import { buildWizardChecklist } from "./lib/wizardChecklist";
+import { collectWizardValidationErrors } from "./lib/wizardValidationErrors";
+import { resolveWizardDeepLinkStep } from "./lib/wizardStepDeepLink";
+import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 // --- Lightweight online/offline hook ---
 const onlineSubscribe = (cb: () => void) => {
-  window.addEventListener('online', cb)
-  window.addEventListener('offline', cb)
-  return () => { window.removeEventListener('online', cb); window.removeEventListener('offline', cb) }
-}
-const getOnlineSnapshot = () => navigator.onLine
-const useIsOnline = () => useSyncExternalStore(onlineSubscribe, getOnlineSnapshot, () => true)
+  window.addEventListener("online", cb);
+  window.addEventListener("offline", cb);
+  return () => {
+    window.removeEventListener("online", cb);
+    window.removeEventListener("offline", cb);
+  };
+};
+const getOnlineSnapshot = () => navigator.onLine;
+
+const useIsOnline = () =>
+  useSyncExternalStore(onlineSubscribe, getOnlineSnapshot, () => true);
 
 // --- Detect mobile keyboard open via visualViewport ---
 function useKeyboardOpen() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const initialHeight = vv.height
-    const threshold = 150 // keyboard typically shrinks viewport by 150px+
-    const onResize = () => setOpen(initialHeight - vv.height > threshold)
-    vv.addEventListener('resize', onResize)
-    return () => vv.removeEventListener('resize', onResize)
-  }, [])
-  return open
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const initialHeight = vv.height;
+    const threshold = 150; // keyboard typically shrinks viewport by 150px+
+    const onResize = () => setOpen(initialHeight - vv.height > threshold);
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
+  return open;
 }
 
 const ApplicationWizardContent = () => {
+  const wizard = useWizardController();
   const {
     authLoading,
     restoringDraft,
@@ -85,28 +156,15 @@ const ApplicationWizardContent = () => {
     currentStepIndex,
     currentStepConfig,
     isLastStep,
-    selectedProgram,
     selectedProgramDetails,
     selectedGrades,
-    eligibilityCheck,
-    recommendedSubjects,
-    programs,
-    programsLoading,
     intakes,
-    subjects,
-    hasAutoPopulatedData,
-    completionPercentage,
-    missingFields,
     confirmSubmission,
-    setConfirmSubmission,
     resultSlipFile,
     extraKycFile,
-    uploadProgress,
-    uploadStates,
     uploadedFiles,
+    requiredDocuments,
     wizardReadiness,
-    isDraftSaving,
-    draftSaved,
     draftLoaded,
     draftApplicationsLoading,
     draftApplications,
@@ -116,19 +174,12 @@ const ApplicationWizardContent = () => {
     submittedApplication,
     applicationId,
     paymentStatus,
-    ocrStatus,
-    ocrExtractedCount,
-    ocrFailureReason,
-    ocrExtractionMeta,
-    retryOcr,
     persistingSlip,
     slipLoading,
     emailLoading,
     handleDownloadSlip,
     handleEmailSlip,
     dismissSlipProgress,
-    handleResultSlipUpload,
-    handleExtraKycUpload,
     handleLoadDraft,
     handleNextStep,
     handlePrevStep,
@@ -137,36 +188,42 @@ const ApplicationWizardContent = () => {
     removeGrade,
     updateGrade,
     getUsedSubjects,
-    saveDraft,
-    watchValues,
+    draftMachine,
+    draftSnapshot,
     goToStep,
-    refetchPaymentStatus,
-    setPaymentStatus,
+    assignmentResolved,
     assignmentPreview,
     assignmentPreviewLoading,
     assignmentPreviewError,
-    assignmentResolved,
-    refetchAssignmentPreview,
-    assignmentRecovery,
-    assignmentContactMailto,
-    assignmentInterestRecorded,
-    joinAssignmentInterestList
-  } = useWizardController()
+  } = wizard;
 
-  const navigate = useNavigate()
-  const location = useLocation()
-  const queryClient = useQueryClient()
-  const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const leaveDialog = useConfirmDialog();
 
+  // What the legacy two-field wizard knew. Used only when the versioned
+  // required-document contract could not be read (task 7.2, R11.6).
+  const legacyDocumentState = useMemo(
+    () => ({
+      hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
+      hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+      resultSlipName: resultSlipFile?.name ?? null,
+      identityName: extraKycFile?.name ?? null,
+    }),
+    [resultSlipFile, extraKycFile, uploadedFiles],
+  );
   const stepValidation = useStepValidation(form, currentStepIndex, {
     paymentStatus,
     confirmSubmission,
     selectedGrades,
-    hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
-    hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+    requiredDocuments: documentValidationFields(
+      requiredDocuments.contract,
+      legacyDocumentState,
+    ),
     uploading,
     assignmentResolved,
-  })
+  });
   const overallProgress = useOverallProgress(form, {
     selectedGrades,
     uploadedFiles,
@@ -174,425 +231,516 @@ const ApplicationWizardContent = () => {
     hasIdentityFile: Boolean(extraKycFile),
     paymentStatus,
     confirmSubmission,
-  })
-  const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
-  const { shouldAnimate } = useOptimizedAnimation()
-  const isOnline = useIsOnline()
-  const keyboardOpen = useKeyboardOpen()
-  const { brandName: portalBrandName } = usePortalBrand()
-  const draftIntent = parseWizardDraftIntent(location.search)
-  const locationParams = new URLSearchParams(location.search)
-  const isLocalDraftIntent = locationParams.get('localDraft') === 'true'
+  });
+  const { shouldAnimate } = useOptimizedAnimation();
+  const isOnline = useIsOnline();
+  const keyboardOpen = useKeyboardOpen();
+  const { brandName: portalBrandName } = usePortalBrand();
+  const draftIntent = parseWizardDraftIntent(location.search);
+  const locationParams = new URLSearchParams(location.search);
+  const isLocalDraftIntent = locationParams.get("localDraft") === "true";
   const wizardModeSummary = (() => {
-    if (draftIntent.mode === 'new') {
+    if (draftIntent.mode === "new") {
       return {
-        label: 'New application',
-        description: 'Saved drafts will not be restored into this application.',
-        className: 'border-primary/20 bg-primary/5 text-primary',
-      }
+        label: "New application",
+        description: "Saved drafts will not be restored into this application.",
+        className: "border-primary/20 bg-primary/5 text-primary",
+      };
     }
-    if (draftIntent.mode === 'resume') {
+    if (draftIntent.mode === "resume") {
       return {
-        label: 'Resuming draft',
-        description: 'Only the selected saved draft is loaded in this session.',
-        className: 'border-success/25 bg-success/5 text-success',
-      }
+        label: "Resuming draft",
+        description: "Only the selected saved draft is loaded in this session.",
+        className: "border-success/25 bg-success/5 text-foreground",
+      };
     }
-    if (draftIntent.mode === 'local' || isLocalDraftIntent) {
+    if (draftIntent.mode === "local" || isLocalDraftIntent) {
       return {
-        label: 'Local draft',
-        description: 'Your browser draft is being continued without clearing local progress.',
-        className: 'border-warning/25 bg-warning/5 text-warning',
-      }
+        label: "Local draft",
+        description:
+          "Your browser draft is being continued without clearing local progress.",
+        className: "border-warning/25 bg-warning/5 text-warning",
+      };
     }
     return {
-      label: applicationId ? 'Draft in progress' : 'Application in progress',
-      description: 'Autosave is active while you complete the application.',
-      className: 'border-border bg-muted/50 text-foreground',
-    }
-  })()
+      label: applicationId ? "Draft in progress" : "Application in progress",
+      description: "Autosave is active while you complete the application.",
+      className: "border-border bg-muted/50 text-foreground",
+    };
+  })();
   const draftChoices = (draftApplications?.applications ?? []) as Array<{
-    id?: string
-    program?: string | null
-    intake?: string | null
-    institution?: string | null
-    updated_at?: string | null
-    created_at?: string | null
-  }>
+    id?: string;
+  }>;
   const showDraftChoice = Boolean(
     user &&
     draftLoaded &&
     !draftApplicationsLoading &&
-    draftIntent.mode === 'auto' &&
+    draftIntent.mode === "auto" &&
     !applicationId &&
-    draftChoices.length > 0
-  )
+    draftChoices.length > 0,
+  );
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
   // - Submission processing (loading flag)
-  const isPaymentStepActive = currentStepConfig.key === 'payment'
-  const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
-  const isUploadBlocking = false // Uploads run in background — never block navigation
-  const nextButtonLabel = loading
-    ? 'Saving step...'
-    : isUploadBlocking
-      ? 'Finishing uploads...'
-      : 'Next Step'
-  const saveWizardDraft = useCallback(
-    () => saveDraft({ syncServer: true }),
-    [saveDraft]
-  )
+  const isPaymentStepActive = currentStepConfig.key === "payment";
+  const isPaymentInProgress =
+    isPaymentStepActive && paymentStatus === "pending";
+  const nextButtonLabel = loading ? "Saving step..." : "Next Step";
+  // The view over the draft machine. `enabled` is the autosave gate only: edits
+  // made while it is closed are recorded and written when it opens.
   const smartAutoSave = useSmartAutoSave({
-    onSave: saveWizardDraft,
-    watchValues,
-    enabled: draftLoaded && !showDraftChoice && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
-  })
+    machine: draftMachine,
+    snapshot: draftSnapshot,
+    enabled:
+      draftLoaded &&
+      !showDraftChoice &&
+      !loading &&
+      !uploading &&
+      !restoringDraft &&
+      !success &&
+      !isPaymentInProgress,
+  });
+  /** Leaving a step writes pending work; an unchanged draft writes nothing. */
+  const flushDraftBeforeLeavingStep = useCallback(() => {
+    void draftMachine.flush();
+  }, [draftMachine]);
 
-  const progressPercent = overallProgress.percentage
-  const paymentChecklistLabel = paymentStatus === 'deferred'
-    ? 'Payment deferred for later'
-    : paymentStatus === 'successful'
-      ? 'Payment processed via Lenco gateway'
-      : 'Payment action completed'
-  const submitPaymentChecklistLabel = paymentStatus === 'deferred'
-    ? 'Payment deferred and still outstanding'
-    : paymentStatus === 'successful'
-      ? 'Payment confirmed'
-      : 'Payment not yet resolved'
+  const progressPercent = overallProgress.percentage;
+
+  /**
+   * The platform's current blockers (task 6.5, R16.1).
+   *
+   * Read for the one application this wizard is editing, on the same query key the
+   * dashboard uses, and only once an online draft exists. The browser-derived
+   * `Missing: …` line this replaces is the defect 11.1 removed from the dashboard.
+   */
+  const serverReadiness = useWizardReadiness(applicationId, {
+    enabled: !success && !showDraftChoice,
+  });
 
   // Structured validation errors for the error summary (Req 5.2, 5.3)
-  const [validationErrors, setValidationErrors] = useState<WizardValidationError[]>([])
+  const [validationErrors, setValidationErrors] = useState<
+    WizardValidationError[]
+  >([]);
+  const [stepAnnouncement, setStepAnnouncement] = useState("");
+  const [deepLinkNotice, setDeepLinkNotice] = useState<string | null>(null);
 
   /**
    * Collect all validation errors for the current step based on form state
    * and step-specific required fields. Returns structured errors for the summary.
    */
-  const collectStepValidationErrors = useCallback((): WizardValidationError[] => {
-    const formData = form.watch()
-    const errors: WizardValidationError[] = []
+  /**
+   * The structured validation summary for the current step (Req 5.2, 5.3).
+   *
+   * The rules live in `lib/wizardValidationErrors.ts` — lifted verbatim by task
+   * 11.2, including the `gradesHydrating` guard that stops the education step
+   * claiming zero subjects while the server's grades are still loading.
+   */
+  const collectStepValidationErrors = useCallback(
+    (): WizardValidationError[] =>
+      collectWizardValidationErrors({
+        stepKey: currentStepConfig.key,
+        formData: form.watch(),
+        selectedGrades,
+        gradesHydrating,
+        resultSlipFile,
+        extraKycFile,
+        uploadedFiles,
+        uploading,
+        paymentStatus,
+        confirmSubmission,
+        assignmentResolved,
+      }),
+    [
+      form,
+      currentStepConfig.key,
+      selectedGrades,
+      gradesHydrating,
+      resultSlipFile,
+      extraKycFile,
+      uploadedFiles,
+      uploading,
+      paymentStatus,
+      confirmSubmission,
+      assignmentResolved,
+    ],
+  );
 
-    if (currentStepConfig.key === 'program') {
-      if (!formData.program) {
-        errors.push({ field: 'program', label: 'Program', message: 'Please select a program' })
-      }
-      if (!formData.intake) {
-        errors.push({ field: 'intake', label: 'Intake', message: 'Please select an intake' })
-      }
-    }
-
-    if (currentStepConfig.key === 'assignedSchool' && !assignmentResolved) {
-      errors.push({ field: 'assignedSchool', label: 'Assigned school', message: 'Confirm your assigned school and fee before continuing' })
-    }
-
-    if (currentStepConfig.key === 'personal') {
-      const fieldChecks: Array<{ field: string; label: string; check: () => boolean; message: string }> = [
-        { field: 'full_name', label: 'Full Name', check: () => !!formData.full_name, message: 'Full name is required' },
-        { field: 'date_of_birth', label: 'Date of Birth', check: () => !!formData.date_of_birth, message: 'Date of birth is required' },
-        { field: 'sex', label: 'Sex', check: () => !!formData.sex, message: 'Please select your sex' },
-        { field: 'phone', label: 'Phone', check: () => !!formData.phone, message: 'Phone number is required' },
-        { field: 'email', label: 'Email', check: () => !!formData.email, message: 'Email address is required' },
-        { field: 'residence_town', label: 'City/Town', check: () => !!formData.residence_town, message: 'City or town is required' },
-      ]
-
-      for (const { field, label, check, message } of fieldChecks) {
-        if (!check()) {
-          errors.push({ field, label, message })
-        }
-      }
-
-      if (!formData.nrc_number && !formData.passport_number) {
-        errors.push({ field: 'nrc_number', label: 'NRC or Passport', message: 'Either NRC or Passport number is required' })
-      }
-    }
-
-    if (currentStepConfig.key === 'education') {
-      if (!gradesHydrating) {
-        const validGrades = selectedGrades.filter(
-          grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
-        )
-        const gradeCount = new Set(validGrades.map(grade => grade.subject_id)).size
-        if (gradeCount < 5) {
-          errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 unique subjects required (${gradeCount} selected)` })
-        }
-        if (validGrades.length !== gradeCount) {
-          errors.push({ field: 'grades', label: 'Subject Grades', message: 'Each subject can only be selected once' })
-        }
-      }
-      if (!resultSlipFile && !uploadedFiles.result_slip) {
-        errors.push({ field: 'result_slip', label: 'Result Slip', message: 'Result slip is required' })
-      }
-      if (!extraKycFile && !uploadedFiles.extra_kyc) {
-        errors.push({ field: 'extra_kyc', label: 'Identity Document', message: 'An NRC or Passport document is required before proceeding' })
-      }
-    }
-
-    if (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus)) {
-      errors.push({ field: 'payment', label: 'Payment', message: 'Complete payment confirmation before moving to the review step' })
-    }
-
-    if (currentStepConfig.key === 'submit') {
-      if (!isPaymentResolvedForProgress(paymentStatus)) {
-        errors.push({ field: 'payment', label: 'Payment', message: 'Payment must be confirmed before you can submit the application' })
-      }
-      if (uploading) {
-        errors.push({ field: 'result_slip', label: 'Uploads', message: 'A file is still uploading. Please wait for it to finish before submitting.' })
-      }
-      if (!confirmSubmission) {
-        errors.push({ field: 'confirmSubmission', label: 'Confirmation', message: 'Please confirm that all information is accurate' })
-      }
-    }
-
-    return errors
-  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades, gradesHydrating, assignmentResolved])
-
-  // Aria-live region announcement for screen readers on step transition (Req 14.1, 14.2, 14.3)
-  const [stepAnnouncement, setStepAnnouncement] = useState(
-    `Step ${currentStepIndex + 1} of ${wizardSteps.length}: ${currentStepConfig.title}`
-  )
-  const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
-  const [stepKey, setStepKey] = useState(currentStepIndex)
-  const isPopstateNavRef = useRef(false)
-  const isInitialSyncRef = useRef(true)
-  const stepContentRef = useRef<HTMLDivElement>(null)
+  const [stepDirection, setStepDirection] = useState<"forward" | "backward">(
+    "forward",
+  );
+  const [stepKey, setStepKey] = useState(currentStepIndex);
+  const isPopstateNavRef = useRef(false);
+  const isInitialSyncRef = useRef(true);
+  const stepContentRef = useRef<HTMLDivElement>(null);
+  /**
+   * The URL the wizard was *opened* with, captured before its own history sync
+   * rewrites `?step=`. Deep-linking has to read the student's link, not the value
+   * the wizard just wrote over it.
+   */
+  const openedSearchRef = useRef(location.search);
+  const deepLinkAppliedRef = useRef(false);
+  /** False when there is nothing for the platform to resolve an assignment from. */
+  const hasAssignmentSelection = Boolean(
+    form.watch("program") && form.watch("intake"),
+  );
 
   useEffect(() => {
-    setStepKey(currentStepIndex)
+    setStepKey(currentStepIndex);
     // Clear validation errors when navigating to a new step
-    setValidationErrors([])
+    setValidationErrors([]);
     // Focus the step content container so screen readers announce the new step
     requestAnimationFrame(() => {
-      stepContentRef.current?.focus({ preventScroll: false })
-    })
-  }, [currentStepIndex, totalSteps, currentStepConfig.title])
+      stepContentRef.current?.focus({ preventScroll: false });
+    });
+  }, [currentStepIndex, totalSteps, currentStepConfig.title]);
+
+  /**
+   * Honour `?step=` on the first load (task 11.2; task 11.1 §2.2's deferral).
+   *
+   * Runs once, after the draft-resume machine has finished, so a deep link is a
+   * deliberate override of the resume step rather than a race with it. An
+   * unreachable step is clamped to the assigned-school checkpoint and the student is
+   * told why — a link that silently lands on the wrong step is worse than one that
+   * explains itself.
+   */
+  useEffect(() => {
+    if (deepLinkAppliedRef.current) return;
+    if (!draftLoaded || restoringDraft || success || showDraftChoice) return;
+
+    const resolution = resolveWizardDeepLinkStep(openedSearchRef.current, {
+      assignmentResolved,
+    });
+
+    // Nothing was asked for: the resume machine's step stands, exactly as before
+    // deep-linking existed.
+    if (!resolution.requested) {
+      deepLinkAppliedRef.current = true;
+      return;
+    }
+
+    if (resolution.index !== null) {
+      deepLinkAppliedRef.current = true;
+      if (resolution.index !== currentStepIndex) {
+        setStepDirection(
+          resolution.index > currentStepIndex ? "forward" : "backward",
+        );
+        goToStep(resolution.index);
+      }
+      return;
+    }
+
+    // Deferred: the step is real but not reachable *yet*. `assignmentResolved` is a
+    // server read, so on the first pass it is false for every step past the
+    // checkpoint even when the assignment is about to resolve — the browser run
+    // caught this refusing a perfectly good `?step=personal` link, and then caught a
+    // fixed 4 s grace period racing the catalog load. So the wizard waits for the
+    // gate to *conclude* rather than for a clock: it re-decides when the answer
+    // arrives (a dependency), and explains itself only once no answer can change the
+    // outcome — nothing selected to resolve, or a preview that settled unresolved.
+    // Only a *terminal* signal concludes: nothing selected to resolve from, or the
+    // platform refused. A preview that has merely arrived is not terminal — the
+    // browser run showed it arriving a beat before its fee, so treating "arrived" as
+    // "unresolved" refused the link intermittently on one project and not the other.
+    // A missing selection is only terminal when there is no draft behind it: on a
+    // resumed draft the programme arrives a render after the form hydrates, and
+    // reading that gap as "nothing to resolve" refused the link once in five runs.
+    const nothingToResolveFrom = !applicationId && !hasAssignmentSelection;
+    const gateAnswered =
+      Boolean(assignmentPreviewError) ||
+      (assignmentPreview != null && !assignmentPreviewLoading);
+    if (nothingToResolveFrom || gateAnswered) {
+      deepLinkAppliedRef.current = true;
+      setDeepLinkNotice(
+        "We kept you where you left off. The step in that link becomes available once your assigned school and fee are confirmed.",
+      );
+    }
+  }, [
+    draftLoaded,
+    restoringDraft,
+    success,
+    showDraftChoice,
+    assignmentResolved,
+    assignmentPreview,
+    assignmentPreviewLoading,
+    assignmentPreviewError,
+    hasAssignmentSelection,
+    applicationId,
+    currentStepIndex,
+    goToStep,
+  ]);
 
   // Browser back/forward navigation support (Req 11.2, 11.3)
   // Push history state when step changes (but not on popstate-driven changes)
   useEffect(() => {
-    if (success) return
-    if (restoringDraft) return
+    if (success) return;
+    if (restoringDraft) return;
     if (isPopstateNavRef.current) {
-      isPopstateNavRef.current = false
-      return
+      isPopstateNavRef.current = false;
+      return;
     }
-    const url = new URL(window.location.href)
-    url.searchParams.set('step', currentStepConfig.key)
+    const url = new URL(window.location.href);
+    url.searchParams.set("step", currentStepConfig.key);
     if (isInitialSyncRef.current) {
-      isInitialSyncRef.current = false
-      window.history.replaceState({ wizardStep: currentStepIndex }, '', url.toString())
+      isInitialSyncRef.current = false;
+      window.history.replaceState(
+        { wizardStep: currentStepIndex },
+        "",
+        url.toString(),
+      );
     } else {
-      window.history.pushState({ wizardStep: currentStepIndex }, '', url.toString())
+      window.history.pushState(
+        { wizardStep: currentStepIndex },
+        "",
+        url.toString(),
+      );
     }
-  }, [currentStepIndex, currentStepConfig.key, success, restoringDraft])
+  }, [currentStepIndex, currentStepConfig.key, success, restoringDraft]);
 
   // Listen for popstate (browser back/forward)
   useEffect(() => {
-    if (success) return
+    if (success) return;
 
     const handlePopState = (event: PopStateEvent) => {
-      const state = event.state as { wizardStep?: number } | null
-      if (state && typeof state.wizardStep === 'number') {
-        isPopstateNavRef.current = true
-        goToStep(state.wizardStep)
-        return
+      const state = event.state as { wizardStep?: number } | null;
+      if (state && typeof state.wizardStep === "number") {
+        isPopstateNavRef.current = true;
+        goToStep(state.wizardStep);
+        return;
       }
       // Fallback: read step from URL
-      const url = new URL(window.location.href)
-      const stepParam = url.searchParams.get('step')
+      const url = new URL(window.location.href);
+      const stepParam = url.searchParams.get("step");
       if (stepParam) {
-        const stepIndex = wizardSteps.findIndex(s => s.key === stepParam)
+        const stepIndex = wizardSteps.findIndex((s) => s.key === stepParam);
         if (stepIndex >= 0) {
-          isPopstateNavRef.current = true
-          goToStep(stepIndex)
+          isPopstateNavRef.current = true;
+          goToStep(stepIndex);
         }
       }
-    }
+    };
 
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [success, goToStep])
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [success, goToStep]);
 
   // Track step direction for transitions
   const wrappedHandleNextStep = useCallback(() => {
-    setStepDirection('forward')
-    void handleNextStep()
-  }, [handleNextStep])
+    setStepDirection("forward");
+    void handleNextStep();
+  }, [handleNextStep]);
 
   const wrappedHandlePrevStep = useCallback(() => {
-    setStepDirection('backward')
-    handlePrevStep()
-  }, [handlePrevStep])
+    setStepDirection("backward");
+    handlePrevStep();
+  }, [handlePrevStep]);
 
-  const handleProgressStepClick = useCallback((stepIndex: number) => {
-    if (stepIndex >= currentStepIndex) return
-    setStepDirection('backward')
-    void saveWizardDraft()
-    goToStep(stepIndex)
-  }, [currentStepIndex, goToStep, saveWizardDraft])
+  const handleProgressStepClick = useCallback(
+    (stepIndex: number) => {
+      if (stepIndex >= currentStepIndex) return;
+      setStepDirection("backward");
+      flushDraftBeforeLeavingStep();
+      goToStep(stepIndex);
+    },
+    [currentStepIndex, goToStep, flushDraftBeforeLeavingStep],
+  );
 
-  const handleNavigateToStep = useCallback((stepKey: StepKey) => {
-    const idx = wizardSteps.findIndex(s => s.key === stepKey)
-    if (idx >= 0) {
-      setStepDirection('backward')
-      void saveWizardDraft()
-      goToStep(idx)
-    }
-  }, [goToStep, saveWizardDraft])
+  const handleNavigateToStep = useCallback(
+    (targetStepKey: StepKey) => {
+      const idx = wizardSteps.findIndex((s) => s.key === targetStepKey);
+      if (idx >= 0) {
+        setStepDirection("backward");
+        flushDraftBeforeLeavingStep();
+        goToStep(idx);
+      }
+    },
+    [goToStep, flushDraftBeforeLeavingStep],
+  );
 
   // Populate validation errors and focus first errored field on validation error (Req 5.2, 5.3)
   useEffect(() => {
     if (!error) {
-      setValidationErrors([])
-      return
+      setValidationErrors([]);
+      return;
     }
     // Collect structured errors for the summary
-    const collected = collectStepValidationErrors()
-    setValidationErrors(collected)
+    const collected = collectStepValidationErrors();
+    setValidationErrors(collected);
 
     // Small delay to let the error summary render, then focus first errored field
     const timer = setTimeout(() => {
-      const firstError = collected[0]
+      const firstError = collected[0];
       if (firstError) {
-        const firstField = firstError.field
+        const firstField = firstError.field;
         const el =
           document.querySelector<HTMLElement>(`[name="${firstField}"]`) ||
-          document.querySelector<HTMLElement>(`#${CSS.escape(firstField)}`)
+          document.querySelector<HTMLElement>(`#${CSS.escape(firstField)}`);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          el.focus({ preventScroll: true })
-          return
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.focus({ preventScroll: true });
+          return;
         }
       }
       // Fallback: focus any aria-invalid field
-      const errorField = document.querySelector('[aria-invalid="true"]') as HTMLElement
+      const errorField = document.querySelector(
+        '[aria-invalid="true"]',
+      ) as HTMLElement;
       if (errorField) {
-        errorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        errorField.focus({ preventScroll: true })
-        return
+        errorField.scrollIntoView({ behavior: "smooth", block: "center" });
+        errorField.focus({ preventScroll: true });
+        return;
       }
       // Last fallback: scroll to the error alert itself
-      const errorAlert = document.querySelector('[role="alert"]') as HTMLElement
+      const errorAlert = document.querySelector(
+        '[role="alert"]',
+      ) as HTMLElement;
       if (errorAlert) {
-        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        errorAlert.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [error, collectStepValidationErrors])
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [error, collectStepValidationErrors]);
 
   // Focus first [aria-invalid="true"] field when validation errors appear (Req 17.1)
   useEffect(() => {
-    if (validationErrors.length === 0) return
+    if (validationErrors.length === 0) return;
     const timer = setTimeout(() => {
-      const first = document.querySelector('[aria-invalid="true"]')
+      const first = document.querySelector('[aria-invalid="true"]');
       if (first instanceof HTMLElement) {
-        first.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        first.focus({ preventScroll: true })
+        first.scrollIntoView({ behavior: "smooth", block: "center" });
+        first.focus({ preventScroll: true });
       }
-    }, 150)
-    return () => clearTimeout(timer)
-  }, [validationErrors])
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [validationErrors]);
 
   /**
    * Build an aria-describedby value for a field that includes the wizard-level
    * error summary item id when the field has a validation error (Req 17.2).
    */
-  const getFieldAriaDescribedBy = useCallback((fieldName: string): string | undefined => {
-    const hasError = validationErrors.some(e => e.field === fieldName)
-    return hasError ? `wizard-error-${fieldName}` : undefined
-  }, [validationErrors])
+  const getFieldAriaDescribedBy = useCallback(
+    (fieldName: string): string | undefined => {
+      const hasError = validationErrors.some((e) => e.field === fieldName);
+      return hasError ? `wizard-error-${fieldName}` : undefined;
+    },
+    [validationErrors],
+  );
 
   // Update aria-live announcement when validation errors appear on the current step (Req 14.3)
   useEffect(() => {
-    const base = `Step ${currentStepIndex + 1} of ${wizardSteps.length}: ${currentStepConfig.title}`
-    setStepAnnouncement(validationErrors.length > 0 ? `${base}. Validation errors found.` : base)
-  }, [validationErrors, currentStepIndex, currentStepConfig.title])
+    const base = `Step ${currentStepIndex + 1} of ${wizardSteps.length}: ${currentStepConfig.title}`;
+    setStepAnnouncement(
+      validationErrors.length > 0 ? `${base}. Validation errors found.` : base,
+    );
+  }, [validationErrors, currentStepIndex, currentStepConfig.title]);
 
-  const getChecklistItems = () => {
-    // Defensive: some test setups call this component without a populated form.watch()
-    // Ensure we always have an object to read from to avoid runtime errors in tests.
-    const values = (() => {
-      try {
-        return typeof form?.watch === 'function' ? (form.watch() as Record<string, unknown> ?? {}) : {}
-      } catch {
-        return {}
-      }
-    })()
-    const uniqueGradeCount = new Set(
-      selectedGrades
-        .filter(grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9)
-        .map(grade => grade.subject_id)
-    ).size
-    switch (currentStepIndex) {
-      case 0:
-        return [
-          { label: 'Program selected', completed: !!values.program },
-          { label: 'Intake selected', completed: !!values.intake }
-        ]
-      case 1:
-        return [
-          { label: 'Assigned school confirmed', completed: assignmentResolved }
-        ]
-      case 2:
-        return [
-          { label: 'Personal details complete', completed: !!(values.full_name && values.date_of_birth && values.sex) },
-          { label: 'Contact information provided', completed: !!(values.phone && values.email) },
-          { label: 'NRC or Passport provided', completed: !!(values.nrc_number || values.passport_number) },
-          { label: 'Address details added', completed: !!values.residence_town }
-        ]
-      case 3:
-        return [
-          { label: `${uniqueGradeCount} unique subjects added (min 5)`, completed: uniqueGradeCount >= 5 },
-          { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip },
-          { label: 'Identity document uploaded (NRC or Passport)', completed: !!extraKycFile || !!uploadedFiles.extra_kyc }
-        ]
-      case 4:
-        return [
-          { label: paymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) }
-        ]
-      case 5:
-        return [
-          { label: submitPaymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) },
-          { label: 'Terms accepted', completed: confirmSubmission }
-        ]
-      default:
-        return []
-    }
-  }
+  const checklistItems = useMemo(
+    () =>
+      buildWizardChecklist({
+        stepKey: currentStepConfig.key,
+        values: (() => {
+          try {
+            return typeof form?.watch === "function"
+              ? ((form.watch() as Record<string, unknown>) ?? {})
+              : {};
+          } catch {
+            return {};
+          }
+        })(),
+        selectedGrades,
+        assignmentResolved,
+        confirmSubmission,
+        paymentStatus,
+        requiredDocumentsContract: requiredDocuments.contract,
+        legacyDocumentState,
+      }),
+    [
+      currentStepConfig.key,
+      form,
+      selectedGrades,
+      assignmentResolved,
+      confirmSubmission,
+      paymentStatus,
+      requiredDocuments.contract,
+      legacyDocumentState,
+    ],
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
     if (success) {
-      return
+      return;
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !loading) {
-        if (e.key === 'ArrowRight' && !isLastStep) {
-          e.preventDefault()
-          wrappedHandleNextStep()
-        } else if (e.key === 'ArrowLeft' && currentStepIndex > 0) {
-          e.preventDefault()
-          wrappedHandlePrevStep()
-        } else if (e.key === 's') {
-          e.preventDefault()
-          saveWizardDraft()
+        if (e.key === "ArrowRight" && !isLastStep) {
+          e.preventDefault();
+          wrappedHandleNextStep();
+        } else if (e.key === "ArrowLeft" && currentStepIndex > 0) {
+          e.preventDefault();
+          wrappedHandlePrevStep();
+        } else if (e.key === "s") {
+          e.preventDefault();
+          void smartAutoSave.forceSave();
         }
       }
-      if (e.key === 'Escape') {
-        setError('')
+      if (e.key === "Escape") {
+        setError("");
       }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    currentStepIndex,
+    isLastStep,
+    loading,
+    uploading,
+    success,
+    wrappedHandleNextStep,
+    wrappedHandlePrevStep,
+    smartAutoSave,
+    setError,
+  ]);
+
+  /**
+   * Leaving with unsaved edits (R16.6).
+   *
+   * This was `window.confirm('You have unsaved changes...')`, the last native
+   * dialog owning a wizard workflow. Task 11.1 left it deliberately, naming this
+   * task or 11.5 as its owner; it is **this** task's, because it belongs to the
+   * back affordance this recomposition rewrites, and because a native confirm
+   * cannot say what the product dialog says: the work is already saved on this
+   * device, and there is a way to save it now.
+   */
+  const confirmLeavingEdits = useCallback(async (): Promise<boolean> => {
+    // Asked only when the draft machine says the work is not in the student's
+    // account yet: RHF's `isDirty` compares with the blank defaults, so it was
+    // true after every resume even when nothing was unsaved.
+    if (success || !(draftSnapshot.hasUnsyncedWork || draftSnapshot.localOnly)) {
+      return true;
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStepIndex, isLastStep, loading, uploading, success, wrappedHandleNextStep, wrappedHandlePrevStep, saveWizardDraft, setError])
+    return leaveDialog.confirm({
+      title: "Leave this application?",
+      message:
+        "You have changes that have not been saved to your account yet. They stay on this device, and you can come back to this draft at any time. Save now if you are on a different device later.",
+      confirmText: "Leave application",
+      cancelText: "Stay here",
+      variant: "warning",
+    });
+  }, [draftSnapshot.hasUnsyncedWork, draftSnapshot.localOnly, success, leaveDialog]);
+
+  const handleBackToDashboard = useCallback(async () => {
+    if (!(await confirmLeavingEdits())) return;
+    navigate("/student/dashboard");
+  }, [confirmLeavingEdits, navigate]);
 
   if (authLoading || restoringDraft) {
-    return (
-      <WizardSkeleton />
-    )
+    return <WizardSkeleton />;
   }
 
-  if (!user) return null
+  if (!user) return null;
 
   if (success && submittedApplication) {
     return (
@@ -605,52 +753,80 @@ const ApplicationWizardContent = () => {
         onEmail={handleEmailSlip}
         onDismissSlipProgress={dismissSlipProgress}
       />
-    )
+    );
   }
 
   const handleAddGrade = () => {
-    setError('')
-    addGrade()
-  }
+    setError("");
+    addGrade();
+  };
 
   const handleRemoveGrade = (index: number) => {
-    setError('')
-    removeGrade(index)
-  }
+    setError("");
+    removeGrade(index);
+  };
 
-  const handleUpdateGrade = (index: number, field: keyof SubjectGrade, value: string | number) => {
-    setError('')
-    updateGrade(index, field, value)
-  }
+  const handleUpdateGrade = (
+    index: number,
+    field: keyof SubjectGrade,
+    value: string | number,
+  ) => {
+    setError("");
+    updateGrade(index, field, value);
+  };
 
-  const handleGetUsedSubjects = () => getUsedSubjects()
+  const handleGetUsedSubjects = () => getUsedSubjects();
 
-  const handleDeleteChoiceDraft = async (draftId: string) => {
-    if (!window.confirm('Delete this draft? This cannot be undone.')) return
+  const startNewApplication = () => {
+    // Let go of any open draft before clearing the form, so the cleared values
+    // are never mistaken for edits to it (the intent change then re-hydrates).
+    draftMachine.reset();
+    form.reset();
+    setError("");
+    navigate(studentApplicationNewPath(), { replace: true });
+  };
 
-    setDeletingDraftId(draftId)
-    try {
-      await applicationService.delete(draftId)
-      useDraftStore.getState().markCleared()
-      queryClient.removeQueries({ queryKey: ['applications', 'detail', draftId] })
-      await queryClient.invalidateQueries({ queryKey: ['applications'] })
-      window.dispatchEvent(new CustomEvent('draftCleared', { detail: { deletedIds: [draftId], blockedIds: [] } }))
-      if (draftChoices.length <= 1) {
-        navigate(studentApplicationNewPath(), { replace: true })
-      }
-    } catch (deleteError) {
-      if (isProtectedDraftPaymentError(deleteError)) {
-        setError('This draft has payment activity and cannot be deleted. Continue it or contact admissions for help.')
-      } else {
-        setError('We could not delete this draft. Please try again.')
-      }
-    } finally {
-      setDeletingDraftId(null)
-    }
-  }
+  /**
+   * Leave this draft for the chooser, or for a clean one.
+   *
+   * Both go through the same unsaved-changes dialog as "Back to Dashboard": a
+   * student who taps "Switch application" mid-sentence is leaving edits behind
+   * exactly as much as one who taps the back link, and R16.6 wants that said once,
+   * in a product dialog, not twice in different words.
+   */
+  const handleSwitchApplication = async () => {
+    if (!(await confirmLeavingEdits())) return;
+    navigate(pathFor("student.applicationWizard"));
+  };
 
+  const handleStartAnother = async () => {
+    if (!(await confirmLeavingEdits())) return;
+    // The open draft's unsaved work stays in its own outbox record (the dialog
+    // says so); the machine lets go of it before the form is cleared.
+    draftMachine.reset();
+    form.reset();
+    setError("");
+    navigate(studentApplicationNewPath(), { replace: true });
+  };
+
+  const continueChosenDraft = (
+    draft: Parameters<typeof handleLoadDraft>[0],
+    draftId: string,
+  ) => {
+    void handleLoadDraft(draft, draftId);
+    void queryClient.invalidateQueries({ queryKey: ["applications"] });
+  };
+
+  /**
+   * The draft-choice screen (R10.1, STU-12).
+   *
+   * A bare visit with saved drafts stops and asks; it never picks by timestamp. The
+   * list is now the *same* `WizardDraftPicker` the wizard itself offers, so
+   * continue / rename / delete read identically in both places and the scoped
+   * delete command has one implementation (task 11.1's `deleteStudentDraft`, reached
+   * through `useMultiDraft`).
+   */
   if (showDraftChoice) {
-    const latestDraft = draftChoices[0]
     return (
       <>
         <Seo
@@ -666,103 +842,34 @@ const ApplicationWizardContent = () => {
           maxWidth="4xl"
           tone="application"
         >
-          <div className="grid gap-4">
-            <SectionCard
-              title="Saved drafts"
-              description="Pick the draft you want to continue. Starting new will not attach this session to an old application."
-              icon={<CheckCircle className="h-5 w-5" />}
-            >
-              <Alert variant="warning" className="mb-4">
-                <AlertTitle>Payment-linked drafts</AlertTitle>
-                <AlertDescription>
-                  Drafts with payment activity cannot be deleted from this screen. Continue the draft or contact admissions for help.
-                </AlertDescription>
-              </Alert>
-              <div className="grid gap-3">
-                {draftChoices.slice(0, 5).map((draft, index) => {
-                  const draftId = String(draft.id || '')
-                  if (!draftId) return null
-                  const updatedAt = draft.updated_at || draft.created_at
-                  const title = draft.program || 'Untitled application'
-                  const subtitle = [draft.institution, draft.intake].filter(Boolean).join(' · ')
-                  const status = String((draft as { status?: unknown }).status || 'draft').replace(/_/g, ' ')
-                  return (
-                    <div key={draftId} className="grid gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground">{index === 0 ? 'Latest draft' : 'Saved draft'}</p>
-                          <span className="inline-flex min-h-6 items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 text-xs font-semibold capitalize text-primary">
-                            {status}
-                          </span>
-                        </div>
-                        <p className="break-words text-base font-semibold text-foreground">{title}</p>
-                        {subtitle && <p className="break-words text-sm text-muted-foreground">{subtitle}</p>}
-                        {updatedAt && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                            Last saved {new Date(updatedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                      <div className="grid gap-2 sm:min-w-44">
-                        <Button
-                          type="button"
-                          variant="primary"
-                          className="w-full sm:w-auto"
-                          onClick={() => {
-                            void handleLoadDraft(draft, draftId)
-                          }}
-                        >
-                          Continue draft
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full text-destructive hover:bg-destructive/5 sm:w-auto"
-                          loading={deletingDraftId === draftId}
-                          disabled={deletingDraftId === draftId}
-                          onClick={() => {
-                            void handleDeleteChoiceDraft(draftId)
-                          }}
-                        >
-                          {deletingDraftId !== draftId && <Trash2 className="h-4 w-4" aria-hidden="true" />}
-                          Delete draft
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </SectionCard>
-
-            <SectionCard
-              title="Start new"
-              description="Begin a separate application without restoring saved draft data."
-              icon={<ArrowRight className="h-5 w-5" />}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.reset()
-                  setError('')
-                  navigate(studentApplicationNewPath(), { replace: true })
-                }}
-              >
-                Start a new application
-              </Button>
-              {latestDraft?.id && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Your saved draft remains available and will not be changed unless you continue or delete it.
-                </p>
-              )}
-            </SectionCard>
-          </div>
+          <SectionCard
+            title="Saved drafts"
+            description="Pick the draft you want to continue. Starting new will not attach this session to an old application."
+            icon={<FileText className="h-5 w-5" />}
+          >
+            <WizardDraftPicker
+              userId={user?.id}
+              currentDraftId={applicationId}
+              onContinueDraft={continueChosenDraft}
+              onStartNew={startNewApplication}
+            />
+          </SectionCard>
         </PageShell>
       </>
-    )
+    );
   }
 
+  const previousStepTitle =
+    currentStepIndex > 0
+      ? (wizardSteps[currentStepIndex - 1]?.progressTitle ?? "previous step")
+      : null;
+  const nextStepTitle =
+    wizardSteps[currentStepIndex + 1]?.progressTitle ?? null;
+  const nextDisabled =
+    smartAutoSave.saveStatus === "conflict" ||
+    (currentStepConfig.key === "assignedSchool" && !assignmentResolved) ||
+    (currentStepConfig.key === "payment" &&
+      !isPaymentResolvedForProgress(paymentStatus));
 
   return (
     <>
@@ -772,555 +879,378 @@ const ApplicationWizardContent = () => {
         path="/student/application-wizard"
         noindex
       />
-    <PageShell
-      title="Student Application"
-      eyebrow="Application Flow"
-      subtitle={`Complete ${totalSteps} steps for ${portalBrandName} with autosave, upload status, payment confirmation, and review before submission.`}
-      maxWidth="full"
-      tone="application"
-      metrics={[
-        {
-          label: 'Current step',
-          value: `${currentStepIndex + 1} of ${totalSteps}`,
-          helper: currentStepConfig.title,
-        },
-        {
-          label: 'Completion',
-          value: `${progressPercent}%`,
-          helper: wizardReadiness.canSubmit ? 'Ready to submit' : `${wizardReadiness.completedItems}/${wizardReadiness.totalItems} requirements complete`,
-        },
-        {
-          label: 'Estimated time',
-          value: formattedTime,
-          helper: 'Based on your current progress',
-        },
-        {
-          label: 'Draft status',
-          value: smartAutoSave.saveStatus === 'saved' ? 'Protected' : smartAutoSave.saveStatus === 'saving' ? 'Saving…' : 'In progress',
-          helper: smartAutoSave.changedFields.length > 0 ? `${smartAutoSave.changedFields.length} unsaved field changes` : 'Autosave is active',
-        },
-      ]}
-      className={shouldAnimate ? "animate-fade-in" : ""}
-    >
-      {/* Visually hidden aria-live region for screen reader step announcements */}
-      <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {stepAnnouncement}
-      </div>
-      {/* P1-8: Offline indicator */}
-      {!isOnline && (
-        <div role="alert" className="mx-auto mb-4 max-w-2xl rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-center text-sm text-warning-strong">
-          You appear to be offline. Your progress is saved locally and will sync when you reconnect.
-        </div>
-      )}
-      <div
-        className={`mx-auto mb-4 flex max-w-2xl flex-col gap-1 rounded-lg border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${wizardModeSummary.className}`}
-        role="status"
-        aria-live="polite"
+      <PageShell
+        title="Student Application"
+        eyebrow="Application Flow"
+        subtitle={`Complete ${totalSteps} steps with autosave. You can leave and come back at any time.`}
+        maxWidth="full"
+        tone="application"
+        className={shouldAnimate ? "animate-fade-in" : ""}
       >
-        <span className="font-semibold">{wizardModeSummary.label}</span>
-        <span className="text-xs leading-5 text-foreground/80 sm:text-right">{wizardModeSummary.description}</span>
-      </div>
-      <div className="w-full">
-        <Container size="md" className="py-4 sm:py-8">
-          <div className="mb-8 space-y-4">
+        {/* Visually hidden aria-live region for screen reader step announcements */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {stepAnnouncement}
+        </div>
+
+        <Container size="md" className="space-y-4 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => {
-                if (form.formState.isDirty && !success) {
-                  if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) return
-                }
-                navigate('/student/dashboard')
+                void handleBackToDashboard();
               }}
               className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
-              <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Dashboard
             </button>
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${wizardModeSummary.className}`}
+              role="status"
+              aria-live="polite"
+              data-testid="wizard-mode-summary"
+              title={wizardModeSummary.description}
+            >
+              {wizardModeSummary.label}
+            </span>
           </div>
-        </Container>
 
-        <Container size="md" className="mb-6 lg:mb-8">
-          <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div className="flex-1">
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground">
-                {currentStepConfig.title}
-              </h2>
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                {currentStepConfig.description}
-              </p>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="flex-1 overflow-hidden rounded-full bg-border/40"
-                    role="progressbar"
-                    aria-label="Application progress"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={progressPercent}
-                  >
-                    <div
-                      className="h-2 rounded-full bg-primary transition-[width] duration-300 ease-out"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                  <div className="flex min-w-[3rem] flex-col items-end">
-                    <span className="text-xs font-semibold text-foreground">
-                      {progressPercent}%
-                    </span>
-                    <span className="hidden text-right text-xs text-foreground/70 sm:block">
-                      {formattedTime}
-                    </span>
-                  </div>
+          {!isOnline && (
+            <div
+              role="alert"
+              className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground"
+            >
+              You appear to be offline. Your progress is saved on this device
+              and will sync when you reconnect.
+            </div>
+          )}
+
+          {deepLinkNotice && (
+            <Alert variant="warning">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Opened a different step</AlertTitle>
+              <AlertDescription>{deepLinkNotice}</AlertDescription>
+            </Alert>
+          )}
+
+          <WizardProgressSummary
+            stepNumber={currentStepIndex + 1}
+            totalSteps={totalSteps}
+            stepTitle={currentStepConfig.title}
+            stepDescription={currentStepConfig.description}
+            percentComplete={progressPercent}
+            blockers={serverReadiness.blockers}
+            readinessLoading={serverReadiness.isLoading}
+            readinessUnavailable={serverReadiness.unavailable}
+            canSubmit={serverReadiness.canSubmit}
+            notEvaluatedYet={!applicationId}
+            onRetryReadiness={serverReadiness.refetch}
+          />
+
+          <EnhancedProgressIndicator
+            steps={wizardSteps}
+            currentStepIndex={currentStepIndex}
+            onStepClick={handleProgressStepClick}
+            progressPercentage={progressPercent}
+            compact
+          />
+
+          {validationErrors.length > 0 && (
+            <WizardErrorSummary errors={validationErrors} />
+          )}
+
+          {error && validationErrors.length === 0 && (
+            <Alert variant="error" className="animate-slide-up">
+              <div className="flex flex-1 flex-col gap-3">
+                <div>
+                  <AlertTitle className="text-foreground">
+                    Something needs attention
+                  </AlertTitle>
+                  <AlertDescription className="mt-1 text-foreground">
+                    {error}
+                  </AlertDescription>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    {wizardReadiness.canSubmit ? (
-                      <CheckCircle className="h-3.5 w-3.5 text-success" />
-                    ) : (
-                      <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-muted-foreground" />
+                <div className="flex flex-wrap gap-2">
+                  {duplicateDraftConflict &&
+                    duplicateDraftConflict.existingId && (
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        className="min-h-touch"
+                        onClick={() => {
+                          const existingId = duplicateDraftConflict.existingId!;
+                          clearDuplicateDraftConflict();
+                          navigate(studentApplicationResumePath(existingId), {
+                            replace: true,
+                          });
+                        }}
+                      >
+                        Continue existing
+                      </Button>
                     )}
-                    <span className={`min-w-0 break-words font-medium ${
-                      wizardReadiness.canSubmit ? 'text-success' : 'text-foreground/80'
-                    }`}>
-                      {wizardReadiness.completedItems}/{wizardReadiness.totalItems} requirements complete
-                    </span>
-                  </div>
-                  {!wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
-                    <span className="min-w-0 break-words text-foreground/75">
-                      {WIZARD_COPY.missingFieldsPrefix} {wizardReadiness.missingItems.slice(0, 2).map(item => item.label).join(', ')}
-                      {wizardReadiness.missingItems.length > 2 && ` +${wizardReadiness.missingItems.length - 2} more`}
-                    </span>
+                  {duplicateDraftConflict && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="min-h-touch"
+                      onClick={() => {
+                        clearDuplicateDraftConflict();
+                        goToStep(getStepIndexByKey("program"));
+                      }}
+                    >
+                      Change program
+                    </Button>
                   )}
-                </div>
-              </div>
-            </div>
-            <div className="flex min-h-[44px] w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 sm:w-auto sm:min-w-[17rem] sm:flex-nowrap sm:justify-end sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-              {/* Auto-save status indicator */}
-              <AutoSaveIndicator
-                status={
-                  smartAutoSave.saveStatus === 'offline' || smartAutoSave.saveStatus === 'conflict'
-                    ? 'error'
-                    : smartAutoSave.saveStatus as 'idle' | 'saving' | 'saved' | 'error'
-                }
-                lastSavedAt={smartAutoSave.lastSaved ? smartAutoSave.lastSaved.getTime() : null}
-                className="min-h-[24px] min-w-[5.5rem]"
-              />
-              
-              {/* Legacy changed fields indicator */}
-              {smartAutoSave.changedFields.length > 0 && smartAutoSave.saveStatus !== 'saving' && (
-                <span className="hidden text-xs font-medium text-warning md:inline">
-                  {smartAutoSave.changedFields.length} unsaved change{smartAutoSave.changedFields.length > 1 ? 's' : ''}
-                </span>
-              )}
-              
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                onClick={smartAutoSave.forceSave} 
-                disabled={smartAutoSave.isSaving} 
-                className="hover:bg-primary/10"
-                aria-label={saveNowLabel}
-              >
-                <Send className="h-4 w-4 sm:mr-2" />
-                <span className={smartAutoSave.changedFields.length > 0 || smartAutoSave.saveStatus === 'error' ? 'inline' : 'hidden sm:inline'}>
-                  {saveNowLabel}
-                </span>
-              </Button>
-            </div>
-            {smartAutoSave.saveStatus === 'error' && smartAutoSave.saveError && (
-              <p className="text-xs font-medium text-destructive sm:text-right">
-                {smartAutoSave.saveError}
-              </p>
-            )}
-          </div>
-
-          <div className="relative">
-            {/* Enhanced Progress Indicator - Requirements 7.1, 7.2 */}
-            <EnhancedProgressIndicator
-              steps={wizardSteps}
-              currentStepIndex={currentStepIndex}
-              onStepClick={handleProgressStepClick}
-              progressPercentage={progressPercent}
-            />
-          </div>
-          </div>
-        </Container>
-
-        <Container size="md">
-
-        {/* Validation error summary with field links (Req 5.2, 5.3) */}
-        {validationErrors.length > 0 && (
-          <WizardErrorSummary errors={validationErrors} />
-        )}
-
-        {error && validationErrors.length === 0 && (
-          <Alert variant="error" className="mb-6 animate-slide-up">
-            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <AlertTitle className="text-foreground">Something needs attention</AlertTitle>
-                <AlertDescription className="mt-1 text-foreground">{error}</AlertDescription>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
-                {duplicateDraftConflict && duplicateDraftConflict.existingId && (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    className="min-h-touch"
-                    onClick={() => {
-                      const existingDraft = draftChoices.find(draft => String(draft.id || '') === duplicateDraftConflict.existingId)
-                      clearDuplicateDraftConflict()
-                      if (existingDraft) {
-                        void handleLoadDraft(existingDraft, duplicateDraftConflict.existingId!)
-                      } else {
-                        navigate(studentApplicationResumePath(duplicateDraftConflict.existingId!), { replace: true })
-                      }
-                    }}
-                  >
-                    Continue existing
-                  </Button>
-                )}
-                {duplicateDraftConflict && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-touch"
-                    onClick={() => {
-                      clearDuplicateDraftConflict()
-                      goToStep(0)
-                    }}
-                  >
-                    Change program
-                  </Button>
-                )}
-                {duplicateDraftConflict && (
+                  {(error.toLowerCase().includes("network") ||
+                    error.toLowerCase().includes("connection") ||
+                    error.toLowerCase().includes("failed to") ||
+                    error.toLowerCase().includes("timeout")) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="min-h-touch"
+                      onClick={wrappedHandleNextStep}
+                    >
+                      Retry
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     className="min-h-touch"
                     onClick={() => {
-                      clearDuplicateDraftConflict()
-                      navigate('/student/dashboard')
+                      clearDuplicateDraftConflict();
+                      setError("");
                     }}
                   >
-                    Cancel
+                    Dismiss
                   </Button>
-                )}
-                {(error.toLowerCase().includes('network') || error.toLowerCase().includes('connection') || error.toLowerCase().includes('failed to') || error.toLowerCase().includes('timeout')) && (
-                  <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={wrappedHandleNextStep}>
-                    Retry
-                  </Button>
-                )}
-                <Button type="button" variant="ghost" size="sm" className="min-h-touch" onClick={() => {
-                  clearDuplicateDraftConflict()
-                  setError('')
-                }}>
-                  Dismiss
-                </Button>
+                </div>
               </div>
-            </div>
-          </Alert>
-        )}
+            </Alert>
+          )}
 
-        {!stepValidation.isValid && !isLastStep && stepValidation.completedFields > 0 && (
-          <Alert variant="warning" className="mb-6 animate-slide-up">
-            <div className="flex-1">
-              <AlertTitle className="text-foreground">This step is still incomplete</AlertTitle>
-              <AlertDescription className="mt-1 text-foreground">
-                Complete the remaining items before continuing.
-              </AlertDescription>
-              {stepValidation.missingFields.length > 0 && (
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
-                  {stepValidation.missingFields.map((field, idx) => (
-                    <li key={idx}>{field}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Alert>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2">
-            <form onSubmit={form.handleSubmit(handleSubmitApplication, (validationErrors) => {
-              // Surface silent Zod failures to the user. Without this callback
-              // form.handleSubmit swallows validation errors and the submit
-              // button appears to do nothing.
-              const firstError = Object.values(validationErrors)[0]
-              const message = (firstError && typeof firstError === 'object' && 'message' in firstError && typeof firstError.message === 'string')
-                ? firstError.message
-                : 'Please fix the highlighted errors before submitting.'
-              setError(message)
-            })} className="space-y-6 lg:space-y-8" style={{ scrollPaddingBottom: '5rem' }}>
-            <div key={stepKey} ref={stepContentRef} tabIndex={-1} className={`outline-none ${stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}`}>
-            {/* Background upload indicator — visible on any step */}
-            {uploading && currentStepConfig.key !== 'education' && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary animate-in fade-in duration-300" role="status">
-                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
-                <span>Your documents are uploading in the background. You can keep going.</span>
-              </div>
-            )}
-            {currentStepConfig.key === 'program' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'program' })}>
-              <ProgramStep
-                form={form}
-                programs={programs}
-                programsLoading={programsLoading}
-                intakes={intakes}
-                title={currentStepConfig.title}
-                getFieldAriaDescribedBy={getFieldAriaDescribedBy}
-              />
-              </ErrorBoundary>
-            )}
-
-            {currentStepConfig.key === 'assignedSchool' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'assignedSchool' })}>
-              <AssignedSchoolStep
-                title={currentStepConfig.title}
-                preview={assignmentPreview ?? null}
-                isLoading={assignmentPreviewLoading}
-                error={assignmentPreviewError}
-                recovery={assignmentRecovery}
-                onRetry={refetchAssignmentPreview}
-                onChangeSelection={() => goToStep(getStepIndexByKey('program'))}
-                onJoinInterestList={joinAssignmentInterestList}
-                interestRecorded={assignmentInterestRecorded}
-                contactMailto={assignmentContactMailto}
-              />
-              </ErrorBoundary>
-            )}
-
-            {currentStepConfig.key === 'personal' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'personal' })}>
-              <BasicKycStep
-                form={form}
-                hasAutoPopulatedData={hasAutoPopulatedData}
-                completionPercentage={completionPercentage}
-                missingFields={missingFields}
-                title={currentStepConfig.title}
-                getFieldAriaDescribedBy={getFieldAriaDescribedBy}
-              />
-              </ErrorBoundary>
-            )}
-
-            {currentStepConfig.key === 'education' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'education' })}>
-              <EducationStep
-                title={currentStepConfig.title}
-                subjects={subjects}
-                selectedProgram={selectedProgramDetails?.name}
-                selectedGrades={selectedGrades}
-                eligibilityCheck={eligibilityCheck}
-                recommendedSubjects={recommendedSubjects}
-                resultSlipFile={resultSlipFile}
-                extraKycFile={extraKycFile}
-                uploadProgress={uploadProgress}
-                uploadStates={uploadStates}
-                uploadedFiles={uploadedFiles}
-                addGrade={handleAddGrade}
-                removeGrade={handleRemoveGrade}
-                updateGrade={handleUpdateGrade}
-                getUsedSubjects={handleGetUsedSubjects}
-                handleResultSlipUpload={handleResultSlipUpload}
-                handleExtraKycUpload={handleExtraKycUpload}
-                ocrStatus={ocrStatus}
-                ocrExtractedCount={ocrExtractedCount}
-                ocrFailureReason={ocrFailureReason}
-                ocrExtractionMeta={ocrExtractionMeta}
-                onRetryOcr={retryOcr}
-              />
-              </ErrorBoundary>
-            )}
-
-            {currentStepConfig.key === 'payment' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'payment' })}>
-              {(assignmentPreview?.assigned_school?.full_name || assignmentPreview?.assigned_school?.name || submittedApplication?.institution) && (
-                <Alert className="mb-4 border-primary/30 bg-primary/5">
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertTitle>Assigned school</AlertTitle>
-                  <AlertDescription>
-                    {assignmentPreview?.assigned_school?.full_name || assignmentPreview?.assigned_school?.name || submittedApplication?.institution}
-                    {(assignmentPreview?.program_name || submittedApplication?.program)
-                      ? ` — ${assignmentPreview?.program_name || submittedApplication?.program}`
-                      : ''}
+          {!stepValidation.isValid &&
+            !isLastStep &&
+            stepValidation.completedFields > 0 && (
+              <Alert variant="warning" className="animate-slide-up">
+                <div className="flex-1">
+                  <AlertTitle className="text-foreground">
+                    This step is still incomplete
+                  </AlertTitle>
+                  <AlertDescription className="mt-1 text-foreground">
+                    Complete the remaining items before continuing.
                   </AlertDescription>
-                </Alert>
-              )}
-              <PaymentStep
-                title={currentStepConfig.title}
-                form={form}
-                applicationId={applicationId}
-                applicationNumber={submittedApplication?.applicationNumber ?? null}
-                polledStatus={paymentStatus}
-                onPaymentStatusChange={setPaymentStatus}
-                onPaymentStatusRefresh={refetchPaymentStatus}
-              />
-              </ErrorBoundary>
+                  {stepValidation.missingFields.length > 0 && (
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                      {stepValidation.missingFields.map((field, idx) => (
+                        <li key={idx}>{field}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </Alert>
             )}
-
-            {currentStepConfig.key === 'submit' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'submit' })}>
-              <SubmitStep
-                title={currentStepConfig.title}
-                form={form}
-                subjects={subjects}
-                selectedGrades={selectedGrades}
-                eligibilityCheck={eligibilityCheck}
-                resultSlipFile={resultSlipFile}
-                extraKycFile={extraKycFile}
-                uploadedFiles={uploadedFiles}
-                confirmSubmission={confirmSubmission}
-                onConfirmChange={setConfirmSubmission}
-                selectedProgramName={selectedProgramDetails?.name}
-                selectedIntakeLabel={intakes.find(i => i.id === form.watch('intake'))?.name}
-                selectedInstitutionLabel={
-                  submittedApplication?.institution ||
-                  selectedProgramDetails?.institutions?.full_name ||
-                  selectedProgramDetails?.institutions?.name ||
-                  undefined
-                }
-                paymentStatus={paymentStatus}
-                wizardReadiness={wizardReadiness}
-                applicationId={applicationId}
-                onNavigateToStep={handleNavigateToStep}
-              />
-              </ErrorBoundary>
-            )}
-            </div>
-
-              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/40 bg-background/95 backdrop-blur-sm px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}>
-              <div className="flex items-center justify-between gap-3 rounded-lg sm:border sm:border-border sm:bg-card sm:px-4 sm:py-4 sm:shadow-sm">
-            <div>
-              {currentStepIndex > 0 && (
-                <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="min-h-[48px]" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {previousButtonLabel}
-                </Button>
-              )}
-            </div>
-
-            <div>
-              {!isLastStep ? (
-                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'assignedSchool' && !assignmentResolved) || (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus))} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
-                  {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
-                </Button>
-              ) : (
-                <Button type="submit" variant="success" loading={loading} disabled={loading || !wizardReadiness.canSubmit} className="min-h-[48px]">
-                  {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
-                </Button>
-              )}
-              </div>
-              </div>
-              </div>
-            </form>
-          </div>
-
-          <aside className="hidden lg:col-span-1 lg:block" aria-labelledby="wizard-support-heading">
-            <div className="sticky top-6 space-y-4">
-              {currentStepConfig.key !== 'submit' && (
-                <ApplicationPreview
-                  form={form}
-                  programName={selectedProgramDetails?.name}
-                  intakeName={form.watch('intake')}
-                />
-              )}
-              
-              <StepChecklist items={getChecklistItems()} />
-              
-              <AnalyticsDashboard
-                userId={user?.id}
-                completionPercentage={overallProgress.percentage}
-                hasLocalDraft={
-                  overallProgress.completedFields > 0 ||
-                  currentStepIndex > 0 ||
-                  Boolean(smartAutoSave.lastSaved) ||
-                  isDraftSaving ||
-                  draftSaved
-                }
-                lastSavedAt={smartAutoSave.lastSaved}
-              />
-              
-              <SectionCard
-                title={WIZARD_COPY.quickTipsTitle}
-                className={shouldAnimate ? 'animate-fade-in' : ''}
-                padding="sm"
-              >
-                <h3 id="wizard-support-heading" className="sr-only">Application support tools</h3>
-                <ul className="space-y-2 text-xs text-foreground">
-                  {currentStepConfig.key === 'program' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.program.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                  {currentStepConfig.key === 'assignedSchool' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.assignedSchool.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                  {currentStepConfig.key === 'personal' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.personal.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                  {currentStepConfig.key === 'education' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.education.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                  {currentStepConfig.key === 'payment' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.payment.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                  {currentStepConfig.key === 'submit' && (
-                    <>
-                      {WIZARD_COPY.quickTipsByStep.submit.map((tip) => (
-                        <li key={tip}>• {tip}</li>
-                      ))}
-                    </>
-                  )}
-                </ul>
-              </SectionCard>
-            </div>
-          </aside>
-        </div>
         </Container>
-      </div>
-      
-      <KeyboardShortcutsHelp />
-      
-      <DraftManager
-        userId={user?.id}
-        currentDraftId={applicationId ?? undefined}
-        onLoadDraft={handleLoadDraft}
-        onCreateNew={() => {
-          form.reset()
-          setError('')
-        }}
-      />
-    </PageShell>
+
+        <Container size="md">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="lg:col-span-2">
+              <form
+                onSubmit={form.handleSubmit(
+                  handleSubmitApplication,
+                  (formErrors) => {
+                    // Surface silent Zod failures to the user. Without this callback
+                    // form.handleSubmit swallows validation errors and the submit
+                    // button appears to do nothing.
+                    const firstError = Object.values(formErrors)[0];
+                    const message =
+                      firstError &&
+                      typeof firstError === "object" &&
+                      "message" in firstError &&
+                      typeof firstError.message === "string"
+                        ? firstError.message
+                        : "Please fix the highlighted errors before submitting.";
+                    setError(message);
+                  },
+                )}
+                className="space-y-4"
+                style={{ scrollPaddingBottom: "5rem" }}
+              >
+                <div
+                  key={stepKey}
+                  ref={stepContentRef}
+                  tabIndex={-1}
+                  className={`outline-none ${stepDirection === "forward" ? "wizard-step-forward" : "wizard-step-backward"}`}
+                >
+                  {uploading && currentStepConfig.key !== "education" && (
+                    <div
+                      className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary"
+                      role="status"
+                    >
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/40 border-t-primary motion-reduce:animate-none" />
+                      <span>
+                        Your documents are uploading in the background. You can
+                        keep going.
+                      </span>
+                    </div>
+                  )}
+
+                  <WizardStepRenderer
+                    wizard={wizard}
+                    getFieldAriaDescribedBy={getFieldAriaDescribedBy}
+                    onAddGrade={handleAddGrade}
+                    onRemoveGrade={handleRemoveGrade}
+                    onUpdateGrade={handleUpdateGrade}
+                    onGetUsedSubjects={handleGetUsedSubjects}
+                    documentChecks={documentReviewChecks(
+                      requiredDocuments.contract,
+                      legacyDocumentState,
+                    )}
+                    onNavigateToStep={handleNavigateToStep}
+                  />
+                </div>
+
+                <WizardActionBar
+                  previousStepTitle={previousStepTitle}
+                  nextStepTitle={nextStepTitle}
+                  isLastStep={isLastStep}
+                  loading={loading}
+                  nextDisabled={nextDisabled}
+                  submitDisabled={
+                    !wizardReadiness.canSubmit ||
+                    smartAutoSave.saveStatus === "conflict"
+                  }
+                  nextLabel={nextButtonLabel}
+                  onPrev={wrappedHandlePrevStep}
+                  onNext={wrappedHandleNextStep}
+                  onSaveNow={() => {
+                    void smartAutoSave.forceSave();
+                  }}
+                  onReloadConflict={smartAutoSave.reloadLatest}
+                  onKeepConflictChanges={() => {
+                    void smartAutoSave.keepMyChanges();
+                  }}
+                  saveStatus={smartAutoSave.saveStatus}
+                  saveError={smartAutoSave.saveError}
+                  lastSavedAt={
+                    smartAutoSave.lastSaved
+                      ? smartAutoSave.lastSaved.getTime()
+                      : null
+                  }
+                  isOnline={isOnline}
+                  keyboardOpen={keyboardOpen}
+                />
+              </form>
+            </div>
+
+            {/*
+              One instance, two placements (R16.1, STU-03). CSS grid puts this column
+              beside the form at `lg` and after it on a phone, so the checklist,
+              the application preview and the draft list are in the DOM at **every**
+              width — where before they were inside `hidden lg:block` and a phone had
+              no way to reach them at all. Rendering the panel twice (`lg:hidden` plus
+              `hidden lg:block`) would duplicate every heading for a screen reader,
+              which is why the mobile/desktop difference lives inside the panel as a
+              disclosure rather than out here as two copies.
+            */}
+            <aside
+              className="space-y-4 lg:col-span-1"
+              aria-label="Application context"
+            >
+              <div className="space-y-4 lg:sticky lg:top-6">
+                <WizardContextPanel
+                  form={form}
+                  stepKey={currentStepConfig.key}
+                  checklistItems={checklistItems}
+                  programName={selectedProgramDetails?.name}
+                  intakeName={
+                    intakes.find((intake) => intake.id === form.watch("intake"))
+                      ?.name
+                  }
+                />
+                {/*
+                  Switching applications is a **navigation**, not a second draft
+                  subscription (R10.2).
+
+                  The first version of this recomposition embedded the whole
+                  `WizardDraftPicker` here, and the browser characterisation caught
+                  what that costs: `useMultiDraft` re-lists the student's drafts on
+                  every draft-store revision, so mounting it *inside* the wizard put a
+                  second reader of draft state next to the one state machine that owns
+                  it — and on the mobile project a manual save then came back with the
+                  profile's town instead of the one the student had just typed, with
+                  two other typed fields wiped. A controlled run with this block
+                  removed passed the same journey in 19 s
+                  (`docs/v2-evidence/11.2/raw/harness-experiment-no-picker.txt`).
+                  R10.2 already names the rule this broke: one state machine owns
+                  hydration and edits, and everything else is a pure adapter or view.
+
+                  So the command survives on every viewport — which is what R16.1
+                  requires — as a link to the chooser, where the full picker
+                  (continue / rename / delete) lives with no wizard form mounted
+                  beside it.
+                */}
+                <SectionCard title="Your applications" padding="sm">
+                  <p className="text-sm text-muted-foreground">
+                    Your other saved applications are untouched while you work
+                    on this one.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="min-h-touch w-full justify-start"
+                      onClick={() => {
+                        void handleSwitchApplication();
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
+                      Switch application
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="min-h-touch w-full justify-start"
+                      onClick={() => {
+                        void handleStartAnother();
+                      }}
+                    >
+                      <FilePlus2 className="h-4 w-4 mr-2" aria-hidden="true" />
+                      Start a new application
+                    </Button>
+                  </div>
+                </SectionCard>
+              </div>
+            </aside>
+          </div>
+        </Container>
+
+        <KeyboardShortcutsHelp />
+
+        <ConfirmAlertDialog
+          isOpen={leaveDialog.isOpen}
+          onClose={leaveDialog.handleCancel}
+          onConfirm={leaveDialog.handleConfirm}
+          title={leaveDialog.options.title}
+          message={leaveDialog.options.message}
+          confirmText={leaveDialog.options.confirmText}
+          cancelText={leaveDialog.options.cancelText}
+          variant={leaveDialog.options.variant}
+        />
+      </PageShell>
     </>
-  )
-}
+  );
+};
 
 const ApplicationWizard = () => (
   <ErrorBoundary level="section">
     <ApplicationWizardContent />
   </ErrorBoundary>
-)
+);
 
-export default ApplicationWizard
+export default ApplicationWizard;

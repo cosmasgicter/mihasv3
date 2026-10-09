@@ -78,12 +78,21 @@ class ApplicationSubmissionError(Exception):
     raisers that pass only ``(code, message)`` are unaffected.
     """
 
-    def __init__(self, code: str, message: str, *, status_code: int = 400, next_action: dict | None = None):
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        status_code: int = 400,
+        next_action: dict | None = None,
+        retryable: bool = False,
+    ):
         super().__init__(message)
         self.code = code
         self.message = message
         self.status_code = status_code
         self.next_action = next_action
+        self.retryable = retryable
 
 
 def _coerce_uuid(value) -> str | None:
@@ -99,6 +108,28 @@ def _coerce_uuid(value) -> str | None:
         return str(_uuid.UUID(str(value)))
     except (ValueError, TypeError, AttributeError):
         return None
+
+
+def _resolve_offering_for_fees(application):
+    """Resolve the offering whose fee configuration governs *application*.
+
+    Remediation **L1** (DATA-01 / STU-01, R7.6): the late-application fee gate
+    resolved its ``Program`` with ``filter(name=application.program,
+    is_active=True)``. Two tenants may offer the same-name canonical program, so
+    that lookup could charge this student *another school's* late fee — or miss
+    their own. The offering is now resolved through the canonical
+    ``program_offering_id`` the application already carries.
+
+    Returns ``None`` when the application has no canonical offering id (a legacy
+    pre-5.2 row) or the offering is inactive. ``None`` means **no fee authority
+    exists for this row**, so the gate does not run — deliberately fail-closed:
+    demanding an arbitrary same-name tenant's fee is worse than demanding none,
+    and the platform must not invent a fee it cannot attribute (the same rule
+    ``FeeResolver`` states as "fails closed — never an invented default").
+    """
+    from apps.applications.canonical_reads import resolve_offering
+
+    return resolve_offering(application, require_active=True)
 
 
 def _evaluate_locked_offering(
@@ -553,72 +584,134 @@ def _application_has_identity_document(application_id) -> bool:
     ).exists()
 
 
+def _required_documents_for_submission(application, offering_id, canonical_program_id) -> list[dict]:
+    """Resolve the required-document configuration for a canonical application.
+
+    Prefers the versioned ``requirements_snapshot`` captured on the application
+    at assignment time (admissions-v2 task 5.2, design §9.3, STU-13) — it is the
+    authoritative, drift-free requirement set and needs no re-resolution. When a
+    canonical application predates the snapshot (legacy row with canonical IDs
+    but no snapshot), it live-resolves through the fail-closed resolver.
+
+    Fail-closed (R11.6, DATA-04, STU-13): a canonical application whose required
+    documents cannot be evaluated raises ``AssignmentConfigurationError`` (via
+    the resolver) rather than degrading to an empty list. The caller translates
+    that to a stable retryable submission error.
+    """
+    snapshot = getattr(application, "requirements_snapshot", None)
+    if isinstance(snapshot, list):
+        return snapshot
+
+    from apps.applications.assignment_resolution import (
+        AssignmentConfigurationError,
+        resolve_required_documents,
+    )
+    from apps.catalog.models import CanonicalProgram, Program
+
+    offering = Program.objects.filter(id=offering_id).first()
+    canonical = CanonicalProgram.objects.filter(id=canonical_program_id).first()
+    if offering is None or canonical is None:
+        # Canonical IDs are present but the referenced rows are unreadable — the
+        # configuration cannot be evaluated, so fail closed (never fall through
+        # to an empty requirement set, which was the DATA-04 fail-open).
+        raise AssignmentConfigurationError()
+
+    return resolve_required_documents(offering, canonical)
+
+
 def _missing_assigned_required_documents(application) -> list[dict[str, str]]:
     """Return the assigned-config required documents missing from *application*.
 
-    Implements the submission half of R15.6: the offering/canonical/default
-    Required_Documents resolved by ``OfferingAssignmentService.required_documents``
-    (the most-specific scope ordering) gate submission — a required document
-    type with no uploaded, non-deleted/non-rejected ``ApplicationDocument`` row
-    blocks submission "per the assigned configuration".
+    Implements the submission half of R15.6 / R11.6: the dynamic
+    Required_Documents resolved for the assigned offering (preferring the
+    application's versioned ``requirements_snapshot``) gate submission — a
+    required document type with no uploaded, non-deleted/non-rejected
+    ``ApplicationDocument`` row blocks submission "per the assigned
+    configuration".
 
-    Strictly additive (mirrors ``_revalidate_offering_assignment``):
+    Fail-closed (admissions-v2 task 5.2, DATA-04, STU-13): when a canonical
+    application's required-document configuration cannot be evaluated, this
+    raises ``ApplicationSubmissionError("CONFIGURATION_UNAVAILABLE", ...)``
+    (retryable 503) instead of returning ``[]`` and letting submission proceed
+    on an unverified configuration.
 
-    * Legacy / non-canonical rows — any application missing the canonical
-      offering + program IDs (including ``MagicMock`` attributes in unit tests,
-      filtered by ``_coerce_uuid``) — return ``[]`` and keep the existing
-      hardcoded-identity-only behaviour.
-    * Any unexpected infrastructure error (unreadable offering/canonical row,
-      missing tenant table in a SQLite unit DB, ...) degrades to ``[]`` rather
-      than blocking a legitimate submission.
+    Strictly additive: legacy / non-canonical rows — any application missing the
+    canonical offering + program IDs (including ``MagicMock`` attributes in unit
+    tests, filtered by ``_coerce_uuid``) — return ``[]`` and keep the existing
+    hardcoded-identity-only behaviour.
 
-    Returns the list of missing ``{"document_type", "label"}`` entries; an
-    empty list means the assigned required-document gate is satisfied.
+    Returns the list of missing ``{"document_type", "label"}`` entries; an empty
+    list means the assigned required-document gate is satisfied.
     """
     offering_id = _coerce_uuid(getattr(application, "program_offering_id", None))
     canonical_program_id = _coerce_uuid(getattr(application, "canonical_program_id", None))
     if not (offering_id and canonical_program_id):
         return []
 
+    from apps.applications.assignment_resolution import AssignmentConfigurationError
+
     try:
-        from apps.catalog.models import CanonicalProgram, Program
-        from apps.catalog.services import OfferingAssignmentService
-
-        offering = Program.objects.filter(id=offering_id).first()
-        canonical = CanonicalProgram.objects.filter(id=canonical_program_id).first()
-        if offering is None or canonical is None:
-            return []
-
-        required = OfferingAssignmentService.required_documents(offering, canonical)
-        required_types = {
-            row["document_type"]: row.get("label") or row["document_type"]
-            for row in required
-            if row.get("required")
-        }
-        if not required_types:
-            return []
-
-        present_types = set(
-            ApplicationDocument.objects.filter(
-                application_id=application.id,
-                document_type__in=list(required_types.keys()),
-            )
-            .exclude(verification_status__in=["deleted", "rejected"])
-            .values_list("document_type", flat=True)
+        required = _required_documents_for_submission(
+            application, offering_id, canonical_program_id
         )
+    except AssignmentConfigurationError as exc:
+        # Fail closed with a stable retryable code (R11.6). Never permit
+        # submission on a configuration we could not evaluate (DATA-04).
+        raise ApplicationSubmissionError(
+            exc.code, exc.message, status_code=exc.status_code, retryable=exc.retryable
+        ) from exc
 
-        return [
-            {"document_type": doc_type, "label": label}
-            for doc_type, label in sorted(required_types.items())
-            if doc_type not in present_types
-        ]
-    except Exception:
-        logger.warning(
-            "Assigned required-document gate degraded for app=%s",
-            getattr(application, "id", None),
-            exc_info=True,
-        )
+    required_types = {
+        row["document_type"]: row.get("label") or row["document_type"]
+        for row in required
+        if row.get("required")
+    }
+    if not required_types:
         return []
+
+    present_types = set(
+        ApplicationDocument.objects.filter(
+            application_id=application.id,
+            document_type__in=list(required_types.keys()),
+        )
+        .exclude(verification_status__in=["deleted", "rejected"])
+        .values_list("document_type", flat=True)
+    )
+
+    return [
+        {"document_type": doc_type, "label": label}
+        for doc_type, label in sorted(required_types.items())
+        if doc_type not in present_types
+    ]
+
+
+def _raise_first_submission_blocker(blockers) -> None:
+    """Translate the first readiness blocker into ``ApplicationSubmissionError``.
+
+    Admissions-v2 task 6.5 (R10.6): the authoritative in-lock re-evaluation lives
+    in :mod:`apps.applications.readiness_service`; this is the transport-neutral
+    translation seam so the submission service keeps raising the same stable
+    codes (and the same relative precedence) it always has.
+    """
+    if not blockers:
+        return
+    blocker = blockers[0]
+    status_code = 400
+    if blocker.retryable:
+        status_code = 503
+    elif blocker.code in (
+        "PROGRAM_CAPACITY_REACHED",
+        "INTAKE_CAPACITY_REACHED",
+        "DUPLICATE_SUBMITTED_APPLICATION",
+    ):
+        status_code = 409
+    raise ApplicationSubmissionError(
+        blocker.code,
+        blocker.message,
+        status_code=status_code,
+        retryable=blocker.retryable,
+        next_action=blocker.details.get("next_action"),
+    )
 
 
 def submit_application(
@@ -628,27 +721,63 @@ def submit_application(
     ip_address: str = "",
     user_agent: str = "",
     admin_force: bool = False,
+    declarations_accepted: bool = True,
+    expected_version: int | None = None,
 ) -> tuple[Application, str]:
     """Submit an application after enforcing payment/document/state checks.
-    
+
     When admin_force=True, payment and identity document checks are bypassed.
     This allows admins to force-submit applications that haven't completed
     the normal student flow (e.g. offline payments, paper documents).
+
+    Admissions-v2 task 6.5 (R10.6, R11.2-R11.6, R12.3; findings DATA-03, DATA-04,
+    STU-11, STU-13): after the capacity row and the application row are locked,
+    the full deterministic readiness set is **re-evaluated on the locked row**
+    (profile, canonical persisted grades, dynamic required documents, program
+    eligibility, duplicates, capacity, fee/payment/defer, declarations, and
+    canonical configuration health) before the single legal state transition. A
+    canonical configuration that cannot be evaluated fails closed with the stable
+    retryable ``CONFIGURATION_UNAVAILABLE`` — never an implicit "no requirements"
+    success.
+
+    Args:
+        declarations_accepted: whether the student's submission declaration
+            accompanied this command. Re-checked under the lock so the
+            declaration is part of the authoritative gate, not only a client
+            affordance.
+        expected_version: optional optimistic ``Application.version``. When
+            supplied and stale, raises ``VERSION_CONFLICT`` (409) without
+            mutating anything (R10.6 "optimistic version").
     """
 
     # Intake deadline and capacity enforcement (Req 6.1, 6.3)
+    from apps.applications.capacity_service import CapacityService
     from apps.applications.intake_enforcer import IntakeEnforcer
 
-    intake_check = IntakeEnforcer.check_submission(application.intake, application.program)
+    # Canonical Intake_Offering identity (task 5.2 snapshot). When present, every
+    # capacity/counter operation keys on these IDs instead of display strings so
+    # a same-name other tenant is never counted (admissions-v2 task 5.3, DATA-02).
+    offering_id, intake_id = CapacityService.offering_ids(application)
+
+    intake_check = IntakeEnforcer.check_submission(
+        application.intake, application.program, offering_id=offering_id, intake_id=intake_id
+    )
     if not intake_check.allowed:
         raise ApplicationSubmissionError(intake_check.code, intake_check.message)
+
+    # Evidence-gate results computed once and re-used by the authoritative
+    # in-lock readiness re-evaluation below, so that pass stays query-free for
+    # payment/identity (admissions-v2 task 6.5).
+    payment_row_completed: bool | None = None
+    has_identity_document: bool | None = None
 
     with transaction.atomic():
         if not admin_force:
             # Drift-guard anchor: payment_status in ("successful", "force_approved", "verified", "paid", "deferred")
+            payment_row_completed = _application_has_completed_payment(application.id)
             has_payment = (
                 application.payment_status in RESOLVED_PAYMENT_STATUSES
-                or _application_has_completed_payment(application.id)
+                or payment_row_completed
             )
             if not has_payment:
                 raise ApplicationSubmissionError(
@@ -687,11 +816,13 @@ def submit_application(
             from apps.documents.models import ProgramFee
 
             try:
-                from apps.catalog.models import Program
-                program_obj = Program.objects.filter(name=application.program, is_active=True).first()
-                if program_obj:
+                # The late fee is the application's OWN offering's fee, resolved
+                # by canonical offering id (remediation L1, DATA-01 / STU-01).
+                # ``None`` → no fee authority for this row → gate does not run.
+                offering_obj = _resolve_offering_for_fees(application)
+                if offering_obj:
                     late_fee = ProgramFee.objects.filter(
-                        program=program_obj,
+                        program=offering_obj,
                         fee_type="late_application",
                         is_active=True,
                     ).first()
@@ -716,6 +847,15 @@ def submit_application(
                     "Unable to verify late fee requirements. Please try again.",
                 )
 
+        # Fixed lock order (design §7.3, task 5.3): the canonical Intake_Offering
+        # capacity row FIRST, then the application row. Taking the capacity row
+        # here means every gate below — including the capacity re-evaluation and
+        # the final seat claim — reads a row no concurrent submit can move under
+        # it (DATA-03). Legacy rows without canonical IDs have no capacity row to
+        # lock and keep the previous behaviour.
+        if offering_id and intake_id:
+            CapacityService.lock_capacity_row(offering_id, intake_id)
+
         locked_app = Application.objects.select_for_update().get(id=application.id)
         if locked_app.status != "draft":
             raise ApplicationSubmissionError(
@@ -723,8 +863,80 @@ def submit_application(
                 "This application has already been submitted.",
             )
 
+        # Optimistic version guard (R10.6). Only enforced when the caller supplies
+        # the version it read, so existing callers are unaffected.
+        if expected_version is not None:
+            current_version = int(getattr(locked_app, "version", 1) or 1)
+            if int(expected_version) != current_version:
+                raise ApplicationSubmissionError(
+                    "VERSION_CONFLICT",
+                    "This application changed since you loaded it. Reload and try again.",
+                    status_code=409,
+                    next_action={
+                        "type": "reload_application",
+                        "message": "Reload the application to see the latest saved answers, "
+                        "then submit again.",
+                        "version": current_version,
+                    },
+                )
+
+        # ------------------------------------------------------------------
+        # Authoritative in-lock readiness re-evaluation (task 6.5, R10.6).
+        # ------------------------------------------------------------------
+        # Every gate the student is responsible for is re-evaluated on the LOCKED
+        # row, through the same deterministic evaluator that answers
+        # ``GET /api/v2/student/applications/{id}/readiness/``, so the query the
+        # student saw and the decision the server makes can never disagree:
+        # profile, canonical persisted grades (R11.5/STU-11 — the gate that did
+        # not exist at submission at all), program eligibility, versioned
+        # required documents (R11.6/STU-13/DATA-04 — fails closed on an
+        # unevaluable canonical configuration), payment/defer (R12.3), and the
+        # student's declaration.
+        #
+        # The contended global checks stay with this service (evaluate_contended=
+        # False): the intake window and the duplicate gate are re-checked below
+        # in this same lock, and the authoritative last-seat capacity decision is
+        # made under the ProgramIntake row lock in
+        # ``CapacityService.take_seat_for_submission`` (design §7.3, DATA-03).
+        #
+        # Strictly additive: a legacy row without canonical IDs skips the
+        # canonical-only gates, and ``admin_force`` bypasses the student-evidence
+        # gates exactly as it did before this pass existed.
+        from apps.applications import readiness_service
+        from apps.applications.assignment_resolution import (
+            AssignmentConfigurationError as _InLockConfigurationError,
+        )
+
+        try:
+            in_lock_blockers = readiness_service.submission_blockers(
+                locked_app,
+                declarations_accepted=declarations_accepted,
+                has_completed_payment=payment_row_completed,
+                has_identity_document=has_identity_document,
+                skip_evidence_gates=admin_force,
+                evaluate_contended=False,
+            )
+        except _InLockConfigurationError as exc:
+            # Any fail-closed canonical resolution inside the in-lock pass —
+            # required documents, or (admissions-v2 task 7.1) eligibility rules
+            # live-resolved because the row predates the ``eligibility_snapshot``
+            # — must surface as the stable retryable ``CONFIGURATION_UNAVAILABLE``
+            # (R11.6, DATA-04), exactly like the pre-lock document gate above.
+            # Without this the student would get an opaque 500 for a condition the
+            # contract says is retryable.
+            raise ApplicationSubmissionError(
+                exc.code, exc.message, status_code=exc.status_code, retryable=exc.retryable
+            ) from exc
+
+        _raise_first_submission_blocker(in_lock_blockers)
+
         # Re-check intake capacity inside the lock to close TOCTOU race
-        intake_recheck = IntakeEnforcer.check_submission(locked_app.intake, locked_app.program)
+        # (advisory for canonical apps; the authoritative last-seat decision is
+        # made under the ProgramIntake row lock in
+        # CapacityService.take_seat_for_submission below).
+        intake_recheck = IntakeEnforcer.check_submission(
+            locked_app.intake, locked_app.program, offering_id=offering_id, intake_id=intake_id
+        )
         if not intake_recheck.allowed:
             raise ApplicationSubmissionError(intake_recheck.code, intake_recheck.message)
 
@@ -785,8 +997,21 @@ def submit_application(
 
         locked_app.save(update_fields=update_fields)
 
-        # Atomically increment intake enrollment (Req 6.5, AUDIT-1.6-002)
-        IntakeEnforcer.increment_enrollment(locked_app.intake, locked_app.program)
+        # Claim the seat (Req 6.5, AUDIT-1.6-002; admissions-v2 task 5.3, DATA-03).
+        # Canonical applications go through the locked last-seat allocation: the
+        # ProgramIntake capacity row is locked (SELECT ... FOR UPDATE), a
+        # drift-free live occupancy count is evaluated under that lock, and the
+        # counter is incremented atomically — so N concurrent last-seat submits
+        # serialize on the row lock and exactly one claims the final seat. Legacy
+        # rows without canonical IDs keep the name-based F() increment.
+        from apps.applications.capacity_service import CapacityError
+
+        try:
+            took_canonical_seat = CapacityService.take_seat_for_submission(locked_app)
+        except CapacityError as exc:
+            raise ApplicationSubmissionError(exc.code, exc.message, status_code=409) from exc
+        if not took_canonical_seat:
+            IntakeEnforcer.increment_enrollment(locked_app.intake, locked_app.program)
 
     # Send submission confirmation notification
     try:

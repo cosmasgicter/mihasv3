@@ -1,0 +1,28 @@
+........................................................................ [ 48%]
+.............................................F.......................... [ 97%]
+....                                                                     [100%]
+=================================== FAILURES ===================================
+_ TestApplicationInterviewListView.test_admin_list_without_mine_is_scope_narrowed _
+tests/unit/test_application_student_flow_views.py:272: in test_admin_list_without_mine_is_scope_narrowed
+    mock_scope_service.return_value.filter_applications.assert_called_once()
+/usr/lib/python3.14/unittest/mock.py:965: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'filter_applications' to have been called once. Called 0 times.
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_subject_grade_contract_7_1.py: 20 warnings
+tests/integration/test_submission_readiness_6_5.py: 22 warnings
+tests/unit/test_legacy_catalog_get_preserved.py: 15 warnings
+tests/unit/test_catalog_write_freeze.py: 6 warnings
+tests/integration/test_student_journey_e2e.py: 1 warning
+tests/integration/test_assignment_config_failure.py: 1 warning
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+1 failed, 147 passed, 66 warnings in 12.14s

@@ -1,0 +1,24 @@
+]633;E;echo "=== run 2 summary ===";8aa98ed9-5aaa-44da-91df-f867a1538dae]633;C=== run 2 summary ===
+  3 failed
+  1 did not run
+  216 passed (19.5m)
+
+=== run 1 vs run 2, the moved test ===
+run 1  design-system-defluff.spec.ts:664 [mobile-required]:
+  ✓  156 [mobile-required] › tests/harness-e2e/required/design-system-defluff.spec.ts:664:1 › every surface this task changed passes an axe WCAG A/AA scan (19.1s)
+run 2  design-system-defluff.spec.ts:664 [mobile-required]:
+  ✘  156 [mobile-required] › tests/harness-e2e/required/design-system-defluff.spec.ts:664:1 › every surface this task changed passes an axe WCAG A/AA scan (31.1s)
+run 2  design-system-defluff.spec.ts:664 [chromium-required]:
+  ✓   46 [chromium-required] › tests/harness-e2e/required/design-system-defluff.spec.ts:664:1 › every surface this task changed passes an axe WCAG A/AA scan (13.0s)
+
+=== run 2's 'did not run' ===
+  1 did not run
+
+=== run 2: the stable tenant-launch pair ===
+2
+
+=== run 2: ocr-manual-fallback ===
+  ✓   59 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.6s)
+  ✓   60 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (392ms)
+  ✓  169 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (17.4s)
+  ✓  170 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (537ms)

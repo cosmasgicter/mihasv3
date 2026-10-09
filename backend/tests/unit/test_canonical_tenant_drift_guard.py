@@ -34,7 +34,9 @@ labelled legacy-fallback / pre-canonical branch and is allowlisted below by a
 stable ``(relative_path, field, value_expr)`` signature. Any UNLISTED new
 occurrence fails the test, pointing the author at the canonical IDs instead.
 
-Uses pure file I/O + ``ast`` — no Django DB fixture, no models loaded.
+Uses pure file I/O + ``ast`` — no Django DB fixture, no models loaded. The one
+import from ``apps`` is ``apps.common.compatibility_register`` (dataclasses and
+datetime only), read for the announced window every dated register shares.
 
 Validates: Requirements R1.2, R1.3, R1.6
 """
@@ -42,6 +44,8 @@ Validates: Requirements R1.2, R1.3, R1.6
 from __future__ import annotations
 
 import ast
+from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -108,39 +112,120 @@ _NON_APPLICATION_MODEL_ROOTS = {
 # ---------------------------------------------------------------------------
 # Allowlist — the explicit, labelled legacy-fallback / pre-canonical branches.
 #
-# Each entry is ``(relative_path, "field=value_expr")``. These are the ONLY
-# places allowed to match on the Application legacy strings; every one is a
-# documented legacy-fallback or pre-canonical-display branch. A new predicate
-# with any other signature fails the guard.
+# Each entry carries ``path``, ``signature``, accountable owner and removal
+# date. These are the ONLY places allowed to match on the Application legacy
+# strings; every one is a documented legacy-fallback or pre-canonical-display
+# branch. A new predicate with any other signature fails the guard.
+#
+# Every entry is a genuinely transitional Legacy_Exception: the shared removal
+# condition in docs/canonical-truth-map.md ("Removal condition (R1.5)") says each
+# branch goes once no ``applications`` row has a null canonical ID. None of the
+# eleven is permanent by design, so all eleven are dated.
 # ---------------------------------------------------------------------------
 
-_ALLOWED_PREDICATES: set[tuple[str, str]] = {
+@dataclass(frozen=True, order=True)
+class LegacyPredicateException:
+    path: str
+    signature: str
+    owner: str
+    remove_by: date
+
+
+#: The owner of every entry — read from the register's own records, not coined
+#: here. Set by admissions-v2 task 12.5 pass 2 (2026-10-09, finding GATE-13.6-01)
+#: under the user's authorization, on behalf of the owning spec:
+#:
+#: * ``docs/canonical-truth-map.md`` documents this register under
+#:   "## Multi-Tenant (Beanola)", whose spec of record is
+#:   ``.kiro/specs/_archived/multi-tenant-beanola-admissions/``;
+#: * that spec's R1.3 *is* the exception class this register implements ("a
+#:   clearly labelled legacy-fallback branch for rows with null Canonical_IDs")
+#:   and its R1.6 requires this drift guard — the R-ids this module validates;
+#: * GATE-13.6-01 names ``multi-tenant-beanola`` as an owning lane.
+#:
+#: It replaces ``platform-tenancy``, which M11 (docs/v2-evidence/13.6/remediation/
+#: M11/README.md Q12) measured as a name no spec, steering file or the truth map
+#: contains. ``_OWNER_PROVENANCE`` below makes that check mechanical.
+_LEGACY_PREDICATE_OWNER = "multi-tenant-beanola"
+
+#: Owner -> the repo record that names it. An owner with no record here, or whose
+#: record is gone, fails ``test_allowed_predicates_carry_owner_and_the_announced_window``
+#: — the owner-side twin of the window parity below.
+_OWNER_PROVENANCE = {
+    "multi-tenant-beanola": ".kiro/specs/_archived/multi-tenant-beanola-admissions",
+}
+
+#: Where the removal date comes from: task 12.2's announced compatibility window,
+#: READ from the canonical register rather than restated, so this register, the
+#: SHIMS register (test_compatibility_surfaces_12_2.SHIM_REMOVAL_DATE_SOURCE reads
+#: the same entry) and the brand allowlist carry one date with one place to change
+#: it. It replaces the literal ``date(2027, 2, 7)`` M11 Q12 flagged.
+_WINDOW_SOURCE = "catalog.legacy_institution_write"
+
+
+def _announced_window_end() -> date:
+    """The 12.2 window's end date, read from ``apps.common.compatibility_register``."""
+    from apps.common.compatibility_register import COMPATIBILITY_SURFACES
+
+    return date.fromisoformat(COMPATIBILITY_SURFACES[_WINDOW_SOURCE].end_date)
+
+
+_LEGACY_PREDICATE_REMOVE_BY = _announced_window_end()
+
+
+def _legacy_exception(path: str, signature: str) -> LegacyPredicateException:
+    return LegacyPredicateException(
+        path=path,
+        signature=signature,
+        owner=_LEGACY_PREDICATE_OWNER,
+        remove_by=_LEGACY_PREDICATE_REMOVE_BY,
+    )
+
+
+_ALLOWED_PREDICATES: set[LegacyPredicateException] = {
     # duplicate_checker.py — canonical-first keying with an explicit legacy
     # string fallback only when the canonical id is absent (R8.5).
-    ("apps/applications/duplicate_checker.py", "program=program"),
-    ("apps/applications/duplicate_checker.py", "intake=intake"),
+    _legacy_exception("apps/applications/duplicate_checker.py", "program=program"),
+    _legacy_exception("apps/applications/duplicate_checker.py", "intake=intake"),
     # waitlist_manager.py — waitlist position/promotion keyed on the
     # pre-canonical program+intake display strings (pre-Beanola business logic).
-    ("apps/applications/waitlist_manager.py", "program=program"),
-    ("apps/applications/waitlist_manager.py", "intake=intake"),
-    ("apps/applications/waitlist_manager.py", "program=application.program"),
-    ("apps/applications/waitlist_manager.py", "intake=application.intake"),
+    #
+    # ``program=application.program`` and ``intake=application.intake`` were
+    # REMOVED from this set by admissions-v2 task 12.5: the new staleness test
+    # below found them on its first run, and the predicates they exempted are no
+    # longer in the module. `application.program` / `application.intake` still
+    # appear there, but as positional arguments to a helper and in notification
+    # copy — not as ORM query kwargs, so they are not predicates and need no
+    # exemption. The exemptions had outlived the code they covered.
+    _legacy_exception("apps/applications/waitlist_manager.py", "program=program"),
+    _legacy_exception("apps/applications/waitlist_manager.py", "intake=intake"),
     # intake_enforcer.py — capacity counts keyed on the legacy intake/program
     # name strings (pre-canonical enrollment counting).
-    ("apps/applications/intake_enforcer.py", "intake=intake_name"),
-    ("apps/applications/intake_enforcer.py", "program=program_name"),
+    _legacy_exception("apps/applications/intake_enforcer.py", "intake=intake_name"),
+    _legacy_exception("apps/applications/intake_enforcer.py", "program=program_name"),
     # tasks/waitlist.py — waitlist_cascade_task carries waitlisted rows to the
     # next intake using the pre-canonical program/intake display strings
     # (existing pre-Beanola cascade business logic; the Application.create()
     # below writes the snapshot and is correctly NOT a match).
-    ("apps/applications/tasks/waitlist.py", "intake=intake.name"),
-    ("apps/applications/tasks/waitlist.py", "program=app.program"),
-    ("apps/applications/tasks/waitlist.py", "intake=next_intake.name"),
+    _legacy_exception("apps/applications/tasks/waitlist.py", "intake=intake.name"),
+    _legacy_exception("apps/applications/tasks/waitlist.py", "program=app.program"),
+    _legacy_exception("apps/applications/tasks/waitlist.py", "intake=next_intake.name"),
     # analytics/admissions_analytics.py — admin display-string contains filter
     # over the pre-canonical institution/program snapshots (reporting only).
     # Signatures are normalised by ast.unparse (single quotes).
-    ("apps/analytics/admissions_analytics.py", "institution__icontains=filters['institution']"),
-    ("apps/analytics/admissions_analytics.py", "program__icontains=filters['program']"),
+    _legacy_exception(
+        "apps/analytics/admissions_analytics.py",
+        "institution__icontains=filters['institution']",
+    ),
+    _legacy_exception(
+        "apps/analytics/admissions_analytics.py",
+        "program__icontains=filters['program']",
+    ),
+}
+
+
+_ALLOWED_PREDICATE_KEYS = {
+    (entry.path, entry.signature) for entry in _ALLOWED_PREDICATES
 }
 
 
@@ -259,7 +344,7 @@ def test_no_new_runtime_logic_matches_legacy_tenant_strings():
     for path in _iter_py_files(_APPS_ROOT):
         rel = str(path.relative_to(_BACKEND_ROOT))
         for signature, line_no, src in _scan_file(path):
-            if (rel, signature) in _ALLOWED_PREDICATES:
+            if (rel, signature) in _ALLOWED_PREDICATE_KEYS:
                 continue
             offenders.setdefault(rel, []).append((signature, line_no, src))
 
@@ -282,3 +367,105 @@ def test_no_new_runtime_logic_matches_legacy_tenant_strings():
                 lines.append(f"    line {line_no} [{signature}]: {src}")
             lines.append("")
         raise AssertionError("\n".join(lines))
+
+
+def test_allowed_predicates_has_no_stale_entries_and_can_only_shrink():
+    """The allowlist may only SHRINK — an entry that stopped being a violation fails.
+
+    Added by admissions-v2 task **12.5** (R1.5, R14.7). Until this test existed,
+    ``_ALLOWED_PREDICATES`` had the one property an exemption register must not
+    have: nothing failed when an entry stopped matching. A legacy-fallback branch
+    that a later task rewrote onto canonical IDs would leave its exemption behind
+    silently, and the register would grow monotonically while looking clean.
+
+    Task 12.4 §4.3 built exactly this mechanism for ``DECLINED_REMOVALS``
+    (*"an entry that stops being dead ALSO fails it"*), and task 12.2 §10.3 built
+    it for the re-export shims. This is the same mechanism on the third register,
+    reused rather than reinvented — which is why this test adds no new allowlist
+    of its own.
+
+    The removal condition for the whole set is in
+    ``docs/canonical-truth-map.md`` → *"Removal condition (R1.5)"*: each branch is
+    retained only while ``applications`` rows with null canonical IDs still exist.
+    That is a **data** condition, so it cannot be evaluated from source; what this
+    test evaluates is the weaker but still useful source condition — the branch it
+    exempts is still there.
+
+    Validates: Requirements R1.5
+    """
+    live: set[tuple[str, str]] = set()
+    for path in _iter_py_files(_APPS_ROOT):
+        rel = str(path.relative_to(_BACKEND_ROOT))
+        for signature, _line_no, _src in _scan_file(path):
+            live.add((rel, signature))
+
+    stale = sorted(_ALLOWED_PREDICATE_KEYS - live)
+    assert not stale, (
+        "Stale _ALLOWED_PREDICATES entries: the legacy-string predicate each one "
+        "exempts is no longer present, so the exemption outlived the code it "
+        "covered (R1.5). Delete these entries — the allowlist may only shrink:\n"
+        + "\n".join(f"  {rel}  [{sig}]" for rel, sig in stale)
+        + "\n\nAlso drop the corresponding row from the legacy-string fallback "
+        "allowlist table in docs/canonical-truth-map.md."
+    )
+
+
+def test_allowed_predicates_carry_owner_and_the_announced_window():
+    """Every entry is an accountable Legacy_Exception on the platform's one window.
+
+    Task 12.5's clause allows a remaining match only as *"a registered
+    Legacy_Exception with owner/removal date"* (finding GATE-13.6-01). This is the
+    same mechanism admissions-v2 task 13.6 item L10 gave the SHIMS,
+    LEGACY_EXCEPTIONS and PREVIEW_ALLOWLIST registers
+    (docs/v2-evidence/13.6/remediation/L9-L11/README.md §4.4), replacing the
+    invented owner and the hardcoded date M11 Q12 flagged:
+
+    * the owner must name a lane with a record in this repo (``_OWNER_PROVENANCE``);
+    * the date must BE task 12.2's announced window, read from
+      ``compatibility_register`` — never a second date for the same decision;
+    * and the window is evaluated, not announced: once it closes this test fails
+      **on purpose**, naming the only two legitimate answers.
+
+    The removal condition itself is a DATA condition (zero ``applications`` rows
+    with a null canonical ID, docs/canonical-truth-map.md "Removal condition
+    (R1.5)") and cannot be evaluated from source; the staleness test above
+    evaluates the source half. The window is what makes the data half get
+    reconsidered by a date instead of never.
+
+    Validates: Requirements R1.5; admissions-v2 R15.6 (an exception carries an owner
+    and a removal date)
+    """
+    repo_root = _BACKEND_ROOT.parent
+    window_end = _announced_window_end()
+    problems: list[str] = []
+    for entry in sorted(_ALLOWED_PREDICATES):
+        label = f"{entry.path} [{entry.signature}]"
+        record = _OWNER_PROVENANCE.get(entry.owner.strip())
+        if record is None:
+            problems.append(
+                f"{label}: owner {entry.owner!r} has no record in _OWNER_PROVENANCE — "
+                "name the lane whose spec owns this branch, not an invented one"
+            )
+        elif not (repo_root / record).exists():
+            problems.append(f"{label}: owner {entry.owner!r}'s record {record} is missing")
+        if entry.remove_by != window_end:
+            problems.append(
+                f"{label}: removal date {entry.remove_by.isoformat()} is not the announced "
+                f"window ({window_end.isoformat()}, compatibility_register."
+                f"COMPATIBILITY_SURFACES[{_WINDOW_SOURCE!r}].end_date). One decision, one "
+                "window: move the register, not this entry"
+            )
+    assert not problems, "Legacy predicate exceptions (R1.5, task 12.5 clause):\n  " + "\n  ".join(
+        problems
+    )
+
+    today = date.today()
+    assert window_end >= today, (
+        f"The announced window for all {len(_ALLOWED_PREDICATES)} legacy-string predicate "
+        f"exceptions closed on {window_end.isoformat()} (today {today.isoformat()}). The "
+        "two legitimate answers: meet the removal condition — backfill canonical IDs onto "
+        "the remaining legacy applications rows, drop the legacy-string predicate from "
+        "each module (keeping the canonical-ID path), delete its entry here and its row "
+        "in docs/canonical-truth-map.md — or announce a new window in "
+        "apps/common/compatibility_register.py on purpose."
+    )

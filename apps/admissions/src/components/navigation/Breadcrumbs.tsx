@@ -51,7 +51,10 @@ const ROUTE_LABELS: Record<string, string> = {
   'intakes': 'Intakes',
   'users': 'Users',
   'analytics': 'Analytics',
-  'ai-insights': 'AI Insights',
+  // No `ai-insights` entry (admissions-v2 task 11.5, R16.5 / MAINT-02). It named
+  // a route that does not exist in the route registry, for a capability task 7.4
+  // removed from admissions. A label for an unreachable AI page is the purest
+  // form of copy describing something the product cannot do.
   'workflow': 'Workflow',
   'audit': 'Audit Trail',
   'roles': 'Role Management',

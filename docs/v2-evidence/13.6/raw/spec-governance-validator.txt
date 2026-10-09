@@ -1,0 +1,18 @@
+=== COMMAND: python3 scripts/validate_spec_governance.py ===
+=== DATE: 2026-08-12T21:34:12Z ===
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 2  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=71 tasks=73 (checked=71)
+
+ERRORS (block):
+  [admissions-v2-canonical-rebuild] (missing-evidence) task 4.1 is checked but has no linked Required_Evidence at /home/cosmas/Downloads/mihasv3/docs/v2-evidence/4.1 (a checklist mark is not evidence)
+  [admissions-v2-canonical-rebuild] (missing-evidence) task 7.4 is checked but has no linked Required_Evidence at /home/cosmas/Downloads/mihasv3/docs/v2-evidence/7.4 (a checklist mark is not evidence)
+
+RESULT: FAIL (governance violations present)
+EXIT=2

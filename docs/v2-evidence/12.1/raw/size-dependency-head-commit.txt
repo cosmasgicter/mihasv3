@@ -1,0 +1,112 @@
+# Module size + dependency report (git ref HEAD)
+# threshold: > 400 lines
+
+## admissions-frontend
+files: 520   total lines: 92763
+over threshold: 47
+
+  lines  fan-in  fan-out  path
+   1530       2       46  apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts
+   1327       3       40  apps/admissions/src/pages/student/applicationWizard/index.tsx
+   1145       1       14  apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx
+    902       3       24  apps/admissions/src/pages/admin/Applications.tsx
+    854       9        3  apps/admissions/src/services/catalog.ts
+    847       1       24  apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx
+    843       2       11  apps/admissions/src/pages/admin/AuditTrail.tsx
+    833       9        8  apps/admissions/src/lib/applicationSession.ts
+    827       3        2  apps/admissions/src/lib/exportUtils.ts
+    776       1        6  apps/admissions/src/hooks/useAutoSave.ts
+    749       3       12  apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx
+    720      47       10  apps/admissions/src/services/client.ts
+    696       1       11  apps/admissions/src/pages/admin/ProgramFees.tsx
+    691       2       10  apps/admissions/src/pages/admin/tenants/ProfilesPanel.tsx
+    652       2        9  apps/admissions/src/components/student/PaymentForm.tsx
+    645      15        2  apps/admissions/src/services/admin/tenants.ts
+    640       6        0  apps/admissions/src/lib/eligibilityEngine.ts
+    638       3        7  apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx
+    620       2       12  apps/admissions/src/pages/admin/Intakes.tsx
+    619      32        6  apps/admissions/src/services/applications.ts
+    601       4        3  apps/admissions/src/services/admin/dashboard.ts
+    596       2        2  apps/admissions/src/components/admin/EnhancedDataTable.tsx
+    592       2       25  apps/admissions/src/pages/student/ApplicationStatus.tsx
+    582       1       12  apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx
+    574       1        7  apps/admissions/src/components/admin/UserExport.tsx
+    565       6        2  apps/admissions/src/lib/accessibility-utils.ts
+    559       3       18  apps/admissions/src/pages/student/Settings.tsx
+    525       1        6  apps/admissions/src/components/admin/UserImport.tsx
+    517       3       24  apps/admissions/src/pages/admin/Users.tsx
+    516       3       12  apps/admissions/src/pages/admin/Programs.tsx
+    511       3       28  apps/admissions/src/pages/admin/Dashboard.tsx
+    507       2       23  apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts
+    507       2       11  apps/admissions/src/pages/student/Interview.tsx
+    498       4       35  apps/admissions/src/pages/student/Dashboard.tsx
+    498       2        3  apps/admissions/src/components/admin/RealtimeMetricsDisplay.tsx
+    494       1        9  apps/admissions/src/components/landing/LandingPageSections.tsx
+    490       0        8  apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx
+    487       4        8  apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts
+    480       2       16  apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts
+    477       1       12  apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx
+    476       2        7  apps/admissions/src/data/applications.ts
+    467       3       15  apps/admissions/src/pages/student/Payment.tsx
+    464      22        0  apps/admissions/src/routes/routeRegistry.ts
+    464       3        7  apps/admissions/src/components/ui/skeletons/index.tsx
+    440       2        2  apps/admissions/src/components/ui/FileUpload.tsx
+    431       1       25  apps/admissions/src/pages/admin/tenants/SuperAdminTenantConsole.tsx
+    405       1        0  apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts
+
+## backend
+files: 257   total lines: 53761
+over threshold: 42
+
+  lines  fan-in  fan-out  path
+   1806       1       11  backend/apps/catalog/admin_views.py
+   1781      28        3  backend/apps/catalog/services.py
+   1357       1       11  backend/apps/catalog/views.py
+   1172       1       14  backend/apps/accounts/admin_user_views.py
+   1047      15        7  backend/apps/applications/serializers.py
+    953       2        7  backend/apps/common/notification_views.py
+    864       9       10  backend/apps/applications/tasks/pdf_generation.py
+    860       3       27  backend/apps/applications/admin_review_views.py
+    857       0        0  backend/apps/common/management/commands/check_schema_drift.py
+    820      19       13  backend/apps/applications/services.py
+    790       7        7  backend/apps/documents/payment_helpers.py
+    779       2       21  backend/apps/documents/payment_query_views.py
+    765       0        0  backend/apps/common/management/commands/apply_sql_migrations.py
+    726      13        3  backend/apps/catalog/tenant_audit_service.py
+    666       1       10  backend/apps/documents/tasks.py
+    655       2        8  backend/apps/accounts/auth_views.py
+    652       2       18  backend/apps/documents/document_storage_views.py
+    643      16       10  backend/apps/applications/_view_helpers.py
+    617       1        7  backend/apps/documents/payment_service_mixins/_initiation.py
+    616       2       11  backend/apps/applications/official_document_views.py
+    595       0        1  backend/apps/common/error_codes.py
+    561       2       16  backend/apps/applications/student_draft_views.py
+    557       2        4  backend/apps/common/tasks.py
+    546       2       13  backend/apps/applications/student_submission_views.py
+    526       0        5  backend/apps/common/middleware.py
+    513       1        2  backend/apps/catalog/admin_serializers.py
+    510       0        0  backend/apps/common/launch_verification/evidence.py
+    504       0        2  backend/apps/catalog/management/commands/seed_tenant_document_profiles.py
+    496       2       16  backend/apps/documents/payment_widget_views.py
+    496       2       16  backend/apps/documents/mobile_money_views.py
+    494       1        2  backend/apps/documents/webhook_processor.py
+    487       2       13  backend/apps/applications/document_views.py
+    486       1        3  backend/apps/applications/interview_service.py
+    471       1        8  backend/apps/accounts/admin_settings_views.py
+    468       1        5  backend/apps/documents/payment_service_mixins/_verification.py
+    453      15        4  backend/apps/common/communication_service.py
+    427      31        0  backend/apps/catalog/models.py
+    425       4        2  backend/apps/accounts/admin_serializers.py
+    422       3        4  backend/apps/applications/condition_manager.py
+    412      19        2  backend/apps/common/outbox.py
+    405       1        5  backend/apps/documents/risk_views.py
+    403       2       18  backend/apps/applications/admin_assignment_views.py
+
+## import cycles: 7
+  [117] apps/admissions/src/components/AdminRoute.tsx -> apps/admissions/src/components/AuthenticatedRouteShell.tsx -> apps/admissions/src/components/DashboardRedirect.tsx -> apps/admissions/src/components/ProtectedRoute.tsx -> apps/admissions/src/components/StudentRoute.tsx -> apps/admissions/src/components/admin/AdminErrorBoundary.tsx -> apps/admissions/src/components/admin/CommunicationModal.tsx -> apps/admissions/src/components/admin/InstitutionSwitcher.tsx -> apps/admissions/src/components/admin/UserActivityLog.tsx -> apps/admissions/src/components/admin/UserPermissions.tsx -> apps/admissions/src/components/admin/applications/AISummaryPanel.tsx -> apps/admissions/src/components/admin/applications/AdminOfficialDocumentsPanel.tsx -> apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx -> apps/admissions/src/components/admin/applications/ApplicationCard.tsx -> apps/admissions/src/components/admin/applications/ApplicationDetailDocuments.tsx -> apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx -> apps/admissions/src/components/admin/applications/ApplicationDetailTimeline.tsx -> apps/admissions/src/components/admin/applications/ApplicationsSkeleton.tsx -> apps/admissions/src/components/admin/applications/ApplicationsTable.tsx -> apps/admissions/src/components/admin/applications/VirtualizedApplicationsGrid.tsx -> apps/admissions/src/components/admin/applications/index.ts -> apps/admissions/src/components/admin/dashboard/DashboardQuickActions.tsx -> apps/admissions/src/components/admin/programs/InstitutionsTable.tsx -> apps/admissions/src/components/admin/programs/ProgramsTable.tsx -> apps/admissions/src/components/application/ContinueApplication.tsx -> apps/admissions/src/components/auth/SessionMonitor.tsx -> apps/admissions/src/components/landing/LandingPageSections.tsx -> apps/admissions/src/components/layout/PublicLayout.tsx -> apps/admissions/src/components/layout/PublicSiteHeader.tsx -> apps/admissions/src/components/layout/SharedFooter.tsx -> apps/admissions/src/components/navigation/AppLayout.tsx -> apps/admissions/src/components/navigation/DesktopSidebar.tsx -> apps/admissions/src/components/navigation/Header.tsx -> apps/admissions/src/components/navigation/adminNavAccess.ts -> apps/admissions/src/components/navigation/tenantNav.ts -> apps/admissions/src/components/smoothui/shape-landing-hero.tsx -> apps/admissions/src/components/student/ApplicationListItem.tsx -> apps/admissions/src/components/student/ApplicationSlipActions.tsx -> apps/admissions/src/components/student/ApplicationTimeline.tsx -> apps/admissions/src/components/student/DashboardStatusOverview.tsx -> apps/admissions/src/components/student/DocumentButtons.tsx -> apps/admissions/src/components/student/NotificationBell.tsx -> apps/admissions/src/components/student/QuickActions.tsx -> apps/admissions/src/components/student/StudentErrorBoundary.tsx -> apps/admissions/src/components/student/dashboard/ApplicationsGrid.tsx -> apps/admissions/src/components/ui/ActiveSessions.tsx -> apps/admissions/src/components/ui/BottomNavigation.tsx -> apps/admissions/src/components/ui/BuildVersionBadge.tsx -> apps/admissions/src/components/ui/GuardInlineSkeleton.tsx -> apps/admissions/src/components/ui/UserMenu.tsx -> apps/admissions/src/components/ui/index.ts -> apps/admissions/src/contexts/AuthContext.tsx -> apps/admissions/src/contexts/CapabilityContext.tsx -> apps/admissions/src/contexts/InstitutionScopeContext.tsx -> apps/admissions/src/hooks/auth/useProfileQuery.ts -> apps/admissions/src/hooks/auth/useSessionListener.ts -> apps/admissions/src/hooks/useNotificationPolling.ts -> apps/admissions/src/hooks/useProfileAutoPopulation.ts -> apps/admissions/src/hooks/useSignOutAction.ts -> apps/admissions/src/hooks/useStudentDashboardPolling.ts -> apps/admissions/src/lib/authBroadcast.ts -> apps/admissions/src/lib/routePreload.ts -> apps/admissions/src/lib/speculativePrefetch.ts -> apps/admissions/src/pages/ContactPage.tsx -> apps/admissions/src/pages/LandingPage.tsx -> apps/admissions/src/pages/NotFoundPage.tsx -> apps/admissions/src/pages/PrivacyPage.tsx -> apps/admissions/src/pages/TermsPage.tsx -> apps/admissions/src/pages/admin/Applications.tsx -> apps/admissions/src/pages/admin/AuditTrail.tsx -> apps/admissions/src/pages/admin/Dashboard.tsx -> apps/admissions/src/pages/admin/Intakes.tsx -> apps/admissions/src/pages/admin/ProgramFees.tsx -> apps/admissions/src/pages/admin/Programs.tsx -> apps/admissions/src/pages/admin/Settings.tsx -> apps/admissions/src/pages/admin/Tenants.tsx -> apps/admissions/src/pages/admin/Users.tsx -> apps/admissions/src/pages/admin/tenants/AuditPanel.tsx -> apps/admissions/src/pages/admin/tenants/OfferingsPanel.tsx -> apps/admissions/src/pages/admin/tenants/ProfilesPanel.tsx -> apps/admissions/src/pages/admin/tenants/RoutingSimulatorPanel.tsx -> apps/admissions/src/pages/admin/tenants/SettlementPanel.tsx -> apps/admissions/src/pages/admin/tenants/SuperAdminTenantConsole.tsx -> apps/admissions/src/pages/admin/tenants/TemplatesPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantAccessGrantsPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantAdminSchoolConsole.tsx -> apps/admissions/src/pages/admin/tenants/TenantAuditPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantBrandingPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantDocumentsPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantDomainPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantListPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx -> apps/admissions/src/pages/admin/tenants/TenantProgramsPanel.tsx -> apps/admissions/src/pages/admin/tenants/TenantStaffPanel.tsx -> apps/admissions/src/pages/admin/tenants/primitives.tsx -> apps/admissions/src/pages/auth/AuthCallbackPage.tsx -> apps/admissions/src/pages/auth/ForgotPasswordPage.tsx -> apps/admissions/src/pages/auth/ResetPasswordPage.tsx -> apps/admissions/src/pages/auth/SignInPage.tsx -> apps/admissions/src/pages/auth/SignUpPage.tsx -> apps/admissions/src/pages/public/tracker/index.tsx -> apps/admissions/src/pages/student/ApplicationDetail.tsx -> apps/admissions/src/pages/student/ApplicationStatus.tsx -> apps/admissions/src/pages/student/Dashboard.tsx -> apps/admissions/src/pages/student/Interview.tsx -> apps/admissions/src/pages/student/NotificationSettings.tsx -> apps/admissions/src/pages/student/Payment.tsx -> apps/admissions/src/pages/student/Settings.tsx -> apps/admissions/src/pages/student/applicationWizard/components/SubmissionSuccess.tsx -> apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts -> apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts -> apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts -> apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardProfileAutoPopulate.ts -> apps/admissions/src/pages/student/applicationWizard/index.tsx -> apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx -> apps/admissions/src/routes/config.tsx -> apps/admissions/src/stores/authStore.ts
+  [3] backend/apps/documents/payment_service.py -> backend/apps/documents/payment_service_mixins/__init__.py -> backend/apps/documents/payment_service_mixins/_initiation.py
+  [3] backend/apps/applications/enrollment_service.py -> backend/apps/applications/services.py -> backend/apps/applications/waitlist_manager.py
+  [3] backend/apps/applications/tasks/pdf/render_context.py -> backend/apps/applications/tasks/pdf/renderers/__init__.py -> backend/apps/applications/tasks/pdf_generation.py
+  [2] backend/apps/common/email/__init__.py -> backend/apps/common/email/render.py
+  [2] backend/apps/common/outbox.py -> backend/apps/common/tasks.py
+  [2] backend/apps/documents/payment_helpers.py -> backend/apps/documents/payment_state_machine.py

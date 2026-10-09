@@ -1,0 +1,35 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (1.3m)
+
+
+  1) [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh 
+
+    Error: a manual save should persist the town on the draft
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"Kabwe"[39m
+    Received: [31m"Lusaka"[39m
+
+    Call Log:
+    - Timeout 60000ms exceeded while waiting on the predicate
+
+      290 |     // read the value back out of the platform rather than out of an indicator.
+      291 |     await page.getByRole('button', { name: /save now/i }).first().click();
+    > 292 |     await expect
+          |     ^
+      293 |       .poll(
+      294 |         async () => {
+      295 |           const response = await page.request.get(`/api/v1/applications/${applicationId}/`);
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/student-wizard-characterisation.spec.ts:292:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-student-wizard-ch-224fd-he-value-survives-a-refresh-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-student-wizard-ch-224fd-he-value-survives-a-refresh-mobile-required/error-context.md
+
+  1 failed
+    [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh 

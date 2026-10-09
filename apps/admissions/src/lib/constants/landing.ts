@@ -212,7 +212,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 1,
     title: 'Create your account',
     description:
-      'Takes 2 minutes. Verify your email and you are in. You can start the application and come back later — your progress is saved automatically.',
+      'Takes 2 minutes and you are in. You can start the application and come back later — your progress is saved automatically.',
   },
   {
     step: 2,
@@ -292,7 +292,7 @@ export const internationalHighlights: InternationalHighlight[] = [
     icon: Award,
     title: 'Pay in USD from anywhere',
     description:
-      'International application fee is USD 20, paid by card. Tuition and accommodation invoices are issued in USD for international students.',
+      'International applicants pay by card, and your exact application fee is shown before you pay. Tuition and accommodation invoices are issued in USD for international students.',
   },
   {
     icon: GraduationCap,

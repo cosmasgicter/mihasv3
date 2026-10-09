@@ -12,8 +12,7 @@ import {
   updateSetting,
   deleteSetting,
   importSettings,
-  resetSettings,
-  type SystemSetting,
+  resetSettings
 } from '@/lib/api/adminApi'
 import { ArrowLeft, Globe, Lock, Phone, Plus, Settings, Users } from 'lucide-react'
 import { PageShell } from '@/components/ui/PageShell'
@@ -27,10 +26,9 @@ import {
   matchesVisibility,
   getErrorMessage,
   buildGuidedDraft,
-  initialNewSetting,
   type SettingBlueprint,
   type GuidedSectionDef,
-  type GuidedSettingDraft,
+  type GuidedSettingDraft
 } from './lib/settingsValidation'
 
 // Re-export for backward compatibility (tests import from this module)
@@ -234,12 +232,13 @@ export default function AdminSettings() {
         subtitle="Configure the admissions portal through guided controls first, then use advanced keys only when needed."
         maxWidth="7xl"
         tone="admin"
-        metrics={[
-          { label: 'Guided controls', value: `${configuredBlueprintCount}/${SETTING_BLUEPRINTS.length}`, helper: 'Operational settings already configured' },
-          { label: 'Advanced keys', value: advancedSettingsCount, helper: 'Manual settings beyond the guided layer' },
-          { label: 'Public settings', value: publicSettingsCount, helper: `${privateSettingsCount} remain internal only` },
-          { label: 'State', value: loading ? 'Loading' : state.error ? 'Needs attention' : 'Ready', helper: state.error || state.success || 'Settings layer is healthy' },
-        ]}
+        /*
+          No `metrics` row (task 11.5, R16.5). Three tiles counted the settings
+          layer's own implementation — how many blueprints are configured, how
+          many keys sit outside them, how many are public — and the fourth read
+          the page's loading/error/success state, which the page already renders
+          inline where the operator is working.
+        */
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
             <Link to="/admin" className="w-full sm:w-auto">

@@ -111,13 +111,10 @@ const AUTHENTICATED_PAGES: PageConfig[] = [
     path: '/student/application/1/status',
     role: 'student',
   },
-  {
-    name: 'ApplicationDetail',
-    title: 'Application Details | Beanola Admissions',
-    description: 'View the full details of your Beanola admissions application.',
-    path: '/student/application/1',
-    role: 'student',
-  },
+  // admissions-v2 task 10.6 (R13.13, STU-23): `ApplicationDetail` was the second
+  // student workspace over the same application. `/student/application/1` is now a
+  // redirect into the canonical workspace above, so there is no page here to hold
+  // to a polish contract.
   {
     name: 'ApplicationWizard',
     title: 'Application Wizard | Beanola Admissions',

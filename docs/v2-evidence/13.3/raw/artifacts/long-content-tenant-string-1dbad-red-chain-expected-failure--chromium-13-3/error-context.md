@@ -1,0 +1,194 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - link "Skip to main content":
+    - /url: "#app-main-content"
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "Beanola Admissions - Home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "Beanola Admissions" [ref=e9]
+        - generic [ref=e10]:
+          - generic [ref=e11]: Beanola
+          - generic [ref=e12]: Admissions
+      - navigation "Primary" [ref=e13]:
+        - link "Home" [ref=e14] [cursor=pointer]:
+          - /url: /
+        - link "Track" [ref=e15] [cursor=pointer]:
+          - /url: /track-application
+        - link "Contact" [ref=e16] [cursor=pointer]:
+          - /url: /contact
+        - link "Sign in" [ref=e17] [cursor=pointer]:
+          - /url: /auth/signin
+        - link "Apply now" [ref=e18] [cursor=pointer]:
+          - /url: /auth/signup
+          - img [ref=e19]
+          - text: Apply now
+  - main [ref=e22]:
+    - generic [ref=e24]:
+      - generic [ref=e30]:
+        - img [ref=e32]
+        - generic [ref=e35]:
+          - heading "Track Your Application" [level=1] [ref=e36]
+          - paragraph [ref=e37]: Check the status of a submitted application with its tracking link. No sign-in required.
+      - generic [ref=e38]:
+        - generic [ref=e40]:
+          - img [ref=e42]
+          - generic [ref=e45]:
+            - heading "Find Your Application" [level=2] [ref=e46]
+            - paragraph [ref=e47]: Paste the tracking link issued for your application to check its status.
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - generic [ref=e53]: Tracking link or code
+                - img
+                - textbox "Tracking link or code" [ref=e56]:
+                  - /placeholder: TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX
+              - button "Search" [disabled]:
+                - img
+                - text: Search
+            - paragraph [ref=e57]: Your tracking link looks like TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX. An application number will not open tracking.
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - img [ref=e61]
+              - generic [ref=e64]:
+                - heading "Get Your Link" [level=3] [ref=e65]
+                - paragraph [ref=e66]: Sign in and choose “Get tracking link” on your application
+            - generic [ref=e67]:
+              - img [ref=e69]
+              - generic [ref=e72]:
+                - heading "Format Example" [level=3] [ref=e73]
+                - paragraph [ref=e74]: TRK-4KP2M9XT-9QW3RT7VZ2KDN8YH6JF4
+            - generic [ref=e75]:
+              - img [ref=e77]
+              - generic [ref=e79]:
+                - heading "What you see" [level=3] [ref=e80]
+                - paragraph [ref=e81]: The current recorded status, without signing in
+      - generic [ref=e83]:
+        - generic [ref=e85]:
+          - img [ref=e87]
+          - generic [ref=e90]:
+            - heading "Need Help?" [level=2] [ref=e91]
+            - paragraph [ref=e92]: Where a tracking link comes from, and what each status means.
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - generic [ref=e97]:
+                - img [ref=e99]
+                - heading "Where to get your tracking link" [level=3] [ref=e104]
+              - list [ref=e105]:
+                - listitem [ref=e106]:
+                  - generic [ref=e107]: •
+                  - generic [ref=e108]: Sign in, open your application, and choose “Get tracking link”
+                - listitem [ref=e109]:
+                  - generic [ref=e110]: •
+                  - generic [ref=e111]: Getting a new link replaces any link you shared before
+                - listitem [ref=e112]:
+                  - generic [ref=e113]: •
+                  - generic [ref=e114]: Your application number identifies you to the office, but does not open tracking
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img [ref=e118]
+                - heading "What each status means" [level=3] [ref=e122]
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - term [ref=e125]: Submitted
+                  - definition [ref=e126]: received and queued for review
+                - generic [ref=e127]:
+                  - term [ref=e128]: Under review
+                  - definition [ref=e129]: an admissions officer is assessing it
+                - generic [ref=e130]:
+                  - term [ref=e131]: Approved
+                  - definition [ref=e132]: a decision to admit has been recorded
+                - generic [ref=e133]:
+                  - term [ref=e134]: Rejected
+                  - definition [ref=e135]: a decision not to admit has been recorded
+          - generic [ref=e136]:
+            - generic [ref=e137]:
+              - paragraph [ref=e138]:
+                - img [ref=e139]
+                - text: Still need help?
+              - paragraph [ref=e142]: MIHAS admissions can look up your payment and confirm what they have received.
+            - link "Email admissions" [ref=e143] [cursor=pointer]:
+              - /url: mailto:admissions@mihas.localhost?subject=Application%20tracking%20help
+              - img
+              - generic [ref=e144]: Email admissions
+  - contentinfo [ref=e145]:
+    - generic [ref=e146]:
+      - generic [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - img "Beanola Admissions" [ref=e150]
+            - generic [ref=e151]: Beanola
+          - heading "Contact admissions" [level=3] [ref=e152]
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: MIHAS admissions can look up your payment and confirm what they have received.
+            - link "admissions@mihas.localhost" [ref=e155] [cursor=pointer]:
+              - /url: mailto:admissions@mihas.localhost
+              - img [ref=e156]
+              - generic [ref=e159]: admissions@mihas.localhost
+        - generic [ref=e160]:
+          - heading "Quick Links" [level=3] [ref=e161]
+          - list [ref=e162]:
+            - listitem [ref=e163]:
+              - link "About Us" [ref=e164] [cursor=pointer]:
+                - /url: /#features
+                - img [ref=e165]
+                - text: About Us
+            - listitem [ref=e167]:
+              - link "Programs" [ref=e168] [cursor=pointer]:
+                - /url: /#programs
+                - img [ref=e169]
+                - text: Programs
+            - listitem [ref=e171]:
+              - link "How It Works" [ref=e172] [cursor=pointer]:
+                - /url: /#how-it-works
+                - img [ref=e173]
+                - text: How It Works
+            - listitem [ref=e175]:
+              - link "International Students" [ref=e176] [cursor=pointer]:
+                - /url: /#international
+                - img [ref=e177]
+                - text: International Students
+            - listitem [ref=e179]:
+              - link "Accommodation" [ref=e180] [cursor=pointer]:
+                - /url: /#accommodation
+                - img [ref=e181]
+                - text: Accommodation
+            - listitem [ref=e183]:
+              - link "Track Application" [ref=e184] [cursor=pointer]:
+                - /url: /track-application
+                - img [ref=e185]
+                - text: Track Application
+            - listitem [ref=e187]:
+              - link "Contact" [ref=e188] [cursor=pointer]:
+                - /url: /contact
+                - img [ref=e189]
+                - text: Contact
+        - generic [ref=e191]:
+          - heading "Follow Us" [level=3] [ref=e192]
+          - generic [ref=e193]:
+            - link "Follow us on Facebook" [ref=e194] [cursor=pointer]:
+              - /url: https://beanola.com
+              - img [ref=e195]
+              - text: Facebook
+            - link "Follow us on Twitter" [ref=e197] [cursor=pointer]:
+              - /url: https://beanola.com
+              - img [ref=e198]
+              - text: Twitter
+            - link "Follow us on LinkedIn" [ref=e200] [cursor=pointer]:
+              - /url: https://beanola.com
+              - img [ref=e201]
+              - text: LinkedIn
+      - generic [ref=e205]:
+        - paragraph [ref=e206]: © 2026 Beanola. All rights reserved.
+        - paragraph [ref=e207]:
+          - text: Developed by
+          - link "Beanola Technologies" [ref=e208] [cursor=pointer]:
+            - /url: https://beanola.com
+        - generic "Frontend build 2.0.0-harness. Backend build 2.0.0." [ref=e210]:
+          - 'generic "Frontend build: 2.0.0-harness" [ref=e211]': FE 2.0.0-harnes
+          - 'generic "Backend build: 2.0.0" [ref=e212]': BE 2.0.0
+```

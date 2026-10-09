@@ -1,4 +1,3 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const sizeToMaxWidth: Record<string, string> = {

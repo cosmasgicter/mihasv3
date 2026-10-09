@@ -1,11 +1,71 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { act } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 
 import EducationStep from '@/pages/student/applicationWizard/steps/EducationStep'
+import type { UseRequiredDocumentsResult } from '@/hooks/useRequiredDocuments'
+import { parseRequiredDocumentsContract, unsatisfiedRequirements } from '@/lib/requiredDocuments'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+
+/**
+ * The two platform baseline requirements the server publishes when a tenant has
+ * configured nothing. Since admissions-v2 task 7.2 the step renders these
+ * because the *contract* lists them, not because they are hardcoded in the UI.
+ */
+const PLATFORM_BASELINE = [
+  {
+    document_type: 'result_slip',
+    label: 'Grade 12 result slip',
+    required: true,
+    description: 'Your Grade 12 statement of results. A clear phone photo is fine.',
+    source: 'platform',
+    accepts_document_types: ['result_slip'],
+    accepted_mime_types: ['application/pdf', 'image/jpeg', 'image/png'],
+    accepted_extensions: ['.pdf', '.jpg', '.jpeg', '.png'],
+    max_size_bytes: 10 * 1024 * 1024,
+    state: 'missing',
+    document: null,
+  },
+  {
+    document_type: 'extra_kyc',
+    label: 'NRC or passport',
+    required: true,
+    description: 'Photo or scan of your NRC or passport.',
+    source: 'platform',
+    accepts_document_types: ['nrc', 'passport', 'extra_kyc'],
+    accepted_mime_types: ['application/pdf', 'image/jpeg', 'image/png'],
+    accepted_extensions: ['.pdf', '.jpg', '.jpeg', '.png'],
+    max_size_bytes: 10 * 1024 * 1024,
+    state: 'missing',
+    document: null,
+  },
+]
+
+function requiredDocuments(): UseRequiredDocumentsResult {
+  const contract = parseRequiredDocumentsContract({
+    success: true,
+    data: {
+      application_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      requirements: PLATFORM_BASELINE,
+    },
+  })
+  return {
+    contract,
+    requirements: contract.requirements,
+    loading: false,
+    contractError: null,
+    contractErrorRetryable: false,
+    reload: vi.fn(),
+    uploadStates: {},
+    uploading: false,
+    selectFile: vi.fn(async () => undefined),
+    retry: vi.fn(async () => undefined),
+    reportLocalError: vi.fn(),
+    beginReplace: vi.fn(),
+    cancelReplace: vi.fn(),
+    blocking: unsatisfiedRequirements(contract),
+  }
+}
 
 const baseProps = {
   title: 'Education',
@@ -14,17 +74,11 @@ const baseProps = {
   selectedGrades: [],
   eligibilityCheck: null,
   recommendedSubjects: [],
-  resultSlipFile: null,
-  extraKycFile: null,
-  uploadProgress: {},
-  uploadedFiles: {},
-  uploadStates: {} as Record<string, string>,
+  requiredDocuments: requiredDocuments(),
   addGrade: () => undefined,
   removeGrade: () => undefined,
   updateGrade: () => undefined,
   getUsedSubjects: () => [],
-  handleResultSlipUpload: () => undefined,
-  handleExtraKycUpload: () => undefined,
 }
 
 describe('EducationStep', () => {
@@ -32,16 +86,13 @@ describe('EducationStep', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
-  it('renders concise upload cards without repeated instruction copy', () => {
-    const markup = renderToStaticMarkup(
-      <EducationStep
-        {...baseProps}
-      />
-    )
+  it('renders concise upload controls without repeated instruction copy', () => {
+    const markup = renderToStaticMarkup(<EducationStep {...baseProps} />)
 
-    expect(markup).toContain('Result slip')
+    // Labels and constraints come from the contract rows above.
+    expect(markup).toContain('Grade 12 result slip')
     expect(markup).toContain('NRC or passport')
-    expect(markup).toContain('PDF, JPG or PNG. Max 10MB.')
+    expect(markup).toContain('PDF, JPG or PNG up to 10MB')
     expect(markup).not.toContain('Document checklist')
     expect(markup).not.toContain('Auto-fill enabled')
     expect(markup).not.toContain('Extra KYC Documents')
@@ -60,70 +111,19 @@ describe('EducationStep', () => {
     expect(markup).toContain('Add another subject below')
   })
 
-  it('revokes uploaded document preview URLs when files change or unmount', async () => {
-    const originalCreateObjectUrl = URL.createObjectURL
-    const originalRevokeObjectUrl = URL.revokeObjectURL
-    const createObjectURL = vi.fn()
-      .mockReturnValueOnce('blob:result-slip-one')
-      .mockReturnValueOnce('blob:result-slip-two')
-    const revokeObjectURL = vi.fn()
+  it('states no document-type list, accept list, or size limit of its own', () => {
+    // Task 7.2 / STU-13: with an empty contract the step offers no upload
+    // control at all, which is only possible because it holds no type list.
+    const empty = requiredDocuments()
+    const markup = renderToStaticMarkup(
+      <EducationStep
+        {...baseProps}
+        requiredDocuments={{ ...empty, contract: null, requirements: [], blocking: [] }}
+      />
+    )
 
-    Object.defineProperty(URL, 'createObjectURL', {
-      configurable: true,
-      value: createObjectURL,
-    })
-    Object.defineProperty(URL, 'revokeObjectURL', {
-      configurable: true,
-      value: revokeObjectURL,
-    })
-
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root: Root = createRoot(container)
-    const fileOne = new File(['one'], 'result-slip-one.pdf', { type: 'application/pdf' })
-    const fileTwo = new File(['two'], 'result-slip-two.pdf', { type: 'application/pdf' })
-
-    try {
-      await act(async () => {
-        root.render(
-          <EducationStep
-            {...baseProps}
-            resultSlipFile={fileOne}
-            uploadedFiles={{ result_slip: true }}
-          />,
-        )
-      })
-
-      expect(createObjectURL).toHaveBeenCalledTimes(1)
-
-      await act(async () => {
-        root.render(
-          <EducationStep
-            {...baseProps}
-            resultSlipFile={fileTwo}
-            uploadedFiles={{ result_slip: true }}
-          />,
-        )
-      })
-
-      expect(createObjectURL).toHaveBeenCalledTimes(2)
-      expect(revokeObjectURL).toHaveBeenCalledWith('blob:result-slip-one')
-
-      await act(async () => {
-        root.unmount()
-      })
-
-      expect(revokeObjectURL).toHaveBeenCalledWith('blob:result-slip-two')
-    } finally {
-      container.remove()
-      Object.defineProperty(URL, 'createObjectURL', {
-        configurable: true,
-        value: originalCreateObjectUrl,
-      })
-      Object.defineProperty(URL, 'revokeObjectURL', {
-        configurable: true,
-        value: originalRevokeObjectUrl,
-      })
-    }
+    expect(markup).not.toContain('Grade 12 result slip')
+    expect(markup).not.toContain('NRC or passport')
+    expect(markup).not.toContain('type="file"')
   })
 })

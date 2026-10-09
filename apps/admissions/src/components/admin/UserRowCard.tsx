@@ -1,6 +1,8 @@
 import React from 'react'
 import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
+import { AdminRecordActions } from '@/components/admin/AdminRecordActions'
+import type { AdminRecordCommand } from '@/lib/adminRecordCommands'
 import { formatDate } from '@/lib/dateFormat'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import {
@@ -12,14 +14,10 @@ import {
 import { isAdminRole } from '@/lib/auth/roles'
 
 const AVAILABLE_ROLES = [
-  { value: 'student', label: 'Student', description: 'Regular student user' },
-  { value: 'reviewer', label: 'Reviewer', description: 'Can review submitted applications' },
-  { value: 'admissions_officer', label: 'Admissions Officer', description: 'Can review applications' },
-  { value: 'registrar', label: 'Registrar', description: 'Academic records management' },
-  { value: 'finance_officer', label: 'Finance Officer', description: 'Payment verification' },
-  { value: 'academic_head', label: 'Academic Head', description: 'Department oversight' },
-  { value: 'admin', label: 'Administrator', description: 'Full system access' },
-  { value: 'super_admin', label: 'Super Admin', description: 'Platform-wide administrative control' },
+  { value: 'student', label: 'Student', description: 'Applicant with access to their own applications' },
+  { value: 'reviewer', label: 'Reviewer', description: 'Reviews applications assigned within their institution' },
+  { value: 'admin', label: 'Administrator', description: 'Scoped school operator; tenant access from memberships and grants' },
+  { value: 'super_admin', label: 'Super Admin', description: 'Beanola platform-wide administrative control' },
 ]
 
 const getRoleLabel = (role: string) => {
@@ -99,8 +97,35 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
 }) {
   const userId = user.user_id || user.id
 
+  /**
+   * Every command this row is authorized to offer, as data (task 11.4).
+   *
+   * "Edit" is the primary because it is the directory's own verb — the one thing
+   * an operator opens a user row to do. The backend re-enforces each command; the
+   * `super_admin` omission is the same rule the desktop row applies, and it is a
+   * convenience, not the boundary.
+   */
+  const commands: AdminRecordCommand[] = [
+    { id: 'edit', label: 'Edit', prominence: 'primary', onSelect: () => onEdit(user) },
+    { id: 'access', label: 'Access', prominence: 'overflow', onSelect: () => onPermissions(user) },
+    { id: 'activity', label: 'Activity', prominence: 'overflow', onSelect: () => onActivity(userId) },
+    ...(user.role !== 'super_admin'
+      ? [
+          {
+            id: 'deactivate',
+            label: 'Deactivate',
+            prominence: 'overflow' as const,
+            tone: 'destructive' as const,
+            onSelect: () => onDeactivate(user),
+          },
+        ]
+      : []),
+  ]
+
   return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    // The row carries its canonical id so a browser journey can address the same
+    // row the server returned, instead of matching on rendered text (task 9.3).
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm" data-user-row-id={userId}>
       <div className="flex items-start gap-3">
         <button
           onClick={() => onSelect(userId)}
@@ -135,21 +160,20 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-        <Button variant="outline" size="sm" className="min-h-[44px] min-h-touch min-w-touch" onClick={() => onEdit(user)}>
-          Edit
-        </Button>
-        <Button variant="outline" size="sm" className="min-h-[44px] min-h-touch min-w-touch" onClick={() => onPermissions(user)}>
-          Permissions
-        </Button>
-        <Button variant="outline" size="sm" className="min-h-[44px] min-h-touch min-w-touch" onClick={() => onActivity(userId)}>
-          Activity
-        </Button>
-        {user.role !== 'super_admin' && (
-          <Button variant="outline" size="sm" className="min-h-[44px] min-h-touch min-w-touch border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => onDeactivate(user)}>
-            Deactivate
-          </Button>
-        )}
+      {/*
+        One primary command and one counted disclosure for the rest (task 11.4,
+        R16.1-R16.2). This row used to end in a flat, wrapping stack of up to four
+        equally prominent buttons at 320 px, so the account itself scrolled off
+        the screen under its own controls. **No command is lost** — the sheet's
+        label counts what it holds, the panel stays mounted, and a keyboard
+        reaches every one.
+      */}
+      <div className="mt-4 border-t border-border pt-4">
+        <AdminRecordActions
+          testId="user-record-actions"
+          recordLabel={sanitizeForDisplay(user.email) || 'this account'}
+          commands={commands}
+        />
       </div>
     </div>
   )
@@ -168,7 +192,7 @@ export const UserTableRow = React.memo<UserRowProps>(function UserTableRow({
   const userId = user.user_id || user.id
 
   return (
-    <tr className="hover:bg-muted/30">
+    <tr className="hover:bg-muted/30" data-user-row-id={userId}>
       <td className="px-4 py-4 align-top">
         <div className="flex items-start gap-3">
           <button
@@ -211,7 +235,7 @@ export const UserTableRow = React.memo<UserRowProps>(function UserTableRow({
             Edit
           </Button>
           <Button variant="outline" size="sm" onClick={() => onPermissions(user)}>
-            Permissions
+            Access
           </Button>
           <Button variant="outline" size="sm" onClick={() => onActivity(userId)}>
             Activity

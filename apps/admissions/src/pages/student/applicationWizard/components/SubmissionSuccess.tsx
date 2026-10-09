@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { TrackingLinkAction } from '@/components/student/TrackingLinkAction'
 import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
@@ -57,7 +58,7 @@ const getPaymentStatusDescription = (status?: string | null) => {
     case 'successful':
       return 'Payment verified — you are all set.'
     case 'deferred':
-      return 'Payment deferred — you can pay anytime from your dashboard.'
+      return 'Payment deferred — you can pay anytime from the payment page.'
     case 'rejected':
       return 'Payment issue detected — please contact support.'
     case null:
@@ -132,21 +133,32 @@ const SubmissionSuccess = ({
         <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application Submitted</h2>
         <p className="text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
 
-        {/* Tracking block — prominent */}
+        {/*
+          admissions-v2 task 10.5 (R13.12, STU-22): this block used to print the
+          legacy tracking code under "Save this code to check your application
+          status anytime". That sentence stopped being true when public tracking
+          moved to an issued secret — and the number it printed had a guessable
+          stem. What is prominent now is the reference the admissions office asks
+          for, with the real tracking credential offered as a command underneath.
+        */}
         <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 mb-6">
-          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Tracking Code</span>
-          <span className="block font-mono text-xl font-bold text-foreground tracking-wide">{submittedApplication.trackingCode}</span>
-          <span className="block text-xs text-muted-foreground mt-1">Save this code to check your application status anytime.</span>
+          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Application Number</span>
+          <span className="block font-mono text-xl font-bold text-foreground tracking-wide">{submittedApplication.applicationNumber}</span>
+          <span className="block text-xs text-muted-foreground mt-1">Quote this when you contact the admissions office.</span>
+          {submittedApplication.applicationId && (
+            <TrackingLinkAction
+              applicationId={submittedApplication.applicationId}
+              className="mt-4 border-t border-primary/20 pt-4"
+              description="Want to check your status without signing in, or share it with someone? Get a tracking link."
+            />
+          )}
         </div>
 
         {/* Application details */}
         <div className={`rounded-lg border border-border/70 bg-muted/30 p-4 mb-6 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold text-foreground mb-3">Application Details</h3>
+          {/* The application number is the headline above; not repeated here. */}
           <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Application Number</dt>
-              <dd className="font-mono font-semibold text-foreground">{submittedApplication.applicationNumber}</dd>
-            </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Program</dt>
               <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
@@ -192,12 +204,14 @@ const SubmissionSuccess = ({
             {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
               <li className="flex items-start gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-warning/10 text-xs font-semibold text-warning">2</span>
-                <span className="text-foreground">Complete your payment from the dashboard when ready.</span>
+                {/* Task 8.3 (R12.3): after submission the payment page owns the
+                    fee, so the hand-off names that page rather than the wizard. */}
+                <span className="text-foreground">Complete your payment on the payment page when you are ready.</span>
               </li>
             )}
             <li className="flex items-start gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '3' : '2'}</span>
-              <span className="text-foreground">Track your application status using the tracking code above.</span>
+              <span className="text-foreground">Track your application status by signing in, or with the tracking link above.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '4' : '3'}</span>

@@ -38,7 +38,11 @@ from rest_framework.test import APIClient
 from apps.accounts.authentication import JWTUser
 from apps.applications.models import Application
 from apps.catalog.services import AccessScopeService
-from tests.tenant_fixtures import build_document, build_payment
+from tests.tenant_fixtures import (
+    build_document,
+    build_payment,
+    grant_tenant_permissions,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +264,19 @@ class TestEndpointExportIsolation:
         world_a, world_b = two_tenant_worlds
         for w in (world_a, world_b):
             Application.objects.filter(id=w.application.id).update(status="submitted")
+
+        # An export is its own grant, not something read access implies:
+        # ``ApplicationExportView`` requires ``tenant.application.export`` through
+        # ``HasTenantCapability``, and ``AdminCapabilityService`` layers that on only
+        # when the membership names ``export`` ("read by default, mutate only when
+        # granted"). Admissions-v2 task 8.4 made it explicit — "an export requires
+        # the explicit ``tenant.application.export`` capability rather than being
+        # implied by read access" (``docs/v2-evidence/8.4/README.md``) — and task 9.4
+        # kept it when this route became the one export path. This test's subject is
+        # isolation *within* an export, so the actor has to be able to run one; the
+        # 403 hid the claim instead of proving it. The export authority itself is
+        # proven separately by ``test_settlement_fee_authority_8_4.py``.
+        grant_tenant_permissions(world_a, ["export"])
 
         response = _staff_client(world_a).get("/api/v1/applications/export/")
         assert response.status_code == 200

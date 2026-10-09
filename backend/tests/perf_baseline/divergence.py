@@ -75,6 +75,46 @@ DEFAULT_VOLATILE_KEYS: frozenset[str] = frozenset(
         # Time-relative computed fields (depend on "today").
         "age",
         "days_since_submission",
+        # ------------------------------------------------------------------
+        # Added by 13.6 remediation M3 — two timestamps that made this suite
+        # unstable run-to-run rather than divergent.
+        # ------------------------------------------------------------------
+        # `last_attempt_at` is the per-channel delivery timestamp task 10.1
+        # publishes on a notification. `generated_at` is the read timestamp task
+        # 9.2 publishes inside `freshness`. Both are wall-clock values captured
+        # when the request is served, so two captures of the *same* behaviour
+        # differ in microseconds:
+        #
+        #   [value_mismatch] data.results[0].channels[0].last_attempt_at:
+        #       baseline='...T06:03:51.170872+00:00' candidate='...T06:03:51.178105+00:00'
+        #   [value_mismatch] data.freshness.generated_at:
+        #       baseline='...T10:00:53.515182+00:00' candidate='...T10:00:53.526597+00:00'
+        #
+        # That is exactly the class this set was built for ("database ids,
+        # timestamps, payment references, auto-generated codes") -- these two
+        # were simply published after the set was last extended. Widening the set
+        # here is not a way to make a diff disappear: the fields are still
+        # *compared*, as `<volatile>` against `<volatile>`, so one of them going
+        # missing or changing type is still a divergence.
+        "last_attempt_at",
+        "generated_at",
+        # `windows.last_activity_at` is the newest timestamp among the fixture's
+        # own application rows, so it moves with every run that rebuilds them:
+        #
+        #   [value_mismatch] data.windows.last_activity_at:
+        #       baseline='...T10:08:23.512892+00:00' candidate='...T10:10:48.811170+00:00'
+        #
+        # It was added here only after it was *measured* diverging on a
+        # regenerated golden -- not predicted -- because widening this set on a
+        # guess is how a real change ends up hidden.
+        "last_activity_at",
+        # `windows.next_deadline_at` is the same class and is added with the
+        # instability stated rather than observed: it is computed as
+        # `now + offset` from a condition/enrollment row, so it moves per run
+        # whenever such a row exists. The dashboard fixture happens to have none,
+        # which is the only reason it reads `None` and has never diverged. Left
+        # out, the next fixture that adds a deadline row turns this suite flaky.
+        "next_deadline_at",
     }
 )
 

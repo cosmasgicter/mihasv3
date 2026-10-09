@@ -180,17 +180,43 @@ describe('admin dashboard overhaul property coverage', () => {
     )
   })
 
-  it('formats fee amounts to exactly two decimal places', () => {
+  it('renders a server fee amount verbatim, with a currency marker', () => {
+    // Feature: admin-dashboard-overhaul, Property 13: Fee currency formatting.
+    //
+    // Restated by admissions-v2 task 8.4 (ADM-06 / R12.1). The old property was
+    // "formats to exactly two decimal places", generated `double`s, and asserted
+    // `^CURRENCY \d+\.\d{2}$` — i.e. it pinned the browser *deciding* the scale of
+    // money. The server now authors the amount as an already-quantised decimal
+    // **string**, so the input space is strings, and the property is that the
+    // digits survive untouched: no rounding, no reformatting, no invention. The
+    // two-decimal guarantee still holds — it is asserted where it is now decided
+    // (`backend/tests/unit/test_settlement_fee_authority_8_4.py` →
+    // "amounts are quantised decimal strings").
     fc.assert(
       fc.property(
         fc.constantFrom('ZMW', 'USD', 'EUR'),
-        fc.double({ min: 0.01, max: 100000, noNaN: true, noDefaultInfinity: true }),
-        (currency, amount) => {
-          // Feature: admin-dashboard-overhaul, Property 13: Fee currency formatting
-          expect(formatFeeAmount(currency, amount)).toMatch(new RegExp(`^${currency} \\d+\\.\\d{2}$`))
+        fc
+          .double({ min: 0.01, max: 100000, noNaN: true, noDefaultInfinity: true })
+          .map((value) => value.toFixed(2)),
+        (currency, serverAmount) => {
+          const rendered = formatFeeAmount(currency, serverAmount)
+          // The server's digits appear exactly as sent.
+          expect(rendered).toContain(serverAmount)
+          expect(rendered).toMatch(new RegExp(`^(?:K|\\$|${currency} )${serverAmount.replace('.', '\\.')}$`))
         }
       ),
       { numRuns: 100 }
+    )
+  })
+
+  it('never invents an amount for a missing one', () => {
+    // The retired formatter fell back to '0.00' for anything unparseable, which
+    // showed an operator a fee of zero where there was no fee at all (R12.2).
+    fc.assert(
+      fc.property(fc.constantFrom('ZMW', 'USD', 'EUR'), fc.constantFrom(null, undefined, ''), (currency, empty) => {
+        expect(formatFeeAmount(currency, empty)).toBe('—')
+      }),
+      { numRuns: 20 }
     )
   })
 

@@ -141,30 +141,37 @@ def test_auto_assign_accepts_empty_body():
 
 # ---- View wiring ----
 
+# The AI-summary views these two tests used to check were REMOVED by admissions-v2
+# task 7.4 (R11.1 — "no generative AI touches admissions data or decisions"), and
+# `ApplicationAiSummaryResponseSerializer` went with them. The imports therefore
+# raised `ImportError` and both tests failed for asserting the wiring of endpoints
+# the platform deliberately deleted.
+#
+# The references are gone and the retirement is pinned instead (13.6 remediation
+# M3): deleting an assertion that names a retired symbol should leave behind a
+# statement that the symbol is retired, not a silence.
+
+
 def test_student_views_declare_serializer_class():
     """Each view has serializer_class set so drf-spectacular resolves it."""
     from apps.applications.student_views import (
         ApplicationAmendmentView,
         ApplicationConfirmEnrollmentView,
-        ApplicationPreviewSummaryView,
         ApplicationWaitlistPositionView,
     )
     from apps.applications.serializers import (
         ApplicationAmendmentRequestSerializer,
         ApplicationConfirmEnrollmentRequestSerializer,
-        ApplicationAiSummaryResponseSerializer,
         ApplicationWaitlistPositionResponseSerializer,
     )
 
     assert ApplicationAmendmentView.serializer_class is ApplicationAmendmentRequestSerializer
     assert ApplicationConfirmEnrollmentView.serializer_class is ApplicationConfirmEnrollmentRequestSerializer
-    assert ApplicationPreviewSummaryView.serializer_class is ApplicationAiSummaryResponseSerializer
     assert ApplicationWaitlistPositionView.serializer_class is ApplicationWaitlistPositionResponseSerializer
 
 
 def test_admin_views_declare_serializer_class():
     from apps.applications.admin_views import (
-        ApplicationAdminSummaryView,
         ApplicationAmendmentReviewView,
         ApplicationAssignView,
         ApplicationAutoAssignView,
@@ -175,11 +182,35 @@ def test_admin_views_declare_serializer_class():
         ApplicationAssignRequestSerializer,
         ApplicationAutoAssignRequestSerializer,
         ApplicationFeeWaiverRequestSerializer,
-        ApplicationAiSummaryResponseSerializer,
     )
 
     assert ApplicationAssignView.serializer_class is ApplicationAssignRequestSerializer
     assert ApplicationAutoAssignView.serializer_class is ApplicationAutoAssignRequestSerializer
     assert ApplicationFeeWaiverView.serializer_class is ApplicationFeeWaiverRequestSerializer
     assert ApplicationAmendmentReviewView.serializer_class is ApplicationAmendmentReviewRequestSerializer
-    assert ApplicationAdminSummaryView.serializer_class is ApplicationAiSummaryResponseSerializer
+
+
+def test_the_retired_ai_summary_wiring_stays_retired():
+    """The three symbols task 7.4 removed must not come back (R11.1).
+
+    ``tests/unit/test_no_admissions_generative_ai_guard.py`` already fails if a
+    retired *route* is re-registered. This is the serializer-wiring half of the
+    same statement, filed where the stale assertions used to live so a future
+    reader finds the retirement rather than a gap.
+    """
+    from apps.applications import admin_views, serializers, student_views
+
+    retired = (
+        (student_views, "ApplicationPreviewSummaryView"),
+        (admin_views, "ApplicationAdminSummaryView"),
+        (serializers, "ApplicationAiSummaryResponseSerializer"),
+    )
+    present = [
+        f"{module.__name__}.{name}"
+        for module, name in retired
+        if hasattr(module, name)
+    ]
+    assert present == [], (
+        "task 7.4 (R11.1) removed these; re-adding one reintroduces an "
+        f"admissions generative-AI surface: {present}"
+    )

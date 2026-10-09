@@ -4,38 +4,40 @@ import { Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import type { DocumentItem, ApplicationWithDetails } from './applicationDetailTypes'
 import { documentService } from '@/services/documents'
-import { applicationService } from '@/services/applications'
 import { useToastStore } from '@/hooks/useToast'
-import { logApiError } from '@/lib/apiErrorLogger'
-import { toError } from '@/lib/toError'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-function DocumentVerifyActions({ doc, applicationId, onVerified }: { doc: DocumentItem; applicationId: string; onVerified?: () => void }) {
-  const [loading, setLoading] = useState(false)
-  const { success: showSuccess, error: showError } = useToastStore()
+/**
+ * Verify or reject one document (task 9.4, R8.3/R8.4, AUTH-02).
+ *
+ * The command is **injected**, not issued here. It used to call
+ * `applicationService.verifyDocument` directly — an unversioned write with no
+ * authority check on this side at all, so the buttons appeared for any actor who
+ * could open the workspace and a verification recorded from a stale view could
+ * overwrite a newer one. The workspace now owns both: `canVerify` is the
+ * server's own `tenant.document.verify` answer for this application's school,
+ * and `onVerify` carries the version the workspace was read at.
+ */
+function DocumentVerifyActions({
+  doc,
+  canVerify,
+  busy,
+  onVerify,
+}: {
+  doc: DocumentItem
+  canVerify: boolean
+  busy: boolean
+  onVerify: (documentId: string, status: 'verified' | 'rejected') => void
+}) {
   const isPending = !doc.verification_status || doc.verification_status === 'pending' || doc.verification_status === 'ocr_complete'
 
-  if (!isPending || !applicationId) return null
+  if (!isPending || !canVerify) return null
 
-  const handleVerify = async (status: 'verified' | 'rejected') => {
-    setLoading(true)
-    try {
-      await applicationService.verifyDocument(applicationId, {
-        documentId: doc.id,
-        status,
-      })
-      showSuccess(
-        status === 'verified' ? 'Document verified' : 'Document rejected',
-        `${doc.document_name} has been ${status}.`
-      )
-      onVerified?.()
-    } catch (error) {
-      logApiError('admin-doc-verify', `/applications/${applicationId}/verify-document/`, error)
-      showError('Verification failed', toError(error).message || 'Unable to update document status.')
-    } finally {
-      setLoading(false)
-    }
+  const loading = busy
+
+  const handleVerify = (status: 'verified' | 'rejected') => {
+    onVerify(doc.id, status)
   }
 
   return (
@@ -43,8 +45,10 @@ function DocumentVerifyActions({ doc, applicationId, onVerified }: { doc: Docume
       <Button
         variant="outline"
         size="sm"
-        onClick={() => { void handleVerify('verified') }}
+        onClick={() => handleVerify('verified')}
         disabled={loading}
+        data-testid={`document-verify-${doc.id}`}
+        aria-label={`Verify ${doc.document_name}`}
         className="border-green-300 text-green-700 hover:bg-green-50"
       >
         <CheckCircle className="h-3.5 w-3.5" />
@@ -52,8 +56,10 @@ function DocumentVerifyActions({ doc, applicationId, onVerified }: { doc: Docume
       <Button
         variant="outline"
         size="sm"
-        onClick={() => { void handleVerify('rejected') }}
+        onClick={() => handleVerify('rejected')}
         disabled={loading}
+        data-testid={`document-reject-${doc.id}`}
+        aria-label={`Reject ${doc.document_name}`}
         className="border-red-300 text-red-700 hover:bg-red-50"
       >
         <XCircle className="h-3.5 w-3.5" />
@@ -127,10 +133,25 @@ interface ApplicationDetailDocumentsProps {
    * fresh signed URLs.
    */
   application?: ApplicationWithDetails | null
-  onDocumentVerified?: () => void
+  /**
+   * The server's own `tenant.document.verify` answer for this application's
+   * school (task 9.4, AUTH-02). Absent means no verification controls — fail
+   * closed, exactly as the backend does when it cannot resolve a capability.
+   */
+  canVerify?: boolean
+  /** True while a workspace command is in flight, so a double-press cannot. */
+  verifying?: boolean
+  /** The versioned verification command, owned by the workspace (R8.4). */
+  onVerify?: (documentId: string, status: 'verified' | 'rejected') => void
 }
 
-export function ApplicationDetailDocuments({ documents, loading, applicationId, onDocumentVerified }: ApplicationDetailDocumentsProps) {
+export function ApplicationDetailDocuments({
+  documents,
+  loading,
+  canVerify = false,
+  verifying = false,
+  onVerify,
+}: ApplicationDetailDocumentsProps) {
   if (loading) {
     return (
       <div className="space-y-3" role="status" aria-label="Loading documents">
@@ -235,7 +256,14 @@ export function ApplicationDetailDocuments({ documents, loading, applicationId, 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {applicationId && <DocumentVerifyActions doc={doc} applicationId={applicationId} onVerified={onDocumentVerified} />}
+              {onVerify && (
+                <DocumentVerifyActions
+                  doc={doc}
+                  canVerify={canVerify}
+                  busy={verifying}
+                  onVerify={onVerify}
+                />
+              )}
               <ViewDocButton doc={doc} />
             </div>
           </div>

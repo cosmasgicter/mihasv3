@@ -21,9 +21,10 @@
  * an action that degrades to a `Failed` state.
  *
  * Extracted as a pure function so both the rewired student components
- * (`DocumentButtons`, `DownloadReceiptButton`, `ApplicationSlipActions`) and the
- * Property 18 frontend mirror test share one authority (no behavior duplication
- * / drift).
+ * (`DocumentButtons`, `DownloadReceiptButton`) and the Property 18 frontend
+ * mirror test share one authority (no behavior duplication / drift).
+ * (`ApplicationSlipActions` was folded into `DocumentButtons` by admissions-v2
+ * task 11.3 — one document surface, one primary action, one sheet.)
  *
  * @module officialDocumentGate
  */

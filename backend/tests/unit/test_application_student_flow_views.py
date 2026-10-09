@@ -106,9 +106,14 @@ class TestApplicationSubmitView:
         assert response.status_code == 200
         inner = response.data.get("data", response.data)
         assert inner["status"] == "submitted"
+        # The declaration accompanies the command so submission can re-check it
+        # under the row lock (admissions-v2 task 6.5, R10.6); the optimistic
+        # version is optional and absent here.
         mock_submit_application.assert_called_once_with(
             application=application,
             changed_by=str(student.id),
+            declarations_accepted=True,
+            expected_version=None,
         )
 
     @patch("apps.applications.student_submission_views.submit_application")
@@ -231,6 +236,7 @@ class TestApplicationInterviewListView:
         queryset.filter.assert_called_once_with(application__user_id=str(student.id))
         filtered_queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
 
+    @patch("apps.applications.interview_views.AdminCapabilityService")
     @patch("apps.applications.interview_views.AccessScopeService")
     @patch("apps.applications.interview_views.ApplicationInterviewSerializer")
     @patch("apps.applications.interview_views.ApplicationInterview.objects")
@@ -239,6 +245,7 @@ class TestApplicationInterviewListView:
         mock_interview_objects,
         mock_interview_serializer,
         mock_scope_service,
+        mock_capability_service,
     ):
         """GAP-2 (R5.2/R5.9): the admin (non-`mine`) path narrows the interview
         queryset through ``AccessScopeService.filter_applications`` rather than
@@ -251,6 +258,25 @@ class TestApplicationInterviewListView:
         queryset.filter.return_value = scoped_queryset
         scoped_queryset.order_by.return_value = []
         mock_interview_serializer.return_value.data = []
+        # Which branch the view takes is now a *capability* decision, not a role
+        # one: admissions-v2 task 2.2 made the staff path conditional on
+        # ``AdminCapabilityService.get_capabilities(user)`` yielding
+        # ``tenant.application.read`` for some in-scope institution (R3.1,
+        # AUTH-02). This mock actor has no membership row, so the real service
+        # raised ``CapabilityResolutionError``, the view failed closed to the
+        # student branch, and ``filter_applications`` was never called — the
+        # assertion below read "Called 0 times" for a scope narrowing the view had
+        # simply not reached. Declaring the actor's resolved capabilities is the
+        # same thing this test already does for the scope service one line down.
+        # The capability *decision* itself is asserted against real rows by
+        # ``tests/unit/test_admissions_v2_authority_policies.py`` and
+        # ``test_scoped_access_matrix.py``.
+        capability_set = MagicMock()
+        capability_set.all_access = False
+        capability_set.institution_capabilities = {
+            "inst-1": frozenset({"tenant.application.read"})
+        }
+        mock_capability_service.return_value.get_capabilities.return_value = capability_set
         # The scope service resolves a set of in-scope application ids.
         mock_scope_service.return_value.filter_applications.return_value.values_list.return_value = ["app-1"]
 
@@ -289,6 +315,36 @@ class TestStudentPostSubmissionMutationGuards:
         response = ApplicationDetailView.as_view()(request, application_id=app_id)
 
         assert response.status_code == 204
+
+    @patch("apps.applications.student_draft_views.ApplicationSerializer")
+    @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
+    def test_student_generic_update_requires_canonical_versioned_draft_endpoint(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_serializer,
+    ):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "patch",
+            f"/api/v1/applications/{app_id}/",
+            student,
+            data={"full_name": "Stale browser write"},
+            format="json",
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 409
+        assert response.data["code"] == "CANONICAL_DRAFT_UPDATE_REQUIRED"
+        mock_serializer.assert_not_called()
 
     @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_draft_views._with_payment_summary")
@@ -656,7 +712,9 @@ class TestApplicationDraftListView:
         self.factory = APIRequestFactory()
 
     @patch("apps.applications.admin_review_views.ApplicationListCreateView.post")
-    def test_post_delegates_to_canonical_application_create(self, mock_post):
+    def test_post_with_canonical_selection_delegates_to_canonical_create(self, mock_post):
+        """A draft START carrying the minimum canonical selection (program_id +
+        intake_id) delegates to the canonical application create (task 6.2)."""
         student = _student_user()
         mock_post.return_value = Response({"success": True, "data": {"id": "draft-1"}}, status=201)
 
@@ -672,6 +730,38 @@ class TestApplicationDraftListView:
                 "phone": "+260971234567",
                 "email": "student@example.com",
                 "residence_town": "Lusaka",
+                # Minimum canonical selection (R10.9) — canonical program + intake ids.
+                "program_id": "11111111-1111-1111-1111-111111111111",
+                "intake_id": "22222222-2222-2222-2222-222222222222",
+            },
+            format="json",
+        )
+
+        response = ApplicationDraftListView.as_view()(request)
+
+        assert response.status_code == 201
+        mock_post.assert_called_once()
+
+    @patch("apps.applications.admin_review_views.ApplicationListCreateView.post")
+    def test_post_without_canonical_selection_is_rejected_before_delegation(self, mock_post):
+        """A draft START missing the canonical program+intake fails closed with
+        MINIMUM_SELECTION_REQUIRED and never reaches the canonical create
+        (finding STU-12: the client used to POST an empty payload here)."""
+        student = _student_user()
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            "/api/v1/applications/drafts/",
+            student,
+            data={
+                "full_name": "Test Student",
+                "date_of_birth": "2001-01-01",
+                "sex": "female",
+                "phone": "+260971234567",
+                "email": "student@example.com",
+                "residence_town": "Lusaka",
+                # Legacy display strings are NOT a valid canonical selection.
                 "program": "Nursing",
                 "intake": "January 2026",
                 "institution": "Beanola Test College",
@@ -681,8 +771,9 @@ class TestApplicationDraftListView:
 
         response = ApplicationDraftListView.as_view()(request)
 
-        assert response.status_code == 201
-        mock_post.assert_called_once()
+        assert response.status_code == 400
+        assert response.data["code"] == "MINIMUM_SELECTION_REQUIRED"
+        mock_post.assert_not_called()
 
 
 class TestApplicationDraftDetailView:
@@ -707,33 +798,24 @@ class TestApplicationDraftDetailView:
         assert response.status_code == 404
         assert response.data["code"] == "NOT_FOUND"
 
-    @patch("apps.applications.student_draft_views.ApplicationSerializer")
     @patch("apps.applications.student_draft_views._get_owned_draft_application")
-    def test_draft_detail_patch_updates_only_owned_draft(self, mock_get_owned_draft_application, mock_serializer):
+    def test_draft_detail_patch_requires_idempotency_key_before_lookup(self, mock_get_owned_draft_application):
         student = _student_user()
         app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="draft", user_id=student.id)
-        mock_get_owned_draft_application.return_value = application
-        serializer_instance = MagicMock()
-        serializer_instance.is_valid.return_value = True
-        serializer_instance.save.return_value = application
-        serializer_instance.data = {"id": str(app_id), "full_name": "Updated Student"}
-        mock_serializer.return_value = serializer_instance
 
         request = _auth_request(
             self.factory,
             "patch",
             f"/api/v1/applications/drafts/{app_id}/",
             student,
-            data={"full_name": "Updated Student"},
+            data={"full_name": "Updated Student", "expected_version": 1},
             format="json",
         )
         response = self.view(request, application_id=app_id)
 
-        assert response.status_code == 200
-        assert response.data["success"] is True
-        serializer_instance.is_valid.assert_called_once()
-        serializer_instance.save.assert_called_once()
+        assert response.status_code == 400
+        assert response.data["code"] == "IDEMPOTENCY_KEY_REQUIRED"
+        mock_get_owned_draft_application.assert_not_called()
 
     @patch("apps.applications.student_draft_views.Payment.objects")
     @patch("apps.applications.student_draft_views._get_owned_draft_application")

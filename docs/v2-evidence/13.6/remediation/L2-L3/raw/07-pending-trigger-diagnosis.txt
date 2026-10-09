@@ -1,0 +1,129 @@
+### 2026-08-13T23:00:16Z L3 second layer - pending-trigger-probe.py on v2_snap_13_6
+# Every mode runs inside ONE transaction that is ALWAYS rolled back.
+# raw/pending-trigger-probe.py --mode {baseline,precreate,immediate}
+# Session pins: lock_timeout=5s statement_timeout=60s (so a lock wait cannot
+# masquerade as a pass or hang the rehearsal).
+
+======================================================================
+--- mode=baseline ---
+database   : v2_snap_13_6
+script     : 2026_06_08_01_multi_tenant_beanola_admissions.sql
+statements : 40 (split by the runner's own splitter)
+mode       : baseline
+
+DEFERRABLE INITIALLY DEFERRED foreign keys on the tables this script writes:
+  access_grants          -> institutions         access_grants_institution_id_21aa3853_fk_institutions_id  [INITIALLY DEFERRED]
+  access_grants          -> programs             access_grants_program_id_5393ceea_fk_programs_id  [INITIALLY DEFERRED]
+  applications           -> institutions         applications_institution_id_077f3535_fk_institutions_id  [INITIALLY DEFERRED]
+  applications           -> intakes              applications_intake_id_4e1a53f9_fk_intakes_id  [INITIALLY DEFERRED]
+  applications           -> canonical_programs   applications_program_id_ec5c9b7b_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  applications           -> programs             applications_program_offering_id_faed250f_fk_programs_id  [INITIALLY DEFERRED]
+  institution_assets     -> institutions         institution_assets_institution_id_f3c4e5ff_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_document_profiles -> canonical_programs   institution_document_canonical_program_id_25a71644_fk_canonical  [INITIALLY DEFERRED]
+  institution_document_profiles -> institutions         institution_document_institution_id_a9057650_fk_instituti  [INITIALLY DEFERRED]
+  institution_document_profiles -> programs             institution_document_program_id_1c6e2ef6_fk_programs_  [INITIALLY DEFERRED]
+  institution_document_templates -> institutions         institution_document_institution_id_c055938b_fk_instituti  [INITIALLY DEFERRED]
+  institution_domains    -> institutions         institution_domains_institution_id_34bb2b3e_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_required_documents -> canonical_programs   institution_required_canonical_program_id_fb1216b9_fk_canonical  [INITIALLY DEFERRED]
+  institution_required_documents -> institutions         institution_required_institution_id_54bf7c9d_fk_instituti  [INITIALLY DEFERRED]
+  institution_required_documents -> programs             institution_required_program_id_57183e26_fk_programs_  [INITIALLY DEFERRED]
+  programs               -> canonical_programs   programs_canonical_program_id_0a4d4e8d_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  user_institution_memberships -> institutions         user_institution_mem_institution_id_2d93b3a4_fk_instituti  [INITIALLY DEFERRED]
+
+FAILING STATEMENTS (4 of 40):
+  [30] CREATE INDEX IF NOT EXISTS idx_programs_canonical_program_id
+       -> OperationalError: cannot CREATE INDEX "programs" because it has pending trigger events
+  [31] CREATE INDEX IF NOT EXISTS idx_programs_offering_assignment
+       -> OperationalError: cannot CREATE INDEX "programs" because it has pending trigger events
+  [33] CREATE INDEX IF NOT EXISTS idx_applications_tenant_ids
+       -> OperationalError: cannot CREATE INDEX "applications" because it has pending trigger events
+  [40] DO $$
+       -> OperationalError: cannot ALTER TABLE "applications" because it has pending trigger events
+
+after rollback (must be unchanged):
+  migration_history rows            : 51
+  canonical_programs rows           : 0
+  idx_programs_canonical_program_id : 1
+
+VERDICT (baseline): FAIL - failing_statements=4
+probe exit=1
+======================================================================
+--- mode=precreate ---
+database   : v2_snap_13_6
+script     : 2026_06_08_01_multi_tenant_beanola_admissions.sql
+statements : 40 (split by the runner's own splitter)
+mode       : precreate
+
+DEFERRABLE INITIALLY DEFERRED foreign keys on the tables this script writes:
+  access_grants          -> institutions         access_grants_institution_id_21aa3853_fk_institutions_id  [INITIALLY DEFERRED]
+  access_grants          -> programs             access_grants_program_id_5393ceea_fk_programs_id  [INITIALLY DEFERRED]
+  applications           -> institutions         applications_institution_id_077f3535_fk_institutions_id  [INITIALLY DEFERRED]
+  applications           -> intakes              applications_intake_id_4e1a53f9_fk_intakes_id  [INITIALLY DEFERRED]
+  applications           -> canonical_programs   applications_program_id_ec5c9b7b_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  applications           -> programs             applications_program_offering_id_faed250f_fk_programs_id  [INITIALLY DEFERRED]
+  institution_assets     -> institutions         institution_assets_institution_id_f3c4e5ff_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_document_profiles -> canonical_programs   institution_document_canonical_program_id_25a71644_fk_canonical  [INITIALLY DEFERRED]
+  institution_document_profiles -> institutions         institution_document_institution_id_a9057650_fk_instituti  [INITIALLY DEFERRED]
+  institution_document_profiles -> programs             institution_document_program_id_1c6e2ef6_fk_programs_  [INITIALLY DEFERRED]
+  institution_document_templates -> institutions         institution_document_institution_id_c055938b_fk_instituti  [INITIALLY DEFERRED]
+  institution_domains    -> institutions         institution_domains_institution_id_34bb2b3e_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_required_documents -> canonical_programs   institution_required_canonical_program_id_fb1216b9_fk_canonical  [INITIALLY DEFERRED]
+  institution_required_documents -> institutions         institution_required_institution_id_54bf7c9d_fk_instituti  [INITIALLY DEFERRED]
+  institution_required_documents -> programs             institution_required_program_id_57183e26_fk_programs_  [INITIALLY DEFERRED]
+  programs               -> canonical_programs   programs_canonical_program_id_0a4d4e8d_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  user_institution_memberships -> institutions         user_institution_mem_institution_id_2d93b3a4_fk_instituti  [INITIALLY DEFERRED]
+
+FAILING STATEMENTS (4 of 40):
+  [30] CREATE INDEX IF NOT EXISTS idx_programs_canonical_program_id
+       -> OperationalError: cannot CREATE INDEX "programs" because it has pending trigger events
+  [31] CREATE INDEX IF NOT EXISTS idx_programs_offering_assignment
+       -> OperationalError: cannot CREATE INDEX "programs" because it has pending trigger events
+  [33] CREATE INDEX IF NOT EXISTS idx_applications_tenant_ids
+       -> OperationalError: cannot CREATE INDEX "applications" because it has pending trigger events
+  [40] DO $$
+       -> OperationalError: cannot ALTER TABLE "applications" because it has pending trigger events
+
+after rollback (must be unchanged):
+  migration_history rows            : 51
+  canonical_programs rows           : 0
+  idx_programs_canonical_program_id : 1
+
+VERDICT (precreate): FAIL - failing_statements=4
+probe exit=1
+======================================================================
+--- mode=immediate ---
+database   : v2_snap_13_6
+script     : 2026_06_08_01_multi_tenant_beanola_admissions.sql
+statements : 40 (split by the runner's own splitter)
+mode       : immediate
+
+DEFERRABLE INITIALLY DEFERRED foreign keys on the tables this script writes:
+  access_grants          -> institutions         access_grants_institution_id_21aa3853_fk_institutions_id  [INITIALLY DEFERRED]
+  access_grants          -> programs             access_grants_program_id_5393ceea_fk_programs_id  [INITIALLY DEFERRED]
+  applications           -> institutions         applications_institution_id_077f3535_fk_institutions_id  [INITIALLY DEFERRED]
+  applications           -> intakes              applications_intake_id_4e1a53f9_fk_intakes_id  [INITIALLY DEFERRED]
+  applications           -> canonical_programs   applications_program_id_ec5c9b7b_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  applications           -> programs             applications_program_offering_id_faed250f_fk_programs_id  [INITIALLY DEFERRED]
+  institution_assets     -> institutions         institution_assets_institution_id_f3c4e5ff_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_document_profiles -> canonical_programs   institution_document_canonical_program_id_25a71644_fk_canonical  [INITIALLY DEFERRED]
+  institution_document_profiles -> institutions         institution_document_institution_id_a9057650_fk_instituti  [INITIALLY DEFERRED]
+  institution_document_profiles -> programs             institution_document_program_id_1c6e2ef6_fk_programs_  [INITIALLY DEFERRED]
+  institution_document_templates -> institutions         institution_document_institution_id_c055938b_fk_instituti  [INITIALLY DEFERRED]
+  institution_domains    -> institutions         institution_domains_institution_id_34bb2b3e_fk_institutions_id  [INITIALLY DEFERRED]
+  institution_required_documents -> canonical_programs   institution_required_canonical_program_id_fb1216b9_fk_canonical  [INITIALLY DEFERRED]
+  institution_required_documents -> institutions         institution_required_institution_id_54bf7c9d_fk_instituti  [INITIALLY DEFERRED]
+  institution_required_documents -> programs             institution_required_program_id_57183e26_fk_programs_  [INITIALLY DEFERRED]
+  programs               -> canonical_programs   programs_canonical_program_id_0a4d4e8d_fk_canonical_programs_id  [INITIALLY DEFERRED]
+  user_institution_memberships -> institutions         user_institution_mem_institution_id_2d93b3a4_fk_instituti  [INITIALLY DEFERRED]
+
+FAILING STATEMENTS (0 of 40): none
+
+after rollback (must be unchanged):
+  migration_history rows            : 51
+  canonical_programs rows           : 0
+  idx_programs_canonical_program_id : 1
+
+VERDICT (immediate): PASS - failing_statements=0
+probe exit=0
+
+### 2026-08-13T23:03:32Z diagnosis block done

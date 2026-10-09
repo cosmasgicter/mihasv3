@@ -1,0 +1,61 @@
+$ cd apps/admissions && bun run test -- tests/unit/applicationRosterServerOwned.test.tsx tests/unit/applicationRosterDeepLinks.test.ts tests/unit/adminApplicationsOverview.test.ts --reporter=verbose
+$ bun x vitest run tests/unit/applicationRosterServerOwned.test.tsx tests/unit/applicationRosterDeepLinks.test.ts tests/unit/adminApplicationsOverview.test.ts "--reporter=verbose"
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mevery roster parameter this app can emit is registered on the backend (ADM-01)[2m > [22mregisters every dashboard deep-link parameter[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mevery roster parameter this app can emit is registered on the backend (ADM-01)[2m > [22mregisters every UI-filter → parameter mapping[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mevery roster parameter this app can emit is registered on the backend (ADM-01)[2m > [22mregisters every parameter the URL writer can put on the address[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mevery roster parameter this app can emit is registered on the backend (ADM-01)[2m > [22mregisters every key toApplicationRosterQuery can produce from a fully populated view[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mno admin surface hand-writes a roster URL any more[2m > [22mroutes every dashboard tile through rosterDeepLink[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mno admin surface hand-writes a roster URL any more[2m > [22mkeeps the retired UI-state spellings out of every emitted link[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits overdueReviews unchanged[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits pendingReview unchanged[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits pendingDocuments unchanged[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits pendingPayments unchanged[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits upcomingInterviews unchanged[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mparses and re-emits deadlinePressure unchanged[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mturns each deep link into a server query rather than an unfiltered list[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma link round-trips through the roster (R8.1)[2m > [22mprefixes every deep link with the roster route[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mthe two links that used to be dropped now filter (ADM-01)[2m > [22mapplies the deadline tile filter instead of showing everything[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mthe two links that used to be dropped now filter (ADM-01)[2m > [22mapplies the backend review-SLA notification's own status link[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mthe two links that used to be dropped now filter (ADM-01)[2m > [22mreads the same status link out of the backend task source[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma pre-9.1 bookmark is understood and upgraded[2m > [22maccepts the legacy UI-state spelling on the way in[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma pre-9.1 bookmark is understood and upgraded[2m > [22mrewrites it to the registered spelling on the way out[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma pre-9.1 bookmark is understood and upgraded[2m > [22mlets the registered spelling win when a URL carries both[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma pre-9.1 bookmark is understood and upgraded[2m > [22mpreserves unrelated query parameters when it canonicalises[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22ma pre-9.1 bookmark is understood and upgraded[2m > [22mclears a filter out of both spellings so a stale one cannot survive[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mthe draft lens round-trips through the registered status parameters[2m > [22mexpresses "drafts only" as status=draft[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterDeepLinks.test.ts[2m > [22mthe draft lens round-trips through the registered status parameters[2m > [22mexpresses "completed only" as exclude_status=draft[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts[2m > [22mthe page-derived overview builder is gone (ADM-01)[2m > [22mno longer exists as a module[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts[2m > [22mthe page-derived overview builder is gone (ADM-01)[2m > [22mis referenced by nothing under src/[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts[2m > [22mthe numbers it used to derive are now server aggregates[2m > [22mpublishes each of the three superseded claims as its own counter[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts[2m > [22mthe numbers it used to derive are now server aggregates[2m > [22mkeeps the strict/wider distinction the old test asserted[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/adminApplicationsOverview.test.ts[2m > [22mthe numbers it used to derive are now server aggregates[2m > [22mdistinguishes "the server said zero" from "there is no answer yet" (R8.6)[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe query is the server's question, in registered names (R8.1)[2m > [22msends every active filter, the sort, and the page[32m 25[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe query is the server's question, in registered names (R8.1)[2m > [22masks a different question when a filter changes rather than re-slicing the answer[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe totals are the server's aggregates, not the loaded page (ADM-01)[2m > [22mreports the whole-set total while holding one page of rows[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe totals are the server's aggregates, not the loaded page (ADM-01)[2m > [22mkeeps every aggregate identical on page 2 while the rows change[32m 112[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe totals are the server's aggregates, not the loaded page (ADM-01)[2m > [22mcarries a definition for the metrics an operator acts on (R8.6)[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mfilter options are the server's facets over the filtered set (ADM-01)[2m > [22moffers an option that has no row on the loaded page[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mfilter options are the server's facets over the filtered set (ADM-01)[2m > [22mdrops an option with no value rather than rendering a blank choice[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mmissing data is absence, not a healthy zero (R8.6)[2m > [22mreports null aggregates while the server has not answered[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mmissing data is absence, not a healthy zero (R8.6)[2m > [22mreports null aggregates when the read fails, and surfaces the error[32m 53[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mmissing data is absence, not a healthy zero (R8.6)[2m > [22mleaves detail-only fields null on a roster row instead of zeroing them[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mmissing data is absence, not a healthy zero (R8.6)[2m > [22msurfaces a parameter the contract does not implement[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe export is a page-independent, capability-gated command (R6.5)[2m > [22mexports the filters the operator is looking at, from whichever page[32m 107[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe export is a page-independent, capability-gated command (R6.5)[2m > [22mbuilds an export URL with no page at all[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe export is a page-independent, capability-gated command (R6.5)[2m > [22mtakes the export affordance from the backend, never from a role[32m 107[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe export is a page-independent, capability-gated command (R6.5)[2m > [22mreports what the server withheld[32m 54[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe page-derived habits cannot return (ADM-01 source scan)[2m > [22mreads the server aggregates and facets on the roster page[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe page-derived habits cannot return (ADM-01 source scan)[2m > [22mnever harvests filter options from the loaded rows[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe page-derived habits cannot return (ADM-01 source scan)[2m > [22mnever counts a portfolio number out of the loaded rows[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe page-derived habits cannot return (ADM-01 source scan)[2m > [22mdoes not accumulate pages into one growing array[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/applicationRosterServerOwned.test.tsx[2m > [22mthe page-derived habits cannot return (ADM-01 source scan)[2m > [22mno longer wires the page-derived overview builder into any surface[32m 1[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m49 passed[39m[22m[90m (49)[39m
+[2m   Start at [22m 21:58:48
+[2m   Duration [22m 2.67s[2m (transform 1.10s, setup 47ms, import 1.65s, tests 767ms, environment 1.22s)[22m
+
+TEST_EXIT=0

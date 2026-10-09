@@ -1,0 +1,1474 @@
+{
+  "root": "/home/cosmas/Downloads/mihasv3",
+  "workspaces": [
+    {
+      "name": "apps/admissions",
+      "filesScanned": 1150,
+      "declared": 75,
+      "dependencies": [
+        {
+          "package": "@hookform/resolvers",
+          "kind": "dependencies",
+          "importCount": 12,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/pages/ContactPage.tsx",
+            "apps/admissions/src/pages/admin/Intakes.tsx",
+            "apps/admissions/src/pages/admin/ProgramFees.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-accordion",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/accordion.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-alert-dialog",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/alert-dialog.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-checkbox",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/checkbox.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-dialog",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Dialog.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-dropdown-menu",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/dropdown-menu.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-label",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/label.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-progress",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/progress.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-radio-group",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/radio-group.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-select",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/select.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-separator",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/separator.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-slot",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Button.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-switch",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/switch.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-tabs",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/tabs.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-tooltip",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/tooltip.tsx"
+          ]
+        },
+        {
+          "package": "@react-pdf/renderer",
+          "kind": "dependencies",
+          "importCount": 22,
+          "classes": [
+            "dev-preview",
+            "production",
+            "script"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/render-pdf-samples.tsx",
+            "apps/admissions/src/lib/pdf/components/BrandFooter.tsx",
+            "apps/admissions/src/lib/pdf/components/BrandHeader.tsx"
+          ]
+        },
+        {
+          "package": "@sentry/react",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/errorReporter.ts",
+            "apps/admissions/src/lib/errorReporter.ts",
+            "apps/admissions/src/lib/errorReporter.ts"
+          ]
+        },
+        {
+          "package": "@tailwindcss/forms",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tailwind.config plugin",
+          "examples": []
+        },
+        {
+          "package": "@tanstack/react-query",
+          "kind": "dependencies",
+          "importCount": 112,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AuthenticatedRouteShell.tsx",
+            "apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx"
+          ]
+        },
+        {
+          "package": "@tanstack/react-virtual",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/admin/applications/VirtualizedApplicationsGrid.tsx"
+          ]
+        },
+        {
+          "package": "class-variance-authority",
+          "kind": "dependencies",
+          "importCount": 8,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Alert.tsx",
+            "apps/admissions/src/components/ui/Button.tsx",
+            "apps/admissions/src/components/ui/Grid.tsx"
+          ]
+        },
+        {
+          "package": "clsx",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/utils.ts"
+          ]
+        },
+        {
+          "package": "dompurify",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/SafeHtml.tsx"
+          ]
+        },
+        {
+          "package": "framer-motion",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/motion/index.tsx",
+            "apps/admissions/src/components/smoothui/shape-landing-hero.tsx"
+          ]
+        },
+        {
+          "package": "jspdf",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "jspdf-autotable",
+          "kind": "dependencies",
+          "importCount": 4,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "lucide-react",
+          "kind": "dependencies",
+          "importCount": 210,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/8starlabs/timeline.tsx",
+            "apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx",
+            "apps/admissions/src/components/admin/AdminErrorBoundary.tsx"
+          ]
+        },
+        {
+          "package": "pdf-lib",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/exportUtils.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "qrcode",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/pdf/qr.ts"
+          ]
+        },
+        {
+          "package": "react",
+          "kind": "dependencies",
+          "importCount": 433,
+          "classes": [
+            "dev-preview",
+            "production",
+            "script",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/render-pdf-samples.tsx",
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AdminRoute.tsx"
+          ]
+        },
+        {
+          "package": "react-dom",
+          "kind": "dependencies",
+          "importCount": 92,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/main.tsx",
+            "apps/admissions/tests/property/adminDashboardOverhaul.property.test.tsx",
+            "apps/admissions/tests/property/admissionsFlowBugCondition.property.test.ts"
+          ]
+        },
+        {
+          "package": "react-dropzone",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/FileUpload.tsx"
+          ]
+        },
+        {
+          "package": "react-hook-form",
+          "kind": "dependencies",
+          "importCount": 37,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/admin/programs/InstitutionDialogs.tsx",
+            "apps/admissions/src/components/admin/programs/ProgramDialogs.tsx",
+            "apps/admissions/src/components/admin/users/CreateUserDialog.tsx"
+          ]
+        },
+        {
+          "package": "react-intersection-observer",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/smoothui/animated-counter.tsx"
+          ]
+        },
+        {
+          "package": "react-router-dom",
+          "kind": "dependencies",
+          "importCount": 91,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AdminRoute.tsx",
+            "apps/admissions/src/components/AuthenticatedRouteShell.tsx"
+          ]
+        },
+        {
+          "package": "tailwind-merge",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/utils.ts"
+          ]
+        },
+        {
+          "package": "zod",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/zambianMsisdn.ts",
+            "apps/admissions/src/lib/zod.ts",
+            "apps/admissions/src/lib/zod.ts"
+          ]
+        },
+        {
+          "package": "zustand",
+          "kind": "dependencies",
+          "importCount": 5,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Toast.tsx",
+            "apps/admissions/src/stores/authStore.ts",
+            "apps/admissions/src/stores/draftStore.ts"
+          ]
+        },
+        {
+          "package": "@axe-core/playwright",
+          "kind": "devDependencies",
+          "importCount": 2,
+          "classes": [
+            "harness",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/e2e/accessibility.spec.ts",
+            "apps/admissions/tests/harness-e2e/required/design-system-defluff.spec.ts"
+          ]
+        },
+        {
+          "package": "@fontsource/jetbrains-mono",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@fontsource/playfair-display",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@fontsource/source-sans-3",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@playwright/test",
+          "kind": "devDependencies",
+          "importCount": 16,
+          "classes": [
+            "config",
+            "harness",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/playwright.config.ts",
+            "apps/admissions/playwright.harness.config.ts",
+            "apps/admissions/tests/e2e/accessibility.spec.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/react",
+          "kind": "devDependencies",
+          "importCount": 53,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/integration/requiredDocumentsUploadFlow.test.tsx",
+            "apps/admissions/tests/integration/requiredDocumentsVersionCommands.test.tsx",
+            "apps/admissions/tests/integration/tenantOnboardingWizard.integration.test.tsx"
+          ]
+        },
+        {
+          "package": "@types/node",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/qrcode",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react-dom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/eslint-plugin",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint plugin",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/parser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint parser",
+          "examples": []
+        },
+        {
+          "package": "@vitejs/plugin-react",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "@vitest/coverage-v8",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest coverage provider",
+          "examples": []
+        },
+        {
+          "package": "autoprefixer",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "baseline-browser-mapping",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "browserslist data",
+          "examples": []
+        },
+        {
+          "package": "concurrently",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "multi-process dev/test invocation",
+          "examples": []
+        },
+        {
+          "package": "critters",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "eslint",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint binary",
+          "examples": []
+        },
+        {
+          "package": "eslint-plugin-import",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-hooks",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-refresh",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "fast-check",
+          "kind": "devDependencies",
+          "importCount": 197,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts",
+            "apps/admissions/tests/property/admin-system-health-fixes/user-roles-rls.property.test.ts",
+            "apps/admissions/tests/property/admin-users-reducer.property.test.ts"
+          ]
+        },
+        {
+          "package": "fast-glob",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "script"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/check-dynamic-imports.ts"
+          ]
+        },
+        {
+          "package": "globals",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "jsdom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest environment",
+          "examples": []
+        },
+        {
+          "package": "openapi-typescript",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "generate:api-types",
+          "examples": []
+        },
+        {
+          "package": "postcss",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS core",
+          "examples": []
+        },
+        {
+          "package": "shadcn",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "shadcn component-add CLI",
+          "examples": []
+        },
+        {
+          "package": "sharp",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vite image pipeline / OptimizedImage asset generation",
+          "examples": []
+        },
+        {
+          "package": "tailwindcss",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS/Tailwind plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "tailwindcss-animate",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tailwind.config plugin",
+          "examples": []
+        },
+        {
+          "package": "terser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vite minifier, selected by name",
+          "examples": []
+        },
+        {
+          "package": "typescript",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tsc, invoked by build/type-check",
+          "examples": []
+        },
+        {
+          "package": "typescript-eslint",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "vite",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "vitest",
+          "kind": "devDependencies",
+          "importCount": 497,
+          "classes": [
+            "config",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/admin/dashboard.regression.test.ts",
+            "apps/admissions/tests/integration/auth-flows.integration.test.ts",
+            "apps/admissions/tests/integration/email-check.integration.test.ts"
+          ]
+        }
+      ],
+      "undeclared": [
+        {
+          "package": "@arcjet/node",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@neondatabase/serverless",
+          "importCount": 2,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts",
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/analytics",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/unit/appGlobalLazyLoading.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/node",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/speed-insights",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/unit/appGlobalLazyLoading.test.ts"
+          ]
+        },
+        {
+          "package": "arcjet",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "bcryptjs",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "jose",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "lib",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        }
+      ],
+      "staleDeclines": []
+    },
+    {
+      "name": "apps/jobs-ops",
+      "filesScanned": 57,
+      "declared": 31,
+      "dependencies": [
+        {
+          "package": "@hookform/resolvers",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "@tanstack/react-query",
+          "kind": "dependencies",
+          "importCount": 18,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/providers.tsx",
+            "apps/jobs-ops/src/auth/AuthContext.tsx"
+          ]
+        },
+        {
+          "package": "@vitejs/plugin-react",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/vite.config.ts"
+          ]
+        },
+        {
+          "package": "autoprefixer",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "clsx",
+          "kind": "dependencies",
+          "importCount": 3,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/components/ui/ErrorDisplay.tsx",
+            "apps/jobs-ops/src/components/ui/ProgressBar.tsx",
+            "apps/jobs-ops/src/components/ui/StatusBadge.tsx"
+          ]
+        },
+        {
+          "package": "lucide-react",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/layout/navigation.ts",
+            "apps/jobs-ops/src/app/layout/navigation.ts"
+          ]
+        },
+        {
+          "package": "postcss",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS core",
+          "examples": []
+        },
+        {
+          "package": "react",
+          "kind": "dependencies",
+          "importCount": 15,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/providers.tsx",
+            "apps/jobs-ops/src/auth/AuthContext.tsx"
+          ]
+        },
+        {
+          "package": "react-dom",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/main.tsx"
+          ]
+        },
+        {
+          "package": "react-hook-form",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "react-router-dom",
+          "kind": "dependencies",
+          "importCount": 10,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/App.tsx",
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/router.tsx"
+          ]
+        },
+        {
+          "package": "tailwindcss",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS/Tailwind plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "typescript",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tsc, invoked by build/type-check",
+          "examples": []
+        },
+        {
+          "package": "vite",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/vite.config.ts"
+          ]
+        },
+        {
+          "package": "zod",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "zustand",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/stores/ui-store.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/jest-dom",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/setup.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/react",
+          "kind": "devDependencies",
+          "importCount": 2,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/authContext.test.ts",
+            "apps/jobs-ops/tests/unit/router.test.ts"
+          ]
+        },
+        {
+          "package": "@types/node",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react-dom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/eslint-plugin",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint plugin",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/parser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint parser",
+          "examples": []
+        },
+        {
+          "package": "eslint",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint binary",
+          "examples": []
+        },
+        {
+          "package": "eslint-plugin-react-hooks",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-refresh",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "globals",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "jsdom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest environment",
+          "examples": []
+        },
+        {
+          "package": "msw",
+          "kind": "devDependencies",
+          "importCount": 6,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/authContext.test.ts"
+          ]
+        },
+        {
+          "package": "typescript-eslint",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "vitest",
+          "kind": "devDependencies",
+          "importCount": 5,
+          "classes": [
+            "config",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/authContext.test.ts",
+            "apps/jobs-ops/tests/unit/router.test.ts"
+          ]
+        }
+      ],
+      "undeclared": [],
+      "staleDeclines": []
+    },
+    {
+      "name": "<root>",
+      "filesScanned": 5,
+      "declared": 0,
+      "dependencies": [],
+      "undeclared": [
+        {
+          "package": "puppeteer-core",
+          "importCount": 1,
+          "examples": [
+            "scripts/launch-verification/measure-mobile-ui.mjs"
+          ]
+        }
+      ],
+      "staleDeclines": []
+    }
+  ],
+  "unusedImports": [],
+  "unusedLocals": [
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/motion/index.tsx",
+      "class": "production",
+      "line": 11,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'useDuration' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/NotificationBell.tsx",
+      "class": "production",
+      "line": 31,
+      "column": 5,
+      "code": "TS6133",
+      "message": "'refresh' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/applicationSession.ts",
+      "class": "production",
+      "line": 729,
+      "column": 17,
+      "code": "TS6133",
+      "message": "'getNextVersion' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/connectionFix.ts",
+      "class": "production",
+      "line": 60,
+      "column": 13,
+      "code": "TS6133",
+      "message": "'errorMessage' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/speculativePrefetch.ts",
+      "class": "production",
+      "line": 145,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'prefetchStudentApplications' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/speculativePrefetch.ts",
+      "class": "production",
+      "line": 207,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'preloadStudentSecondaryPages' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 283,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'bulkActionLoading' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 284,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'modalLoading' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 304,
+      "column": 9,
+      "code": "TS6133",
+      "message": "'searchInputRef' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/Dashboard.tsx",
+      "class": "production",
+      "line": 96,
+      "column": 28,
+      "code": "TS6133",
+      "message": "'scheduledInterviews' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts",
+      "class": "production",
+      "line": 43,
+      "column": 9,
+      "code": "TS6133",
+      "message": "'debouncedValues' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 372,
+      "column": 5,
+      "code": "TS6133",
+      "message": "'wizardCatalogContext' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/services/admin/dashboard.ts",
+      "class": "production",
+      "line": 657,
+      "column": 13,
+      "code": "TS6133",
+      "message": "'users' is declared but its value is never read.",
+      "isImport": false
+    }
+  ],
+  "tscProjects": [
+    "apps/admissions (tsconfig.build.json)",
+    "apps/jobs-ops (tsconfig.build.json)"
+  ],
+  "unresolvedFirstParty": [],
+  "pass": true
+}

@@ -1,0 +1,25 @@
+____________________ test_gap_register_endpoints_are_scoped ____________________
+tests/unit/test_unscoped_endpoint_guard.py:394: in test_gap_register_endpoints_are_scoped
+    assert violations == [], (
+E   AssertionError: Gap-register staff endpoint(s) no longer reference AccessScopeService scope — a Task 11.2 narrowing fix has regressed (R5.9/R5.2). Re-route the record load/mutation through `AccessScopeService().filter_*(...)` / `_staff_can_access_application(...)` / `filters_for_user(...)` / `_scope_institution_ids(...)`.
+E     Offending endpoints:
+E       GAP-6 apps/applications/interview_views.py::ApplicationInterviewView (line 189, no AccessScopeService scope seam)
+E       GAP-7 apps/applications/student_withdrawal_views.py::ApplicationWaitlistPositionView (line 172, no AccessScopeService scope seam)
+E       GAP-7 apps/applications/student_withdrawal_views.py::ApplicationConditionsView (line 229, no AccessScopeService scope seam)
+E   assert ['GAP-6 apps/... scope seam)'] == []
+E     
+E     Left contains 3 more items, first extra item: 'GAP-6 apps/applications/interview_views.py::ApplicationInterviewView (line 189, no AccessScopeService scope seam)'
+E     Use -v to get more diff
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_required_documents_contract_7_2.py: 33 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_unscoped_endpoint_guard.py::test_gap_register_endpoints_are_scoped
+1 failed, 113 passed, 34 warnings in 10.62s

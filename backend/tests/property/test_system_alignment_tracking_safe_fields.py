@@ -36,16 +36,20 @@ _default_settings = settings(max_examples=5, deadline=None)
 # Constants
 # ---------------------------------------------------------------------------
 
+# admissions-v2 task 10.5 (R13.12, STU-22) narrowed and renamed this contract:
+# ``program_name`` / ``intake_name`` / ``updated_at`` are what the tracker page
+# reads, and ``public_tracking_code`` / ``payment_status`` / ``created_at`` are no
+# longer published to an unauthenticated caller — the legacy tracking code
+# authorises nothing post-10.5, so echoing it served no purpose.
+# The property is unchanged: output ⊆ allowed, and no sensitive field appears.
 ALLOWED_FIELDS = frozenset({
     "application_number",
-    "public_tracking_code",
     "status",
-    "payment_status",
-    "program",
-    "intake",
+    "program_name",
+    "intake_name",
     "institution",
-    "created_at",
     "submitted_at",
+    "updated_at",
 })
 
 SENSITIVE_FIELDS = frozenset({

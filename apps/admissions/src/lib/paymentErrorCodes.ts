@@ -23,6 +23,13 @@ export type PaymentStableCode =
   | 'PROVIDER_UNAVAILABLE'
   | 'PAYMENT_UNAVAILABLE'
   | 'FEE_UNAVAILABLE'
+  | 'FEE_NOT_CONFIGURED'
+  | 'FEE_AMBIGUOUS'
+  | 'QUOTE_NOT_FOUND'
+  | 'QUOTE_EXPIRED'
+  | 'QUOTE_ALREADY_REDEEMED'
+  | 'QUOTE_INVALID'
+  | 'QUOTE_CONFIGURATION_CHANGED'
   | 'PAYMENT_SENSITIVE_FIELDS_LOCKED'
   | 'DRAFT_DELETE_BLOCKED_BY_PAYMENT'
   | 'CANNOT_REVERSE_SUCCESSFUL_PAYMENT'
@@ -46,6 +53,13 @@ export const PAYMENT_STABLE_CODES: readonly PaymentStableCode[] = [
   'PROVIDER_UNAVAILABLE',
   'PAYMENT_UNAVAILABLE',
   'FEE_UNAVAILABLE',
+  'FEE_NOT_CONFIGURED',
+  'FEE_AMBIGUOUS',
+  'QUOTE_NOT_FOUND',
+  'QUOTE_EXPIRED',
+  'QUOTE_ALREADY_REDEEMED',
+  'QUOTE_INVALID',
+  'QUOTE_CONFIGURATION_CHANGED',
   'PAYMENT_SENSITIVE_FIELDS_LOCKED',
   'DRAFT_DELETE_BLOCKED_BY_PAYMENT',
   'CANNOT_REVERSE_SUCCESSFUL_PAYMENT',
@@ -117,6 +131,39 @@ export const PAYMENT_ERROR_COPY: Record<PaymentStableCode, PaymentErrorCopy> = {
   FEE_UNAVAILABLE: {
     title: 'Fee not available',
     body: 'We could not look up the fee for this program. Please try again later.',
+  },
+  FEE_NOT_CONFIGURED: {
+    title: 'Fee not configured',
+    body: 'The application fee for this programme has not been set up yet. Please contact the school or try again later.',
+  },
+  FEE_AMBIGUOUS: {
+    title: 'Fee configuration needs attention',
+    body: 'More than one active fee is configured for this programme. Please contact the school so it can be corrected.',
+  },
+  QUOTE_NOT_FOUND: {
+    title: 'Fee not ready',
+    body: 'We could not find a current fee for this application. Refresh to get the latest amount.',
+    next_action_hint: 'Refresh the fee and try again.',
+  },
+  QUOTE_EXPIRED: {
+    title: 'Price expired',
+    body: 'The fee you were shown is no longer current. Refresh to see the latest amount before paying.',
+    next_action_hint: 'Refresh the fee and try again.',
+  },
+  QUOTE_ALREADY_REDEEMED: {
+    title: 'Fee already used',
+    body: 'This fee has already been used to start a payment. Check your payment status before trying again.',
+    next_action_hint: 'Check your payment status.',
+  },
+  QUOTE_INVALID: {
+    title: 'Fee could not be verified',
+    body: 'We could not verify the fee for this application. Refresh to get a new amount.',
+    next_action_hint: 'Refresh the fee and try again.',
+  },
+  QUOTE_CONFIGURATION_CHANGED: {
+    title: 'The fee changed',
+    body: 'The application fee changed while you were paying. Review the new amount before continuing.',
+    next_action_hint: 'Refresh the fee to see the new amount.',
   },
   PAYMENT_SENSITIVE_FIELDS_LOCKED: {
     title: 'Application is locked for this change',

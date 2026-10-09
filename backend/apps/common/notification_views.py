@@ -15,9 +15,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.communication_history import (
+    CommunicationRetryError,
+    project_delivery,
+    retry_email_delivery,
+)
 from apps.common.models import (
     Notification,
-    UserNotificationPreference,
+)
+from apps.common.notification_preferences import (
+    UNSUPPORTED_PREFERENCE,
+    apply_write,
+    resolve_preferences,
+    validate_write,
 )
 from apps.common.outbox import create_notification, queue_email
 from apps.common.openapi_helpers import (
@@ -42,16 +52,69 @@ def _get_admin_permission():
 # ---------------------------------------------------------------------------
 
 
+class NotificationPreferenceChannelSerializer(serializers.Serializer):
+    """One published delivery channel (task 10.1)."""
+
+    key = serializers.CharField()
+    enabled = serializers.BooleanField()
+    configurable = serializers.BooleanField()
+    mandatory = serializers.BooleanField()
+    field = serializers.CharField(allow_null=True)
+    definition = serializers.CharField()
+
+
+class NotificationPreferenceCategorySerializer(serializers.Serializer):
+    """One published message category (task 10.1)."""
+
+    key = serializers.CharField()
+    enabled = serializers.BooleanField()
+    configurable = serializers.BooleanField()
+    kind = serializers.CharField()
+    field = serializers.CharField(allow_null=True)
+    definition = serializers.CharField()
+
+
+class NotificationPreferenceUnsupportedFieldSerializer(serializers.Serializer):
+    field = serializers.CharField()
+    code = serializers.CharField()
+    reason = serializers.CharField()
+
+
 class NotificationPreferenceSerializer(serializers.Serializer):
-    email_enabled = serializers.BooleanField(required=False, default=True)
-    sms_enabled = serializers.BooleanField(required=False, default=False)
-    application_updates = serializers.BooleanField(required=False, allow_null=True)
-    payment_reminders = serializers.BooleanField(required=False, allow_null=True)
-    interview_reminders = serializers.BooleanField(required=False, allow_null=True)
-    marketing_emails = serializers.BooleanField(required=False, allow_null=True)
-    quiet_hours_start = serializers.TimeField(required=False, allow_null=True)
-    quiet_hours_end = serializers.TimeField(required=False, allow_null=True)
-    timezone = serializers.CharField(max_length=50, required=False, allow_null=True)
+    """The one published preference schema (task 10.1, R13.8).
+
+    Read-only by construction: the writable field names come from
+    :data:`apps.common.notification_preferences.WRITABLE_FIELDS`, and the PUT
+    body is validated by ``validate_write`` rather than by a serializer field
+    list — because the contract's whole point is that a field the platform cannot
+    honour must be **rejected with a reason**, and a DRF serializer silently
+    ignores unknown keys.
+    """
+
+    schema_version = serializers.IntegerField()
+    is_default = serializers.BooleanField()
+    channels = NotificationPreferenceChannelSerializer(many=True)
+    categories = NotificationPreferenceCategorySerializer(many=True)
+    writable_fields = serializers.ListField(child=serializers.CharField())
+    unsupported_fields = NotificationPreferenceUnsupportedFieldSerializer(many=True)
+    # The delivery-state vocabulary the communications history renders. It is
+    # published here — the schema surface — and not on every page of the inbox,
+    # whose ``{page, pageSize, totalCount, results}`` envelope is registered.
+    delivery_states = serializers.ListField(child=serializers.CharField())
+    delivery_state_definitions = serializers.DictField(child=serializers.CharField())
+    retry_limit = serializers.IntegerField()
+
+
+class NotificationPreferenceWriteSerializer(serializers.Serializer):
+    """Documents the writable switches for the schema only.
+
+    The endpoint does not use this to validate — see
+    :class:`NotificationPreferenceSerializer`.
+    """
+
+    email_enabled = serializers.BooleanField(required=False)
+    payment_reminders = serializers.BooleanField(required=False)
+    interview_reminders = serializers.BooleanField(required=False)
 
 
 class NotificationSendSerializer(serializers.Serializer):
@@ -81,6 +144,21 @@ class EmailSendSerializer(serializers.Serializer):
     body = serializers.CharField()
 
 
+class CommunicationChannelStateSerializer(serializers.Serializer):
+    """Per-channel delivery state for one message (task 10.1, R13.4).
+
+    Deliberately holds no provider payload: no recipient address, no SMTP
+    response, no ``EmailQueue.error_message``. A classified state, an attempt
+    count, a timestamp, and whether a retry is offered.
+    """
+
+    channel = serializers.CharField()
+    state = serializers.CharField()
+    attempts = serializers.IntegerField()
+    last_attempt_at = serializers.DateTimeField(allow_null=True)
+    can_retry = serializers.BooleanField()
+
+
 class NotificationItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     title = serializers.CharField()
@@ -90,6 +168,29 @@ class NotificationItemSerializer(serializers.Serializer):
     action_url = serializers.CharField(allow_null=True, required=False)
     read_at = serializers.DateTimeField(allow_null=True, required=False)
     created_at = serializers.DateTimeField()
+    # Task 10.1 (R13.4): the communications history is this list, so delivery
+    # state and channel travel with the message rather than living on a second
+    # surface.
+    category = serializers.CharField(required=False)
+    kind = serializers.CharField(required=False)
+    #: `student` or `staff` — which channel set this message class may use at all
+    #: (task 10.1; the question task 9.5 deferred to this schema).
+    audience = serializers.CharField(required=False)
+    channels = CommunicationChannelStateSerializer(many=True, required=False)
+    can_retry = serializers.BooleanField(required=False)
+
+
+def _with_delivery(notifications) -> list[dict]:
+    """Serialize a page of notifications with their delivery projection.
+
+    One extra query for the whole page (``project_delivery``), never one per row.
+    """
+    rows = list(notifications)
+    data = NotificationItemSerializer(rows, many=True).data
+    projection = project_delivery(rows)
+    for item in data:
+        item.update(projection.get(str(item.get("id")), {}))
+    return data
 
 
 NotificationPreferenceResponseSerializer = envelope_serializer(
@@ -181,7 +282,7 @@ def _send_notification_from_validated_data(data: dict) -> Response:
     put=extend_schema(
         operation_id="notifications_preferences_update",
         tags=["notifications"],
-        request=NotificationPreferenceSerializer,
+        request=NotificationPreferenceWriteSerializer,
         responses={
             200: OpenApiResponse(response=NotificationPreferenceResponseSerializer),
             400: OpenApiResponse(response=ErrorResponseSerializer),
@@ -189,61 +290,43 @@ def _send_notification_from_validated_data(data: dict) -> Response:
     ),
 )
 class NotificationPreferenceView(APIView):
-    """GET/PUT /api/v1/notifications/preferences/
+    """GET/PUT /api/v1/notifications/preferences/ — the real controls (task 10.1).
 
-    Manage notification preferences. Auth required.
+    The published schema and the delivery gate are the same module
+    (:mod:`apps.common.notification_preferences`), so a control exists here only
+    when a delivery path actually honours it (R13.8, finding STU-14).
+
+    A PUT naming a channel the platform cannot send (``sms_enabled``,
+    ``whatsapp_enabled``), a channel it will not let you switch off
+    (``in_app_enabled``), a category nothing produces (``marketing_emails``), a
+    mandatory transactional category (``application_updates``), or behaviour that
+    is not implemented (``quiet_hours_start`` / ``quiet_hours_end`` /
+    ``timezone``) is **rejected** with a per-field code and reason. The previous
+    endpoint stored all of them and no delivery path read any of them.
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationPreferenceSerializer
 
     def get(self, request):
-        pref = UserNotificationPreference.objects.filter(user_id=request.user.pk).first()
-        if not pref:
-            # Return defaults
-            return Response({
-                "success": True,
-                "data": {
-                    "email_enabled": True,
-                    "sms_enabled": False,
-                    "application_updates": None,
-                    "payment_reminders": None,
-                    "interview_reminders": None,
-                    "marketing_emails": None,
-                    "quiet_hours_start": None,
-                    "quiet_hours_end": None,
-                    "timezone": None,
-                },
-            })
-
-        return Response({
-            "success": True,
-            "data": NotificationPreferenceSerializer(pref).data,
-        })
+        preferences = resolve_preferences(request.user.pk)
+        return Response({"success": True, "data": preferences.as_payload()})
 
     def put(self, request):
-        serializer = NotificationPreferenceSerializer(data=request.data)
-        if not serializer.is_valid():
+        write = validate_write(request.data)
+        if not write.ok:
             return Response(
                 {
                     "success": False,
-                    "error": "Validation failed",
-                    "code": "VALIDATION_ERROR",
-                    "details": serializer.errors,
+                    "error": "One or more notification settings are not supported.",
+                    "code": UNSUPPORTED_PREFERENCE,
+                    "details": {"rejected": write.rejected},
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = serializer.validated_data
-        pref, _created = UserNotificationPreference.objects.update_or_create(
-            user_id=request.user.pk,
-            defaults=data,
-        )
-
-        return Response({
-            "success": True,
-            "data": NotificationPreferenceSerializer(pref).data,
-        })
+        preferences = apply_write(request.user.pk, write.updates)
+        return Response({"success": True, "data": preferences.as_payload()})
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +555,7 @@ class NotificationListView(APIView):
             | Q(created_at=anchor.created_at, id__lt=anchor.id)
         ).order_by("-created_at", "-id")[:page_size]
 
-        data = NotificationItemSerializer(cursor_qs, many=True).data
+        data = _with_delivery(cursor_qs)
         return Response({
             "success": True,
             "data": {
@@ -531,7 +614,7 @@ class NotificationListView(APIView):
             # Keep the old envelope shape but cap implicit reads to avoid
             # unbounded inbox payloads on the polling endpoint.
             implicit_page_size = min(max(total_count, 20), 100)
-            data = NotificationItemSerializer(notifications[:implicit_page_size], many=True).data
+            data = _with_delivery(notifications[:implicit_page_size])
             return Response({
                 "success": True,
                 "data": {
@@ -546,7 +629,7 @@ class NotificationListView(APIView):
         offset = (page - 1) * page_size
         page_qs = notifications[offset:offset + page_size]
 
-        data = NotificationItemSerializer(page_qs, many=True).data
+        data = _with_delivery(page_qs)
         return Response({
             "success": True,
             "data": {
@@ -582,6 +665,94 @@ class NotificationListView(APIView):
             )
 
         return _send_notification_from_validated_data(serializer.validated_data)
+
+
+# ---------------------------------------------------------------------------
+# 10.1 - Retry a failed delivery (R13.4)
+# ---------------------------------------------------------------------------
+
+
+class CommunicationRetrySerializer(serializers.Serializer):
+    """What a successful retry reports back."""
+
+    message = serializers.CharField()
+    channel = serializers.CharField()
+    attempts = serializers.IntegerField()
+
+
+CommunicationRetryResponseSerializer = envelope_serializer(
+    "CommunicationRetryResponse",
+    CommunicationRetrySerializer(),
+)
+
+
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="communications_retry_delivery",
+        tags=["notifications"],
+        summary="Ask the platform to try a failed email delivery again",
+        description=(
+            "Owner-scoped, audited, durable redelivery of one message's failed "
+            "email (task 10.1, R13.4). The retry writes a new outbox row and "
+            "dispatches on commit; it is never a direct provider call. Bounded "
+            "by the platform's retry limit. A message that is not in a terminal "
+            "failed state is refused with `RETRY_NOT_APPLICABLE`."
+        ),
+        request=None,
+        responses={
+            200: OpenApiResponse(response=CommunicationRetryResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class CommunicationRetryView(APIView):
+    """POST /api/v1/notifications/{id}/retry/
+
+    R13.4's "retry SHALL be an authorized audited command", for the student's own
+    communication history.
+
+    Authority is **ownership**: the notification is fetched from the caller's own
+    rows, so another user's id — and an unknown id — are the same 404. That is
+    design §5.2's owner-authority row plus the platform's ``not_found_mask``
+    disclosure policy, and it is why there is no separate permission class here.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommunicationRetrySerializer
+
+    def post(self, request, pk):
+        notification = Notification.objects.filter(
+            pk=pk, user_id=request.user.pk
+        ).first()
+        if notification is None:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Notification not found",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            result = retry_email_delivery(notification, request=request)
+        except CommunicationRetryError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=exc.status_code,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "message": "Delivery queued again.",
+                    "channel": "email",
+                    "attempts": result.attempts,
+                },
+            }
+        )
 
 
 # ---------------------------------------------------------------------------

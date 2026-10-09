@@ -1,0 +1,51 @@
+{
+  "generator": "scripts/inventory_admissions_v2.py",
+  "spec_task": "0.3",
+  "generated_at_utc": "2026-07-15T07:27:27.577674+00:00",
+  "repo_root": "/home/cosmas/Downloads/mihasv3",
+  "git_commit": "bae29a28d9657f288b3339062adb31285959c966",
+  "django_available": true,
+  "django_error": null,
+  "artifacts": {
+    "backend_routes": "backend_routes.json",
+    "backend_routes_csv": "backend_routes.csv",
+    "capabilities": "capabilities.json",
+    "role_checks": "role_checks.json",
+    "status_machines": "status_machines.json",
+    "scheduled_tasks": "scheduled_tasks.json",
+    "provider_ai_imports": "provider_ai_imports.json",
+    "frontend_routes": "frontend_routes.json",
+    "raw_api_client_calls": "raw_api_client_calls.json",
+    "legacy_endpoints_fields": "legacy_endpoints_fields.json",
+    "zero_unclassified_route_report": "zero-unclassified-route-report.md"
+  },
+  "counts": {
+    "backend_routes": 185,
+    "backend_django_admin_urls": 23,
+    "platform_capabilities": 17,
+    "tenant_capabilities": 17,
+    "raw_role_check_hits": 136,
+    "raw_role_check_files": 37,
+    "status_machines": 2,
+    "beat_scheduled_tasks": 17,
+    "shared_task_defs": 31,
+    "backend_ai_admissions_boundary_files": 7,
+    "frontend_ai_files": 8,
+    "frontend_routes": 35,
+    "pages_components_direct_api_calls": 17
+  },
+  "zero_unclassified": true,
+  "unclassified_count": 0,
+  "classification_breakdown": {
+    "api_docs": 3,
+    "api_root": 1,
+    "authenticated": 60,
+    "django_admin": 1,
+    "health": 3,
+    "internal_callback": 5,
+    "owner": 12,
+    "platform_capability": 19,
+    "public": 18,
+    "tenant_capability": 63
+  }
+}

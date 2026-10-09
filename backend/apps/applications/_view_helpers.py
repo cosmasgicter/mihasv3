@@ -560,12 +560,45 @@ class DocumentVerifySerializer(serializers.Serializer):
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
-class EmailSlipSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+# ``EmailSlipSerializer`` / ``EmailSlipQueuedSerializer`` removed by admissions-v2
+# task 10.6 (R13.5, finding API-04) together with the deprecated ``/email-slip/``
+# route they documented. The canonical official-document email publishes its own
+# request and response contract in ``official_document_views``.
 
 
-class EmailSlipQueuedSerializer(serializers.Serializer):
-    queued_id = serializers.UUIDField()
+class RequiredDocumentStateSerializer(serializers.Serializer):
+    """One rendered upload control (admissions-v2 task 7.2, R11.6).
+
+    Documents the contract a client renders from, so a tenant-configured document
+    type — including a custom one — becomes a real, validated upload field
+    instead of an invisible submission blocker (STU-13).
+    """
+
+    document_type = serializers.CharField()
+    label = serializers.CharField()
+    required = serializers.BooleanField()
+    description = serializers.CharField(allow_null=True)
+    source = serializers.ChoiceField(choices=["tenant", "platform"])
+    accepts_document_types = serializers.ListField(child=serializers.CharField())
+    accepted_mime_types = serializers.ListField(child=serializers.CharField())
+    accepted_extensions = serializers.ListField(child=serializers.CharField())
+    max_size_bytes = serializers.IntegerField()
+    constraints_source = serializers.CharField()
+    constraints_narrowed = serializers.BooleanField()
+    state = serializers.ChoiceField(choices=["missing", "uploaded", "verified"])
+    document = serializers.DictField(allow_null=True)
+
+
+class RequiredDocumentsContractSerializer(serializers.Serializer):
+    """The versioned required-document contract for one application."""
+
+    application_id = serializers.CharField()
+    application_status = serializers.CharField(allow_null=True)
+    configuration_version = serializers.CharField(allow_null=True)
+    requirements = RequiredDocumentStateSerializer(many=True)
+    missing_required = serializers.ListField(child=serializers.DictField())
+    satisfied = serializers.BooleanField()
+    policy = serializers.DictField()
 
 
 # ---------------------------------------------------------------------------
@@ -583,6 +616,10 @@ ApplicationResponseSerializer = envelope_serializer(
 ApplicationDocumentsResponseSerializer = envelope_serializer(
     "ApplicationDocumentsResponse",
     DocumentSerializer(many=True),
+)
+ApplicationRequiredDocumentsResponseSerializer = envelope_serializer(
+    "ApplicationRequiredDocumentsResponse",
+    RequiredDocumentsContractSerializer(),
 )
 ApplicationGradesResponseSerializer = envelope_serializer(
     "ApplicationGradesResponse",
@@ -636,7 +673,5 @@ WithdrawalResponseSerializer = envelope_serializer(
     "WithdrawalResponse",
     ApplicationSerializer(),
 )
-EmailSlipEnvelopeResponseSerializer = envelope_serializer(
-    "EmailSlipEnvelopeResponse",
-    EmailSlipQueuedSerializer(),
-)
+# ``EmailSlipEnvelopeResponseSerializer`` removed with the route it documented
+# (admissions-v2 task 10.6, R13.5, API-04).

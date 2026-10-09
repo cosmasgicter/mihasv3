@@ -153,6 +153,15 @@ def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> N
                 for _ in range(batch_size):
                     cur.execute(
                         """
+                        -- `application_quarantined` is NOT NULL with a
+                        -- *Python-level* default of False
+                        -- (apps/documents/models.py:222). Django keeps such
+                        -- defaults in Python, not in the column, so a raw
+                        -- INSERT must supply it. This factory did not, which is
+                        -- why the invariant under test was never reached -- the
+                        -- NOT NULL fired first. Fixed by 13.6 remediation M3;
+                        -- the invariant and its assertions are unchanged, and
+                        -- `false` is what the ORM would have written.
                         INSERT INTO payments (
                             id,
                             application_id,
@@ -161,6 +170,7 @@ def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> N
                             currency,
                             status,
                             metadata,
+                            application_quarantined,
                             created_at
                         ) VALUES (
                             gen_random_uuid(),
@@ -170,6 +180,7 @@ def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> N
                             'ZMW',
                             'pending',
                             '{}'::jsonb,
+                            false,
                             now()
                         )
                         RETURNING id;

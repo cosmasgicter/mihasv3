@@ -1,0 +1,171 @@
+Task 13.4 - timed rehearsal log
+================================================================================
+Spec:        .kiro/specs/admissions-v2-canonical-rebuild/ task 13.4
+Requirements R15, R17, R18.3-R18.7
+Findings:    DATA-03, DATA-07, DATA-08, DATA-09, DATA-10, DATA-11
+Boundary:    Neon rehearsal branch br-jolly-pine-ahybtg2e (name v2-task-3.2-rehearsal,
+             endpoint ep-proud-cherry-ah8n4q0f, project wild-bar-37055823) plus a
+             disposable local Postgres for the restore target. The Neon DEFAULT
+             branch was read only. The self-hosted production Postgres was NEVER
+             contacted: no SSH, no query, no write.
+Reuse:       branch reused, not created - the project is at its branch cap
+             (create_branch -> 422 branches limit exceeded), same as task 3.4.
+Timings:     wall-clock milliseconds per step, measured as
+                 $(( $(date -u +%s%N) / 1000000 ))
+             taken immediately before and after each command (lib.sh:now_ms).
+             An operator planning a maintenance window should read the ms column,
+             not the prose. Section B below re-orders the same numbers by clause,
+             which is the shape you want when you are budgeting a window.
+
+Two caveats, stated rather than tidied away:
+  * The FIRST TWO ROWS below are NOT measurements. They were produced by an
+    earlier attempt that used `date -u +%s%3N`, an idiom this system's `date`
+    does not support, so the arithmetic produced nonsense (8.7e10 and 1.6e18 ms).
+    They are left in place because the rows after them are the SAME two steps
+    re-run under the correct timer (101112 ms and 4326 ms). Nothing else in this
+    file came from the broken timer.
+  * Some steps appear more than once because the rehearsal iterated (a probe
+    script was corrected and re-run). Where a step repeats, the LAST occurrence
+    is the run the evidence and the manifests reflect. The repeats are kept so
+    the file remains an honest record of what was executed rather than a tidied
+    summary of it.
+================================================================================
+
+SECTION A - execution order (append-only, exactly as run)
+
+CLAUSE | STEP                                                       |  WALL TIME | RESULT
+C1     | apply 00_full_schema.sql                                   | 87212677543 ms | exit=0   <-- NOT A MEASUREMENT (broken timer; see caveat)
+C1     | apply 2026_05_22_migration_history_extend.sql              | 1607892521125756531 ms | exit=0   <-- NOT A MEASUREMENT (broken timer; see caveat)
+C1     | pre-state: base tables in v2_fresh_13_4 (empty)            |     2323 ms | exit=0
+C1     | apply backend/scripts/00_full_schema.sql                   |   101112 ms | exit=0
+C1     | apply 2026_05_22_migration_history_extend.sql              |     4326 ms | exit=0
+C1     | apply_sql_migrations --allow-non-additive (41 scripts)     |   113542 ms | exit=0
+C1     | schema_manifest --emit fresh-from-empty-neon               |    31671 ms | exit=0
+C1     | schema_manifest --verify (BEFORE the 13.4 validate script) |     1099 ms | exit=1
+C5     | GATE-13.1-06: shipped rollback UPDATE vs the CHECK it must satisfy |     5730 ms | exit=0
+C4     | GATE-13.1-01: preflight + lock measurement + validate 9 July FKs |     7823 ms | exit=0
+C4     | schema_manifest --emit fresh-from-empty-neon-validated     |    14019 ms | exit=0
+C4     | schema_manifest --verify (AFTER) - the R15.4 gate          |      849 ms | exit=0
+C3     | apply 00_full_schema.sql to v2_batch_13_4                  |    84797 ms | exit=0
+C3     | apply 2026_05_22_migration_history_extend.sql              |    10125 ms | exit=0
+C3     | SIGKILL the sweep after 30s (simulated container kill)     |    30074 ms | exit=124
+C3     | post-kill state: migration_history rows recorded           |    13634 ms | exit=0
+C4     | apply_sql_migrations picks up the new 42nd script (no-op on validated DB) |     8775 ms | exit=0
+C4     | schema_manifest --emit fresh-from-empty-neon-final (release fingerprint) |     9457 ms | exit=0
+C3     | restart 1: sweep hits the deliberately broken script       |    34260 ms | exit=1
+C3     | post-failure: rows recorded + did the bad file's own change survive? |     3025 ms | exit=0
+C3     | restart 1: sweep hits the deliberately broken script       |    42329 ms | exit=1
+C3     | restart 2: bad script withdrawn, sweep runs to completion  |    50057 ms | exit=0
+C3     | converged-state probe                                      |     9519 ms | exit=0
+C3     | schema_manifest --emit restart-converged-neon              |    12386 ms | exit=0
+C7     | RUNBOOK 3a verbatim: pg_dump 16 client vs PG17 server      |     8987 ms | exit=1
+C7     | pg_dump (postgres:17-alpine) of the branch neondb          |    80268 ms | exit=0
+C2     | characterise the snapshot source (read-only)               |     6821 ms | exit=0
+C5     | old app (HEAD) vs expanded schema: 13 probes               |      417 ms | exit=1
+C2     | pg_restore snapshot -> v2_snap_13_4                        |   515192 ms | exit=0
+C2     | row-count parity probe                                     |     5716 ms | exit=0
+C2     | apply_sql_migrations on the snapshot                       |     7127 ms | exit=1
+C2     | schema_manifest --emit migrated-snapshot-neon              |     9715 ms | exit=0
+C2     | schema_manifest --verify migrated-snapshot-neon            |      928 ms | exit=1
+C2     | schema_manifest --matrix (3 manifests)                     |     1078 ms | exit=1
+C5     | old app (HEAD) vs expanded schema: 13 probes               |    14078 ms | exit=1
+C5     | old app (HEAD) vs expanded schema: 13 probes               |   160816 ms | exit=1
+C5     | old app (HEAD) vs expanded schema: 13 probes               |    30779 ms | exit=1
+C6     | reconciliation sweeps: payment/document/domain/communication + capacity |   117421 ms | exit=1
+C7     | RUNBOOK 3b: bring up only postgres (postgres:17-alpine, loopback-only port) |      181 ms | exit=0
+C7     | RUNBOOK 3b: wait for the server to accept connections      |     1148 ms | exit=0
+C7     | pre-restore state: an empty target, which is what a real restore starts from |       69 ms | exit=0
+C7     | RUNBOOK 3c: pg_restore --clean --if-exists into the container |      938 ms | exit=0
+C7     | RUNBOOK 3d: row counts (the runbook's own check, plus the migration ledger) |       85 ms | exit=0
+C7     | parity vs the source measured in clause 2 (77 tables / 33 apps / 21 payments / 15 profiles / 50 ledger rows) |       83 ms | exit=0
+C7     | RUNBOOK 3 note: check_schema_drift against the RESTORED database (the boot gate) |     1088 ms | exit=0
+C7     | RUNBOOK 3 note: apply_sql_migrations --dry-run on the restored database |      865 ms | exit=0
+C7     | RUNBOOK final step: shred -u the dump (never leave a DB dump on disk) |       22 ms | exit=0
+C7     | teardown: remove the disposable container and its volume   |      320 ms | exit=0
+
+Note on the two exit=1 rows an operator should NOT read as breakage:
+  C7 check_schema_drift exit=1 is the gate WORKING - it refused a restored
+     database that the code cannot serve. The wrapper step recorded exit=0
+     because it pipes to `tail`; the real exit is printed inside
+     c7-database-restore.txt as `check_schema_drift exit=1`.
+  C6 exit=1 is one deliberate EXPECT-DEFECT probe (GATE-13.4-01) out of 24.
+     23 probes passed. See c6-reconciliation.txt.
+
+================================================================================
+
+SECTION B - the same numbers, ordered by clause: what to budget in a window
+
+Every figure below is copied from Section A (last occurrence where a step
+repeats). Neon is a serverless Postgres over the public internet from a laptop;
+a same-host production Postgres will be FASTER for the SQL and slower for
+nothing. Treat these as an upper bound on the DDL, not a lower bound.
+
+C1  migration from EMPTY, on Neon .................................. 254 s (~4m15s)
+      base tables before (0)                                             2.3 s
+      00_full_schema.sql (72 CREATE TABLE + ~150 index/constraint)      101.1 s
+      2026_05_22_migration_history_extend.sql                            4.3 s
+      apply_sql_migrations --allow-non-additive, 41 scripts             113.5 s
+      schema_manifest --emit                                            31.7 s
+      schema_manifest --verify                                           1.1 s
+
+C4  constraint validation (GATE-13.1-01) ............................ 41 s
+      orphan preflight, 9 anti-joins                                     0.5 s
+      VALIDATE CONSTRAINT x1 + lock introspection                        0.4 s
+      the 42nd script, whole DO block, all 9 FKs                         7.8 s
+      manifest emit + verify + release fingerprint                      32.3 s
+
+C3  failed batch restart .......................................... 256 s (~4m15s)
+      rebuild the target (schema + extend)                              94.9 s
+      SIGKILL mid-sweep                                                 30.1 s
+      post-kill ledger probe                                            13.6 s
+      restart 1 (hits the poisoned script, fails)                       42.3 s
+      post-failure probe (rows recorded? bad file's change survive?)     3.0 s
+      restart 2 (script withdrawn, runs to completion)                  50.1 s
+      converged probe + manifest                                        21.9 s
+
+C2  migration from a PRODUCTION-LIKE snapshot, on Neon ............. 547 s (~9m)
+      characterise the source (read-only)                                6.8 s
+      pg_restore the snapshot into a Neon database                      515.2 s  <-- dominates
+      row-count parity                                                   5.7 s
+      apply_sql_migrations on the snapshot (FAILS at 2026_06_08_01)       7.1 s
+      manifest + verify + 3-way matrix                                  11.7 s
+
+C5  app rollback while the expanded schema remains ................. 31 s
+      13 probes at git HEAD against the expanded schema                 30.8 s
+      (plus 5.7 s earlier for the GATE-13.1-06 rollback proof)
+
+C6  reconciliation: payment / document / domain / communication .... 117 s
+      24 probes across 5 sweeps, each run twice for convergence
+
+C7  database restore, RUNBOOK 3 ................................ 85.1 s total
+      pg_dump from Neon (postgres:17-alpine)                            80.3 s
+      3b  start postgres + wait ready                                    1.3 s
+      3c  pg_restore --clean --if-exists                                 0.9 s  <-- the restore itself
+      3d  row counts + parity                                            0.2 s
+      3e  check_schema_drift (the boot gate)                             1.1 s
+          apply_sql_migrations --dry-run                                 0.9 s
+      shred -u the dump                                                 0.02 s
+      teardown                                                           0.3 s
+
+WHOLE REHEARSAL, sum of the above ............................... ~1331 s (~22m)
+
+  The sum is checkable against Section A and deliberately EXCLUDES two
+  diagnostic steps that a real operator would not run:
+    * 9.0 s  the RUNBOOK 3a verbatim attempt that fails on the pinned
+             postgres:16-alpine client (a finding, not a step)
+    * 5.7 s  the GATE-13.1-06 rollback proof (a finding, not a step)
+  It also excludes the repeated C5/C3 rows described in the caveat.
+
+The two numbers that actually shape a maintenance window:
+  * 101 s for 00_full_schema.sql and 113 s for the 41-script sweep. A
+    from-empty build of this schema is ~4 minutes, not seconds.
+  * 0.9 s to pg_restore a 716 KB / 33-application snapshot. Restore time is
+    dominated by DATA VOLUME, and this snapshot is small: see the README's
+    honesty note about what "production-like" does and does not mean here.
+    The 515 s sibling figure is restoring the SAME dump into NEON over the
+    public internet - which is the number to use if the target is Neon, and
+    the number to ignore if the target is the same-host production container.
+C8     | invariants.sql (10 gates) on the expanded rehearsal DB, read-only session |    13347 ms | exit=0
+C8     | invariants.sql on the un-migrated restored snapshot (what a restore leaves) |     9544 ms | exit=0
+C8     | invariants.sql on the fully expanded rehearsal DB (v2_fres |     7848 ms | exit=0
+C8     | invariants.sql on the un-migrated restored snapshot (v2_sn |     6595 ms | exit=0

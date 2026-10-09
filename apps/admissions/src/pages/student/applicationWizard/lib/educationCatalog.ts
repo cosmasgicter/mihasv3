@@ -1,4 +1,38 @@
+/**
+ * Presentation metadata for the server-provided subject catalogue.
+ *
+ * Spec:         `.kiro/specs/admissions-v2-canonical-rebuild/` — task **7.1**.
+ * Requirements: R11.4, R11.5
+ * Findings:     STU-11
+ * Design:       §9.2 (Grades — "The subject catalog is seeded and versioned by the
+ *               backend. Selectors contain only canonical UUIDs.")
+ *
+ * ## What changed in 7.1
+ *
+ * This module used to hold 62 `fallback-*` subject objects that the education step
+ * merged into the selector whenever the backend catalogue looked incomplete. They
+ * were selectable, the readiness meter counted them, and then they were silently
+ * dropped at sync time because `application_grades.subject_id` is a real foreign
+ * key to `subjects(id)`. A student could reach "5/5 subjects — ready to submit"
+ * holding nothing the server would ever store. That is finding STU-11.
+ *
+ * The fabricated identities are gone. What remains is deliberately identity-free:
+ *
+ * * {@link SUBJECT_DISPLAY_METADATA} — grouping/labelling hints keyed by
+ *   *normalised name*, used to decorate whatever the server returned. If the
+ *   server sends a subject this map has never heard of, it still renders (under
+ *   its server category); if the server sends nothing, the selector is empty and
+ *   says so, rather than inventing a catalogue.
+ * * {@link LEGACY_SUBJECT_SLUG_TO_CODE} — the retired slugs mapped to canonical
+ *   subject *codes*, so a draft or local snapshot saved before 7.1 is repaired to
+ *   the real server ID instead of being thrown away.
+ * * {@link SUBJECT_NAME_ALIASES} — a small mirror of the server's versioned alias
+ *   catalogue (`GET /api/v1/catalog/subjects/` → `aliases`), used only to resolve
+ *   an already-stored or OCR-proposed *name* to a server subject.
+ */
+
 import type { Grade12Subject } from '../types'
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 
 type EducationUploadCopy = {
@@ -6,93 +40,13 @@ type EducationUploadCopy = {
   helperText: string
 }
 
-// ── ECZ Grade 12 (Senior Secondary Certificate) ──────────────────────────
-// Complete list per ECZ examination syllabus
+type SubjectDisplayMetadata = {
+  /** Canonical display name, so casing/spacing is consistent across tenants. */
+  name: string
+  category: Grade12Subject['category']
+}
 
-const CORE_SUBJECTS: Grade12Subject[] = [
-  { id: 'fallback-english', name: 'English Language', code: 'ENG', category: 'core', level: 'grade12' },
-  { id: 'fallback-mathematics', name: 'Mathematics', code: 'MATH', category: 'core', level: 'grade12' },
-  { id: 'fallback-civic-education', name: 'Civic Education', code: 'CE', category: 'core', level: 'grade12' },
-]
-
-const ELECTIVE_SUBJECTS: Grade12Subject[] = [
-  // Sciences
-  { id: 'fallback-biology', name: 'Biology', code: 'BIO', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-chemistry', name: 'Chemistry', code: 'CHEM', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-physics', name: 'Physics', code: 'PHY', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-science', name: 'Science', code: 'SCI', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-integrated-science', name: 'Integrated Science', code: 'INTSCI', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-agricultural-science', name: 'Agricultural Science', code: 'AGR', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-additional-mathematics', name: 'Additional Mathematics', code: 'ADDMATH', category: 'sciences', level: 'grade12' },
-  // "Ordinary Mathematics" and "Ordinary Science" removed May 2026 — these
-  // are not real ECZ syllabus entries. The canonical names are just
-  // "Mathematics" (core) and "Science" (elective, combined Chemistry+Physics
-  // paper). A-Level takes separate Chemistry/Physics at the A-Level tier.
-  // Commercial
-  { id: 'fallback-commerce', name: 'Commerce', code: 'COM', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-principles-of-accounts', name: 'Principles of Accounts', code: 'POA', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-economics', name: 'Economics', code: 'ECON', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-business-studies', name: 'Business Studies', code: 'BS', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-office-practice', name: 'Office Practice', code: 'OP', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-entrepreneurship', name: 'Entrepreneurship', code: 'ENT', category: 'commercial', level: 'grade12' },
-  // Humanities
-  { id: 'fallback-geography', name: 'Geography', code: 'GEO', category: 'humanities', level: 'grade12' },
-  { id: 'fallback-history', name: 'History', code: 'HIST', category: 'humanities', level: 'grade12' },
-  { id: 'fallback-religious-education', name: 'Religious Education', code: 'RE', category: 'humanities', level: 'grade12' },
-  { id: 'fallback-development-studies', name: 'Development Studies', code: 'DS', category: 'humanities', level: 'grade12' },
-  { id: 'fallback-literature-in-english', name: 'Literature in English', code: 'LIT', category: 'humanities', level: 'grade12' },
-  // Technology
-  { id: 'fallback-computer-studies', name: 'Computer Studies', code: 'CS', category: 'technology', level: 'grade12' },
-  { id: 'fallback-ict', name: 'ICT', code: 'ICT', category: 'technology', level: 'grade12' },
-  { id: 'fallback-design-and-technology', name: 'Design & Technology', code: 'DT', category: 'technology', level: 'grade12' },
-  { id: 'fallback-metalwork', name: 'Metalwork', code: 'MW', category: 'technology', level: 'grade12' },
-  { id: 'fallback-woodwork', name: 'Woodwork', code: 'WW', category: 'technology', level: 'grade12' },
-  { id: 'fallback-technical-drawing', name: 'Technical Drawing', code: 'TD', category: 'technology', level: 'grade12' },
-  { id: 'fallback-power-mechanics', name: 'Power Mechanics', code: 'PM', category: 'technology', level: 'grade12' },
-  // Practical / Creative
-  { id: 'fallback-home-economics', name: 'Home Economics', code: 'HE', category: 'practical', level: 'grade12' },
-  { id: 'fallback-food-and-nutrition', name: 'Food & Nutrition', code: 'FN', category: 'practical', level: 'grade12' },
-  { id: 'fallback-art-and-design', name: 'Art & Design', code: 'ART', category: 'practical', level: 'grade12' },
-  { id: 'fallback-music', name: 'Music', code: 'MUSIC', category: 'practical', level: 'grade12' },
-  { id: 'fallback-physical-education', name: 'Physical Education', code: 'PE', category: 'practical', level: 'grade12' },
-  { id: 'fallback-fashion-and-fabrics', name: 'Fashion & Fabrics', code: 'FF', category: 'practical', level: 'grade12' },
-  // Languages
-  { id: 'fallback-french', name: 'French', code: 'FRENCH', category: 'languages', level: 'grade12' },
-  { id: 'fallback-portuguese', name: 'Portuguese', code: 'PORT', category: 'languages', level: 'grade12' },
-  { id: 'fallback-bemba', name: 'Bemba', code: 'BEMBA', category: 'languages', level: 'grade12' },
-  { id: 'fallback-nyanja', name: 'Nyanja', code: 'NYANJA', category: 'languages', level: 'grade12' },
-  { id: 'fallback-tonga', name: 'Tonga', code: 'TONGA', category: 'languages', level: 'grade12' },
-  { id: 'fallback-lozi', name: 'Lozi', code: 'LOZI', category: 'languages', level: 'grade12' },
-  { id: 'fallback-kaonde', name: 'Kaonde', code: 'KAONDE', category: 'languages', level: 'grade12' },
-  { id: 'fallback-lunda', name: 'Lunda', code: 'LUNDA', category: 'languages', level: 'grade12' },
-  { id: 'fallback-luvale', name: 'Luvale', code: 'LUVALE', category: 'languages', level: 'grade12' },
-]
-
-// ── A-Level (GCE Advanced Level / Cambridge) ──────────────────────────────
-
-const A_LEVEL_SUBJECTS: Grade12Subject[] = [
-  { id: 'fallback-al-english', name: 'English Language (A-Level)', code: 'AL-ENG', category: 'languages', level: 'alevel' },
-  { id: 'fallback-al-pure-mathematics', name: 'Pure Mathematics (A-Level)', code: 'AL-PMATH', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-further-mathematics', name: 'Further Mathematics (A-Level)', code: 'AL-FMATH', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-biology', name: 'Biology (A-Level)', code: 'AL-BIO', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-chemistry', name: 'Chemistry (A-Level)', code: 'AL-CHEM', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-physics', name: 'Physics (A-Level)', code: 'AL-PHY', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-geography', name: 'Geography (A-Level)', code: 'AL-GEO', category: 'humanities', level: 'alevel' },
-  { id: 'fallback-al-history', name: 'History (A-Level)', code: 'AL-HIST', category: 'humanities', level: 'alevel' },
-  { id: 'fallback-al-economics', name: 'Economics (A-Level)', code: 'AL-ECON', category: 'commercial', level: 'alevel' },
-  { id: 'fallback-al-accounting', name: 'Accounting (A-Level)', code: 'AL-ACC', category: 'commercial', level: 'alevel' },
-  { id: 'fallback-al-business-studies', name: 'Business Studies (A-Level)', code: 'AL-BS', category: 'commercial', level: 'alevel' },
-  { id: 'fallback-al-computer-science', name: 'Computer Science (A-Level)', code: 'AL-CS', category: 'technology', level: 'alevel' },
-  { id: 'fallback-al-sociology', name: 'Sociology (A-Level)', code: 'AL-SOC', category: 'humanities', level: 'alevel' },
-  { id: 'fallback-al-psychology', name: 'Psychology (A-Level)', code: 'AL-PSY', category: 'humanities', level: 'alevel' },
-  { id: 'fallback-al-religious-studies', name: 'Religious Studies (A-Level)', code: 'AL-RS', category: 'humanities', level: 'alevel' },
-  { id: 'fallback-al-french', name: 'French (A-Level)', code: 'AL-FRENCH', category: 'languages', level: 'alevel' },
-  { id: 'fallback-al-literature', name: 'Literature in English (A-Level)', code: 'AL-LIT', category: 'languages', level: 'alevel' },
-  { id: 'fallback-al-art-and-design', name: 'Art & Design (A-Level)', code: 'AL-ART', category: 'practical', level: 'alevel' },
-  { id: 'fallback-al-law', name: 'Law (A-Level)', code: 'AL-LAW', category: 'humanities', level: 'alevel' },
-]
-
-/** Category labels for UI grouping within each level */
+/** Category labels for UI grouping within each level. */
 export const SUBJECT_CATEGORY_LABELS: Record<string, string> = {
   core: 'Core Subjects',
   sciences: 'Sciences',
@@ -102,9 +56,6 @@ export const SUBJECT_CATEGORY_LABELS: Record<string, string> = {
   practical: 'Practical & Creative',
   languages: 'Languages',
 }
-
-const ZAMBIA_SUBJECT_FALLBACKS: Grade12Subject[] = [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS, ...A_LEVEL_SUBJECTS]
-const BACKEND_SUBJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export const EDUCATION_UPLOAD_COPY: Record<'resultSlip' | 'identityDocument', EducationUploadCopy> = {
   resultSlip: {
@@ -117,66 +68,301 @@ export const EDUCATION_UPLOAD_COPY: Record<'resultSlip' | 'identityDocument', Ed
   }
 }
 
-function normalizeSubjectName(value: string | undefined | null): string {
+export function normalizeSubjectName(value: string | undefined | null): string {
   return (value || '')
     .toLowerCase()
-    .replace(/&/g, 'and')
+    .replace(/&/g, ' and ')
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
-function toCanonicalSubject(subject: Grade12Subject): Grade12Subject {
-  return {
-    id: subject.id,
-    name: subject.name.trim().replace(/\s+/g, ' '),
-    code: subject.code?.trim().toUpperCase() || '',
-    category: subject.category,
-    level: subject.level,
+/**
+ * Display metadata for the ECZ / A-Level subjects the platform seeds, keyed by
+ * normalised name. Mirrors `backend/apps/catalog/subject_catalog.py`; a mismatch
+ * only affects grouping, never which subjects exist.
+ */
+const SUBJECT_DISPLAY_ENTRIES: ReadonlyArray<[string, SubjectDisplayMetadata['category']]> = [
+  // Core
+  ['English Language', 'core'],
+  ['Mathematics', 'core'],
+  ['Civic Education', 'core'],
+  // Sciences
+  ['Biology', 'sciences'],
+  ['Chemistry', 'sciences'],
+  ['Physics', 'sciences'],
+  ['Science', 'sciences'],
+  ['Integrated Science', 'sciences'],
+  ['Agricultural Science', 'sciences'],
+  ['Additional Mathematics', 'sciences'],
+  // Commercial
+  ['Commerce', 'commercial'],
+  ['Principles of Accounts', 'commercial'],
+  ['Economics', 'commercial'],
+  ['Business Studies', 'commercial'],
+  ['Office Practice', 'commercial'],
+  ['Entrepreneurship', 'commercial'],
+  // Humanities
+  ['Geography', 'humanities'],
+  ['History', 'humanities'],
+  ['Religious Education', 'humanities'],
+  ['Development Studies', 'humanities'],
+  ['Literature in English', 'humanities'],
+  // Technology
+  ['Computer Studies', 'technology'],
+  ['ICT', 'technology'],
+  ['Design & Technology', 'technology'],
+  ['Metalwork', 'technology'],
+  ['Woodwork', 'technology'],
+  ['Technical Drawing', 'technology'],
+  ['Power Mechanics', 'technology'],
+  // Practical / Creative
+  ['Home Economics', 'practical'],
+  ['Food & Nutrition', 'practical'],
+  ['Art & Design', 'practical'],
+  ['Music', 'practical'],
+  ['Physical Education', 'practical'],
+  ['Fashion & Fabrics', 'practical'],
+  // Languages
+  ['French', 'languages'],
+  ['Portuguese', 'languages'],
+  ['Bemba', 'languages'],
+  ['Nyanja', 'languages'],
+  ['Tonga', 'languages'],
+  ['Lozi', 'languages'],
+  ['Kaonde', 'languages'],
+  ['Lunda', 'languages'],
+  ['Luvale', 'languages'],
+  // A-Level
+  ['English Language (A-Level)', 'languages'],
+  ['Pure Mathematics (A-Level)', 'sciences'],
+  ['Further Mathematics (A-Level)', 'sciences'],
+  ['Biology (A-Level)', 'sciences'],
+  ['Chemistry (A-Level)', 'sciences'],
+  ['Physics (A-Level)', 'sciences'],
+  ['Geography (A-Level)', 'humanities'],
+  ['History (A-Level)', 'humanities'],
+  ['Economics (A-Level)', 'commercial'],
+  ['Accounting (A-Level)', 'commercial'],
+  ['Business Studies (A-Level)', 'commercial'],
+  ['Computer Science (A-Level)', 'technology'],
+  ['Sociology (A-Level)', 'humanities'],
+  ['Psychology (A-Level)', 'humanities'],
+  ['Religious Studies (A-Level)', 'humanities'],
+  ['French (A-Level)', 'languages'],
+  ['Literature in English (A-Level)', 'languages'],
+  ['Art & Design (A-Level)', 'practical'],
+  ['Law (A-Level)', 'humanities'],
+]
+
+export const SUBJECT_DISPLAY_METADATA: ReadonlyMap<string, SubjectDisplayMetadata> = new Map(
+  SUBJECT_DISPLAY_ENTRIES.map(([name, category]) => [
+    normalizeSubjectName(name),
+    { name, category },
+  ])
+)
+
+/**
+ * Retired `fallback-*` slugs → canonical subject code.
+ *
+ * Kept for **repair only**: a draft or local snapshot written before 7.1 may
+ * still carry these strings, and mapping them to a real server subject is
+ * strictly better for the student than discarding their answer. Nothing in the UI
+ * can produce a new one.
+ */
+export const LEGACY_SUBJECT_SLUG_TO_CODE: Readonly<Record<string, string>> = {
+  'fallback-english': 'ENG',
+  'fallback-mathematics': 'MATH',
+  'fallback-civic-education': 'CE',
+  'fallback-biology': 'BIO',
+  'fallback-chemistry': 'CHEM',
+  'fallback-physics': 'PHY',
+  'fallback-science': 'SCI',
+  'fallback-integrated-science': 'INTSCI',
+  'fallback-agricultural-science': 'AGR',
+  'fallback-additional-mathematics': 'ADDMATH',
+  'fallback-commerce': 'COM',
+  'fallback-principles-of-accounts': 'POA',
+  'fallback-economics': 'ECON',
+  'fallback-business-studies': 'BS',
+  'fallback-office-practice': 'OP',
+  'fallback-entrepreneurship': 'ENT',
+  'fallback-geography': 'GEO',
+  'fallback-history': 'HIST',
+  'fallback-religious-education': 'RE',
+  'fallback-development-studies': 'DS',
+  'fallback-literature-in-english': 'LIT',
+  'fallback-computer-studies': 'CS',
+  'fallback-ict': 'ICT',
+  'fallback-design-and-technology': 'DT',
+  'fallback-metalwork': 'MW',
+  'fallback-woodwork': 'WW',
+  'fallback-technical-drawing': 'TD',
+  'fallback-power-mechanics': 'PM',
+  'fallback-home-economics': 'HE',
+  'fallback-food-and-nutrition': 'FN',
+  'fallback-art-and-design': 'ART',
+  'fallback-music': 'MUSIC',
+  'fallback-physical-education': 'PE',
+  'fallback-fashion-and-fabrics': 'FF',
+  'fallback-french': 'FRENCH',
+  'fallback-portuguese': 'PORT',
+  'fallback-bemba': 'BEMBA',
+  'fallback-nyanja': 'NYANJA',
+  'fallback-tonga': 'TONGA',
+  'fallback-lozi': 'LOZI',
+  'fallback-kaonde': 'KAONDE',
+  'fallback-lunda': 'LUNDA',
+  'fallback-luvale': 'LUVALE',
+  'fallback-al-english': 'AL-ENG',
+  'fallback-al-pure-mathematics': 'AL-PMATH',
+  'fallback-al-further-mathematics': 'AL-FMATH',
+  'fallback-al-biology': 'AL-BIO',
+  'fallback-al-chemistry': 'AL-CHEM',
+  'fallback-al-physics': 'AL-PHY',
+  'fallback-al-geography': 'AL-GEO',
+  'fallback-al-history': 'AL-HIST',
+  'fallback-al-economics': 'AL-ECON',
+  'fallback-al-accounting': 'AL-ACC',
+  'fallback-al-business-studies': 'AL-BS',
+  'fallback-al-computer-science': 'AL-CS',
+  'fallback-al-sociology': 'AL-SOC',
+  'fallback-al-psychology': 'AL-PSY',
+  'fallback-al-religious-studies': 'AL-RS',
+  'fallback-al-french': 'AL-FRENCH',
+  'fallback-al-literature': 'AL-LIT',
+  'fallback-al-art-and-design': 'AL-ART',
+  'fallback-al-law': 'AL-LAW',
+}
+
+/**
+ * Normalised subject-name alias → canonical code. A read-only mirror of the
+ * server's versioned alias catalogue, used to resolve a *stored* or
+ * *OCR-proposed* name onto a server subject. Task 7.5 replaces this mirror with
+ * the `aliases` the subjects endpoint now publishes.
+ */
+export const SUBJECT_NAME_ALIASES: Readonly<Record<string, string>> = {
+  maths: 'MATH',
+  math: 'MATH',
+  'ordinary mathematics': 'MATH',
+  'ordinary maths': 'MATH',
+  eng: 'ENG',
+  english: 'ENG',
+  civics: 'CE',
+  bio: 'BIO',
+  chem: 'CHEM',
+  phy: 'PHY',
+  phys: 'PHY',
+  'combined science': 'SCI',
+  'general science': 'SCI',
+  'physical science': 'SCI',
+  'ordinary science': 'SCI',
+  'add maths': 'ADDMATH',
+  'add math': 'ADDMATH',
+  'additional math': 'ADDMATH',
+  agric: 'AGR',
+  agriculture: 'AGR',
+  'agric science': 'AGR',
+  'commercial studies': 'COM',
+  accounts: 'POA',
+  accounting: 'POA',
+  'principles of accounting': 'POA',
+  poa: 'POA',
+  econ: 'ECON',
+  'bus studies': 'BS',
+  business: 'BS',
+  geog: 'GEO',
+  hist: 'HIST',
+  re: 'RE',
+  'religious studies': 'RE',
+  'dev studies': 'DS',
+  literature: 'LIT',
+  'lit in english': 'LIT',
+  'english literature': 'LIT',
+  'computer science': 'CS',
+  'computer studies': 'CS',
+  'information technology': 'ICT',
+  'design technology': 'DT',
+  'tech drawing': 'TD',
+  td: 'TD',
+  'home management': 'HE',
+  'food nutrition': 'FN',
+  art: 'ART',
+  'art design': 'ART',
+  'fashion fabrics': 'FF',
+  pe: 'PE',
+  'phys ed': 'PE',
+}
+
+type ServerSubject = {
+  id: string
+  name?: string
+  code?: string
+  category?: string
+  curriculum_type?: string
+  level?: string
+}
+
+function displayLevel(subject: ServerSubject): Grade12Subject['level'] {
+  const curriculum = (subject.curriculum_type || subject.level || '').toLowerCase()
+  if (curriculum === 'a_level' || curriculum === 'alevel' || curriculum === 'a-level') return 'alevel'
+  return 'grade12'
+}
+
+function displayCategory(
+  subject: ServerSubject,
+  metadata: SubjectDisplayMetadata | undefined
+): Grade12Subject['category'] {
+  const serverCategory = (subject.category || '').trim().toLowerCase()
+  if (serverCategory && serverCategory in SUBJECT_CATEGORY_LABELS) {
+    return serverCategory as Grade12Subject['category']
   }
+  return metadata?.category
 }
 
-function isBackendSubjectId(value: string): boolean {
-  return BACKEND_SUBJECT_ID_PATTERN.test(value)
-}
+/**
+ * Build the selector list from the server catalogue.
+ *
+ * R11.5: the result contains **only** subjects whose id is a canonical
+ * server-issued UUID. Anything else — an empty id, a retired slug, a malformed
+ * row — is discarded, and an unavailable catalogue yields an empty list so the
+ * education step can say "we could not load the subject list" instead of
+ * offering fiction.
+ */
+export function mergeWizardSubjects(subjects: ServerSubject[]): Grade12Subject[] {
+  const byId = new Map<string, Grade12Subject>()
+  const seenIdentities = new Set<string>()
 
-const FALLBACK_SUBJECT_BY_ID = new Map(
-  ZAMBIA_SUBJECT_FALLBACKS.map(subject => [subject.id, subject])
-)
+  for (const subject of subjects || []) {
+    const id = typeof subject?.id === 'string' ? subject.id.trim() : ''
+    if (!isCanonicalSubjectId(id) || byId.has(id)) continue
 
-const FALLBACK_SUBJECT_BY_NAME = new Map(
-  ZAMBIA_SUBJECT_FALLBACKS.map(subject => [normalizeSubjectName(subject.name), subject])
-)
+    const serverName = (subject.name || '').trim().replace(/\s+/g, ' ')
+    const normalized = normalizeSubjectName(serverName)
+    if (!normalized) continue
 
-export function mergeWizardSubjects(subjects: Grade12Subject[]): Grade12Subject[] {
-  const byName = new Map<string, Grade12Subject>()
+    const metadata = SUBJECT_DISPLAY_METADATA.get(normalized)
+    const level = displayLevel(subject)
 
-  // Add backend subjects first (authoritative IDs)
-  for (const subject of subjects) {
-    const canonical = toCanonicalSubject(subject)
-    if (!isBackendSubjectId(canonical.id)) continue
-    const key = normalizeSubjectName(canonical.name)
-    if (!key) continue
-    const fallback = FALLBACK_SUBJECT_BY_NAME.get(key)
-    byName.set(key, {
-      id: canonical.id,
-      name: fallback?.name || canonical.name,
-      code: canonical.code || fallback?.code || '',
-      category: canonical.category || fallback?.category,
-      level: canonical.level || fallback?.level,
+    // A catalogue that still carries two active rows for one real subject would
+    // otherwise show it twice and let a student "use" both. The backend migration
+    // retires those rows; this keeps the UI honest until it is applied everywhere.
+    const identity = `${level}:${normalized}`
+    if (seenIdentities.has(identity)) continue
+    seenIdentities.add(identity)
+
+    byId.set(id, {
+      id,
+      name: metadata?.name || serverName,
+      code: (subject.code || '').trim().toUpperCase(),
+      category: displayCategory(subject, metadata),
+      level,
     })
   }
 
-  // Add fallback subjects that don't exist in the backend yet
-  for (const fallback of ZAMBIA_SUBJECT_FALLBACKS) {
-    const key = normalizeSubjectName(fallback.name)
-    if (!key || byName.has(key)) continue
-    byName.set(key, fallback)
-  }
-
-  // Sort: Grade 12 first, then O-Level, then A-Level, then alphabetical within each
+  // Grade 12 first, then A-Level; alphabetical within each level.
   const levelOrder: Record<string, number> = { grade12: 0, alevel: 1 }
-  return Array.from(byName.values()).sort((left, right) => {
+  return Array.from(byId.values()).sort((left, right) => {
     const leftLevel = levelOrder[left.level || 'grade12'] ?? 0
     const rightLevel = levelOrder[right.level || 'grade12'] ?? 0
     if (leftLevel !== rightLevel) return leftLevel - rightLevel
@@ -184,29 +370,45 @@ export function mergeWizardSubjects(subjects: Grade12Subject[]): Grade12Subject[
   })
 }
 
-export function resolveWizardSubjectId(value: string | undefined | null, subjects: Grade12Subject[]): string {
+/**
+ * Resolve a stored subject reference to a canonical server ID.
+ *
+ * Accepts a canonical ID (returned unchanged), a retired `fallback-*` slug, a
+ * subject code, or a written subject name/alias. Returns `''` when the value
+ * cannot be resolved against the server catalogue — the caller then treats the
+ * row as unresolved, which is what the student sees and what the server counts.
+ * It never returns a non-canonical identity.
+ */
+export function resolveWizardSubjectId(
+  value: string | undefined | null,
+  subjects: Grade12Subject[]
+): string {
   const trimmed = value?.trim() || ''
   if (!trimmed) return ''
+  if (isCanonicalSubjectId(trimmed)) return trimmed
 
-  if (isBackendSubjectId(trimmed)) {
-    return trimmed
+  const canonicalSubjects = (subjects || []).filter(subject => isCanonicalSubjectId(subject.id))
+  if (canonicalSubjects.length === 0) return ''
+
+  const isLegacySlug = trimmed.toLowerCase().startsWith('fallback-')
+  const legacyCode = LEGACY_SUBJECT_SLUG_TO_CODE[trimmed.toLowerCase()]
+  const normalized = normalizeSubjectName(trimmed)
+  const targetCode = (legacyCode || SUBJECT_NAME_ALIASES[normalized] || trimmed).toUpperCase()
+
+  const byCode = canonicalSubjects.find(subject => subject.code && subject.code === targetCode)
+  if (byCode) return byCode.id
+
+  if (isLegacySlug) {
+    // A retired slug is an exact identity, not free text: if its code is not in
+    // the server catalogue the answer is "unresolved". Guessing here is how a
+    // student's Woodwork silently became something else.
+    return ''
   }
 
-  const fallbackSubject = FALLBACK_SUBJECT_BY_ID.get(trimmed)
-  const fallbackCode = fallbackSubject?.code.trim().toUpperCase()
-  const normalizedLookup = normalizeSubjectName(fallbackSubject?.name || trimmed)
-  const backendSubjects = subjects.filter(subject => isBackendSubjectId(subject.id))
+  const byName = canonicalSubjects.find(
+    subject => normalizeSubjectName(subject.name) === normalized
+  )
+  if (byName) return byName.id
 
-  const exactMatch = backendSubjects.find(subject => {
-    const normalizedName = normalizeSubjectName(subject.name)
-    const normalizedCode = subject.code.trim().toUpperCase()
-    return normalizedName === normalizedLookup || (Boolean(fallbackCode) && normalizedCode === fallbackCode)
-  })
-
-  if (exactMatch?.id) {
-    return exactMatch.id
-  }
-
-  const matchedId = findBestSubjectId(fallbackSubject?.name || trimmed, backendSubjects)
-  return matchedId || ''
+  return findBestSubjectId(trimmed, canonicalSubjects) || ''
 }

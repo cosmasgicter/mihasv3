@@ -16,6 +16,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import type { AdminDashboardActivity } from '@/services/admin/dashboard'
+import type {
+  DashboardFreshness,
+  DashboardHealth,
+  DashboardHealthState,
+  DashboardMetrics,
+} from '@/pages/admin/lib/dashboardMetrics'
 import { logger } from '@/lib/logger'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
@@ -38,19 +44,51 @@ export interface AdminDashboardStats {
   // source for every admin metric consumer (R11.1). Additive: not part of
   // statsFingerprint, so they never affect the owner's dedup/onDataChange.
   avgProcessingTime: number
-  systemHealth: 'excellent' | 'good' | 'warning' | 'critical'
+  systemHealth: DashboardHealthState | null
   activeUsers: number
 }
 
 export interface UseAdminDashboardPollingOptions {
   enabled?: boolean
   pollingInterval?: number
+  /**
+   * The school the dashboard is currently showing (task 9.2, ADM-02).
+   *
+   * **This is load-bearing, not cosmetic.** The poll used to call
+   * `adminDashboardService.getOverview()` with no argument and cache under a
+   * bare `['admin-dashboard-polling']` key, while the page's initial load was
+   * scoped to the selected institution. So a super-admin who selected one school
+   * saw that school's numbers for up to one polling interval, and then the poll
+   * silently replaced them with **platform-wide** totals under the same "Your
+   * School Overview" heading — with no visible event to explain the change.
+   *
+   * Passing it here puts the institution in the query key *and* on the wire, so a
+   * poll answers the same question the page asked.
+   */
+  institutionId?: string | null
   onDataChange?: (stats: AdminDashboardStats) => void
   onActivityChange?: (activity: AdminDashboardActivity[]) => void
+  /**
+   * The metric registry from a poll that matched the current school.
+   *
+   * Fires on every scoped poll (not only when the numbers changed): freshness
+   * moves even when no counter does, and a stale label that never updates is
+   * itself a false statement about how current the page is.
+   */
+  onMetricsChange?: (payload: DashboardPollPayload) => void
+}
+
+/** The React Query key for one school's dashboard poll. */
+export function adminDashboardPollingKey(institutionId?: string | null) {
+  return ['admin-dashboard-polling', institutionId ?? 'all'] as const
 }
 
 export interface UseAdminDashboardPollingReturn {
   stats: AdminDashboardStats | null
+  /** The metric registry from the last poll for the current school. */
+  metrics: DashboardMetrics | null
+  health: DashboardHealth | null
+  freshness: DashboardFreshness | null
   isLoading: boolean
   isPolling: boolean
   error: Error | null
@@ -88,13 +126,29 @@ function statsFingerprint(stats: AdminDashboardStats): string {
 // poll result is a redundant update; exporting it does not change behavior.
 export { statsFingerprint }
 
-interface DashboardPollPayload {
+export interface DashboardPollPayload {
   stats: AdminDashboardStats
   activity: AdminDashboardActivity[]
+  /** The metric registry — what the dashboard actually renders (task 9.2). */
+  metrics: DashboardMetrics
+  health: DashboardHealth | null
+  freshness: DashboardFreshness
+  sources: Record<string, { state: 'ok' | 'failed'; reason: string | null }>
+  /** Which school this payload describes; `null` means "every school". */
+  institutionId: string | null
 }
 
-async function fetchDashboardStats(): Promise<DashboardPollPayload> {
-  const overview = await adminDashboardService.getOverview()
+/**
+ * The one function that produces a cache entry for this key (task 9.2).
+ *
+ * Exported because three surfaces must seed or read the *same* shape —
+ * `data/applications.ts:useStats`, `useAdminPendingCount`, and the speculative
+ * prefetch. A second, partial producer desyncs the cache and crashes the poller
+ * on `query.data.stats === undefined`, which is why the shape has exactly one
+ * author.
+ */
+export async function fetchDashboardStats(institutionId?: string | null): Promise<DashboardPollPayload> {
+  const overview = await adminDashboardService.getOverview(institutionId)
   const stats = overview.stats
 
   return {
@@ -109,15 +163,25 @@ async function fetchDashboardStats(): Promise<DashboardPollPayload> {
       todayApplications: stats.todayApplications ?? 0,
       weekApplications: stats.weekApplications ?? 0,
       avgProcessingTime: stats.avgProcessingTime ?? 0,
-      systemHealth: stats.systemHealth ?? 'good',
+      // No `?? 'good'`: an unmeasured health grade stays unmeasured (ADM-02).
+      systemHealth: stats.systemHealth ?? null,
       activeUsers: stats.activeUsers ?? 0,
     },
     activity: overview.recentActivity ?? [],
+    metrics: overview.metrics,
+    health: overview.health,
+    freshness: overview.freshness,
+    sources: overview.sources,
+    /**
+     * The school this payload actually describes.
+     *
+     * Carried so the consumer can *verify* rather than assume: if a poll answered
+     * for a different school than the page is showing (a race across an
+     * institution switch), the consumer drops it instead of rendering it.
+     */
+    institutionId: institutionId ?? null,
   }
 }
-
-export { fetchDashboardStats }
-export type { DashboardPollPayload }
 
 /** Fingerprint of the activity feed — changes when the latest events change. */
 function activityFingerprint(activity: AdminDashboardActivity[]): string {
@@ -130,9 +194,12 @@ export function useAdminDashboardPolling(
   const {
     enabled = true,
     pollingInterval = POLLING_INTERVAL,
+    institutionId = null,
     onDataChange,
     onActivityChange,
+    onMetricsChange,
   } = options
+  const queryKey = adminDashboardPollingKey(institutionId)
 
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -140,6 +207,7 @@ export function useAdminDashboardPolling(
   const previousActivityFpRef = useRef<string | null>(null)
   const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
   const onActivityChangeRef = useRef<typeof onActivityChange>(onActivityChange)
+  const onMetricsChangeRef = useRef<typeof onMetricsChange>(onMetricsChange)
   const hiddenSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -150,6 +218,10 @@ export function useAdminDashboardPolling(
     onActivityChangeRef.current = onActivityChange
   }, [onActivityChange])
 
+  useEffect(() => {
+    onMetricsChangeRef.current = onMetricsChange
+  }, [onMetricsChange])
+
   // Track page visibility to pause polling when hidden > 5 minutes
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -157,7 +229,9 @@ export function useAdminDashboardPolling(
         hiddenSinceRef.current = Date.now()
       } else {
         hiddenSinceRef.current = null
-        // Invalidate to get fresh data when tab becomes visible again
+        // Invalidate to get fresh data when tab becomes visible again. The prefix
+        // form covers every school's entry, which is what a returning operator
+        // wants: whichever school is on screen refetches.
         queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
       }
     }
@@ -170,17 +244,17 @@ export function useAdminDashboardPolling(
 
   const fetchStats = useCallback(async (): Promise<DashboardPollPayload> => {
     try {
-      return await fetchDashboardStats()
+      return await fetchDashboardStats(institutionId)
     } catch (error) {
       logger.error('[useAdminDashboardPolling] Error:', error instanceof Error ? error.message : error)
       throw error
     }
-  }, [])
+  }, [institutionId])
 
   const consecutiveErrorsRef = useRef(0)
 
   const query = useQuery({
-    queryKey: ['admin-dashboard-polling'],
+    queryKey,
     queryFn: fetchStats,
     enabled,
     refetchInterval: enabled
@@ -228,6 +302,12 @@ export function useAdminDashboardPolling(
     // undefined and crash statsFingerprint, taking down the whole route.
     if (!data || !data.stats) return
 
+    // A payload that describes a different school than the one on screen is
+    // discarded (task 9.2, ADM-02). The query key already separates the caches;
+    // this closes the switch-in-flight race, where an in-flight poll for the
+    // previous school resolves after the operator has moved on.
+    if ((data.institutionId ?? null) !== institutionId) return
+
     const fp = statsFingerprint(data.stats)
     if (fp !== previousFingerprintRef.current) {
       previousFingerprintRef.current = fp
@@ -243,14 +323,21 @@ export function useAdminDashboardPolling(
       previousActivityFpRef.current = afp
       onActivityChangeRef.current?.(data.activity ?? [])
     }
-  }, [query.data])
+
+    onMetricsChangeRef.current?.(data)
+  }, [query.data, institutionId])
 
   const refresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
-  }, [queryClient])
+    queryClient.invalidateQueries({ queryKey })
+  }, [queryClient, queryKey])
+
+  const scopedData = (query.data?.institutionId ?? null) === institutionId ? query.data : undefined
 
   return {
-    stats: query.data?.stats || null,
+    stats: scopedData?.stats || null,
+    metrics: scopedData?.metrics ?? null,
+    health: scopedData?.health ?? null,
+    freshness: scopedData?.freshness ?? null,
     isLoading: query.isLoading,
     isPolling: enabled && !query.isLoading,
     error: query.error as Error | null,
@@ -266,12 +353,14 @@ export default useAdminDashboardPolling
  * Shares the same cache as useAdminDashboardPolling — only re-renders when pending count changes.
  * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
  */
-export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
-  const { enabled = true } = options
+export function useAdminPendingCount(
+  options: { enabled?: boolean; institutionId?: string | null } = {},
+) {
+  const { enabled = true, institutionId = null } = options
 
   return useQuery({
-    queryKey: ['admin-dashboard-polling'],
-    queryFn: fetchDashboardStats,
+    queryKey: adminDashboardPollingKey(institutionId),
+    queryFn: () => fetchDashboardStats(institutionId),
     enabled,
     select: (data) => data.stats?.pendingApplications ?? 0,
     staleTime: POLLING_INTERVAL / 2,
@@ -283,12 +372,14 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
  * Shares the same cache — only re-renders when total count changes.
  * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
  */
-export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {}) {
-  const { enabled = true } = options
+export function useAdminTotalApplicationCount(
+  options: { enabled?: boolean; institutionId?: string | null } = {},
+) {
+  const { enabled = true, institutionId = null } = options
 
   return useQuery({
-    queryKey: ['admin-dashboard-polling'],
-    queryFn: fetchDashboardStats,
+    queryKey: adminDashboardPollingKey(institutionId),
+    queryFn: () => fetchDashboardStats(institutionId),
     enabled,
     select: (data) => data.stats?.totalApplications ?? 0,
     staleTime: POLLING_INTERVAL / 2,

@@ -7,6 +7,40 @@
 
 Do not use the default `*.vercel.app` domain for authenticated production traffic. The backend is configured for shared cookies on `.mihas.edu.zm` with `SameSite=Lax`, so the frontend and API must stay on sibling `mihas.edu.zm` subdomains for login, refresh, CSRF, and session flows to work correctly.
 
+## Release model: non-package application
+
+This backend is a **non-package Django application**. It is **not** a
+pip-installable Python distribution and must not be built or installed as one.
+
+- **Supported install/release command:** `pip install -r requirements.txt`.
+  This is exactly what [Dockerfile](/home/cosmas/Downloads/mihasv3/backend/Dockerfile),
+  `.github/workflows/ci.yml`, and `.github/workflows/backend-governance.yml`
+  do. The source tree is then run in place with
+  `uvicorn config.asgi:application` (see the Dockerfile default command).
+- **`backend/pyproject.toml` has no `[build-system]` table on purpose.**
+  `pip install .`, `pip install -e .`, and `uv build` are **not** supported and
+  are expected to fail — the flat layout (`apps/`, `config/`, `schema/`,
+  `scripts/`, `tests/`) is an application source tree, not a set of library
+  packages to distribute. This is the resolution of finding **REL-02**
+  (previously the file declared a setuptools build contract whose builds failed
+  because setuptools auto-discovered multiple top-level packages).
+- **`[project].version` is authoritative release metadata only.** It is
+  `2.0.0` and is drift-guarded by task 1.2
+  (`backend/tests/unit/test_version_drift_guard.py`,
+  `backend/scripts/generate_version_manifest.py`). Do not edit it by hand.
+- **Runtime version output** (all report the same drift-guarded `2.0.0`):
+  - `python manage.py app_version` → `2.0.0` (add `--verbose` for the product
+    name and the distinct `api_version: v1` label). This command skips system
+    checks so it works in a minimal/clean environment.
+  - the `X-Backend-Version` response header on every HTTP response
+    (`settings.APP_VERSION`, set in `apps/common/middleware.py`);
+  - `GET /api/v1/meta/platform/` (whose `api_version` label stays `v1`,
+    distinct from the product version, per R2.5).
+
+Clean-environment build/install evidence for this decision (fresh Python 3.12
+venv, `pip install -r requirements.txt`, `manage.py app_version` → `2.0.0`) is
+recorded under `docs/v2-evidence/1.7/`.
+
 ## Koyeb web service
 
 Create a Koyeb `WEB` service from this GitHub monorepo with these settings:

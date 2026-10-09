@@ -17,8 +17,10 @@ import django  # noqa: E402
 
 django.setup()
 
+import pytest  # noqa: E402
 from django.test import SimpleTestCase  # noqa: E402
-from hypothesis import given, settings  # noqa: E402
+from django.utils import timezone  # noqa: E402
+from hypothesis import HealthCheck, given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 from apps.documents.webhook_processor import WebhookProcessor  # noqa: E402
@@ -59,91 +61,96 @@ review_statuses = st.sampled_from(["approved", "rejected", "under_review", "wait
 # ---------------------------------------------------------------------------
 
 
-class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
-    """Property 1: For any webhook with a `reference` and `event_type` that
-    already has `processed=True` in `webhook_event_logs`, the processor must
-    not delegate to `PaymentService`.
+# Property 1 (webhook dedup) used to mock ``WebhookEventLog.objects`` and assert
+# that a MagicMock chain was consulted. admissions-v2 task 8.2 deleted the second
+# dedup contract (``WebhookProcessor._process_legacy`` and its private payload
+# hash) and left ``WebhookEventIdentity`` as the only one (ADR-004), at which
+# point the mocked chain no longer described the query the processor runs — the
+# mock answered ``.first()`` while the identity check asks ``.exists()``, so a
+# MagicMock made *every* delivery look like a duplicate.
+#
+# The property is now asserted against a real ``webhook_event_logs`` table: a
+# duplicate is a row that is actually there.
+
+
+@pytest.mark.django_db(transaction=True)
+@given(reference=references, event_type=known_event_types)
+@settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_duplicate_webhook_does_not_call_payment_service(reference, event_type):
+    """A webhook whose (reference, event_type) is already processed is skipped.
+
+    Property 1: for any webhook with a ``reference`` and ``event_type`` that
+    already has ``processed=True`` in ``webhook_event_logs``, the processor must
+    not delegate to ``PaymentService``.
 
     **Validates: Requirements 2.1, 2.2**
     """
+    from apps.documents.models import WebhookEventLog
 
-    @given(
-        reference=references,
-        event_type=known_event_types,
+    WebhookEventLog.objects.all().delete()
+    WebhookEventLog.objects.create(
+        event_type=event_type,
+        reference=reference,
+        payload={"data": {"reference": reference}},
+        signature_valid=True,
+        processed=True,
+        created_at=timezone.now(),
     )
-    @settings(max_examples=5)
-    def test_duplicate_webhook_does_not_call_payment_service(
-        self,
-        reference,
-        event_type,
-    ):
-        """When a webhook with the same reference and event_type has already
-        been processed, the processor must skip PaymentService delegation
-        and log a duplicate entry instead."""
-        payload = {"data": {"reference": reference}}
 
-        processor = WebhookProcessor()
+    payload = {"data": {"reference": reference}}
+    processor = WebhookProcessor()
 
-        with patch("django.db.transaction.atomic"), \
-             patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
-            # Simulate that a processed entry already exists
-            mock_log_objects.select_for_update.return_value.filter.return_value.first.return_value = MagicMock()
-            mock_create = mock_log_objects.create
+    with patch.object(processor, "_payment_service") as mock_payment_svc:
+        processor.process(
+            event_type=event_type, payload=payload, signature_valid=True
+        )
 
-            with patch.object(processor, "_payment_service") as mock_payment_svc:
-                processor.process(
-                    event_type=event_type,
-                    payload=payload,
-                    signature_valid=True,
-                )
+    # The ledger is never touched for a delivery we have already applied.
+    mock_payment_svc.apply_webhook_event.assert_not_called()
 
-                # PaymentService must NOT be called
-                mock_payment_svc.process_webhook_event.assert_not_called()
-
-                # A duplicate log entry must be created
-                mock_create.assert_called_once()
-                call_kwargs = mock_create.call_args[1]
-                self.assertEqual(call_kwargs["reference"], reference)
-                self.assertEqual(call_kwargs["event_type"], event_type)
-                self.assertFalse(call_kwargs["processed"])
-                self.assertIn("Duplicate", call_kwargs["processing_error"])
-
-    @given(
-        reference=references,
-        event_type=known_event_types,
+    # ...and the skip is recorded rather than silently dropped.
+    skipped = WebhookEventLog.objects.filter(
+        reference=reference, event_type=event_type, processed=False
     )
-    @settings(max_examples=5)
-    def test_non_duplicate_webhook_proceeds_to_payment_service(
-        self,
-        reference,
-        event_type,
-    ):
-        """When no prior processed entry exists, the processor must delegate
-        to PaymentService (confirming dedup only blocks actual duplicates)."""
-        payload = {"data": {"reference": reference}}
+    assert skipped.count() == 1
+    row = skipped.first()
+    assert row.signature_valid is True
+    assert "Duplicate" in (row.processing_error or "")
 
-        processor = WebhookProcessor()
 
-        with patch("django.db.transaction.atomic"), \
-             patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
-            # No prior processed entry
-            mock_log_objects.select_for_update.return_value.filter.return_value.first.return_value = None
-            mock_log_entry = MagicMock()
-            mock_log_objects.create.return_value = mock_log_entry
+@pytest.mark.django_db(transaction=True)
+@given(reference=references, event_type=known_event_types)
+@settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_non_duplicate_webhook_proceeds_to_payment_service(reference, event_type):
+    """A first delivery reaches ``PaymentService`` (dedup blocks only repeats)."""
+    from apps.documents.models import WebhookEventLog
 
-            with patch.object(processor, "_payment_service") as mock_payment_svc:
-                processor.process(
-                    event_type=event_type,
-                    payload=payload,
-                    signature_valid=True,
-                )
+    WebhookEventLog.objects.all().delete()
 
-                # PaymentService MUST be called for non-duplicate events
-                mock_payment_svc.process_webhook_event.assert_called_once_with(
-                    event_type=event_type,
-                    reference=reference,
-                    payload=payload,
-                )
+    payload = {"data": {"reference": reference}}
+    processor = WebhookProcessor()
+
+    with patch.object(processor, "_payment_service") as mock_payment_svc:
+        processor.process(
+            event_type=event_type, payload=payload, signature_valid=True
+        )
+
+    mock_payment_svc.apply_webhook_event.assert_called_once_with(
+        event_type=event_type,
+        reference=reference,
+        payload=payload,
+    )
+    assert WebhookEventLog.objects.filter(
+        reference=reference, event_type=event_type, processed=True
+    ).count() == 1
 
 
 
@@ -290,6 +297,21 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         }
         mock_request.user = MagicMock()
         mock_request.user.id = admin_user_id
+        # The actor's canonical role, stated rather than auto-mocked. This
+        # property's subject is the force-bypass audit trail; authority became an
+        # ambient variable when admissions-v2 task 2.2 moved the review endpoint
+        # onto capability-derived authority (R3.1, AUTH-02), so
+        # ``resolve_scoped_application`` now also asks
+        # ``AdminCapabilityService.require_institution_capability``. That
+        # derivation reads ``role`` as its *input* (services.py: a role outside
+        # ROLE_HIERARCHY resolves to zero capabilities, R1.1), and an unset
+        # MagicMock attribute is not a role — so the actor was refused before the
+        # audit trail was ever written. Naming the role is what the sibling
+        # property ``test_application_properties.py::_make_mock_user(role="admin")``
+        # already does, and it composes with the ``AccessScopeService`` patch
+        # below, which this test has always applied: scope is mocked, authority is
+        # then derived from it for real. No force-bypass assertion changes.
+        mock_request.user.role = "admin"
         mock_request.META = {
             "HTTP_X_FORWARDED_FOR": "192.168.1.1",
             "REMOTE_ADDR": "192.168.1.1",
@@ -362,6 +384,10 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         }
         mock_request.user = MagicMock()
         mock_request.user.id = admin_user_id
+        # See the sibling test above: the canonical role is the *input* the
+        # capability derivation reads, and without it a MagicMock actor resolves
+        # to zero capabilities and is refused before the marker is ever checked.
+        mock_request.user.role = "admin"
         mock_request.META = {
             "HTTP_X_FORWARDED_FOR": "10.0.0.1",
             "REMOTE_ADDR": "10.0.0.1",

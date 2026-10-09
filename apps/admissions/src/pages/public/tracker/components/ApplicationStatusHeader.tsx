@@ -8,6 +8,13 @@ import { animateClasses } from '@/lib/animations'
 interface ApplicationStatusHeaderProps {
   application: PublicApplicationStatus
   copied: boolean
+  /**
+   * Whether a shareable tracking link exists for this result (task 10.5). It
+   * always does for a result the tracker opened, since the tracker can only be
+   * opened with a tracking secret; the prop keeps the control honest rather than
+   * offering a share that would produce an empty URL.
+   */
+  canShare?: boolean
   onShare: () => void
   onCopy: () => void
 }
@@ -59,6 +66,7 @@ function StepIndicator({ currentStatus }: { currentStatus: string }) {
 export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = ({
   application,
   copied,
+  canShare = true,
   onShare,
   onCopy
 }) => {
@@ -109,10 +117,12 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
           
           {/* Action Buttons */}
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
-            <Button variant="outline" size="sm" onClick={onShare} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
-              <Share2 className="h-4 w-4 mr-1.5" />
-              Share
-            </Button>
+            {canShare && (
+              <Button variant="outline" size="sm" onClick={onShare} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
+                <Share2 className="h-4 w-4 mr-1.5" />
+                Share
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={onCopy} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
               <Copy className="h-4 w-4 mr-1.5" />
               {copied ? 'Copied!' : 'Copy #'}

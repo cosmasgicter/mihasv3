@@ -1,0 +1,14 @@
+-- ROLLBACK for 2026_07_30_01_payment_fee_quotes.sql (admissions-v2 task 8.1).
+--
+-- Destructive by nature: it drops the quote table this task added. NOT picked up
+-- by ``apply_sql_migrations`` (the sweep skips ``*_rollback.sql``) and NOT safe to
+-- run once quotes have been redeemed — a redeemed quote is the audit record of the
+-- amount a student agreed to pay. Run only in a rehearsal/branch context, with an
+-- operator decision, after confirming the count below is what you expect:
+--
+--   SELECT status, count(*) FROM payment_fee_quotes GROUP BY status;
+--
+-- Payments themselves are untouched: ``payments`` has no FK to this table (the
+-- dependency points the other way, ON DELETE SET NULL), so dropping it cannot
+-- lose a payment or change a payment amount.
+DROP TABLE IF EXISTS payment_fee_quotes;

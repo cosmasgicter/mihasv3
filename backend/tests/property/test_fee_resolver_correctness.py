@@ -1,13 +1,14 @@
 """Property-based tests for FeeResolver correctness.
 
-Feature: pre-launch-audit, Property 14: FeeResolver returns correct fees
+Updated for admissions-v2 task 5.4 (DATA-05, STU-08): the resolver now sources
+fees **only** from canonical ``FeeSchedule`` rows and **fails closed** — it never
+falls back to a program-level default or a hardcoded K150/K153 amount, and it
+never does a display-name lookup.
 
-For any active program and for any residency category (local or international),
-FeeResolver.resolve() should return the fee amount matching the program_fees row
-for that program, residency, and fee_type='application'. If no fee row exists,
-it should fall back to the program's application_fee or the default (153.00 ZMW).
+Original property (pre-launch-audit Property 14) asserted the now-removed default
+fallback; those cases are replaced by fail-closed assertions below.
 
-**Validates: Requirements 4.3, 6.6**
+**Validates: Requirements R7.4, R7.5, R12.2**
 """
 
 import os
@@ -27,10 +28,9 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 from apps.documents.fee_resolver import (  # noqa: E402
+    FeeConfigurationError,
     FeeResolver,
     ResolvedFee,
-    _DEFAULT_APPLICATION_FEE,
-    _DEFAULT_CURRENCY,
 )
 
 # ---------------------------------------------------------------------------
@@ -53,9 +53,6 @@ program_codes = st.text(
     max_size=20,
 )
 
-residency_categories = st.sampled_from(["local", "international"])
-
-# Nationality/country combos that produce a known residency
 local_identity = st.fixed_dictionaries({
     "nationality": st.just("Zambian"),
     "country": st.just("Zambia"),
@@ -69,16 +66,10 @@ international_identity = st.fixed_dictionaries({
 identity_for_residency = st.one_of(local_identity, international_identity)
 
 
-# ---------------------------------------------------------------------------
-# Tests — Property 14: FeeResolver returns correct fees
-# ---------------------------------------------------------------------------
-
-
 class TestFeeResolverCorrectness(SimpleTestCase):
-    """Property 14: For any active program and residency category,
-    FeeResolver.resolve() returns the correct fee amount.
+    """FeeResolver returns the canonical fee and fails closed otherwise.
 
-    **Validates: Requirements 4.3, 6.6**
+    **Validates: Requirements R7.4, R7.5, R12.2**
     """
 
     @given(
@@ -91,8 +82,8 @@ class TestFeeResolverCorrectness(SimpleTestCase):
     def test_returns_matching_program_fee_when_exists(
         self, program_code, identity, fee_amount, fee_currency
     ):
-        """When an active ProgramFee row exists for the program+residency+application,
-        resolve_fee() returns that exact amount and currency."""
+        """A single active ProgramFee for the offering+residency+application is
+        returned exactly (source='program_fee')."""
         resolver = FeeResolver()
         expected_residency = FeeResolver._classify_residency(
             identity["nationality"], identity["country"]
@@ -100,7 +91,6 @@ class TestFeeResolverCorrectness(SimpleTestCase):
 
         mock_program = MagicMock()
         mock_program.id = uuid.uuid4()
-        mock_program.application_fee = Decimal("999.00")
 
         mock_program_fee = MagicMock()
         mock_program_fee.amount = fee_amount
@@ -111,6 +101,7 @@ class TestFeeResolverCorrectness(SimpleTestCase):
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
+            mock_fee_qs.filter.return_value.count.return_value = 1
             mock_fee_qs.filter.return_value.first.return_value = mock_program_fee
 
             result = resolver.resolve_fee(
@@ -126,83 +117,73 @@ class TestFeeResolverCorrectness(SimpleTestCase):
     @given(
         program_code=program_codes,
         identity=identity_for_residency,
-        fallback_fee=fee_amounts,
     )
     @settings(max_examples=5)
-    def test_falls_back_to_program_application_fee(
-        self, program_code, identity, fallback_fee
-    ):
-        """When no ProgramFee row exists, resolve_fee() falls back to
-        program.application_fee with currency ZMW."""
+    def test_fails_closed_when_no_active_fee(self, program_code, identity):
+        """No active ProgramFee row → FeeConfigurationError (FEE_NOT_CONFIGURED).
+
+        There is NO program-level default and NO hardcoded fallback (DATA-05,
+        STU-08). The resolver must fail closed rather than invent an amount.
+        """
         resolver = FeeResolver()
-        expected_residency = FeeResolver._classify_residency(
-            identity["nationality"], identity["country"]
-        )
 
         mock_program = MagicMock()
         mock_program.id = uuid.uuid4()
-        mock_program.application_fee = fallback_fee
+        # A stale program-level application_fee must be ignored entirely.
+        mock_program.application_fee = Decimal("999.00")
 
         with (
             patch("apps.documents.fee_resolver.Program.objects") as mock_prog_qs,
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
+            mock_fee_qs.filter.return_value.count.return_value = 0
             mock_fee_qs.filter.return_value.first.return_value = None
 
-            result = resolver.resolve_fee(
-                program_code, identity["nationality"], identity["country"]
-            )
+            with self.assertRaises(FeeConfigurationError) as ctx:
+                resolver.resolve_fee(
+                    program_code, identity["nationality"], identity["country"]
+                )
 
-        self.assertIsInstance(result, ResolvedFee)
-        self.assertEqual(result.amount, fallback_fee)
-        self.assertEqual(result.currency, _DEFAULT_CURRENCY)
-        self.assertEqual(result.residency_category, expected_residency)
-        self.assertEqual(result.source, "program_default")
+        self.assertEqual(ctx.exception.code, "FEE_NOT_CONFIGURED")
+        self.assertEqual(ctx.exception.status_code, 422)
+        self.assertFalse(ctx.exception.retryable)
 
     @given(
         program_code=program_codes,
         identity=identity_for_residency,
     )
     @settings(max_examples=5)
-    def test_falls_back_to_default_fee_when_no_program_fee(
-        self, program_code, identity
-    ):
-        """When no ProgramFee exists and program.application_fee is None,
-        resolve_fee() returns the default 153.00 ZMW."""
-        resolver = FeeResolver()
-        expected_residency = FeeResolver._classify_residency(
-            identity["nationality"], identity["country"]
-        )
+    def test_ambiguous_active_fees_raise_ambiguity(self, program_code, identity):
+        """More than one active ProgramFee → FEE_AMBIGUOUS (409), never a guess."""
+        from apps.documents.fee_resolver import AmbiguousFeeError
 
+        resolver = FeeResolver()
         mock_program = MagicMock()
         mock_program.id = uuid.uuid4()
-        mock_program.application_fee = None
 
         with (
             patch("apps.documents.fee_resolver.Program.objects") as mock_prog_qs,
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
-            mock_fee_qs.filter.return_value.first.return_value = None
+            mock_fee_qs.filter.return_value.count.return_value = 2
 
-            result = resolver.resolve_fee(
-                program_code, identity["nationality"], identity["country"]
-            )
+            with self.assertRaises(AmbiguousFeeError) as ctx:
+                resolver.resolve_fee(
+                    program_code, identity["nationality"], identity["country"]
+                )
 
-        self.assertIsInstance(result, ResolvedFee)
-        self.assertEqual(result.amount, _DEFAULT_APPLICATION_FEE)
-        self.assertEqual(result.currency, _DEFAULT_CURRENCY)
-        self.assertEqual(result.residency_category, expected_residency)
-        self.assertEqual(result.source, "program_default")
+        self.assertEqual(ctx.exception.code, "FEE_AMBIGUOUS")
+        self.assertEqual(ctx.exception.status_code, 409)
 
     @given(program_code=program_codes, identity=identity_for_residency)
     @settings(max_examples=5)
     def test_nonexistent_program_raises_does_not_exist(
         self, program_code, identity
     ):
-        """When the program code matches no active program, resolve_fee()
-        raises Program.DoesNotExist."""
+        """When the identifier matches no active offering by code or id,
+        resolve_fee() raises Program.DoesNotExist (no display-name lookup)."""
         from apps.catalog.models import Program
 
         resolver = FeeResolver()

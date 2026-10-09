@@ -1,0 +1,7 @@
+
+Running 2 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (21.8s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (400ms)
+
+  2 passed (24.8s)

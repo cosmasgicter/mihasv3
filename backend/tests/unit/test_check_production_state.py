@@ -13,14 +13,13 @@ SIMPLE_JWT_SETTINGS = {
 }
 
 PROD_SETTINGS = {
-    "PAYMENT_HARDENING_FORWARD_ONLY": True,
-    "PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT": True,
+    # admissions-v2 task 8.2 deleted PAYMENT_HARDENING_FORWARD_ONLY,
+    # PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT and
+    # PAYMENT_HARDENING_FORCE_APPROVED along with the alternative
+    # implementations they selected, so there is nothing for the deploy check
+    # to assert about them.
     "PAYMENT_HARDENING_RATE_LIMITS": True,
-    "PAYMENT_HARDENING_FORCE_APPROVED": True,
-    "AI_HARDENING_CIRCUIT_BREAKER": True,
-    "AI_HARDENING_RATE_LIMITS": True,
-    "AI_HARDENING_CACHE": True,
-    "AI_HARDENING_REDACTION": True,
+    "DOCUMENT_EXTRACT_RATE_LIMITS": True,
     "SECRET_KEY": "real-production-secret-key-abc123",
     "SIMPLE_JWT": SIMPLE_JWT_SETTINGS,
     "ALLOWED_HOSTS": ["api.beanola.com"],
@@ -47,14 +46,14 @@ class TestCheckProductionStateClean:
 class TestCheckProductionStateFailures:
     """Command exits 1 with --strict on bad settings."""
 
-    @override_settings(**{**PROD_SETTINGS, "PAYMENT_HARDENING_FORWARD_ONLY": False})
+    @override_settings(**{**PROD_SETTINGS, "PAYMENT_HARDENING_RATE_LIMITS": False})
     def test_fails_on_payment_flag_false(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
         monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")
         with pytest.raises(SystemExit):
             call_command("check_production_state", "--strict")
 
-    @override_settings(**{**PROD_SETTINGS, "AI_HARDENING_REDACTION": False})
+    @override_settings(**{**PROD_SETTINGS, "DOCUMENT_EXTRACT_RATE_LIMITS": False})
     def test_fails_on_ai_flag_false(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
         monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")

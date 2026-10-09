@@ -1,0 +1,19 @@
+$ cd apps/admissions && HARNESS_PW_CHANNEL=chrome PLAYWRIGHT_BASE_URL=http://localhost:8090 bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts
+
+Running 12 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (2.0s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (2.5s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (2.8s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (2.4s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (2.6s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (2.6s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:352:1 › the audit panel asks about the selected school and never the generic feed (3.2s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:388:1 › page 2 keeps the server event count and changes only the rows (3.8s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:430:1 › the audit export is the whole filtered set, page-independent and audited (4.1s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:501:1 › a reader without the export capability is not offered the export (3.0s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:524:1 › a cross-tenant audit query is masked, and the feed holds no other school (3.4s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/tenant-audit-amendment-scope.spec.ts:568:1 › an amendment notifies the owning school and no other (3.8s)
+
+  12 passed (56.5s)
+PW_EXIT=0

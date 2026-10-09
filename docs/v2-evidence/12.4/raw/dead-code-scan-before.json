@@ -1,0 +1,2574 @@
+{
+  "root": "/home/cosmas/Downloads/mihasv3",
+  "workspaces": [
+    {
+      "name": "apps/admissions",
+      "filesScanned": 1151,
+      "declared": 81,
+      "dependencies": [
+        {
+          "package": "@hookform/resolvers",
+          "kind": "dependencies",
+          "importCount": 12,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/pages/ContactPage.tsx",
+            "apps/admissions/src/pages/admin/Intakes.tsx",
+            "apps/admissions/src/pages/admin/ProgramFees.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-accordion",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/accordion.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-alert-dialog",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/alert-dialog.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-checkbox",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/checkbox.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-dialog",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Dialog.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-dropdown-menu",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/dropdown-menu.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-label",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/label.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-navigation-menu",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "DEAD",
+          "examples": []
+        },
+        {
+          "package": "@radix-ui/react-progress",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/progress.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-radio-group",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/radio-group.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-select",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/select.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-separator",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/separator.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-slot",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Button.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-switch",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/switch.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-tabs",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/tabs.tsx"
+          ]
+        },
+        {
+          "package": "@radix-ui/react-toast",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "DEAD",
+          "examples": []
+        },
+        {
+          "package": "@radix-ui/react-tooltip",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/tooltip.tsx"
+          ]
+        },
+        {
+          "package": "@react-pdf/renderer",
+          "kind": "dependencies",
+          "importCount": 22,
+          "classes": [
+            "dev-preview",
+            "production",
+            "script"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/render-pdf-samples.tsx",
+            "apps/admissions/src/lib/pdf/components/BrandFooter.tsx",
+            "apps/admissions/src/lib/pdf/components/BrandHeader.tsx"
+          ]
+        },
+        {
+          "package": "@sentry/react",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/errorReporter.ts",
+            "apps/admissions/src/lib/errorReporter.ts",
+            "apps/admissions/src/lib/errorReporter.ts"
+          ]
+        },
+        {
+          "package": "@tailwindcss/forms",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tailwind.config plugin",
+          "examples": []
+        },
+        {
+          "package": "@tanstack/react-query",
+          "kind": "dependencies",
+          "importCount": 112,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AuthenticatedRouteShell.tsx",
+            "apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx"
+          ]
+        },
+        {
+          "package": "@tanstack/react-virtual",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/admin/applications/VirtualizedApplicationsGrid.tsx"
+          ]
+        },
+        {
+          "package": "class-variance-authority",
+          "kind": "dependencies",
+          "importCount": 9,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Alert.tsx",
+            "apps/admissions/src/components/ui/Button.tsx",
+            "apps/admissions/src/components/ui/Container.tsx"
+          ]
+        },
+        {
+          "package": "clsx",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/utils.ts"
+          ]
+        },
+        {
+          "package": "date-fns",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "DEAD",
+          "examples": []
+        },
+        {
+          "package": "dompurify",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/SafeHtml.tsx"
+          ]
+        },
+        {
+          "package": "framer-motion",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/motion/index.tsx",
+            "apps/admissions/src/components/smoothui/shape-landing-hero.tsx"
+          ]
+        },
+        {
+          "package": "jspdf",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "jspdf-autotable",
+          "kind": "dependencies",
+          "importCount": 4,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/auditExports.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "lucide-react",
+          "kind": "dependencies",
+          "importCount": 212,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/8starlabs/timeline.tsx",
+            "apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx",
+            "apps/admissions/src/components/admin/AdminErrorBoundary.tsx"
+          ]
+        },
+        {
+          "package": "papaparse",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "DEAD",
+          "examples": []
+        },
+        {
+          "package": "pdf-lib",
+          "kind": "dependencies",
+          "importCount": 2,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/exportUtils.ts",
+            "apps/admissions/src/lib/exportUtils.ts"
+          ]
+        },
+        {
+          "package": "qrcode",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/pdf/qr.ts"
+          ]
+        },
+        {
+          "package": "react",
+          "kind": "dependencies",
+          "importCount": 459,
+          "classes": [
+            "dev-preview",
+            "production",
+            "script",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/render-pdf-samples.tsx",
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AdminRoute.tsx"
+          ]
+        },
+        {
+          "package": "react-dom",
+          "kind": "dependencies",
+          "importCount": 92,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/main.tsx",
+            "apps/admissions/tests/property/adminDashboardOverhaul.property.test.tsx",
+            "apps/admissions/tests/property/admissionsFlowBugCondition.property.test.ts"
+          ]
+        },
+        {
+          "package": "react-dropzone",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/FileUpload.tsx"
+          ]
+        },
+        {
+          "package": "react-hook-form",
+          "kind": "dependencies",
+          "importCount": 37,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/admin/programs/InstitutionDialogs.tsx",
+            "apps/admissions/src/components/admin/programs/ProgramDialogs.tsx",
+            "apps/admissions/src/components/admin/users/CreateUserDialog.tsx"
+          ]
+        },
+        {
+          "package": "react-intersection-observer",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/smoothui/animated-counter.tsx"
+          ]
+        },
+        {
+          "package": "react-router-dom",
+          "kind": "dependencies",
+          "importCount": 93,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/App.tsx",
+            "apps/admissions/src/components/AdminRoute.tsx",
+            "apps/admissions/src/components/AuthenticatedRouteShell.tsx"
+          ]
+        },
+        {
+          "package": "recharts",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "DEAD",
+          "examples": []
+        },
+        {
+          "package": "tailwind-merge",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/utils.ts"
+          ]
+        },
+        {
+          "package": "zod",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/lib/zambianMsisdn.ts",
+            "apps/admissions/src/lib/zod.ts",
+            "apps/admissions/src/lib/zod.ts"
+          ]
+        },
+        {
+          "package": "zustand",
+          "kind": "dependencies",
+          "importCount": 5,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/src/components/ui/Toast.tsx",
+            "apps/admissions/src/stores/authStore.ts",
+            "apps/admissions/src/stores/draftStore.ts"
+          ]
+        },
+        {
+          "package": "@axe-core/playwright",
+          "kind": "devDependencies",
+          "importCount": 2,
+          "classes": [
+            "harness",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/e2e/accessibility.spec.ts",
+            "apps/admissions/tests/harness-e2e/required/design-system-defluff.spec.ts"
+          ]
+        },
+        {
+          "package": "@fontsource/jetbrains-mono",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@fontsource/playfair-display",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@fontsource/source-sans-3",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "font asset",
+          "examples": []
+        },
+        {
+          "package": "@playwright/test",
+          "kind": "devDependencies",
+          "importCount": 16,
+          "classes": [
+            "config",
+            "harness",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/playwright.config.ts",
+            "apps/admissions/playwright.harness.config.ts",
+            "apps/admissions/tests/e2e/accessibility.spec.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/react",
+          "kind": "devDependencies",
+          "importCount": 53,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/integration/requiredDocumentsUploadFlow.test.tsx",
+            "apps/admissions/tests/integration/requiredDocumentsVersionCommands.test.tsx",
+            "apps/admissions/tests/integration/tenantOnboardingWizard.integration.test.tsx"
+          ]
+        },
+        {
+          "package": "@types/node",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/papaparse",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/qrcode",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react-dom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/eslint-plugin",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint plugin",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/parser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint parser",
+          "examples": []
+        },
+        {
+          "package": "@vitejs/plugin-react",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "@vitest/coverage-v8",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest coverage provider",
+          "examples": []
+        },
+        {
+          "package": "autoprefixer",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "baseline-browser-mapping",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "browserslist data",
+          "examples": []
+        },
+        {
+          "package": "concurrently",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "multi-process dev/test invocation",
+          "examples": []
+        },
+        {
+          "package": "critters",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "eslint",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint binary",
+          "examples": []
+        },
+        {
+          "package": "eslint-plugin-import",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-hooks",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-refresh",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "fast-check",
+          "kind": "devDependencies",
+          "importCount": 197,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts",
+            "apps/admissions/tests/property/admin-system-health-fixes/user-roles-rls.property.test.ts",
+            "apps/admissions/tests/property/admin-users-reducer.property.test.ts"
+          ]
+        },
+        {
+          "package": "fast-glob",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "script"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/scripts/check-dynamic-imports.ts"
+          ]
+        },
+        {
+          "package": "globals",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "jsdom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest environment",
+          "examples": []
+        },
+        {
+          "package": "openapi-typescript",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "generate:api-types",
+          "examples": []
+        },
+        {
+          "package": "postcss",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS core",
+          "examples": []
+        },
+        {
+          "package": "shadcn",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "shadcn component-add CLI",
+          "examples": []
+        },
+        {
+          "package": "sharp",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vite image pipeline / OptimizedImage asset generation",
+          "examples": []
+        },
+        {
+          "package": "tailwindcss",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS/Tailwind plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "tailwindcss-animate",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tailwind.config plugin",
+          "examples": []
+        },
+        {
+          "package": "terser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vite minifier, selected by name",
+          "examples": []
+        },
+        {
+          "package": "typescript",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tsc, invoked by build/type-check",
+          "examples": []
+        },
+        {
+          "package": "typescript-eslint",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/eslint.config.js"
+          ]
+        },
+        {
+          "package": "vite",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/vite.config.ts"
+          ]
+        },
+        {
+          "package": "vitest",
+          "kind": "devDependencies",
+          "importCount": 497,
+          "classes": [
+            "config",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/admissions/tests/admin/dashboard.regression.test.ts",
+            "apps/admissions/tests/integration/auth-flows.integration.test.ts",
+            "apps/admissions/tests/integration/email-check.integration.test.ts"
+          ]
+        }
+      ],
+      "undeclared": [
+        {
+          "package": "@arcjet/node",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@neondatabase/serverless",
+          "importCount": 2,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts",
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/analytics",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/unit/appGlobalLazyLoading.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/node",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "@vercel/speed-insights",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/unit/appGlobalLazyLoading.test.ts"
+          ]
+        },
+        {
+          "package": "arcjet",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "bcryptjs",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "jose",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        },
+        {
+          "package": "lib",
+          "importCount": 1,
+          "examples": [
+            "apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts"
+          ]
+        }
+      ],
+      "staleDeclines": []
+    },
+    {
+      "name": "apps/jobs-ops",
+      "filesScanned": 57,
+      "declared": 31,
+      "dependencies": [
+        {
+          "package": "@hookform/resolvers",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "@tanstack/react-query",
+          "kind": "dependencies",
+          "importCount": 18,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/providers.tsx",
+            "apps/jobs-ops/src/auth/AuthContext.tsx"
+          ]
+        },
+        {
+          "package": "@vitejs/plugin-react",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/vite.config.ts"
+          ]
+        },
+        {
+          "package": "autoprefixer",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "clsx",
+          "kind": "dependencies",
+          "importCount": 3,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/components/ui/ErrorDisplay.tsx",
+            "apps/jobs-ops/src/components/ui/ProgressBar.tsx",
+            "apps/jobs-ops/src/components/ui/StatusBadge.tsx"
+          ]
+        },
+        {
+          "package": "lucide-react",
+          "kind": "dependencies",
+          "importCount": 7,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/layout/navigation.ts",
+            "apps/jobs-ops/src/app/layout/navigation.ts"
+          ]
+        },
+        {
+          "package": "postcss",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS core",
+          "examples": []
+        },
+        {
+          "package": "react",
+          "kind": "dependencies",
+          "importCount": 15,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/providers.tsx",
+            "apps/jobs-ops/src/auth/AuthContext.tsx"
+          ]
+        },
+        {
+          "package": "react-dom",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/main.tsx"
+          ]
+        },
+        {
+          "package": "react-hook-form",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "react-router-dom",
+          "kind": "dependencies",
+          "importCount": 10,
+          "classes": [
+            "production",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/App.tsx",
+            "apps/jobs-ops/src/app/layout/JobsOpsShell.tsx",
+            "apps/jobs-ops/src/app/router.tsx"
+          ]
+        },
+        {
+          "package": "tailwindcss",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "PostCSS/Tailwind plugin resolved by name",
+          "examples": []
+        },
+        {
+          "package": "typescript",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "tsc, invoked by build/type-check",
+          "examples": []
+        },
+        {
+          "package": "vite",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/vite.config.ts"
+          ]
+        },
+        {
+          "package": "zod",
+          "kind": "dependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "declined",
+          "reason": "jobs-ops: declared for planned write flows (tech.md); jobs-ops lane decides",
+          "examples": []
+        },
+        {
+          "package": "zustand",
+          "kind": "dependencies",
+          "importCount": 1,
+          "classes": [
+            "production"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/src/stores/ui-store.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/jest-dom",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/setup.ts"
+          ]
+        },
+        {
+          "package": "@testing-library/react",
+          "kind": "devDependencies",
+          "importCount": 2,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/authContext.test.ts",
+            "apps/jobs-ops/tests/unit/router.test.ts"
+          ]
+        },
+        {
+          "package": "@types/node",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@types/react-dom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "ambient types",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/eslint-plugin",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint plugin",
+          "examples": []
+        },
+        {
+          "package": "@typescript-eslint/parser",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint parser",
+          "examples": []
+        },
+        {
+          "package": "eslint",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "eslint binary",
+          "examples": []
+        },
+        {
+          "package": "eslint-plugin-react-hooks",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "eslint-plugin-react-refresh",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "globals",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "jsdom",
+          "kind": "devDependencies",
+          "importCount": 0,
+          "classes": [],
+          "status": "non-import-consumer",
+          "reason": "vitest environment",
+          "examples": []
+        },
+        {
+          "package": "msw",
+          "kind": "devDependencies",
+          "importCount": 6,
+          "classes": [
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/authContext.test.ts"
+          ]
+        },
+        {
+          "package": "typescript-eslint",
+          "kind": "devDependencies",
+          "importCount": 1,
+          "classes": [
+            "config"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/eslint.config.js"
+          ]
+        },
+        {
+          "package": "vitest",
+          "kind": "devDependencies",
+          "importCount": 5,
+          "classes": [
+            "config",
+            "test"
+          ],
+          "status": "imported",
+          "examples": [
+            "apps/jobs-ops/tests/unit/apiClient.test.ts",
+            "apps/jobs-ops/tests/unit/authContext.test.ts",
+            "apps/jobs-ops/tests/unit/router.test.ts"
+          ]
+        }
+      ],
+      "undeclared": [],
+      "staleDeclines": []
+    },
+    {
+      "name": "<root>",
+      "filesScanned": 5,
+      "declared": 0,
+      "dependencies": [],
+      "undeclared": [
+        {
+          "package": "puppeteer-core",
+          "importCount": 1,
+          "examples": [
+            "scripts/launch-verification/measure-mobile-ui.mjs"
+          ]
+        }
+      ],
+      "staleDeclines": []
+    }
+  ],
+  "unusedImports": [
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/8starlabs/timeline.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 37,
+      "code": "TS6133",
+      "message": "'Circle' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/DashboardRedirect.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/LazyLoadErrorBoundary.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/BulkUserOperations.tsx",
+      "class": "production",
+      "line": 21,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/UserActivityLog.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailHeader.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 46,
+      "column": 17,
+      "code": "TS6133",
+      "message": "'useCallback' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 46,
+      "column": 41,
+      "code": "TS6133",
+      "message": "'useMemo' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 54,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'ClipboardList' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 61,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'Loader2' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 65,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'Search' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 71,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'X' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 77,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 82,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'useToastStore' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 84,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'logApiError' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 85,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 86,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 91,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 107,
+      "column": 64,
+      "code": "TS6133",
+      "message": "'Grade' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "class": "production",
+      "line": 108,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationDetailPayment.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationsTable.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationsTableView.tsx",
+      "class": "production",
+      "line": 8,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ApplicationsTableView.tsx",
+      "class": "production",
+      "line": 17,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'StatusPill' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/AssignReviewerControl.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/AssignReviewerControl.tsx",
+      "class": "production",
+      "line": 11,
+      "column": 35,
+      "code": "TS6133",
+      "message": "'Users' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/AssignReviewerControl.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'Button' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/CapacityWarning.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/DraftBadge.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/GradesDisplay.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/PaymentDecisionControls.tsx",
+      "class": "production",
+      "line": 21,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ReviewDecisionLists.tsx",
+      "class": "production",
+      "line": 12,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ReviewDecisionLists.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'AlertCircle' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ReviewDecisionLists.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 38,
+      "code": "TS6133",
+      "message": "'CheckCircle' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/ReviewDecisionLists.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 82,
+      "code": "TS6133",
+      "message": "'X' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/applications/RosterPagination.tsx",
+      "class": "production",
+      "line": 16,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/settings/AdvancedKeysSection.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/admin/settings/AdvancedKeysSection.tsx",
+      "class": "production",
+      "line": 7,
+      "column": 27,
+      "code": "TS6196",
+      "message": "'SettingValueType' is declared but never used.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/auth/SessionMonitor.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/motion/index.tsx",
+      "class": "production",
+      "line": 4,
+      "column": 40,
+      "code": "TS6133",
+      "message": "'Transition' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/ApplicationListItem.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'ApplicationInterview' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/NotificationBell.tsx",
+      "class": "production",
+      "line": 7,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'cn' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/AmendmentHistory.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/ApplicationHistory.tsx",
+      "class": "production",
+      "line": 26,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/DocumentChecklist.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/NextActionCards.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/StatusTimeline.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/WithdrawEnrollDialogs.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/applicationStatus/WorkspaceAside.tsx",
+      "class": "production",
+      "line": 12,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/ActiveSessions.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/Alert.tsx",
+      "class": "production",
+      "line": 4,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'AlertCircle' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/Container.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/FormError.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/FormErrorAnnouncer.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/ProfileAutoPopulationIndicator.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/ProgressIndicator.tsx",
+      "class": "production",
+      "line": 7,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/StatusIcon.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/StatusIcon.tsx",
+      "class": "production",
+      "line": 3,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'CheckCircle' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/StatusIcon.tsx",
+      "class": "production",
+      "line": 9,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'Search' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/StatusIcon.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'HeartCrack' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/form-select.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/skeletons/AdminTableSkeleton.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/skeletons/AuthSkeleton.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/skeletons/DashboardSkeleton.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/ui/skeletons/DetailSkeleton.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/data/applications.ts",
+      "class": "production",
+      "line": 2,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'apiClient' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/data/applications.ts",
+      "class": "production",
+      "line": 5,
+      "column": 26,
+      "code": "TS6133",
+      "message": "'sanitizeFilePath' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'hasRole' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 28,
+      "code": "TS6133",
+      "message": "'isReviewer' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 40,
+      "code": "TS6133",
+      "message": "'isStudent' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 51,
+      "code": "TS6133",
+      "message": "'isSuperAdmin' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 65,
+      "code": "TS6133",
+      "message": "'ROLE_HIERARCHY' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/auth/roles.ts",
+      "class": "production",
+      "line": 12,
+      "column": 86,
+      "code": "TS6133",
+      "message": "'Role' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/authSession.ts",
+      "class": "production",
+      "line": 2,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'isAdminRole' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/pdf/components/LabeledField.tsx",
+      "class": "production",
+      "line": 17,
+      "column": 20,
+      "code": "TS6133",
+      "message": "'space' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/ContactPage.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 30,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'documentService' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 45,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'FileSpreadsheet' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/AuditTrail.tsx",
+      "class": "production",
+      "line": 20,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'AuditLogResponse' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Settings.tsx",
+      "class": "production",
+      "line": 16,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'SystemSetting' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Settings.tsx",
+      "class": "production",
+      "line": 30,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'initialNewSetting' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/tenants/TemplatesPanel.tsx",
+      "class": "production",
+      "line": 13,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'ResourceList' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/tenants/onboardingCatalogSteps.tsx",
+      "class": "production",
+      "line": 45,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'TenantOffering' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/auth/ForgotPasswordPage.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'Link' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/ApplicationStatus.tsx",
+      "class": "production",
+      "line": 1,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/Dashboard.tsx",
+      "class": "production",
+      "line": 28,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/NotificationSettings.tsx",
+      "class": "production",
+      "line": 38,
+      "column": 8,
+      "code": "TS6133",
+      "message": "'React' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 11,
+      "column": 36,
+      "code": "TS6133",
+      "message": "'normalizeSexForWizard' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 16,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'sanitizeForLog' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 23,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'clearWizardDraftCache' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 25,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'buildSubmitIdempotencyKey' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 31,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'cachedSetItem' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 34,
+      "column": 1,
+      "code": "TS6133",
+      "message": "'normalizeDateInputValue' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 37,
+      "column": 31,
+      "code": "TS6133",
+      "message": "'resolveWizardSubjectId' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 42,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 46,
+      "column": 1,
+      "code": "TS6192",
+      "message": "All imports in import declaration are unused.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 71,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'getStepIndexById' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 73,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'createGradeRowId' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 75,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'isAuthSaveError' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts",
+      "class": "production",
+      "line": 15,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'getCanonicalResidenceCountry' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/routes/config.tsx",
+      "class": "production",
+      "line": 9,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'CANONICAL_ADMIN_DASHBOARD_PATH' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/routes/config.tsx",
+      "class": "production",
+      "line": 10,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'CANONICAL_SIGN_IN_PATH' is declared but its value is never read.",
+      "isImport": true
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/services/client.ts",
+      "class": "production",
+      "line": 22,
+      "column": 3,
+      "code": "TS6133",
+      "message": "'configureApiClientAuthFailure' is declared but its value is never read.",
+      "isImport": true
+    }
+  ],
+  "unusedLocals": [
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/motion/index.tsx",
+      "class": "production",
+      "line": 11,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'useDuration' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/components/student/NotificationBell.tsx",
+      "class": "production",
+      "line": 32,
+      "column": 5,
+      "code": "TS6133",
+      "message": "'refresh' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/applicationSession.ts",
+      "class": "production",
+      "line": 729,
+      "column": 17,
+      "code": "TS6133",
+      "message": "'getNextVersion' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/connectionFix.ts",
+      "class": "production",
+      "line": 60,
+      "column": 13,
+      "code": "TS6133",
+      "message": "'errorMessage' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/speculativePrefetch.ts",
+      "class": "production",
+      "line": 145,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'prefetchStudentApplications' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/lib/speculativePrefetch.ts",
+      "class": "production",
+      "line": 207,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'preloadStudentSecondaryPages' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 285,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'bulkActionLoading' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 286,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'modalLoading' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/admin/Applications.tsx",
+      "class": "production",
+      "line": 306,
+      "column": 9,
+      "code": "TS6133",
+      "message": "'searchInputRef' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/Dashboard.tsx",
+      "class": "production",
+      "line": 96,
+      "column": 28,
+      "code": "TS6133",
+      "message": "'scheduledInterviews' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts",
+      "class": "production",
+      "line": 43,
+      "column": 9,
+      "code": "TS6133",
+      "message": "'debouncedValues' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "class": "production",
+      "line": 389,
+      "column": 5,
+      "code": "TS6133",
+      "message": "'wizardCatalogContext' is declared but its value is never read.",
+      "isImport": false
+    },
+    {
+      "workspace": "apps/admissions",
+      "path": "apps/admissions/src/services/admin/dashboard.ts",
+      "class": "production",
+      "line": 657,
+      "column": 13,
+      "code": "TS6133",
+      "message": "'users' is declared but its value is never read.",
+      "isImport": false
+    }
+  ],
+  "tscProjects": [
+    "apps/admissions (tsconfig.build.json)",
+    "apps/jobs-ops (tsconfig.build.json)"
+  ],
+  "unresolvedFirstParty": [],
+  "pass": false
+}

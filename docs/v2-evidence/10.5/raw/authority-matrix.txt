@@ -1,0 +1,16 @@
+F.....F................................F                                 [100%]
+=================================== FAILURES ===================================
+/home/cosmas/Downloads/mihasv3/backend/tests/unit/test_authority_matrix_v2.py:90: AssertionError: Authority matrix gate FAILED: 0 unresolved, 0 weak-bucket, 1 stale. Unresolved=[] Stale=['/api/v1/applications/<uuid:application_id>/preview-summary/']
+/home/cosmas/Downloads/mihasv3/backend/tests/unit/test_authority_matrix_v2.py:224: AssertionError: assert ['/api/v1/app...iew-summary/'] == []
+/home/cosmas/Downloads/mihasv3/backend/tests/unit/test_view_auth_classification.py:525: AssertionError: Found 38 APIView subclass(es) not in any classification list. Add them to the appropriate parametrize list in this file:
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_authority_matrix_v2.py::test_zero_unclassified_gate_passes_on_live_surface
+FAILED tests/unit/test_authority_matrix_v2.py::test_no_stale_registry_entries
+FAILED tests/unit/test_view_auth_classification.py::test_all_api_views_are_classified
+3 failed, 37 passed, 1 warning in 3.55s

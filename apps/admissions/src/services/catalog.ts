@@ -19,6 +19,7 @@ type RawProgram = {
   description?: string
   institution?: RawInstitution | null
   institution_id?: string
+  canonical_program_id?: string
   duration_years?: number
   duration_months?: number
   application_fee?: number | string
@@ -80,6 +81,7 @@ export interface Program {
   description?: string
   duration_years: number
   institution_id: string
+  canonical_program_id?: string
   institutions?: Institution | null
   is_active?: boolean
   code?: string
@@ -168,10 +170,12 @@ type SubjectCollectionResponse = { subjects: Subject[] }
 type InstitutionCollectionResponse = { institutions: Institution[] }
 
 type ProgramMutationResponse = { program: Program | null }
-type IntakeMutationResponse = { intake: Intake | null }
-type InstitutionMutationResponse = { institution: Institution | null }
+// (`IntakeMutationResponse` / `InstitutionMutationResponse` deleted by task
+//  12.5 with the legacy intake/institution writers that were their only users.)
 
-type CollectionKey = 'programs' | 'intakes' | 'subjects' | 'institutions'
+// (`CollectionKey` deleted by task 12.2: it existed only to index the
+//  `{programs|intakes|subjects|institutions: […]}` branch normalizeCollection
+//  no longer has.)
 
 type RawPaginatedCollection<T> = {
   results?: T[]
@@ -282,6 +286,7 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
     description: summary,
     duration_years: durationYears,
     institution_id: record.institution_id ?? institution?.id ?? '',
+    canonical_program_id: record.canonical_program_id,
     institutions: institution,
     is_active: record.is_active,
     code: record.code,
@@ -368,41 +373,43 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
   }
 }
 
+/**
+ * Read the item list out of a catalog collection response.
+ *
+ * **This is a strict contract read, not a permissive normalizer** (task 12.2,
+ * R14.5, finding API-02). Two shapes are accepted and both are real:
+ *
+ * - `{page, pageSize, totalCount, results}` — what every catalog list endpoint
+ *   returns. `StandardPagination.page_size` is 20, so `paginate_queryset` never
+ *   declines and this is the shape in practice.
+ * - a bare array — the un-paginated branch each catalog view still carries
+ *   (`return {"success": True, "data": serializer.data}` when the paginator
+ *   declines). Kept because the *producer* still has it; the day the backend
+ *   drops that branch this one goes with it.
+ *
+ * What was deleted, and why it could not be reached:
+ *
+ * - the `{programs: […]}` / `{intakes: […]}` / `{subjects: […]}` /
+ *   `{institutions: […]}` domain-keyed branch. `apiClient.request` unwraps
+ *   exactly one `{success, data}` level (`httpClient.unwrapApiResponse`), and no
+ *   catalog view puts a domain key inside `data`.
+ * - the "first array-valued property" fallback with its `logger.warn`. It could
+ *   only fire on a shape no endpoint emits, and its effect was to *guess* which
+ *   array was the list — a normalizer that invents a contract is worse than a
+ *   parse failure, because the guess is silent.
+ *
+ * Both had **zero** first-party callers, measured by
+ * `scripts/v1_surface_telemetry.py` (surface `normalizer.catalog.*`).
+ */
 function normalizeCollection<T>(
-  response: T[] | RawPaginatedCollection<T> | Record<string, unknown> | null | undefined,
-  key: CollectionKey,
+  response: T[] | RawPaginatedCollection<T> | null | undefined,
   normalizeItem: (item: T | null | undefined) => unknown
 ): unknown[] {
-  let rawItems: T[]
-
-  if (Array.isArray(response)) {
-    rawItems = response
-  } else if (Array.isArray((response as RawPaginatedCollection<T> | undefined)?.results)) {
-    rawItems = (response as RawPaginatedCollection<T>).results as T[]
-  } else if (Array.isArray((response as Record<string, unknown> | undefined)?.[key])) {
-    rawItems = (response as Record<string, unknown>)[key] as T[]
-  } else if (response != null && typeof response === 'object' && !Array.isArray(response)) {
-    // Defensive fallback: extract the first array-valued property from an unexpected shape
-    const firstArrayProp = Object.values(response).find((v) => Array.isArray(v)) as T[] | undefined
-    if (firstArrayProp) {
-      logger.warn(
-        `[catalog] normalizeCollection: unexpected response shape for "${key}". ` +
-        `Expected array, {results}, or {${key}} but got keys: [${Object.keys(response).join(', ')}]. ` +
-        `Using fallback array property.`
-      )
-      rawItems = firstArrayProp
-    } else {
-      if (Object.keys(response).length > 0) {
-        logger.warn(
-          `[catalog] normalizeCollection: non-null response for "${key}" yielded no items. ` +
-          `Response keys: [${Object.keys(response).join(', ')}]`
-        )
-      }
-      rawItems = []
-    }
-  } else {
-    rawItems = []
-  }
+  const rawItems: T[] = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.results)
+      ? (response.results as T[])
+      : []
 
   return rawItems
     .map((item) => normalizeItem(item))
@@ -410,72 +417,57 @@ function normalizeCollection<T>(
 }
 
 function normalizeProgramsResponse(
-  response: RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram> | null | undefined
+  response: RawProgram[] | RawPaginatedCollection<RawProgram> | null | undefined
 ): ProgramCollectionResponse {
   return {
-    programs: normalizeCollection(response, 'programs', normalizeProgram) as Program[],
+    programs: normalizeCollection(response, normalizeProgram) as Program[],
   }
 }
 
 function normalizeIntakesResponse(
-  response: RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake> | null | undefined
+  response: RawIntake[] | RawPaginatedCollection<RawIntake> | null | undefined
 ): IntakeCollectionResponse {
   return {
-    intakes: normalizeCollection(response, 'intakes', normalizeIntake) as Intake[],
+    intakes: normalizeCollection(response, normalizeIntake) as Intake[],
   }
 }
 
 function normalizeSubjectsResponse(
-  response: RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject> | null | undefined
+  response: RawSubject[] | RawPaginatedCollection<RawSubject> | null | undefined
 ): SubjectCollectionResponse {
   return {
-    subjects: normalizeCollection(response, 'subjects', normalizeSubject) as Subject[],
+    subjects: normalizeCollection(response, normalizeSubject) as Subject[],
   }
 }
 
 function normalizeInstitutionsResponse(
-  response: RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution> | null | undefined
+  response: RawInstitution[] | RawPaginatedCollection<RawInstitution> | null | undefined
 ): InstitutionCollectionResponse {
   return {
-    institutions: normalizeCollection(response, 'institutions', normalizeInstitution) as Institution[],
+    institutions: normalizeCollection(response, normalizeInstitution) as Institution[],
   }
 }
 
+// The three mutation readers below take the record the endpoint returns and map
+// it to the domain type. Task 12.2 (R14.5) deleted the `'program' in response`
+// / `'intake' in response` / `'institution' in response` pre-step each one had:
+// it re-unwrapped a domain key out of a payload `apiClient.request` had ALREADY
+// unwrapped one `{success, data}` level from, so it could only fire on a
+// `{data: {program: {…}}}` double envelope that no catalog write emits. Zero
+// first-party callers (`scripts/v1_surface_telemetry.py`, surface
+// `normalizer.catalog.mutation_key_sniff`). What remains is the per-field map,
+// which is a strict contract read.
+
 function normalizeProgramMutationResponse(
-  response: RawProgram | ProgramMutationResponse | null | undefined
+  response: RawProgram | Program | null | undefined
 ): ProgramMutationResponse {
-  const program = normalizeProgram(
-    response && typeof response === 'object' && 'program' in response
-      ? response.program as RawProgram | Program | null | undefined
-      : response as RawProgram | Program | null | undefined
-  )
-
-  return { program }
+  return { program: normalizeProgram(response) }
 }
 
-function normalizeIntakeMutationResponse(
-  response: RawIntake | IntakeMutationResponse | null | undefined
-): IntakeMutationResponse {
-  const intake = normalizeIntake(
-    response && typeof response === 'object' && 'intake' in response
-      ? response.intake as RawIntake | Intake | null | undefined
-      : response as RawIntake | Intake | null | undefined
-  )
-
-  return { intake }
-}
-
-function normalizeInstitutionMutationResponse(
-  response: RawInstitution | InstitutionMutationResponse | null | undefined
-): InstitutionMutationResponse {
-  const institution = normalizeInstitution(
-    response && typeof response === 'object' && 'institution' in response
-      ? response.institution as RawInstitution | Institution | null | undefined
-      : response as RawInstitution | Institution | null | undefined
-  )
-
-  return { institution }
-}
+// `normalizeIntakeMutationResponse` / `normalizeInstitutionMutationResponse`
+// went with the legacy intake/institution writers that were their only callers
+// (task 12.5). The program one stays: `programService.create` is the canonical
+// offering-create path.
 
 type ProgramFormData = {
   id?: string
@@ -499,27 +491,15 @@ export type IntakeFormData = {
   max_capacity: number
 }
 
-type InstitutionFormData = {
-  id?: string
-  name: string
-  full_name?: string
-  code?: string
-  description?: string
-  is_active?: boolean
-  address?: string
-  phone?: string
-  email?: string
-  website?: string
-}
+// (`InstitutionFormData` deleted by task 12.5: it typed the payload of
+//  `institutionService.create`/`update`, both removed. The canonical institution
+//  write shape lives in `services/admin/tenants.ts`.)
 
-async function getCurrentProgram(id: string): Promise<RawProgram | null> {
-  return apiClient.request<RawProgram>(`/catalog/programs/${encodeURIComponent(id)}/`)
-}
-
-async function getCurrentInstitution(id: string): Promise<RawInstitution | null> {
-  return apiClient.request<RawInstitution>(`/catalog/institutions/${encodeURIComponent(id)}/`)
-}
-
+// `getCurrentProgram` / `getCurrentInstitution` went with the legacy PATCH
+// writers that were their only callers (task 12.5). They existed to read a row
+// back before merging a partial update into it — a read-modify-write the
+// canonical admin services do not need, because the canonical write endpoints
+// take a partial payload.
 function buildProgramPayload(data: ProgramFormData, existing?: RawProgram | null) {
   const existingRequirements =
     existing?.requirements && typeof existing.requirements === 'object'
@@ -556,21 +536,10 @@ function buildIntakePayload(data: IntakeFormData, existing?: RawIntake | null) {
   }
 }
 
-function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstitution | null) {
-  return {
-    name: data.name,
-    full_name: data.full_name || data.name,
-    code: existing?.code ?? data.code ?? generateCatalogCode(data.name, 'INS'),
-    type: existing?.type || 'Institution',
-    accreditation_status: existing?.accreditation_status || 'active',
-    is_active: data.is_active ?? existing?.is_active ?? true,
-    description: data.description ?? '',
-    ...(data.address ? { address: data.address } : {}),
-    ...(data.phone ? { phone: data.phone } : {}),
-    ...(data.email ? { email: data.email } : {}),
-    ...(data.website ? { website: data.website } : {}),
-  }
-}
+// `buildInstitutionPayload` went with `institutionService.create`/`update`, its
+// only callers (task 12.5). Canonical institution writes are
+// `services/admin/tenants.ts`, which builds its own payload against the
+// `/api/v1/admin/institutions/` contract.
 
 export const catalogService = {
   getContext: async (): Promise<CatalogContext> => {
@@ -598,7 +567,7 @@ export const catalogService = {
     const endpoint = `/catalog/programs/${query}`
     try {
       return normalizeProgramsResponse(
-        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(endpoint)
+        await apiClient.request<RawProgram[] | RawPaginatedCollection<RawProgram>>(endpoint)
       )
     } catch (error) {
       logApiError('catalog', endpoint, error)
@@ -610,7 +579,7 @@ export const catalogService = {
   getProgramsForIntake: async (intakeId: string): Promise<ProgramCollectionResponse> => {
     try {
       return normalizeProgramsResponse(
-        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(
+        await apiClient.request<RawProgram[] | RawPaginatedCollection<RawProgram>>(
           `/catalog/programs/?intake=${encodeURIComponent(intakeId)}`
         )
       )
@@ -625,7 +594,7 @@ export const catalogService = {
     const endpoint = `/catalog/canonical-programs/${query}`
     try {
       return normalizeProgramsResponse(
-        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(endpoint)
+        await apiClient.request<RawProgram[] | RawPaginatedCollection<RawProgram>>(endpoint)
       )
     } catch (error) {
       logApiError('catalog', endpoint, error)
@@ -663,7 +632,7 @@ export const catalogService = {
   getIntakes: async (): Promise<IntakeCollectionResponse> => {
     try {
       return normalizeIntakesResponse(
-        await apiClient.request<RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake>>('/catalog/intakes/')
+        await apiClient.request<RawIntake[] | RawPaginatedCollection<RawIntake>>('/catalog/intakes/')
       )
     } catch (error) {
       logApiError('catalog', '/catalog/intakes/', error)
@@ -674,7 +643,7 @@ export const catalogService = {
   getSubjects: async (): Promise<SubjectCollectionResponse> => {
     try {
       return normalizeSubjectsResponse(
-        await apiClient.request<RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject>>('/catalog/subjects/')
+        await apiClient.request<RawSubject[] | RawPaginatedCollection<RawSubject>>('/catalog/subjects/')
       )
     } catch (error) {
       logApiError('catalog', '/catalog/subjects/', error)
@@ -685,7 +654,7 @@ export const catalogService = {
   getInstitutions: async (): Promise<InstitutionCollectionResponse> => {
     try {
       return normalizeInstitutionsResponse(
-        await apiClient.request<RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution>>('/catalog/institutions/')
+        await apiClient.request<RawInstitution[] | RawPaginatedCollection<RawInstitution>>('/catalog/institutions/')
       )
     } catch (error) {
       logApiError('catalog', '/catalog/institutions/', error)
@@ -694,13 +663,38 @@ export const catalogService = {
   },
 }
 
+/**
+ * Program offering service.
+ *
+ * `list` and `create` only. The **legacy writers are gone** (admissions-v2 task
+ * 12.5, R7.3/R14.5): `programService.update`/`delete`,
+ * `intakeService.create`/`update`/`delete` and
+ * `institutionService.create`/`update`/`delete` issued the catalog write routes
+ * task 5.1 froze, and task 12.5 measured **zero** production callers for all
+ * eight — every mention outside this file was a comment recording the retirement
+ * or a test. By task 12.2 §6.4's own rule a private function with no caller and
+ * no published contract is dead code to delete, not compatibility to register:
+ * the *route* carries the window (`catalog.legacy_{institution,intake,program}
+ * _write` in `apps/common/compatibility_register.py`, end date 2027-02-07,
+ * because an external caller may still use it); the *client* owed no window.
+ *
+ * `POST /catalog/programs/` stays because it is the **canonical** offering-create
+ * path (R7.1) and the register's own exit criteria say so explicitly. Canonical
+ * admin writes go through `services/admin/catalog.ts` and
+ * `services/admin/tenants.ts`.
+ *
+ * Task 12.2's zero report did not see these eight, and the reason is recorded in
+ * `docs/v2-evidence/12.5/README.md` §3: its `route.catalog.legacy_*_write`
+ * patterns require the endpoint literal and `, { method: 'POST'` on one line,
+ * and the telemetry tool shells out to line-oriented `grep -E`.
+ */
 export const programService = {
   list: (params?: QueryParams) => catalogService.getPrograms(params),
 
   create: async (data: ProgramFormData): Promise<ProgramMutationResponse> => {
     try {
       return normalizeProgramMutationResponse(
-        await apiClient.request<RawProgram | ProgramMutationResponse>('/catalog/programs/', {
+        await apiClient.request<RawProgram>('/catalog/programs/', {
           method: 'POST',
           body: JSON.stringify(buildProgramPayload(data)),
         })
@@ -710,133 +704,14 @@ export const programService = {
       throw error
     }
   },
-
-  update: async (data: ProgramFormData): Promise<ProgramMutationResponse> => {
-    if (!data.id) {
-      throw new Error('Program ID is required')
-    }
-
-    try {
-      const existing = await getCurrentProgram(data.id)
-
-      return normalizeProgramMutationResponse(
-        await apiClient.request<RawProgram | ProgramMutationResponse>(`/catalog/programs/${encodeURIComponent(data.id)}/`, {
-          method: 'PATCH',
-          body: JSON.stringify(buildProgramPayload(data, existing)),
-        })
-      )
-    } catch (error) {
-      logApiError('catalog', `PATCH /catalog/programs/${data.id}/`, error)
-      throw error
-    }
-  },
-
-  delete: async (id: string) => {
-    try {
-      return await apiClient.request<void>(`/catalog/programs/${encodeURIComponent(id)}/`, {
-        method: 'DELETE',
-      })
-    } catch (error) {
-      logApiError('catalog', `DELETE /catalog/programs/${id}/`, error)
-      throw error
-    }
-  },
 }
 
 export const intakeService = {
   list: () => catalogService.getIntakes(),
-
-  create: async (data: IntakeFormData): Promise<IntakeMutationResponse> => {
-    try {
-      return normalizeIntakeMutationResponse(
-        await apiClient.request<RawIntake | IntakeMutationResponse>('/catalog/intakes/', {
-          method: 'POST',
-          body: JSON.stringify(buildIntakePayload(data)),
-        })
-      )
-    } catch (error) {
-      logApiError('catalog', 'POST /catalog/intakes/', error)
-      throw error
-    }
-  },
-
-  update: async (data: IntakeFormData): Promise<IntakeMutationResponse> => {
-    if (!data.id) {
-      throw new Error('Intake ID is required')
-    }
-
-    try {
-      return normalizeIntakeMutationResponse(
-        await apiClient.request<RawIntake | IntakeMutationResponse>(`/catalog/intakes/${encodeURIComponent(data.id)}/`, {
-          method: 'PATCH',
-          body: JSON.stringify(buildIntakePayload(data)),
-        })
-      )
-    } catch (error) {
-      logApiError('catalog', `PATCH /catalog/intakes/${data.id}/`, error)
-      throw error
-    }
-  },
-
-  delete: async (id: string) => {
-    try {
-      return await apiClient.request<void>(`/catalog/intakes/${encodeURIComponent(id)}/`, {
-        method: 'DELETE',
-      })
-    } catch (error) {
-      logApiError('catalog', `DELETE /catalog/intakes/${id}/`, error)
-      throw error
-    }
-  },
 }
 
 export const institutionService = {
   list: () => catalogService.getInstitutions(),
-
-  create: async (data: InstitutionFormData): Promise<InstitutionMutationResponse> => {
-    try {
-      return normalizeInstitutionMutationResponse(
-        await apiClient.request<RawInstitution | InstitutionMutationResponse>('/catalog/institutions/', {
-          method: 'POST',
-          body: JSON.stringify(buildInstitutionPayload(data)),
-        })
-      )
-    } catch (error) {
-      logApiError('catalog', 'POST /catalog/institutions/', error)
-      throw error
-    }
-  },
-
-  update: async (data: InstitutionFormData): Promise<InstitutionMutationResponse> => {
-    if (!data.id) {
-      throw new Error('Institution ID is required')
-    }
-
-    try {
-      const existing = await getCurrentInstitution(data.id)
-
-      return normalizeInstitutionMutationResponse(
-        await apiClient.request<RawInstitution | InstitutionMutationResponse>(`/catalog/institutions/${encodeURIComponent(data.id)}/`, {
-          method: 'PATCH',
-          body: JSON.stringify(buildInstitutionPayload(data, existing)),
-        })
-      )
-    } catch (error) {
-      logApiError('catalog', `PATCH /catalog/institutions/${data.id}/`, error)
-      throw error
-    }
-  },
-
-  delete: async (id: string) => {
-    try {
-      return await apiClient.request<void>(`/catalog/institutions/${encodeURIComponent(id)}/`, {
-        method: 'DELETE',
-      })
-    } catch (error) {
-      logApiError('catalog', `DELETE /catalog/institutions/${id}/`, error)
-      throw error
-    }
-  },
 }
 
 // Exported for property testing

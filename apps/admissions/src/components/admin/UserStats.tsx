@@ -1,204 +1,194 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Calendar, Shield, TrendingUp, User, Users } from 'lucide-react'
+/**
+ * Directory statistics from the server's whole-set aggregates (task 9.3).
+ *
+ * Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` task 9.3.
+ * Requirement: **R6.1** · Finding: **ADM-03**.
+ *
+ * What this replaces: the component took a `users: UserProfile[]` prop — the
+ * rows the page had loaded — and computed "New This Month" with
+ * `users.filter(...)`, "Recent Users" with a `sort`, and a role distribution
+ * from a separate `getUserStats()` call that itself re-fetched one page. So the
+ * headline said "Total Users" while the percentages described twenty rows, and
+ * the two numbers were computed from different data.
+ *
+ * Now every number arrives from `data.aggregates` with its own definition, and
+ * the component renders nothing it cannot label. A count the server did not
+ * send is rendered as **Unknown**, never as `0` — the distinction 9.2 made
+ * structural on the dashboard and this surface inherits.
+ */
+import { Shield, User, Users } from 'lucide-react'
 
-import { useUserManagement } from '@/hooks/useUserManagement'
-import { sanitizeForDisplay } from '@/lib/sanitize'
-import { formatDate } from '@/lib/dateFormat'
-import { UserProfile } from '@/types/database'
-import { UserStatsSummary } from '@/types/users'
+import type { UserDirectoryAggregates } from '@/services/admin/userDirectory'
+import { getRoleLabel } from '@/pages/admin/lib/usersReducer'
 
 interface UserStatsProps {
-  users: UserProfile[]
+  /** The server's whole-filtered-set counters, or `null` while unknown. */
+  aggregates: UserDirectoryAggregates | null
+  /** One sentence per counter, from the server. */
+  definitions?: Record<string, string>
+  isLoading?: boolean
   className?: string
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  student: 'Students',
-  admissions_officer: 'Admissions Officers',
-  registrar: 'Registrars',
-  finance_officer: 'Finance Officers',
-  academic_head: 'Academic Heads',
-  admin: 'Administrators',
-  super_admin: 'Super Admins'
+export const UNKNOWN_STAT_LABEL = 'Unknown'
+
+/** A measured number renders as itself; anything else renders as Unknown. */
+export function formatStat(value: number | null | undefined): string {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? String(value)
+    : UNKNOWN_STAT_LABEL
 }
 
-export function UserStats({ users, className = '' }: UserStatsProps) {
-  const { getUserStats } = useUserManagement()
-  const [stats, setStats] = useState<UserStatsSummary | null>(null)
-
-  const recentUsers = useMemo(
-    () =>
-      [...users]
-        .sort(
-          (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
-        )
-        .slice(0, 3),
-    [users]
+function StatCard({
+  label,
+  value,
+  helper,
+  icon,
+}: {
+  label: string
+  value: number | null | undefined
+  helper?: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">
+            {formatStat(value)}
+          </p>
+          {helper && <p className="mt-2 text-sm text-foreground">{helper}</p>}
+        </div>
+        <span aria-hidden="true">{icon}</span>
+      </div>
+    </div>
   )
+}
 
-  const loadStats = useCallback(async () => {
-    const statsData = await getUserStats()
-    setStats(statsData)
-  }, [getUserStats])
-
-  useEffect(() => {
-    loadStats()
-  }, [loadStats])
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin':
-      case 'super_admin':
-        return <Shield className="h-4 w-4 text-error" />
-      case 'admissions_officer':
-      case 'registrar':
-      case 'finance_officer':
-      case 'academic_head':
-        return <Shield className="h-4 w-4 text-primary" />
-      default:
-        return <User className="h-4 w-4 text-foreground" />
-    }
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-      case 'super_admin':
-        return 'bg-destructive/10 text-destructive-foreground border-red-200'
-      case 'admissions_officer':
-      case 'registrar':
-      case 'finance_officer':
-      case 'academic_head':
-        return 'bg-primary/10 text-primary-foreground border-blue-200'
-      default:
-        return 'bg-accent text-foreground border-border'
-    }
-  }
-
-  const getRoleLabel = (role: string) => {
-    return ROLE_LABELS[role] || role.replace('_', ' ').toUpperCase()
-  }
-
-  if (!stats) {
+export function UserStats({
+  aggregates,
+  definitions = {},
+  isLoading = false,
+  className = '',
+}: UserStatsProps) {
+  if (isLoading && !aggregates) {
     return (
       <div className={`rounded-lg border border-border bg-card p-6 shadow-sm ${className}`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
+          <div className="mb-4 h-4 w-1/4 rounded bg-skeleton"></div>
           <div className="space-y-3">
-            <div className="h-3 bg-skeleton rounded"></div>
-            <div className="h-3 bg-skeleton rounded w-5/6"></div>
-            <div className="h-3 bg-skeleton rounded w-4/6"></div>
+            <div className="h-3 rounded bg-skeleton"></div>
+            <div className="h-3 w-5/6 rounded bg-skeleton"></div>
+            <div className="h-3 w-4/6 rounded bg-skeleton"></div>
           </div>
         </div>
       </div>
     )
   }
 
+  if (!aggregates) {
+    return (
+      <div
+        className={`rounded-lg border border-border bg-muted/40 p-6 ${className}`}
+        role="status"
+      >
+        <p className="text-sm font-medium text-foreground">
+          Directory statistics are {UNKNOWN_STAT_LABEL.toLowerCase()}
+        </p>
+        <p className="mt-1 text-sm text-foreground">
+          The directory read did not answer, so there is nothing measured to show.
+        </p>
+      </div>
+    )
+  }
+
+  const total = aggregates.total_count
+  const breakdown = Object.entries(aggregates.role_breakdown || {}).sort(
+    ([, a], [, b]) => b - a,
+  )
+
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">{stats.total}</p>
-            </div>
-            <Users className="h-8 w-8 text-primary" />
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Roles</p>
-              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">{Object.keys(stats.byRole).length}</p>
-            </div>
-            <Shield className="h-8 w-8 text-primary" />
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">New This Month</p>
-              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">
-                {users.filter(user => {
-                  const userDate = new Date(user.created_at ?? 0)
-                  const now = new Date()
-                  return userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear()
-                }).length}
-              </p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-primary" />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard
+          label="Accounts matching"
+          value={aggregates.total_count}
+          helper={definitions.total_count}
+          icon={<Users className="h-8 w-8 text-primary" />}
+        />
+        <StatCard
+          label="Enabled to sign in"
+          value={aggregates.enabled_count}
+          helper={definitions.enabled_count}
+          icon={<User className="h-8 w-8 text-primary" />}
+        />
+        <StatCard
+          label="Staff without a school"
+          value={aggregates.staff_without_membership_count}
+          helper={definitions.staff_without_membership_count}
+          icon={<Shield className="h-8 w-8 text-primary" />}
+        />
       </div>
 
-      {/* Role Distribution */}
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-foreground" />
-          Role Distribution
+        <h3 className="mb-1 flex items-center text-lg font-semibold text-foreground">
+          <Shield className="mr-2 h-5 w-5 text-foreground" aria-hidden="true" />
+          Role distribution
         </h3>
+        <p className="mb-4 text-sm text-foreground">
+          Counted by the server over every matching account in your scope.
+        </p>
         <div className="space-y-3">
-          {Object.entries(stats.byRole)
-            .sort(([, a], [, b]) => b - a)
-            .map(([role, count]) => (
-              <div key={role} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted">
-                <div className="flex items-center space-x-3">
-                  {getRoleIcon(role)}
-                  <span className="font-medium text-foreground">{getRoleLabel(role)}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(role)}`}>
-                    {count} users
-                  </span>
-                  <div className="w-20 bg-skeleton rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{ width: `${(count / stats.total) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm text-foreground w-12 text-right">
-                    {Math.round((count / stats.total) * 100)}%
-                  </span>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Recent Users */}
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-          <Calendar className="h-5 w-5 mr-2 text-foreground" />
-          Recent Users
-        </h3>
-        <div className="space-y-3">
-          {recentUsers.length > 0 ? (
-            recentUsers.map((user) => (
-              <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted">
-                <div className="flex items-center space-x-3">
-                  {getRoleIcon(user.role)}
-                  <div>
-                    <p className="font-medium text-foreground">{sanitizeForDisplay(user.full_name) || 'No name'}</p>
-                    <p className="text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                    {getRoleLabel(user.role)}
-                  </span>
-                  <p className="text-xs text-foreground mt-1">
-                    {formatDate(user.created_at ?? 0)}
-                  </p>
-                </div>
-              </div>
-            ))
+          {breakdown.length === 0 ? (
+            <p className="py-4 text-center text-foreground">No accounts match the current filters.</p>
           ) : (
-            <p className="text-foreground text-center py-4">No recent users</p>
+            breakdown.map(([role, count]) => {
+              // A percentage of zero accounts is not 0% — it is undefined, and
+              // saying "0%" would be the same instinct as a healthy zero.
+              const share = total > 0 ? Math.round((count / total) * 100) : null
+              return (
+                <div
+                  key={role}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:bg-muted"
+                >
+                  <span className="font-medium text-foreground">{getRoleLabel(role)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-full border border-border bg-accent px-3 py-1 text-sm font-medium text-foreground">
+                      {count} {count === 1 ? 'account' : 'accounts'}
+                    </span>
+                    <div className="h-2 w-20 rounded-full bg-skeleton">
+                      <div
+                        className="h-2 rounded-full bg-primary"
+                        style={{ width: `${share ?? 0}%` }}
+                      />
+                    </div>
+                    <span className="w-12 text-right text-sm text-foreground">
+                      {share === null ? '—' : `${share}%`}
+                    </span>
+                  </div>
+                </div>
+              )
+            })
           )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-semibold text-foreground">School membership</h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            label="With an active membership"
+            value={aggregates.with_membership_count}
+            helper={definitions.with_membership_count}
+            icon={<Users className="h-8 w-8 text-primary" />}
+          />
+          <StatCard
+            label="Without an active membership"
+            value={aggregates.without_membership_count}
+            helper={definitions.without_membership_count}
+            icon={<Users className="h-8 w-8 text-primary" />}
+          />
         </div>
       </div>
     </div>

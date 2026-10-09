@@ -1,0 +1,5 @@
+................                                                         [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+
+16 passed, 1 warning in 5.65s

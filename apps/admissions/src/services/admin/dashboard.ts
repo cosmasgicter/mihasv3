@@ -1,6 +1,18 @@
 import { apiClient } from '../client'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { logger } from '@/lib/logger'
+import {
+  DASHBOARD_METRIC_KEYS,
+  type DashboardFreshness,
+  type DashboardHealth,
+  type DashboardHealthState,
+  type DashboardMetric,
+  type DashboardMetricKey,
+  type DashboardMetricScope,
+  type DashboardMetrics,
+  type DashboardScopeLabel,
+  type DashboardSourceState,
+} from '@/pages/admin/lib/dashboardMetrics'
 
 export type AdminDashboardStatusBreakdown = Record<string, number>
 
@@ -47,7 +59,16 @@ export interface AdminDashboardStats {
   decisionVelocity24h: number
   activeUsers: number
   activeUsersLast7d: number
-  systemHealth: 'excellent' | 'good' | 'warning' | 'critical'
+  /**
+   * Read health, **derived by the backend from whether each metric source
+   * answered** — `null` until it has (task 9.2).
+   *
+   * It used to be `'excellent' | 'good' | 'warning' | 'critical'` with a default
+   * of `'good'`, and the backend never sent it: the dashboard asserted the
+   * platform was healthy without measuring anything (ADM-02). The vocabulary is
+   * now three states that describe something real, and there is no default.
+   */
+  systemHealth: DashboardHealthState | null
   pendingPayments: number
   pendingDocuments: number
   upcomingInterviews: number
@@ -85,6 +106,29 @@ export interface AdminDashboardActivity {
 }
 
 export interface AdminDashboardResponse {
+  /**
+   * The authority (task 9.2). Every number the dashboard renders comes from
+   * here, carrying its definition, its scope, and whether its source answered.
+   * A metric whose source failed is `{value: null, state: 'unknown'}` — the
+   * legacy `stats` block below cannot express that, which is why it is no longer
+   * what the page reads.
+   */
+  metrics: DashboardMetrics
+  /** Per-source read outcome, so a partial failure is visible as partial. */
+  sources: Record<string, { state: DashboardSourceState; reason: string | null }>
+  /** Derived from `sources` by the backend — never a default health grade. */
+  health: DashboardHealth | null
+  /** When the numbers were computed, and when to call them stale. */
+  freshness: DashboardFreshness
+  /** Who the numbers describe. */
+  scope: DashboardScopeLabel | null
+  /** The windows each time-bounded number used (SLA days, deadline hours). */
+  windows: Record<string, unknown>
+  /**
+   * Pre-9.2 shape, kept for existing consumers. Numbers here are `null` when
+   * their source did not answer — reading a `0` off this block is what ADM-02
+   * was.
+   */
   stats: AdminDashboardStats
   statusBreakdown: AdminDashboardStatusBreakdown
   periodTotals: AdminDashboardPeriodTotals
@@ -136,7 +180,8 @@ const DEFAULT_STATS: AdminDashboardStats = {
   decisionVelocity24h: 0,
   activeUsers: 0,
   activeUsersLast7d: 0,
-  systemHealth: 'good',
+  // Not `'good'`: nothing has been measured yet, and saying so is the point.
+  systemHealth: null,
   pendingPayments: 0,
   pendingDocuments: 0,
   upcomingInterviews: 0,
@@ -155,11 +200,10 @@ const DEFAULT_PROCESSING_METRICS: AdminDashboardProcessingMetrics = {
   activeAdminsLast7d: 0
 }
 
-const VALID_SYSTEM_HEALTH: Array<AdminDashboardStats['systemHealth']> = [
-  'excellent',
-  'good',
-  'warning',
-  'critical'
+const VALID_SYSTEM_HEALTH: DashboardHealthState[] = [
+  'operational',
+  'degraded',
+  'unknown'
 ]
 
 const VALID_ACTIVITY_TYPES: AdminDashboardActivityType[] = [
@@ -248,9 +292,12 @@ const normalizeStats = (stats?: Record<string, unknown>): AdminDashboardStats =>
       ? stats.system_health.toLowerCase()
       : undefined
 
-  const systemHealth = VALID_SYSTEM_HEALTH.includes(systemHealthCandidate as AdminDashboardStats['systemHealth'])
-    ? systemHealthCandidate as AdminDashboardStats['systemHealth']
-    : DEFAULT_STATS.systemHealth
+  // An unrecognised (or absent) value is `null`, not the friendliest option in
+  // the enum. This is the ADM-02 line: a health grade the platform did not
+  // measure is not reported at all.
+  const systemHealth = VALID_SYSTEM_HEALTH.includes(systemHealthCandidate as DashboardHealthState)
+    ? (systemHealthCandidate as DashboardHealthState)
+    : null
 
   return {
     ...DEFAULT_STATS,
@@ -436,7 +483,130 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
     .filter((activity): activity is AdminDashboardActivity => Boolean(activity))
 }
 
-export const createEmptyDashboardResponse = (): AdminDashboardResponse => ({
+const METRIC_STATES = new Set(['ok', 'unknown'])
+const HEALTH_STATES: DashboardHealthState[] = ['operational', 'degraded', 'unknown']
+const METRIC_SCOPES: DashboardMetricScope[] = ['institution', 'platform']
+
+const toNullableNumber = (value: unknown): number | null => {
+  if (value === null || value === undefined || typeof value === 'object') {
+    return null
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/**
+ * Parse the backend metric registry (task 9.2).
+ *
+ * The only way a metric ends up `ok` is if the backend said so **and** sent a
+ * finite number. Anything else — a missing key, a missing state, a non-numeric
+ * value — is `unknown` with `value: null`. There is deliberately no branch that
+ * substitutes `0`: that substitution is the finding.
+ */
+const normalizeMetrics = (raw: unknown): DashboardMetrics => {
+  const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+  const metrics: DashboardMetrics = {}
+
+  for (const key of DASHBOARD_METRIC_KEYS) {
+    const entry = source[key]
+    if (!entry || typeof entry !== 'object') {
+      continue
+    }
+    const record = entry as Record<string, unknown>
+    const declaredState = typeof record.state === 'string' ? record.state : ''
+    const value = toNullableNumber(record.value)
+    const state = METRIC_STATES.has(declaredState) && declaredState === 'ok' && value !== null
+      ? 'ok'
+      : 'unknown'
+    const scope = METRIC_SCOPES.includes(record.scope as DashboardMetricScope)
+      ? (record.scope as DashboardMetricScope)
+      : 'institution'
+    const metric: DashboardMetric = {
+      key,
+      value: state === 'ok' ? value : null,
+      state,
+      definition: typeof record.definition === 'string' ? record.definition : '',
+      scope,
+      source: typeof record.source === 'string' ? record.source : '',
+    }
+    if (typeof record.roster_query === 'string') {
+      metric.rosterQuery = record.roster_query
+    }
+    if (typeof record.reason === 'string' && record.reason) {
+      metric.reason = record.reason
+    }
+    metrics[key as DashboardMetricKey] = metric
+  }
+  return metrics
+}
+
+const normalizeSources = (
+  raw: unknown,
+): AdminDashboardResponse['sources'] => {
+  const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+  const result: AdminDashboardResponse['sources'] = {}
+  for (const [name, entry] of Object.entries(source)) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    result[name] = {
+      state: record.state === 'ok' ? 'ok' : 'failed',
+      reason: typeof record.reason === 'string' ? record.reason : null,
+    }
+  }
+  return result
+}
+
+const normalizeHealth = (raw: unknown): DashboardHealth | null => {
+  if (!raw || typeof raw !== 'object') return null
+  const record = raw as Record<string, unknown>
+  if (!HEALTH_STATES.includes(record.state as DashboardHealthState)) return null
+  return {
+    state: record.state as DashboardHealthState,
+    definition: typeof record.definition === 'string' ? record.definition : '',
+  }
+}
+
+const normalizeFreshness = (raw: unknown): DashboardFreshness => {
+  const record = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+  const staleAfter = toNullableNumber(record.stale_after_seconds)
+  return {
+    generatedAt: toIsoString(record.generated_at),
+    // No server budget means the page must not claim the numbers are current, so
+    // the fallback is 0 (immediately stale) rather than a generous default.
+    staleAfterSeconds: staleAfter !== null && staleAfter > 0 ? staleAfter : 0,
+  }
+}
+
+const normalizeScope = (raw: unknown): DashboardScopeLabel | null => {
+  if (!raw || typeof raw !== 'object') return null
+  const record = raw as Record<string, unknown>
+  return {
+    kind: record.kind === 'platform' ? 'platform' : 'institution',
+    institutionId: typeof record.institution_id === 'string' ? record.institution_id : null,
+    allAccess: record.all_access === true,
+    institutionCount: toNullableNumber(record.institution_count),
+  }
+}
+
+/**
+ * The shape returned when there is **no answer** (task 9.2, ADM-02).
+ *
+ * Every metric key is absent — so `formatMetricValue` renders "Unknown" — and
+ * `health` is `null`. This replaces `createEmptyDashboardResponse()`, which
+ * returned fourteen zeros and `systemHealth: 'good'` from every failure path and
+ * so made a broken read indistinguishable from a quiet school.
+ *
+ * The legacy `stats` block still exists (other consumers read it) but is filled
+ * with `DEFAULT_STATS` only as a type-level placeholder; nothing on the dashboard
+ * reads it any more, and `metricsAreUnknown` is true whenever this is returned.
+ */
+export const createUnknownDashboardResponse = (): AdminDashboardResponse => ({
+  metrics: {},
+  sources: {},
+  health: null,
+  freshness: { generatedAt: null, staleAfterSeconds: 0 },
+  scope: null,
+  windows: {},
   stats: { ...DEFAULT_STATS },
   statusBreakdown: {},
   periodTotals: {},
@@ -458,7 +628,7 @@ export const adminDashboardService = {
 
       if (!response || typeof response !== 'object') {
         return {
-          data: createEmptyDashboardResponse(),
+          data: createUnknownDashboardResponse(),
           diagnostics: {
             endpoint: '/admin/dashboard/',
             ok: false,
@@ -485,33 +655,43 @@ export const adminDashboardService = {
       const applications = raw.applications as Record<string, unknown> | undefined
       const applicationStatusBreakdown = applications?.by_status as Record<string, unknown> | undefined
       const users = raw.users as Record<string, unknown> | undefined
-      const needsAttention = (raw as Record<string, unknown>).needs_attention as Record<string, unknown> | undefined
+
+      // The metric registry is the authority (task 9.2). Everything below it is
+      // the pre-9.2 compatibility shape: still derived, still coerced to numbers,
+      // and no longer what the dashboard renders.
+      const metrics = normalizeMetrics((raw as Record<string, unknown>).metrics)
+      const sources = normalizeSources((raw as Record<string, unknown>).sources)
+      const health = normalizeHealth((raw as Record<string, unknown>).health)
+      const freshness = normalizeFreshness((raw as Record<string, unknown>).freshness)
+      const scope = normalizeScope((raw as Record<string, unknown>).scope)
+      const windows = ((raw as Record<string, unknown>).windows ?? {}) as Record<string, unknown>
+
+      const metricValue = (key: DashboardMetricKey): number | undefined => {
+        const metric = metrics[key]
+        return metric && metric.state === 'ok' && metric.value !== null
+          ? metric.value
+          : undefined
+      }
 
       const rawStats = normalizeStats({
         ...(raw.stats ?? {}),
-        total_applications: applications?.total,
-        pending_applications:
-          toNumber(applicationStatusBreakdown?.submitted) +
-          toNumber(applicationStatusBreakdown?.under_review),
+        system_health: health?.state,
+        total_applications: metricValue('total_applications'),
+        pending_applications: metricValue('decision_queue'),
         approved_applications: applicationStatusBreakdown?.approved,
         conditionally_approved_applications: applicationStatusBreakdown?.conditionally_approved,
         enrolled_applications: applicationStatusBreakdown?.enrolled,
-        accepted_applications:
-          toNumber(applicationStatusBreakdown?.conditionally_approved) +
-          toNumber(applicationStatusBreakdown?.approved) +
-          toNumber(applicationStatusBreakdown?.enrolled),
-        rejected_applications: applicationStatusBreakdown?.rejected,
-        today_applications: applications?.today_activity ?? applications?.today,
-        week_applications: applications?.this_week,
-        month_applications: applications?.this_month,
-        total_students: users?.total,
-        active_users: users?.active,
-        pending_payments: needsAttention?.pending_payments,
-        pending_documents: needsAttention?.pending_documents,
-        upcoming_interviews: needsAttention?.upcoming_interviews,
-        overdue_reviews: needsAttention?.overdue_reviews,
-        conditions_expiring_soon: needsAttention?.conditions_expiring_soon,
-        enrollments_expiring_soon: needsAttention?.enrollments_expiring_soon,
+        accepted_applications: metricValue('accepted_path'),
+        rejected_applications: metricValue('rejected'),
+        today_applications: metricValue('today_activity'),
+        week_applications: metricValue('applications_this_week'),
+        month_applications: metricValue('applications_this_month'),
+        total_students: metricValue('staff_accounts_total'),
+        active_users: metricValue('staff_accounts_enabled'),
+        pending_payments: metricValue('payment_review'),
+        pending_documents: metricValue('pending_documents'),
+        upcoming_interviews: metricValue('upcoming_interviews'),
+        overdue_reviews: metricValue('overdue_reviews'),
       })
       const statusBreakdown = normalizeNumberRecord(
         raw.statusBreakdown ??
@@ -544,23 +724,29 @@ export const adminDashboardService = {
 
       const noSchoolAccess = raw.no_school_access === true || raw.noSchoolAccess === true
 
-      const isEmptyPayload =
-        Object.keys(statusBreakdown).length === 0 &&
-        Object.keys(periodTotals).length === 0 &&
-        Object.keys(totalsSnapshot).length === 0 &&
-        recentActivity.length === 0 &&
-        rawStats.totalApplications === 0
+      // "Empty" now means *the payload carried no metric registry* — a genuine
+      // shape problem. It used to mean "every number is zero", which the loader
+      // surfaced as an error banner: a school with nothing outstanding was told
+      // its dashboard was broken, and a broken dashboard was told it was empty.
+      // Both directions of that confusion are ADM-02.
+      const isEmptyPayload = Object.keys(metrics).length === 0
 
       return {
         data: {
-          ...createEmptyDashboardResponse(),
+          ...createUnknownDashboardResponse(),
+          metrics,
+          sources,
+          health,
+          freshness,
+          scope,
+          windows,
           stats: rawStats,
           statusBreakdown,
           periodTotals,
           totalsSnapshot,
           processingMetrics,
           recentActivity,
-          generatedAt,
+          generatedAt: generatedAt ?? freshness.generatedAt,
           noSchoolAccess
         },
         diagnostics: {
@@ -577,7 +763,7 @@ export const adminDashboardService = {
       logApiError('admin-dashboard', '/admin/dashboard/', error)
 
       return {
-        data: createEmptyDashboardResponse(),
+        data: createUnknownDashboardResponse(),
         diagnostics: {
           endpoint: '/admin/dashboard/',
           ok: false,

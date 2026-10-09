@@ -224,113 +224,27 @@ class WebhookProcessor:
         """Log the webhook event and delegate to :class:`PaymentService`.
 
         A ``WebhookEventLog`` record is **always** created - even when the
-        signature was invalid (the caller passes ``signature_valid=False``).
+        signature was invalid (the caller passes ``signature_valid=False``) -
+        and the caller always answers the provider 200.
 
-        When ``settings.PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`` is enabled,
-        the strict identity/dedup path (Task 21.5) runs:
+        One ingress path (admissions-v2 task 8.2):
         :meth:`compute_identity` → :meth:`is_duplicate` → delegation to
-        :meth:`PaymentService.apply_webhook_event`. Otherwise the legacy
-        behaviour is preserved unchanged.
+        :meth:`PaymentService.apply_webhook_event`. The pre-hardening dedup
+        path and the ``PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`` flag that
+        selected between them were deleted after the parity matrix in
+        ``tests/unit/test_payment_path_parity_8_2.py`` proved both paths
+        logged the same rows and reached the same ledger state.
         """
-        if bool(getattr(settings, 'PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT', False)):
-            self._process_strict(event_type, payload, signature_valid=signature_valid)
-            return
-
-        self._process_legacy(event_type, payload, signature_valid=signature_valid)
+        self._process_strict(event_type, payload, signature_valid=signature_valid)
 
     # ------------------------------------------------------------------
-    # Legacy processing path (flag OFF - behaviour preserved)
-    # ------------------------------------------------------------------
-
-    def _process_legacy(
-        self, event_type: str, payload: dict, *, signature_valid: bool
-    ) -> None:
-        from django.db import transaction
-
-        reference = self._extract_reference(payload)
-
-        payload_hash = self._payload_hash(payload)
-        event_identity = self._event_identity(event_type, reference, payload, payload_hash)
-
-        if reference and signature_valid:
-            with transaction.atomic():
-                duplicate = (
-                    WebhookEventLog.objects.select_for_update()
-                    .filter(reference=reference, event_type=event_type, processed=True)
-                    .first()
-                )
-                if duplicate:
-                    duplicate_payload = dict(payload)
-                    duplicate_payload["_webhook_identity"] = event_identity
-                    WebhookEventLog.objects.create(
-                        event_type=event_type,
-                        reference=reference,
-                        payload=duplicate_payload,
-                        signature_valid=signature_valid,
-                        processed=False,
-                        processing_error='Duplicate event already processed',
-                        created_at=timezone.now(),
-                    )
-                    logger.info("Duplicate webhook skipped: ref=%s event=%s", reference, event_type)
-                    return
-
-        payload_to_store = dict(payload)
-        payload_to_store["_webhook_identity"] = event_identity
-        log_entry = WebhookEventLog.objects.create(
-            event_type=event_type,
-            reference=reference,
-            payload=payload_to_store,
-            signature_valid=signature_valid,
-            processed=False,
-            processing_error=None,
-            created_at=timezone.now(),
-        )
-
-        if not signature_valid:
-            log_entry.processing_error = 'Invalid webhook signature'
-            log_entry.save(update_fields=['processing_error'])
-            logger.warning(
-                "Webhook event logged with invalid signature: id=%s event=%s",
-                log_entry.id,
-                event_type,
-            )
-            return
-
-        if event_type not in _KNOWN_EVENT_TYPES:
-            log_entry.processed = True
-            log_entry.processing_error = f'Unrecognised event type: {event_type}'
-            log_entry.save(update_fields=['processed', 'processing_error'])
-            logger.info("Ignoring unrecognised webhook event_type=%s", event_type)
-            return
-
-        if not reference:
-            log_entry.processing_error = 'Missing reference in payload'
-            log_entry.save(update_fields=['processing_error'])
-            logger.warning("Webhook payload missing reference: id=%s", log_entry.id)
-            return
-
-        try:
-            self._payment_service.process_webhook_event(
-                event_type=event_type,
-                reference=reference,
-                payload=payload,
-            )
-            log_entry.processed = True
-            log_entry.save(update_fields=['processed'])
-        except Exception:
-            error_msg = 'Error processing webhook event'
-            logger.exception("%s: id=%s", error_msg, log_entry.id)
-            log_entry.processing_error = error_msg
-            log_entry.save(update_fields=['processing_error'])
-
-    # ------------------------------------------------------------------
-    # Strict processing path (flag ON - Task 21.5)
+    # Processing path (the only one - R8.1-R8.7, R21.1-R21.5)
     # ------------------------------------------------------------------
 
     def _process_strict(
         self, event_type: str, payload: dict, *, signature_valid: bool
     ) -> None:
-        """Strict-dedup variant of :meth:`process` (R8.1–R8.7, R21.1–R21.5).
+        """Canonical-identity processing body for :meth:`process`.
 
         - Canonical-JSON failures log ``processing_error='Canonical
           serialization failed'``, persist the log row, and skip any
@@ -472,22 +386,6 @@ class WebhookProcessor:
             return data.get('reference', '') or ''
         return ''
 
-    @staticmethod
-    def _payload_hash(payload: dict) -> str:
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
-        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
-
-    @staticmethod
-    def _event_identity(event_type: str, reference: str, payload: dict, payload_hash: str) -> dict:
-        data = payload.get("data", {})
-        provider_event_id = ""
-        if isinstance(data, dict):
-            provider_event_id = (
-                str(data.get("id") or data.get("eventId") or data.get("event_id") or "")
-            )
-        return {
-            "provider_event_id": provider_event_id,
-            "event_type": event_type,
-            "reference": reference,
-            "payload_hash": payload_hash,
-        }
+    # ``_payload_hash`` / ``_event_identity`` were the legacy path's private
+    # copies of the identity computation. ``canonical_json`` +
+    # :meth:`compute_identity` are now the only implementation (ADR-004).

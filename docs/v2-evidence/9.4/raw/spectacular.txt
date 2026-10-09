@@ -1,0 +1,11 @@
+]633;E;echo '$ cd backend && python3 manage.py spectacular --file /tmp/schema-94.yaml';29f268a8-d9d0-4024-83f8-c34a240d3a33]633;C$ cd backend && python3 manage.py spectacular --file /tmp/schema-94.yaml
+
+Warning: operationId "api_v1_admin_intakes_retrieve" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_change_requests_retrieve" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-requests/{change_request_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+
+Schema generation summary:
+Warnings: 3 (3 unique)
+Errors:   116 (26 unique)
+
+SPECTACULAR_EXIT=0

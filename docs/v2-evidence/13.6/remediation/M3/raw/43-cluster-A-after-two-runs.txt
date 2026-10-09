@@ -1,0 +1,49 @@
+# M3 cluster A — after the two registry fixes, TWO identical runs
+
+## run 1
+...F.F......F...F............................                            [100%]
+=================================== FAILURES ===================================
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/golden_store.py:115: AssertionError: golden snapshot 'admin_dashboard': 1 divergence(s) vs the committed baseline:
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/divergence.py:296: AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 1 divergence(s) between baseline and candidate:
+/home/cosmas/Downloads/mihasv3/backend/tests/integration/test_perf_divergence_regression.py:426: AssertionError: divergence detected on one or more changed endpoints:
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/divergence.py:296: AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 1 divergence(s) between baseline and candidate:
+=============================== warnings summary ===============================
+tests/contract/test_serializer_response_contract.py: 11 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/integration/test_perf_golden_snapshots.py::test_admin_dashboard_golden
+FAILED tests/integration/test_perf_divergence_regression.py::test_changed_endpoint_matches_pre_feature_golden[admin_dashboard]
+FAILED tests/integration/test_perf_divergence_regression.py::test_consolidated_no_divergence_across_all_endpoints
+FAILED tests/integration/test_perf_divergence_regression.py::test_admin_dashboard_cached_path_no_divergence
+4 failed, 41 passed, 11 warnings in 9.42s
+
+## run 2 (identical invocation)
+...F.F......F...F............................                            [100%]
+=================================== FAILURES ===================================
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/golden_store.py:115: AssertionError: golden snapshot 'admin_dashboard': 1 divergence(s) vs the committed baseline:
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/divergence.py:296: AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 1 divergence(s) between baseline and candidate:
+/home/cosmas/Downloads/mihasv3/backend/tests/integration/test_perf_divergence_regression.py:426: AssertionError: divergence detected on one or more changed endpoints:
+/home/cosmas/Downloads/mihasv3/backend/tests/perf_baseline/divergence.py:296: AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 1 divergence(s) between baseline and candidate:
+=============================== warnings summary ===============================
+tests/contract/test_serializer_response_contract.py: 11 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/integration/test_perf_golden_snapshots.py::test_admin_dashboard_golden
+FAILED tests/integration/test_perf_divergence_regression.py::test_changed_endpoint_matches_pre_feature_golden[admin_dashboard]
+FAILED tests/integration/test_perf_divergence_regression.py::test_consolidated_no_divergence_across_all_endpoints
+FAILED tests/integration/test_perf_divergence_regression.py::test_admin_dashboard_cached_path_no_divergence
+4 failed, 41 passed, 11 warnings in 9.29s
+
+## goldens (md5, final)
+90578c1fa04be02e5ba0f80ad6eb59ca  tests/perf_baseline/fixtures/admin_dashboard.json
+42dcec38a5cf3f1f9c564fa2806c55d2  tests/perf_baseline/fixtures/admin_scope.json
+6fdeb97742b929e822f6e3c26fb3a4d6  tests/perf_baseline/fixtures/application_list.json
+13b8956030a98e61e5b778eae797ec05  tests/perf_baseline/fixtures/canonical_program_list.json
+80f362cde62c12d9e7d5eb9319db17dd  tests/perf_baseline/fixtures/notifications_cursor.json
+6dd9bb6b812dba0d4a52b5fefd39b0c2  tests/perf_baseline/fixtures/notifications.json

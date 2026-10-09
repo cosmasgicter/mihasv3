@@ -1,0 +1,44 @@
+### 2026-08-14T10:48:08Z R9.2 rollback lint + pairing, with L7's pair on disk
+# 13.4 §6.1 and L2-L3 §4 both measured 26 pre-existing violations across 9 other
+# lanes' files. L7 must add none, fix none, and neither of its own two files may
+# appear anywhere in the output.
+
+--- pytest tests/property/test_rollback_safe_operations.py tests/property/test_rollback_pairing.py ---
+E       - 2026_07_26_01_document_evidence_lifecycle_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): ALTER TABLE IF EXISTS document_upload_stages DROP CONSTRAINT IF EXISTS chk_document_upload_stages_state
+E       - 2026_07_26_02_document_current_slot_alignment_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): WITH ranked AS ( SELECT id, row_number() OVER w AS v, count(*) OVER (PARTITION BY application_id, document_type) AS grp_n FROM application_documents WINDOW w AS
+E   assert not ['2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive pref...name = 'chk_tenant_onboarding_state') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT chk_tenant_onboarding_s", ...]
+2 failed, 3 passed in 0.92s
+
+--- the violation set, counted per failing test and per owning file ---
+# NOTE ON COUNTING: this file has TWO failing tests and each prints its own list.
+# test_every_discovered_rollback_file_is_individually_safe is the deterministic
+# every-file audit and is the one whose count is comparable to 13.4's 26.
+# test_every_rollback_statement_is_inverse_additive is hypothesis-driven and
+# SHRINKS to the smallest offending draw, so its list is deliberately shorter.
+# Summing the two would double-count, which is why they are reported separately.
+
+$ pytest tests/property/test_rollback_safe_operations.py -q -p no:cacheprovider -p no:randomly \> /tmp/l7lint.txt
+failing sections: ['test_every_rollback_statement_is_inverse_additive', 'test_every_discovered_rollback_file_is_individually_safe']
+
+test_every_rollback_statement_is_inverse_additive: 1 violation lines across 1 files
+    1  2026_07_16_03_canonical_assignment_validate_rollback.sql
+
+test_every_discovered_rollback_file_is_individually_safe: 26 violation lines across 9 files
+    1  2026_07_16_03_canonical_assignment_validate_rollback.sql
+    1  2026_07_17_02_communication_template_unique_switch_rollback.sql
+    1  2026_07_18_01_tenant_fk_validate_rollback.sql
+    3  2026_07_20_01_tenant_onboarding_rollback.sql
+    6  2026_07_21_01_tenant_staff_invitations_rollback.sql
+    6  2026_07_22_01_tenant_change_requests_rollback.sql
+    1  2026_07_25_01_canonical_subject_catalog_rollback.sql
+    6  2026_07_26_01_document_evidence_lifecycle_rollback.sql
+    1  2026_07_26_02_document_current_slot_alignment_rollback.sql
+
+L7 filename occurrences anywhere in output: 0
+tail: 2 failed, 1 passed in 0.98s
+
+--- for completeness: does either L7 file exist and pair correctly? ---
+13502 scripts/2026_08_14_01_neutral_platform_communication_templates.sql
+4990 scripts/2026_08_14_01_neutral_platform_communication_templates_rollback.sql
+rollback file body (comments stripped): DELETE FROM migration_history
+WHERE migration_name = '2026_08_14_01_neutral_platform_communication_templates.sql';

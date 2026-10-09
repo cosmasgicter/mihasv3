@@ -1,0 +1,116 @@
+== Gate 0: the collision is real (context for Gates 2 and 7) ==
+ colliding_offering_names | colliding_intake_names | active_institutions | active_canonical_programs 
+--------------------------+------------------------+---------------------+---------------------------
+                        4 |                      4 |                   2 |                         2
+(1 row)
+
+-- which names collide, and across how many tenants --
+         offering_name         | tenants | offerings 
+-------------------------------+---------+-----------
+ Shared Offering Name 16885941 |       2 |         2
+ Shared Offering Name 16929209 |       2 |         2
+ Shared Offering Name 16944162 |       2 |         2
+ Shared Offering Name 17180398 |       2 |         2
+(4 rows)
+
+== Gate 1: no application is bound to the wrong institution ==
+ applications_total | with_canonical_offering | mis_bound_institution | dangling_offering_id | offering_without_institution 
+--------------------+-------------------------+-----------------------+----------------------+------------------------------
+                 34 |                      34 |                     0 |                    0 |                            0
+(1 row)
+
+-- the offending rows, if any (application_number only; no PII) --
+ application_number | application_claims | offering_belongs_to 
+--------------------+--------------------+---------------------
+(0 rows)
+
+== Gate 2: no canonical id crosses a tenant, and no snapshot lies ==
+ canonical_program_crossed | intake_not_linked_to_offering | institution_snapshot_mismatch | institution_snapshot_names_other_tenant | intake_snapshot_mismatch 
+---------------------------+-------------------------------+-------------------------------+-----------------------------------------+--------------------------
+                         0 |                             0 |                             0 |                                       0 |                        0
+(1 row)
+
+== Gate 3: no payment is attached to another tenant's application ==
+ payments_total | payments_without_application | orphan_payments | payer_is_not_the_applicant | distinct_tenants_with_payments 
+----------------+------------------------------+-----------------+----------------------------+--------------------------------
+             18 |                            0 |               0 |                          0 |                              2
+(1 row)
+
+-- money per tenant, so a cross-tenant total is visible as a shape --
+ institution_code | payments | currencies | settled_amount 
+------------------+----------+------------+----------------
+ KATC             |        1 |          1 |               
+ MIHAS            |       17 |          1 |         765.00
+(2 rows)
+
+== Gate 4: every tenant-scoped audit row names exactly one institution ==
+ audit_rows_total | tenant_scoped_rows | tenant_action_without_institution | institution_not_an_institution 
+------------------+--------------------+-----------------------------------+--------------------------------
+              517 |                 30 |                                 0 |                              0
+(1 row)
+
+-- audit rows per institution scope --
+    institution_code    | audit_rows 
+------------------------+------------
+ (no institution scope) |        394
+ MIHAS                  |        101
+ KATC                   |         22
+(3 rows)
+
+== Gate 5: capacity and waitlist counters reconcile against canonical rows ==
+ program_intakes_total | counter_drift | over_capacity | worst_drift 
+-----------------------+---------------+---------------+-------------
+                    15 |             2 |             0 |           1
+(1 row)
+
+-- the drifting rows, with the tenant each belongs to --
+ institution_code | offering_code  |         intake_name         | max_capacity | counter | live_count 
+------------------+----------------+-----------------------------+--------------+---------+------------
+ MIHAS            | S13-2A16929209 | Shared Intake Name 16929209 |           10 |       1 |          0
+ MIHAS            | S13-2A17180398 | Shared Intake Name 17180398 |           10 |       1 |          0
+(2 rows)
+
+-- where the drift is, and whether an enrolled application explains it --
+ drifting_rows | drift_exactly_explained_by_enrolled | drift_not_explained 
+---------------+-------------------------------------+---------------------
+             2 |                                   2 |                   0
+(1 row)
+
+-- waitlist positions are unique WITHIN one offering + one CANONICAL intake --
+ institution_code | offering_code  |         intake_name         |         canonical_intake_id          | waitlisted | distinct_positions | lowest | highest 
+------------------+----------------+-----------------------------+--------------------------------------+------------+--------------------+--------+---------
+ MIHAS            | S13-2A16944162 | Shared Intake Name 16944162 | ebe4941d-17e3-420e-a0f8-7a957169f1c9 |          1 |                  1 |      1 |       1
+ MIHAS            | S13-2A16944162 | Shared Intake Name 16944162 | f3fec6ed-ae3e-443b-8253-361177e40dc3 |          1 |                  1 |      1 |       1
+(2 rows)
+
+== Gate 6: no document or official artifact crosses a tenant ==
+ documents_total | orphan_documents | uploader_is_not_the_applicant | platform_issued_artifacts 
+-----------------+------------------+-------------------------------+---------------------------
+              63 |                0 |                             0 |                         4
+(1 row)
+
+== Gate 7: exactly one active domain resolves each host, and it is a tenant's ==
+ domain_rows_total | resolvable_rows | hostnames_with_multiple_active_rows | active_domain_on_inactive_institution 
+-------------------+-----------------+-------------------------------------+---------------------------------------
+                 2 |               2 |                                   0 |                                     0
+(1 row)
+
+-- the resolvable host map (what a request Host actually binds) --
+    hostname     | institution_code | status | is_active 
+-----------------+------------------+--------+-----------
+ katc.localhost  | KATC             | active | t
+ mihas.localhost | MIHAS            | active | t
+(2 rows)
+
+== Gate 8: nothing is left hanging (the DB half of the drain check) ==
+ outbox_total | outbox_pending | outbox_failed | outbox_pending_over_15m | payments_pending | payments_pending_over_24h | webhook_events_logged | webhook_duplicates_rejected | webhook_bad_signatures 
+--------------+----------------+---------------+-------------------------+------------------+---------------------------+-----------------------+-----------------------------+------------------------
+          106 |              0 |             0 |                       0 |                1 |                         0 |                     2 |                           1 |                      0
+(1 row)
+
+== Deployment fingerprint (so a result can be attributed to a database) ==
+ database | migrations_applied | institutions | offerings | intakes | applications | payments | documents | audit_rows |          measured_at          
+----------+--------------------+--------------+-----------+---------+--------------+----------+-----------+------------+-------------------------------
+ harness  |                  0 |            2 |        10 |      15 |           34 |       18 |        63 |        517 | 2026-08-12 06:46:39.120828+00
+(1 row)
+

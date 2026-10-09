@@ -1,0 +1,170 @@
+================================================================================
+task 12.3 closure — re-verification 03: half 4, 2026-08-11 vs today, hit by hit
+================================================================================
+Captured (UTC) : 2026-10-09T00:33:17Z
+Old            : docs/v2-evidence/12.3/raw/legacy-column-telemetry.json (2026-08-11, the README's run)
+New            : closure-02 (today), its --json scratch copy
+Matching       : a hit is keyed by (file, text) — line numbers shift with unrelated
+                 edits, so they are not part of the key. 'reclassified' = the same
+                 file+text in both runs under a different class; 'added' / 'removed'
+                 = present in only one run.
+
+verdict  old: HALF 4 PASS=False  today=2026-08-11  days_until_sunset=4
+         new: HALF 4 PASS=False  today=2026-10-09  days_until_sunset=-55
+  gates.contractable       : IDENTICAL  ['applications.amount', 'applications.momo_ref', 'applications.paid_at', 'applications.payer_name', 'applications.payer_phone', 'applications.payment_method', 'applications.pop_url']
+  gates.blocked            : IDENTICAL  ['applications.payment_verified_at', 'applications.payment_verified_by']
+  gates.already_contracted : IDENTICAL  ['profiles (registry empty — already contracted)', 'error_logs (entire table — not a column; out of scope)']
+
+per-column bucket counts, old -> new (only buckets that moved are printed)
+--------------------------------------------------------------------------------
+  applications.amount                orm=no  prod  0->0   disposition UNCHANGED
+      moved: generated_contract 7->8, other_model 305->268, test 116->130, comment 66->105, self 14->17, dev_preview 8->5
+  applications.momo_ref              orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 1->0, comment 0->1, self 10->11
+  applications.paid_at               orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 9->8, comment 0->1, self 13->14
+  applications.payer_name            orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 1->0, comment 0->1
+  applications.payer_phone           orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 1->0, comment 0->1
+  applications.payment_method        orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 38->37, comment 0->2, self 10->12, dev_preview 3->2
+  applications.payment_verified_at   orm=yes prod  8->7   disposition UNCHANGED
+      moved: production 8->7, comment 0->1, self 6->10
+  applications.payment_verified_by   orm=yes prod 14->13  disposition UNCHANGED
+      moved: production 14->13, comment 0->1, self 6->11
+  applications.pop_url               orm=no  prod  0->0   disposition UNCHANGED
+      moved: other_model 1->0, comment 0->1
+
+why each count moved
+--------------------------------------------------------------------------------
+  applications.amount
+    reclassified other_model -> comment: 39
+    removed      dev-preview: 3
+    removed      self: 2
+    removed      test: 1
+    added        generated_contract: 1
+    added        other_model: 2
+    added        self: 5
+    added        test: 15
+      added in apps/admissions/src/generated/api.d.ts: generated_contract x1
+  applications.momo_ref
+    reclassified other_model -> comment: 1
+    removed      self: 1
+    added        self: 2
+  applications.paid_at
+    reclassified other_model -> comment: 1
+    removed      self: 2
+    added        self: 3
+  applications.payer_name
+    reclassified other_model -> comment: 1
+    removed      self: 1
+    added        self: 1
+  applications.payer_phone
+    reclassified other_model -> comment: 1
+    removed      self: 1
+    added        self: 1
+  applications.payment_method
+    reclassified other_model -> comment: 2
+    removed      dev-preview: 1
+    removed      self: 1
+    added        other_model: 1
+    added        self: 3
+  applications.payment_verified_at
+    reclassified production -> comment: 1
+    removed      self: 1
+    added        self: 5
+      reclassified in backend/apps/applications/models.py: production -> comment x1
+      added in backend/apps/common/compatibility_register.py: self x4
+      added in backend/scripts/legacy_columns_drop_2026_08_15.sql: self x1
+      removed from backend/scripts/legacy_columns_drop_2026_08_15.sql: self x1
+  applications.payment_verified_by
+    reclassified production -> comment: 1
+    removed      self: 1
+    added        self: 6
+      reclassified in backend/apps/applications/models.py: production -> comment x1
+      added in backend/apps/common/compatibility_register.py: self x5
+      added in backend/scripts/legacy_columns_drop_2026_08_15.sql: self x1
+      removed from backend/scripts/legacy_columns_drop_2026_08_15.sql: self x1
+  applications.pop_url
+    reclassified other_model -> comment: 1
+    removed      self: 1
+    added        self: 1
+
+totals across all 9 columns
+--------------------------------------------------------------------------------
+  added generated_contract                      1
+  added other_model                             3
+  added self                                    27
+  added test                                    15
+  reclassified other_model -> comment           46
+  reclassified production -> comment            2
+  removed dev-preview                           4
+  removed self                                  11
+  removed test                                  1
+
+7 contraction candidates, production references today: {'applications.amount': 0, 'applications.momo_ref': 0, 'applications.paid_at': 0, 'applications.payer_name': 0, 'applications.payer_phone': 0, 'applications.payment_method': 0, 'applications.pop_url': 0}
+  -> all zero: True
+
+--------------------------------------------------------------------------------
+appendix — what the 48 reclassifications (46 other_model->comment, 2 production->comment)
+actually are. Each reclassified hit is located in today's file and tested against the
+scanner's own two rules separately: its triple-quoted spans (emulated exactly), and '#'.
+--------------------------------------------------------------------------------
+  applications.amount                 39  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/common/email/messages/payment_received.py:24: """Format a raw amount as a locale-correct money string.
+  applications.momo_ref                1  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+  applications.paid_at                 1  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+  applications.payer_name              1  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/applications/models.py:14: mapped in this Django model: ``payment_method``, ``payer_name``,
+  applications.payer_phone             1  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+  applications.payment_method          2  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/common/email/messages/payment_received.py:51: payment_method, portal_url
+  applications.payment_verified_at     1  CODE line with a trailing # comment — misclassified as prose
+      e.g. backend/apps/applications/models.py:96: payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED - use payments table
+  applications.payment_verified_by     1  CODE line with a trailing # comment — misclassified as prose
+      e.g. backend/apps/applications/models.py:97: payment_verified_by = models.ForeignKey(  # DEPRECATED - use payments table
+  applications.pop_url                 1  inside a triple-quoted span (docstring) — correctly prose
+      e.g. backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+
+  TOTAL   2  CODE line with a trailing # comment — misclassified as prose
+  TOTAL  46  inside a triple-quoted span (docstring) — correctly prose
+
+the two production->comment lines, checked directly against the scanner:
+  models.py:96  in _python_prose_lines = True   in a triple-quoted span = False
+     payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED - use payments table
+  models.py:97  in _python_prose_lines = True   in a triple-quoted span = False
+     payment_verified_by = models.ForeignKey(  # DEPRECATED - use payments table
+  models.py:103 in _python_prose_lines = False  (no trailing comment -> still production)
+     db_column='payment_verified_by',
+
+READING. 46 of the 48 are correct: docstring prose that the 2026-08-11 classifier could
+not see (it tracked only lines STARTING with '#'). The other 2 are not: the '#' branch of
+_python_prose_lines (scripts/v1_surface_telemetry.py, added for task 12.5 after the
+2026-08-11 capture) adds the WHOLE line to the prose set on any '#', including a
+trailing comment after code. Both model field declarations end in
+'# DEPRECATED - use payments table', so they now read as prose. Production 8->7 and
+14->13 are therefore an instrument change, not a reference that went away: both fields
+are still declared (closure-01: test_two_registered_columns_are_still_declared_on_
+application PASSED).
+
+WHY IT DOES NOT MOVE HALF 4's VERDICT. (1) The two published columns stay BLOCKED on
+their remaining production references and their generated-contract hits (orm=yes).
+(2) For the 7 candidates the production bucket is zero BY CONSTRUCTION, independent of
+this scanner: run_columns() re-labels any production-classified hit on an ORM-unmapped
+column as other_model, so a comment/code misclassification cannot move a 7-column
+zero. Their safety argument is ORM mapping (README §1.2-§1.3) plus the database
+gates — and the database gates are what refuse (closure-05, closure-06).
+
+NOT FIXED HERE. The scanner belongs to task 12.5 (half 5 shares it) and 12.5 is
+running concurrently; the over-match is reported to the orchestrator for that lane.
+
+The remaining deltas (added/removed test, self, dev-preview, other_model, and +1
+generated_contract on applications.amount) are SOURCE changes since 2026-08-11, none of
+them a production reference to any of the 9 columns. Some are 12.3's own: the
+2026-08-11 telemetry JSON was captured at 08:07 local, BEFORE 12.3 edited
+compatibility_register.py (08:09) and neutralised legacy_columns_drop_2026_08_15.sql
+(08:11) — the source of the +9 'self' hits on payment_verified_at/by.

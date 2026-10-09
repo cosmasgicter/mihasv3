@@ -1,0 +1,45 @@
+=== 13.6: residual operator/lane items, re-verified in the repo ===
+=== DATE: 2026-08-12T21:53:01Z ===
+
+--- 10.5: application-tracking secret script, proven on Neon, not promoted ---
+-rw-rw-r-- 1 cosmas cosmas 5793 Aug  9 03:06 backend/scripts/2026_08_09_01_application_tracking_secret.sql
+90
+
+--- 12.3: legacy-column contraction exit criterion ---
+89:--   unbacked_money_rows                   -> ... and it carries a money fact
+116:    )                                                              AS unbacked_money_rows
+
+--- 13.4 scratch databases: MUST remain (v2_snap_13_4 is the only GATE-13.4-02 reproduction) ---
+343:`v2_fresh_13_4`, 89 tables, 44 migrations, 0 NOT VALID FKs.
+602:| gate | expanded (`v2_fresh_13_4`) | un-migrated restored snapshot (`v2_snap_13_4`) |
+684:**Why the scratch databases were not dropped.** `v2_fresh_13_4` (13 MB, the
+685:expanded release schema), `v2_batch_13_4` (12 MB, C3's restart target) and
+686:`v2_snap_13_4` (17 MB, the restored snapshot) are still on
+690:were measured on, and `v2_snap_13_4` in particular is the only reproduction of
+
+--- reusable read-only gate files, presence check ---
+docs/v2-evidence/13.2/invariants.sql                 present
+docs/v2-evidence/13.4/invariants.sql                 present
+docs/v2-evidence/13.5/preflight.sql                  present
+docs/v2-evidence/12.3/invariants.sql                 present
+docs/v2-evidence/13.5/canary-dashboard.sql           present
+docs/v2-evidence/13.5/post-deploy-smoke.sh           present
+docs/v2-evidence/13.5/sign-off.md                    present
+
+--- 13.5 sign-off: is any field filled? ---
+12
+(count of table rows with a non-empty value cell; 0 = wholly unsigned)
+
+--- CORRECTION to the last block above, recorded rather than deleted ---
+The "13.5 sign-off: is any field filled?" count of 12 is a REGEX ARTEFACT, not a
+measurement. The pattern matched two-column table rows and separator rows in
+sign-off.md, not filled operator fields. The real check is Part 4, read directly:
+
+  ### 4a. Deploy operator
+  Name: ______________________  Role: ______________________
+  Signature: __________________  Date (UTC): ______________
+  ### 4b. Canary reviewer (must NOT be the deploy operator)
+
+Both attestations are blank rule lines. docs/v2-evidence/13.5/sign-off.md is
+WHOLLY UNSIGNED, which is 13.5's deliberate state and blocking item B2 of the
+13.6 closure manifest. The instrument was wrong; the conclusion is unchanged.

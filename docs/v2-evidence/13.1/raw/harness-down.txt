@@ -1,0 +1,8 @@
+]633;E;echo "=== final teardown ===";58aa5df1-1f90-48a1-9be0-2779c10c8306]633;C=== final teardown ===
+[32m[harness] ✓ harness down (volumes wiped)[0m
+
+harness containers remaining: 0
+harness volumes remaining   : 0
+
+=== throwaway measurement databases cleaned up ===
+test_% or v2_fresh% databases remaining in the localtest Postgres: 0

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { normalizeProgramFeeResponse } from '@/pages/admin/ProgramFees'
+import { catalogAdminService } from '@/services/admin/catalog'
 import { adminAuditService } from '@/services/admin/audit'
 import { apiClient } from '@/services/client'
 
@@ -19,8 +19,12 @@ describe('admin end-to-end wiring regression coverage', () => {
     vi.mocked(apiClient.request).mockReset()
   })
 
-  it('keeps configured program fees when the backend returns a paginated results shape', () => {
-    const fees = normalizeProgramFeeResponse({
+  it('keeps configured program fees when the backend returns a paginated results shape', async () => {
+    // Post-cutover (task 5.1): fees are read through the canonical catalog
+    // service, which extracts the fee rows from the standard paginated envelope
+    // shape. The permissive `normalizeProgramFeeResponse` sniffer was retired
+    // with the raw-client fee path in ProgramFees.tsx (R14.5).
+    vi.mocked(apiClient.request).mockResolvedValueOnce({
       results: [
         {
           id: 'fee-1',
@@ -36,6 +40,9 @@ describe('admin end-to-end wiring regression coverage', () => {
       ],
     })
 
+    const fees = await catalogAdminService.listFees('program-1')
+
+    expect(apiClient.request).toHaveBeenCalledWith('/programs/program-1/fees/')
     expect(fees).toHaveLength(1)
     expect(fees[0]).toMatchObject({ id: 'fee-1', amount: '153.00' })
   })

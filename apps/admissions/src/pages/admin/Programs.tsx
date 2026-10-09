@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { institutionService, programService } from '@/services/catalog'
+import { catalogService } from '@/services/catalog'
+import { catalogAdminService } from '@/services/admin/catalog'
 import { Button } from '@/components/ui/Button'
 import { DashboardSkeleton } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
@@ -39,6 +40,18 @@ function isInstitutionActive(institution: Institution) {
   return institution.is_active !== false
 }
 
+/** Generate a unique offering code from the offering name (Program.code is unique). */
+function generateOfferingCode(name: string): string {
+  const slug = name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 12)
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `OFR-${slug || 'PROGRAM'}-${suffix}`
+}
+
 function getInstitutionDisplayName(institution: Institution) {
   return institution.full_name?.trim() || institution.name
 }
@@ -60,9 +73,10 @@ export default function AdminPrograms() {
   const { data: catalogData, isLoading: loading } = useQuery({
     queryKey: ['admin', 'catalog'],
     queryFn: async () => {
-      const [programResponse, institutionResponse] = await Promise.all([
-        programService.list(),
-        institutionService.list(),
+      const [programResponse, institutionResponse, canonicalResponse] = await Promise.all([
+        catalogService.getPrograms(),
+        catalogService.getInstitutions(),
+        catalogAdminService.listCanonicalPrograms(),
       ])
 
       const sortedPrograms = (programResponse?.programs || []).sort((a: Program, b: Program) =>
@@ -71,13 +85,15 @@ export default function AdminPrograms() {
       const sortedInstitutions = (institutionResponse?.institutions || []).sort(
         (a: Institution, b: Institution) => getInstitutionDisplayName(a).localeCompare(getInstitutionDisplayName(b))
       )
+      const sortedCanonical = [...(canonicalResponse || [])].sort((a, b) => a.name.localeCompare(b.name))
 
-      return { programs: sortedPrograms, institutions: sortedInstitutions }
+      return { programs: sortedPrograms, institutions: sortedInstitutions, canonicalPrograms: sortedCanonical }
     },
   })
 
   const programs = catalogData?.programs || []
   const institutions = catalogData?.institutions || []
+  const canonicalPrograms = catalogData?.canonicalPrograms || []
   const activeInstitutions = institutions.filter(isInstitutionActive)
 
   const invalidateCatalog = useCallback(() => {
@@ -113,6 +129,7 @@ export default function AdminPrograms() {
   const openProgramEdit = useCallback((program: Program) => {
     programForm.reset({
       name: program.name,
+      canonical_program_id: program.canonical_program_id || '',
       description: program.description || '',
       duration_years: program.duration_years,
       institution_id: program.institution_id,
@@ -170,17 +187,27 @@ export default function AdminPrograms() {
     }
   }
 
+  // Canonical offering write helpers (R7.1, TEN-03). Programs are created as
+  // Institution_Program_Offerings that reference a Canonical_Program; the
+  // backend rejects a write without `canonical_program_id`. Offering fields map
+  // to duration_months + the offering's own tuition/regulatory/requirements.
+  const buildOfferingFields = (values: ProgramFormData) => ({
+    canonical_program_id: values.canonical_program_id,
+    name: values.name.trim(),
+    duration_months: Math.max(1, Math.round(values.duration_years * 12)),
+    ...(values.tuition_fee ? { tuition_fee: Number(values.tuition_fee) } : {}),
+    ...(values.regulatory_body ? { regulatory_body: values.regulatory_body } : {}),
+    ...(values.accreditation_status ? { accreditation_status: values.accreditation_status } : {}),
+    ...(values.description?.trim() ? { requirements: { summary: values.description.trim() } } : {}),
+  })
+
   const createProgram = programForm.handleSubmit((values) => {
     void handleOperation(
       async () => {
-        await programService.create({
-          name: values.name.trim(),
-          description: values.description?.trim() || '',
-          duration_years: values.duration_years,
-          institution_id: values.institution_id,
-          tuition_fee: values.tuition_fee,
-          regulatory_body: values.regulatory_body,
-          accreditation_status: values.accreditation_status,
+        await catalogAdminService.createOffering(values.institution_id, {
+          ...buildOfferingFields(values),
+          code: generateOfferingCode(values.name),
+          offering_status: 'active',
         })
       },
       () => {
@@ -195,16 +222,11 @@ export default function AdminPrograms() {
 
     void handleOperation(
       async () => {
-        await programService.update({
-          id: state.currentProgram!.id,
-          name: values.name.trim(),
-          description: values.description?.trim() || '',
-          duration_years: values.duration_years,
-          institution_id: values.institution_id,
-          tuition_fee: values.tuition_fee,
-          regulatory_body: values.regulatory_body,
-          accreditation_status: values.accreditation_status,
-        })
+        await catalogAdminService.updateOffering(
+          values.institution_id,
+          state.currentProgram!.id,
+          buildOfferingFields(values),
+        )
       },
       () => {
         dispatch({ type: 'CLOSE_PROGRAM_EDIT' })
@@ -217,7 +239,10 @@ export default function AdminPrograms() {
 
     void handleOperation(
       async () => {
-        await programService.delete(state.currentProgram!.id)
+        await catalogAdminService.deactivateOffering(
+          state.currentProgram!.institution_id,
+          state.currentProgram!.id,
+        )
       },
       () => {
         dispatch({ type: 'CLOSE_PROGRAM_DELETE' })
@@ -230,7 +255,7 @@ export default function AdminPrograms() {
 
     void handleOperation(
       async () => {
-        const response = await institutionService.create({
+        const created = await catalogAdminService.createInstitution({
           name,
           full_name: values.full_name?.trim() || name,
           code: values.code?.trim() || undefined,
@@ -241,9 +266,8 @@ export default function AdminPrograms() {
           website: values.website?.trim() || undefined,
         })
 
-        const createdInstitution = response?.institution
-        if (createdInstitution?.id) {
-          programForm.setValue('institution_id', createdInstitution.id)
+        if (created?.id) {
+          programForm.setValue('institution_id', created.id)
         }
       },
       () => {
@@ -260,8 +284,7 @@ export default function AdminPrograms() {
 
     void handleOperation(
       async () => {
-        await institutionService.update({
-          id: state.currentInstitution!.id,
+        await catalogAdminService.updateInstitution(state.currentInstitution!.id, {
           name,
           full_name: values.full_name?.trim() || name,
           code: values.code?.trim() || undefined,
@@ -284,7 +307,7 @@ export default function AdminPrograms() {
 
     void handleOperation(
       async () => {
-        await institutionService.delete(state.currentInstitution!.id)
+        await catalogAdminService.deactivateInstitution(state.currentInstitution!.id)
       },
       () => {
         dispatch({ type: 'CLOSE_INSTITUTION_DELETE' })
@@ -320,12 +343,14 @@ export default function AdminPrograms() {
         subtitle="Manage the academic catalog and the institutions that own each program."
         maxWidth="7xl"
         tone="admin"
-        metrics={[
-          { label: 'Programs', value: totalPrograms, helper: 'Application options available to students' },
-          { label: 'Institutions', value: totalInstitutions, helper: 'Owning institutions in the catalog' },
-          { label: 'Primary action', value: primaryActionLabel, helper: 'Current quick action for this page' },
-          { label: 'Catalog state', value: loading ? 'Loading' : state.error ? 'Needs attention' : 'Healthy', helper: state.error || 'Catalog is ready for review and edits' },
-        ]}
+        /*
+          No `metrics` row (task 11.5, R16.5). `totalPrograms` and
+          `totalInstitutions` are still rendered — once, in the page's own
+          summary block below — so these two tiles were a second copy of the same
+          two numbers in the first viewport. The other two were a tile whose
+          value was the label of a button in this header and a tile reading the
+          page's loading/error state.
+        */
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <Link to="/admin" className="w-full sm:w-auto">
@@ -481,6 +506,7 @@ export default function AdminPrograms() {
           saving={state.saving}
           form={programForm}
           activeInstitutions={activeInstitutions}
+          canonicalPrograms={canonicalPrograms}
           onCloseCreate={() => dispatch({ type: 'CLOSE_PROGRAM_CREATE' })}
           onCloseEdit={() => dispatch({ type: 'CLOSE_PROGRAM_EDIT' })}
           onCloseDelete={() => dispatch({ type: 'CLOSE_PROGRAM_DELETE' })}

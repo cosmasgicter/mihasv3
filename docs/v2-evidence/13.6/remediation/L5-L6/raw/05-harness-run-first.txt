@@ -1,0 +1,203 @@
+
+Running 54 tests using 1 worker
+
+  ✓   1 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:114:1 › the dashboard is fully operable by keyboard, with a visible focus indicator at every stop (2.6s)
+  ✓   2 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:233:1 › the student surfaces expose a coherent accessibility tree to a screen reader (4.1s)
+  ✓   3 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:351:1 › a product dialog contains focus and returns it to the trigger on dismissal (3.4s)
+  ✓   4 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:474:1 › a refused sign-in reaches a user who cannot see the layout (2.4s)
+  ✓   5 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:575:1 › reduced motion is honoured on every animated surface (4.2s)
+  ✓   6 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:676:3 › the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width) (4.7s)
+  ✓   7 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:676:3 › the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction) (4.9s)
+  ✓   8 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:824:1 › the next action and autosave state stay understandable on slow 3G and offline (26.1s)
+  ✘   9 [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection (5.0s)
+  ✓  10 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 320x568 (14.0s)
+  ✓  11 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 375x667 (14.9s)
+  ✓  12 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 390x844 (13.7s)
+  ✓  13 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 768x1024 (14.5s)
+  ✓  14 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 1280x800 (13.8s)
+  ✓  15 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:227:3 › axe WCAG A/AA reports no blocking violation at 1440x900 (14.0s)
+  ✓  16 [chromium-13-6-L5-L6] › tests/harness-e2e/required/axe-viewport-sweep.spec.ts:280:1 › GATE-13.3-11 (closed): the bottom navigation has accessible names at 320x568 (6.4s)
+  ✓  17 [chromium-13-6-L5-L6] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:421:1 › a 180-character program name and 120-character intake name hold at all six widths (3.0m)
+  ✓  18 [chromium-13-6-L5-L6] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:491:1 › localized program names (RTL, CJK, Devanagari) hold at the narrowest and widest widths (32.1s)
+  ✓  19 [chromium-13-6-L5-L6] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:563:1 › a 150-character tenant name resolves through context without breaking a layout (43.5s)
+  ✘  20 [chromium-13-6-L5-L6] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:697:6 › GATE-13.3-13: an application can be created for a legally-named long intake (expected failure) (2.8s)
+  ✓  21 [chromium-13-6-L5-L6] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:839:1 › GATE-13.3-14 (closed): the rendered font stack is the full declared chain (1.1s)
+  ✓  22 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 320x568 (1.9m)
+  ✓  23 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 375x667 (1.9m)
+  ✓  24 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 390x844 (1.9m)
+  ✓  25 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 768x1024 (1.9m)
+  ✓  26 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 1280x800 (1.9m)
+  ✓  27 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 1440x900 (1.9m)
+  ✓  28 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:340:1 › the server-derived next action is fully visible, unscrolled, at 320x568 (2.7s)
+  ✓  29 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:449:1 › the wizard action bar and bottom navigation respect the bottom safe area (5.6s)
+  ✓  30 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:557:1 › GATE-13.3-01 (closed): every pointer target is >= 44x44 on the dashboard (2.8s)
+  ✓  31 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:613:1 › cumulative layout shift stays within budget at all six widths (38.2s)
+  ✓  32 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:725:1 › GATE-13.3-09/-04 (closed): the bare /student/status route resolves and its controls meet 44px (3.7s)
+  ✓  33 [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:885:1 › GATE-13.3-16 (closed): no fixed bar overlaps the next action at 320x568 (3.2s)
+  ✓  34 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:114:1 › the dashboard is fully operable by keyboard, with a visible focus indicator at every stop (4.4s)
+  ✘  35 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:233:1 › the student surfaces expose a coherent accessibility tree to a screen reader (5.2s)
+  ✓  36 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:351:1 › a product dialog contains focus and returns it to the trigger on dismissal (4.7s)
+  ✓  37 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:474:1 › a refused sign-in reaches a user who cannot see the layout (3.1s)
+  ✓  38 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:575:1 › reduced motion is honoured on every animated surface (6.7s)
+  ✓  39 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:676:3 › the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width) (7.2s)
+  ✓  40 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:676:3 › the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction) (9.7s)
+  ✘  41 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:824:1 › the next action and autosave state stay understandable on slow 3G and offline (29.9s)
+  ✘  42 [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection (6.6s)
+  ✓  43 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 320x568 (1.9m)
+  ✓  44 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 375x667 (1.9m)
+  ✓  45 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 390x844 (1.9m)
+  ✓  46 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 768x1024 (1.9m)
+  ✓  47 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 1280x800 (2.0m)
+  ✓  48 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:293:3 › every student surface holds at 1440x900 (2.0m)
+  ✓  49 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:340:1 › the server-derived next action is fully visible, unscrolled, at 320x568 (3.5s)
+  ✓  50 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:449:1 › the wizard action bar and bottom navigation respect the bottom safe area (6.3s)
+  ✓  51 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:557:1 › GATE-13.3-01 (closed): every pointer target is >= 44x44 on the dashboard (3.2s)
+  ✓  52 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:613:1 › cumulative layout shift stays within budget at all six widths (39.5s)
+  ✓  53 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:725:1 › GATE-13.3-09/-04 (closed): the bare /student/status route resolves and its controls meet 44px (3.7s)
+  ✓  54 [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:885:1 › GATE-13.3-16 (closed): no fixed bar overlaps the next action at 320x568 (3.4s)
+
+
+  1) [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection 
+
+    Error: an offline chunk failure must not remove the student's in-progress form; measured: "You appear to be offline We could not reach the network, so this part of the page could not load. Anything you had already saved is safe. Reconnect and try again. Try Again Contact Support Skip to main content Application 1 Loading application wizard Runtime Frontend 2.0.0-harnes Backend 2.0.0"
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1216 |       `an offline chunk failure must not remove the student's in-progress form; ` +
+      1217 |         `measured: "${shown.text}"`,
+    > 1218 |     ).toBeTruthy();
+           |       ^
+      1219 |
+      1220 |     /*
+      1221 |       With the wizard still mounted there is no boundary copy to read, so the two
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1218:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-chromium-13-6-L5-L6/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:233:1 › the student surfaces expose a coherent accessibility tree to a screen reader 
+
+    Error: 3 surfaces measured; 1 produced an unattributed structural violation (GATE-13.3-08's two are attributed)
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 1[39m
+    [31m+ Received  + 3[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   "/student/dashboard: 0 level-1 headings, expected 1",[39m
+    [31m+ ][39m
+
+      325 |     `3 surfaces measured; ${structural.length} produced an unattributed structural ` +
+      326 |       `violation (GATE-13.3-08's two are attributed)`,
+    > 327 |   ).toEqual([]);
+          |     ^
+      328 | });
+      329 |
+      330 | // ---------------------------------------------------------------------------
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:327:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-6-L5-L6/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:824:1 › the next action and autosave state stay understandable on slow 3G and offline 
+
+    Error: Harness gate failed (2 violation(s)):
+      - failed request [requestfailed]: http://localhost:8090/api/v1/catalog/canonical-programs/ (net::ERR_INTERNET_DISCONNECTED)
+      - failed request [requestfailed]: http://localhost:8090/api/v1/catalog/canonical-programs/ (net::ERR_INTERNET_DISCONNECTED)
+
+       at ../harness-fixtures.ts:141
+
+      139 |       const violations = gate.collectViolations();
+      140 |       if (violations.length > 0) {
+    > 141 |         throw new Error(
+          |               ^
+      142 |           `Harness gate failed (${violations.length} violation(s)):\n  - ${violations.join('\n  - ')}`,
+      143 |         );
+      144 |       }
+        at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/test-finished-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-6-L5-L6/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection 
+
+    Error: an offline chunk failure must not remove the student's in-progress form; measured: "You appear to be offline We could not reach the network, so this part of the page could not load. Anything you had already saved is safe. Reconnect and try again. Try Again Contact Support Skip to main content Application 1 Loading application wizard Runtime Frontend 2.0.0-harnes Backend 2.0.0"
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      1216 |       `an offline chunk failure must not remove the student's in-progress form; ` +
+      1217 |         `measured: "${shown.text}"`,
+    > 1218 |     ).toBeTruthy();
+           |       ^
+      1219 |
+      1220 |     /*
+      1221 |       With the wizard still mounted there is no boundary copy to read, so the two
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1218:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/artifacts/a11y-zoom-dimensions-GATE--a5070-tudent-about-the-connection-mobile-13-6-L5-L6/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: [mobile-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts (12.7m)
+  Slow test file: [chromium-13-6-L5-L6] › tests/harness-e2e/required/viewport-pixel-matrix.spec.ts (12.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  4 failed
+    [chromium-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection 
+    [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:233:1 › the student surfaces expose a coherent accessibility tree to a screen reader 
+    [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:824:1 › the next action and autosave state stay understandable on slow 3G and offline 
+    [mobile-13-6-L5-L6] › tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1153:1 › GATE-13.3-10 (closed): an offline chunk failure tells the student about the connection 
+  50 passed (34.8m)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report ../../docs/v2-evidence/13.6/remediation/L5-L6/raw/html-report[39m
+[36m[39m

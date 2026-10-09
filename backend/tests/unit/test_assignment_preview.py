@@ -58,6 +58,28 @@ class TestAssignmentPreviewEndpoint:
         assert "required_documents" in data
         assert "contact" in data
 
+    def test_offering_without_fee_surfaces_readiness_blocker(self, tenant_world_factory):
+        """Task 5.4 (R7.5, design §6.2): an offering with no active fee returns
+        ``fee: null`` AND a named ``fee_blocker`` (FEE_NOT_CONFIGURED) so
+        onboarding/operators see the exact configuration gap — never a
+        substituted default amount."""
+        world = tenant_world_factory(with_application=False)
+        client = APIClient()
+
+        response = client.get(
+            "/api/v1/catalog/assignment-preview/",
+            {"program_id": world.canonical_program_id, "intake_id": world.intake_id},
+        )
+
+        assert response.status_code == 200, (response.status_code, response.json())
+        data = response.json()["data"]
+        # No canonical fee is configured for this offering → fail closed.
+        assert data["fee"] is None, data
+        blocker = data.get("fee_blocker")
+        assert blocker is not None, data
+        assert blocker["code"] == "FEE_NOT_CONFIGURED", blocker
+        assert blocker.get("message"), blocker
+
     def test_missing_ids_returns_validation_error(self):
         """Missing program_id/intake_id is a 400 — never a silent assignment."""
         client = APIClient()

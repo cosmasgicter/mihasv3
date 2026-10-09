@@ -1,0 +1,52 @@
+$ cd backend && DATABASE_URL=<localtest 5433> TESTING=1 python3 -m pytest tests/unit/test_dashboard_metrics_9_2.py -v -p no:randomly
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 29 items
+
+tests/unit/test_dashboard_metrics_9_2.py::TestEachNumberEqualsAnIndependentCount::test_every_application_metric_matches_raw_sql PASSED [  3%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEachNumberEqualsAnIndependentCount::test_enabled_accounts_match_an_independent_count PASSED [  6%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEachNumberEqualsAnIndependentCount::test_a_selected_school_narrows_every_number PASSED [ 10%]
+tests/unit/test_dashboard_metrics_9_2.py::TestATileIsTheRosterItOpens::test_every_tile_count_equals_its_rosters_total PASSED [ 13%]
+tests/unit/test_dashboard_metrics_9_2.py::TestATileIsTheRosterItOpens::test_each_tile_publishes_the_query_its_link_must_carry PASSED [ 17%]
+tests/unit/test_dashboard_metrics_9_2.py::TestATileIsTheRosterItOpens::test_every_tile_query_is_a_registered_parameter PASSED [ 20%]
+tests/unit/test_dashboard_metrics_9_2.py::TestAFailedSourceIsUnknownNotZero::test_a_failed_applications_read_leaves_every_count_unknown PASSED [ 24%]
+tests/unit/test_dashboard_metrics_9_2.py::TestAFailedSourceIsUnknownNotZero::test_a_failed_source_does_not_take_the_others_down PASSED [ 27%]
+tests/unit/test_dashboard_metrics_9_2.py::TestAFailedSourceIsUnknownNotZero::test_the_failure_reason_names_no_internals PASSED [ 31%]
+tests/unit/test_dashboard_metrics_9_2.py::TestAFailedSourceIsUnknownNotZero::test_a_legacy_block_omits_a_key_rather_than_zeroing_it PASSED [ 34%]
+tests/unit/test_dashboard_metrics_9_2.py::TestAFailedSourceIsUnknownNotZero::test_a_genuine_zero_is_ok_and_carries_its_window PASSED [ 37%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_every_metric_carries_a_non_empty_definition PASSED [ 41%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_a_tile_definition_is_the_rosters_own_sentence PASSED [ 44%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_the_dashboard_only_counters_are_the_only_new_sentences PASSED [ 48%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_enabled_accounts_never_claims_to_count_presence PASSED [ 51%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_freshness_is_published_with_a_staleness_budget PASSED [ 55%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_health_is_derived_from_the_read_not_defaulted PASSED [ 58%]
+tests/unit/test_dashboard_metrics_9_2.py::TestEveryNumberStatesWhatItCounts::test_scope_is_labelled_so_a_number_states_who_it_describes PASSED [ 62%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_another_tenants_institution_is_masked PASSED [ 65%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_an_unknown_institution_is_indistinguishable PASSED [ 68%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_the_probe_is_audited PASSED [ 72%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_a_scoped_actor_may_narrow_to_their_own_school PASSED [ 75%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_another_tenants_rows_never_reach_any_number PASSED [ 79%]
+tests/unit/test_dashboard_metrics_9_2.py::TestScopePrecedesLookup::test_the_service_never_compares_a_role_string PASSED [ 82%]
+tests/unit/test_dashboard_metrics_9_2.py::TestTheRegistryIsTheOneAuthority::test_no_metric_key_is_declared_twice PASSED [ 86%]
+tests/unit/test_dashboard_metrics_9_2.py::TestTheRegistryIsTheOneAuthority::test_every_application_metric_reads_a_real_counter PASSED [ 89%]
+tests/unit/test_dashboard_metrics_9_2.py::TestTheRegistryIsTheOneAuthority::test_the_activity_feed_is_bounded PASSED [ 93%]
+tests/unit/test_dashboard_metrics_9_2.py::TestTheRegistryIsTheOneAuthority::test_the_accounts_source_owns_exactly_the_account_metrics PASSED [ 96%]
+tests/unit/test_dashboard_metrics_9_2.py::TestTheRegistryIsTheOneAuthority::test_the_envelope_is_preserved PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_dashboard_metrics_9_2.py: 22 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 29 passed, 23 warnings in 3.60s ========================

@@ -9,17 +9,16 @@ import { Button } from '@/components/ui/Button'
 import { animateClasses } from '@/lib/animations'
 import { useApplicationPaymentAction } from '@/hooks/useApplicationPaymentAction'
 import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
+import { PAYMENT_WAITING_STATES, type PaymentPhase } from '@/lib/paymentStatus'
+import { PAYMENT_RECOVERY_PRESENTATION } from '@/lib/paymentRecovery'
 import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiateMobileMoney, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import { normalizeZambianMsisdn } from '@/lib/zambianMsisdn'
+import { formatServerAmount, isNonZeroServerAmount } from '@/lib/serverAmount'
 import { toError } from '@/lib/toError'
 
 type PaymentMethod = 'mobile-money' | 'card'
-type MomoOperator = 'airtel' | 'mtn' | null
-
-/** Transaction fee rate charged by the payment gateway (1%) */
-const TRANSACTION_FEE_RATE = 0.01
 const PAYMENT_VERIFY_INTERVAL_MS = 10000
 const PAYMENT_VERIFY_MAX_ATTEMPTS = 12
 const PAYMENT_VERIFY_MAX_ERRORS = 2
@@ -27,19 +26,6 @@ const PAYMENT_VERIFY_MAX_ERRORS = 2
 /** Extract only digits from a phone string */
 function phoneDigits(raw: string): string {
   return raw.replace(/\D/g, '')
-}
-
-function detectOperator(phone: string): MomoOperator {
-  const digits = phone.replace(/[\s\-+]/g, '')
-  const local = digits.startsWith('260') ? digits.slice(3) : digits
-  // MTN: 096x, 076x
-  if (/^0?96/.test(local) || /^0?76/.test(local)) return 'mtn'
-  // Airtel: 097x, 077x
-  if (/^0?97/.test(local) || /^0?77/.test(local)) return 'airtel'
-  // Zamtel: 095x, 075x — route via Airtel gateway (Zamtel not separately supported)
-  if (/^0?95/.test(local) || /^0?75/.test(local)) return 'airtel'
-  if (local.length >= 4) return 'airtel'
-  return null
 }
 
 /** Format phone as user types: 0977 123 456 */
@@ -71,8 +57,19 @@ interface MobileMoneyResponse {
 
 export interface PaymentFormProps {
   applicationId: string
-  amount: number
-  currency: string
+ /**
+ * Server-authored canonical fee (after any waiver), exactly as the fee quote
+ * sent it. A decimal string — never a number the client derived (R12.1).
+ */
+ baseAmount: string
+ /** Server-authored customer-borne provider fee from the fee quote. */
+ providerFee?: string | null
+ /**
+ * Server-authored total the student will be charged. The client never computes
+ * this: finding STU-08 was a hardcoded 1% multiplication in this component.
+ */
+ totalAmount?: string | null
+ currency: string
   phone?: string
   fullName?: string
   email?: string
@@ -84,12 +81,14 @@ export interface PaymentFormProps {
   inflight?: boolean
   /** External pending payment id — disables initiate buttons while set (R14.1). */
   pendingPaymentId?: string | null
-}
-
-function formatCurrency(amount: number, currency: string): string {
-  if (currency === 'ZMW') return `K${amount.toFixed(2)}`
-  if (currency === 'USD') return `$${amount.toFixed(2)}`
-  return `${currency} ${amount.toFixed(2)}`
+ /**
+ * Server-derived phase of the pending payment (task 8.2, STU-09):
+ * `action_required` means the student has a prompt to approve on their handset;
+ * `provider_processing` means the request is with the provider and there is
+ * nothing for them to do. When absent, the form falls back to describing the
+ * payment method, which is what it did before the phase existed.
+ */
+ paymentPhase?: PaymentPhase | null
 }
 
 function classifyError(error: string): { message: string; type: 'network' | 'rate_limit' | 'failed' } {
@@ -109,8 +108,10 @@ function classifyError(error: string): { message: string; type: 'network' | 'rat
 
 export function PaymentForm({
   applicationId,
-  amount,
-  currency,
+ baseAmount,
+ providerFee = null,
+ totalAmount = null,
+ currency,
   phone: initialPhone = '',
   fullName = '',
   email = '',
@@ -120,12 +121,17 @@ export function PaymentForm({
   onSuccess,
   inflight = false,
   pendingPaymentId = null,
+ paymentPhase = null,
 }: PaymentFormProps) {
   const normalizedPhone = normalizeZambianMsisdn(initialPhone)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mobile-money')
+ // The charged amount is whatever the server quoted. When the caller has no
+ // provider-fee breakdown, the base amount is displayed as-is — the client never
+ // adds an assumed transaction fee on top (finding STU-08).
+ const chargedAmountLabel = formatServerAmount(totalAmount ?? baseAmount, currency)
+ const includesProviderFee = isNonZeroServerAmount(providerFee)
+ const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mobile-money')
   const [momoPhone, setMomoPhone] = useState(() => formatPhone(initialPhone))
-  const [momoOperator, setMomoOperator] = useState<MomoOperator>(() => detectOperator(initialPhone))
-  const [momoLoading, setMomoLoading] = useState(false)
+ const [momoLoading, setMomoLoading] = useState(false)
   const [momoError, setMomoError] = useState<string | null>(null)
   const [momoStatus, setMomoStatus] = useState<'idle' | 'pending' | 'successful' | 'failed'>('idle')
   const [pendingElapsed, setPendingElapsed] = useState(0)
@@ -159,14 +165,35 @@ export function PaymentForm({
 
   const paymentStatus = paymentMethod === 'mobile-money' ? momoStatus : cardPaymentStatus
   const isPaymentSuccessful = paymentStatus === 'successful' || polledStatus === 'successful'
-  const isPaymentPending = (paymentStatus === 'pending' || polledStatus === 'pending') && activePendingMethod !== null
-  const isPaymentFailed = paymentStatus === 'failed' || polledStatus === 'failed'
+const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/**
+ * A payment that is already open, recovered from outside this component
+ * instance — the recovery store after a refresh, or the server's own payment
+ * record when the student arrives at `/student/payment`(task 8.3, R12.3).
+ */
+ const hasRecoveredPending = Boolean(pendingPaymentId) && !isPaymentSuccessful && !isPaymentFailed
+ /**
+ * Task 8.3 (STU-24, R12.6): a pending payment is pending whether or not this
+ * component instance is the one that started it. Before this task the wait
+ * panel only rendered when `activePendingMethod` was set, so a refreshed page —
+ * or the payment page reached from the dashboard — fell through to the method
+ * picker with its initiate button disabled and nothing stating why or when it
+ * would work again. That is an indefinite disabled control. Now the same
+ * situation renders the wait state, which says who is being waited on and
+ * offers a status re-check instead of a dead button.
+ */
+ const isPaymentPending =
+ !isPaymentSuccessful &&
+ !isPaymentFailed &&
+ (hasRecoveredPending ||
+ ((paymentStatus === 'pending' || polledStatus === 'pending') && activePendingMethod !== null))
 
   const syncPendingPayment = useCallback(async (paymentIdOverride?: string | null) => {
-    const paymentId = paymentIdOverride || activeMomoPaymentId
-    const pendingMethod = paymentIdOverride ? 'mobile-money' : activePendingMethod
+ // A recovered payment id is as verifiable as one this instance created: the
+ // verify endpoint is keyed on the payment, not on the method or the tab.
+ const paymentId = paymentIdOverride || activeMomoPaymentId
+ || pendingPaymentId
 
-    if (pendingMethod === 'mobile-money' && paymentId) {
+    if (paymentId) {
       pollAttemptCountRef.current += 1
 
       if (pollAttemptCountRef.current > PAYMENT_VERIFY_MAX_ATTEMPTS) {
@@ -212,16 +239,16 @@ export function PaymentForm({
           setMomoError('Unable to verify payment status right now. Please try again in a moment.')
           onPaymentStatusChange?.('pending')
           return
-        }
-      }
-    }
+ }
+ }
+ }
 
     try {
       await onPaymentStatusRefresh?.()
     } catch {
       // Ignore refresh errors — the verify call above is the primary check.
     }
-  }, [activeMomoPaymentId, activePendingMethod, applicationId, onPaymentStatusChange, onPaymentStatusRefresh, paymentRecoveryStore])
+  }, [activeMomoPaymentId, applicationId, onPaymentStatusChange, onPaymentStatusRefresh, paymentRecoveryStore, pendingPaymentId])
 
   // Auto-poll every 10s while pending
   useEffect(() => {
@@ -277,17 +304,17 @@ export function PaymentForm({
       setMomoError('Please enter a valid phone number.')
       return
     }
-    const operator = detectOperator(momoPhone)
-    if (!operator) {
-      setMomoError('Unable to detect mobile money operator. Please check your number.')
-      return
-    }
-    setMomoLoading(true)
+ setMomoLoading(true)
     setMomoError(null)
     setActivePendingMethod('mobile-money')
     try {
-      const data = await initiateMobileMoney(
-        { application_id: applicationId, phone: normalized, operator },
+ // Provider network routing is server-authored (task 8.1, design §10.2). The
+ // client validates the MSISDN format and sends nothing else: it does not
+ // guess Airtel/MTN from a prefix, and it cannot default an unrecognised
+ // number onto a network. An unsupported prefix comes back as the stable
+ // PROVIDER_UNAVAILABLE code from the backend, which owns the mapping.
+ const data = await initiateMobileMoney(
+        { application_id: applicationId, phone: normalized },
         { idempotencyKey: generateIdempotencyKey(applicationId) },
       ) as MobileMoneyResponse
       if (!data) throw new Error('No response from payment service')
@@ -356,7 +383,7 @@ export function PaymentForm({
   }, [startCardPayment])
 
   const canPay =
-    amount > 0 &&
+ isNonZeroServerAmount(totalAmount ?? baseAmount) &&
     !isPaymentSuccessful &&
     !isPaymentPending &&
     !inflight &&
@@ -366,7 +393,7 @@ export function PaymentForm({
   if (isPaymentSuccessful) {
     return (
       <div className="space-y-4" data-testid="payment-form">
-        <div className={`relative overflow-hidden rounded-lg border-2 border-green-500/30 bg-green-50 dark:bg-green-950/20 p-8 text-center ${animateClasses.scaleIn}`}>
+        <div className={`relative overflow-hidden rounded-lg border-2 border-green-500/30 bg-green-50 p-8 text-center ${animateClasses.scaleIn}`}>
           {/* CSS confetti */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -385,8 +412,8 @@ export function PaymentForm({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success text-success-foreground" style={{ animation: 'success-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}>
             <CheckCircle className="h-8 w-8" />
           </div>
-          <p className="text-xl font-bold text-green-700 dark:text-green-400">Payment confirmed!</p>
-          <p className="mt-1 text-lg font-semibold text-green-600 dark:text-green-500">{formatCurrency(amount, currency)}</p>
+          <p className="text-xl font-bold text-green-700">Payment confirmed!</p>
+          <p className="mt-1 text-lg font-semibold text-green-600">{chargedAmountLabel}</p>
           <p className="mt-3 text-sm text-muted-foreground">Continuing to next step…</p>
         </div>
         <style>{`
@@ -406,30 +433,66 @@ export function PaymentForm({
 
   // ── Pending State ──
   if (isPaymentPending) {
-    const isMobileMoneyPending = activePendingMethod !== 'card'
-    return (
+    const isMobileMoneyPending = activePendingMethod !== 'card'// Task 8.3: whether this component instance is the one that started the
+ // payment. When it is not (a refresh, or the payment page opened from the
+ // dashboard) the method is not known locally, so nothing is claimed about a
+ // handset prompt unless the server's phase says so.
+ const startedHere = activePendingMethod !== null
+ // Task 8.2 / STU-09: a pending payment is two situations, not one. When the
+ // server told us the provider has issued the customer prompt, the student is
+ // the one holding the queue and the steps below are actionable. When the
+ // request is still with the provider, they are not — showing "enter your PIN"// for a prompt that never arrived, and offering a retry that could double-
+ // charge, is the bug.
+ const waiting =
+ paymentPhase === 'action_required'|| paymentPhase === 'provider_processing'? PAYMENT_WAITING_STATES[paymentPhase]
+ : null
+ const studentMustAct = waiting ? waiting.studentActionable : startedHere && isMobileMoneyPending
+ // Retry is offered only once the wait budget for *this* phase is spent.
+ const retryAfterSeconds = waiting ? waiting.timeoutSeconds : 30
+ // No phase and no local attempt: say only what is known — an attempt is open
+ // and being checked. One sentence, shared with the payment page so the two
+ // surfaces cannot describe the same wait differently.
+ const recoveredWait = PAYMENT_RECOVERY_PRESENTATION.awaiting_provider
+ return (
       <div className="space-y-4" data-testid="payment-form">
-        <div className={`rounded-lg border border-primary/30 bg-primary/5 p-6 text-center ${animateClasses.scaleIn}`}>
+        <div
+ className={`rounded-lg border border-primary/30 bg-primary/5 p-6 text-center ${animateClasses.scaleIn}`}
+ data-testid="payment-pending-panel" data-payment-phase={paymentPhase ?? 'unknown'}
+ >
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10" style={{ animation: 'pending-pulse 2s ease-in-out infinite' }}>
-            {isMobileMoneyPending ? <Smartphone className="h-10 w-10 text-primary" /> : <CreditCard className="h-10 w-10 text-primary" />}
+            {studentMustAct ? <Smartphone className="h-10 w-10 text-primary" /> : <CreditCard className="h-10 w-10 text-primary" />}
           </div>
-          <p className="text-lg font-bold text-foreground">{isMobileMoneyPending ? 'Check your phone' : 'Confirming your payment'}</p>
+          <p className="text-lg font-bold text-foreground">
+ {waiting
+ ? waiting.title
+ : !startedHere
+ ? recoveredWait.label
+ : isMobileMoneyPending
+ ? 'Check your phone' : 'Confirming your payment'}
+ </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isMobileMoneyPending
-              ? <>Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}</span> (includes 1% transaction fee)</>
-              : <>We are confirming your card payment of <span className="font-semibold text-foreground">{formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}</span>.</>}
+ {waiting ? (
+ waiting.body
+ ) : !startedHere ? (
+ recoveredWait.detail
+ ) : isMobileMoneyPending
+              ? (
+ <>Approve the payment of <span className="font-semibold text-foreground">{chargedAmountLabel}</span>{includesProviderFee ? '(includes the transaction fee)': ''}</>
+ ) : (
+ <>We are confirming your card payment of <span className="font-semibold text-foreground">{chargedAmountLabel}</span>.</>
+ )}
           </p>
 
-          {isMobileMoneyPending && (
+          {studentMustAct && (
             <div className="mx-auto mt-6 max-w-xs space-y-3 text-left">
               {['Open your phone', 'Enter your PIN', 'Confirm the payment'].map((step, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
                   <span className="text-sm text-foreground">{step}</span>
-                </div>
-              ))}
-            </div>
-          )}
+ </div>
+ ))}
+ </div>
+ )}
 
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -440,17 +503,19 @@ export function PaymentForm({
             <p className="mt-3 text-sm text-muted-foreground">{momoError}</p>
           )}
 
-          {pendingElapsed >= 30 && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Taking too long?{' '}
-              <button type="button" className="font-medium text-primary underline" onClick={handleRetry}>
+          {pendingElapsed >= retryAfterSeconds && (
+            <p className="mt-4 text-sm text-muted-foreground" data-testid="payment-pending-timeout">
+ {waiting ? waiting.onTimeout : 'Taking too long?'}{' '}
+ {studentMustAct && (
+ <button type="button" className="font-medium text-primary underline" onClick={handleRetry}>
                 Try again
               </button>
-            </p>
+ )}
+ </p>
           )}
 
           <Button type="button" variant="outline" size="sm" className="mt-4 min-h-touch" onClick={async () => { await syncPendingPayment() }}>
-            <RefreshCw className="mr-1 h-3 w-3" />{isMobileMoneyPending ? "I've approved — check now" : 'Check payment now'}
+            <RefreshCw className="mr-1 h-3 w-3" />{studentMustAct ? "I've approved — check now" : 'Check payment now'}
           </Button>
         </div>
         <style>{`
@@ -481,9 +546,9 @@ export function PaymentForm({
           <Button ref={retryRef} type="button" variant="outline" size="default" className="mt-5" onClick={handleRetry}>
             <RefreshCw className="mr-2 h-4 w-4" />Try again
           </Button>
-        </div>
-      </div>
-    )
+ </div>
+ </div>
+ )
   }
 
   // ── Method Selection + Form ──
@@ -544,10 +609,10 @@ export function PaymentForm({
       {paymentMethod === 'mobile-money' && (
         <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
           <div className="flex flex-wrap items-center gap-2" aria-label="Supported mobile money networks">
-            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
               Airtel Money
             </span>
-            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/30 dark:text-yellow-300">
+            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700">
               MTN MoMo
             </span>
           </div>
@@ -566,30 +631,21 @@ export function PaymentForm({
                 value={momoPhone}
                 onChange={(e) => {
                   const raw = e.target.value.replace(/[^\d\s]/g, '')
-                  const formatted = formatPhone(raw)
-                  setMomoPhone(formatted)
+ setMomoPhone(formatPhone(raw))
                   setMomoError(null)
-                  const d = phoneDigits(formatted)
-                  if (d.length >= 4) setMomoOperator(detectOperator(d))
-                  else setMomoOperator(null)
-                }}
+ }}
                 placeholder="0977 123 456"
-                className={`w-full h-12 pl-10 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                  phoneValidationError || momoError ? 'border-destructive pr-4' : 'border-border pr-4'
-                } ${momoOperator ? 'pr-28' : 'pr-4'}`}
+                className={`w-full h-12 pl-10 pr-4 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+                  phoneValidationError || momoError ? 'border-destructive' : 'border-border'}`}
               />
-              {momoOperator && phoneDigits(momoPhone).length >= 4 && (
-                <span className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  momoOperator === 'airtel' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                }`}>
-                  {momoOperator === 'airtel' ? 'Airtel Money' : 'MTN MoMo'}
-                </span>
-              )}
-            </div>
+ </div>
             {(phoneValidationError || momoError) && (
               <p className="mt-1.5 text-xs text-destructive">{momoError || phoneValidationError}</p>
             )}
-          </div>
+ {/* No client-side operator badge: the network is derived server-side
+ (task 8.1, design §10.2). A prefix the platform does not support is
+ answered by the backend, not guessed here. */}
+ </div>
 
           <Button
             type="button"
@@ -601,7 +657,7 @@ export function PaymentForm({
             onClick={handleMomoPayment}
             data-testid="pay-momo-button"
           >
-            {momoLoading ? 'Sending payment request…' : `Pay ${formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}`}
+            {momoLoading ? 'Sending payment request…' : `Pay ${chargedAmountLabel}`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -634,7 +690,7 @@ export function PaymentForm({
             onClick={handleCardPayment}
             data-testid="pay-card-button"
           >
-            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)} by card`}
+            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${chargedAmountLabel} by card`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">

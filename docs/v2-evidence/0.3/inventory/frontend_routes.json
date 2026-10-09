@@ -1,0 +1,349 @@
+{
+  "available": true,
+  "source": "apps/admissions/src/routes/routeRegistry.ts",
+  "route_count": 35,
+  "by_guard": {
+    "public": 13,
+    "student": 10,
+    "admin": 12
+  },
+  "routes": [
+    {
+      "id": "public.home",
+      "path": "/",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "public.trackApplication",
+      "path": "/track-application",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "public.contact",
+      "path": "/contact",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "public.terms",
+      "path": "/terms",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "public.privacy",
+      "path": "/privacy",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "auth.signIn",
+      "path": "/auth/signin",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/signin",
+        "/login"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "auth.signUp",
+      "path": "/auth/signup",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "auth.forgotPassword",
+      "path": "/auth/forgot-password",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "auth.resetPassword",
+      "path": "/auth/reset-password",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "auth.callback",
+      "path": "/auth/callback",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "payment.callback",
+      "path": "/payment/callback",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "dashboard.redirect",
+      "path": "/dashboard",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.dashboard",
+      "path": "/student/dashboard",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.applicationWizard",
+      "path": "/student/application-wizard",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/apply",
+        "/student/applications/new"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.status",
+      "path": "/student/status",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/student/application-status",
+        "/application/:id",
+        "/student/application/:id/status"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.applicationDetail",
+      "path": "/student/application/:id",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.settings",
+      "path": "/student/settings",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/settings",
+        "/student/profile",
+        "/student/profile/edit"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.notifications",
+      "path": "/student/notifications",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.payment",
+      "path": "/student/payment",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/student/payments"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.interview",
+      "path": "/student/interview",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [
+        "/student/interviews"
+      ],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.communications",
+      "path": "/student/communications",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "student.history",
+      "path": "/student/history",
+      "guard": "student",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.home",
+      "path": "/admin",
+      "guard": "admin",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.dashboard",
+      "path": "/admin/dashboard",
+      "guard": "admin",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.profile",
+      "path": "/admin/profile",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.applications",
+      "path": "/admin/applications",
+      "guard": "admin",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.programs",
+      "path": "/admin/programs",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.tenants",
+      "path": "/admin/tenants",
+      "guard": "admin",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.tenantOnboarding",
+      "path": "/admin/tenants/new",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.intakes",
+      "path": "/admin/intakes",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.users",
+      "path": "/admin/users",
+      "guard": "admin",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.audit",
+      "path": "/admin/audit",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.programFees",
+      "path": "/admin/program-fees",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "admin.settings",
+      "path": "/admin/settings",
+      "guard": "admin",
+      "requiresSuperAdmin": true,
+      "aliases": [],
+      "requiredCapabilities": []
+    },
+    {
+      "id": "notFound",
+      "path": "/404",
+      "guard": "public",
+      "requiresSuperAdmin": false,
+      "aliases": [],
+      "requiredCapabilities": []
+    }
+  ],
+  "redirect_count": 9,
+  "redirects": [
+    {
+      "path": "/student/applications/new",
+      "redirect": true
+    },
+    {
+      "path": "/student/applications",
+      "redirect": true
+    },
+    {
+      "path": "/student/application-status",
+      "redirect": true
+    },
+    {
+      "path": "/settings",
+      "redirect": true
+    },
+    {
+      "path": "/student/profile",
+      "redirect": true
+    },
+    {
+      "path": "/student/profile/edit",
+      "redirect": true
+    },
+    {
+      "path": "/student/payments",
+      "redirect": true
+    },
+    {
+      "path": "/student/interviews",
+      "redirect": true
+    },
+    {
+      "path": "*",
+      "redirect": true
+    }
+  ]
+}

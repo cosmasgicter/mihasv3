@@ -1,0 +1,136 @@
+# L7 AFTER - same probe, same database, same read-only session as raw/02.
+# taken 2026-08-14T09:55:53Z
+
+SET
+Pager usage is off.
+Output format is aligned.
+## 1. totals
+ total | platform_wide | tenant_scoped | legacy_branded_fallbacks 
+-------+---------------+---------------+--------------------------
+    33 |            33 |             0 |                        0
+(1 row)
+
+
+## 2. the three known legacy-brand forms, and whether the set is closed
+ form1_subject_prefix | form2_body_signoff | form3_body_welcome | katc_rows | uncovered_rows 
+----------------------+--------------------+--------------------+-----------+----------------
+                    0 |                  0 |                  0 |         0 |              0
+(1 row)
+
+
+## 3. every distinct window around a legacy-brand occurrence (platform-wide rows)
+ window 
+--------
+(0 rows)
+
+
+## 4. per-row: which forms, and the subject as stored
+            template_key            | version | is_active | channel | f1 | f2 | f3 |                            subject_as_stored                             
+------------------------------------+---------+-----------+---------+----+----+----+--------------------------------------------------------------------------
+ amendment_reviewed                 |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Amendment Request Reviewed
+ application_approved               |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Congratulations! Your Application Has Been Approved
+ application_rejected               |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Application Decision
+ application_submitted              |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Your Application Has Been Submitted
+ application_under_review           |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Your Application Is Under Review
+ application_withdrawn_confirmation |       1 | t         | both    | f  | f  | f  | Application Withdrawal Confirmed
+ condition_assigned                 |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Conditional Offer Issued
+ condition_expired                  |       1 | t         | both    | f  | f  | f  | Condition Deadline Passed
+ condition_expiry_warning           |       1 | t         | both    | f  | f  | f  | Condition Deadline Approaching
+ condition_verified                 |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Condition Met
+ deferred_payment_reminder          |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Complete Your Payment
+ document_rejected                  |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Document Requires Attention
+ document_verification_needed       |       1 | t         | email   | f  | f  | f  | ALERT: Documents Pending Verification
+ document_verified                  |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Document Verified
+ draft_expired                      |       1 | t         | both    | f  | f  | f  | Application Draft Expired
+ draft_expiry_reminder              |       1 | t         | both    | f  | f  | f  | Your Application Draft Will Expire Soon
+ enrollment_confirmation_reminder   |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Confirm Your Enrollment Soon
+ enrollment_confirmed               |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Enrollment Confirmed
+ enrollment_expired                 |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Enrollment Confirmation Expired
+ fee_waiver_granted                 |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Fee Waiver Granted
+ interview_cancelled                |       1 | t         | both    | f  | f  | f  | Interview Cancelled — {{program_name}}
+ interview_reminder                 |       1 | t         | both    | f  | f  | f  | Reminder: Interview Tomorrow — {{program_name}}
+ interview_rescheduled              |       1 | t         | both    | f  | f  | f  | Interview Rescheduled — {{program_name}}
+ interview_scheduled                |       1 | t         | both    | f  | f  | f  | Interview Scheduled — {{program_name}}
+ late_application_accepted          |       1 | t         | both    | f  | f  | f  | Late Application Received
+ payment_expired                    |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Payment Expired
+ payment_failed                     |       1 | t         | both    | f  | f  | f  | Payment Issue — Action Required
+ payment_rejected                   |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Payment Could Not Be Verified
+ payment_verified                   |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Payment Confirmed
+ review_sla_breach                  |       1 | t         | email   | f  | f  | f  | ALERT: Applications Pending Review Beyond SLA
+ reviewer_assigned                  |       1 | t         | both    | f  | f  | f  | Beanola Admissions — Reviewer Assigned
+ waitlist_position_assigned         |       1 | t         | both    | f  | f  | f  | Beanola Admissions — You Have Been Waitlisted
+ waitlist_promoted                  |       1 | t         | both    | f  | f  | f  | Great News — You Have Been Accepted!
+(33 rows)
+
+
+## 5. the two rows 13.4 gate 19 found already clean, in full
+            template_key            |                             subject_template                             |                                                                                                body_head                                                                                                 
+------------------------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ amendment_reviewed                 | Beanola Admissions — Amendment Request Reviewed                          | <p>Dear {{student_name}},</p><p>Your amendment request for field "{{field_name}}" has been {{amendment_status}}.</p><p>Please log in to view the details.</p><p>Best regards,<br>Beanola Admissions</p>
+ application_approved               | Beanola Admissions — Congratulations! Your Application Has Been Approved | <p>Dear {{student_name}},</p><p>Congratulations! Your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been approved.</p><p>Please log in to your portal to confirm your enrollme
+ application_rejected               | Beanola Admissions — Application Decision                                | <p>Dear {{student_name}},</p><p>After careful review, we regret to inform you that your application for <strong>{{program_name}}</strong> ({{intake_name}}) has not been successful.</p><p>{{admin_feedb
+ application_submitted              | Beanola Admissions — Your Application Has Been Submitted                 | <p>Dear {{student_name}},</p><p>Your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been successfully submitted.</p><p>Your tracking code is: <strong>{{tracking_code}}</strong
+ application_under_review           | Beanola Admissions — Your Application Is Under Review                    | <p>Dear {{student_name}},</p><p>Your application for <strong>{{program_name}}</strong> ({{intake_name}}) is now under review by our admissions team.</p><p>You will be notified once a decision has been
+ application_withdrawn_confirmation | Application Withdrawal Confirmed                                         | <p>Dear {{student_name}},</p><p>Your application {{application_number}} for {{program_name}} ({{intake_name}}) has been withdrawn as requested.</p><p>You may submit a new application at any time.</p><
+ condition_assigned                 | Beanola Admissions — Conditional Offer Issued                            | <p>Dear {{student_name}},</p><p>Your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been conditionally approved.</p><p>Please log in to view and fulfil the conditions before t
+ condition_expired                  | Condition Deadline Passed                                                | <p>Dear {{student_name}},</p><p>A condition for your application to {{program_name}} has expired:</p><p>{{condition_description}}</p><p>Please log in to check your application status.</p><p>Best regar
+ condition_expiry_warning           | Condition Deadline Approaching                                           | <p>Dear {{student_name}},</p><p>A condition for your application to {{program_name}} is due in {{days_until_expiry}} days:</p><p>{{condition_description}}</p><p>Please take action before the deadline.
+ condition_verified                 | Beanola Admissions — Condition Met                                       | <p>Dear {{student_name}},</p><p>A condition on your application for <strong>{{program_name}}</strong> has been verified and marked as met.</p><p>{{condition_name}}</p><p>Please log in to check your re
+ deferred_payment_reminder          | Beanola Admissions — Complete Your Payment                               | <p>Dear {{student_name}},</p><p>You deferred payment for your application to <strong>{{program_name}}</strong> ({{intake_name}}).</p><p>Please log in and complete your payment to avoid delays in proce
+ document_rejected                  | Beanola Admissions — Document Requires Attention                         | <p>Dear {{student_name}},</p><p>Your document ({{document_name}}) for application {{application_number}} could not be verified. Please upload a clearer copy.</p><p>Please log in to re-upload.</p><p>Be
+ document_verification_needed       | ALERT: Documents Pending Verification                                    | <p>The following documents have been pending verification beyond the SLA threshold:</p><p>{{document_list}}</p>
+ document_verified                  | Beanola Admissions — Document Verified                                   | <p>Dear {{student_name}},</p><p>Your document ({{document_name}}) for application {{application_number}} has been verified.</p><p>Please log in to check your application status.</p><p>Best regards,<br
+ draft_expired                      | Application Draft Expired                                                | <p>Dear {{student_name}},</p><p>Your draft application for {{program_name}} ({{intake_name}}) has expired after 30 days of inactivity.</p><p>You may start a new application at any time.</p><p>Best reg
+ draft_expiry_reminder              | Your Application Draft Will Expire Soon                                  | <p>Dear {{student_name}},</p><p>Your draft application for {{program_name}} ({{intake_name}}) has not been updated in 7 days.</p><p>Please log in to complete and submit your application. Your draft wi
+ enrollment_confirmation_reminder   | Beanola Admissions — Confirm Your Enrollment Soon                        | <p>Dear {{student_name}},</p><p>Please confirm your enrollment for <strong>{{program_name}}</strong> ({{intake_name}}) before {{deadline_date}}.</p><p>You have {{days_until_expiry}} day(s) remaining. 
+ enrollment_confirmed               | Beanola Admissions — Enrollment Confirmed                                | <p>Dear {{student_name}},</p><p>Your enrollment for <strong>{{program_name}}</strong> ({{intake_name}}) has been confirmed.</p><p>We look forward to seeing you on campus. Please log in for next steps.
+ enrollment_expired                 | Beanola Admissions — Enrollment Confirmation Expired                     | <p>Dear {{student_name}},</p><p>Your enrollment confirmation for <strong>{{program_name}}</strong> ({{intake_name}}) has expired because it was not confirmed before the deadline.</p><p>Your spot has b
+ fee_waiver_granted                 | Beanola Admissions — Fee Waiver Granted                                  | <p>Dear {{student_name}},</p><p>A fee waiver has been granted for your application to <strong>{{program_name}}</strong> ({{intake_name}}).</p><p>Please log in to continue with your application.</p><p>
+ interview_cancelled                | Interview Cancelled — {{program_name}}                                   | <p>Dear {{student_name}},</p><p>Your interview for {{program_name}} has been cancelled.</p><p>{{admin_feedback}}</p><p>Best regards,<br>Beanola Admissions</p>
+ interview_reminder                 | Reminder: Interview Tomorrow — {{program_name}}                          | <p>Dear {{student_name}},</p><p>This is a reminder that your interview for {{program_name}} is scheduled for tomorrow.</p><p><strong>Date:</strong> {{interview_date}}<br><strong>Mode:</strong> {{inter
+ interview_rescheduled              | Interview Rescheduled — {{program_name}}                                 | <p>Dear {{student_name}},</p><p>Your interview for {{program_name}} has been rescheduled.</p><p><strong>New Date:</strong> {{interview_date}}<br><strong>Mode:</strong> {{interview_mode}}</p><p>Best re
+ interview_scheduled                | Interview Scheduled — {{program_name}}                                   | <p>Dear {{student_name}},</p><p>An interview has been scheduled for your application to {{program_name}}.</p><p><strong>Date:</strong> {{interview_date}}<br><strong>Mode:</strong> {{interview_mode}}<b
+ late_application_accepted          | Late Application Received                                                | <p>Dear {{student_name}},</p><p>Your late application for {{program_name}} ({{intake_name}}) has been received. A late fee of {{late_fee_amount}} applies.</p><p>Best regards,<br>Beanola Admissions</p>
+ payment_expired                    | Beanola Admissions — Payment Expired                                     | <p>Dear {{student_name}},</p><p>Your pending payment for application {{application_number}} has expired after 24 hours.</p><p>Please log in and initiate a new payment.</p><p>Best regards,<br>Beanola A
+ payment_failed                     | Payment Issue — Action Required                                          | <p>Dear {{student_name}},</p><p>Your payment for application {{application_number}} was not successful.</p><p>Please log in and retry your payment. You have {{remaining_attempts}} attempts remaining.<
+ payment_rejected                   | Beanola Admissions — Payment Could Not Be Verified                       | <p>Dear {{student_name}},</p><p>Your payment for application {{application_number}} could not be verified. Please try again or contact support.</p><p>Please log in for details.</p><p>Best regards,<br>
+ payment_verified                   | Beanola Admissions — Payment Confirmed                                   | <p>Dear {{student_name}},</p><p>Your payment for application {{application_number}} has been verified and confirmed.</p><p>Please log in to continue with your application.</p><p>Best regards,<br>Beano
+ review_sla_breach                  | ALERT: Applications Pending Review Beyond SLA                            | <p>The following applications have exceeded the review SLA threshold:</p><p>{{application_list}}</p><p>Please prioritize these reviews.</p>
+ reviewer_assigned                  | Beanola Admissions — Reviewer Assigned                                   | <p>Dear {{student_name}},</p><p>A reviewer has been assigned to your application for <strong>{{program_name}}</strong> ({{intake_name}}).</p><p>You will be notified once the review is complete.</p><p>
+ waitlist_position_assigned         | Beanola Admissions — You Have Been Waitlisted                            | <p>Dear {{student_name}},</p><p>Your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been placed on the waitlist at position {{position}}.</p><p>You will be notified if a spot 
+ waitlist_promoted                  | Great News — You Have Been Accepted!                                     | <p>Dear {{student_name}},</p><p>A spot has opened up and your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been <strong>approved</strong>!</p><p>Please log in to confirm you
+(33 rows)
+
+
+## 6. ledger rows for the seed script and for L7
+                       migration_name                       |  sha256_12   |          applied_at           
+------------------------------------------------------------+--------------+-------------------------------
+ 2026_05_19_seed_communication_templates.sql                |              | 2026-05-25 13:46:03.627413+00
+ 2026_08_14_01_neutral_platform_communication_templates.sql | 3f6823fea9ef | 2026-08-14 09:54:40.447486+00
+(2 rows)
+
+ migration_history_rows 
+------------------------
+                     76
+(1 row)
+
+
+## 7. the three corrected forms, in full, on the rows that carried them
+SET
+-[ RECORD 1 ]----+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template_key     | application_submitted
+subject_template | Beanola Admissions — Your Application Has Been Submitted
+body_template    | <p>Dear {{student_name}},</p><p>Your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been successfully submitted.</p><p>Your tracking code is: <strong>{{tracking_code}}</strong></p><p>We will review your application and notify you of any updates.</p><p>Please log in to your portal to track progress.</p><p>Best regards,<br>Beanola Admissions</p>
+-[ RECORD 2 ]----+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template_key     | enrollment_confirmed
+subject_template | Beanola Admissions — Enrollment Confirmed
+body_template    | <p>Dear {{student_name}},</p><p>Your enrollment for <strong>{{program_name}}</strong> ({{intake_name}}) has been confirmed.</p><p>We look forward to seeing you on campus. Please log in for next steps.</p><p>Best regards,<br>Beanola Admissions</p>
+-[ RECORD 3 ]----+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template_key     | payment_expired
+subject_template | Beanola Admissions — Payment Expired
+body_template    | <p>Dear {{student_name}},</p><p>Your pending payment for application {{application_number}} has expired after 24 hours.</p><p>Please log in and initiate a new payment.</p><p>Best regards,<br>Beanola Admissions</p>
+-[ RECORD 4 ]----+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template_key     | waitlist_promoted
+subject_template | Great News — You Have Been Accepted!
+body_template    | <p>Dear {{student_name}},</p><p>A spot has opened up and your application for <strong>{{program_name}}</strong> ({{intake_name}}) has been <strong>approved</strong>!</p><p>Please log in to confirm your enrollment before {{deadline_date}}.</p><p>Best regards,<br>Beanola Admissions</p>
+

@@ -246,7 +246,22 @@ def _normalized_candidate(payload, volatile_keys):
 # ===========================================================================
 
 _DASHBOARD_SPEC = ENDPOINTS_BY_KEY["admin_dashboard"]
-_DASHBOARD_DYNAMIC_MAPS = frozenset({"data.applications.by_status"})
+# Paths whose dict KEYS are data (a status name), not contract field names, so a
+# key-set comparison there would be comparing the fixture rather than the shape.
+#
+# `data.windows.by_status` was added by 13.6 remediation M3: task 9.2's rewrite
+# publishes a *second* status->count map inside `windows`, and this registry did
+# not move with it, so the shape check compared two fixtures' status names and
+# reported `missing=['approved', 'submitted']`. It is the same kind of map as its
+# already-declared sibling one line up, and the dynamic-map branch still asserts
+# the value TYPE of every entry -- so this declares what the path is, it does not
+# stop it being checked.
+_DASHBOARD_DYNAMIC_MAPS = frozenset(
+    {
+        "data.applications.by_status",
+        "data.windows.by_status",
+    }
+)
 
 _DASH_STATUSES = ("draft", "submitted", "under_review", "approved", "rejected", "waitlisted")
 _MINUTES_AGO = st.integers(min_value=0, max_value=40 * 24 * 60)

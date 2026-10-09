@@ -1,0 +1,31 @@
+# Task 6.3 M14 — F3 alone, --repeat-each=10, chromium-required + mobile-required, FINAL bundle (the injection whose helper raced the address-bar step in m14-11; exercised 20 more times after the instrument fix)
+# captured: 2026-10-08T23:19:25Z
+# served entry = assets/js/index-DFYqzK57.js; spec sha256 6c9823807ea8fa13; host held awake
+$ HARNESS_PW_CHANNEL=chrome V2_EVIDENCE_RUN_ID=t63-m14-f3-x10 PLAYWRIGHT_BASE_URL=http://localhost:8090 systemd-inhibit --what=sleep:idle --mode=block bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required --repeat-each=10 -g "F3 tab/device switch" tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts
+
+Running 20 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.9s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.8s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.7s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.3s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.6s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.2s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.8s)
+  ✓   8 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.3s)
+  ✓   9 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (8.1s)
+  ✓  10 [chromium-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.6s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.9s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.0s)
+  ✓  13 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.7s)
+  ✓  14 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (9.8s)
+  ✓  15 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (10.0s)
+  ✓  16 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.8s)
+  ✓  17 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.6s)
+  ✓  18 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.6s)
+  ✓  19 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.7s)
+  ✓  20 [mobile-required] › tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:453:1 › F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner (7.9s)
+
+  20 passed (5.0m)
+PW EXIT: 0
+stats: {"expected": 20, "unexpected": 0, "flaky": 0, "skipped": 0, "duration": 298188.901}

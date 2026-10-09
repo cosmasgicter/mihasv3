@@ -1,0 +1,55 @@
+=== M11: every Playwright report under docs/v2-evidence/13.6/remediation/M10/raw/, read-only ===
+M10 has no README.md; these reports are its only record. Times CAT (+02:00).
+
+[harness] start 16:57:07  end 17:52:12  (3305s)  passed=332 failed=8 skipped=0 flaky=0  spec files=30
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'expected': 167, 'unexpected': 3}, 'mobile-required': {'expected': 165, 'unexpected': 5}}
+   FAIL mobile-required | axe WCAG A/AA reports no blocking violation at 1440x900 | Error: 5 surfaces scanned at 1440x900; 1 unattributed blocking violation(s)  expect(received).toEqual(expected) // deep equality  - Expected  - 1 + Re
+   FAIL chromium-required | the wizard exposes program / intake / fee / routing steps on mobile | Error: expect(locator).toBeVisible() failed  Locator:  getByText('Fees').first() Expected: visible Received: hidden Timeout:  30000ms  Call log:   - E
+   FAIL mobile-required | the wizard exposes program / intake / fee / routing steps on mobile | Error: expect(locator).toBeVisible() failed  Locator:  getByText('Fees').first() Expected: visible Received: hidden Timeout:  30000ms  Call log:   - E
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByLabel(/town|city/i).first() Expected: visible Timeout: 30000ms Error: element(s) not found 
+   FAIL chromium-required | S06 capacity: the capacity reported for an application belongs to its own tenant | (no error recorded: a test.fail() row that PASSED)
+   FAIL chromium-required | S06b capacity: the canonical intake binding is correct even where the reported capacity  | Error: the two tenants report the same capacity under a name collision — the defect S06 names  expect(received).toBe(expected) // Object.is equality  
+   FAIL mobile-required | S06 capacity: the capacity reported for an application belongs to its own tenant | (no error recorded: a test.fail() row that PASSED)
+   FAIL mobile-required | S06b capacity: the canonical intake binding is correct even where the reported capacity  | Error: the two tenants report the same capacity under a name collision — the defect S06 names  expect(received).toBe(expected) // Object.is equality  
+
+[focused] start 17:55:54  end 17:58:43  (169s)  passed=6 failed=2 skipped=0 flaky=0  spec files=4
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'expected': 3, 'unexpected': 1}, 'mobile-required': {'expected': 3, 'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+
+[focused-fresh] start 18:00:45  end 18:01:37  (53s)  passed=6 failed=2 skipped=0 flaky=0  spec files=4
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'expected': 3, 'unexpected': 1}, 'mobile-required': {'expected': 3, 'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(received).toBe(expected) // Object.is equality  Expected: 1 Received: 3    498 |   const bothOpenRead = await applicant.ctx.get(draftPat
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(received).toBe(expected) // Object.is equality  Expected: 1 Received: 3    498 |   const bothOpenRead = await applicant.ctx.get(draftPat
+
+[f3-clean] start 18:03:31  end 18:05:44  (133s)  passed=0 failed=2 skipped=0 flaky=0  spec files=1
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'unexpected': 1}, 'mobile-required': {'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+
+[f3-final] start 18:08:23  end 18:08:45  (22s)  passed=0 failed=2 skipped=0 flaky=0  spec files=1
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'unexpected': 1}, 'mobile-required': {'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(received).toBe(expected) // Object.is equality  Expected: 1 Received: 3    498 |   const bothOpenRead = await applicant.ctx.get(draftPat
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(received).toBe(expected) // Object.is equality  Expected: 1 Received: 3    498 |   const bothOpenRead = await applicant.ctx.get(draftPat
+
+[f3-dirtyfields] start 18:10:53  end 18:13:07  (134s)  passed=0 failed=2 skipped=0 flaky=0  spec files=1
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'unexpected': 1}, 'mobile-required': {'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+   FAIL mobile-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+
+[f3-dirtyfields-retry] start 18:14:00  end 18:15:07  (67s)  passed=0 failed=1 skipped=0 flaky=0  spec files=1
+   projects configured: ['chromium-required', 'mobile-required', 'gatecheck-negative']
+   projects that ran   : {'chromium-required': {'unexpected': 1}}
+   FAIL chromium-required | F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner | Error: expect(locator).toBeVisible() failed  Locator: getByTestId('wizard-action-bar') Expected: visible Timeout: 60000ms Error: element(s) not found 
+
+source edits in the same window (mtime, CAT): PageShell.tsx 17:55:17 · tenant-launch.spec.ts 17:55:17 · two-tenant-isolation-matrix.spec.ts 17:55:17 ·
+  two-tenant-adversarial-matrix.spec.ts 17:59:12 · useSmartAutoSave.ts 18:02:38 · useWizardDraftLoader.ts 18:02:59 · applicationWizard/index.tsx 18:09:16 ·
+  apps/admissions/dist/index.html (the bundle the harness serves) 18:09:42
+=> the only two runs started after the final build (f3-dirtyfields 18:10:53, f3-dirtyfields-retry 18:14:00) both FAILED F3 at
+   'wizard-action-bar' not visible within 60 s. No run of the final build passed F3. gatecheck-negative never ran. No drain/teardown record exists for M10.

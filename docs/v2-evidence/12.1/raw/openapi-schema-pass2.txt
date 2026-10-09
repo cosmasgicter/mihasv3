@@ -1,0 +1,83 @@
+Task 12.1, second pass — OpenAPI contract: byte-identical across the backend split
+==================================================================================
+
+Why `schema/openapi.v2.candidate.yaml` is a valid PRE-SPLIT anchor
+-----------------------------------------------------------------
+It was generated 2026-08-09 11:48. The split ran 2026-08-11 01:37-01:41. Every
+backend Python file modified in between is one of the split's own files, and
+nothing else:
+
+$ cd backend && find apps config -name '*.py' -newermt '2026-08-09 11:48' \
+      -printf '%TY-%Tm-%Td %TH:%TM  %p\n' | sort
+2026-08-11 01:37  apps/catalog/admin_access_views.py
+2026-08-11 01:37  apps/catalog/admin_asset_views.py
+2026-08-11 01:37  apps/catalog/admin_audit_views.py
+2026-08-11 01:37  apps/catalog/admin_document_config_views.py
+2026-08-11 01:37  apps/catalog/admin_domain_views.py
+2026-08-11 01:37  apps/catalog/admin_routing_views.py
+2026-08-11 01:37  apps/catalog/_admin_view_helpers.py
+2026-08-11 01:37  apps/catalog/_catalog_view_helpers.py
+2026-08-11 01:37  apps/catalog/context_views.py
+2026-08-11 01:37  apps/catalog/institution_views.py
+2026-08-11 01:37  apps/catalog/intake_views.py
+2026-08-11 01:37  apps/catalog/program_views.py
+2026-08-11 01:38  apps/catalog/admin_views.py     <- became the re-export shim
+2026-08-11 01:38  apps/catalog/views.py           <- became the re-export shim
+2026-08-11 01:40  apps/catalog/admin_tenant_views.py
+2026-08-11 01:41  apps/catalog/subject_views.py
+
+So the only cause of any schema difference would be the split itself.
+
+The regeneration and the diff
+-----------------------------
+$ cd backend && env -u TESTING -u REDIS_URL .venv/bin/python3 manage.py spectacular \
+      --file /tmp/schema-after-split.yaml
+EXIT=0
+
+$ wc -l schema/openapi.v2.candidate.yaml /tmp/schema-after-split.yaml
+  22135 schema/openapi.v2.candidate.yaml
+  22135 /tmp/schema-after-split.yaml
+
+$ diff schema/openapi.v2.candidate.yaml /tmp/schema-after-split.yaml
+(no output; exit 0)
+
+$ sha256sum schema/openapi.v2.candidate.yaml /tmp/schema-after-split.yaml
+35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58  schema/openapi.v2.candidate.yaml
+35fe05d4cd3fa69ddfa9b0f0b3f9370c4649fa83b8258f29dc9100231cc3ef58  /tmp/schema-after-split.yaml
+
+BYTE-IDENTICAL. 214 schema components, 0 renamed, 0 added, 0 removed.
+
+Why the named response envelopes could not drift
+-----------------------------------------------
+The nine envelopes that moved into `_catalog_view_helpers.py` are built by
+`apps/common/openapi_helpers.py::envelope_serializer(name, ...)` /
+`paginated_serializer(name, ...)`, i.e. the component name is an **explicit
+argument**, not the defining module. drf-spectacular therefore keys them on that
+argument and strips the `Serializer` suffix, which is why they appear as:
+
+    CatalogCanonicalProgramListResponse
+    CatalogInstitutionListResponse
+    CatalogInstitutionResponse
+    CatalogIntakeListResponse
+    CatalogIntakeResponse
+    CatalogMessageResponse
+    CatalogProgramListResponse
+    CatalogProgramResponse
+    CatalogSubjectListResponse
+    (+ CatalogCanonicalProgramPage, CatalogProgramPage, CatalogSubjectListMeta)
+
+A module move cannot rename any of them, and the byte-identical diff above is the
+measurement rather than the argument.
+
+Generation diagnostics (unchanged, and necessarily so)
+-----------------------------------------------------
+Schema generation summary: Warnings: 3 (3 unique), Errors: 116 (26 unique).
+
+All pre-existing and none in a split module: the 116 are
+"unable to guess serializer" fallbacks on plain `APIView`s in
+`staff_invitation_views.py`, `onboarding_v2_views.py`,
+`change_request_v2_views.py`, `common/v2/demo_views.py` and friends; the 3 are
+`operationId` collisions on `/api/v1/admin/intakes/`,
+`/api/v2/admin/change-requests/` and `/api/v2/admin/onboarding/`. Since the
+emitted schema is byte-identical to the pre-split anchor, the diagnostic set is
+identical too. Not this task's to fix.

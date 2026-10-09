@@ -1,0 +1,69 @@
+=== M11 behavioural probes (probes/test_m11_probes.py) ===
+run at: 2026-10-05T17:39:10Z (local test stack: Postgres 127.0.0.1:5433, Redis 127.0.0.1:6380 via backend/.env.local.test + .localtest-host-env.sh)
+invocation (cwd=backend):
+  PYTHONDONTWRITEBYTECODE=1 HYPOTHESIS_STORAGE_DIRECTORY=/tmp/m11-hypothesis \
+  .venv/bin/python -m pytest -p no:cacheprovider -p no:randomly -p tests.conftest -q -rA --tb=short --no-header \
+  ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py
+
+--- key HTTP statuses observed (from the request_metric log lines) ---
+  GET    /api/v1/admin/dashboard/                                                    -> 404
+  GET    /api/v1/payments/settlements/                                               -> 404
+  GET    /api/v1/admin/fees/                                                         -> 404
+  GET    /api/v1/admin/audit-logs/                                                   -> 404
+  GET    /api/v1/admin/users/                                                        -> 404
+  GET    /api/v1/admin/dashboard/                                                    -> 404
+  GET    /api/v1/payments/settlements/                                               -> 404
+  GET    /api/v1/admin/fees/                                                         -> 404
+  GET    /api/v1/admin/audit-logs/                                                   -> 404
+  GET    /api/v1/admin/users/                                                        -> 404
+  GET    /api/v1/admin/institutions/f8807804-6ff6-477e-aa14-6df12d360e34/audit/      -> 404
+  GET    /api/v1/admin/applications/                                                 -> 200
+  GET    /api/v1/applications/                                                       -> 200
+  GET    /api/v1/admin/applications/87f6ea6d-c4cc-44d9-b3f9-3173df617db6/            -> 200
+  GET    /api/v1/applications/export/                                                -> 403
+  GET    /api/v1/applications/export/                                                -> 200
+  GET    /api/v1/admin/applications/                                                 -> 200
+  POST   /api/v1/admin/staff/invitations/                                            -> 201
+  POST   /api/v1/admin/staff/invitations/                                            -> 403
+  GET    /api/v1/admin/institutions/                                                 -> 403
+  GET    /api/v1/admin/institutions/74359fbe-44ed-44b7-bffa-4a9b1b3fe687/            -> 200
+  GET    /api/v1/admin/institutions/351a4c06-9f06-4c6b-b2ed-a22ebd93e040/            -> 404
+  GET    /api/v1/admin/institutions/83da8129-3205-40a6-9677-f5f8b89b907c/            -> 404
+  GET    /api/v1/admin/scope/                                                        -> 200
+  PUT    /api/v1/applications/798d3836-8108-48cf-96f5-f8e8167aa05f/                  -> 409
+  PATCH  /api/v1/applications/798d3836-8108-48cf-96f5-f8e8167aa05f/                  -> 409
+  PATCH  /api/v1/applications/drafts/feff809f-db2c-44af-94a8-03eb3d465011/           -> 400
+  PATCH  /api/v1/applications/drafts/feff809f-db2c-44af-94a8-03eb3d465011/           -> 400
+  PATCH  /api/v1/applications/drafts/feff809f-db2c-44af-94a8-03eb3d465011/           -> 200
+
+--- pytest summary ---
+ERROR    apps.common.audit_network:audit_network.py:41 Invalid AUDIT_LOG_ENCRYPTION_KEY configuration
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_grant_is_keyed_by_offering_not_institution
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/dashboard/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_aggregate_surfaces[/api/v1/payments/settlements/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/fees/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/audit-logs/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/users/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/dashboard/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_only_actor_is_masked_on_aggregate_surfaces[/api/v1/payments/settlements/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/fees/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/audit-logs/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_only_actor_is_masked_on_aggregate_surfaces[/api/v1/admin/users/]
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_only_actor_is_masked_on_the_institution_audit_feed
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_offering_grant_reads_only_its_offering_on_the_admin_query
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_grant_reads_only_its_row_on_the_v1_list
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1NarrowGrants::test_application_grant_can_open_its_own_detail_now
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1ExportGrain::test_control_read_only_membership_cannot_export
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1ExportGrain::test_one_application_export_grant_exports_the_whole_school
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ1ExportGrain::test_same_widening_through_the_query_export
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ2CachedAuthority::test_flag_is_off_unless_the_environment_turns_it_on
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ2CachedAuthority::test_expired_grant_keeps_authorizing_a_capability_only_write
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ2CachedAuthority::test_canonical_tenant_deactivation_does_not_invalidate
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ2CachedAuthority::test_staff_invitation_revoke_does_not_invalidate
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ2CachedAuthority::test_control_orm_save_path_does_invalidate
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ5TenantDirectory::test_tenant_admin_reads
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ10CanonicalDraftWrite::test_generic_student_write_is_refused
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ10CanonicalDraftWrite::test_canonical_write_requires_key_and_version
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ12CalendarGuards::test_brand_guard_passes_today_and_fails_on_2027_02_08
+PASSED ../docs/v2-evidence/13.6/remediation/M11/raw/probes/test_m11_probes.py::TestQ12CalendarGuards::test_predicate_guard_passes_today_and_fails_on_2027_02_08
+28 passed, 21 warnings in 5.73s

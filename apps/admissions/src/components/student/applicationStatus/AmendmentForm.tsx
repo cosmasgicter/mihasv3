@@ -14,6 +14,31 @@ const AMENDABLE_FIELDS = [
 
 const PHONE_AMENDMENT_FIELDS = new Set(['phone', 'next_of_kin_phone'])
 
+/**
+ * The 44 px floor, at **every** width (GATE-13.3-15, 13.6 §8.1 item L6; R16.2).
+ *
+ * Task 13.3 measured these three controls at 414x37 / 414x38 at 768 px, 579x37/38
+ * at 1280 px and 686x37/38 at 1440 px — the width tracked the container and the
+ * height never changed — and found nothing wrong below 640 px. The reason is
+ * exact, and it is the interesting half of the finding: `src/index.css` carries the
+ * platform's 44 px form-control floor
+ *
+ *     @media (max-width: 639px) { input…, textarea, select { min-height: 44px } }
+ *
+ * so a global rule rescued these raw `<select>` / `<input>` / `<textarea>`
+ * elements on phones and **nothing** did at 768 px and above. A control that is
+ * compliant only because of a mobile media query is not compliant; R16.2 admits
+ * no width exemption.
+ *
+ * `min-h-touch` states the floor on the control itself, so it holds at every
+ * width and no longer depends on a rule scoped to another one. The media query in
+ * `index.css` is deliberately left alone — it is a safety net for elements nobody
+ * has reached yet, and removing it would be a change with a blast radius far
+ * wider than this form.
+ */
+const CONTROL_CLASS =
+  'w-full min-h-touch rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
 interface AmendmentFormProps {
   amendField: string
   amendValue: string
@@ -47,7 +72,7 @@ export function AmendmentForm({
           id="amend-field"
           value={amendField}
           onChange={(e) => onFieldChange(e.target.value)}
-          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={CONTROL_CLASS}
         >
           <option value="">Select a field</option>
           {AMENDABLE_FIELDS.map(f => (
@@ -63,7 +88,7 @@ export function AmendmentForm({
           inputMode={PHONE_AMENDMENT_FIELDS.has(amendField) ? 'tel' : amendField === 'email' ? 'email' : 'text'}
           value={amendValue}
           onChange={(e) => onValueChange(e.target.value)}
-          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={CONTROL_CLASS}
           placeholder="Enter the corrected value"
         />
       </div>
@@ -74,7 +99,7 @@ export function AmendmentForm({
           value={amendReason}
           onChange={(e) => onReasonChange(e.target.value)}
           rows={2}
-          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={CONTROL_CLASS}
           placeholder="Explain why this change is needed"
         />
       </div>

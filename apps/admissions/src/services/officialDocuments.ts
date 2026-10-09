@@ -31,8 +31,50 @@ export type OfficialDocumentType =
   | 'payment_receipt'
   | 'finance_receipt'
 
-/** Backend generation status for an official document. */
-export type OfficialDocumentGenerationStatus = 'ready' | 'queued' | 'failed' | 'setup_required'
+/**
+ * Backend generation status for an official document.
+ *
+ * `not_requested` was added by admissions-v2 task 10.4 (R13.11, STU-18) and it is
+ * the important one: pre-10.4 the backend reported `queued` for a document that
+ * had never been requested and for one whose enqueue had failed, so the client
+ * polled work nothing had recorded. `queued` now means a committed durable job
+ * exists; `not_requested` means there is nothing to poll and the caller should
+ * POST.
+ */
+export type OfficialDocumentGenerationStatus =
+  | 'ready'
+  | 'queued'
+  | 'failed'
+  | 'setup_required'
+  | 'not_requested'
+
+/** The durable job's state, as the backend publishes it. */
+export type OfficialDocumentJobState =
+  | 'pending'
+  | 'dispatched'
+  | 'succeeded'
+  | 'failed'
+  | 'none'
+
+/** The committed durable generation job (R13.11). */
+export interface OfficialDocumentJob {
+  state: OfficialDocumentJobState
+  attempts: number
+  requested_at: string | null
+  settled_at: string | null
+  error_code: string | null
+  /** True when the job will not change without a new request. */
+  terminal: boolean
+  /** True when *this* requester retrying would plausibly change the outcome. */
+  can_retry: boolean
+}
+
+/** Per-channel delivery record for an emailed official document (R13.4). */
+export interface OfficialDocumentDelivery {
+  category: string
+  kind?: string
+  channels: Record<string, { used: boolean; reason?: string }>
+}
 
 /**
  * The official-document status envelope returned by the backend (R5.1, R5.9).
@@ -56,6 +98,18 @@ export interface OfficialDocumentStatus {
   error_code?: string
   /** True when the tenant profile/template/assets must be configured first. */
   setup_required?: boolean
+  /**
+   * True when the artifact is served under the read-existing policy: the
+   * document the platform issued, not a claim that it reflects today's
+   * application state (R13.11, design §11.3).
+   */
+  historical?: boolean
+  /** The committed durable job behind this status. */
+  job?: OfficialDocumentJob
+  /** Server-decided: whether this requester may usefully retry. */
+  can_retry?: boolean
+  /** Present on the email response only. */
+  delivery?: OfficialDocumentDelivery
 }
 
 const SERVICE = 'official-documents'
@@ -72,8 +126,8 @@ function applicationDocumentPath(applicationId: string, documentType: OfficialDo
  * Trigger an authorized browser download for a resolved official-document URL.
  *
  * Mirrors the existing authorized-file download pattern used across the app
- * (`useApplicationSlip`/`ApplicationSlipActions`): create an anchor, click it,
- * and clean up. No-ops outside a DOM (SSR/tests).
+ * (`useApplicationSlip`/`DocumentButtons`): create an anchor, click it, and clean
+ * up. No-ops outside a DOM (SSR/tests).
  */
 function triggerUrlDownload(url: string): void {
   if (typeof document === 'undefined') return
@@ -164,30 +218,36 @@ export const officialDocumentService = {
   /**
    * Email the backend-stored official document — never a local blob (R7.4).
    *
-   * NOTE — backend-endpoint gap: today the only server-side "email a generated
-   * document" surface is `POST /api/v1/applications/{id}/email-slip/`, which
-   * emails the backend application-slip record. `application_slip` is wired to
-   * it here. A generic per-document-type email endpoint (acceptance letter,
-   * conditional offer, receipts) does not yet exist on the backend; requesting
-   * one of those throws a descriptive error rather than silently emailing a
-   * local render. Wiring those types is a follow-up backend task (not 10.1).
+   * admissions-v2 task 10.4 (R13.5, finding API-04) closed the gap this function
+   * used to declare. There is now one canonical email route for **every**
+   * document type::
+   *
+   *   POST /applications/{id}/official-documents/{document_type}/email/
+   *
+   * so the "only the application slip has a backend email endpoint" refusal —
+   * which meant a student could download an acceptance letter but not have it
+   * emailed — is gone.
+   *
+   * Task 10.4 left the legacy `/email-slip/` route in place as a thin proxy onto
+   * this one for the measured window R13.5 requires. Task **10.6** closed that
+   * window: zero production call sites, measured twice, and the route, its view
+   * and its two serializers are **removed**. This is now the only way an official
+   * document is emailed.
+   *
+   * The recipient is the applicant's own account address. `email` is accepted
+   * for callers that want to be explicit and is validated by the backend against
+   * the owner's address; an official record is not redirectable.
    */
   emailOfficialDocument: async (
     applicationId: string,
     documentType: OfficialDocumentType | string,
-    email: string,
-  ): Promise<void> => {
-    if (documentType !== 'application_slip') {
-      throw new Error(
-        `Emailing "${documentType}" official documents is not supported yet; ` +
-          'only the application slip has a backend email endpoint.',
-      )
-    }
-    const endpoint = `/applications/${encodeURIComponent(applicationId)}/email-slip/`
+    email?: string,
+  ): Promise<OfficialDocumentStatus | null> => {
+    const endpoint = `${applicationDocumentPath(applicationId, documentType)}email/`
     try {
-      await apiClient.request<{ queued_id: string }>(endpoint, {
+      return await apiClient.request<OfficialDocumentStatus>(endpoint, {
         method: 'POST',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(email ? { email } : {}),
       })
     } catch (err) {
       logApiError(SERVICE, endpoint, err)

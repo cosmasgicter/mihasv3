@@ -1,0 +1,138 @@
+===========================================================================
+Task 13.5 - verification of the two changes this task made
+===========================================================================
+Captured (UTC) : 2026-08-12T21:20:41Z
+Base commit    : bae29a28d  (working tree dirty; the
+                 whole admissions-v2 spec is in-flight - the orchestrator owns
+                 the commit, as every task 8.x-13.x evidence file records)
+
+Files changed outside docs/v2-evidence/13.5/ :
+  deploy/RUNBOOK.md
+  backend/apps/common/management/commands/apply_sql_migrations.py
+
+Test DB for the suites : throwaway postgres:17-alpine on 127.0.0.1:5434
+                         (removed afterwards; production's own image tag)
+TESTING was never exported by hand - tests/conftest.py sets it itself.
+REDIS_URL was never substituted for manage.py check.
+
+############ 1. the two diffs ############################################
+diff --git a/backend/apps/common/management/commands/apply_sql_migrations.py b/backend/apps/common/management/commands/apply_sql_migrations.py
+index e4d9a4c4d..e6533d309 100644
+--- a/backend/apps/common/management/commands/apply_sql_migrations.py
++++ b/backend/apps/common/management/commands/apply_sql_migrations.py
+@@ -629,6 +629,22 @@ class Command(BaseCommand):
+                 raise CommandError(f"Migration {label} failed: {exc}")
+             self.stdout.write(self.style.SUCCESS("OK"))
+ 
++        # A dry run applies NOTHING, so it must not end on a line that reads
++        # like it did. Measured in docs/v2-evidence/13.4/README.md §8.3: the
++        # dry run printed "Applied 23 migration(s) successfully." having applied
++        # none, and an operator reading that during an incident could reasonably
++        # believe the work was done. The 13.5 post-deploy proof runs this exact
++        # command, so a misleading summary is a defect in the proof instrument.
++        if dry_run:
++            self.stdout.write(
++                self.style.WARNING(
++                    f"[dry-run] NOTHING WAS APPLIED. "
++                    f"{len(pending)} migration(s) would be applied. "
++                    f"Re-run without --dry-run to apply them."
++                )
++            )
++            return
++
+         self.stdout.write(
+             self.style.SUCCESS(f"Applied {len(pending)} migration(s) successfully.")
+         )
+diff --git a/deploy/RUNBOOK.md b/deploy/RUNBOOK.md
+index 11bb179f7..7bf497a53 100644
+--- a/deploy/RUNBOOK.md
++++ b/deploy/RUNBOOK.md
+@@ -106,7 +106,13 @@ a few minutes of downtime). Run from the box (it has outbound internet):
+ cd ~/mihas
+ 
+ # 3a. Dump from Neon (use your Neon connection string).
+-docker run --rm postgres:16-alpine \
++# The client MUST be >= the server. Neon and the production container both run
++# PostgreSQL 17, and pg_dump refuses a newer server outright:
++#   pg_dump: error: aborting because of server version mismatch
++#   pg_dump: detail: server version: 17.10; pg_dump version: 16.14
++# Measured in docs/v2-evidence/13.4/README.md §8.1 (GATE-13.4-03): the 16 client
++# exits 1 with 0 bytes written; the 17 client exits 0. Do not downgrade this tag.
++docker run --rm postgres:17-alpine \
+   pg_dump --no-owner --no-privileges --format=custom \
+   "postgresql://<neon-user>:<neon-pass>@<neon-host>/<neon-db>?sslmode=require" \
+   > neon-dump.pgcustom
+
+############ 2. manage.py check (real backend/.env) ######################
+System check identified no issues (1 silenced).
+exit=0
+
+############ 3. every test file that touches apply_sql_migrations ########
+  files:
+  tests/integration/test_tenant_cutover_idempotence.py
+  tests/property/test_migration_history_forward_only.py
+  tests/property/test_perf_index_migration.py
+  tests/unit/test_apply_sql_migrations_additive_lint.py
+  tests/unit/test_apply_sql_migrations.py
+  tests/unit/test_canonical_assignment_remediation.py
+  tests/unit/test_check_schema_drift.py
+  tests/unit/test_document_evidence_versions_7_3.py
+  tests/unit/test_fk_index_backfill_completeness.py
+  tests/unit/test_integrity_constraints_3_3.py
+  tests/unit/test_legacy_column_contraction_12_3.py
+  tests/unit/test_migration_drift_guard.py
+  tests/unit/test_payment_document_reconciliation_3_5.py
+  tests/unit/test_reviewer_assignment_concurrency.py
+  tests/unit/test_subject_catalog_migration_7_1.py
+  tests/unit/test_tenant_fk_validation_3_4.py
+  tests/unit/test_tenant_migration.py
+  tests/unit/test_tenant_new_table_fk_validation_13_4.py
+  
+...........................................ss........................... [ 54%]
+........................................................................ [ 81%]
+..........................................ss......                       [100%]
+259 passed, 7 skipped in 10.33s
+
+############ 4. migration-governance suites ##############################
+..................                                                       [100%]
+18 passed in 2.25s
+
+############ 5. rollback + schema-drift suites ###########################
+EXPECTED: test_rollback_safe_operations.py's two whole-corpus assertions
+FAIL. They are PRE-EXISTING - 13.4 section 6.1 classified all 26 offending
+statements across 9 OTHER lanes' files. Neither file changed here appears.
+E       - 2026_07_26_02_document_current_slot_alignment_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): WITH ranked AS ( SELECT id, row_number() OVER w AS v, count(*) OVER (PARTITION BY application_id, document_type) AS grp_n FROM application_documents WINDOW w AS
+E   assert not ['2026_07_16_03_canonical_assignment_validate_rollback.sql: statement does not match any allowed inverse-additive pref...name = 'chk_tenant_onboarding_state') THEN ALTER TABLE tenant_onboarding DROP CONSTRAINT chk_tenant_onboarding_s", ...]
+=========================== short test summary info ============================
+FAILED tests/property/test_rollback_safe_operations.py::test_every_rollback_statement_is_inverse_additive
+FAILED tests/property/test_rollback_safe_operations.py::test_every_discovered_rollback_file_is_individually_safe
+2 failed, 25 passed, 2 skipped in 6.79s
+
+  -- confirm neither changed file is named in the failures --
+  occurrences of RUNBOOK.md or apply_sql_migrations in the failure output: 0
+
+############ 6. no test asserts on the old dry-run summary string #########
+$ grep -rn "migration(s) successfully" tests/
+  (no match)
+
+############ 7. the fix, exercised on the production-lineage snapshot #####
+--dry-run APPLIES NOTHING. This is a read-only invocation.
+Pending migrations: 23/42
+  [dry-run] would apply: 2026_06_08_01_multi_tenant_beanola_admissions.sql (sha256=7f0e69390dff)
+  [dry-run] would apply: 2026_06_08_03_institution_document_profiles.sql (sha256=8a4007e90d58)
+  ... 20 more ...
+
+############ 8. bash syntax of the deliverable script ####################
+  post-deploy-smoke.sh: SYNTAX OK
+
+############ 9. secret scan of this evidence directory ###################
+grep: docs/v2-evidence/13.5/raw/verification.txt: input file is also the output
+  clean: no connection string with a password, no private key, no token.
+  Only the public project/branch/endpoint ids appear:
+          5 br-jolly-pine-ahybtg2e
+          2 ep-proud-cherry-ah8n4q0f
+          2 wild-bar-37055823
+
+===========================================================================
+END
+===========================================================================

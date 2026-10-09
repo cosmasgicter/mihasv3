@@ -8,7 +8,7 @@ R8.7: when ``event_type`` is outside the known set
 and does NOT mutate any Payment row.
 
 This test exercises the strict processing path
-(``PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True``) because that is where
+on the canonical dedup path because that is where
 the exact ``processing_error`` string is standardised. The legacy path
 uses a different message (``'Unrecognised event type: ...'``) and is
 preserved for backward compatibility, but new behaviour is pinned to
@@ -100,7 +100,6 @@ def seed_pending_payment(db):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True)
 def test_unknown_event_type_logged_but_not_mutating(seed_pending_payment):
     """``collection.cancelled`` (unknown) → log + skip, no Payment mutation.
 

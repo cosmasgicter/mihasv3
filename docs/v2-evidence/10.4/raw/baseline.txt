@@ -1,0 +1,45 @@
+............................................F........................... [ 11%]
+........................................................................ [ 22%]
+.................................................F...................... [ 34%]
+.........................ssss........................................... [ 45%]
+........................................................................ [ 56%]
+........................................................................ [ 68%]
+........................................................................ [ 79%]
+........................................................................ [ 90%]
+.....................................................EEEEEE              [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_email_links_and_verification_removal.py: 2 warnings
+tests/integration/test_required_documents_contract_7_2.py: 33 warnings
+tests/property/test_official_document_deletion_properties.py: 1 warning
+tests/property/test_official_document_gating_properties.py: 1 warning
+tests/property/test_official_document_provenance_properties.py: 1 warning
+tests/unit/test_communication_template_scope.py: 8 warnings
+tests/unit/test_document_extract_scope.py: 7 warnings
+tests/unit/test_email_slip_endpoint.py: 2 warnings
+tests/unit/test_notification_preferences_10_1.py: 30 warnings
+tests/unit/test_official_document_deletion.py: 6 warnings
+tests/unit/test_official_document_lifecycle_audit.py: 3 warnings
+tests/unit/test_official_document_signed_download.py: 2 warnings
+tests/integration/test_document_evidence_compensation_7_3.py: 10 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+tests/integration/test_email_links_and_verification_removal.py::TestEmailVerificationRemoved::test_registration_creates_immediately_usable_account
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 24 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+    return self._jws.encode(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/property/test_communication_template_properties.py::TestCommunicationTemplateProperty22::test_resolution_priority
+FAILED tests/integration/test_communication_template_coverage.py::TestCommunicationTemplateCoverage::test_all_keys_seeded
+ERROR tests/unit/test_review_notifications.py::TestApprovalCreatesNotificationAndEmail::test_approval_creates_notification
+ERROR tests/unit/test_review_notifications.py::TestApprovalCreatesNotificationAndEmail::test_approval_creates_email_queue_record
+ERROR tests/unit/test_review_notifications.py::TestApprovalCreatesNotificationAndEmail::test_approval_calls_send_email_task_delay
+ERROR tests/unit/test_review_notifications.py::TestRejectionCreatesNotificationAndEmail::test_rejection_creates_notification
+ERROR tests/unit/test_review_notifications.py::TestRejectionCreatesNotificationAndEmail::test_rejection_creates_email_queue_record
+ERROR tests/unit/test_review_notifications.py::TestRejectionCreatesNotificationAndEmail::test_rejection_calls_send_email_task_delay
+2 failed, 623 passed, 4 skipped, 108 warnings, 6 errors in 50.21s

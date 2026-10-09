@@ -472,8 +472,16 @@ class APILinter:
         has_issues = False
         
         # Check for success response
-        success_codes = {'200', '201', '202', '204'}
-        has_success = any(code in responses for code in success_codes)
+        # Any successful or redirect response is a valid positive outcome.
+        # Restricting this to four common 2xx values incorrectly reports a
+        # documented 302 download redirect as having no success response.
+        def is_success(code: str) -> bool:
+            try:
+                return 200 <= int(code) < 400
+            except (TypeError, ValueError):
+                return False
+
+        has_success = any(is_success(code) for code in responses)
         
         if not has_success:
             self.report.add_issue(LintIssue(
@@ -481,7 +489,7 @@ class APILinter:
                 category='responses',
                 message=f"Missing success response for {method} {path}",
                 path=f"/paths/{path}/{method.lower()}/responses",
-                suggestion="Define at least one success response (200, 201, 202, or 204)"
+                suggestion="Define at least one successful 2xx or redirect 3xx response"
             ))
             has_issues = True
         

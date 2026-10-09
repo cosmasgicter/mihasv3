@@ -1,0 +1,41 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.test (from env)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 17 items
+
+tests/unit/test_fee_resolver_canonical_isolation.py::test_same_code_two_tenant_fee_isolation PASSED [  5%]
+tests/unit/test_fee_resolver_canonical_isolation.py::test_missing_fee_fails_closed_not_default PASSED [ 11%]
+tests/unit/test_fee_resolver_canonical_isolation.py::test_wrong_residency_fee_fails_closed PASSED [ 17%]
+tests/unit/test_fee_resolver_canonical_isolation.py::test_duplicate_active_fee_is_prevented_or_ambiguous PASSED [ 23%]
+tests/unit/test_fee_resolver_canonical_isolation.py::test_no_display_name_lookup PASSED [ 29%]
+tests/unit/test_fee_resolver_canonical_isolation.py::test_resolve_for_application_uses_canonical_offering PASSED [ 35%]
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_valid_program_intake_returns_assigned_school PASSED [ 41%]
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_offering_without_fee_surfaces_readiness_blocker PASSED [ 47%]
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_missing_ids_returns_validation_error PASSED [ 52%]
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_unassignable_pair_returns_recoverable_error PASSED [ 58%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_international_fee_not_fallback PASSED [ 64%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_international_fee_prg_ba PASSED [ 70%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_international_fee_prg_cs PASSED [ 76%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_international_fee_prg_edu PASSED [ 82%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_international_fee_prg_nur PASSED [ 88%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_none_nationality_is_international PASSED [ 94%]
+tests/unit/test_fee_resolver_international.py::TestFeeResolverInternational::test_residency_classified_as_international PASSED [100%]
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_valid_program_intake_returns_assigned_school
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_offering_without_fee_surfaces_readiness_blocker
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_missing_ids_returns_validation_error
+tests/unit/test_assignment_preview.py::TestAssignmentPreviewEndpoint::test_unassignable_pair_returns_recoverable_error
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 17 passed, 5 warnings in 1.37s ========================

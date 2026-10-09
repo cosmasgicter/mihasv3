@@ -19,12 +19,10 @@ import { recoverCsrfAndRetry } from './csrf';
 import { API_BASE, parseJsonSafely, normalizeHeaders, getBaseHeaders, unwrapApiResponse, type ApiRequestOptions } from './httpClient';
 import {
   AuthenticationError,
-  configureApiClientAuthFailure,
   getOnAuthFailure,
   isAuthExcludedEndpoint,
-  isSessionEndpoint,
   attemptRefresh,
-  refreshAuthSession,
+  refreshAuthSession
 } from './authInterceptor';
 export type { ApiRequestOptions } from './httpClient';
 
@@ -190,7 +188,6 @@ class ApiClient {
     endpoint: string,
     options: ApiRequestOptions = {}
   ): Promise<TResponse | null> {
-    const start = Date.now();
     const method = (options.method ?? 'GET').toString().toUpperCase();
     const apiEndpoint = toApiV1Path(endpoint);
     const service = getServiceName(apiEndpoint);
@@ -212,7 +209,6 @@ class ApiClient {
           apiEndpoint,
           method,
           service,
-          start,
           timeoutMs,
           options
         );
@@ -249,7 +245,6 @@ class ApiClient {
     normalizedEndpoint: string,
     method: string,
     service: string,
-    start: number,
     timeoutMs: number,
     options: ApiRequestOptions
   ): Promise<TResponse | null> {
@@ -290,50 +285,16 @@ class ApiClient {
         signal: timeoutController.signal,
       };
 
-      if (method === 'GET') {
-        const url = `${API_BASE}${normalizedEndpoint}`;
-
-        let responseContentType = '';
-
-        const fetchResponse = await fetch(url, {
-          method: 'GET',
-          headers: requestHeaders,
-          credentials: 'include' as RequestCredentials,
-          signal: timeoutController.signal,
-        });
-
-        // Capture CSRF token and content-type
-        responseContentType = fetchResponse.headers.get('content-type') ?? '';
-        const csrfHeader = fetchResponse.headers.get('X-CSRF-Token');
-        if (csrfHeader) {
-          setCsrfToken(csrfHeader);
-        }
-
-        if (!fetchResponse.ok) {
-          const error = Object.assign(
-            new Error(`API Error: ${fetchResponse.statusText}`),
-            { status: fetchResponse.status }
-          );
-          throw error;
-        }
-
-        const data = await this.parseJsonSafely<TResponse>(fetchResponse, service, normalizedEndpoint);
-
-        // Unwrap { success, data } envelope from API responses
-        // Pass content-type so non-JSON responses skip unwrapping (Req 8.4)
-        return this.unwrapApiResponse<TResponse>(data, responseContentType);
-      }
-
+      // Unified fetch — all methods (GET, POST, PUT, PATCH, DELETE) share the
+      // same response pipeline: CSRF capture, error parsing, 401 refresh,
+      // 403 CSRF recovery, envelope unwrapping. (R9.2, R14.4)
       const response = await fetch(`${API_BASE}${normalizedEndpoint}`, requestInit);
 
-      // Capture CSRF token from response header (set on login/refresh)
+      // Capture CSRF token from response header (set on login/refresh/session)
       const responseCsrfToken = response.headers.get('X-CSRF-Token');
       if (responseCsrfToken) {
         setCsrfToken(responseCsrfToken);
       }
-
-      const duration = Date.now() - start;
-      void duration; // monitoring removed
 
       if (!response.ok) {
         let errorMessage = `API Error: ${response.statusText}`;
@@ -385,6 +346,25 @@ class ApiClient {
           const refreshed = await attemptRefresh();
 
           if (refreshed) {
+            // Replay guard (R9.2): only replay safe methods (GET, HEAD, OPTIONS)
+            // or requests carrying an Idempotency-Key header. Blind replay of
+            // unsafe methods (POST/PUT/PATCH/DELETE) without idempotency could
+            // cause duplicate side effects.
+            const isSafeMethod = ['GET', 'HEAD', 'OPTIONS'].includes(method);
+            const hasIdempotencyKey = !!requestHeaders['Idempotency-Key'] || !!requestHeaders['idempotency-key'];
+
+            if (!isSafeMethod && !hasIdempotencyKey) {
+              // Cannot safely replay — throw an error indicating refresh succeeded
+              // but the original mutation was not retried
+              const replayError = new Error(
+                'Session refreshed but the request was not retried because it lacks an idempotency key. Please retry the action.'
+              ) as Error & { status: number; code: string; refreshed: boolean };
+              replayError.status = 401;
+              replayError.code = 'REFRESH_NO_REPLAY';
+              replayError.refreshed = true;
+              throw replayError;
+            }
+
             // Refresh succeeded — retry the original request once
             // Re-attach the (possibly rotated) CSRF token
             if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
@@ -479,9 +459,18 @@ class ApiClient {
           logger.debug('[API Client] 401 on auth endpoint - no refresh attempt');
         }
 
-        // 403 CSRF intercept-retry: re-fetch CSRF token and retry once
-        // Only for state-changing methods with CSRF-related error codes
-        if (
+        // 403 handling: distinguish a genuine permission denial from a
+        // recoverable CSRF failure. A permission denial (INSUFFICIENT_PERMISSIONS
+        // or any non-CSRF 403) is NOT an authentication failure — it must never
+        // trigger token refresh, CSRF recovery, or logout. It falls through to
+        // normal error handling so the caller can surface an authorization
+        // message. Only a CSRF-coded 403 on a state-changing method is
+        // recoverable via a token re-fetch. (R9.2, session hardening)
+        if (response.status === 403 && isPermissionDenial(response.status, errorCode)) {
+          logger.debug(
+            '[API Client] 403 permission denial - surfacing as authorization error (no refresh, no logout)'
+          );
+        } else if (
           response.status === 403 &&
           ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
           (errorCode === 'CSRF_INVALID' || errorCode === 'CSRF_MISSING' || errorCode === 'CSRF_VALIDATION_FAILED')
@@ -604,93 +593,6 @@ class ApiClient {
       // Re-throw AuthenticationError as-is (already handled by 401 intercept logic)
       if (error instanceof AuthenticationError) {
         throw error;
-      }
-
-      // Defense-in-depth: handle auth failures from GET requests.
-      // fetch throws errors with status property for non-ok responses.
-      // If a GET request got a 401, attempt refresh. Generic 403s are
-      // authorization failures and must not log the user out.
-      const errorStatus = (error as { status?: number })?.status;
-      if (
-        errorStatus === 401 &&
-        method === 'GET' &&
-        !isAuthExcludedEndpoint(normalizedEndpoint)
-      ) {
-        logger.debug('[API Client] auth error on GET (via cache layer) - attempting token refresh');
-        const refreshed = await attemptRefresh();
-
-        if (refreshed) {
-          // Refresh succeeded — retry the GET request directly (bypass cache)
-          const retryResponse = await fetch(`${API_BASE}${normalizedEndpoint}`, {
-            method: 'GET',
-            headers: requestHeaders,
-            credentials: 'include',
-            signal: timeoutController.signal,
-          });
-
-          const retryCsrf = retryResponse.headers.get('X-CSRF-Token');
-          if (retryCsrf) {
-            setCsrfToken(retryCsrf);
-          }
-
-          if (retryResponse.ok) {
-            const retryContentType = retryResponse.headers.get('content-type') ?? '';
-            if (retryContentType && !retryContentType.includes('application/json')) {
-              const rawBody = await retryResponse.text();
-              return (rawBody || null) as TResponse | null;
-            }
-            const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
-            return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
-          }
-
-          // Only treat a second 401/403 as an auth failure
-          if (retryResponse.status === 401 || retryResponse.status === 403) {
-            if (retryResponse.status === 403) {
-              let retryCode: string | undefined;
-              try {
-                const retryBody = await retryResponse.clone().text();
-                if (retryBody) { retryCode = JSON.parse(retryBody)?.code; }
-              } catch { /* ignore */ }
-              if (isPermissionDenial(403, retryCode)) {
-                const permErr = new Error('Permission denied for this action') as Error & { status: number };
-                permErr.status = 403;
-                throw ApiErrorHandler.enhanceError({ endpoint: normalizedEndpoint, method, statusCode: 403, originalError: permErr });
-              }
-            }
-            if (isSessionEndpoint(normalizedEndpoint)) {
-              throw new AuthenticationError();
-            }
-            const authFailure = getOnAuthFailure();
-            if (authFailure && shouldDispatchAuthFailure()) authFailure();
-            throw new AuthenticationError();
-          }
-
-          // Non-auth error after successful refresh — handle normally
-          let retryGetErrMsg = `API Error: ${retryResponse.statusText}`;
-          try {
-            const retryGetErrData = await retryResponse.text();
-            if (retryGetErrData) {
-              const parsed = JSON.parse(retryGetErrData);
-              retryGetErrMsg = parsed.error || parsed.message || retryGetErrMsg;
-            }
-          } catch { /* use default */ }
-          const retryGetErr = new Error(retryGetErrMsg) as Error & { status: number };
-          retryGetErr.status = retryResponse.status;
-          throw ApiErrorHandler.enhanceError({
-            endpoint: normalizedEndpoint,
-            method,
-            statusCode: retryResponse.status,
-            originalError: retryGetErr,
-          });
-        }
-
-        // Refresh failed — invoke onAuthFailure and throw
-        if (isSessionEndpoint(normalizedEndpoint)) {
-          throw error;
-        }
-        const authFailure = getOnAuthFailure();
-        if (authFailure && shouldDispatchAuthFailure()) authFailure();
-        throw new AuthenticationError();
       }
 
       // Enhance error if not already enhanced

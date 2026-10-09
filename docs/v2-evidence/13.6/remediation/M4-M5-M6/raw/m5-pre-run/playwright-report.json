@@ -1,0 +1,1347 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.6/remediation/M4-M5-M6/raw/m5-pre-run/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/two-tenant-adversarial-matrix.spec.ts",
+      "file": "required/two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:58:39.330Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-a0feabcf42f227f14c89",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 196,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:58:50.200Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-198e36f51f2439a8bdba",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 257,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: two live sessions for one student agree, because the server is the record",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F3 stale-tab reload vs the other device's write",
+                  "description": "device 2 wrote \"Device two 98719867\"; after device 1 reloaded its stale wizard the server holds \"Lusaka\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4037,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:58:53.109Z",
+                  "annotations": [
+                    {
+                      "type": "F3 stale-tab reload vs the other device's write",
+                      "description": "device 2 wrote \"Device two 98719867\"; after device 1 reloaded its stale wizard the server holds \"Lusaka\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-9a0f53b272b585e281d5",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 300,
+          "column": 1
+        },
+        {
+          "title": "F4 interrupted upload: an aborted upload leaves no document row, and the retry succeeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F4 interrupted upload",
+                  "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3082,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:58:57.167Z",
+                  "annotations": [
+                    {
+                      "type": "F4 interrupted upload",
+                      "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-ceaa15c5291e71ef97dd",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "F5 lost submit response: the client never learns the outcome, retries, and the platform submits once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F5 retry of a lost submit",
+                  "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3892,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:00.270Z",
+                  "annotations": [
+                    {
+                      "type": "F5 retry of a lost submit",
+                      "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-16e32a9be61a8bf75923",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 445,
+          "column": 1
+        },
+        {
+          "title": "F6 provider delay: a slow collection is a wait, not a failure, and no second collection is offered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F6 second collection while one is open",
+                  "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2531,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:04.182Z",
+                  "annotations": [
+                    {
+                      "type": "F6 second collection while one is open",
+                      "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-4656379d070eb1b3e262",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 573,
+          "column": 1
+        },
+        {
+          "title": "F7 duplicate callback: a redelivered signed webhook is rejected as a duplicate, and a webhook with no provider reference never moves money",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F7 duplicate callback",
+                  "description": "reference BNL-MIHAS202600107-1786798747933; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1517,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:06.727Z",
+                  "annotations": [
+                    {
+                      "type": "F7 duplicate callback",
+                      "description": "reference BNL-MIHAS202600107-1786798747933; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-841471a097ef68d94fd0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 676,
+          "column": 1
+        },
+        {
+          "title": "F8 broker outage: a job committed with no dispatch is still served, by the platform's own sweep",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F8 broker outage",
+                  "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9786,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:08.255Z",
+                  "annotations": [
+                    {
+                      "type": "F8 broker outage",
+                      "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-d58abe22e551b047a478",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 794,
+          "column": 1
+        },
+        {
+          "title": "F9 after every injection the queues are drained and no collection is unsettled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "drain after the adversarial matrix",
+                  "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                },
+                {
+                  "type": "unsettled collections present before this file ran",
+                  "description": "none"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 164,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:18.054Z",
+                  "annotations": [
+                    {
+                      "type": "drain after the adversarial matrix",
+                      "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                    },
+                    {
+                      "type": "unsettled collections present before this file ran",
+                      "description": "none"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-0edeb3be7e56aeb531e6",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 862,
+          "column": 1
+        },
+        {
+          "title": "F1 offline: a dropped connection loses no saved work and the surface recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F1 offline",
+                  "description": "cancelled requests recorded: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4802,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:34.301Z",
+                  "annotations": [
+                    {
+                      "type": "F1 offline",
+                      "description": "cancelled requests recorded: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-3e14c9ba71a8688daef0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 196,
+          "column": 1
+        },
+        {
+          "title": "F2 refresh: a reload restores the draft and re-mints the in-memory CSRF token",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3201,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:46.251Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-ebf567e085f67ba264c0",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 257,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: two live sessions for one student agree, because the server is the record",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F3 stale-tab reload vs the other device's write",
+                  "description": "device 2 wrote \"Device two 98774988\"; after device 1 reloaded its stale wizard the server holds \"Lusaka\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3960,
+                  "error": {
+                    "message": "Error: Harness gate failed (2 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad",
+                    "stack": "Error: Harness gate failed (2 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                      "column": 15,
+                      "line": 141
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mharness-fixtures.ts:141\n\n  139 |       const violations = gate.collectViolations();\n  140 |       if (violations.length > 0) {\n> 141 |         throw new Error(\n      |               ^\n  142 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  143 |         );\n  144 |       }"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                        "column": 15,
+                        "line": 141
+                      },
+                      "message": "Error: Harness gate failed (2 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=2d406022-b9cd-4cae-8a81-0fab12694577&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n\n   at harness-fixtures.ts:141\n\n  139 |       const violations = gate.collectViolations();\n  140 |       if (violations.length > 0) {\n> 141 |         throw new Error(\n      |               ^\n  142 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  143 |         );\n  144 |       }\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:49.470Z",
+                  "annotations": [
+                    {
+                      "type": "F3 stale-tab reload vs the other device's write",
+                      "description": "device 2 wrote \"Device two 98774988\"; after device 1 reloaded its stale wizard the server holds \"Lusaka\""
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-e8a35-se-the-server-is-the-record-mobile-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-e8a35-se-the-server-is-the-record-mobile-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                    "column": 15,
+                    "line": 141
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-b121d07db4f3f015521b",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 300,
+          "column": 1
+        },
+        {
+          "title": "F4 interrupted upload: an aborted upload leaves no document row, and the retry succeeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F4 interrupted upload",
+                  "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3817,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T12:59:55.189Z",
+                  "annotations": [
+                    {
+                      "type": "F4 interrupted upload",
+                      "description": "cancellations recorded: 1; unasserted failed requests: 0"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-6acd7f89a54627e95d27",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "F5 lost submit response: the client never learns the outcome, retries, and the platform submits once",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F5 retry of a lost submit",
+                  "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3921,
+                  "error": {
+                    "message": "Error: Harness gate failed (1 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=5ed7c252-b5f6-4765-bda6-cb1fc33efa02&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad",
+                    "stack": "Error: Harness gate failed (1 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=5ed7c252-b5f6-4765-bda6-cb1fc33efa02&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                      "column": 15,
+                      "line": 141
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mharness-fixtures.ts:141\n\n  139 |       const violations = gate.collectViolations();\n  140 |       if (violations.length > 0) {\n> 141 |         throw new Error(\n      |               ^\n  142 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  143 |         );\n  144 |       }"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                        "column": 15,
+                        "line": 141
+                      },
+                      "message": "Error: Harness gate failed (1 violation(s)):\n  - failed request [409]: http://mihas.localhost:8090/api/v1/catalog/assignment-preview/?program_id=cda38c60-6011-4aef-9786-9ee7f9e1c6a4&intake_id=5ed7c252-b5f6-4765-bda6-cb1fc33efa02&nationality=Zambian&country=Zambia&institution=719a55a4-23ec-443c-a84e-6ae90c7e15ad\n\n   at harness-fixtures.ts:141\n\n  139 |       const violations = gate.collectViolations();\n  140 |       if (violations.length > 0) {\n> 141 |         throw new Error(\n      |               ^\n  142 |           `Harness gate failed (${violations.length} violation(s)):\\n  - ${violations.join('\\n  - ')}`,\n  143 |         );\n  144 |       }\n    at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T13:00:05.900Z",
+                  "annotations": [
+                    {
+                      "type": "F5 retry of a lost submit",
+                      "description": "refused 409 IDEMPOTENCY_PENDING — the first execution was still in flight"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-99e12-d-the-platform-submits-once-mobile-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-99e12-d-the-platform-submits-once-mobile-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts",
+                    "column": 15,
+                    "line": 141
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-e5e2f01302bd5872d07e",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 445,
+          "column": 1
+        },
+        {
+          "title": "F6 provider delay: a slow collection is a wait, not a failure, and no second collection is offered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F6 second collection while one is open",
+                  "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2409,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T13:00:11.607Z",
+                  "annotations": [
+                    {
+                      "type": "F6 second collection while one is open",
+                      "description": "POST /payments/mobile-money/ answered 201 and the ledger still holds one row"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-e8144b16835326bf51d8",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 573,
+          "column": 1
+        },
+        {
+          "title": "F7 duplicate callback: a redelivered signed webhook is rejected as a duplicate, and a webhook with no provider reference never moves money",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F7 duplicate callback",
+                  "description": "reference BNL-MIHAS202600122-1786798821823; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1463,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T13:00:20.705Z",
+                  "annotations": [
+                    {
+                      "type": "F7 duplicate callback",
+                      "description": "reference BNL-MIHAS202600122-1786798821823; both deliveries answered 200; the redelivery was logged \"Duplicate event already processed\"; the ledger held one row at status=\"pending\" (unchanged from \"pending\") with an unchanged updated_at, because the delivery carried no provider reference and the integrity gate declined it"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-be5ee0f8ba12956642a3",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 676,
+          "column": 1
+        },
+        {
+          "title": "F8 broker outage: a job committed with no dispatch is still served, by the platform's own sweep",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "F8 broker outage",
+                  "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9013,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T13:00:22.187Z",
+                  "annotations": [
+                    {
+                      "type": "F8 broker outage",
+                      "description": "committed pending with no task id; published \"queued\"; sweep re-dispatched 1 job(s); artifact reached \"ready\""
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-2d4bc835a1b27808e83c",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 794,
+          "column": 1
+        },
+        {
+          "title": "F9 after every injection the queues are drained and no collection is unsettled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "drain after the adversarial matrix",
+                  "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                },
+                {
+                  "type": "unsettled collections present before this file ran",
+                  "description": "none"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 200,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-15T13:00:31.217Z",
+                  "annotations": [
+                    {
+                      "type": "drain after the adversarial matrix",
+                      "description": "{\"broker_queue_depth\":0,\"celery_queues\":[\"celery\"],\"unsettled_payment_collections\":0,\"unsettled_references\":[]}"
+                    },
+                    {
+                      "type": "unsettled collections present before this file ran",
+                      "description": "none"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-43e879b2925e950a7cb8",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 862,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "required/two-tenant-golden-journey.spec.ts",
+      "file": "required/two-tenant-golden-journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "The complete golden journey on a resolved tenant host (R18.2)",
+          "file": "required/two-tenant-golden-journey.spec.ts",
+          "line": 154,
+          "column": 6,
+          "specs": [
+            {
+              "title": "one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "step 01 register",
+                      "description": "201 on mihas.localhost for a brand-new account"
+                    },
+                    {
+                      "type": "step 02 verify",
+                      "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                    },
+                    {
+                      "type": "step 03 login",
+                      "description": "signed in through the page; landed on /student/dashboard"
+                    },
+                    {
+                      "type": "step 04 profile autosave",
+                      "description": "\"Autosaved 98758665\" persisted and survived a page reload"
+                    },
+                    {
+                      "type": "step 05 two drafts",
+                      "description": "2 drafts for the same program+intake; resumed a66822ce-3846-4825-acc8-cb3c5a782c7c by explicit mode=resume"
+                    },
+                    {
+                      "type": "step 06 assignment",
+                      "description": "canonical offering 02e62301-1a4c-4dd1-86aa-c30d10468a0b; reviewer e97ac52f-0a23-4a00-a01f-318d17193b4a assigned"
+                    },
+                    {
+                      "type": "step 07 five grades",
+                      "description": "5 unique ECZ subjects persisted"
+                    },
+                    {
+                      "type": "step 08 documents",
+                      "description": "uploaded result_slip, nrc; nothing required left missing"
+                    },
+                    {
+                      "type": "step 09 pay/defer",
+                      "description": "deferred, then settled 153.00 ZMW on payment 9ab66f98-c475-4d88-bf6e-8272c848e7b8"
+                    },
+                    {
+                      "type": "step 10 submit",
+                      "description": "MIHAS202600110 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                    },
+                    {
+                      "type": "step 11 interview/comms",
+                      "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                    },
+                    {
+                      "type": "step 12 amendment",
+                      "description": "c5e354cd-f1d6-4052-8169-6c063045347b requested by the student and approved by an admin (before the condition — platform order)"
+                    },
+                    {
+                      "type": "step 13 condition",
+                      "description": "condition 94877af5-3587-4a41-8b09-204a665297b2 assigned with the conditional offer and verified met"
+                    },
+                    {
+                      "type": "step 14 approval",
+                      "description": "conditionally_approved → approved"
+                    },
+                    {
+                      "type": "step 15 official docs",
+                      "description": "application_slip issued at \"approved\" and reached \"ready\""
+                    },
+                    {
+                      "type": "step 16 enrollment",
+                      "description": "deadline 2026-08-29T12:59:30.344145Z authored by the server; confirmed to \"enrolled\""
+                    },
+                    {
+                      "type": "step 17 tracking",
+                      "description": "TRK-V751M81D-D0GP7CH3M88T10ZP6R79 resolved anonymously to MIHAS202600110 / enrolled"
+                    },
+                    {
+                      "type": "step 18 withdrawal / new application where legal",
+                      "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 65f33542-7771-4da0-a28c-d065a7eab13f was then accepted"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-required",
+                  "projectName": "chromium-required",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8665,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-15T12:59:18.274Z",
+                      "annotations": [
+                        {
+                          "type": "step 01 register",
+                          "description": "201 on mihas.localhost for a brand-new account"
+                        },
+                        {
+                          "type": "step 02 verify",
+                          "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                        },
+                        {
+                          "type": "step 03 login",
+                          "description": "signed in through the page; landed on /student/dashboard"
+                        },
+                        {
+                          "type": "step 04 profile autosave",
+                          "description": "\"Autosaved 98758665\" persisted and survived a page reload"
+                        },
+                        {
+                          "type": "step 05 two drafts",
+                          "description": "2 drafts for the same program+intake; resumed a66822ce-3846-4825-acc8-cb3c5a782c7c by explicit mode=resume"
+                        },
+                        {
+                          "type": "step 06 assignment",
+                          "description": "canonical offering 02e62301-1a4c-4dd1-86aa-c30d10468a0b; reviewer e97ac52f-0a23-4a00-a01f-318d17193b4a assigned"
+                        },
+                        {
+                          "type": "step 07 five grades",
+                          "description": "5 unique ECZ subjects persisted"
+                        },
+                        {
+                          "type": "step 08 documents",
+                          "description": "uploaded result_slip, nrc; nothing required left missing"
+                        },
+                        {
+                          "type": "step 09 pay/defer",
+                          "description": "deferred, then settled 153.00 ZMW on payment 9ab66f98-c475-4d88-bf6e-8272c848e7b8"
+                        },
+                        {
+                          "type": "step 10 submit",
+                          "description": "MIHAS202600110 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                        },
+                        {
+                          "type": "step 11 interview/comms",
+                          "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                        },
+                        {
+                          "type": "step 12 amendment",
+                          "description": "c5e354cd-f1d6-4052-8169-6c063045347b requested by the student and approved by an admin (before the condition — platform order)"
+                        },
+                        {
+                          "type": "step 13 condition",
+                          "description": "condition 94877af5-3587-4a41-8b09-204a665297b2 assigned with the conditional offer and verified met"
+                        },
+                        {
+                          "type": "step 14 approval",
+                          "description": "conditionally_approved → approved"
+                        },
+                        {
+                          "type": "step 15 official docs",
+                          "description": "application_slip issued at \"approved\" and reached \"ready\""
+                        },
+                        {
+                          "type": "step 16 enrollment",
+                          "description": "deadline 2026-08-29T12:59:30.344145Z authored by the server; confirmed to \"enrolled\""
+                        },
+                        {
+                          "type": "step 17 tracking",
+                          "description": "TRK-V751M81D-D0GP7CH3M88T10ZP6R79 resolved anonymously to MIHAS202600110 / enrolled"
+                        },
+                        {
+                          "type": "step 18 withdrawal / new application where legal",
+                          "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 65f33542-7771-4da0-a28c-d065a7eab13f was then accepted"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e1451aecbaf4984d66a1-465fdc6b3ab341ffd09a",
+              "file": "required/two-tenant-golden-journey.spec.ts",
+              "line": 155,
+              "column": 3
+            },
+            {
+              "title": "one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "step 01 register",
+                      "description": "201 on mihas.localhost for a brand-new account"
+                    },
+                    {
+                      "type": "step 02 verify",
+                      "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                    },
+                    {
+                      "type": "step 03 login",
+                      "description": "signed in through the page; landed on /student/dashboard"
+                    },
+                    {
+                      "type": "step 04 profile autosave",
+                      "description": "\"Autosaved 98831866\" persisted and survived a page reload"
+                    },
+                    {
+                      "type": "step 05 two drafts",
+                      "description": "2 drafts for the same program+intake; resumed 583221bc-0456-47de-b75b-e4136f847226 by explicit mode=resume"
+                    },
+                    {
+                      "type": "step 06 assignment",
+                      "description": "canonical offering a5a14ab6-4744-4378-af7b-b98fd2b9c84d; reviewer e97ac52f-0a23-4a00-a01f-318d17193b4a assigned"
+                    },
+                    {
+                      "type": "step 07 five grades",
+                      "description": "5 unique ECZ subjects persisted"
+                    },
+                    {
+                      "type": "step 08 documents",
+                      "description": "uploaded result_slip, nrc; nothing required left missing"
+                    },
+                    {
+                      "type": "step 09 pay/defer",
+                      "description": "deferred, then settled 153.00 ZMW on payment 1f98c152-5b3a-4e6e-b4ed-dbba4ede4d10"
+                    },
+                    {
+                      "type": "step 10 submit",
+                      "description": "MIHAS202600125 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                    },
+                    {
+                      "type": "step 11 interview/comms",
+                      "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                    },
+                    {
+                      "type": "step 12 amendment",
+                      "description": "ab5d38ec-9a1b-494e-92bf-3441bc792475 requested by the student and approved by an admin (before the condition — platform order)"
+                    },
+                    {
+                      "type": "step 13 condition",
+                      "description": "condition 95b8837e-0ca4-4930-884d-8f1d3ff6c0ca assigned with the conditional offer and verified met"
+                    },
+                    {
+                      "type": "step 14 approval",
+                      "description": "conditionally_approved → approved"
+                    },
+                    {
+                      "type": "step 15 official docs",
+                      "description": "application_slip issued at \"approved\" and reached \"ready\""
+                    },
+                    {
+                      "type": "step 16 enrollment",
+                      "description": "deadline 2026-08-29T13:00:42.564496Z authored by the server; confirmed to \"enrolled\""
+                    },
+                    {
+                      "type": "step 17 tracking",
+                      "description": "TRK-VH7ZWQ8G-X17R94VJWRTZ6EJJCGJZ resolved anonymously to MIHAS202600125 / enrolled"
+                    },
+                    {
+                      "type": "step 18 withdrawal / new application where legal",
+                      "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 8ed364bf-7431-4a4f-af3d-d2da52ff6866 was then accepted"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-required",
+                  "projectName": "mobile-required",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-15T13:00:31.466Z",
+                      "annotations": [
+                        {
+                          "type": "step 01 register",
+                          "description": "201 on mihas.localhost for a brand-new account"
+                        },
+                        {
+                          "type": "step 02 verify",
+                          "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                        },
+                        {
+                          "type": "step 03 login",
+                          "description": "signed in through the page; landed on /student/dashboard"
+                        },
+                        {
+                          "type": "step 04 profile autosave",
+                          "description": "\"Autosaved 98831866\" persisted and survived a page reload"
+                        },
+                        {
+                          "type": "step 05 two drafts",
+                          "description": "2 drafts for the same program+intake; resumed 583221bc-0456-47de-b75b-e4136f847226 by explicit mode=resume"
+                        },
+                        {
+                          "type": "step 06 assignment",
+                          "description": "canonical offering a5a14ab6-4744-4378-af7b-b98fd2b9c84d; reviewer e97ac52f-0a23-4a00-a01f-318d17193b4a assigned"
+                        },
+                        {
+                          "type": "step 07 five grades",
+                          "description": "5 unique ECZ subjects persisted"
+                        },
+                        {
+                          "type": "step 08 documents",
+                          "description": "uploaded result_slip, nrc; nothing required left missing"
+                        },
+                        {
+                          "type": "step 09 pay/defer",
+                          "description": "deferred, then settled 153.00 ZMW on payment 1f98c152-5b3a-4e6e-b4ed-dbba4ede4d10"
+                        },
+                        {
+                          "type": "step 10 submit",
+                          "description": "MIHAS202600125 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                        },
+                        {
+                          "type": "step 11 interview/comms",
+                          "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                        },
+                        {
+                          "type": "step 12 amendment",
+                          "description": "ab5d38ec-9a1b-494e-92bf-3441bc792475 requested by the student and approved by an admin (before the condition — platform order)"
+                        },
+                        {
+                          "type": "step 13 condition",
+                          "description": "condition 95b8837e-0ca4-4930-884d-8f1d3ff6c0ca assigned with the conditional offer and verified met"
+                        },
+                        {
+                          "type": "step 14 approval",
+                          "description": "conditionally_approved → approved"
+                        },
+                        {
+                          "type": "step 15 official docs",
+                          "description": "application_slip issued at \"approved\" and reached \"ready\""
+                        },
+                        {
+                          "type": "step 16 enrollment",
+                          "description": "deadline 2026-08-29T13:00:42.564496Z authored by the server; confirmed to \"enrolled\""
+                        },
+                        {
+                          "type": "step 17 tracking",
+                          "description": "TRK-VH7ZWQ8G-X17R94VJWRTZ6EJJCGJZ resolved anonymously to MIHAS202600125 / enrolled"
+                        },
+                        {
+                          "type": "step 18 withdrawal / new application where legal",
+                          "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 8ed364bf-7431-4a4f-af3d-d2da52ff6866 was then accepted"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e1451aecbaf4984d66a1-cf1b29772c6c64998e80",
+              "file": "required/two-tenant-golden-journey.spec.ts",
+              "line": 155,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-15T12:58:37.599Z",
+    "duration": 127659.51,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

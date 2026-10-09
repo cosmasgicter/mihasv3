@@ -1,0 +1,18 @@
+Warning: operationId "api_v1_admin_intakes_retrieve" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_change_requests_retrieve" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-requests/{change_request_id}/', 'get')]. resolving with numeral suffixes.
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+
+Schema generation summary:
+Warnings: 3 (3 unique)
+Errors:   116 (26 unique)
+
+SPEC_EXIT=0
+
+=== delta vs pre-7.3-declaration schema: the one declared 409 ===
+10321a10322,10327
+>         '409':
+>           content:
+>             application/json:
+>               schema:
+>                 $ref: '#/components/schemas/ErrorResponse'
+>           description: ''

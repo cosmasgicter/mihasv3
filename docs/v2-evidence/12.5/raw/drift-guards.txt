@@ -1,0 +1,19 @@
+=== the guards task 12.5 repaired, extended, or reuses — run directly ===
+
+  test_compatibility_surfaces_12_2.py       SHIMS 2 -> 6 (§4)
+  test_canonical_tenant_drift_guard.py      + staleness check, 13 -> 11 entries (§5)
+  test_brand_drift_guard.py                 allowlist 17 -> 19, 1 stale removed (§2.5)
+  test_no_invented_permissions_guard.py     reused (category 3)
+  test_no_admissions_generative_ai_guard.py  reused (category 6)
+
+$ pytest tests/unit/test_compatibility_surfaces_12_2.py tests/unit/test_canonical_tenant_drift_guard.py tests/unit/test_brand_drift_guard.py tests/unit/test_no_invented_permissions_guard.py tests/unit/test_no_admissions_generative_ai_guard.py -q -p no:randomly
+
+.......................................                                  [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+39 passed, 1 warning in 5.01s
+EXIT=0

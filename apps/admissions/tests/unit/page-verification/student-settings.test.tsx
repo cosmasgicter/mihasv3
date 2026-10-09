@@ -2,6 +2,7 @@
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
@@ -125,16 +126,27 @@ vi.mock('@/components/ui/PageShell', () => ({
 import StudentSettings from '@/pages/student/Settings'
 
 describe('Student settings page verification', () => {
+  /*
+    Settings resolves its visible brand from tenant context (admissions-v2 task
+    11.5, STU-24) through a React Query read, so the page is rendered with the
+    query client it runs under.
+  */
   function renderPage() {
-    return renderToStaticMarkup(<StudentSettings />)
+    return renderToStaticMarkup(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <StudentSettings />
+      </QueryClientProvider>
+    )
   }
 
-  it('renders an editable profile form with save button', () => {
+  it('renders an editable profile form with canonical autosave messaging', () => {
     const html = renderPage()
     const text = html.replace(/<[^>]+>/g, ' ')
     expect(text).not.toContain('Profile editing is temporarily unavailable.')
     expect(text).toContain('Review your account details')
-    expect(text).toContain('Save changes')
+    // admissions-v2 task 6.1: autosave is canonical, so the page states that
+    // changes save automatically instead of gating a manual "Save changes" button.
+    expect(text).toContain('save automatically')
   })
 
   it('renders profile form controls for editing', () => {
@@ -142,7 +154,7 @@ describe('Student settings page verification', () => {
 
     expect(html).toContain('aria-label="Full name"')
     expect(html).toContain('aria-label="Phone number"')
-    expect(html).toContain('Save changes')
+    expect(html).toContain('aria-label="Next of kin name"')
     // Account email is always disabled
     expect(html).toContain('aria-label="Account email"')
   })

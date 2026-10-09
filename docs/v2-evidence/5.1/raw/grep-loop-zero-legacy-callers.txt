@@ -1,0 +1,62 @@
+# Task 5.1 — source + telemetry: zero first-party legacy catalog-write callers
+# Captured: 2026-07-23T03:29:19Z
+# Base commit (HEAD): bae29a28d9657f288b3339062adb31285959c966
+
+## (A) Legacy write SERVICES (programService/intakeService/institutionService) — callers outside their definition
+$ rg -n "programService|intakeService|institutionService" apps/admissions/src --glob "!apps/admissions/src/services/catalog.ts"
+apps/admissions/src/data/catalog.ts:31:// (which called the frozen legacy `programService`/`intakeService` writers) were
+apps/admissions/src/services/admin/catalog.ts:29: * The retired legacy write path (`programService`/`intakeService`/
+apps/admissions/src/services/admin/catalog.ts:30: * `institutionService` in `@/services/catalog`, and the raw fee client in
+apps/admissions/src/pages/admin/Intakes.tsx:209:  // legacy `intakeService` (/catalog/intakes/) writes are retired here.
+
+## (B) Legacy catalog WRITE mutation hooks (data/catalog.ts) — callers
+$ rg -n "useCreateProgram|useUpdateProgram|useDeleteProgram|useCreateIntake|useUpdateIntake|useDeleteIntake" apps/admissions/src apps/admissions/tests
+NONE — removed in task 5.1 cleanup
+
+## (C) Direct first-party writes to legacy /catalog/{programs,intakes,institutions}/ (method POST/PATCH/PUT/DELETE)
+$ rg -n "catalog/(programs|intakes|institutions)/" apps/admissions/src -A3 | rg "method:.*(POST|PATCH|PUT|DELETE)"
+apps/admissions/src/services/admin/tenants.ts-857-        method: 'POST',
+apps/admissions/src/services/catalog.ts-707-          method: 'POST',
+apps/admissions/src/services/catalog.ts-727-          method: 'PATCH',
+apps/admissions/src/services/catalog.ts-740-        method: 'DELETE',
+apps/admissions/src/services/catalog.ts-756-          method: 'POST',
+apps/admissions/src/services/catalog.ts-774-          method: 'PATCH',
+apps/admissions/src/services/catalog.ts-787-        method: 'DELETE',
+apps/admissions/src/services/catalog.ts-803-          method: 'POST',
+apps/admissions/src/services/catalog.ts-823-          method: 'PATCH',
+apps/admissions/src/services/catalog.ts-836-        method: 'DELETE',
+
+## Classification of the (C) matches
+- apps/admissions/src/services/admin/tenants.ts:857 (POST /catalog/programs/) —
+  CANONICAL successor write. `tenantAdminService.createOffering` sends
+  `canonical_program_id` + `institution_id`; the backend `ProgramListCreateView.post`
+  treats this as the Institution_Program_Offering create (NOT deprecation-signalled).
+  This is the one allowed catalog-write transport and is consumed only by the
+  canonical `catalogAdminService`/`useCatalogAdmin` domain layer.
+- apps/admissions/src/services/catalog.ts:707..839 — the FROZEN legacy write
+  service definitions (`programService`/`intakeService`/`institutionService`).
+  After the task 5.1 cleanup they have ZERO first-party callers (see (A)/(B));
+  they are retained as frozen/measured until the Phase 12.2 removal gate.
+
+## Conclusion
+Zero first-party callers of the legacy catalog-write routes remain. The only
+remaining textual references to the legacy write services are documentation
+comments. The admin catalog pages (Programs / Intakes / ProgramFees) and the
+wizard read hooks consume the canonical domain layer exclusively.
+
+## Backend deprecation/usage telemetry wiring (R14.7)
+- apps/catalog/legacy_write_telemetry.py — record_catalog_write() (bounded,
+  PII-safe counter catalog.legacy_write / catalog.canonical_write) +
+  mark_deprecated() (RFC 8594 Deprecation + successor Link + X-Legacy-Catalog-Write)
+  + canonical_program_required_response() (stable 400 CANONICAL_PROGRAM_REQUIRED).
+- Wired in apps/catalog/views.py:
+  * ProgramListCreateView.post  — reject w/o canonical_program_id (legacy,rejected);
+    canonical create measured (canonical_write). NOT deprecated.
+  * ProgramDetailView.patch/delete — legacy, deprecation-signalled.
+  * IntakeListCreateView.post + IntakeDetailView.patch/delete — legacy, deprecated,
+    successor /api/v1/admin/intakes/.
+  * InstitutionListCreateView.post + InstitutionDetailView.patch/delete — legacy,
+    deprecated, successor /api/v1/admin/institutions/.
+- Canonical successor home added: apps/catalog/admin_intake_views.py
+  (/api/v1/admin/intakes/ + /{id}/), gated by platform.intake.manage, registered
+  in scripts/authority_matrix_registry.py (finding TEN-03) — authority-matrix gate green.

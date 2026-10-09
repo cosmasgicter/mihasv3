@@ -1,0 +1,34 @@
+Task 6.5 change set
+===================
+
+Base commit: bae29a28d9657f288b3339062adb31285959c966
+Branch: main
+Captured: 2026-07-26 04:01 UTC
+
+--- new files (6.5) ---
+backend/apps/applications/readiness_v2_views.py
+backend/apps/applications/readiness_v2_urls.py
+backend/tests/integration/test_submission_readiness_6_5.py
+apps/admissions/src/lib/submitIdempotency.ts
+apps/admissions/tests/unit/submitIdempotency.test.ts
+
+--- modified by 6.5 ---
+backend/apps/applications/readiness_service.py       (delegation knobs + blocker/declaration contract)
+backend/apps/applications/services.py                (in-lock readiness re-evaluation)
+backend/apps/applications/student_submission_views.py (declaration + optional optimistic version)
+backend/apps/common/v2/urls.py                       (mount /api/v2/student/applications/)
+scripts/authority_matrix_registry.py                 (register the readiness route)
+backend/tests/tenant_fixtures.py                     (build_subject/build_grades/build_course_requirement)
+backend/tests/unit/test_submission_revalidation.py    (seed canonical grades)
+backend/tests/unit/test_assignment_required_docs_legacy_metric.py (seed canonical grades)
+backend/tests/unit/test_application_student_flow_views.py (submit call signature)
+backend/tests/integration/test_assignment_config_failure.py (seed canonical grades)
+backend/tests/integration/test_student_journey_e2e.py (ProgramFee + grades step)
+backend/tests/property/test_admissions_canonicalization.py (locked row carries payment_status)
+apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts (stable submit key)
+backend/schema/openapi.v2.candidate.yaml              (regenerated)
+apps/admissions/src/generated/api.d.ts                (regenerated)
+docs/canonical-truth-map.md                          (readiness evaluator, endpoint, blocker codes registered)
+
+--- schema hash (sha256, backend/schema/openapi.v2.candidate.yaml) ---
+16c7408c87f369d1cdb5befaa164cfc01c15e3ed67e6c634aa74cbe5e1ff988d  backend/schema/openapi.v2.candidate.yaml

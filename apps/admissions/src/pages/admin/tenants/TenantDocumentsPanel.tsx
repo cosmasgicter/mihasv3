@@ -13,7 +13,7 @@
  * On a backend 403 the panel renders a precise authorization message and no
  * tenant data (R12.7).
  */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FilePlus2, FileText, ShieldCheck } from 'lucide-react'
 
@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { SectionCard } from '@/components/ui'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { toast } from '@/hooks/useToast'
+import { catalogService } from '@/services/catalog'
 import { tenantAdminService } from '@/services/admin/tenants'
 
 import { tenantErrorMessage } from './errors'
@@ -61,6 +62,28 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
     queryFn: () => tenantAdminService.listRequiredDocuments(institutionId),
     enabled: Boolean(institutionId) && canRead,
   })
+
+  // Scoped selector sources (TEN-05). Only fetched for an actor who can write:
+  // a read-only view renders no form, so it needs no option lists.
+  const offeringsQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'offerings', institutionId],
+    queryFn: () => tenantAdminService.listOfferings(institutionId),
+    enabled: Boolean(institutionId) && canManage,
+  })
+  const canonicalQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'canonical-programs'],
+    queryFn: () => catalogService.getCanonicalPrograms(),
+    enabled: canManage,
+  })
+
+  const offerings = useMemo(
+    () => [...(offeringsQuery.data || [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [offeringsQuery.data],
+  )
+  const canonicalPrograms = useMemo(
+    () => [...(canonicalQuery.data?.programs || [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [canonicalQuery.data?.programs],
+  )
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] })
@@ -153,23 +176,54 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
                 aria-label="Required document label"
               />
             </label>
+            {/*
+              Scoped selectors, not raw UUID entry (task 11.4, TEN-05, R6.3).
+              Both fields were `<Input placeholder="Optional UUID">`, so scoping a
+              required document to an offering or to a canonical programme meant
+              finding the identifier somewhere else and pasting it — and a typo
+              produced either a silent no-op or a 400 with nothing to correct.
+
+              This is task 4.3's selector, not a second one: an accessible,
+              tenant-scoped `<select>` populated from a scoped list
+              (`listOfferings` for this school's own offerings, the platform
+              canonical catalogue for canonical programmes), with the canonical id
+              as the option value.
+            */}
             <label className="space-y-1.5 text-sm">
-              <span className="font-medium text-foreground">Offering ID</span>
-              <Input
+              <span className="font-medium text-foreground">Offering</span>
+              <select
                 value={form.program_id}
                 onChange={(event) => setForm((prev) => ({ ...prev, program_id: event.target.value }))}
-                placeholder="Optional UUID"
-                aria-label="Program offering ID"
-              />
+                className={TENANT_SELECT_CLASS}
+                aria-label="Program offering"
+                disabled={offeringsQuery.isLoading}
+              >
+                <option value="">Any offering</option>
+                {offerings.map((offering) => (
+                  <option key={offering.id} value={offering.id}>
+                    {offering.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="font-medium text-foreground">Canonical program ID</span>
-              <Input
+              <span className="font-medium text-foreground">Canonical program</span>
+              <select
                 value={form.canonical_program_id}
-                onChange={(event) => setForm((prev) => ({ ...prev, canonical_program_id: event.target.value }))}
-                placeholder="Optional UUID"
-                aria-label="Canonical program ID"
-              />
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, canonical_program_id: event.target.value }))
+                }
+                className={TENANT_SELECT_CLASS}
+                aria-label="Canonical program"
+                disabled={canonicalQuery.isLoading}
+              >
+                <option value="">Any canonical program</option>
+                {canonicalPrograms.map((program) => (
+                  <option key={program.id} value={program.id}>
+                    {program.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <div className="flex justify-end sm:col-span-2">
               <Button type="submit" loading={createMutation.isPending} className="w-full sm:w-auto">

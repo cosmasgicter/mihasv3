@@ -106,7 +106,13 @@ a few minutes of downtime). Run from the box (it has outbound internet):
 cd ~/mihas
 
 # 3a. Dump from Neon (use your Neon connection string).
-docker run --rm postgres:16-alpine \
+# The client MUST be >= the server. Neon and the production container both run
+# PostgreSQL 17, and pg_dump refuses a newer server outright:
+#   pg_dump: error: aborting because of server version mismatch
+#   pg_dump: detail: server version: 17.10; pg_dump version: 16.14
+# Measured in docs/v2-evidence/13.4/README.md §8.1 (GATE-13.4-03): the 16 client
+# exits 1 with 0 bytes written; the 17 client exits 0. Do not downgrade this tag.
+docker run --rm postgres:17-alpine \
   pg_dump --no-owner --no-privileges --format=custom \
   "postgresql://<neon-user>:<neon-pass>@<neon-host>/<neon-db>?sslmode=require" \
   > neon-dump.pgcustom

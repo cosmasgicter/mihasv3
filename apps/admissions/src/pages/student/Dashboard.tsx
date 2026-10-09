@@ -1,23 +1,45 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo, useReducer } from 'react'
+/**
+ * The student dashboard, composed around the next required action
+ * (admissions-v2 task 11.1).
+ *
+ * Requirements: R13.1, R16.1, R16.4-R16.8. Findings: STU-04, STU-12, MAINT-02.
+ *
+ * The order on the page is the order of the student's obligations: what the
+ * platform says they must do, then the draft they can finish, then the
+ * applications the school holds. Nothing above the next action, and no number the
+ * student cannot act on.
+ *
+ * What this page stopped doing:
+ *
+ * - **deciding the next action itself.** It derived one from three browser
+ *   booleans (a draft exists, a payment looks unpaid, an interview is scheduled)
+ *   and rendered the result as the page's headline. It now renders task 6.5's
+ *   readiness and task 10.3's enrollment readiness — the same evaluations the
+ *   submit and confirm commands re-run under their row locks.
+ * - **the three-metric header.** "Submitted applications", "Profile completion",
+ *   "Action needed" occupied the first viewport above the action, and two of the
+ *   three were counts of things (R16.5's "redundant metrics", MAINT-02).
+ * - **`DashboardStatusOverview`.** Four more metric tiles, a "Latest Application
+ *   Status" card duplicating the row beneath it, and a payment alert duplicating
+ *   the payment action. §3 of the evidence walks each.
+ * - **clearing every draft.** `executeClearAllDrafts` deleted all of them at once;
+ *   deletion is now per-draft in `DraftManagementCard` (STU-12, task 6.3).
+ */
+import { useCallback, useEffect, useRef, useState, useMemo, useReducer } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, ApplicationInterview } from '@/types/database'
 import { interviewsService } from '@/services/interviews'
 import { Button } from '@/components/ui/Button'
-import { ContinueApplication } from '@/components/application/ContinueApplication'
 import { sanitizeForLog, sanitizeForDisplay } from '@/lib/sanitize'
-import { getUserMetadata, getBestValue, calculateProfileCompletion, getProfileMissingFields } from '@/hooks/useProfileAutoPopulation'
-import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
-import { clearAllDraftData } from '@/lib/draftManager'
+import { getUserMetadata, getBestValue } from '@/hooks/useProfileAutoPopulation'
+import { clearWizardDraftCache } from '@/lib/draftLocalCache'
 import { applicationService, sortApplicationsByActivity } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
-import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
 import { RefreshCw } from 'lucide-react'
 
 import { useToastStore } from '@/hooks/useToast'
-import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
-import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Banner } from '@/components/ui/Banner'
 import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
@@ -26,8 +48,9 @@ import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/u
 import { StaggerContainer, StaggerItem } from '@/components/motion/stagger'
 import { getDisplayName } from '@/lib/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
 import { applicationSessionManager } from '@/lib/applicationSession'
-import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { useDraftRevision } from '@/stores/draftStore'
 
@@ -41,10 +64,12 @@ import {
   dashboardReducer, initialDashboardState,
   suppressDeletedDraftIds, filterSuppressedDrafts,
   removeDraftsFromApplicationCaches, clearSuppressionTimers,
-  executeClearAllDrafts,
 } from './lib/dashboardReducer'
-import { NextActionCard } from '@/components/student/dashboard/NextActionCard'
+import { NextActionPanel } from '@/components/student/dashboard/NextActionPanel'
+import { DraftManagementCard } from '@/components/student/dashboard/DraftManagementCard'
 import { ApplicationsGrid } from '@/components/student/dashboard/ApplicationsGrid'
+import { useStudentNextAction } from '@/hooks/useStudentNextAction'
+import { studentApplicationNewPath } from '@/routes/routeRegistry'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -59,6 +84,7 @@ function is403Error(error: unknown): boolean {
 
 export default function StudentDashboard() {
   const { user } = useAuth()
+  const { brandName } = usePortalBrand()
   const { profile } = useProfileQuery()
   const queryClient = useQueryClient()
   const draftRevision = useDraftRevision()
@@ -70,7 +96,7 @@ export default function StudentDashboard() {
     applications, intakes, scheduledInterviews,
     isInitialLoading, isRefreshing,
     applicationsError, intakesError, interviewsError, sessionError,
-    hasDraft, isClearingAllDrafts,
+    hasDraft,
   } = state
 
   // This useState MUST remain for source-level test assertion compatibility
@@ -82,7 +108,6 @@ export default function StudentDashboard() {
   const loadDashboardDataRef = useRef<() => Promise<void>>(async () => {})
   const initialLoadCompleteRef = useRef(false)
   const scheduledRefreshRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const confirmDialog = useConfirmDialog()
 
   const applyDeletedDraftRemoval = useCallback((ids: string[]) => {
     const cleanIds = ids.filter((id) => typeof id === 'string' && id.length > 0)
@@ -265,7 +290,13 @@ export default function StudentDashboard() {
         if (localDraft?.applicationId) {
           const matchingApplication = loadedApplications.find(a => a.id === localDraft.applicationId)
           if (matchingApplication && matchingApplication.status !== 'draft') {
-            clearAllDraftData()
+            // R10.10: the local snapshot for this one application is stale (its
+            // server record is no longer a draft). Clear only that application's
+            // cache — never another draft or any payment-recovery record.
+            clearWizardDraftCache({
+              userId: user?.id ?? null,
+              applicationId: String(localDraft.applicationId),
+            })
             dispatch({ type: 'SET_HAS_DRAFT', payload: false })
           }
         }
@@ -319,111 +350,109 @@ export default function StudentDashboard() {
 
   const metadata = getUserMetadata(user)
 
-  const { profileCompletion, profileMissingFields, firstName } = useMemo(() => {
-    const completion = calculateProfileCompletion(profile, metadata)
-    const missing = getProfileMissingFields(profile, metadata)
+  const firstName = useMemo(() => {
     const name = sanitizeForDisplay(getDisplayName(profile, {
       ...user,
       full_name: getBestValue(user?.full_name, metadata.full_name),
     }))
-    return { profileCompletion: completion, profileMissingFields: missing, firstName: name?.split(' ')[0] || 'Student' }
+    return name?.split(' ')[0] || 'Student'
   }, [profile, metadata, user])
 
-  const { submittedApplications, totalDraftCount, hasPendingPayment, latestDraftId } = useMemo(() => {
-    const draftApps = applications.filter(app => app.status === 'draft')
-    const submittedApps = sortApplicationsByActivity(applications.filter(app => app.status !== 'draft'))
-    const latestDraft = sortApplicationsByActivity(draftApps)[0]
-    const hasLocalOnly = hasDraft && draftApps.length === 0
-    const draftCount = draftApps.length + (hasLocalOnly ? 1 : 0)
-    const pendingPayment = applications.some(app => requiresStudentPaymentAction(app.payment_status))
-    return { submittedApplications: submittedApps, totalDraftCount: draftCount, hasPendingPayment: pendingPayment, latestDraftId: latestDraft?.id ?? null }
+  const { draftApplications, submittedApplications, hasLocalOnlyDraft } = useMemo(() => {
+    const drafts = sortApplicationsByActivity(applications.filter(app => app.status === 'draft'))
+    const submitted = sortApplicationsByActivity(applications.filter(app => app.status !== 'draft'))
+    return {
+      draftApplications: drafts,
+      submittedApplications: submitted,
+      hasLocalOnlyDraft: hasDraft && drafts.length === 0,
+    }
   }, [applications, hasDraft])
 
-  const hasScheduledInterview = scheduledInterviews.length > 0
+  /**
+   * The order the next-action subject is selected from: the draft the student is
+   * working on, then their most recently active application. Both halves of the
+   * list are already in activity order.
+   */
+  const nextActionCandidates = useMemo(
+    () => [...draftApplications, ...submittedApplications],
+    [draftApplications, submittedApplications],
+  )
 
-  const handleClearAllDrafts = useCallback(async () => {
-    const confirmed = await confirmDialog.confirm({
-      title: 'Clear All Drafts',
-      message: 'All draft applications will be permanently deleted.',
-      confirmText: 'Clear All',
-      variant: 'danger'
-    })
-    if (!confirmed) return
-    if (!user) return
-    await executeClearAllDrafts({
-      userId: user.id,
-      applications,
-      dispatch,
-      queryClient,
-      reload: loadDashboardDataRef.current,
-    })
-  }, [user, applications, confirmDialog, queryClient])
+  const { nextAction, isLoading: nextActionLoading, readinessUnavailable } = useStudentNextAction(
+    nextActionCandidates,
+    { enabled: !isInitialLoading },
+  )
+
+  const handleDraftDeleted = useCallback((applicationId: string) => {
+    applyDeletedDraftRemoval([applicationId])
+    scheduleDashboardReload()
+  }, [applyDeletedDraftRemoval, scheduleDashboardReload])
 
   return (
     <>
       <Seo
-        title="Student Dashboard | Beanola Admissions"
-        description="View your Beanola application progress, pending actions, interview updates, and key admission milestones."
+        title={brandedPageTitle('Student Dashboard', brandName)}
+        description="View your application progress, pending actions, interview updates, and key admission milestones."
         path="/student/dashboard"
+        siteName={brandName}
         noindex
       />
+    {/*
+      No header `actions` (GATE-13.3-16, 13.6 §8.1 item L6; R13.1, R16.1, R16.3,
+      R16.5).
+
+      `PageShell` renders `actions` *between* the page title and the children, and
+      below `md` it stacks them on their own row — so the Refresh control cost
+      **60 px** (a 16 px gap plus a 44 px full-width button) directly above the
+      student's next action at 320 px. Task 13.3 measured the consequence by
+      *looking at a screenshot* after every number in its own report had passed: the
+      primary action spanned 457.159-525.159 in a 568 px viewport while the fixed
+      bottom navigation starts at 507, so **18.159 px — 26.70 % of the control, and
+      the second line of its own label — sat behind the bar** (30.21 % on Pixel 5).
+      The centre-point hit test was right that it was tappable; R16.3's clause is
+      *"SHALL not overlap, obscure, or compete"*, which is a question about the box.
+
+      Trimming padding would have bought the ~19 px needed and would have been
+      re-broken by the next slightly longer server label. This is the ordering rule
+      the requirement already states: R16.5 puts passive controls *after* the next
+      required action, and a Refresh button is not the student's next action. It is
+      now the first control below the panel — same page, same behaviour, one tap
+      away, and no longer between the student and what they came to do.
+
+      Measured after the change: the action clears the bar with room to spare, and
+      the screenshots in this batch's evidence directory were reviewed by eye as
+      well as by assertion, because that is how this finding was found.
+    */}
     <PageShell
       title={`Welcome back, ${firstName}`}
-      eyebrow="Student Workspace"
-      subtitle="Your next required action, application status, documents, payments, and interviews are kept in one workspace."
-      maxWidth="7xl"
+      maxWidth="4xl"
       tone="student"
-      metrics={[
-        {
-          label: 'Submitted applications',
-          value: submittedApplications.length,
-          helper: totalDraftCount > 0 ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} still in progress` : 'No draft currently waiting',
-        },
-        {
-          label: 'Profile completion',
-          value: `${profileCompletion}%`,
-          helper: profileMissingFields.length > 0 ? `${profileMissingFields.length} details still missing` : 'Profile ready for support workflows',
-        },
-        {
-          label: 'Action needed',
-          value: (() => {
-            const count = (hasPendingPayment ? 1 : 0) + (hasScheduledInterview ? scheduledInterviews.length : 0)
-            return count > 0 ? `${count} item${count > 1 ? 's' : ''}` : 'Clear'
-          })(),
-          helper: hasPendingPayment && hasScheduledInterview
-            ? 'Payment and interview need attention'
-            : hasPendingPayment
-              ? 'Application fee needs attention'
-              : hasScheduledInterview
-                ? 'Upcoming interview activity'
-                : 'No outstanding actions right now',
-        },
-      ]}
-      actions={
-        <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => forceRefresh()}
-            disabled={isRefreshing || isManualRefreshing}
-            className="min-h-11 flex-1 gap-2 sm:flex-none"
-            loading={isRefreshing || isManualRefreshing}
-          >
-            {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" />}
-            {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
-          </Button>
-          <div className="hidden sm:block">
-            <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
-          </div>
-        </div>
-      }
     >
         {isInitialLoading ? (
           <DashboardSkeleton />
         ) : (
-          <StaggerContainer className="space-y-6 sm:space-y-8">
+          <div className="relative">
+            {/*
+              The refresh indicator is out of flow (GATE-13.3-07, 13.6 §8.1 item L6;
+              R16.7).
+
+              It used to be the first child of the `space-y-6` stack, so every time
+              polling started or finished it inserted and removed ~28 px (a 4 px bar
+              plus a 24 px gap) at the top of the page and moved everything below —
+              and polling is enabled the moment the initial load completes, which is
+              the same ~600 ms window task 13.3's CLS entries land in. Absolutely
+              positioned it cannot contribute to layout shift at all, and the bar
+              still appears in the same place.
+
+              `role="status" aria-live="polite"` and the `sr-only` sentence are
+              unchanged, so the announcement a screen-reader user gets is the same.
+            */}
             {isRefreshing && (
-              <div className="overflow-hidden rounded-full" role="status" aria-live="polite">
+              <div
+                className="pointer-events-none absolute inset-x-0 -top-2 z-10 overflow-hidden rounded-full"
+                role="status"
+                aria-live="polite"
+              >
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
                   <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-primary/40" />
                 </div>
@@ -431,24 +460,59 @@ export default function StudentDashboard() {
               </div>
             )}
 
+            <StaggerContainer className="space-y-6 sm:space-y-8">
             {sessionError && <Banner variant="error">{sessionError}</Banner>}
 
+            {/*
+              R13.1: the next required action, before anything passive. Its content
+              is the platform's (task 6.5's readiness blockers and allowed next
+              actions, task 10.3's enrollment readiness), never derived here.
+            */}
             <StaggerItem>
-            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCards', ...errorInfo })}>
-              <NextActionCard
-                totalDraftCount={totalDraftCount}
-                hasPendingPayment={hasPendingPayment}
-                hasScheduledInterview={hasScheduledInterview}
-                scheduledInterviewsCount={scheduledInterviews.length}
-                submittedCount={submittedApplications.length}
-                latestDraftId={latestDraftId}
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionPanel', ...errorInfo })}>
+              <NextActionPanel
+                nextAction={nextAction}
+                isLoading={nextActionLoading}
+                readinessUnavailable={readinessUnavailable}
+                applicationCount={applications.length}
+                onRetry={() => { void loadDashboardData() }}
+                startApplicationHref={studentApplicationNewPath()}
               />
             </ErrorBoundary>
             </StaggerItem>
 
+            {/*
+              Refresh, after the action rather than above it — see the block comment
+              on `PageShell` above (GATE-13.3-16). `w-auto` at every width: a
+              full-width utility button reads as a primary action, which is the
+              competition R16.3 forbids.
+            */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => forceRefresh()}
+                disabled={isRefreshing || isManualRefreshing}
+                className="min-h-touch w-auto gap-2"
+                loading={isRefreshing || isManualRefreshing}
+              >
+                {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" aria-hidden="true" />}
+                {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            </div>
+
+            {/*
+              Scoped draft management (STU-12, task 6.3): one row per draft, and
+              deletion addresses that one application. There is no clear-all.
+            */}
             <StaggerItem>
-            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ContinueApplication', ...errorInfo })}>
-            <ContinueApplication />
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.DraftManagement', ...errorInfo })}>
+              <DraftManagementCard
+                drafts={draftApplications}
+                hasLocalOnlyDraft={hasLocalOnlyDraft}
+                userId={user?.id}
+                onDeleted={handleDraftDeleted}
+              />
             </ErrorBoundary>
             </StaggerItem>
 
@@ -456,41 +520,21 @@ export default function StudentDashboard() {
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ApplicationsGrid', ...errorInfo })}>
               <ApplicationsGrid
                 submittedApplications={submittedApplications}
-                applications={applications}
                 intakes={intakes}
                 applicationsError={applicationsError}
                 intakesError={intakesError}
                 interviewsError={interviewsError}
-                totalDraftCount={totalDraftCount}
-                hasPendingPayment={hasPendingPayment}
-                hasScheduledInterview={hasScheduledInterview}
-                isClearingAllDrafts={isClearingAllDrafts}
+                hasDraft={draftApplications.length > 0 || hasLocalOnlyDraft}
                 profile={profile}
                 user={user}
                 metadata={metadata}
                 onRetry={() => loadDashboardData()}
-                onClearAllDrafts={handleClearAllDrafts}
               />
             </ErrorBoundary>
             </StaggerItem>
-
-            <StaggerItem>
-            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.StatusOverview', ...errorInfo })}>
-            <DashboardStatusOverview applications={applications} />
-            </ErrorBoundary>
-            </StaggerItem>
-          </StaggerContainer>
+            </StaggerContainer>
+          </div>
         )}
-      <ConfirmAlertDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={confirmDialog.handleCancel}
-        onConfirm={confirmDialog.handleConfirm}
-        title={confirmDialog.options.title}
-        message={confirmDialog.options.message}
-        confirmText={confirmDialog.options.confirmText}
-        cancelText={confirmDialog.options.cancelText}
-        variant={confirmDialog.options.variant}
-      />
     </PageShell>
     </>
   );

@@ -1,0 +1,41 @@
+]633;E;echo "### $(date -u +%FT%TZ) M1 rehearsal target - v2_snap_13_6 on Neon br-jolly-pine-ahybtg2e";ff3ef8b6-de9e-40ec-9183-9d256fec5bdc]633;C### 2026-08-15T07:23:37Z M1 rehearsal target - v2_snap_13_6 on Neon br-jolly-pine-ahybtg2e
+# READ-ONLY session: SET default_transaction_read_only = on is the first statement.
+# branch REUSED, not created (the project is at its branch cap: create_branch -> 422).
+# v2_snap_13_4 / v2_fresh_13_4 / v2_batch_13_4 and the Neon default branch are NOT touched.
+SET
+      db      | schema |                                                         pg                                                         
+--------------+--------+--------------------------------------------------------------------------------------------------------------------
+ v2_snap_13_6 | public | PostgreSQL 17.10 (29ad1b7) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit
+(1 row)
+
+ migration_history_rows 
+------------------------
+                     76
+(1 row)
+
+ base_tables 
+-------------
+          80
+(1 row)
+
+--- the three snapshot columns and their canonical sources ---
+           col            | width 
+--------------------------+-------
+ applications.institution |   255
+ applications.intake      |   100
+ applications.program     |   255
+ institutions.name        |   255
+ intakes.name             |   255
+ programs.name            |   255
+(6 rows)
+
+--- is 2026_08_15_01 already recorded? (expect no) ---
+                       migration_name                       
+------------------------------------------------------------
+ 2026_08_12_01_tenant_new_table_fk_validate.sql
+ 2026_08_13_01_widen_application_snapshot_columns.sql
+ 2026_08_14_01_neutral_platform_communication_templates.sql
+(3 rows)
+
+psql exit=0
+### 2026-08-15T07:23:43Z done

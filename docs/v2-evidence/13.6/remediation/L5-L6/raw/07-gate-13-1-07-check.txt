@@ -1,0 +1,30 @@
+]633;E;echo "=== GATE-13.1-07 check — 13.6 remediation L5-L6, FINAL (after all runs) ===";a1a74d09-4345-4f69-a7f7-32ff8d125d0d]633;C=== GATE-13.1-07 check — 13.6 remediation L5-L6, FINAL (after all runs) ===
+recorded: 2026-08-14T04:32:01Z
+
+--- docs/v2-evidence/0.4/playwright-report.json (13.3 recorded 85799ced… / 3951 bytes) ---
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+   3951 bytes  mtime 2026-08-12 06:05:02.078137261 +0200
+0.4 files: 5
+
+--- docs/v2-evidence/11.1 .. 11.5 (13.3 recorded 7/10/10/16/20 screenshots) ---
+11.1: screenshots=7  newest mtime=2026-08-12 05:56
+11.2: screenshots=10  newest mtime=2026-08-12 05:58
+11.3: screenshots=10  newest mtime=2026-08-12 05:57
+11.4: screenshots=16  newest mtime=2026-08-12 05:50
+11.5: screenshots=20  newest mtime=2026-08-12 05:52
+
+--- docs/v2-evidence/13.3 (the task whose four specs this batch re-ran) ---
+f27ad71c47d02c5ab4926e0434e0cfc92531f37a6ee4ee2a17239276db380275  docs/v2-evidence/13.3/raw/measurements-chromium-13-3.jsonl
+7c07f6f724900982bb071a64e7f7aedee00d631015ff5690f9e1eb6866f4ce7e  docs/v2-evidence/13.3/raw/measurements-mobile-13-3.jsonl
+2e29cf8053bf0d8bfb3af9ba929f6f03410f127b37d37b98cecb333f4d77aa2a  docs/v2-evidence/13.3/raw/playwright-report.json
+6bcb182369134c1ce924019705de316df1f3682a081090b17dd4c4efc7c21d29  docs/v2-evidence/13.3/raw/pixel-matrix.txt
+13.3 files: 296
+
+--- docs/v2-evidence/2.2/authority-conformance-summary.json (13.3 recorded db5f2873…) ---
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+
+--- EVERY file under docs/v2-evidence modified since this batch began, outside its own directory ---
+(no paths listed above => only this batch's own directory was written)
+
+--- and nothing was created outside docs/ by the evidence-path bug ---
+apps/docs absent (the misplaced tree from run 1 was moved into run-1/ and removed)

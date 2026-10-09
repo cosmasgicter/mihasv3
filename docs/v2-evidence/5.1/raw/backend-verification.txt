@@ -1,0 +1,16 @@
+# Task 5.1 backend verification — captured 2026-07-23T03:30:02Z
+# venv: backend/.venv (python Python 3.14.4)
+
+$ python -m pytest tests/unit/test_catalog_write_freeze.py -q
+tests/unit/test_catalog_write_freeze.py::TestLegacyCatalogWriteDeprecationHeaders::test_legacy_intake_create_is_deprecation_signalled
+tests/unit/test_catalog_write_freeze.py::TestAdminIntakeCanonicalHome::test_super_admin_can_create_list_update_deactivate
+tests/unit/test_catalog_write_freeze.py::TestAdminIntakeCanonicalHome::test_student_is_denied_intake_management
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+12 passed, 6 warnings in 2.62s
+
+$ python -m pytest tests/unit/test_authority_matrix_v2.py -q # authority-matrix gate
+................                                                         [100%]
+16 passed in 4.41s

@@ -1,0 +1,22 @@
+# L8 baseline — the artifacts a defaulted run currently clobbers
+# taken 2026-08-14T08:50:41Z
+
+## sha256 + size + mtime
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+3951 bytes  mtime=2026-08-12 06:05:02.078137261 +0200  docs/v2-evidence/0.4/playwright-report.json
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+13367 bytes  mtime=2026-08-14 08:59:26.001535080 +0200  docs/v2-evidence/2.2/authority-conformance-summary.json
+
+## 11.1-11.5 screenshot counts + newest mtime
+11.1: 7 screenshots, newest 2026-08-12 05:56
+11.2: 10 screenshots, newest 2026-08-12 05:58
+11.3: 10 screenshots, newest 2026-08-12 05:57
+11.4: 16 screenshots, newest 2026-08-12 05:50
+11.5: 20 screenshots, newest 2026-08-12 05:52
+
+## 11.1-11.5 aggregate manifest hash (sha256 of the sorted per-file sha256 list)
+11.1 manifest=941a951d9967fc407907fe76d36f0df3e677138c9ae0d653b6db2db4b5364f45
+11.2 manifest=aaf46cea5240d34ea75fec0ca3c942f06ffe5282313208e65ad837d1c440f9d8
+11.3 manifest=a97b720d34547ebc52e97277b6f1965c94f7089a7c2fbbfe32cb56ba63becade
+11.4 manifest=93ba90ce0aeacd7dc1bc731a3da3ec3c633136b3c47b6ae1fe99eba023ca3063
+11.5 manifest=13750a95f06bc54aea669f443aaa864e621744f4b50bb74ff9d538292135a4a5

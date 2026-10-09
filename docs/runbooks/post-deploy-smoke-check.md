@@ -163,6 +163,103 @@ sandbox — it fails closed). This per-gate artifact is what the overall
 launch-verification rollup aggregates to decide
 `production-launch-ready` vs `not-production-launch-ready`.
 
+## Production verification commands (self-hosted EC2 Docker stack)
+
+> Source of truth: `.kiro/steering/infrastructure.md`. These are the
+> **real, read-only** commands for the current production topology — single
+> AWS EC2 box (`ec2-13-244-37-190.af-south-1.compute.amazonaws.com`), Docker
+> Compose stack defined by `deploy/docker-compose.prod.yml`, containers
+> `mihas-caddy-1` / `mihas-web-1` / `mihas-beat-1` / `mihas-celery-1` /
+> `mihas-redis-1` / `mihas-postgres-1`. Production is **not** Koyeb, Neon, or
+> Vercel — Neon remains the dev/authoring database only. All commands below
+> are run from `~/mihas` on the box after SSHing in with the `.pem` key
+> (see `infrastructure.md` → "Logging in to the production EC2 box"); none
+> of them mutate data. **This runbook documents the commands — it does not
+> assert they were executed in this editing pass; no live command was run
+> against the production box while writing this section.**
+
+### 1. Container health
+
+```bash
+cd ~/mihas
+docker compose -f docker-compose.prod.yml ps
+```
+
+Expect all six containers (`caddy`, `web`, `beat`, `celery`, `redis`,
+`postgres`) in a healthy/running state with no restart loops. A container
+stuck in a restart loop after a deploy is the first signal to check logs
+(`docker compose -f docker-compose.prod.yml logs --tail=200 <service>`)
+before doing anything else.
+
+### 2. Migration dry-run (before assuming SQL migrations are safe to apply)
+
+```bash
+docker compose -f docker-compose.prod.yml exec web \
+  python manage.py apply_sql_migrations --dry-run
+```
+
+Runs the same forward-migration sweep the container's boot sequence runs
+(`apply_sql_migrations && seed_subjects && check_schema_drift && uvicorn ...`,
+documented above), but in dry-run mode — it reports which top-level
+`backend/scripts/*.sql` files are pending against `migration_history` without
+applying them. Use this to confirm there is nothing unexpectedly pending
+before a deploy, or to confirm a just-applied migration is now recorded.
+
+### 3. Tenant-invariant read-only SQL (per `infrastructure.md`)
+
+Confirms the core tenant-authority tables are non-empty and internally
+consistent without touching any row:
+
+```bash
+docker compose -f docker-compose.prod.yml exec postgres bash -lc \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -x -c \
+   "SELECT (SELECT count(*) FROM canonical_programs) canonical_programs,
+           (SELECT count(*) FROM institutions WHERE is_active) institutions_active,
+           (SELECT count(*) FROM user_institution_memberships WHERE is_active) memberships;"'
+```
+
+A healthy production database returns non-zero counts for all three columns.
+A zero `canonical_programs` or `institutions_active` count post-deploy is a
+strong signal of a bad migration or a restored-from-empty database — stop and
+investigate before letting traffic continue.
+
+Companion check — confirm which migrations are recorded (useful right after
+the dry-run above, or to confirm a specific migration landed):
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
+   "SELECT migration_name FROM migration_history ORDER BY 1;"'
+```
+
+### 4. Health endpoint probes
+
+The shell smoke script (`scripts/smoke-production.sh`, above) already probes
+these over HTTPS from outside the box. The equivalent direct checks, run
+either from the box or externally:
+
+```bash
+curl -fsS -o /dev/null -w '%{http_code}\n' https://api.beanola.com/health/live/
+curl -fsS -o /dev/null -w '%{http_code}\n' https://api.beanola.com/health/ready/
+```
+
+Both must return `200`. `/health/live/` is the lightweight liveness probe
+(also the target of the `keep_alive_task` Celery Beat job, every 4 minutes,
+and the external UptimeRobot monitor). `/health/ready/` is the deeper
+readiness probe (DB + Redis connectivity) — the target of the internal
+`check_uptime_task` (every 15 minutes) and what a healthy post-deploy state
+must return before declaring the rollout safe.
+
+### When to use this section vs the sections above
+
+- Use **this section** for infrastructure-level confirmation on the actual
+  production box (containers, migrations, DB invariants, health endpoints).
+- Use the **Post-deploy smoke script** and **Extended staging smoke** sections
+  above for application-behavior regression coverage (schema-drift endpoints,
+  frontend/backend HTTP reachability from outside the network).
+- Use **Manual critical checks** below for the end-to-end student/admin UX
+  walkthrough that no automated script currently covers.
+
 ## Manual critical checks
 
 After the script passes, verify:
@@ -196,3 +293,5 @@ After the script passes, verify:
 - [database-backup-restore.md](database-backup-restore.md) — DB recovery
 - [schema-reconciliation-runbook.md](schema-reconciliation-runbook.md) — SQL migration and drift workflow
 - [multi-tenant-beanola-rollout.md](multi-tenant-beanola-rollout.md) — tenant rollout checks
+- `.kiro/steering/infrastructure.md` — source of truth for the EC2 Docker topology, SSH access, and the tenant-invariant SQL pattern used above
+- [multi-tenant-operations.md](multi-tenant-operations.md) §5 "Production Migration Verification" and §9 "Celery, Redis, And Postgres Health" — the broader operator runbook these commands are drawn from

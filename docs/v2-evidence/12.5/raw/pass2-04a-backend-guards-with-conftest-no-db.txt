@@ -1,0 +1,18 @@
+=== COMMAND: python3 -m pytest tests/unit/test_brand_drift_guard.py tests/unit/test_canonical_tenant_drift_guard.py tests/unit/test_compatibility_surfaces_12_2.py tests/property/test_launch_verification_brand.py (WITH conftest, no DB env) ===
+=== STATE: AFTER pass 2 — recorded to show WHY --noconftest is used (same as the aborted pass's pass2-04a) ===
+=== DATE: 2026-10-09T03:42:33Z ===
+=== Without --noconftest, tests/conftest.py's session-autouse DB-provisioning fixture tries to connect; these four files are pure file I/O and need no DB. ===
+
+ERROR tests/unit/test_compatibility_surfaces_12_2.py::test_shim_removal_condition_is_evaluated_and_can_only_shrink[apps.catalog.admin_views]
+ERROR tests/unit/test_compatibility_surfaces_12_2.py::test_shim_removal_condition_is_evaluated_and_can_only_shrink[apps.catalog.views]
+ERROR tests/unit/test_compatibility_surfaces_12_2.py::test_shim_removal_condition_is_evaluated_and_can_only_shrink[apps.documents.views]
+ERROR tests/unit/test_compatibility_surfaces_12_2.py::test_frontend_register_windows_match_the_canonical_register[apps/admissions/tests/unit/architectureEnforcement.test.ts-LEGACY_EXCEPTION_REMOVE_BY]
+ERROR tests/unit/test_compatibility_surfaces_12_2.py::test_frontend_register_windows_match_the_canonical_register[apps/admissions/tests/unit/documentFlowDriftGuard.test.ts-PREVIEW_ALLOWLIST_REMOVE_BY]
+ERROR tests/property/test_launch_verification_brand.py::TestProperty10BrandScanPassesIffNoOutsideLeak::test_passes_iff_every_leak_path_is_allowlisted
+ERROR tests/property/test_launch_verification_brand.py::TestProperty10BrandScanPassesIffNoOutsideLeak::test_empty_allowlist_passes_iff_no_leaks
+ERROR tests/property/test_launch_verification_brand.py::TestProperty10BrandScanPassesIffNoOutsideLeak::test_pathless_leak_can_never_be_allowlisted
+ERROR tests/property/test_launch_verification_brand.py::TestProperty11AllowlistValidIff::test_entry_valid_iff_all_three_conditions_hold
+ERROR tests/property/test_launch_verification_brand.py::TestProperty11AllowlistValidIff::test_staleness_iff_file_missing_or_no_live_pattern
+ERROR tests/property/test_launch_verification_brand.py::TestProperty11AllowlistValidIff::test_validate_allowlist_rolls_up_per_entry_decisions
+1 warning, 30 errors in 0.92s
+=== EXIT: 1 ===

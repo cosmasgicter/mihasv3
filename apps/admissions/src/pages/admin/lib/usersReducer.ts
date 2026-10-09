@@ -1,4 +1,5 @@
 import type { UserProfile } from '@/types/database'
+import type { UserDirectoryQuery } from '@/services/admin/userDirectory'
 
 // ── Slice: Dialogs ────────────────────────────────────────────────────
 export interface DialogsSlice {
@@ -16,10 +17,29 @@ export interface DialogsSlice {
 }
 
 // ── Slice: Filters ────────────────────────────────────────────────────
+//
+// Rebuilt by admissions-v2 task 9.3 (R6.1, finding ADM-03). These are no longer
+// browser-side view controls applied to one fetched page — they are the *server
+// query*, and `toDirectoryQuery` below is the only place they become request
+// parameters. `sortField` holds a registered backend sort key
+// (`user_directory_service.SORT_FIELDS`), not a UI-invented name, so a sort an
+// operator picks and a sort a URL carries are the same thing.
+export type UserSortField =
+  | 'display_name'
+  | 'email'
+  | 'role'
+  | 'created_at'
+  | 'is_active'
+
 export interface FiltersSlice {
   searchTerm: string
   roleFilter: string
-  sortField: 'name' | 'role' | 'email' | 'created'
+  /** null = the default (enabled only); false = deactivated only. */
+  activeFilter: boolean | null
+  /** null = any; true/false narrows to accounts with/without a membership. */
+  membershipFilter: boolean | null
+  institutionId: string
+  sortField: UserSortField
   sortDirection: 'asc' | 'desc'
   currentPage: number
 }
@@ -54,8 +74,11 @@ export const initialUsersState: UsersState = {
   filters: {
     searchTerm: '',
     roleFilter: '',
-    sortField: 'name',
-    sortDirection: 'asc',
+    activeFilter: null,
+    membershipFilter: null,
+    institutionId: '',
+    sortField: 'created_at',
+    sortDirection: 'desc',
     currentPage: 1,
   },
   selection: {
@@ -86,6 +109,9 @@ export type UsersAction =
   // Filters
   | { type: 'SET_SEARCH'; payload: string }
   | { type: 'SET_ROLE_FILTER'; payload: string }
+  | { type: 'SET_ACTIVE_FILTER'; payload: boolean | null }
+  | { type: 'SET_MEMBERSHIP_FILTER'; payload: boolean | null }
+  | { type: 'SET_INSTITUTION_FILTER'; payload: string }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'TOGGLE_SORT'; field: FiltersSlice['sortField'] }
   | { type: 'SET_PAGE'; page: number }
@@ -140,14 +166,40 @@ export function usersReducer(state: UsersState, action: UsersAction): UsersState
       return { ...state, filters: { ...state.filters, searchTerm: action.payload, currentPage: 1 } }
     case 'SET_ROLE_FILTER':
       return { ...state, filters: { ...state.filters, roleFilter: action.payload, currentPage: 1 } }
+    case 'SET_ACTIVE_FILTER':
+      return { ...state, filters: { ...state.filters, activeFilter: action.payload, currentPage: 1 } }
+    case 'SET_MEMBERSHIP_FILTER':
+      return { ...state, filters: { ...state.filters, membershipFilter: action.payload, currentPage: 1 } }
+    case 'SET_INSTITUTION_FILTER':
+      return { ...state, filters: { ...state.filters, institutionId: action.payload, currentPage: 1 } }
     case 'CLEAR_FILTERS':
-      return { ...state, filters: { ...state.filters, searchTerm: '', roleFilter: '', currentPage: 1 } }
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          searchTerm: '',
+          roleFilter: '',
+          activeFilter: null,
+          membershipFilter: null,
+          institutionId: '',
+          currentPage: 1,
+        },
+      }
     case 'TOGGLE_SORT': {
       const { sortField, sortDirection } = state.filters
       if (sortField === action.field) {
         return { ...state, filters: { ...state.filters, sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' } }
       }
-      return { ...state, filters: { ...state.filters, sortField: action.field, sortDirection: 'asc' } }
+      // A new column starts ascending except for a date, where an operator
+      // means "most recent first".
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          sortField: action.field,
+          sortDirection: action.field === 'created_at' ? 'desc' : 'asc',
+        },
+      }
     }
     case 'SET_PAGE':
       return { ...state, filters: { ...state.filters, currentPage: action.page } }
@@ -177,17 +229,18 @@ export function usersReducer(state: UsersState, action: UsersAction): UsersState
 
 // ── Exported helpers (re-exported from Users.tsx for test compatibility) ──
 
-export const ROLE_VALUES = ['student', 'reviewer', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin', 'super_admin'] as const
+// Canonical role contract — the four backend-supported roles only (task 2.4,
+// R3.4). Mirrors backend AdminUserCreateSerializer/AdminUserUpdateSerializer
+// choices and ROLE_HIERARCHY. Retired non-canonical staff roles are removed:
+// the backend never issues them and scoped tenant authority is expressed
+// through memberships and access grants.
+export const ROLE_VALUES = ['student', 'reviewer', 'admin', 'super_admin'] as const
 
 export const AVAILABLE_ROLES = [
-  { value: 'student', label: 'Student', description: 'Regular student user' },
-  { value: 'reviewer', label: 'Reviewer', description: 'Can review submitted applications' },
-  { value: 'admissions_officer', label: 'Admissions Officer', description: 'Can review applications' },
-  { value: 'registrar', label: 'Registrar', description: 'Academic records management' },
-  { value: 'finance_officer', label: 'Finance Officer', description: 'Payment verification' },
-  { value: 'academic_head', label: 'Academic Head', description: 'Department oversight' },
-  { value: 'admin', label: 'Administrator', description: 'Full system access' },
-  { value: 'super_admin', label: 'Super Admin', description: 'Platform-wide administrative control' },
+  { value: 'student', label: 'Student', description: 'Applicant with access to their own applications' },
+  { value: 'reviewer', label: 'Reviewer', description: 'Reviews applications assigned within their institution' },
+  { value: 'admin', label: 'Administrator', description: 'Scoped school operator; tenant access from memberships and grants' },
+  { value: 'super_admin', label: 'Super Admin', description: 'Beanola platform-wide administrative control' },
 ] as const
 
 export const getRoleLabel = (role: string) => {
@@ -208,3 +261,49 @@ export const getSessionSummary = (count?: number) => {
 }
 
 export const PAGE_SIZE = 25
+
+/**
+ * Turn the page's filter state into the **registered** server query (R6.1).
+ *
+ * This is the only place the directory's UI state becomes request parameters, and
+ * the names are the backend's own
+ * (`user_directory_service.REGISTERED_PARAMETERS`). ADM-03's second habit was a
+ * UI-invented spelling (`roleFilter`, `sortField`) that no parser understood; the
+ * server now echoes anything outside the registered set in
+ * `filters.unknown_parameters` instead of dropping it, and this function is why
+ * that list should always be empty for our own requests.
+ */
+export function toDirectoryQuery(
+  filters: FiltersSlice,
+  search: string,
+  pageSize: number = PAGE_SIZE,
+): UserDirectoryQuery {
+  const query: UserDirectoryQuery = {
+    page: filters.currentPage,
+    pageSize,
+    sort: filters.sortField,
+    order: filters.sortDirection,
+  }
+  if (search) query.search = search
+  if (filters.roleFilter) query.role = filters.roleFilter
+  if (filters.institutionId) query.institution_id = filters.institutionId
+  // `is_active` is tri-state on purpose: absent means "the platform's default"
+  // (enabled accounts only), which is what the directory has always shown.
+  if (filters.activeFilter !== null) query.is_active = String(filters.activeFilter)
+  if (filters.membershipFilter !== null) {
+    query.has_membership = String(filters.membershipFilter)
+  }
+  return query
+}
+
+/** The sortable columns, paired with the registered backend key each carries. */
+export const SORTABLE_COLUMNS: ReadonlyArray<{
+  field: UserSortField
+  label: string
+}> = [
+  { field: 'display_name', label: 'User' },
+  { field: 'email', label: 'Contact' },
+  { field: 'role', label: 'Role' },
+  { field: 'is_active', label: 'Status' },
+  { field: 'created_at', label: 'Joined' },
+]

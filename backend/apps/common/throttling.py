@@ -39,7 +39,9 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from django.conf import settings
-from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.throttling import ScopedRateThrottle, SimpleRateThrottle
+
+from apps.common.request_utils import get_client_ip
 
 
 class PaymentUserScopedRateThrottle(ScopedRateThrottle):
@@ -87,38 +89,170 @@ class PaymentUserScopedRateThrottle(ScopedRateThrottle):
         return self.cache_format % {"scope": scope, "ident": ident}
 
 
-__all__ = ["PaymentUserScopedRateThrottle", "AIUserScopedRateThrottle"]
+__all__ = [
+    "PaymentUserScopedRateThrottle",
+    "DocumentExtractUserScopedRateThrottle",
+    "PublicTrackingFailureThrottle",
+]
 
 
-class AIUserScopedRateThrottle(ScopedRateThrottle):
-    """Per-user (fallback IP) scoped throttle for AI-touching endpoints.
+class DocumentExtractUserScopedRateThrottle(ScopedRateThrottle):
+    """Per-user (fallback IP) scoped throttle for the document-extraction retry.
 
-    Mirrors :class:`PaymentUserScopedRateThrottle`. Separate class (and
-    flag) because AI endpoints have different rate needs and a
-    different rollout cadence than the payment stack.
+    admissions-v2 task 7.4 (R11.9) retired the AI-scoped throttle this replaces.
+    The endpoint it protects — ``POST /api/v1/documents/{id}/extract/`` — now runs
+    **local** OCR with no model call, so an AI-named throttle and an AI-named flag
+    no longer describe anything real. The cap itself is still needed and is kept
+    bit-for-bit: repeated ``force=True`` re-extract calls are CPU-expensive and
+    remain a denial-of-service lever.
 
-    Gate: ``settings.AI_HARDENING_RATE_LIMITS``. When off,
-    ``get_cache_key`` returns ``None`` so the throttle is a no-op.
+    Gate: ``settings.DOCUMENT_EXTRACT_RATE_LIMITS``. When off, ``get_cache_key``
+    returns ``None`` so the throttle is a no-op — the same rollout mechanics as
+    the payment throttle.
 
-    Cache key format: ``throttle_<scope>_ai_user_<pk_or_ip>`` - the
-    ``_ai_`` infix keeps AI buckets disjoint from payment buckets
-    even if a scope name happened to collide.
+    Cache key format: ``throttle_<scope>_extract_user_<pk_or_ip>``.
     """
 
-    cache_format = "throttle_%(scope)s_ai_user_%(ident)s"
+    cache_format = "throttle_%(scope)s_extract_user_%(ident)s"
 
     def get_cache_key(self, request, view):  # type: ignore[override]
-        if not getattr(settings, "AI_HARDENING_RATE_LIMITS", False):
+        if not getattr(settings, "DOCUMENT_EXTRACT_RATE_LIMITS", False):
             return None
-
         scope = getattr(self, "scope", None) or getattr(view, "throttle_scope", None)
         if not scope:
             return None
-
         user = getattr(request, "user", None)
         if user is not None and getattr(user, "is_authenticated", False):
             ident = str(getattr(user, "pk", None) or getattr(user, "id", ""))
         else:
             ident = self.get_ident(request)
-
         return self.cache_format % {"scope": scope, "ident": ident}
+
+
+class PublicTrackingFailureThrottle(SimpleRateThrottle):
+    """Per-IP **failed-attempt** budget for the unauthenticated public tracker.
+
+    admissions-v2 task 10.5 (R13.12 "rate-limit attempts", R17.7, STU-22).
+
+    Why a failure budget rather than a request budget
+    ------------------------------------------------
+    ``RateLimitMiddleware`` already bounds *requests* to
+    ``/api/v1/applications/track/`` at 20/10m per IP, and that stays. It cannot
+    be the enumeration control, though, because it spends the same budget on a
+    student refreshing their own status as on someone guessing: tightening it
+    enough to stop a search would break the legitimate use, and leaving it loose
+    enough for the legitimate use leaves a search affordable.
+
+    This throttle counts **only attempts that failed to resolve**. A holder of a
+    valid link never touches it; a guesser reaches the wall almost immediately.
+
+    Consequently the bucket is *not* recorded in :meth:`allow_request` — that
+    only reads the history — and the view calls :meth:`record_failure` after a
+    lookup comes back empty. The failure classes are deliberately merged: an
+    unknown selector, a revoked secret, a wrong verifier and a tenant-host
+    mismatch all count the same, because the endpoint answers all four
+    identically and a differentiated budget would leak which one happened.
+
+    The budget gates the **refusal**, not the request
+    ------------------------------------------------
+    :meth:`allow_request` therefore never returns ``False``. A spent budget must
+    not stop a *correct* token from resolving, because the address is shared:
+    a school computer room, an internet café, or any NAT is one client here, and
+    refusing the holder because a stranger behind the same address was guessing
+    denies the tracker's entire purpose for an hour. It also buys nothing — the
+    verifier is 100 random bits, so answering a correct token discloses nothing
+    to whoever was guessing.
+
+    So the view asks :meth:`is_exhausted` **after** a lookup has already failed,
+    and only then is the caller told 429. An enumerator gets at most
+    ``num_requests`` informative refusals per window and nothing but 429s after
+    that; the holder is never affected. The coarse
+    ``RateLimitMiddleware`` request budget (20/10m on the same path) is what
+    bounds the raw request flood.
+
+    Client identity is not caller-controlled
+    ----------------------------------------
+    The key comes from :func:`apps.common.request_utils.get_client_ip`, which
+    counts ``NUM_PROXIES`` (default 1) entries **from the right** of
+    ``X-Forwarded-For``. DRF's own ``get_ident`` is not used: ``NUM_PROXIES``
+    lives in Django settings and not in the ``REST_FRAMEWORK`` dict, so
+    ``api_settings.NUM_PROXIES`` is ``None`` and ``get_ident`` would key on the
+    **whole** forwarded chain — letting a caller mint a fresh budget per request
+    with one spoofed header, which would make this budget decorative.
+
+    A **recognised-but-not-authoritative** identifier (an application number, a
+    legacy tracking code) does *not* count: it never reaches the database, so it
+    is not an attempt at anything. Charging for it would let a bystander pasting
+    the number from their own slip exhaust their own budget.
+
+    Gate: ``settings.PUBLIC_TRACKING_RATE_LIMITS``, default **True**. Unlike the
+    payment and document-extract throttles this defaults on, because it is the
+    boundary of an unauthenticated endpoint rather than an abuse control on an
+    authenticated one — an operator can still disable it, but not by omission.
+    """
+
+    scope = "public_tracking_failure"
+    cache_format = "throttle_%(scope)s_ip_%(ident)s"
+
+    def _enabled(self) -> bool:
+        return bool(getattr(settings, "PUBLIC_TRACKING_RATE_LIMITS", True))
+
+    def get_cache_key(self, request: Any, view: Any) -> Optional[str]:
+        if not self._enabled():
+            return None
+        # Always IP-keyed: the endpoint is unauthenticated, and a signed-in
+        # visitor using the public tracker is still the public.
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": get_client_ip(request) or "unknown",
+        }
+
+    def allow_request(self, request: Any, view: Any) -> bool:
+        """Load this client's failure history. Never refuses, never records.
+
+        Always ``True``: the budget gates the *refusal*, which only the view can
+        recognise, so it asks :meth:`is_exhausted` after a lookup has failed.
+        This still populates ``key`` / ``history`` / ``now`` so
+        :meth:`~rest_framework.throttling.SimpleRateThrottle.wait` reports a
+        correct ``Retry-After``.
+        """
+        self.key = None
+        self.history = []
+        self.now = self.timer()
+        if self.rate is None:
+            return True
+        self.key = self.get_cache_key(request, view)
+        if self.key is None:
+            return True
+        history = self.cache.get(self.key, [])
+        while history and history[-1] <= self.now - self.duration:
+            history.pop()
+        self.history = history
+        return True
+
+    def is_exhausted(self, request: Any, view: Any = None) -> bool:
+        """Has this client already spent its failed-attempt budget?"""
+        if self.rate is None:
+            return False
+        if getattr(self, "key", None) is None:
+            self.allow_request(request, view)
+        if self.key is None:
+            return False
+        return len(self.history) >= self.num_requests
+
+    def record_failure(self, request: Any, view: Any = None) -> None:
+        """Charge one failed attempt against this client's budget."""
+        if self.rate is None:
+            return
+        key = getattr(self, "key", None) or self.get_cache_key(request, view)
+        if key is None:
+            return
+        now = self.timer()
+        history = self.cache.get(key, [])
+        while history and history[-1] <= now - self.duration:
+            history.pop()
+        history.insert(0, now)
+        self.cache.set(key, history, self.duration)
+        self.key = key
+        self.history = history
+        self.now = now

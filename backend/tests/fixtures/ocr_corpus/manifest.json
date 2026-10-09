@@ -1,0 +1,265 @@
+{
+  "corpus_version": "2026-07-29.1",
+  "parser_version": "ecz-slip-2026-07-1",
+  "spec": ".kiro/specs/admissions-v2-canonical-rebuild/ task 7.5",
+  "requirements": ["R11.4", "R11.7", "R11.9", "R11.10"],
+  "findings": ["STU-06", "STU-07"],
+  "description": "Versioned fixture corpus for the deterministic ECZ result-slip parser. Each case is the OCR TEXT layer a server Tesseract read produces for one representative slip (the parser's real input). `slip_truth` is what a human reads from the slip; `expected` pins the parser's required behaviour. Accuracy is measured against `slip_truth`, so a case the parser deliberately withholds (low confidence, duplicate) counts as recall loss rather than being quietly redefined as success.",
+  "capture": {
+    "mode": "recorded_text",
+    "notes": "Text layers are authored/recorded to match the line shapes real Tesseract output produces for Zambian ECZ statements of results: dot leaders, row numbering, bracketed letter descriptors, and character damage. Add `image` to a case to have the evaluator run live Tesseract (pytesseract + a tesseract binary) end to end; without an image, or without Tesseract installed, the recorded text layer is used and the report states which mode ran."
+  },
+  "thresholds": {
+    "min_precision": 1.0,
+    "min_recall": 0.85,
+    "min_mean_confidence": 0.8,
+    "max_wrong_confirmable": 0
+  },
+  "cases": [
+    {
+      "id": "clean_grade12_slip",
+      "text": "cases/clean_grade12_slip.txt",
+      "document_type": "result_slip",
+      "why": "Baseline: a clean, well-lit Grade 12 statement of results with row numbering.",
+      "exam_number": "1234567001",
+      "exam_year": 2023,
+      "slip_truth": [
+        ["ENG", 4],
+        ["MATH", 3],
+        ["BIO", 5],
+        ["CHEM", 6],
+        ["PHY", 6],
+        ["GEO", 5],
+        ["CE", 4]
+      ],
+      "expected": {
+        "confirmable": [
+          ["ENG", 4],
+          ["MATH", 3],
+          ["BIO", 5],
+          ["CHEM", 6],
+          ["PHY", 6],
+          ["GEO", 5],
+          ["CE", 4]
+        ],
+        "status_counts": { "suggested": 7 }
+      }
+    },
+    {
+      "id": "dot_leader_slip",
+      "text": "cases/dot_leader_slip.txt",
+      "document_type": "result_slip",
+      "why": "Dot-leader filler between label and grade — the most common real slip layout.",
+      "exam_number": "201234567089",
+      "exam_year": 2021,
+      "slip_truth": [
+        ["ENG", 5],
+        ["MATH", 4],
+        ["ADDMATH", 6],
+        ["POA", 5],
+        ["COM", 4],
+        ["ECON", 6]
+      ],
+      "expected": {
+        "confirmable": [
+          ["ENG", 5],
+          ["MATH", 4],
+          ["ADDMATH", 6],
+          ["POA", 5],
+          ["COM", 4],
+          ["ECON", 6]
+        ],
+        "status_counts": { "suggested": 6 }
+      }
+    },
+    {
+      "id": "alias_names_slip",
+      "text": "cases/alias_names_slip.txt",
+      "document_type": "result_slip",
+      "why": "Abbreviated labels. Some abbreviations ARE canonical subject codes (Eng/Bio/Chem) and must resolve at the canonical tier; the rest resolve only through the task-7.1 versioned alias catalogue and must drop to the alias tier.",
+      "exam_number": "7654321045",
+      "exam_year": 2019,
+      "slip_truth": [
+        ["ENG", 5],
+        ["MATH", 4],
+        ["BIO", 6],
+        ["CHEM", 7],
+        ["SCI", 5],
+        ["CE", 3],
+        ["AGR", 6]
+      ],
+      "expected": {
+        "confirmable": [
+          ["ENG", 5],
+          ["MATH", 4],
+          ["BIO", 6],
+          ["CHEM", 7],
+          ["SCI", 5],
+          ["CE", 3],
+          ["AGR", 6]
+        ],
+        "status_counts": { "suggested": 7 },
+        "match_tiers": {
+          "Eng": "canonical",
+          "Bio": "canonical",
+          "Chem": "canonical",
+          "Maths": "alias",
+          "Combined Science": "alias",
+          "Civics": "alias",
+          "Agric Science": "alias"
+        }
+      }
+    },
+    {
+      "id": "noisy_scan_slip",
+      "text": "cases/noisy_scan_slip.txt",
+      "document_type": "result_slip",
+      "why": "Character damage inside a subject name ('Engl1sh'). The parser must NOT guess it back — an unrecognised label stays unresolved and the student types it.",
+      "exam_number": "4455667012",
+      "exam_year": 2022,
+      "slip_truth": [
+        ["ENG", 5],
+        ["MATH", 4],
+        ["BIO", 6],
+        ["GEO", 5],
+        ["HIST", 7]
+      ],
+      "expected": {
+        "confirmable": [
+          ["MATH", 4],
+          ["BIO", 6],
+          ["GEO", 5],
+          ["HIST", 7]
+        ],
+        "status_counts": { "suggested": 4, "unresolved": 1 }
+      }
+    },
+    {
+      "id": "low_confidence_alias_slip",
+      "text": "cases/low_confidence_alias_slip.txt",
+      "document_type": "result_slip",
+      "why": "Alias label on a noisy line lands below the confirmable floor. Low confidence must stay unconfirmed (R11.4) rather than being pre-selected.",
+      "exam_number": "9988776001",
+      "exam_year": 2020,
+      "slip_truth": [
+        ["MATH", 4],
+        ["AGR", 5],
+        ["GEO", 6]
+      ],
+      "expected": {
+        "confirmable": [["GEO", 6]],
+        "status_counts": { "suggested": 1, "low_confidence": 2 }
+      }
+    },
+    {
+      "id": "duplicate_subject_slip",
+      "text": "cases/duplicate_subject_slip.txt",
+      "document_type": "result_slip",
+      "why": "The same subject twice with contradictory grades (canonical name then alias). The second read must never be confirmable — two rows for one subject is the STU-11 false-completeness bug.",
+      "exam_number": "1112223004",
+      "exam_year": 2018,
+      "slip_truth": [
+        ["MATH", 4],
+        ["BIO", 5]
+      ],
+      "expected": {
+        "confirmable": [
+          ["MATH", 4],
+          ["BIO", 5]
+        ],
+        "status_counts": { "suggested": 2, "duplicate": 2 }
+      }
+    },
+    {
+      "id": "unknown_subject_slip",
+      "text": "cases/unknown_subject_slip.txt",
+      "document_type": "result_slip",
+      "why": "Labels outside the canonical catalogue. They must surface as unresolved, never mapped to the nearest-looking subject.",
+      "exam_number": "3334445006",
+      "exam_year": 2023,
+      "slip_truth": [["MATH", 5]],
+      "unmappable_labels": ["Advanced Astrophysics", "Klingon Language"],
+      "expected": {
+        "confirmable": [["MATH", 5]],
+        "status_counts": { "suggested": 1, "unresolved": 2 }
+      }
+    },
+    {
+      "id": "tampered_grades_slip",
+      "text": "cases/tampered_grades_slip.txt",
+      "document_type": "result_slip",
+      "why": "Out-of-scale grades (11, 0, 99) — OCR damage or tampering. Each must be reported as invalid_grade, not silently dropped and not coerced into 1-9.",
+      "exam_number": "5566778002",
+      "exam_year": 2022,
+      "slip_truth": [["PHY", 4]],
+      "expected": {
+        "confirmable": [["PHY", 4]],
+        "status_counts": { "suggested": 1, "invalid_grade": 3 }
+      }
+    },
+    {
+      "id": "not_a_result_slip",
+      "text": "cases/not_a_result_slip.txt",
+      "document_type": "nrc",
+      "why": "A non-result document (NRC). Zero candidates — an identity document must never produce grades.",
+      "exam_number": null,
+      "exam_year": null,
+      "slip_truth": [],
+      "expected": { "confirmable": [], "status_counts": {} }
+    },
+    {
+      "id": "unreadable_scan",
+      "text": "cases/unreadable_scan.txt",
+      "document_type": "result_slip",
+      "why": "OCR produced no usable text (blank/failed read). The manual path is the whole path.",
+      "exam_number": null,
+      "exam_year": null,
+      "slip_truth": [],
+      "expected": { "confirmable": [], "status_counts": {} }
+    },
+    {
+      "id": "alevel_slip",
+      "text": "cases/alevel_slip.txt",
+      "document_type": "result_slip",
+      "why": "A-Level statement: the canonical A-Level identities carry a '(A-Level)' suffix that must resolve as canonical, not alias.",
+      "exam_number": "6677889003",
+      "exam_year": 2024,
+      "slip_truth": [
+        ["AL-PMATH", 3],
+        ["AL-PHY", 4],
+        ["AL-CHEM", 4]
+      ],
+      "expected": {
+        "confirmable": [
+          ["AL-PMATH", 3],
+          ["AL-PHY", 4],
+          ["AL-CHEM", 4]
+        ],
+        "status_counts": { "suggested": 3 }
+      }
+    },
+    {
+      "id": "letter_descriptor_slip",
+      "text": "cases/letter_descriptor_slip.txt",
+      "document_type": "result_slip",
+      "why": "Numeric grade followed by a printed descriptor ('(B)', 'CREDIT', 'DISTINCTION'). The descriptor must be stripped without eating the grade.",
+      "exam_number": "8899001007",
+      "exam_year": 2017,
+      "slip_truth": [
+        ["ENG", 4],
+        ["MATH", 6],
+        ["SCI", 5],
+        ["RE", 3]
+      ],
+      "expected": {
+        "confirmable": [
+          ["ENG", 4],
+          ["MATH", 6],
+          ["SCI", 5],
+          ["RE", 3]
+        ],
+        "status_counts": { "suggested": 4 }
+      }
+    }
+  ]
+}

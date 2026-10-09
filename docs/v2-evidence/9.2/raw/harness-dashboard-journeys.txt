@@ -1,0 +1,17 @@
+$ cd apps/admissions && HARNESS_PW_CHANNEL=chrome PLAYWRIGHT_BASE_URL=http://localhost:8090 bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required tests/harness-e2e/required/admin-dashboard-metrics.spec.ts
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (3.3s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (936ms)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (851ms)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.0s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.4s)
+  ✓   6 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (3.1s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (948ms)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (895ms)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.0s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.5s)
+
+  10 passed (2.1m)
+PW_EXIT=0

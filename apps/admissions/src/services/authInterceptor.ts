@@ -11,6 +11,7 @@ import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { dispatchAuthRecovered } from '@/lib/sessionHardening';
 
 import { toApiV1Path } from './apiHelpers';
+import { AuthenticationError } from './errors';
 import { API_BASE } from './httpClient';
 
 // ---------------------------------------------------------------------------
@@ -18,17 +19,15 @@ import { API_BASE } from './httpClient';
 // ---------------------------------------------------------------------------
 
 /**
- * Error thrown when the ApiClient encounters an unrecoverable 401
- * (token refresh failed or second 401 after retry).
- * Callers can catch this to handle UI cleanup if needed.
+ * Re-exported, not defined here, since task 13.6 remediation L12.
+ *
+ * The class moved to `services/errors.ts` because this module is transport-internal:
+ * the R14.3 rule forbids a page or component from importing it, so a page that needed
+ * to *handle* an unrecoverable 401 had to break the rule to name the error. There is
+ * still exactly one definition, so every existing `instanceof AuthenticationError`
+ * check — here, in `client.ts`, in `auth.ts`, in the wizard — is unaffected.
  */
-export class AuthenticationError extends Error {
-  public readonly status = 401;
-  constructor(message: string = 'Authentication required. Please sign in again.') {
-    super(message);
-    this.name = 'AuthenticationError';
-  }
-}
+export { AuthenticationError } from './errors';
 
 // ---------------------------------------------------------------------------
 // Auth failure callback management

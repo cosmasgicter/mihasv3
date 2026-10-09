@@ -1,0 +1,40 @@
+]633;E;echo "### $(date -u +%Y-%m-%dT%H:%M:%SZ) L8 - this batch's OWN instrument slip, and the hardening it bought";3d7114c9-c536-47f8-be1a-d89c12b03ba1]633;C### 2026-08-14T16:57:30Z L8 - this batch's OWN instrument slip, and the hardening it bought
+
+WHAT HAPPENED
+  raw/22's first attempt passed V2_EVIDENCE_DIR="../docs/v2-evidence/.../l8-regen-proof"
+  because the command ran from backend/ and the author reasoned about the shell's cwd.
+  V2_EVIDENCE_DIR is REPO-relative, so the resolver did exactly what the convention
+  says - repoRoot / "../docs/..." - and produced a tree OUTSIDE the repository:
+
+    /home/cosmas/Downloads/docs/v2-evidence/13.6/remediation/L7-L8-L12/raw/l8-regen-proof/authority-conformance-summary.json
+
+  This is the same failure L5-L6 recorded in its own §8.4 (an off-by-one that wrote
+  20 MB into apps/docs/v2-evidence/), inside the batch whose whole subject is
+  instruments writing where nobody looks. 13.2 §5.4's rule applies: an instrument has
+  to obey the rule it audits.
+
+REMOVED
+  /home/cosmas/Downloads/docs -> removed; still present? no
+
+THE HARDENING IT BOUGHT
+  The helper was NOT at fault - it resolved the value it was given. But a resolver
+  that can silently place an evidence tree outside the repository is one keystroke
+  from GATE-13.1-07 in the other direction, so both halves now REFUSE a
+  V2_EVIDENCE_DIR that escapes the repo root, with a message that names the value.
+  Two new cases in the guard cover it. Proof it fires:
+
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collected 38 items / 35 deselected / 3 selected
+
+tests/unit/test_evidence_dir_convention_l8.py ...                        [100%]
+
+======================= 3 passed, 35 deselected in 0.42s =======================
+]633;E;echo;986dcf3d-3fe6-443c-8242-ed6a5f925b13]633;C
+  and the escaping value, from the frontend half:
+    refused: V2_EVIDENCE_DIR resolves outside the repository: /home/cosmas/Downloads/docs/v2-evidence/13.6. It is a path relative to the REPOSITORY ROOT (/home/cos
+
+  and a legitimate in-repo value still resolves:
+    -> /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.6/remediation/L7-L8-L12/raw
+    -> (relative) docs/v2-evidence/13.6/remediation/L7-L8-L12/raw

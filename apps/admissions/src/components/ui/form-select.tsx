@@ -7,7 +7,6 @@
  * Requirements: 2.3, 5.2, 9.1 - Consolidated select, RHF Controller, touch targets
  */
 
-import * as React from 'react'
 import { Controller, Control, FieldValues, Path } from 'react-hook-form'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import type { CanonicalSelectOption } from '@/components/ui/CanonicalSelect'

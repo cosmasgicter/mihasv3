@@ -2,283 +2,269 @@
 
 # Feature: lenco-payment-integration, Property 5: Webhook processing idempotency
 
-For any valid webhook event, processing it N times (where N >= 1) should
-produce the same Payment record state as processing it exactly once.
+For any valid webhook event, delivering it N times (N >= 1) produces the same
+Payment state as delivering it exactly once — no double-credit, no extra
+receipt, no status flapping, and no drift in the derived application summary.
 
-**Validates: Requirements 4.8**
+admissions-v2 task 8.2 rewrote this module. It previously drove the deleted
+``process_webhook_event`` through mocked querysets, which meant "idempotent" was
+asserted about a MagicMock's attributes rather than about the database. It now
+replays the real callback path (``PaymentService.apply_webhook_event``) against a
+real database and compares full row snapshots, so a second delivery that changed
+*anything* — status, amount, receipt, or the application projection — fails.
+
+**Validates: Requirements 4.8, R12.5**
 """
 
-import os
-from contextlib import contextmanager
+from __future__ import annotations
+
+import uuid
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
-os.environ["TESTING"] = "1"
-
-import django  # noqa: E402
-
-django.setup()
-
-from django.test import SimpleTestCase  # noqa: E402
-from hypothesis import given, settings  # noqa: E402
-from hypothesis import strategies as st  # noqa: E402
-
-from apps.documents.payment_service import PaymentService  # noqa: E402
+import pytest
+from django.utils import timezone
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 # ---------------------------------------------------------------------------
-# Strategies
+# Strategies — the delivery counts and event types that actually occur
 # ---------------------------------------------------------------------------
 
-uuids = st.uuids()
+# Lenco retries a callback it believes was not acknowledged. Two to four
+# deliveries is the realistic range; the property must hold for any of them.
+delivery_counts = st.integers(min_value=2, max_value=4)
 
-amounts = st.decimals(
-    min_value=Decimal("0.01"),
-    max_value=Decimal("99999.99"),
-    places=2,
-    allow_nan=False,
-    allow_infinity=False,
+status_changing_events = st.sampled_from(
+    ["collection.successful", "collection.failed"]
 )
 
-references = st.text(
-    alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
-    min_size=5,
-    max_size=40,
-)
 
-lenco_references = st.text(
-    alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
-    min_size=5,
-    max_size=30,
-)
-
-payment_types = st.sampled_from(["card", "bank_transfer", "mobile_money"])
-
-# Webhook event types that trigger status changes
-status_changing_events = st.sampled_from([
-    "collection.successful",
-    "collection.failed",
-])
-
-# Number of times to re-process the same webhook (1 to 10)
-repeat_counts = st.integers(min_value=1, max_value=10)
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
-def _make_pending_payment(payment_id, application_id, amount, reference):
-    """Create a mock Payment object in pending status."""
-    payment = MagicMock()
-    payment.id = payment_id
-    payment.application_id = application_id
-    payment.status = "pending"
-    payment.amount = amount
-    payment.currency = "ZMW"
-    payment.transaction_reference = reference
-    payment.lenco_reference = None
-    payment.payment_method = None
-    payment.fee = None
-    payment.bearer = None
-    payment.metadata = {}
-    payment.save = MagicMock()
-    return payment
+def _seed_pending_payment():
+    """A submitted application with one pending, snapshot-bearing payment."""
+    from apps.accounts.models import Profile
+    from apps.applications.models import Application
+    from apps.documents.models import Payment
+
+    now = timezone.now()
+    token = uuid.uuid4().hex[:8]
+
+    profile = Profile.objects.create(
+        id=uuid.uuid4(),
+        email=f"replay-{token}@example.com",
+        first_name="Replay",
+        last_name="Probe",
+        role="student",
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
+    application = Application.objects.create(
+        id=uuid.uuid4(),
+        application_number=f"APP-{now:%Y%m%d}-{token.upper()}",
+        user=profile,
+        full_name="Replay Probe",
+        date_of_birth=now.date().replace(year=2000),
+        sex="Male",
+        phone="+260977000000",
+        email=profile.email,
+        residence_town="Lusaka",
+        nationality="Zambian",
+        country="Zambia",
+        program="Replay Program",
+        intake="January 2025",
+        institution="MIHAS",
+        status="submitted",
+        payment_status="pending_review",
+        version=1,
+        created_at=now,
+        updated_at=now,
+    )
+    reference = f"BNL-{application.application_number}-{uuid.uuid4().hex[:12]}"
+    payment = Payment.objects.create(
+        id=uuid.uuid4(),
+        application=application,
+        user=profile,
+        amount=Decimal("153.00"),
+        currency="ZMW",
+        status="pending",
+        transaction_reference=reference,
+        metadata={
+            "snapshot": {
+                "expected_amount": "153.00",
+                "currency": "ZMW",
+                "residency_category": "local",
+                "program_code": "RPL",
+                "intake_id": None,
+                "waiver_applied": False,
+                "original_amount": "153.00",
+                "fee_source": "program_fee",
+            },
+        },
+        created_at=now,
+        updated_at=now,
+    )
+    return application, payment, reference
 
 
-def _build_webhook_payload(amount, lenco_ref, payment_type):
-    """Build a Lenco webhook payload dict."""
-    return {
-        "data": {
-            "amount": float(amount),
-            "reference": "ignored-here",
-            "lencoReference": lenco_ref,
-            "type": payment_type,
-        }
+def _payload(event_type: str, reference: str) -> dict:
+    data = {
+        "id": f"evt-{uuid.uuid4().hex[:10]}",
+        "reference": reference,
+        "amount": "153.00",
+        "currency": "ZMW",
+        "lencoReference": "LR-REPLAY",
+        "type": "mobile-money",
     }
+    if event_type == "collection.failed":
+        data["reasonForFailure"] = "Insufficient balance"
+    if event_type == "collection.settled":
+        data["settlement"] = {"batchId": "BATCH-REPLAY", "settledAt": "2025-01-10"}
+    return {"data": data}
 
 
-def _snapshot_payment(payment):
-    """Capture the mutable state of a mock payment for comparison."""
-    return {
-        "status": payment.status,
-        "lenco_reference": payment.lenco_reference,
-        "payment_method": payment.payment_method,
-        "fee": payment.fee,
-        "bearer": payment.bearer,
-        "metadata": dict(payment.metadata) if payment.metadata else {},
-    }
+def _material_state(payment_id, application_id) -> tuple:
+    """Everything a replay must not change."""
+    from apps.applications.models import Application
+    from apps.documents.models import Payment
+
+    row = Payment.objects.filter(id=payment_id).values(
+        "status",
+        "amount",
+        "currency",
+        "lenco_reference",
+        "payment_method",
+        "fee",
+        "bearer",
+        "notes",
+        "receipt_number",
+    ).first()
+    app_status = (
+        Application.objects.filter(id=application_id)
+        .values_list("payment_status", flat=True)
+        .first()
+    )
+    return (row, app_status)
 
 
-@contextmanager
-def _noop_atomic():
-    """A no-op context manager that replaces transaction.atomic()."""
-    yield
+# ===========================================================================
+# Property 5 — N deliveries produce the state of exactly one delivery
+# ===========================================================================
 
 
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
+@pytest.mark.django_db(transaction=True)
+@given(event_type=status_changing_events, deliveries=delivery_counts)
+@settings(
+    max_examples=6,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_processing_n_times_equals_processing_once(event_type, deliveries):
+    """The state after N deliveries equals the state after the first.
 
-
-class TestWebhookProcessingIdempotency(SimpleTestCase):
-    """Processing the same webhook event N times must produce the same
-    Payment record state as processing it exactly once.
-
-    **Validates: Requirements 4.8**
+    **Validates: Requirements 4.8, R12.5**
     """
+    from apps.documents.payment_service import PaymentService
 
-    @given(
-        payment_id=uuids,
-        application_id=uuids,
-        amount=amounts,
-        reference=references,
-        lenco_ref=lenco_references,
-        payment_type=payment_types,
-        event_type=status_changing_events,
-        n=repeat_counts,
+    application, payment, reference = _seed_pending_payment()
+    payload = _payload(event_type, reference)
+    service = PaymentService()
+
+    service.apply_webhook_event(event_type, reference, payload)
+    after_first = _material_state(payment.id, application.id)
+
+    for _ in range(deliveries - 1):
+        service.apply_webhook_event(event_type, reference, payload)
+
+    after_n = _material_state(payment.id, application.id)
+    assert after_n == after_first, (
+        f"{deliveries} deliveries of {event_type} diverged from one delivery.\n"
+        f"  after 1 = {after_first}\n  after {deliveries} = {after_n}"
     )
-    @settings(max_examples=5)
-    def test_processing_n_times_equals_processing_once(
-        self,
-        payment_id,
-        application_id,
-        amount,
-        reference,
-        lenco_ref,
-        payment_type,
-        event_type,
-        n,
-    ):
-        """Process a webhook event once, snapshot the state, then process
-        the same event N-1 more times on a fresh payment. The final state
-        after N processings must equal the state after 1 processing."""
-        payload = _build_webhook_payload(amount, lenco_ref, payment_type)
 
-        # --- Process once ---
-        service_once = PaymentService()
-        payment_once = _make_pending_payment(
-            payment_id, application_id, amount, reference
-        )
 
-        with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
-            patch("apps.applications.models.Application.objects") as mock_app,
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_pay.select_for_update.return_value.get.return_value = payment_once
-            mock_app.filter.return_value.update.return_value = 1
+@pytest.mark.django_db(transaction=True)
+@given(deliveries=delivery_counts)
+@settings(
+    max_examples=4,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_settled_event_idempotent_metadata(deliveries):
+    """A replayed settlement event converges on the same metadata and status.
 
-            service_once.process_webhook_event(
-                event_type=event_type,
-                reference=reference,
-                payload=payload,
-            )
+    **Validates: Requirements 4.8, R12.5**
+    """
+    from apps.documents.models import Payment
+    from apps.documents.payment_service import PaymentService
 
-        state_after_once = _snapshot_payment(payment_once)
+    application, payment, reference = _seed_pending_payment()
+    payload = _payload("collection.settled", reference)
+    service = PaymentService()
 
-        # --- Process N times on the same payment object ---
-        service_n = PaymentService()
-        payment_n = _make_pending_payment(
-            payment_id, application_id, amount, reference
-        )
+    service.apply_webhook_event("collection.settled", reference, payload)
+    first_settlement = (
+        Payment.objects.filter(id=payment.id)
+        .values_list("metadata", flat=True)
+        .first()
+        or {}
+    ).get("settlement")
+    after_first = _material_state(payment.id, application.id)
 
-        with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
-            patch("apps.applications.models.Application.objects") as mock_app,
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_pay.select_for_update.return_value.get.return_value = payment_n
-            mock_app.filter.return_value.update.return_value = 1
+    for _ in range(deliveries - 1):
+        service.apply_webhook_event("collection.settled", reference, payload)
 
-            for _ in range(n):
-                service_n.process_webhook_event(
-                    event_type=event_type,
-                    reference=reference,
-                    payload=payload,
-                )
+    latest_settlement = (
+        Payment.objects.filter(id=payment.id)
+        .values_list("metadata", flat=True)
+        .first()
+        or {}
+    ).get("settlement")
 
-        state_after_n = _snapshot_payment(payment_n)
-
-        self.assertEqual(
-            state_after_once,
-            state_after_n,
-            f"State after 1 processing should equal state after {n} processings "
-            f"for event_type={event_type}",
-        )
-
-    @given(
-        payment_id=uuids,
-        application_id=uuids,
-        amount=amounts,
-        reference=references,
-        lenco_ref=lenco_references,
-        payment_type=payment_types,
-        n=repeat_counts,
+    assert latest_settlement == first_settlement, (
+        "A replayed settlement event must not accumulate or mutate "
+        f"``metadata.settlement``; {first_settlement!r} became {latest_settlement!r}."
     )
-    @settings(max_examples=5)
-    def test_settled_event_idempotent_metadata(
-        self,
-        payment_id,
-        application_id,
-        amount,
-        reference,
-        lenco_ref,
-        payment_type,
-        n,
-    ):
-        """collection.settled events update metadata only. Processing N
-        times should produce the same metadata as processing once."""
-        payload = {
-            "data": {
-                "reference": "ignored",
-                "settlement": {
-                    "amount": float(amount),
-                    "lencoReference": lenco_ref,
-                },
-            }
-        }
+    assert _material_state(payment.id, application.id) == after_first, (
+        "A settlement event must never change payment status or the derived "
+        "application summary (R9.2)."
+    )
 
-        # --- Process once ---
-        service_once = PaymentService()
-        payment_once = _make_pending_payment(
-            payment_id, application_id, amount, reference
-        )
 
-        with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_pay.select_for_update.return_value.get.return_value = payment_once
+@pytest.mark.django_db(transaction=True)
+def test_receipt_is_allocated_once_across_replays():
+    """A replayed success does not mint a second receipt number.
 
-            service_once.process_webhook_event(
-                event_type="collection.settled",
-                reference=reference,
-                payload=payload,
-            )
+    **Validates: Requirements 4.8, R12.5**
+    """
+    from apps.documents.models import Payment
+    from apps.documents.payment_service import PaymentService
 
-        state_after_once = _snapshot_payment(payment_once)
+    application, payment, reference = _seed_pending_payment()
+    payload = _payload("collection.successful", reference)
+    service = PaymentService()
 
-        # --- Process N times ---
-        service_n = PaymentService()
-        payment_n = _make_pending_payment(
-            payment_id, application_id, amount, reference
-        )
+    service.apply_webhook_event("collection.successful", reference, payload)
+    first_receipt = (
+        Payment.objects.filter(id=payment.id)
+        .values_list("receipt_number", flat=True)
+        .first()
+    )
+    assert first_receipt, "A successful payment must be given a receipt number."
 
-        with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
-            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
-        ):
-            mock_pay.select_for_update.return_value.get.return_value = payment_n
+    for _ in range(3):
+        service.apply_webhook_event("collection.successful", reference, payload)
 
-            for _ in range(n):
-                service_n.process_webhook_event(
-                    event_type="collection.settled",
-                    reference=reference,
-                    payload=payload,
-                )
-
-        state_after_n = _snapshot_payment(payment_n)
-
-        self.assertEqual(
-            state_after_once,
-            state_after_n,
-            f"Settlement metadata after 1 processing should equal after {n} "
-            f"processings",
-        )
+    assert (
+        Payment.objects.filter(id=payment.id)
+        .values_list("receipt_number", flat=True)
+        .first()
+        == first_receipt
+    )
+    assert Payment.objects.filter(application_id=application.id).count() == 1, (
+        "A replayed callback must never create an additional payment row."
+    )

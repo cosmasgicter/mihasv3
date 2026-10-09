@@ -15,6 +15,14 @@ import { getUtilizationColor } from '@/pages/admin/Intakes'
  * (`bg-success/10`, `bg-warning/10`, `bg-destructive/10`) instead of raw
  * Tailwind palette utilities. The `tone` field is asserted as the semantic
  * source of truth.
+ *
+ * Updated by admissions-v2 task **11.5** (R16.2): the tone moved into the fill
+ * **and the border** so the label could become `text-foreground`. A tone-coloured
+ * label on a 10 % wash of its own tone measures 4.20 : 1 (`destructive`) and
+ * 4.37 : 1 (`warning`) — under AA, on exactly the two branches this badge takes
+ * when an intake is in trouble. The ratio assertions below are unchanged; what
+ * changed is the colour vocabulary each ratio resolves to, and `tone` is still
+ * the semantic answer.
  */
 
 describe('Property 14: Intake utilization visual indicator', () => {
@@ -29,8 +37,8 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = fc.sample(fc.integer({ min: 0, max: maxEnrollment }), 1)[0]
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-success/10')
-          expect(result.text).toBe('text-success')
+          expect(result.bg).toBe('bg-success/10 border-success/40')
+          expect(result.text).toBe('text-foreground')
           expect(result.label).toBe('Available')
           expect(result.tone).toBe('success')
         },
@@ -51,8 +59,8 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = fc.sample(fc.integer({ min: low, max: high }), 1)[0]
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-warning/10')
-          expect(result.text).toBe('text-warning')
+          expect(result.bg).toBe('bg-warning/10 border-warning/40')
+          expect(result.text).toBe('text-foreground')
           expect(result.label).toBe('Near capacity')
           expect(result.tone).toBe('warning')
         },
@@ -70,8 +78,8 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = capacity + extra
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-destructive/10')
-          expect(result.text).toBe('text-destructive')
+          expect(result.bg).toBe('bg-destructive/10 border-destructive/40')
+          expect(result.text).toBe('text-foreground')
           expect(result.label).toBe('Over capacity')
           expect(result.tone).toBe('destructive')
         },
@@ -88,7 +96,7 @@ describe('Property 14: Intake utilization visual indicator', () => {
         (capacity, enrollment) => {
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-muted')
+          expect(result.bg).toBe('bg-muted border-border/60')
           expect(result.text).toBe('text-muted-foreground')
           expect(result.label).toBe('N/A')
           expect(result.tone).toBe('muted')

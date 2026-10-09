@@ -20,12 +20,20 @@ export const KeyboardShortcutsHelp = () => {
 
   return (
     <>
+      {/*
+        44 x 44 (GATE-13.3-06, 13.6 §8.1 item L6; R16.2).
+
+        Task 13.3 measured 40.000 x 44.000 at 1280 and 1440 — the height came from
+        `size="sm"`'s own touch floor, the width did not. `lg:inline-flex` keeps it
+        off mobile, so task 11.2's removal of the mobile floating controls (STU-03)
+        is unaffected; this is the desktop remnant, now square at the minimum.
+      */}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-40 hidden shadow-lg lg:inline-flex"
+        className="fixed bottom-4 right-4 z-40 hidden min-h-touch min-w-touch shadow-lg lg:inline-flex"
         aria-label="Show keyboard shortcuts"
       >
         <Keyboard className="h-4 w-4" />

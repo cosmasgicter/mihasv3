@@ -1,0 +1,33 @@
+-- Rollback for 2026_08_12_01_tenant_new_table_fk_validate.sql (task 13.4).
+--
+-- Operator-run only: *_rollback.sql files are excluded from the
+-- apply_sql_migrations boot sweep by the suffix filter in
+-- ``_iter_migration_files``, so this is never auto-applied.
+--
+-- What there is to undo
+-- ---------------------
+-- Postgres has no "un-validate": a validated foreign key is simply a correct
+-- constraint, and re-validating already-clean data is harmless. The 9 foreign
+-- keys themselves are created by the three July tenant scripts, NOT by this one,
+-- so reverting a CONSTRAINT means running that script's own *_rollback.sql
+-- (2026_07_20_01 / 2026_07_21_01 / 2026_07_22_01) - never here, which would
+-- double-drop.
+--
+-- The one thing this migration did that outlives it is the migration_history
+-- row. That matters: if an operator rolls back one of the July expand scripts
+-- and later re-applies it, the foreign keys come back NOT VALID while this
+-- script's tracking row still says "applied", so the sweep would skip it and
+-- the database would sit with 9 unvalidated FKs and a failing
+-- ``schema_manifest --verify`` with nothing pending to explain it. Removing the
+-- tracking row lets the next sweep re-validate; on an already-valid database
+-- that re-run is a no-op.
+--
+-- Note on form: task 3.4's equivalent rollback is ``SELECT 1;``. That statement
+-- is reported as a violation by ``test_rollback_safe_operations.py`` (an inert
+-- SELECT is not in Requirement 9.2's closed set) - one of the instrument false
+-- positives task 13.4 measured and recorded as GATE-13.4-02. A scoped
+-- ``DELETE FROM migration_history`` is inside the allow-list AND is the real
+-- inverse, so this file uses it rather than inheriting the finding.
+
+DELETE FROM migration_history
+WHERE migration_name = '2026_08_12_01_tenant_new_table_fk_validate.sql';

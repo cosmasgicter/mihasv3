@@ -22,6 +22,7 @@ from apps.accounts.admin_user_views import (  # noqa: F401
     AdminDashboardView,
     AdminScopeView,
     AdminUserDetailView,
+    AdminUserEffectiveCapabilitiesView,
     AdminUserExportView,
     AdminUserListView,
     _redact_email,
@@ -91,6 +92,7 @@ __all__ = [
     "AdminSettingsListView",
     "AdminSettingsResetView",
     "AdminUserDetailView",
+    "AdminUserEffectiveCapabilitiesView",
     "AdminUserExportView",
     "AdminUserListView",
     # Serializers

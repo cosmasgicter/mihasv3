@@ -141,11 +141,17 @@ describe('ApiClient Refresh Deduplication Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          // Fire N concurrent POST requests that will all get 401
-          // Use unique endpoints so they don't interfere with each other
+          // Fire N concurrent GET requests that will all get 401.
+          // GET is a safe, replayable method: under the R9.2 replay guard the
+          // client refreshes exactly once (deduplicated across all N 401s) and
+          // then replays every safe request, so all N resolve successfully.
+          // (Blind replay of *unsafe* methods without an idempotency key is
+          // intentionally prevented — that path is covered separately in
+          // apiClientUnified.test.ts.)
+          // Use unique endpoints so they don't interfere with each other.
           const promises = Array.from({ length: n }, (_, i) =>
-            apiClient.request(`/api/applications?req=${i}`, {
-              method: 'POST',
+            apiClient.request(`/applications/?req=${i}`, {
+              method: 'GET',
               retries: 0, // Disable outer retry loop to isolate 401 handling
             })
           );

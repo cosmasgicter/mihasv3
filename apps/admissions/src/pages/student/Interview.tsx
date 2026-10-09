@@ -12,6 +12,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatDate } from '@/lib/dateFormat'
 import { Seo } from '@/components/seo/Seo'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { brandedPageTitle } from '@/lib/tenantBrandCopy'
 import { 
   Calendar, 
   Clock, 
@@ -175,6 +177,7 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 export default function InterviewPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { brandName } = usePortalBrand()
   const {
     data: interviews = [],
     isLoading,
@@ -229,9 +232,10 @@ export default function InterviewPage() {
     return (
       <>
       <Seo
-        title="My Interview | Beanola Admissions"
-        description="View your scheduled interviews and prepare for your Beanola admission process."
+        title={brandedPageTitle('My Interview', brandName)}
+        description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
+        siteName={brandName}
         noindex
       />
       <PageShell title="Interview Schedule" subtitle="Loading interview information...">
@@ -268,22 +272,17 @@ export default function InterviewPage() {
   return (
     <>
       <Seo
-        title="My Interview | Beanola Admissions"
-        description="View your scheduled interviews and prepare for your Beanola admission process."
+        title={brandedPageTitle('My Interview', brandName)}
+        description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
+        siteName={brandName}
         noindex
       />
     <PageShell
       title="Interview Schedule"
       subtitle="View your scheduled interviews and prepare for your admission process."
-      eyebrow="Interview Journey"
+      eyebrow="Interview"
       tone="student"
-      metrics={[
-        { label: 'Upcoming', value: upcomingInterviews.length, helper: 'Interviews still ahead of you' },
-        { label: 'Past', value: pastInterviews.length, helper: 'Completed or closed interview records' },
-        { label: 'Total', value: interviews.length, helper: 'All interview records tied to your account' },
-        { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error instanceof Error ? error.message : 'Use this page to prepare and review details' },
-      ]}
     >
         {/* @requirements 3.5 - Back to Dashboard navigation link */}
         <div className="mb-6">

@@ -21,12 +21,24 @@ interface StatusConfig {
   icon: ReactNode
 }
 
+/**
+ * The tone is the fill and the border; the label is `text-foreground`
+ * (admissions-v2 task 11.5, R16.2).
+ *
+ * `text-warning` on `bg-warning/10` measures **4.37 : 1**, `text-destructive` on
+ * `bg-destructive/10` **4.20 : 1**, `text-info` on `bg-info/10` **4.48 : 1** —
+ * all under AA, on the pill that states an application's status on the student
+ * dashboard and every admin roster. `text-foreground` on the same washes is
+ * ≈ 16 : 1. The colour signal is unchanged (fill + border + the icon this
+ * component always renders), and `StatusBadge` was corrected the same way for
+ * the same reason.
+ */
 const TONE_CLASSES: Record<StatusTone, string> = {
   neutral: 'bg-muted text-foreground border-border/60',
-  info: 'bg-info/10 text-info border-info/25',
-  warning: 'bg-warning/10 text-warning border-warning/25',
-  success: 'bg-success/10 text-success border-success/25',
-  danger: 'bg-destructive/10 text-destructive border-destructive/25',
+  info: 'bg-info/10 text-foreground border-info/40',
+  warning: 'bg-warning/10 text-foreground border-warning/40',
+  success: 'bg-success/10 text-foreground border-success/40',
+  danger: 'bg-destructive/10 text-foreground border-destructive/40',
   muted: 'bg-muted/60 text-muted-foreground border-border/40',
 }
 

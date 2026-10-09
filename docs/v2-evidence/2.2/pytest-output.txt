@@ -1,0 +1,37 @@
+Task 2.2 — Required_Evidence pytest runs (SQLite fast suite; no local Postgres).
+Settings: config.settings.test. Actor model asserted under production_scope
+(legacy-admin all-access compatibility branch disabled).
+
+--- Generated authority suite + cross-tenant substitution + AUTH-07 + R3.5 ---
+$ cd backend && DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python -m pytest \
+    tests/property/test_authority_matrix_generated.py \
+    tests/unit/test_authority_change_session_revocation.py \
+    tests/unit/test_payment_envelope_contract.py \
+    tests/unit/test_amendments.py tests/unit/test_enrollment.py tests/unit/test_waitlist.py \
+    tests/unit/test_authority_matrix_v2.py
+=> 94 passed
+
+--- Broad regression sweep across touched domains ---
+$ ... test_withdrawal test_reviewer_assignment test_scoped_access_matrix \
+    test_cross_tenant_isolation test_application_student_flow_views \
+    test_session_hardening test_tenant_admin_endpoints \
+    test_admin_user_management_hardening test_mobile_money_view_normalization \
+    test_payment_dev_bypass_404 test_authority_matrix_properties (+ above)
+=> 269 passed, 20 skipped (pre-existing skips; no new skips)
+
+--- Task 2.1 zero-unclassified gate (matrix still holds after 2.2 changes) ---
+$ ... tests/unit/test_authority_matrix_v2.py
+=> passed (0 unresolved, 0 weak-bucket, 0 stale registry entries)
+
+--- Full-matrix conformance summary (real runtime) ---
+See authority-conformance-summary.json:
+  1610 cases evaluated, 1244 conformant (77.3%).
+  Hard guarantees (anonymous denial + cross-tenant object no-leak): 514 cases, 0 failures.
+  Existence-disclosure (403-vs-404) follow-up: 71 cases across 30 endpoints (listed).
+
+--- OpenAPI ---
+$ cd backend && ENABLE_JOBS_OPS_ROUTES=1 python manage.py spectacular --file /tmp/schema_2_2.yaml
+=> version 2.0.0; Warnings 0; Errors 20 (5 unique) — all pre-existing V2 demo-view
+   "unable to guess serializer" errors from the 0.5 baseline; ZERO new errors.
+   No auth/response-contract SHAPE changed (the AUTH-07 endpoints already declared
+   a 404 response; only the non-owner disclosure STATUS moved 403 -> 404).

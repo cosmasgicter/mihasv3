@@ -1,0 +1,167 @@
+/**
+ * Strict harness gates (task 0.4, R1.4 / R18.4) — the honest replacement for the
+ * old descriptive, env-gated staging E2E specs (finding GOV-04).
+ *
+ * Every test in the required project is auto-wrapped so the run FAILS LOUDLY on:
+ *   1. test.skip / test.fixme          — a required test may never self-silence.
+ *   2. unexpected console errors        — page console.error / warnings.
+ *   3. unhandled page exceptions        — window.onerror / unhandled rejections.
+ *   4. unasserted failed requests       — any requestfailed or HTTP >= 400 whose
+ *                                         error path was not explicitly allowed.
+ *
+ * A failed call is only acceptable when the test declares it via
+ * `gate.allowRequest(...)` (that declaration IS the "asserted error path" from
+ * R18.4). The gatecheck-negative project deliberately trips each gate to prove
+ * the gates actually fire.
+ *
+ * The "undrained required jobs" gate lives in the operational drain assertions
+ * (see helpers/ops.ts + the required drain test), which read the harness
+ * adapter's broker + payment observer.
+ */
+import { test as base, expect, type Page } from '@playwright/test';
+
+type Matcher = string | RegExp;
+
+function matches(value: string, patterns: Matcher[]): boolean {
+  return patterns.some((p) => (typeof p === 'string' ? value.includes(p) : p.test(value)));
+}
+
+/**
+ * The browser withdrew the request, so the platform never answered it.
+ *
+ * This is a **cancellation**, not a refusal, and the platform causes it on purpose:
+ * auto-save is mandatory on every student form (`PRODUCT.md`), so `useAutoSave`
+ * fires one last `PATCH` from `beforeunload`/`visibilitychange` when the form is
+ * dirty — a call that by construction cannot finish, because the document is
+ * already going away — and React Query/`AbortController` cancel in-flight reads
+ * when a component unmounts. Any journey that navigates away from a live surface
+ * produces these, and no amount of waiting removes them: the navigation is what
+ * starts them.
+ *
+ * Counting them as failed calls would make the gate measure Chromium's
+ * cancellation semantics rather than the platform's behaviour, so they are
+ * recorded separately (`gate.cancelledRequests`) and do not fail a run. Every
+ * other transport failure — `ERR_NAME_NOT_RESOLVED`, `ERR_CONNECTION_REFUSED`,
+ * `ERR_TIMED_OUT`, CSP blocks — and every HTTP >= 400 still does. The
+ * gatecheck-negative failed-request probe uses an unresolvable host, so it still
+ * fails as designed.
+ */
+const CANCELLED_BY_BROWSER = 'net::ERR_ABORTED';
+
+export class HarnessGate {
+  readonly consoleErrors: string[] = [];
+  readonly pageErrors: string[] = [];
+  readonly failedRequests: { url: string; status: number | string; detail?: string }[] = [];
+  /**
+   * Requests the browser cancelled (see `CANCELLED_BY_BROWSER`). Visible, and
+   * assertable by a test that wants to make a claim about them, but never a
+   * violation on their own.
+   */
+  readonly cancelledRequests: string[] = [];
+
+  private allowedConsole: Matcher[] = [];
+  private allowedRequests: Matcher[] = [
+    // The app's documented anonymous "asserted error path": the session
+    // bootstrap / refresh calls legitimately return 401 for a logged-out
+    // visitor and the ApiClient handles them. These are allowed by default.
+    '/api/v1/auth/session',
+    '/api/v1/auth/refresh',
+  ];
+
+  /** Register an expected console error/warning substring or pattern. */
+  allowConsole(pattern: Matcher): this {
+    this.allowedConsole.push(pattern);
+    return this;
+  }
+
+  /** Register an expected failed request (an asserted error path). */
+  allowRequest(pattern: Matcher): this {
+    this.allowedRequests.push(pattern);
+    return this;
+  }
+
+  isRequestAllowed(url: string): boolean {
+    return matches(url, this.allowedRequests);
+  }
+
+  isConsoleAllowed(text: string): boolean {
+    return matches(text, this.allowedConsole);
+  }
+
+  collectViolations(): string[] {
+    const violations: string[] = [];
+    for (const text of this.consoleErrors) {
+      if (!this.isConsoleAllowed(text)) violations.push(`console.error: ${text}`);
+    }
+    for (const err of this.pageErrors) {
+      violations.push(`pageerror: ${err}`);
+    }
+    for (const req of this.failedRequests) {
+      if (!this.isRequestAllowed(req.url)) {
+        violations.push(`failed request [${req.status}]: ${req.url}${req.detail ? ` (${req.detail})` : ''}`);
+      }
+    }
+    return violations;
+  }
+}
+
+function attach(page: Page, gate: HarnessGate): void {
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' || msg.type() === 'warning') gate.consoleErrors.push(msg.text());
+  });
+  page.on('pageerror', (err) => gate.pageErrors.push(err?.stack || String(err)));
+  page.on('requestfailed', (req) => {
+    const errorText = req.failure()?.errorText;
+    if (errorText === CANCELLED_BY_BROWSER) {
+      gate.cancelledRequests.push(req.url());
+      return;
+    }
+    gate.failedRequests.push({
+      url: req.url(),
+      status: 'requestfailed',
+      detail: errorText,
+    });
+  });
+  page.on('response', (resp) => {
+    const status = resp.status();
+    // 5xx and 4xx are both "failed calls"; 4xx that is a documented anonymous
+    // error path is allow-listed (see HarnessGate defaults / allowRequest()).
+    if (status >= 400) gate.failedRequests.push({ url: resp.url(), status });
+  });
+}
+
+export const test = base.extend<{ gate: HarnessGate }>({
+  gate: [
+    async ({ page }, use) => {
+      const gate = new HarnessGate();
+      attach(page, gate);
+      await use(gate);
+      const violations = gate.collectViolations();
+      if (violations.length > 0) {
+        throw new Error(
+          `Harness gate failed (${violations.length} violation(s)):\n  - ${violations.join('\n  - ')}`,
+        );
+      }
+    },
+    { auto: true },
+  ],
+});
+
+// Forbid skipping in every harness project. A required test that calls
+// test.skip / test.fixme is converted into a hard failure, so a suite can never
+// look green while quietly skipping (GOV-04). The gatecheck project relies on
+// this to prove the gate fires.
+const forbid = (name: string) => {
+  return (..._args: unknown[]): never => {
+    throw new Error(
+      `${name} is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).`,
+    );
+  };
+};
+(test as any).skip = forbid('test.skip');
+(test as any).fixme = forbid('test.fixme');
+
+export { expect };
+// Specs build their own page-scoped helpers on top of these fixtures, so the
+// Playwright types they need come from here too — one import, one source.
+export type { Page, Locator, APIRequestContext } from '@playwright/test';

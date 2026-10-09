@@ -1,0 +1,23 @@
+### 2026-08-13T23:07:21Z idempotence - apply_sql_migrations run 3 of 3 on v2_snap_13_6
+# run 2 (raw/08) applied all 24 pending scripts. This run must be a clean no-op.
+
+--- dry run: nothing may be pending ---
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+All 44 migrations already applied. Nothing to do.
+dry-run exit=0
+
+--- real run: must apply nothing ---
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+All 44 migrations already applied. Nothing to do.
+apply_sql_migrations exit=0
+
+--- boot gate AFTER: manage.py check_schema_drift ---
+# BEFORE (raw/05-sweep-before.txt): exit 1, 2 missing tables + 5 missing columns
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift exit=0
+
+--- boot gate AFTER, --strict (missing tables become failures too) ---
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift --strict exit=0

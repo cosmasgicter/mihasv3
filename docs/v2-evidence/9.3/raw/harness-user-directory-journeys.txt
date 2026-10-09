@@ -1,0 +1,22 @@
+
+Running 16 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.2s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.0s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (2.0s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (1.7s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (2.1s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (1.2s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (1.2s)
+  ✓   8 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.0s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:180:1 › page 2 keeps the server total and changes only the rows (1.2s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.1s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:261:1 › an edited email lands, and an unsupported field is refused (2.1s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:304:1 › one bad row rolls the whole import back, and the preview said so (1.9s)
+  ✓  13 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:356:1 › a clean file commits, and every account lands in the chosen school (2.2s)
+  ✓  14 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:392:1 › the export is the whole filtered set and is audited, not the loaded page (1.2s)
+  ✓  15 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:449:1 › a reader without the export capability is not offered the export (1.2s)
+  ✓  16 [mobile-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:503:1 › a bulk role change is one confirmed, all-or-nothing command (2.0s)
+
+  16 passed (42.2s)
+PW_EXIT=0

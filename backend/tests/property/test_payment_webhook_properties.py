@@ -224,7 +224,6 @@ def _expected_risk_flag(
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db
 def test_property_5_amount_currency_reference_integrity(
     seed_applicant, amount_raw, currency, reference
@@ -419,10 +418,6 @@ def _build_event_stream(payment) -> list[tuple[str, dict]]:
         HealthCheck.too_slow,
     ],
 )
-@override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-    PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True,
-)
 @pytest.mark.django_db
 def test_property_3_out_of_order_webhook_safety(
     seed_applicant, permutation_indices
@@ -531,10 +526,6 @@ def _snapshot_payment_state(payment_ref: str) -> dict:
         HealthCheck.function_scoped_fixture,
         HealthCheck.too_slow,
     ],
-)
-@override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-    PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True,
 )
 @pytest.mark.django_db
 def test_property_4_webhook_idempotence(seed_applicant, event_type):

@@ -1,0 +1,6 @@
+=== failures BEFORE (51-file selection): 33
+=== failures AFTER  (52-file selection): 33
+
+--- fixed (in before, not after):
+--- introduced (in after, not before):
+(empty sections above = none)

@@ -1,4 +1,3 @@
-import React from 'react'
 
 interface FormErrorAnnouncerProps {
   errors: Record<string, { message?: string } | undefined>

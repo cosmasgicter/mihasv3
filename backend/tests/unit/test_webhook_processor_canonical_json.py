@@ -14,7 +14,7 @@ both raise, ensuring ``json.dumps`` surfaces a ``TypeError`` /
 
 Scope
 -----
-* Strict path under ``PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True``
+* The canonical-identity ingress path
   with a valid signature.
 * Payload contains an un-serialisable object deep inside ``data``.
 * Assert: a ``WebhookEventLog`` row with the expected
@@ -127,7 +127,6 @@ def seed_pending_payment(db):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True)
 def test_canonical_serialization_failure_logs_and_skips_mutation(
     seed_pending_payment,
 ):

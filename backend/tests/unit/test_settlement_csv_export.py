@@ -1,21 +1,40 @@
-"""Settlement CSV export tests (task 18, R7.4).
+"""Settlement CSV export tests (task 18, R7.4; extended by admissions-v2 8.4).
 
-The settlement summary endpoint (``GET /api/v1/payments/settlements/``) gains an
-optional ``?format=csv`` download variant that reuses the exact same
-``AccessScopeService`` scope + grouping path as the JSON response. These tests
-prove the CSV download is identically tenant-scoped:
+The settlement summary endpoint (``GET /api/v1/payments/settlements/``) carries an
+``?export=csv`` download variant that reuses the exact same scope + grouping path
+as the JSON response. These tests prove the CSV download is identically
+tenant-scoped:
 
 - School_Staff of school A never see school B's rows in the CSV.
 - A payment with missing settlement metadata lands in an "Unassigned" row.
 - A super-admin sees every school's rows.
-- No-scope staff get a header-only CSV (never global totals).
+- A staff actor with no scope cannot obtain a file at all (never global totals).
 
-Run (sqlite-in-memory, since the default ``DATABASE_URL`` points at Neon)::
+**Two contract changes landed with admissions-v2 task 8.4** (findings ADM-06 /
+AUTH-02, R6.5). Every scoping claim above is preserved; the authority around them
+is stricter:
 
-    cd backend && DATABASE_URL="sqlite://:memory:" TESTING=1 \
-      .venv/bin/python -m pytest tests/unit/test_settlement_csv_export.py -v
+1. **An export requires the explicit ``tenant.application.export`` capability.**
+   R6.5 makes a bulk export a backend command with its own capability, audit,
+   redaction, and size limit, so reading the settlement report and downloading it
+   are no longer the same authority. The scoped staff in these tests therefore
+   hold the ``export`` grant; a read-only tenant admin's refusal is proven in
+   ``tests/unit/test_settlement_fee_authority_8_4.py``.
+2. **A no-scope actor is masked (404) instead of receiving a header-only file.**
+   A header-only CSV confirmed both that the surface exists and that the actor
+   had zero rows — a distinguishable answer. R3.2 collapses "out of scope" and
+   "does not exist" into one response. The original claim ("never global totals")
+   holds strictly more strongly: there is no file at all.
 
-**Validates: Requirements R7.4**
+The CSV also gained the reconciliation columns and the platform-only columns that
+task 8.4 added, so ``EXPECTED_HEADER`` is now the redacted tenant header.
+
+Run against the isolated local Postgres::
+
+    cd backend && DATABASE_URL=<localtest 5433> TESTING=1 \
+      python3 -m pytest tests/unit/test_settlement_csv_export.py -v
+
+**Validates: Requirements R7.4, R3.2, R6.5**
 """
 
 from __future__ import annotations
@@ -55,7 +74,19 @@ def _client_for(profile) -> APIClient:
     return client
 
 
+def _grant_export(world):
+    """Give the world's staff the explicit tenant export grant (8.4 / R6.5)."""
+    from apps.catalog.models import UserInstitutionMembership
+
+    UserInstitutionMembership.objects.filter(user_id=world.staff.id).update(
+        permissions=["export"]
+    )
+    return world
+
+
 def _staff_client(world) -> APIClient:
+    """A scoped staff client that is allowed to export (8.4 / R6.5)."""
+    _grant_export(world)
     return _client_for(world.staff)
 
 
@@ -69,6 +100,11 @@ def _parse_csv(response):
     return rows[0], rows[1:]
 
 
+# The tenant (redacted) export header. Task 8.4 added the reconciliation columns
+# and the activity window; the platform-only columns (``collector``,
+# ``quarantined_count``) are withheld from a non-all-access actor, which is why
+# they are absent here and asserted present for a super-admin in
+# ``tests/unit/test_settlement_fee_authority_8_4.py``.
 EXPECTED_HEADER = [
     "institution_id",
     "institution_name",
@@ -77,6 +113,16 @@ EXPECTED_HEADER = [
     "currency",
     "payment_count",
     "gross_amount",
+    "settled_count",
+    "settled_amount",
+    "pending_count",
+    "stale_pending_count",
+    "failed_count",
+    "expired_count",
+    "deferred_count",
+    "reconciliation_state",
+    "first_payment_at",
+    "last_payment_at",
 ]
 
 
@@ -124,8 +170,15 @@ class TestSettlementCsvTenantScoping:
         assert world_b.institution_id not in text
         assert world_b.institution.name not in text
 
-    def test_no_scope_staff_csv_is_header_only(self, two_tenant_worlds, monkeypatch):
-        """No-scope staff get a header-only CSV — never global totals (R7.4/R4.9)."""
+    def test_no_scope_staff_gets_no_file_at_all(self, two_tenant_worlds, monkeypatch):
+        """A no-scope actor cannot obtain a settlement file — never global totals.
+
+        Task 8.4 strengthened this (R3.2): the response used to be a header-only
+        CSV, which confirmed the surface exists and that this actor had zero rows.
+        It is now the same masked 404 an unknown surface would give, so neither
+        fact is observable. The original claim — no global totals ever reach a
+        no-scope actor — holds strictly more strongly.
+        """
         monkeypatch.setattr(
             "apps.catalog.services.AccessScopeService._test_settings_active",
             staticmethod(lambda: False),
@@ -145,10 +198,15 @@ class TestSettlementCsvTenantScoping:
 
         no_scope_staff = build_profile(role="admin")
         response = _client_for(no_scope_staff).get(CSV_URL)
-        assert response.status_code == 200, response.content
-        header, data_rows = _parse_csv(response)
-        assert header == EXPECTED_HEADER
-        assert data_rows == []
+        assert response.status_code == 404, response.content
+        body = response.content.decode("utf-8")
+        for leak in (
+            world_a.institution_id,
+            world_b.institution_id,
+            world_a.institution.name,
+            world_b.institution.name,
+        ):
+            assert leak not in body
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +267,12 @@ class TestSettlementCsvBucketingAndGlobal:
         assert world_b.institution_id in text
 
     def test_csv_rows_match_json_grouping(self, two_tenant_worlds):
-        """The CSV and JSON variants must surface the same scoped rows (no drift)."""
+        """The CSV and JSON variants must surface the same scoped rows (no drift).
+
+        Both come from the one 8.4 query service, so this now also pins that the
+        export's row set matches the *unpaginated* filtered set the aggregates
+        describe — not the page the operator happened to be on.
+        """
         world_a, _world_b = two_tenant_worlds
         build_payment(
             application=world_a.application,
@@ -223,6 +286,13 @@ class TestSettlementCsvBucketingAndGlobal:
         assert json_resp.status_code == 200
         assert csv_resp.status_code == 200
 
-        json_rows = json_resp.json()["data"]["results"]
-        _header, data_rows = _parse_csv(csv_resp)
-        assert len(data_rows) == len(json_rows)
+        payload = json_resp.json()["data"]
+        json_rows = payload["results"]
+        header, data_rows = _parse_csv(csv_resp)
+        assert len(data_rows) == len(json_rows) == payload["totalCount"]
+
+        # Same institution, same money, in both representations.
+        gross_idx = header.index("gross_amount")
+        assert [row[gross_idx] for row in data_rows] == [
+            row["gross_amount"] for row in json_rows
+        ]

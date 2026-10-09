@@ -1,0 +1,80 @@
+      139 |       const violations = gate.collectViolations();
+      140 |       if (violations.length > 0) {
+    > 141 |         throw new Error(
+          |               ^
+      142 |           `Harness gate failed (${violations.length} violation(s)):\n  - ${violations.join('\n  - ')}`,
+      143 |         );
+      144 |       }
+        at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/gatecheck-console.gate-gat-3904b-console-error-fails-the-run-gatecheck-negative/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [gatecheck-negative] › tests/harness-e2e/gatecheck/failed-request.gate.spec.ts:10:1 › gatecheck: an unasserted failed request fails the run 
+
+    Error: Harness gate failed (2 violation(s)):
+      - console.error: Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+      - failed request [requestfailed]: http://gatecheck.invalid/boom (net::ERR_NAME_NOT_RESOLVED)
+
+       at harness-fixtures.ts:141
+
+      139 |       const violations = gate.collectViolations();
+      140 |       if (violations.length > 0) {
+    > 141 |         throw new Error(
+          |               ^
+      142 |           `Harness gate failed (${violations.length} violation(s)):\n  - ${violations.join('\n  - ')}`,
+      143 |         );
+      144 |       }
+        at Object.base.extend.gate.auto (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:141:15)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/gatecheck-failed-request.g-054e9-ailed-request-fails-the-run-gatecheck-negative/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [gatecheck-negative] › tests/harness-e2e/gatecheck/skip.gate.spec.ts:10:1 › gatecheck: calling test.skip converts to a failure 
+
+    Error: test.skip is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).
+
+       at harness-fixtures.ts:156
+
+      154 | const forbid = (name: string) => {
+      155 |   return (..._args: unknown[]): never => {
+    > 156 |     throw new Error(
+          |           ^
+      157 |       `${name} is forbidden in the strict harness projects — a required test may not be skipped (GOV-04).`,
+      158 |     );
+      159 |   };
+        at Function.skip (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/harness-fixtures.ts:156:11)
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/skip.gate.spec.ts:12:8
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/gatecheck-skip.gate-gatech-8f2a7--skip-converts-to-a-failure-gatecheck-negative/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [gatecheck-negative] › tests/harness-e2e/gatecheck/undrained.gate.spec.ts:17:1 › gatecheck: an undrained background job fails the run 
+
+    Error: Undrained required jobs after 3000ms: {"broker_queue_depth":0,"celery_queues":["celery"],"unsettled_payment_collections":1,"unsettled_references":["GATECHECK-UNSETTLED-1786395858050"]} — background work (Celery queue / payment collections) did not settle (R18.4).
+
+       at helpers/ops.ts:329
+
+      327 |     await new Promise((r) => setTimeout(r, 1000));
+      328 |   }
+    > 329 |   throw new Error(
+          |         ^
+      330 |     `Undrained required jobs after ${timeoutMs}ms: ${JSON.stringify(last)} — background work ` +
+      331 |       `(Celery queue / payment collections) did not settle (R18.4).`,
+      332 |   );
+        at assertRequiredJobsDrained (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/ops.ts:329:9)
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/gatecheck/undrained.gate.spec.ts:23:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/gatecheck-undrained.gate-g-3a5ce-ackground-job-fails-the-run-gatecheck-negative/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [gatecheck-negative] › tests/harness-e2e/gatecheck/console.gate.spec.ts:9:1 › gatecheck: an unexpected console error fails the run 
+    [gatecheck-negative] › tests/harness-e2e/gatecheck/failed-request.gate.spec.ts:10:1 › gatecheck: an unasserted failed request fails the run 
+    [gatecheck-negative] › tests/harness-e2e/gatecheck/skip.gate.spec.ts:10:1 › gatecheck: calling test.skip converts to a failure 
+    [gatecheck-negative] › tests/harness-e2e/gatecheck/undrained.gate.spec.ts:17:1 › gatecheck: an undrained background job fails the run 
+GATE_EXIT=1

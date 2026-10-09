@@ -1,5 +1,6 @@
 {
   "data": {
+    "activity_state": "ok",
     "applications": {
       "by_status": {
         "approved": 1,
@@ -9,20 +10,194 @@
       "this_week": 3,
       "today": 3,
       "today_activity": 3,
-      "today_created": 3,
-      "today_submitted": 0,
       "total": 3
     },
+    "freshness": {
+      "generated_at": "<volatile>",
+      "stale_after_seconds": 120
+    },
+    "health": {
+      "definition": "Every metric source answered this request.",
+      "state": "operational"
+    },
+    "metrics": {
+      "accepted_path": {
+        "definition": "Approved, conditionally approved, or enrolled — has an offer or a place.",
+        "key": "accepted_path",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 1
+      },
+      "applications_this_month": {
+        "definition": "Created, updated, or submitted since the 1st in the platform timezone.",
+        "key": "applications_this_month",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 3
+      },
+      "applications_this_week": {
+        "definition": "Created, updated, or submitted since Monday in the platform timezone.",
+        "key": "applications_this_week",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 3
+      },
+      "deadline_pressure": {
+        "definition": "An open condition or enrollment confirmation falls due inside the deadline window.",
+        "key": "deadline_pressure",
+        "roster_query": "deadline_pressure=true",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "decision_queue": {
+        "definition": "Submitted or under review — waiting on a staff decision.",
+        "key": "decision_queue",
+        "roster_query": "review_queue=true",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 2
+      },
+      "overdue_reviews": {
+        "definition": "Submitted longer ago than the configured review SLA and still undecided.",
+        "key": "overdue_reviews",
+        "roster_query": "overdue_review=true",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "payment_resolved": {
+        "definition": "Application fee settled, force-approved, or explicitly deferred.",
+        "key": "payment_resolved",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "payment_review": {
+        "definition": "Applications whose payment is marked for review and is waiting on a staff decision.",
+        "key": "payment_review",
+        "roster_query": "payment_status=pending_review",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "payment_unpaid": {
+        "definition": "No payment attempt recorded yet.",
+        "key": "payment_unpaid",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 3
+      },
+      "pending_documents": {
+        "definition": "Applications with at least one document still awaiting verification. Counts applications, not documents.",
+        "key": "pending_documents",
+        "roster_query": "has_pending_documents=true",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "rejected": {
+        "definition": "Declined by a staff decision.",
+        "key": "rejected",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      },
+      "staff_accounts_enabled": {
+        "definition": "Accounts in your scope that are enabled to sign in. This is not a count of users currently online — the platform does not measure presence.",
+        "key": "staff_accounts_enabled",
+        "scope": "institution",
+        "source": "accounts",
+        "state": "ok",
+        "value": 2
+      },
+      "staff_accounts_total": {
+        "definition": "Accounts linked to a school in your scope, plus your own. Not a count of applicants.",
+        "key": "staff_accounts_total",
+        "scope": "institution",
+        "source": "accounts",
+        "state": "ok",
+        "value": 2
+      },
+      "today_activity": {
+        "definition": "Created, updated, or submitted since midnight in the platform timezone.",
+        "key": "today_activity",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 3
+      },
+      "total_applications": {
+        "definition": "Applications matching the current filters, in your scope.",
+        "key": "total_applications",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 3
+      },
+      "upcoming_interviews": {
+        "definition": "Applications with an interview scheduled at a future time. Counts applications, not interview slots.",
+        "key": "upcoming_interviews",
+        "roster_query": "has_upcoming_interviews=true",
+        "scope": "institution",
+        "source": "applications",
+        "state": "ok",
+        "value": 0
+      }
+    },
     "needs_attention": {
+      "deadline_pressure": 0,
+      "overdue_reviews": 0,
+      "payment_review": 0,
       "pending_documents": 0,
-      "pending_payments": 0,
       "upcoming_interviews": 0
     },
     "no_school_access": false,
     "recent_activity": [],
+    "scope": {
+      "all_access": true,
+      "institution_count": null,
+      "institution_id": null,
+      "kind": "platform"
+    },
+    "sources": {
+      "accounts": {
+        "reason": null,
+        "state": "ok"
+      },
+      "activity": {
+        "reason": null,
+        "state": "ok"
+      },
+      "applications": {
+        "reason": null,
+        "state": "ok"
+      }
+    },
     "users": {
-      "active": 2,
+      "enabled": 2,
       "total": 2
+    },
+    "windows": {
+      "by_status": {
+        "approved": 1,
+        "submitted": 2
+      },
+      "deadline_pressure_hours": 48,
+      "last_activity_at": "<volatile>",
+      "next_deadline_at": "<volatile>",
+      "review_sla_days": 5
     }
   },
   "success": true

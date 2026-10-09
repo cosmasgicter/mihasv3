@@ -31,6 +31,8 @@ import { toError } from '@/lib/toError'
 import {
   officialDocumentService,
   type OfficialDocumentGenerationStatus,
+  type OfficialDocumentJob,
+  type OfficialDocumentStatus,
   type OfficialDocumentType,
 } from '@/services/officialDocuments'
 
@@ -61,6 +63,10 @@ export function deriveOfficialDocumentUiState(
   if (backendStatus === 'ready') return 'ready'
   if (backendStatus === 'failed') return inflight ? 'generating' : 'failed'
   if (backendStatus === 'queued') return inflight ? 'queued' : 'queued'
+  // admissions-v2 task 10.4 (R13.11): `not_requested` means nothing is queued.
+  // It maps to `idle`/`generating` — never `queued` — because polling it would
+  // never end. That is the phantom this status exists to remove.
+  if (backendStatus === 'not_requested') return inflight ? 'generating' : 'idle'
   if (inflight) return 'generating'
   return 'idle'
 }
@@ -94,8 +100,48 @@ export function isOfficialDocumentSetupRequiredError(error: unknown): boolean {
   )
 }
 
+/**
+ * The **staff** message for a tenant setup failure. Names the configuration to
+ * fix, because the reader can fix it.
+ */
 export const OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE =
   'Tenant document setup is incomplete. Configure the document profile, template, logo, and signature before generating this document.'
+
+/**
+ * The **student** message for the same failure (admissions-v2 task 10.4, STU-18).
+ *
+ * STU-18's third clause is "student errors expose tenant setup instructions": the
+ * message above was rendered to applicants, telling them to configure a document
+ * profile — work only a school operator can do — and disclosing that the school's
+ * configuration is incomplete. A student needs to know that the school has been
+ * told and that there is a person to ask, which is what
+ * `resolveTenantSupportContact({ purpose: 'official_document' })` provides
+ * (task 8.3's neutral affordance: never a hardcoded address, and never an
+ * example tenant's).
+ *
+ * The school half of this failure is not dropped — it is delivered to the
+ * tenant's own authorized staff as an inbox work item by the renderer
+ * (`_alert_staff_of_setup_failure`).
+ */
+export const OFFICIAL_DOCUMENT_STUDENT_UNAVAILABLE_MESSAGE =
+  'This document is not available to download yet. The admissions office has been notified and will make it available.'
+
+/**
+ * The student message for a render failure they may retry themselves.
+ */
+export const OFFICIAL_DOCUMENT_STUDENT_RETRY_MESSAGE =
+  'The document could not be prepared. Please try again.'
+
+/**
+ * Who the messages are for. The **student** never sees tenant configuration
+ * instructions or a retry that cannot work (STU-18); staff see both, because
+ * they can act on them.
+ */
+export type OfficialDocumentAudience = 'student' | 'staff'
+
+export interface UseOfficialDocumentOptions {
+  audience?: OfficialDocumentAudience
+}
 
 export interface UseOfficialDocumentResult {
   /** The mapped UI state — drives button label / retry affordance. */
@@ -108,10 +154,23 @@ export interface UseOfficialDocumentResult {
   error: string | null
   /** True when generation failed because tenant document setup is incomplete. */
   isSetupRequired: boolean
+  /**
+   * The **server's** answer to whether retrying is worth offering (R13.11).
+   * A tenant setup failure is not a student's to retry, so the affordance is
+   * absent rather than present and futile.
+   */
+  canRetry: boolean
+  /**
+   * True when the artifact on offer is the one the platform issued rather than
+   * one regenerated from today's application state (read-existing policy).
+   */
+  isHistorical: boolean
+  /** The committed durable job behind the current status, or `null`. */
+  job: OfficialDocumentJob | null
   /** Generate (ensure current) then download the stored backend document. */
   download: () => Promise<boolean>
-  /** Email the backend-stored document to `address` (slip only — see service). */
-  email: (address: string) => Promise<boolean>
+  /** Email the backend-stored document to the applicant's own address. */
+  email: (address?: string) => Promise<boolean>
   /** Clear transient error/state back to idle. */
   reset: () => void
 }
@@ -123,11 +182,14 @@ export interface UseOfficialDocumentResult {
 export function useOfficialDocument(
   applicationId: string,
   documentType: OfficialDocumentType,
+  { audience = 'student' }: UseOfficialDocumentOptions = {},
 ): UseOfficialDocumentResult {
   const [status, setStatus] = useState<OfficialDocumentGenerationStatus | null>(null)
   const [inflight, setInflight] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [setupRequired, setSetupRequired] = useState(false)
+  const [job, setJob] = useState<OfficialDocumentJob | null>(null)
+  const [historical, setHistorical] = useState(false)
 
   const mountedRef = useRef(true)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -143,11 +205,46 @@ export function useOfficialDocument(
     }
   }, [])
 
+  /**
+   * The message for a non-ready outcome, chosen by audience (STU-18). Staff get
+   * the configuration detail; a student gets a neutral sentence, and the caller
+   * pairs it with `resolveTenantSupportContact`'s affordance.
+   */
+  const failureMessage = useCallback(
+    (settled: OfficialDocumentGenerationStatus | null): string => {
+      if (settled === 'setup_required') {
+        return audience === 'staff'
+          ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+          : OFFICIAL_DOCUMENT_STUDENT_UNAVAILABLE_MESSAGE
+      }
+      return OFFICIAL_DOCUMENT_STUDENT_RETRY_MESSAGE
+    },
+    [audience],
+  )
+
+  /**
+   * Record everything one status read said — the status, the durable job, and
+   * whether the artifact is a historical read. The client derives none of it.
+   */
+  const absorb = useCallback(
+    (payload: OfficialDocumentStatus | null): OfficialDocumentGenerationStatus | null => {
+      const next = payload?.status ?? null
+      if (!mountedRef.current) return next
+      setStatus(next)
+      setJob(payload?.job ?? null)
+      setHistorical(Boolean(payload?.historical))
+      return next
+    },
+    [],
+  )
+
   const reset = useCallback(() => {
     if (!mountedRef.current) return
     setStatus(null)
     setError(null)
     setSetupRequired(false)
+    setJob(null)
+    setHistorical(false)
   }, [])
 
   /**
@@ -163,13 +260,15 @@ export function useOfficialDocument(
         if (!mountedRef.current) return 'queued'
 
         const payload = await officialDocumentService.getOfficialDocument(applicationId, documentType)
-        const next = payload?.status ?? 'failed'
-        if (mountedRef.current) setStatus(next)
-        if (next === 'ready' || next === 'failed' || next === 'setup_required') return next
+        const next = absorb(payload) ?? 'failed'
+        // `not_requested` is terminal for a poll: the server is telling us there
+        // is no committed job, so waiting longer cannot change the answer
+        // (admissions-v2 task 10.4, R13.11).
+        if (next !== 'queued') return next
       }
       return 'failed'
     },
-    [applicationId, documentType],
+    [absorb, applicationId, documentType],
   )
 
   const download = useCallback(async (): Promise<boolean> => {
@@ -179,8 +278,7 @@ export function useOfficialDocument(
     setSetupRequired(false)
     try {
       const generated = await officialDocumentService.generateOfficialDocument(applicationId, documentType)
-      let current: OfficialDocumentGenerationStatus = generated?.status ?? 'failed'
-      if (mountedRef.current) setStatus(current)
+      let current: OfficialDocumentGenerationStatus = absorb(generated) ?? 'failed'
 
       if (current === 'queued') {
         current = await pollUntilSettled()
@@ -189,11 +287,7 @@ export function useOfficialDocument(
       if (current !== 'ready') {
         if (mountedRef.current) {
           setSetupRequired(current === 'setup_required')
-          setError(
-            current === 'setup_required'
-              ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
-              : 'The document could not be generated. Please try again.',
-          )
+          setError(failureMessage(current))
         }
         return false
       }
@@ -209,7 +303,7 @@ export function useOfficialDocument(
         setSetupRequired(requiresSetup)
         setError(
           requiresSetup
-            ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+            ? failureMessage('setup_required')
             : toError(err).message || 'Unable to download the document',
         )
       }
@@ -217,10 +311,10 @@ export function useOfficialDocument(
     } finally {
       if (mountedRef.current) setInflight(false)
     }
-  }, [applicationId, documentType, inflight, pollUntilSettled])
+  }, [absorb, applicationId, documentType, failureMessage, inflight, pollUntilSettled])
 
   const email = useCallback(
-    async (address: string): Promise<boolean> => {
+    async (address?: string): Promise<boolean> => {
       if (inflight) return false
       setInflight(true)
       setError(null)
@@ -229,19 +323,14 @@ export function useOfficialDocument(
         // Ensure the backend-stored document exists/current before emailing it,
         // so the email attaches the authoritative record, not a local render.
         const generated = await officialDocumentService.generateOfficialDocument(applicationId, documentType)
-        let current: OfficialDocumentGenerationStatus = generated?.status ?? 'failed'
-        if (mountedRef.current) setStatus(current)
+        let current: OfficialDocumentGenerationStatus = absorb(generated) ?? 'failed'
         if (current === 'queued') {
           current = await pollUntilSettled()
         }
         if (current !== 'ready') {
           if (mountedRef.current) {
             setSetupRequired(current === 'setup_required')
-            setError(
-              current === 'setup_required'
-                ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
-                : 'The document is still being prepared. Please try again in a moment.',
-            )
+            setError(failureMessage(current))
           }
           return false
         }
@@ -255,7 +344,7 @@ export function useOfficialDocument(
           setSetupRequired(requiresSetup)
           setError(
             requiresSetup
-              ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+              ? failureMessage('setup_required')
               : toError(err).message || 'Unable to email the document',
           )
         }
@@ -264,7 +353,7 @@ export function useOfficialDocument(
         if (mountedRef.current) setInflight(false)
       }
     },
-    [applicationId, documentType, inflight, pollUntilSettled],
+    [absorb, applicationId, documentType, failureMessage, inflight, pollUntilSettled],
   )
 
   return {
@@ -273,6 +362,10 @@ export function useOfficialDocument(
     isBusy: inflight,
     error,
     isSetupRequired: setupRequired,
+    // The server decides both of these; the client adds no rule of its own.
+    canRetry: Boolean(job?.can_retry),
+    isHistorical: historical,
+    job,
     download,
     email,
     reset,

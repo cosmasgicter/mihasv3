@@ -76,8 +76,11 @@ const ROUTE_SURFACES: RouteSurface[] = [
   // Student
   { path: '/student/dashboard', file: 'pages/student/Dashboard.tsx' },
   { path: '/student/application-wizard', file: 'pages/student/applicationWizard/index.tsx' },
+  // The one canonical student application workspace (task 10.6, R13.13, STU-23).
+  // It also serves `/application/:id` and `/student/application/:id/status`, and
+  // `/student/application/:id` is now a pure redirect into it — so, per the rule
+  // above, it is represented once by its canonical path.
   { path: '/student/status', file: 'pages/student/ApplicationStatus.tsx' },
-  { path: '/student/application/:id', file: 'pages/student/ApplicationDetail.tsx' },
   { path: '/student/settings', file: 'pages/student/Settings.tsx' },
   { path: '/student/notifications', file: 'pages/student/NotificationSettings.tsx' },
   { path: '/student/payment', file: 'pages/student/Payment.tsx' },

@@ -174,8 +174,18 @@ class TestLateFeeRequirement:
         mock_check.return_value = IntakeCheckResult(allowed=True, is_late=True)
 
         app = _mock_app(status="draft", payment_status="paid")
+        # The fee gate resolves its offering through the CANONICAL
+        # ``program_offering_id`` the application carries (remediation L1:
+        # ``_resolve_offering_for_fees`` -> ``resolve_offering``). It fails
+        # closed to "no fee authority exists for this row" when that id is
+        # absent, so without it this case never reaches the late-fee gate.
+        app.program_offering_id = uuid.uuid4()
 
-        mock_prog.objects.filter.return_value.first.return_value = MagicMock()
+        # ``resolve_offering(require_active=True)`` filters twice:
+        # ``.filter(id=...)`` then ``.filter(is_active=True)``.
+        mock_prog.objects.filter.return_value.filter.return_value.first.return_value = (
+            MagicMock()
+        )
         mock_late_fee = MagicMock()
         mock_late_fee.amount = 50
         mock_late_fee.currency = "ZMW"

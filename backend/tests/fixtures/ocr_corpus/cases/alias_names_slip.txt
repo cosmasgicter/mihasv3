@@ -1,0 +1,12 @@
+EXAMINATIONS COUNCIL OF ZAMBIA
+STATEMENT OF RESULTS
+EXAMINATION NUMBER: 7654321045
+YEAR: 2019
+
+1. Eng                               5
+2. Maths                             4
+3. Bio                               6
+4. Chem                              7
+5. Combined Science                  5
+6. Civics                            3
+7. Agric Science                     6

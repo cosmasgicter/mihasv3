@@ -1,0 +1,40 @@
+# Task 6.3 M13 — rebuild the admissions bundle through the harness (never a plain bun run build; see m12-09)
+# base commit: bae29a28d9657f288b3339062adb31285959c966
+# captured: 2026-10-08T12:17:17Z
+# why: AuthContext.tsx, localStorageCache.ts and useWizardDraftLoader.ts changed (M13 outbox fix)
+$ harness/bin/harness build
+dist/assets/js/schemas-BhuGwATM.js                    64.24 kB
+dist/assets/js/Users-DRPwPi19.js                      81.32 kB
+dist/assets/js/progress-BddDJzCa.js                   84.94 kB
+dist/assets/js/Tenants-D7WHzbWR.js                    94.69 kB
+dist/assets/js/vendor-framer-motion-UG34w3ZA.js      113.99 kB
+dist/assets/js/index-Pvgbv8pY.js                     126.80 kB
+dist/assets/js/index.es-PPXrdQ8T.js                  156.66 kB
+dist/assets/js/vendor-react-BaipggmQ.js              170.79 kB
+dist/assets/js/Applications-B7Sc8xOA.js              176.33 kB
+dist/assets/js/html2canvas.esm-CyxsxQj2.js           199.44 kB
+dist/assets/js/index-ZPX_dawP.js                     335.24 kB
+dist/assets/js/vendor-pdf-YaCBe5SO.js                415.38 kB
+dist/assets/js/vendor-sentry-Dsc6J6uo.js             459.78 kB
+✓ built in 41.05s
+[32m✓[0m finalise-html: preload hint for LandingPage (assets/js/LandingPage-CY0zMl_w.js)
+[32m✓[0m finalise-html: critters inlined critical CSS (HTML 11508 → 21214 bytes)
+
+check-html-csp: scanned /home/cosmas/Downloads/mihasv3/apps/admissions/dist/index.html
+  CSP script-src 'unsafe-inline': NO
+  CSP style-src 'unsafe-inline':  YES
+  inline <style> total bytes:     15132
+  main <link rel=stylesheet>:     present
+
+✓ check-html-csp: HTML is compatible with the production CSP.
+[32m[harness] ✓ SPA build output ready[0m
+BUILD EXIT: 0
+
+$ grep -ho 'https\?://api\.[a-zA-Z0-9.-]*' apps/admissions/dist/assets/js/*.js | sort | uniq -c
+      1 https://api.beanola.com
+api.mihas.edu.zm occurrences: 0
+built entry:  assets/js/index-Pvgbv8pY.js
+served entry: assets/js/index-Pvgbv8pY.js
+dist/index.html mtime: 2026-10-08 14:18:18.532751567 +0200
+src newer than dist (should be none):
+(end)

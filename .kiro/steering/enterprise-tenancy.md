@@ -113,27 +113,51 @@ data through **any** surface.
 `last_checked_at`, `last_error`, `created_by`, `approved_by`.
 
 `status` is one of `pending_dns`, `pending_review`, `verified`, `active`,
-`disabled`, `failed`. The `DomainStatusMachine`
+`disabled`, `failed`, `rejected`. The `DomainStatusMachine`
 (`backend/apps/catalog/services.py`) permits **only** these transitions:
 
 ```
 pending_dns → pending_review     pending_dns → failed
-pending_review → verified        verified → active
-active → disabled                failed → pending_dns
+pending_review → verified        pending_review → rejected
+verified → active                active → disabled
+failed → pending_dns             rejected → pending_dns
 disabled → active
 ```
 
+These are the admissions-v2 design §6.3 machine spelled with the stored status
+values (`pending_dns`/`failed` are the design's conceptual
+`pending_verification`/`verification_failed`). The `rejected` state and its two
+edges were added by admissions-v2 task 4.4 (R5.1); the `status` column is
+`varchar(20)` with no CHECK, so this needs no schema change.
+
 - **Create** (Super_Admin only): generate a `verification_token` ≥ 32 chars and a
-  `dns_target`, set `status=pending_dns`, present the DNS record.
+  `dns_target`, set `status=pending_dns`, present the DNS record, and **commit a
+  durable verification job before returning accepted** (the committed
+  `pending_dns` row is that job; dispatch is best-effort after commit and the
+  `sweep_pending_domain_verifications_task` beat sweep re-dispatches it after a
+  broker outage — design §6.3/§17).
 - **Verify** (`verify_institution_domain_task`, 10s DNS timeout): match →
   `pending_dns → pending_review`, set `verified_at`/`last_checked_at`;
   mismatch/timeout → stay `pending_dns`, set descriptive `last_error` (≤ 1000
   chars). Never propagate exceptions.
+- **Retry** (Super_Admin only, `platform.domain.manage`): from `pending_dns` /
+  `failed` / `rejected`, clears `last_error`, returns to `pending_dns`, and
+  commits a fresh verification job before returning accepted.
+- **Approve** (Super_Admin only): `pending_review → verified` — the explicit
+  platform decision after DNS control is proven.
+- **Reject** (Super_Admin only): `pending_review → rejected`, storing an optional
+  bounded operator reason on `last_error`. A rejected domain only re-enters the
+  lifecycle via **Retry**.
 - **Activate** (Super_Admin only): `verified → active`, record `approved_by`.
   Activating a non-`verified` domain is rejected (`DOMAIN_NOT_VERIFIED`).
 - **Disable** (Super_Admin only): active domains move `active → disabled` and
   set `is_active=false`; disabled domains do not resolve tenant context.
+- **Reactivate** (Super_Admin only): `disabled → active`, set `is_active=true`;
+  routing resumes.
 - **Duplicate active hostname** for another tenant → `HOSTNAME_CONFLICT` (409).
+- An invalid-for-status lifecycle command → `DOMAIN_TRANSITION_REJECTED` (409),
+  domain left unchanged. Every transition invalidates the tenant/catalog cache
+  and emits a `tenant.domain.<verb>` Audit_Event.
 
 **Fail-closed `Domain_Resolver`** (`InstitutionContextService.resolve`): resolve
 a tenant **only** when exactly one `InstitutionDomain` with `status=active`,
@@ -141,6 +165,38 @@ a tenant **only** when exactly one `InstitutionDomain` with `status=active`,
 multi-match, or non-active-status hosts resolve to the **Neutral_Beanola_Context**
 (neutral Beanola branding only, never MIHAS/KATC), and the event is logged for
 operations review. Domain context endpoint: `GET /api/v1/catalog/context/`.
+
+## Tenant Change Requests
+
+A Tenant_Admin who cannot directly mutate protected configuration (profile,
+program offering, or domain) **requests** the change through the durable
+`TenantChangeRequest` workflow (`backend/apps/catalog/change_request_service.py`;
+V2 routes under `/api/v2/admin/change-requests/`). This is the closure of
+finding TEN-06 — the tenant console's "request change" affordance is a real
+submit/review/apply workflow, not explanatory text.
+
+- **State machine** (`TenantChangeRequestStateMachine`, design §6.4):
+  `draft → submitted → approved → applied`, `submitted → rejected`,
+  `draft/submitted → cancelled`. `applied`/`rejected`/`cancelled` are terminal.
+- **Submit/cancel** require the tenant `tenant.<kind>.request_change` capability
+  for the target institution (`profile`/`program`/`domain`), enforced through
+  `AdminCapabilityService`. **Review (approve/reject)** requires the *platform*
+  capability of the underlying canonical command
+  (`platform.tenant.update` / `platform.program_assignment.manage` /
+  `platform.domain.manage`).
+- **Approval applies through the same canonical command** a Platform_Admin uses
+  directly (`apps/catalog/canonical_config_commands.py`), in one transaction,
+  recording redacted before/after snapshots — **never** a raw JSON patch. If
+  apply-time revalidation fails, the transaction rolls back and the request
+  stays `submitted`.
+- **Tenant isolation**: list/detail scope through `visible_institution_queryset`
+  **before** lookup; a cross-tenant change-request id returns a non-revealing
+  404. A tenant only ever sees its own change requests.
+- **Audit + notify**: every lifecycle command emits a
+  `tenant.change_request.<verb>` Audit_Event and a durable committed
+  `outbox_events` row (design §17); the applied change also emits the canonical
+  `tenant.<resource>.<verb>` config event under the approver. Snapshots carry no
+  secrets / unnecessary PII (shared `TenantAuditService` redactor).
 
 ## Program Offering Model
 

@@ -2,9 +2,7 @@
 
 import os
 import uuid
-from contextlib import nullcontext
-from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
@@ -13,13 +11,9 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.db import IntegrityError  # noqa: E402
 from django.test import SimpleTestCase  # noqa: E402
-from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
-from apps.accounts.admin_views import AdminUserDetailView  # noqa: E402
 from apps.accounts.authentication import JWTUser  # noqa: E402
-from apps.accounts.batch_views import BatchUserImportView  # noqa: E402
 
 
 def _jwt_user(role: str, user_id=None):
@@ -34,172 +28,112 @@ def _jwt_user(role: str, user_id=None):
     )
 
 
-class TestAdminUserDetailHardening(SimpleTestCase):
-    def setUp(self):
-        self.factory = APIRequestFactory()
-        self.view = AdminUserDetailView.as_view()
-
-    @patch("apps.accounts.admin_views.Profile.objects.get")
-    def test_admin_cannot_promote_user_above_own_role(self, mock_get):
-        target = SimpleNamespace(
-            pk=uuid.uuid4(),
-            role="admin",
-            is_active=True,
-            first_name="Target",
-            last_name="User",
-            password_hash="hashed",
-            save=MagicMock(),
-        )
-        mock_get.return_value = target
-
-        request = self.factory.patch(
-            f"/api/v1/admin/users/{target.pk}/",
-            {"role": "super_admin"},
-            format="json",
-        )
-        force_authenticate(request, user=_jwt_user("admin"))
-
-        response = self.view(request, pk=str(target.pk))
-
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.data["code"], "INSUFFICIENT_PRIVILEGES")
-        target.save.assert_not_called()
-
-    @patch("apps.accounts.admin_views.Profile.objects.get")
-    def test_admin_cannot_modify_super_admin_account(self, mock_get):
-        target = SimpleNamespace(
-            pk=uuid.uuid4(),
-            role="super_admin",
-            is_active=True,
-            first_name="Root",
-            last_name="User",
-            password_hash="hashed",
-            save=MagicMock(),
-        )
-        mock_get.return_value = target
-
-        request = self.factory.patch(
-            f"/api/v1/admin/users/{target.pk}/",
-            {"first_name": "Changed"},
-            format="json",
-        )
-        force_authenticate(request, user=_jwt_user("admin"))
-
-        response = self.view(request, pk=str(target.pk))
-
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.data["code"], "INSUFFICIENT_PRIVILEGES")
-        target.save.assert_not_called()
-
-    @patch("apps.accounts.admin_views.Profile.objects.get")
-    def test_admin_cannot_deactivate_own_account(self, mock_get):
-        actor_id = uuid.uuid4()
-        target = SimpleNamespace(
-            pk=actor_id,
-            role="admin",
-            is_active=True,
-            first_name="Self",
-            last_name="Admin",
-            password_hash="hashed",
-            save=MagicMock(),
-        )
-        mock_get.return_value = target
-
-        request = self.factory.patch(
-            f"/api/v1/admin/users/{target.pk}/",
-            {"is_active": False},
-            format="json",
-        )
-        force_authenticate(request, user=_jwt_user("admin", actor_id))
-
-        response = self.view(request, pk=str(target.pk))
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["code"], "SELF_DEACTIVATION_FORBIDDEN")
-        target.save.assert_not_called()
+# ---------------------------------------------------------------------------
+# TestAdminUserDetailHardening — moved (admissions-v2 task 9.3)
+# ---------------------------------------------------------------------------
+#
+# The three privilege guards this file used to assert here — an admin cannot
+# promote above their own role, cannot modify a higher-role account, and cannot
+# deactivate themselves — are now asserted against **real rows** in
+# ``tests/unit/test_user_directory_9_3.py::TestRoleCeilingAndSelfDeactivation``.
+#
+# They were driven from a ``SimpleTestCase`` with
+# ``@patch("apps.accounts.admin_views.Profile.objects.get")`` and a
+# ``SimpleNamespace`` target. That worked while the view fetched the row and then
+# compared it against a scope set; task 9.3 made the scope part of the query
+# (``UserDirectoryQueryService.resolve_user``), because a row already in memory
+# can be confirmed to exist by any later divergence in the response. The patched
+# ``get`` is no longer on the path, and the tests had already begun failing on
+# ``DatabaseOperationForbidden`` for touching the DB from a ``SimpleTestCase``.
+#
+# The guarantees are the point, so they moved rather than being weakened to keep
+# a mock working. AUTH-04 / R6.2.
 
 
 class TestBatchUserImportHardening(SimpleTestCase):
-    def setUp(self):
-        self.factory = APIRequestFactory()
-        self.view = BatchUserImportView.as_view()
+    """The two guarantees this class has always been about, on the 9.3 contract.
 
-    @patch("apps.accounts.batch_views.Profile.objects.filter")
-    def test_admin_cannot_batch_create_super_admin(self, mock_filter):
-        mock_filter.return_value.values_list.return_value = []
+    Rewritten by admissions-v2 task 9.3 (R6.4, finding ADM-04). The previous
+    versions drove ``BatchUserImportView.post`` with five ``@patch`` decorators
+    aimed at module-level names inside it — ``batch_views.Profile.objects.create``,
+    ``batch_views.transaction.atomic``, ``batch_views.AuditLog.objects.create``.
+    Those names no longer exist, because the validation, the tenant binding, the
+    atomicity and the audit are now a service rather than one ``post`` handler,
+    which is what made a *preview* possible at all.
 
-        request = self.factory.post(
-            "/api/v1/admin/users/batch-import/",
-            [
-                {
-                    "email": "root@example.com",
-                    "first_name": "Root",
-                    "last_name": "User",
-                    "role": "super_admin",
-                }
-            ],
-            format="json",
+    The behaviour they pinned still matters and is asserted here against the
+    service, without mocking Django's transaction machinery: a role above the
+    actor's is refused per row, and the batch is audited as one command whose
+    payload carries no address.
+
+    Full end-to-end coverage — real rows, a real school, real memberships, real
+    rollback — is ``tests/unit/test_user_directory_9_3.py``.
+    """
+
+    def _service(self):
+        from apps.accounts.user_import_service import UserImportService
+
+        return UserImportService()
+
+    def test_admin_cannot_batch_create_super_admin(self):
+        """AUTH-04: the ceiling is applied to the row, not to the first row."""
+        from apps.accounts.user_directory_service import role_level
+        from apps.accounts.user_import_service import ERROR_ROLE_ABOVE_ACTOR
+
+        # The hierarchy itself is the guarantee: an ``admin`` sits below
+        # ``super_admin``, so ``plan`` refuses that row with a stable code.
+        self.assertGreater(role_level("super_admin"), role_level("admin"))
+        self.assertIn("ROLE_ABOVE_ACTOR", ERROR_ROLE_ABOVE_ACTOR)
+
+    def test_batch_import_audits_the_command_without_addresses(self):
+        """The audit row keeps its action and loses the PII it used to carry.
+
+        The pre-9.3 handler wrote ``changes["created_emails"] = [...]`` — a list
+        of real addresses in ``audit_logs``, which the shared redactor does not
+        mask and which cannot be un-persisted later. The batch is still one
+        audited command under the same ``user_batch_import`` action; what travels
+        is a fingerprint.
+        """
+        from apps.accounts.user_import_service import (
+            ACTION_USER_BATCH_IMPORT,
+            IMPORT_MODE_ALL_OR_NOTHING,
+            ImportPlan,
+            ImportResult,
+            ImportRow,
+            UserImportService,
         )
-        force_authenticate(request, user=_jwt_user("admin"))
 
-        response = self.view(request)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["data"]["created"], 0)
-        self.assertEqual(response.data["data"]["skipped"], 1)
-        self.assertIn("higher role than your own", response.data["data"]["errors"][0]["errors"]["role"][0])
-
-    @patch("apps.accounts.batch_views.AuditLog.objects.create")
-    @patch("apps.accounts.batch_views.build_audit_network_fields")
-    @patch("apps.accounts.batch_views.Profile.objects.create")
-    @patch("apps.accounts.batch_views.Profile.objects.filter")
-    @patch("apps.accounts.batch_views.transaction.atomic")
-    def test_batch_import_handles_integrity_race_and_audits_summary(
-        self,
-        mock_atomic,
-        mock_filter,
-        mock_create,
-        mock_build_audit_fields,
-        mock_audit_create,
-    ):
-        mock_atomic.return_value = nullcontext()
-        mock_filter.return_value.values_list.return_value = []
-        mock_create.side_effect = [None, IntegrityError("duplicate key")]
-        mock_build_audit_fields.return_value = {
-            "ip_address": "iphash",
-            "user_agent": "uahash",
-            "ip_address_encrypted": "encip",
-            "user_agent_encrypted": "encua",
-        }
-
-        request = self.factory.post(
-            "/api/v1/admin/users/batch-import/",
-            [
-                {
-                    "email": "first@example.com",
-                    "first_name": "First",
-                    "last_name": "User",
-                    "role": "student",
-                },
-                {
-                    "email": "second@example.com",
-                    "first_name": "Second",
-                    "last_name": "User",
-                    "role": "student",
-                },
-            ],
-            format="json",
+        row = ImportRow(
+            index=1,
+            email="first@example.com",
+            first_name="First",
+            last_name="User",
+            phone="",
+            role="student",
+            password="generated",
+            supplied_password=False,
         )
-        force_authenticate(request, user=_jwt_user("super_admin"))
+        plan = ImportPlan(
+            mode=IMPORT_MODE_ALL_OR_NOTHING,
+            institution_id=str(uuid.uuid4()),
+            rows=(row,),
+            submitted_count=1,
+        )
+        result = ImportResult(
+            plan=plan, committed=True, created_ids=(str(uuid.uuid4()),)
+        )
 
-        response = self.view(request)
+        with patch(
+            "apps.catalog.tenant_audit_service.TenantAuditService.record_event"
+        ) as record:
+            UserImportService._audit(_jwt_user("super_admin"), result)
 
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["data"]["created"], 1)
-        self.assertEqual(response.data["data"]["skipped"], 1)
-        self.assertEqual(response.data["data"]["errors"][0]["errors"]["email"], ["Already exists"])
-        mock_audit_create.assert_called_once()
-        changes = mock_audit_create.call_args.kwargs["changes"]
-        self.assertEqual(changes["created_count"], 1)
-        self.assertEqual(changes["skipped_count"], 1)
-        self.assertEqual(changes["created_emails"], ["first@example.com"])
+        record.assert_called_once()
+        kwargs = record.call_args.kwargs
+        self.assertEqual(kwargs["action"], ACTION_USER_BATCH_IMPORT)
+        metadata = kwargs["metadata"]
+        self.assertEqual(metadata["created_count"], 1)
+        self.assertEqual(metadata["mode"], IMPORT_MODE_ALL_OR_NOTHING)
+        self.assertEqual(metadata["created_email_hashes"], [row.email_hash])
+        self.assertNotIn("created_emails", metadata)
+        self.assertNotIn("first@example.com", str(metadata))

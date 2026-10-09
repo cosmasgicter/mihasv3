@@ -7,7 +7,7 @@
 
 import { cn } from '@/lib/utils';
 import { formatDateMedium } from '@/lib/dateFormat';
-import { Check, Clock, AlertCircle, Circle, Loader2 } from 'lucide-react';
+import { Check, Clock, AlertCircle, Loader2 } from 'lucide-react';
 
 type TimelineStatus = 'completed' | 'current' | 'pending' | 'error';
 

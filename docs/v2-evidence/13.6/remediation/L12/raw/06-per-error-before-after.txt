@@ -1,0 +1,92 @@
+]633;E;printf '=== COMMAND: bash raw/l12-per-error-probe.sh ===\\n';af39baa4-945c-4668-94ea-326d9e6df79d]633;C=== COMMAND: bash raw/l12-per-error-probe.sh ===
+=== DATE: 2026-08-14T15:27:23Z ===
+=== HEAD: bae29a28d ===
+
+############ CLUSTER A — no-restricted-imports on the raw transport (9 errors, 9 files)
+--- apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts
+    HEAD: 20:import { apiClient } from '@/services/client'; 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts
+    HEAD: 10:import { apiClient } from '@/services/client'; 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/PaymentCallback.tsx
+    HEAD: 4:import { apiClient } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts
+    HEAD: 8:import { apiClient } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts
+    HEAD: 4:import { AuthenticationError } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts
+    HEAD: 19:import { apiClient } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts
+    HEAD: 6:import { apiClient } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/wizardControllerUtils.ts
+    HEAD: 4:import { AuthenticationError } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+--- apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx
+    HEAD: 8:import { apiClient } from '@/services/client' 
+     NOW: (none — migrated onto a domain service)
+
+############ CLUSTER B — stale eslint-disable directives (6 errors, 5 files)
+#### the directive must be gone; anything it guarded must still be imported
+--- apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts
+    HEAD disable: 1
+     NOW disable: 0
+     guarded import KEPT: 14:import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine' 
+--- apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx
+    HEAD disable: 1
+     NOW disable: 0
+     guarded import KEPT: 13:import type { EligibilityResult } from '@/lib/eligibilityEngine' 
+--- apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx
+    HEAD disable: 1
+     NOW disable: 0
+     guarded import KEPT: 36:import type { EligibilityResult } from '@/lib/eligibilityEngine' 
+--- apps/admissions/tests/harness-e2e/harness-fixtures.ts
+    HEAD disable: 0
+     NOW disable: 0
+     guarded cast KEPT:   161:(test as any).skip = forbid('test.skip'); 162:(test as any).fixme = forbid('test.fixme'); 
+--- apps/admissions/tests/harness-e2e/helpers/ops.ts
+    HEAD disable: 0
+     NOW disable: 0
+     guarded loop KEPT:   320:  while (true) { 
+
+############ SUPPRESSION CENSUS — L12 must not have traded errors for disables
+HEAD eslint-disable directives in apps/admissions/{src,tests}:
+  apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts:14:// eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
+  apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx:12:// eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
+  apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx:11:// eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
+NOW  eslint-disable directives in apps/admissions/{src,tests}:
+  apps/admissions/tests/unit/architectureEnforcement.test.ts:101: * stale `eslint-disable` directives). L12 migrated all nine onto domain services, so by
+(the single remaining hit is prose inside a comment, not a directive — it has no
+ '-next-line'/'-line' form and eslint does not read it as one; --report-unused-disable-
+ directives would flag it if it were)
+
+############ RULE INTACT — the R14.3 block was not weakened to reach zero
++  // Architecture enforcement (R14.3): Pages and components MUST NOT import the raw
++  // transport client directly. Use domain service modules (e.g. @/services/auth,
++  // @/services/applications) which consume generated types and validate responses.
++  {
++    files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
++    rules: {
++      'no-restricted-imports': [
++        'error',
++        {
++          patterns: [
++            {
++              group: ['@/services/client', '@/services/httpClient', '@/services/csrf', '@/services/csrfManager', '@/services/retry', '@/services/authInterceptor', '@/services/apiHelpers'],
++              message: 'Pages and components must not import the raw API client or transport internals directly. Import from domain service modules (e.g. @/services/auth, @/services/applications, @/services/payments) instead. (R14.3 architecture enforcement)',
++            },
++          ],
++        },
++      ],
++    },
++  },
+(additions only: the R14.3 block is uncommitted spec work and L12 left every
+ pattern and the message in place. No '-' line touches a rule.)
+
+RESULT: PASS
+EXIT=0

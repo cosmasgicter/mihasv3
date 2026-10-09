@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { catalogService, programService, intakeService } from '@/services/catalog'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { catalogService } from '@/services/catalog'
 import type { AssignmentPreview } from '@/services/catalog'
 import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
 
@@ -22,6 +22,15 @@ export interface UseAssignmentPreviewArgs {
 }
 
 // Data Access Functions
+//
+// Admissions V2 (task 5.1, R7.3): this module owns only catalog *reads* for the
+// student wizard and portal brand. Catalog *writes* (program/intake/institution
+// create/update/deactivate) are the canonical admin path — `catalogAdminService`
+// / `useCatalogAdmin` (Canonical_Program -> Program_Offering -> Intake_Offering).
+// The retired `useCreate/Update/DeleteProgram` and `...Intake` mutation hooks
+// (which called the frozen legacy `programService`/`intakeService` writers) were
+// removed here so no first-party caller of the legacy catalog-write routes
+// remains (TEN-03 / DATA-01 / API-02).
 export const catalogData = {
   useContext: () => {
     return useQuery({
@@ -96,76 +105,4 @@ export const catalogData = {
       retry: false,
     })
   },
-
-  // Program mutations
-  useCreateProgram: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (data: { name: string; description?: string; duration_years: number; institution_id: string }) =>
-        programService.create(data),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.programs })
-      }
-    })
-  },
-
-  useUpdateProgram: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (data: { id: string; name: string; description?: string; duration_years: number; institution_id: string }) =>
-        programService.update(data),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.programs })
-      }
-    })
-  },
-
-  useDeleteProgram: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (id: string) => programService.delete(id),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.programs })
-      }
-    })
-  },
-
-  // Intake mutations
-  useCreateIntake: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (data: { name: string; year: number; start_date: string; end_date: string; application_deadline: string; max_capacity: number }) =>
-        intakeService.create(data),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.intakes })
-      }
-    })
-  },
-
-  useUpdateIntake: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (data: { id: string; name: string; year: number; start_date: string; end_date: string; application_deadline: string; max_capacity: number }) =>
-        intakeService.update(data),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.intakes })
-      }
-    })
-  },
-
-  useDeleteIntake: () => {
-    const queryClient = useQueryClient()
-    
-    return useMutation({
-      mutationFn: (id: string) => intakeService.delete(id),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.intakes })
-      }
-    })
-  }
 }

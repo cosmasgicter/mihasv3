@@ -1,0 +1,212 @@
+{
+  "spec": "admissions-v2-canonical-rebuild",
+  "task": "1.2",
+  "task_title": "Add an executable version and API-major drift guard",
+  "requirements": [
+    "R2",
+    "R2.1",
+    "R2.5",
+    "R2.7"
+  ],
+  "findings": [
+    "REL-01",
+    "GOV-05"
+  ],
+  "generated_at_utc": "2026-07-13T17:44:29.994928+00:00",
+  "nature": "Generated version manifest for the executable drift guard. The guard (backend/tests/unit/test_version_drift_guard.py) asserts every maintained product-version source equals 2.0.0, the API major label 'v1' and target schema label 'v2' stay distinct from the product version, and the frozen 1.0.0 V1 baseline is allowed as labelled immutable historical evidence rather than flagged as drift.",
+  "release_identity": {
+    "commit_sha": "bae29a28d9657f288b3339062adb31285959c966"
+  },
+  "labels": {
+    "product": "2.0.0",
+    "api_major": "v1",
+    "target_schema": "v2"
+  },
+  "sources": [
+    {
+      "name": "apps/admissions/package.json",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "apps/admissions/package.json",
+      "sha256": "806e5b872232686f65b0bf9b2986591c307f5a656642ec4461b9e15874a77b03"
+    },
+    {
+      "name": "bun.lock (apps/admissions workspace)",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "bun.lock",
+      "sha256": "8f5baddf680856aa454193baef3e788946ab24f417aa6559ab17b964da4ba761"
+    },
+    {
+      "name": "backend/pyproject.toml [project].version",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "backend/pyproject.toml",
+      "sha256": "33d289454b5f10bb64e75d811e79a93c4e3d7d4d04a9f805f5a404654826163e"
+    },
+    {
+      "name": "backend APP_VERSION (settings runtime metadata)",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "backend/config/settings/base.py"
+    },
+    {
+      "name": "generated OpenAPI product version (SPECTACULAR_SETTINGS.VERSION)",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "backend/config/settings/base.py"
+    },
+    {
+      "name": ".env.example VITE_APP_VERSION",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": ".env.example",
+      "sha256": "4d7ce53c762a61a742460564924ab7be7f02679cda7d6416528b74889d055e53"
+    },
+    {
+      "name": "apps/admissions/.env.example VITE_APP_VERSION",
+      "classification": "maintained_product",
+      "value": "2.0.0",
+      "path": "apps/admissions/.env.example",
+      "sha256": "bc18866283a291790da5178d8085d8696b5b131aa91fea7cdc5ac433814ded5b"
+    },
+    {
+      "name": "/api/v1/ URL prefix (config/urls.py)",
+      "classification": "api_major",
+      "value": "v1",
+      "path": "backend/config/urls.py"
+    },
+    {
+      "name": "meta endpoint api_version (/api/v1/meta/platform/)",
+      "classification": "api_major",
+      "value": "v1",
+      "path": "backend/apps/common/meta_views.py"
+    },
+    {
+      "name": "target /api/v2/ strict contract (design.md \u00a74)",
+      "classification": "target_schema",
+      "value": "v2",
+      "path": ".kiro/specs/admissions-v2-canonical-rebuild/design.md"
+    },
+    {
+      "name": "backend/schema/openapi.v1.baseline.yaml (frozen V1 launch baseline)",
+      "classification": "immutable_historical",
+      "value": "1.0.0",
+      "path": "backend/schema/openapi.v1.baseline.yaml",
+      "sha256": "371587567e7c0b7ccbe915c4c7af8034e807014a651dd1a99cd88ed21cb87056",
+      "note": "Immutable historical launch evidence: frozen V1 OpenAPI baseline labelled info.version=1.0.0 (generated 2026-05-08 per backend/schema/README.md; kept at 1.0.0 by task 1.1). Product version 2.0.0 does not rewrite this artifact (R2.7)."
+    }
+  ],
+  "evaluation": {
+    "gate_id": "version-drift",
+    "requirement": "R2",
+    "status": "passed",
+    "passed": true,
+    "labels": {
+      "product": "2.0.0",
+      "api_major": "v1",
+      "target_schema": "v2"
+    },
+    "checks": [
+      {
+        "id": "version:labels_distinct",
+        "source": "release-labels",
+        "result": "pass",
+        "product": "2.0.0",
+        "api_major": "v1",
+        "target_schema": "v2"
+      },
+      {
+        "id": "version:maintained:apps/admissions/package.json",
+        "source": "apps/admissions/package.json",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:bun.lock (apps/admissions workspace)",
+        "source": "bun.lock (apps/admissions workspace)",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:backend/pyproject.toml [project].version",
+        "source": "backend/pyproject.toml [project].version",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:backend APP_VERSION (settings runtime metadata)",
+        "source": "backend APP_VERSION (settings runtime metadata)",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:generated OpenAPI product version (SPECTACULAR_SETTINGS.VERSION)",
+        "source": "generated OpenAPI product version (SPECTACULAR_SETTINGS.VERSION)",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:.env.example VITE_APP_VERSION",
+        "source": ".env.example VITE_APP_VERSION",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:maintained:apps/admissions/.env.example VITE_APP_VERSION",
+        "source": "apps/admissions/.env.example VITE_APP_VERSION",
+        "result": "pass",
+        "classification": "maintained_product",
+        "expected": "2.0.0",
+        "observed": "2.0.0"
+      },
+      {
+        "id": "version:api_major:/api/v1/ URL prefix (config/urls.py)",
+        "source": "/api/v1/ URL prefix (config/urls.py)",
+        "result": "pass",
+        "classification": "api_major",
+        "expected": "v1",
+        "observed": "v1"
+      },
+      {
+        "id": "version:api_major:meta endpoint api_version (/api/v1/meta/platform/)",
+        "source": "meta endpoint api_version (/api/v1/meta/platform/)",
+        "result": "pass",
+        "classification": "api_major",
+        "expected": "v1",
+        "observed": "v1"
+      },
+      {
+        "id": "version:target_schema:target /api/v2/ strict contract (design.md \u00a74)",
+        "source": "target /api/v2/ strict contract (design.md \u00a74)",
+        "result": "pass",
+        "classification": "target_schema",
+        "expected": "v2",
+        "observed": "v2"
+      },
+      {
+        "id": "version:immutable:backend/schema/openapi.v1.baseline.yaml (frozen V1 launch baseline)",
+        "source": "backend/schema/openapi.v1.baseline.yaml (frozen V1 launch baseline)",
+        "result": "pass",
+        "classification": "immutable_historical",
+        "observed": "1.0.0",
+        "labelled": true,
+        "note": "Immutable historical launch evidence: frozen V1 OpenAPI baseline labelled info.version=1.0.0 (generated 2026-05-08 per backend/schema/README.md; kept at 1.0.0 by task 1.1). Product version 2.0.0 does not rewrite this artifact (R2.7)."
+      }
+    ],
+    "failed": [],
+    "drift": []
+  }
+}

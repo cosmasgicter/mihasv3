@@ -24,16 +24,36 @@ function getInstitutionOptionLabel(institution: Institution) {
   return institution.code ? `${name} (${institution.code})` : name
 }
 
+export interface CanonicalProgramChoice {
+  id: string
+  name: string
+  code?: string | null
+}
+
 interface ProgramFormFieldsProps {
   form: UseFormReturn<ProgramFormData>
   activeInstitutions: Institution[]
+  canonicalPrograms: CanonicalProgramChoice[]
   onAddInstitution: () => void
   addInstitutionLabel: string
 }
 
-function ProgramFormFields({ form, activeInstitutions, onAddInstitution, addInstitutionLabel }: ProgramFormFieldsProps) {
+function ProgramFormFields({ form, activeInstitutions, canonicalPrograms, onAddInstitution, addInstitutionLabel }: ProgramFormFieldsProps) {
   return (
     <div className="space-y-4 py-4">
+      <CanonicalSelect
+        label="Canonical program"
+        value={form.watch('canonical_program_id')}
+        onChange={(value) => form.setValue('canonical_program_id', value)}
+        placeholder="Select a canonical program"
+        options={canonicalPrograms.map((program) => ({
+          value: program.id,
+          label: program.code ? `${program.name} (${program.code})` : program.name,
+        }))}
+        error={form.formState.errors.canonical_program_id?.message}
+        helperText="Offerings inherit routing, fees, and requirements from the canonical Beanola program."
+        required
+      />
       <Input label="Program name" {...form.register('name')} error={form.formState.errors.name?.message} required />
       <CanonicalSelect
         label="Institution"
@@ -101,6 +121,7 @@ interface ProgramDialogsProps {
   saving: boolean
   form: UseFormReturn<ProgramFormData>
   activeInstitutions: Institution[]
+  canonicalPrograms: CanonicalProgramChoice[]
   onCloseCreate: () => void
   onCloseEdit: () => void
   onCloseDelete: () => void
@@ -119,6 +140,7 @@ export function ProgramDialogs({
   saving,
   form,
   activeInstitutions,
+  canonicalPrograms,
   onCloseCreate,
   onCloseEdit,
   onCloseDelete,
@@ -140,6 +162,7 @@ export function ProgramDialogs({
             <ProgramFormFields
               form={form}
               activeInstitutions={activeInstitutions}
+              canonicalPrograms={canonicalPrograms}
               onAddInstitution={onAddInstitutionFromCreate}
               addInstitutionLabel="Need a new institution before saving this program?"
             />
@@ -161,6 +184,7 @@ export function ProgramDialogs({
             <ProgramFormFields
               form={form}
               activeInstitutions={activeInstitutions}
+              canonicalPrograms={canonicalPrograms}
               onAddInstitution={onAddInstitutionFromEdit}
               addInstitutionLabel="Need to register a missing institution first?"
             />

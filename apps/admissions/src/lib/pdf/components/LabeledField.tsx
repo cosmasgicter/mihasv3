@@ -14,7 +14,7 @@
 
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 
-import { semantic, space, spacing, textStyles } from '../theme'
+import { semantic, spacing, textStyles } from '../theme'
 
 const styles = StyleSheet.create({
   wrapper: {

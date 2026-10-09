@@ -12,6 +12,7 @@ import uuid
 from decimal import Decimal
 
 from django.conf import settings
+from django.db import IntegrityError
 from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view, inline_serializer
@@ -23,10 +24,28 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
 from apps.catalog.catalog_cache import invalidate_catalog_scopes
-from apps.catalog.services import AccessScopeService
+from apps.catalog.permissions import HasPlatformCapability, HasTenantCapability
+from apps.catalog.services import (
+    AccessScopeService,
+    AdminCapabilityService,
+    CapabilityResolutionError,
+)
+from apps.catalog.tenant_audit_service import (
+    ACTION_FEE_EXPORTED,
+    ACTION_SETTLEMENT_EXPORTED,
+    TenantAuditService,
+)
 from apps.common.pagination import StandardPagination
+from apps.common.tenant_authorization import resolve_scoped_program
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
+from apps.documents.settlement_service import (
+    EXPORT_ROW_LIMIT,
+    SettlementExportTooLarge,
+    SettlementQueryService,
+    SettlementScopeDenied,
+    csv_bytes,
+)
 from apps.documents.serializers import (
     DocumentSerializer,
     DocumentUploadSerializer,
@@ -49,7 +68,7 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.throttling import PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
 
 from django.http import HttpResponse, HttpResponseRedirect
@@ -77,15 +96,6 @@ def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
     return False
 
 
-def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
-    """Extract AI analysis JSON from verification_notes field."""
-    if not verification_notes:
-        return None
-    try:
-        data = json.loads(verification_notes)
-        return data.get("ai_analysis") if isinstance(data, dict) else None
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def _document_not_found_response():
@@ -189,139 +199,224 @@ class PaymentListView(APIView):
 
 
 class PaymentSettlementSummaryView(APIView):
-    """GET /api/v1/payments/settlements/ - settlement grouping by school/offering.
+    """GET /api/v1/payments/settlements/ — scoped, paginated settlement report.
 
-    Returns the tenant-scoped settlement grouping as JSON by default. Pass
-    ``?export=csv`` to download the same grouping as a ``text/csv`` attachment
-    for operations teams that need files rather than JSON. The CSV variant is
-    identically tenant-scoped (it reuses the exact same scope + grouping path),
-    so School_Staff only ever see their own schools' rows and no-scope staff get
-    a header-only file (R7.4).
+    Admissions V2 task 8.4 (findings **ADM-06**, **AUTH-02**; R3, R6.5,
+    R8.3-R8.4, R12.5-R12.7; design §10.2 "settlement queries filter institution
+    in SQL and expose backend aggregates, never a client-filtered global list").
+
+    What changed and why:
+
+    * **Authority** is now a capability, not a role. The gate is
+      ``tenant.payment.read`` resolved through ``AdminCapabilityService`` (via
+      ``HasTenantCapability`` → ``authorize_tenant_surface``), so a scoped
+      Reviewer who legitimately reads their school's payments is admitted — the
+      old ``IsAdmin`` role gate denied them — while an actor with no tenant
+      scope gets a masked 404 rather than an empty-but-confirming 200.
+    * **Filtering is server-side.** ``institution_id``, ``program_offering_id``,
+      currency, status, reconciliation bucket, date range, and search all run in
+      SQL. Identifier filters are resolved through
+      ``visible_institution_queryset`` *before* they reach a query, so an
+      out-of-scope id is a masked 404 + ``scope.denied`` Audit_Event.
+    * **Pagination and aggregates are the server's.** The response carries the
+      canonical ``page`` / ``pageSize`` / ``totalCount`` / ``results`` shape plus
+      ``aggregates`` computed over the **whole filtered set**, so a total can
+      never be a sum of one loaded page (the ADM-06 defect).
+    * **Reconciliation state** is derived from the one payment state machine plus
+      the reconciliation sweep's own 24-hour cutoff — no new column, no second
+      vocabulary.
+    * **Export** (``?export=csv``) is page-independent, requires the explicit
+      ``tenant.application.export`` capability, is redacted by capability, is
+      bounded by ``EXPORT_ROW_LIMIT``, and emits a ``settlement.exported``
+      Audit_Event.
     """
 
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated, HasTenantCapability]
+    required_capability = "tenant.payment.read"
+    audit_resource_type = "settlement"
 
-    # Columns shared between the JSON grouping and the CSV export so the two
-    # never drift. ``payment_ids`` is intentionally excluded from the CSV to
-    # keep the operational file compact.
-    CSV_COLUMNS = (
-        "institution_id",
-        "institution_name",
-        "program_offering_id",
-        "program_name",
-        "currency",
-        "payment_count",
-        "gross_amount",
-    )
+    #: The capability an export additionally requires (R6.5). This is the
+    #: platform's one tenant export grant — a membership/grant carrying
+    #: ``export`` derives it — so a read-only tenant operator can read the
+    #: settlement report but cannot bulk-export it.
+    export_capability = "tenant.application.export"
 
-    def _scoped_queryset(self, request):
-        """Tenant-scoped, status/date-filtered payment queryset.
+    def _service(self) -> SettlementQueryService:
+        return SettlementQueryService()
 
-        Super-admins see every payment; every other admin is bounded to their
-        own schools via ``AccessScopeService`` (no-scope staff get an empty
-        queryset, never global totals).
-        """
-        queryset = Payment.objects.select_related("application").all()
-        if getattr(request.user, "role", None) != "super_admin":
-            queryset = AccessScopeService().filter_payments(queryset, request.user)
-
-        status_filter = request.query_params.get("status")
-        if status_filter:
-            statuses = [item.strip() for item in status_filter.split(",") if item.strip()]
-        else:
-            statuses = ["successful", "force_approved", "verified", "paid"]
-        queryset = queryset.filter(status__in=statuses)
-
-        start_date = request.query_params.get("start_date")
-        if start_date:
-            queryset = queryset.filter(created_at__date__gte=start_date)
-        end_date = request.query_params.get("end_date")
-        if end_date:
-            queryset = queryset.filter(created_at__date__lte=end_date)
-
-        return queryset
-
-    @staticmethod
-    def _group_payments(queryset):
-        """Group a scoped payment queryset by (institution, offering, currency).
-
-        Labels are derived from the ``payments.metadata`` settlement snapshot
-        with a legacy fallback to the application's display fields; missing
-        metadata buckets as an explicit "Unassigned" row (R7.4/R7.5). This is
-        the single grouping path shared by both the JSON and CSV responses.
-        """
-        groups: dict[tuple[str, str, str], dict] = {}
-        for payment in queryset.order_by("created_at"):
-            metadata = payment.metadata or {}
-            application = getattr(payment, "application", None)
-            institution_id = metadata.get("institution_id") or str(getattr(application, "institution_ref_id", "") or "")
-            institution_name = metadata.get("institution_name") or getattr(application, "institution", None) or "Unassigned"
-            offering_id = metadata.get("program_offering_id") or str(getattr(application, "program_offering_id", "") or "")
-            offering_name = metadata.get("program_name") or getattr(application, "program", None) or "Unassigned"
-            currency = payment.currency or "ZMW"
-            key = (institution_id or "unassigned", offering_id or "unassigned", currency)
-            if key not in groups:
-                groups[key] = {
-                    "institution_id": institution_id or None,
-                    "institution_name": institution_name,
-                    "program_offering_id": offering_id or None,
-                    "program_name": offering_name,
-                    "currency": currency,
-                    "payment_count": 0,
-                    "gross_amount": "0.00",
-                    "payment_ids": [],
-                }
-            amount = Decimal(str(groups[key]["gross_amount"])) + (payment.amount or Decimal("0"))
-            groups[key]["gross_amount"] = str(amount.quantize(Decimal("0.01")))
-            groups[key]["payment_count"] += 1
-            groups[key]["payment_ids"].append(str(payment.id))
-
-        return sorted(
-            groups.values(),
-            key=lambda item: (item["institution_name"], item["program_name"], item["currency"]),
+    def _masked_not_found(self, request, exc: SettlementScopeDenied):
+        """Mask an out-of-scope identifier and record the probe (R3.2, R10.6)."""
+        try:
+            TenantAuditService.record_scope_denied(
+                resource_type=f"settlement.{exc.resource_type}",
+                resource_id=exc.resource_id,
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a read
+            pass
+        return Response(
+            {"success": False, "error": "Not found", "code": "NOT_FOUND"},
+            status=status.HTTP_404_NOT_FOUND,
         )
 
-    def _csv_response(self, results):
-        """Render grouped settlement rows as a ``text/csv`` attachment."""
-        import csv
-        import io
-
-        buffer = io.StringIO()
-        writer = csv.writer(buffer)
-        writer.writerow(self.CSV_COLUMNS)
-        for row in results:
-            writer.writerow([row.get(column, "") for column in self.CSV_COLUMNS])
-
-        filename = f"settlement-summary-{timezone.now().strftime('%Y%m%d')}.csv"
-        response = HttpResponse(buffer.getvalue(), content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        return response
+    def _may_export(self, request) -> bool:
+        """Whether the actor holds the export capability for any in-scope school."""
+        try:
+            capabilities = AdminCapabilityService().get_capabilities(request.user)
+        except CapabilityResolutionError:
+            return False
+        if capabilities.is_super_admin or capabilities.all_access:
+            return True
+        return any(
+            self.export_capability in held
+            for held in (capabilities.institution_capabilities or {}).values()
+        )
 
     @extend_schema(
         operation_id="payments_settlement_summary",
         tags=["payments"],
         parameters=[
-            OpenApiParameter("start_date", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-            OpenApiParameter("end_date", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-            OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+            OpenApiParameter("institution_id", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=False, description="Restrict to one in-scope institution. An out-of-scope or unknown id returns 404."),
+            OpenApiParameter("program_offering_id", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=False, description="Restrict to one in-scope program offering. Out-of-scope → 404."),
+            OpenApiParameter("currency", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False, description="Comma-separated payment statuses. Defaults to every status, so reconciliation counts are complete."),
+            OpenApiParameter("reconciliation", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False, description="One of settled, in_flight, stale, failed, expired, deferred."),
+            OpenApiParameter("search", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False, description="Match the settlement snapshot institution/offering label."),
+            OpenApiParameter("start_date", OpenApiTypes.DATE, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("end_date", OpenApiTypes.DATE, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, required=False),
             OpenApiParameter(
                 "export",
                 OpenApiTypes.STR,
                 OpenApiParameter.QUERY,
                 required=False,
-                description="Pass 'csv' to download the grouping as a CSV file instead of JSON.",
+                description="Pass 'csv' to download the whole filtered set (page-independent) as a CSV file. Requires tenant.application.export.",
             ),
         ],
-        responses={200: OpenApiResponse(description="Settlement totals grouped by institution, offering, and currency (JSON, or CSV download when export=csv).")},
+        responses={
+            200: OpenApiResponse(description="Settlement rows grouped by institution, offering, and currency with server aggregates and reconciliation state (JSON, or CSV download when export=csv)."),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
     )
     def get(self, request):
-        queryset = self._scoped_queryset(request)
-        results = self._group_payments(queryset)
+        service = self._service()
+        try:
+            filters = service.parse_filters(request.user, request.query_params)
+        except SettlementScopeDenied as exc:
+            return self._masked_not_found(request, exc)
+
+        policy = service.redaction_policy(request.user)
+        queryset = service.filtered_payments(request.user, filters)
 
         if (request.query_params.get("export") or "").lower() == "csv":
-            return self._csv_response(results)
+            return self._export(request, service, filters, queryset, policy)
 
-        return Response({"success": True, "data": {"results": results, "totalCount": len(results)}})
+        paginator = StandardPagination()
+        page_size = paginator.get_page_size(request) or paginator.page_size
+        try:
+            page_number = max(1, int(request.query_params.get("page") or 1))
+        except (TypeError, ValueError):
+            page_number = 1
+        total_count = service.group_count(queryset)
+        rows = service.rows_for(
+            queryset,
+            policy=policy,
+            offset=(page_number - 1) * page_size,
+            limit=page_size,
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "page": page_number,
+                    "pageSize": page_size,
+                    "totalCount": total_count,
+                    # The page count is the server's arithmetic too: an operator's
+                    # browser should no more divide a total than it should add up
+                    # money (R12.1's spirit applied to the whole report).
+                    "totalPages": max(1, -(-total_count // page_size)) if page_size else 1,
+                    "results": rows,
+                    "aggregates": service.aggregates(queryset),
+                    "filters": filters.as_payload(),
+                    "redaction": policy.as_payload(),
+                    "can_export": self._may_export(request),
+                },
+            }
+        )
+
+    def _export(self, request, service, filters, queryset, policy):
+        """The audited, page-independent CSV export (R6.5)."""
+        if not self._may_export(request):
+            # A read-only tenant operator may read the report but not bulk-export
+            # it. Non-revealing 403 + an auth.denied Audit_Event.
+            try:
+                TenantAuditService.record_event(
+                    action="auth.denied",
+                    entity_type="settlement",
+                    actor_id=getattr(request.user, "id", None),
+                    actor_role=getattr(request.user, "role", None),
+                    metadata={
+                        "resource_type": "settlement.export",
+                        "required_capability": self.export_capability,
+                    },
+                    retention_category="security",
+                    request=request,
+                )
+            except Exception:  # pragma: no cover - audit must never block
+                pass
+            return Response(
+                {
+                    "success": False,
+                    "error": "You do not have permission to perform this action.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            rows = service.export_rows(queryset, policy=policy)
+        except SettlementExportTooLarge as exc:
+            return Response(
+                {
+                    "success": False,
+                    "error": "This export is too large. Narrow the filters and try again.",
+                    "code": "EXPORT_TOO_LARGE",
+                    "data": {"row_count": exc.row_count, "row_limit": EXPORT_ROW_LIMIT},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        columns = service.export_columns(policy)
+        body = csv_bytes(columns, rows)
+
+        # R6.5/R8.4: the export is a recorded command — who exported, for which
+        # institution scope, with which filters, how many rows, and what was
+        # withheld. Never the rows themselves and never applicant PII.
+        try:
+            TenantAuditService.record_export(
+                action=ACTION_SETTLEMENT_EXPORTED,
+                entity_type="settlement",
+                institution_id=filters.institution_id,
+                row_count=len(rows),
+                row_limit=EXPORT_ROW_LIMIT,
+                filters=filters.as_payload(),
+                redaction=policy.as_payload(),
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a read
+            pass
+
+        filename = f"settlement-summary-{timezone.now().strftime('%Y%m%d')}.csv"
+        response = HttpResponse(body, content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
 
 @extend_schema_view(
@@ -591,7 +686,7 @@ class FeeResolveView(APIView):
         nationality = request.query_params.get("nationality")
         country = request.query_params.get("country")
 
-        from apps.documents.fee_resolver import FeeResolver
+        from apps.documents.fee_resolver import FeeResolver, FeeConfigurationError
         from apps.catalog.models import Program
 
         resolver = FeeResolver()
@@ -603,9 +698,20 @@ class FeeResolveView(APIView):
                 country=country,
             )
         except Program.DoesNotExist:
+            # No active offering matches the identifier at all → 404 (unchanged
+            # contract). Note the display-name lookup was removed (DATA-05), so a
+            # name-only identifier no longer resolves — it lands here.
             return Response(
                 {"success": False, "error": {"code": "FEE_UNAVAILABLE", "message": "Program not found"}, "code": "FEE_UNAVAILABLE"},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        except FeeConfigurationError as exc:
+            # Offering exists but no unique active fee (FEE_NOT_CONFIGURED) or a
+            # duplicate active fee (FEE_AMBIGUOUS). Fail closed with the stable
+            # code and status the resolver carries — no invented default.
+            return Response(
+                {"success": False, "error": {"code": exc.code, "message": exc.message}, "code": exc.code},
+                status=exc.status_code,
             )
         except Exception:
             logger.exception("Fee resolution failed for program %s", program_code)
@@ -614,10 +720,18 @@ class FeeResolveView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        provider_fee_estimate = Decimal(
-            str(getattr(resolved, "provider_fee_estimate", "0") or "0")
-        )
-        customer_total = Decimal(str(resolved.amount)) + provider_fee_estimate
+        # Task 8.1: the provider fee comes from the SERVER's provider-fee policy —
+        # the same authority that mints a quote — so this preview and the binding
+        # quote can never disagree, and the client still computes nothing
+        # (STU-08, R12.1). This endpoint is a preview only: it takes no application
+        # id, so it cannot bind, expire, or be redeemed. The authoritative money
+        # contract is POST /api/v1/payments/quote/.
+        from apps.documents.fee_quote_service import provider_fee_policy
+
+        policy = provider_fee_policy()
+        base_amount = Decimal(str(resolved.amount))
+        provider_fee_estimate = policy.compute(base_amount)
+        customer_total = base_amount + provider_fee_estimate
 
         return Response({
             "success": True,
@@ -628,33 +742,101 @@ class FeeResolveView(APIView):
                 "source": resolved.source,
                 "provider_fee_estimate": str(provider_fee_estimate),
                 "customer_total": str(customer_total),
+                "bearer": policy.bearer,
+                "is_binding_quote": False,
             },
         })
 
 
 class ProgramFeeViewSet(ModelViewSet):
-    """CRUD for /api/v1/programs/:id/fees/ - admin only.
+    """CRUD for /api/v1/programs/:id/fees/ — the canonical FeeSchedule surface.
 
-    - GET: list active fees for a program
-    - POST: create a new fee
-    - PUT/PATCH: update an existing fee
-    - DELETE: soft delete (set is_active=false)
+    Admissions V2 task 8.4 (finding **AUTH-02**; R3.1, R3.2, R7.3-R7.4, R12.5):
+    authority resolves through ``AdminCapabilityService``, never a raw role.
 
-    Validates unique active (program, fee_type, residency_category) on
-    create and update.
+    * **Read** requires the per-institution ``tenant.program.read`` capability for
+      the offering's own institution, resolved by ``resolve_scoped_program``,
+      which scopes through ``visible_institution_queryset`` **before** the
+      lookup — so another tenant's program id is a masked 404 and its fees can
+      never be enumerated. The old gate was ``IsAdmin``, which both admitted any
+      admin by role and denied a legitimately scoped Reviewer.
+    * **Write** (create / update / deactivate) requires the platform capability
+      ``platform.program_assignment.manage``. This is the same authority the rest
+      of the offering-configuration path uses: a Tenant_Admin may *request* a fee
+      change (``tenant.program.request_change``) but never write one directly, so
+      a read-only tenant admin can no longer mutate money configuration.
+    * Every write emits a ``tenant.fee.<verb>`` Audit_Event through
+      ``TenantAuditService``, scoped to the owning institution, with the amount /
+      currency / fee type recorded and no applicant PII.
 
-    Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6
+    Validates unique active ``(program, fee_type, residency_category)`` on create
+    and update; a duplicate race surfaces as ``DUPLICATE_ACTIVE_FEE`` (409).
     """
 
-    permission_classes = [IsAdmin]
     serializer_class = ProgramFeeSerializer
 
+    #: Read authority for a fee schedule: the tenant program read capability.
+    read_capability = "tenant.program.read"
+    #: Write authority: the platform offering-configuration capability.
+    required_capability = "platform.program_assignment.manage"
+    audit_resource_type = "program_fee"
+
+    _WRITE_ACTIONS = frozenset({"create", "update", "partial_update", "destroy"})
+
     def get_permissions(self):
-        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
-            return [IsSuperAdmin()]
-        return [IsAdmin()]
+        if getattr(self, "action", None) in self._WRITE_ACTIONS:
+            # Platform capability, resolved by AdminCapabilityService; a denial
+            # emits auth.denied and returns a non-revealing 403.
+            return [IsAuthenticated(), HasPlatformCapability()]
+        return [IsAuthenticated(), HasTenantCapability()]
+
+    def initial(self, request, *args, **kwargs):
+        """Declare the tenant read capability for the non-write actions.
+
+        ``HasTenantCapability`` reads ``view.required_capability``; the class
+        attribute names the *write* capability, so the read path swaps in
+        ``read_capability`` before permissions are evaluated. One attribute per
+        authority, both resolved through the capability service.
+        """
+        if getattr(self, "action", None) not in self._WRITE_ACTIONS:
+            self.required_capability = self.read_capability
+        super().initial(request, *args, **kwargs)
+
+    def _scoped_program(self):
+        """Resolve the URL's offering inside the actor's scope, or 404.
+
+        Scope before lookup (R3.5): ``resolve_scoped_program`` filters by the
+        actor's visible institutions before the ``.get()``, so an out-of-tenant
+        or unknown offering id is one indistinguishable 404.
+        """
+        program_id = self.kwargs.get("program_id")
+        capability = (
+            self.required_capability
+            if getattr(self, "action", None) in self._WRITE_ACTIONS
+            else self.read_capability
+        )
+        if getattr(self, "action", None) in self._WRITE_ACTIONS:
+            # A platform-capability write is already authorized; the lookup only
+            # needs to resolve the owning institution for scoping + audit.
+            from apps.catalog.models import Program
+
+            try:
+                return Program.objects.get(id=program_id)
+            except (Program.DoesNotExist, ValueError, TypeError):
+                from rest_framework.exceptions import NotFound
+
+                raise NotFound("Program not found")
+        return resolve_scoped_program(
+            self.request, program_id, capability=capability
+        )
 
     def get_queryset(self):
+        # drf-spectacular marks synthetic schema-generation views with this
+        # flag.  Schema introspection must never resolve a URL target through
+        # the database (the schema gate deliberately runs as SimpleTestCase).
+        if getattr(self, "swagger_fake_view", False):
+            return ProgramFee.objects.none()
+
         program_id = self.kwargs.get("program_id")
         queryset = ProgramFee.objects.filter(
             Q(is_active=True) | Q(is_active__isnull=True),
@@ -665,28 +847,57 @@ class ProgramFeeViewSet(ModelViewSet):
         if request is None:
             return queryset.order_by("-created_at")
 
-        user = getattr(request, "user", None)
-        if not is_super_admin(user):
-            try:
-                from apps.catalog.models import Program
+        # Scope through the capability service before any fee row is read. A
+        # masked 404 for an out-of-scope offering means the fee list can never
+        # confirm another tenant's offering exists.
+        try:
+            self._scoped_program()
+        except Exception as exc:
+            from rest_framework.exceptions import APIException
 
-                filters = AccessScopeService().filters_for_user(user)
-                if filters.all_access:
-                    pass
-                elif str(program_id) in filters.offering_ids:
-                    pass
-                elif filters.institution_ids and Program.objects.filter(
-                    id=program_id,
-                    institution_id__in=filters.institution_ids,
-                ).exists():
-                    pass
-                else:
-                    queryset = queryset.none()
-            except Exception:
-                logger.warning("Failed to scope program fees for actor", exc_info=True)
-                queryset = queryset.none()
+            if isinstance(exc, APIException):
+                raise
+            logger.warning("Failed to scope program fees for actor", exc_info=True)
+            return queryset.none()
 
         return queryset.order_by("-created_at")
+
+    def _audit_fee_write(self, *, verb, instance, program=None, extra=None):
+        """Emit the ``tenant.fee.<verb>`` Audit_Event for a fee write (R8.4)."""
+        try:
+            institution_id = getattr(program, "institution_id", None)
+            if institution_id is None:
+                from apps.catalog.models import Program
+
+                institution_id = (
+                    Program.objects.filter(id=getattr(instance, "program_id", None))
+                    .values_list("institution_id", flat=True)
+                    .first()
+                )
+            metadata = {
+                "object_type": "program_fee",
+                "fee_id": str(getattr(instance, "id", "") or "") or None,
+                "program_offering_id": str(getattr(instance, "program_id", "") or "") or None,
+                "fee_type": getattr(instance, "fee_type", None),
+                "residency_category": getattr(instance, "residency_category", None),
+                "amount": str(getattr(instance, "amount", "") or "") or None,
+                "currency": getattr(instance, "currency", None),
+                "is_active": getattr(instance, "is_active", None),
+            }
+            if extra:
+                metadata.update(extra)
+            TenantAuditService.record_config_change(
+                resource="fee",
+                verb=verb,
+                entity_id=getattr(instance, "id", None),
+                institution_id=institution_id,
+                actor_id=getattr(self.request.user, "id", None),
+                actor_role=getattr(self.request.user, "role", None),
+                metadata=metadata,
+                request=self.request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a write
+            logger.warning("Failed to emit fee config Audit_Event", exc_info=True)
 
     def _invalidate_fee_catalog(self, program_id):
         """Invalidate catalog reads that derive a fee from this program (R4.3).
@@ -716,6 +927,29 @@ class ProgramFeeViewSet(ModelViewSet):
         actor = getattr(getattr(self, "request", None), "user", None)
         invalidate_catalog_scopes(institution_id, user=actor)
 
+    # R7.4/DATA-05/DATA-06: uq_program_fees_one_active (task 3.3,
+    # scripts/2026_07_17_01_integrity_constraints_expand.sql) is the final race
+    # guard behind the check-then-insert below. A concurrent double-submit that
+    # slips past the ValidationError check raises IntegrityError; translate it
+    # to a stable 409 DUPLICATE_ACTIVE_FEE rather than surfacing a 500.
+    _DUPLICATE_FEE_CONFLICT = {
+        "success": False,
+        "error": "An active fee for this program, fee type, and residency already exists.",
+        "code": "DUPLICATE_ACTIVE_FEE",
+    }
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(self._DUPLICATE_FEE_CONFLICT, status=status.HTTP_409_CONFLICT)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(self._DUPLICATE_FEE_CONFLICT, status=status.HTTP_409_CONFLICT)
+
     def perform_create(self, serializer):
         program_id = self.kwargs.get("program_id")
         fee_type = serializer.validated_data.get("fee_type")
@@ -740,6 +974,7 @@ class ProgramFeeViewSet(ModelViewSet):
             created_at=timezone.now(),
             updated_at=timezone.now(),
         )
+        self._audit_fee_write(verb="created", instance=serializer.instance)
         self._invalidate_fee_catalog(program_id)
 
     def perform_update(self, serializer):
@@ -764,7 +999,14 @@ class ProgramFeeViewSet(ModelViewSet):
                 {"detail": f"An active {fee_type} fee for {residency_category} already exists for this program."}
             )
 
+        previous = {
+            "previous_amount": str(serializer.instance.amount),
+            "previous_currency": serializer.instance.currency,
+        }
         serializer.save(updated_at=timezone.now())
+        self._audit_fee_write(
+            verb="updated", instance=serializer.instance, extra=previous
+        )
         self._invalidate_fee_catalog(program_id)
 
     def destroy(self, request, *args, **kwargs):
@@ -773,6 +1015,7 @@ class ProgramFeeViewSet(ModelViewSet):
         instance.is_active = False
         instance.updated_at = timezone.now()
         instance.save(update_fields=["is_active", "updated_at"])
+        self._audit_fee_write(verb="deactivated", instance=instance)
         # R4.3: removing a fee changes the cached assignment-preview fee data.
         self._invalidate_fee_catalog(instance.program_id)
         return Response(status=status.HTTP_204_NO_CONTENT)

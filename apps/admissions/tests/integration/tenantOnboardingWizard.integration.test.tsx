@@ -1,26 +1,31 @@
 /**
- * Tenant onboarding wizard — integration test
- * (enterprise-tenant-authority, task 15.2).
+ * Tenant onboarding wizard — integration test.
  *
  * Drives the REAL `TenantOnboardingWizard`
- * (`pages/admin/tenants/TenantOnboardingWizard.tsx`, task 15.1) end to end
- * against a mocked `tenantAdminService` + `userService`, exercising the actual
- * react-query mutations so we assert the wizard's wiring — not a
- * reimplementation. The flow proves the acceptance behaviour for task 15.2:
+ * (`pages/admin/tenants/TenantOnboardingWizard.tsx`) end to end against a mocked
+ * `tenantAdminService` + `catalogService`, exercising the actual react-query
+ * mutations so we assert the wizard's wiring — not a reimplementation.
  *
+ * Updated for admissions-v2-canonical-rebuild:
+ *   - task 4.2 replaced the fragile create-user + separate-membership invite
+ *     (with an operator-set initial password) with ONE atomic
+ *     `tenantAdminService.inviteStaff` command — invite by email only; the admin
+ *     never sets or sees a password (TEN-01). This test asserts that contract.
+ *   - task 4.3 turned the former Program / Intake placeholders into real
+ *     canonical-mutation steps and added Fees + Routing-simulation steps
+ *     (TEN-02/03). The end-to-end walk therefore steps through the extra steps
+ *     to reach the invite step; the catalog reads those steps fire are mocked.
+ *
+ * The flow proves:
  *   - Completing the wizard persists the tenant + its configuration through the
- *     admin tenant APIs with NO manual database edit (R14.2 / R16.1).
+ *     admin tenant APIs with NO manual database edit (R4.2).
  *   - The new tenant surfaces in the console list immediately: every
  *     persistence step invalidates the `['admin','tenants']` React Query prefix,
- *     and finishing navigates back to `/admin/tenants` (R14.3).
- *   - The invited tenant-admin is created as an `admin` user and scoped to the
- *     NEW institution via a membership — never platform-wide (R16.2).
+ *     and finishing navigates back to `/admin/tenants` (R4.6).
+ *   - The invited tenant-admin is invited by email as an `admin` scoped to the
+ *     NEW institution — never platform-wide — via the atomic handoff (R4.3).
  *
- * Mocking pattern mirrors `tests/unit/tenantOnboardingState.test.tsx`
- * (CapabilityContext as Super_Admin + tenantAdminService + toast), extended
- * with `userService.create` and a `react-router` `useNavigate` spy.
- *
- * Validates: Requirements 14.2, 14.3, 16.1, 16.2
+ * Validates: Requirements 4.2, 4.3, 4.6
  */
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -44,7 +49,7 @@ const createDomain = vi.fn()
 const activateDomain = vi.fn()
 const createTemplate = vi.fn()
 const createRequiredDocument = vi.fn()
-const createMembership = vi.fn()
+const inviteStaff = vi.fn()
 const uploadAsset = vi.fn()
 const listDomains = vi.fn()
 const listTemplates = vi.fn()
@@ -54,6 +59,7 @@ const listMemberships = vi.fn()
 const listAssets = vi.fn()
 const listDocumentProfiles = vi.fn()
 const getReadiness = vi.fn()
+const listProgramFees = vi.fn()
 
 vi.mock('@/services/admin/tenants', () => ({
   tenantAdminService: {
@@ -63,7 +69,7 @@ vi.mock('@/services/admin/tenants', () => ({
     activateDomain: (...a: unknown[]) => activateDomain(...a),
     createTemplate: (...a: unknown[]) => createTemplate(...a),
     createRequiredDocument: (...a: unknown[]) => createRequiredDocument(...a),
-    createMembership: (...a: unknown[]) => createMembership(...a),
+    inviteStaff: (...a: unknown[]) => inviteStaff(...a),
     uploadAsset: (...a: unknown[]) => uploadAsset(...a),
     listDomains: (...a: unknown[]) => listDomains(...a),
     listTemplates: (...a: unknown[]) => listTemplates(...a),
@@ -73,13 +79,18 @@ vi.mock('@/services/admin/tenants', () => ({
     listAssets: (...a: unknown[]) => listAssets(...a),
     listDocumentProfiles: (...a: unknown[]) => listDocumentProfiles(...a),
     getReadiness: (...a: unknown[]) => getReadiness(...a),
+    listProgramFees: (...a: unknown[]) => listProgramFees(...a),
   },
 }))
 
-// ── userService — only `create` is used by the invite step ────────────────
-const userCreate = vi.fn()
-vi.mock('@/services/admin/users', () => ({
-  userService: { create: (...a: unknown[]) => userCreate(...a) },
+// ── catalogService — canonical program + intake selectors (task 4.3 steps) ─
+const getCanonicalPrograms = vi.fn()
+const getIntakes = vi.fn()
+vi.mock('@/services/catalog', () => ({
+  catalogService: {
+    getCanonicalPrograms: (...a: unknown[]) => getCanonicalPrograms(...a),
+    getIntakes: (...a: unknown[]) => getIntakes(...a),
+  },
 }))
 
 // ── toast — observable + side-effect free ─────────────────────────────────
@@ -133,8 +144,11 @@ beforeEach(() => {
   listDomains.mockResolvedValue([])
   listTemplates.mockResolvedValue([])
   listRequiredDocuments.mockResolvedValue([])
-  listOfferings.mockResolvedValue([{ id: 'off-1', name: 'Clinical Medicine', code: 'CM', is_active: true }])
+  listOfferings.mockResolvedValue([{ id: 'off-1', name: 'Clinical Medicine', code: 'CM', canonical_program_id: 'canon-1', is_active: true }])
   listMemberships.mockResolvedValue([])
+  listProgramFees.mockResolvedValue([])
+  getCanonicalPrograms.mockResolvedValue({ programs: [{ id: 'canon-1', name: 'Clinical Medicine', code: 'CANON-CM' }] })
+  getIntakes.mockResolvedValue({ intakes: [{ id: 'intake-1', name: 'January 2027' }] })
   listAssets.mockResolvedValue([
     { id: 'asset-logo', asset_type: 'logo', storage_key: 'logo.png', mime_type: 'image/png', is_active: true },
     { id: 'asset-signature', asset_type: 'signature', storage_key: 'signature.png', mime_type: 'image/png', is_active: true },
@@ -161,12 +175,13 @@ beforeEach(() => {
     hostname: 'apply.newschool.edu.zm',
     status: 'pending_dns',
   })
-  userCreate.mockResolvedValue({ user: { id: 'user-admin-1' } })
-  createMembership.mockResolvedValue({
-    id: 'mem-1',
-    user_id: 'user-admin-1',
+  // Atomic invite handoff (task 4.2): one command, no returned credential.
+  inviteStaff.mockResolvedValue({
+    id: 'invite-1',
     institution_id: NEW_ID,
-    role: 'admin',
+    email: 'admin@newschool.edu.zm',
+    invited_role: 'admin',
+    status: 'pending',
   })
 })
 
@@ -174,11 +189,11 @@ afterEach(() => {
   cleanup()
 })
 
-describe('TenantOnboardingWizard — end-to-end onboarding (task 15.2)', () => {
-  it('persists the tenant + domain, scopes the invited tenant-admin, and refreshes + navigates to the console', async () => {
+describe('TenantOnboardingWizard — end-to-end onboarding', () => {
+  it('persists the tenant + domain, invites a scoped tenant-admin by email, and refreshes + navigates to the console', async () => {
     const { getByLabelText, getByRole, findByLabelText, findByRole, invalidateSpy } = renderWizard()
 
-    // ── Step 1: institution profile → createInstitution (R14.2 / R16.1) ──
+    // ── Step 1: institution profile → createInstitution (R4.2) ──────────
     fireEvent.change(getByLabelText('Short name'), { target: { value: 'New School' } })
     fireEvent.change(getByLabelText('Institution code'), { target: { value: 'new' } })
     fireEvent.click(getByRole('button', { name: /create institution & continue/i }))
@@ -187,9 +202,8 @@ describe('TenantOnboardingWizard — end-to-end onboarding (task 15.2)', () => {
     const createPayload = createInstitution.mock.calls[0]![0] as Record<string, unknown>
     expect(createPayload.name).toBe('New School')
     expect(createPayload.code).toBe('NEW') // code is upper-cased
-    expect(createPayload.is_active).toBe(true)
 
-    // The new tenant is surfaced to the list immediately (R14.3): the create
+    // The new tenant is surfaced to the list immediately (R4.6): the create
     // success handler invalidates the console's ['admin','tenants'] prefix.
     await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith(TENANTS_KEY))
 
@@ -206,38 +220,37 @@ describe('TenantOnboardingWizard — end-to-end onboarding (task 15.2)', () => {
     expect(domainInstId).toBe(NEW_ID)
     expect(domainPayload).toMatchObject({ hostname: 'apply.newschool.edu.zm' })
 
-    // ── Advance Domains → … → Tenant-admin invite (5 Next clicks) ───────
-    // domains(2) → templates(3) → documents(4) → programs(5) → intakes(6) → invite(7)
-    for (let i = 0; i < 5; i += 1) {
+    // ── Advance Domains → … → Tenant-admin invite ──────────────────────
+    // domains(2) → templates(3) → documents(4) → programs(5) → intakes(6)
+    // → fees(7) → routing(8) → invite(9): 7 Next clicks (task 4.3 added the
+    // fees + routing steps between intakes and invite).
+    for (let i = 0; i < 7; i += 1) {
       fireEvent.click(getByRole('button', { name: 'Next' }))
     }
 
-    // ── Step: invite → userService.create({role:'admin'}) + scoped membership (R16.2) ──
+    // ── Step: invite → atomic inviteStaff({role:'admin'}) by email (R4.3) ──
     fireEvent.change(await findByLabelText('Tenant admin full name'), { target: { value: 'Ada Lovelace' } })
     fireEvent.change(getByLabelText('Tenant admin email'), { target: { value: 'admin@newschool.edu.zm' } })
-    fireEvent.change(getByLabelText('Tenant admin initial password'), { target: { value: 'supersecret1' } })
-    fireEvent.click(getByRole('button', { name: /create tenant admin/i }))
+    fireEvent.click(getByRole('button', { name: /send invitation/i }))
 
-    // The user is created as a generic `admin`…
-    await waitFor(() => expect(userCreate).toHaveBeenCalledTimes(1))
-    const invitePayload = userCreate.mock.calls[0]![0] as Record<string, unknown>
-    expect(invitePayload).toMatchObject({ role: 'admin', email: 'admin@newschool.edu.zm' })
-
-    // …then scoped to the NEW tenant via a membership — never platform-wide (R16.2).
-    await waitFor(() => expect(createMembership).toHaveBeenCalledTimes(1))
-    const membershipPayload = createMembership.mock.calls[0]![0] as Record<string, unknown>
-    expect(membershipPayload).toMatchObject({
-      user_id: 'user-admin-1',
+    // One atomic command: identity + invitation + membership scoped to the NEW
+    // tenant, invited as `admin` — never platform-wide, and no password is set
+    // or returned to the operator (R4.3, TEN-01).
+    await waitFor(() => expect(inviteStaff).toHaveBeenCalledTimes(1))
+    const invitePayload = inviteStaff.mock.calls[0]![0] as Record<string, unknown>
+    expect(invitePayload).toMatchObject({
       institution_id: NEW_ID,
+      email: 'admin@newschool.edu.zm',
       role: 'admin',
-      is_active: true,
     })
+    // The atomic handoff never carries a password field (TEN-01).
+    expect('password' in invitePayload).toBe(false)
 
     // ── Advance invite → review, then finish ────────────────────────────
     fireEvent.click(getByRole('button', { name: 'Next' })) // invite → review
     fireEvent.click(await findByRole('button', { name: /finish onboarding/i }))
 
-    // Finishing returns to the console with a fresh list (R14.3).
+    // Finishing returns to the console with a fresh list (R4.6).
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/admin/tenants'))
     expect(invalidateSpy).toHaveBeenCalledWith(TENANTS_KEY)
 

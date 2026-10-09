@@ -146,7 +146,7 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         ):
             mock_pay.select_for_update.return_value.get.return_value = payment
 
-            service.process_webhook_event(
+            service.apply_webhook_event(
                 event_type="collection.settled",
                 reference=reference,
                 payload=payload,
@@ -210,7 +210,7 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         ):
             mock_pay.select_for_update.return_value.get.return_value = payment
 
-            service.process_webhook_event(
+            service.apply_webhook_event(
                 event_type="collection.settled",
                 reference=reference,
                 payload=payload,

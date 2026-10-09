@@ -1,0 +1,14 @@
+DOCUMENT TYPE: comparison of retained runner transcripts 01 and 21.
+
+BEFORE (inherited candidate)
+  21 failed, 5394 passed, 103 skipped, 2 xfailed, 1 xpassed
+
+AFTER (final M9 PostgreSQL whole tree)
+  5425 passed, 104 skipped, 2 xfailed, 1 xpassed
+  exit 0
+
+The changing pass/skip totals are not interpreted as simple arithmetic because
+the dirty worktree also changed test inventory and environment-conditional
+execution. The supported conclusion is narrower: every final collected failure
+cluster is gone in the retained final run, and the PostgreSQL-only draft race ran
+rather than being counted through its SQLite skip.

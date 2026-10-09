@@ -1,4 +1,4 @@
-import React, { Component, type ReactNode } from 'react'
+import { Component, type ReactNode } from 'react'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
 import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 

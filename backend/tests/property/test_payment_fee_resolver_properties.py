@@ -152,7 +152,6 @@ def seed_applicant(db):
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db
 def test_property_10_fee_resolver_determinism(
     seed_applicant, nationality, country
@@ -261,7 +260,6 @@ def test_property_11a_initiate_signature_rejects_tainted_kwargs():
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db
 def test_property_11b_initiate_ignores_injected_financial_fields(
     seed_applicant, _injected
@@ -505,7 +503,6 @@ _BLOCKING_PAYMENT_STATUSES: frozenset[str] = frozenset(
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db
 def test_property_15_payment_sensitive_fields_locked(
     seed_applicant, field_name, payment_status

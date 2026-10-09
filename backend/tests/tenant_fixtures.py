@@ -328,6 +328,31 @@ def build_application(
     return Application.objects.create(**defaults)
 
 
+def grant_tenant_permissions(world, permissions) -> Profile:
+    """Give ``world``'s staff actor the named mutation/export grants.
+
+    ``build_tenant_world`` creates its staff with ``permissions: []``, which is
+    the platform's **read-default** bundle: ``AdminCapabilityService`` layers a
+    mutation capability on only when the membership/grant ``permissions`` names
+    it ("read by default, mutate only when granted" — ``services.py``
+    ``_DEFAULT_TENANT_READ_CAPABILITIES`` / ``_GRANTED_MUTATION_CAPABILITIES``).
+    A test whose subject is a *command* or an *export* therefore has to say
+    which grant its actor holds, exactly as ``test_review_workspace_9_4.py::_grant``
+    does; otherwise the actor is refused before the subject is reached.
+
+    ``permissions`` are the serializer allow-list values
+    (``catalog/admin_serializers.GRANT_PERMISSION_ALLOWLIST``): ``view``,
+    ``review``, ``manage``, ``verify_documents``, ``verify_payments``, ``export``.
+    """
+    allowed = {"view", "review", "manage", "verify_documents", "verify_payments", "export"}
+    unknown = sorted(set(permissions) - allowed)
+    assert not unknown, f"not grant permissions the platform issues: {unknown}"
+    for membership in world.staff.userinstitutionmembership_set.all():
+        membership.permissions = list(permissions)
+        membership.save(update_fields=["permissions"])
+    return world.staff
+
+
 def build_membership(
     *,
     user: Profile,
@@ -363,16 +388,27 @@ def build_access_grant(
 ) -> AccessGrant:
     """Persist an ``access_grants`` row.
 
-    ``scope_type`` is one of ``institution`` / ``offering`` / ``application``.
+    ``scope_type`` is one of ``institution`` / ``program_offering`` /
+    ``application`` — the canonical vocabulary enforced by
+    ``AdminAccessGrantSerializer.VALID_GRANT_SCOPE_TYPES`` and the task-3.3
+    ``chk_access_grants_scope_target`` check constraint. The legacy shorthand
+    ``"offering"`` is accepted and normalised to ``"program_offering"`` so
+    existing callers keep working while every persisted row satisfies the
+    check constraint (the runtime ``AccessScopeService`` keys off the populated
+    target column, not the scope string, so this is behaviour-preserving).
     Only the column matching the scope is set unless explicitly overridden.
     """
+    # Normalise the legacy ``offering`` alias to the canonical scope value so
+    # the persisted row satisfies chk_access_grants_scope_target (R6.7, DATA-06).
+    if scope_type == "offering":
+        scope_type = "program_offering"
     now = timezone.now()
     defaults: dict[str, Any] = {
         "id": uuid.uuid4(),
         "user": user,
         "scope_type": scope_type,
         "institution": institution if scope_type == "institution" else overrides.pop("institution_override", None),
-        "program": program if scope_type == "offering" else None,
+        "program": program if scope_type == "program_offering" else None,
         "application_id": application_id if scope_type == "application" else None,
         "permissions": [],
         "expires_at": expires_at,
@@ -696,7 +732,99 @@ def build_white_label_scenario(
 # Imported lazily-friendly: Payment / ApplicationDocument live in the documents
 # app. They are imported at module level here because tenant_fixtures is only
 # ever imported inside a configured-Django test process.
-from apps.documents.models import ApplicationDocument, Payment  # noqa: E402
+from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment  # noqa: E402
+from apps.catalog.models import CourseRequirement, Subject  # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# Canonical grade helpers (admissions-v2 task 6.5 / R11.5, STU-11)
+# ---------------------------------------------------------------------------
+
+#: Default canonical Grade 12 subject names used when seeding persisted grades.
+DEFAULT_GRADE_SUBJECT_NAMES: tuple[str, ...] = (
+    "English Language",
+    "Mathematics",
+    "Biology",
+    "Chemistry",
+    "Physics",
+)
+
+
+def build_subject(*, name: str | None = None, suffix: str | None = None, is_active: bool = True, **overrides: Any) -> Subject:
+    """Persist one canonical ``subjects`` row."""
+    sfx = suffix or _suffix()
+    defaults: dict[str, Any] = {
+        "id": uuid.uuid4(),
+        "name": name or f"Subject {sfx}",
+        "code": f"SUB-{sfx.upper()}",
+        "category": "core",
+        "is_core": True,
+        "is_active": is_active,
+        "curriculum_type": "ecz",
+        "created_at": timezone.now(),
+    }
+    defaults.update(overrides)
+    return Subject.objects.create(**defaults)
+
+
+def build_grades(
+    *,
+    application: Application,
+    count: int = 5,
+    grade: int = 2,
+    subjects: list[Subject] | None = None,
+    is_active: bool = True,
+) -> list[ApplicationGrade]:
+    """Persist ``count`` unique canonical ``application_grades`` rows.
+
+    Admissions-v2 task 6.5 (R11.5, STU-11): server readiness and submission count
+    only **persisted** grades whose ``subject_id`` resolves to an active canonical
+    ``Subject``, so a submittable application fixture must seed real subject rows.
+
+    Pass ``is_active=False`` to seed grades against a subject that no longer
+    resolves (the "unresolved subject never counts as complete" case).
+    """
+    rows = subjects or [
+        build_subject(
+            name=f"{DEFAULT_GRADE_SUBJECT_NAMES[index % len(DEFAULT_GRADE_SUBJECT_NAMES)]} {_suffix()}",
+            is_active=is_active,
+        )
+        for index in range(count)
+    ]
+    now = timezone.now()
+    return [
+        ApplicationGrade.objects.create(
+            id=uuid.uuid4(),
+            application=application,
+            subject=subject,
+            grade=grade,
+            created_at=now,
+        )
+        for subject in rows[:count]
+    ]
+
+
+def build_course_requirement(
+    *,
+    offering: Program,
+    subject: Subject,
+    minimum_grade: int = 5,
+    is_mandatory: bool = True,
+    **overrides: Any,
+) -> CourseRequirement:
+    """Persist one ``course_requirements`` row for an offering (eligibility rule)."""
+    defaults: dict[str, Any] = {
+        "id": uuid.uuid4(),
+        "program": offering,
+        "subject": subject,
+        "minimum_grade": minimum_grade,
+        "is_mandatory": is_mandatory,
+        "weight": Decimal("1.00"),
+        "requirement_type": "subject",
+        "created_at": timezone.now(),
+    }
+    defaults.update(overrides)
+    return CourseRequirement.objects.create(**defaults)
 
 
 def build_payment(
@@ -832,7 +960,7 @@ def attach_scope(
     if kind == "offering_grant":
         return build_access_grant(
             user=staff,
-            scope_type="offering",
+            scope_type="program_offering",
             program=world.offering,
             expires_at=expires_at,
         )

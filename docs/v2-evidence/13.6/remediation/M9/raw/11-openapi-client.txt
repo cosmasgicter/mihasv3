@@ -1,0 +1,17 @@
+DOCUMENT TYPE: generated-contract summary. Candidate hashes bind the claims to
+the generated schema and TypeScript output named below.
+
+Canonical PATCH /api/v1/applications/drafts/{application_id}/ contract:
+
+- Idempotency-Key header is required.
+- request body requires expected_version, minimum 1.
+- request schema rejects unknown properties.
+- 409 response references ApplicationDraftConflictResponse.
+- conflict response exposes current_version, minimum 1.
+
+drf-spectacular generation: 0 errors, 0 warnings.
+Generated client production typecheck: PASS.
+backend/schema/openapi.v2.candidate.yaml sha256:
+  2c6a7ddd435878ff738b76867b79e1f75ec49ac627daf75e3c9c2ebd65d02bfc
+apps/admissions/src/generated/api.d.ts sha256:
+  a644787e64262469c199a6fee0cf81456b0846314a7372be2d4c16aea80460be

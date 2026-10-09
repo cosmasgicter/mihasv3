@@ -159,11 +159,10 @@ class PasswordResetRequestView(APIView):
 
         # Enqueue password reset email via Celery
         try:
+            from apps.common.email_links import password_reset_url
             from apps.common.outbox import queue_email
 
-            reset_link = (
-                f"https://apply.beanola.com/auth/reset-password?token={raw_token}"
-            )
+            reset_link = password_reset_url(raw_token)
             subject = "Password Reset Request"
             body = (
                 "<p>You requested a password reset for your Beanola admissions account.</p>"

@@ -23,6 +23,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from apps.accounts.authentication import JWTUser
 from apps.applications import document_views as legacy_document_views
 from apps.applications import official_document_views as odv
+from apps.applications.official_document_jobs import OfficialDocumentJob
 from tests.tenant_fixtures import build_profile, build_tenant_world
 
 
@@ -42,6 +43,21 @@ _RAW_URL = (
     "application-slips/abc/def.pdf"
 )
 _SIGNED_URL = _RAW_URL + "?X-Amz-Signature=deadbeef&X-Amz-Expires=900"
+
+
+def _open_job(document_type: str = "application_slip"):
+    """A committed, open durable generation job (admissions-v2 task 10.4).
+
+    ``_request_generation`` returns one of these after the row commits; these
+    DB-free cases stand one in so they exercise the view rather than the outbox.
+    """
+    return OfficialDocumentJob(
+        id=str(uuid.uuid4()),
+        application_id=str(uuid.uuid4()),
+        document_type=document_type,
+        state="pending",
+        attempts=0,
+    )
 
 
 def _super_admin():
@@ -142,7 +158,11 @@ def test_generate_requeues_when_current_document_is_stale():
     ), patch.object(
         odv, "official_document_matches_current_inputs", return_value=False
     ) as freshness, patch.object(
-        odv, "_enqueue_generation", return_value="task-stale"
+        # admissions-v2 task 10.4: the POST path commits a durable job before it
+        # answers 202, so the seam this case fakes is the request command rather
+        # than the broker dispatch it now wraps. The claim is unchanged — a stale
+        # current version is re-requested, never served.
+        odv, "_request_generation", return_value=(_open_job(), "task-stale")
     ) as enqueue, patch.object(
         odv, "_audit_official_document_queued"
     ) as audit:
@@ -158,12 +178,19 @@ def test_generate_requeues_when_current_document_is_stale():
     assert response.data["data"]["document_id"] is None
     assert "download_url" not in response.data["data"]
     freshness.assert_called_once_with(application, "application_slip", doc)
-    enqueue.assert_called_once_with(application, "application_slip")
+    enqueue.assert_called_once_with(application, "application_slip", request.user and enqueue.call_args[0][2])
     audit.assert_called_once()
 
 
-def test_status_reports_queued_when_current_document_is_stale():
-    """GET must not expose a signed URL for a stale current version."""
+def test_status_reports_no_queue_when_current_document_is_stale_and_unrequested():
+    """GET must not expose a signed URL for a stale current version.
+
+    admissions-v2 task 10.4 (R13.11, STU-18): it must not report ``queued``
+    either. Nothing has been requested since the document went stale, so there is
+    no committed job, nobody is rendering anything, and a poll would never end.
+    The honest answer is ``not_requested`` — which is what tells the client to
+    POST rather than to keep asking.
+    """
     factory = APIRequestFactory()
     application = SimpleNamespace(
         id=uuid.uuid4(),
@@ -193,7 +220,8 @@ def test_status_reports_queued_when_current_document_is_stale():
 
     assert response.status_code == 200
     assert response.data["success"] is True
-    assert response.data["data"]["status"] == "queued"
+    assert response.data["data"]["status"] == "not_requested"
+    assert response.data["data"]["job"]["state"] == "none"
     assert response.data["data"]["document_id"] is None
     assert "download_url" not in response.data["data"]
     freshness.assert_called_once_with(application, "application_slip", doc)
@@ -270,6 +298,19 @@ def test_list_includes_latest_setup_required_failure():
             "generated_at": None,
             "template_version": None,
             "institution_id": str(application.institution_ref_id),
+            # admissions-v2 task 10.4: the durable job, the read-existing marker
+            # and the retry affordance travel with every entry.
+            "historical": False,
+            "job": {
+                "state": "none",
+                "attempts": 0,
+                "requested_at": None,
+                "settled_at": None,
+                "error_code": None,
+                "terminal": False,
+                "can_retry": False,
+            },
+            "can_retry": False,
             "error_code": "DOCUMENT_PROFILE_NOT_CONFIGURED",
             "setup_required": True,
         }
@@ -294,7 +335,7 @@ def test_legacy_application_slip_endpoint_delegates_to_official_document_route()
     ), patch.object(
         odv, "_current_official_version", return_value=None
     ), patch.object(
-        odv, "_enqueue_generation", return_value="task-legacy"
+        odv, "_request_generation", return_value=(_open_job(), "task-legacy")
     ), patch.object(
         odv, "_audit_official_document_queued"
     ):
@@ -335,9 +376,9 @@ def test_super_admin_can_generate_official_document_for_any_tenant():
     super_admin = build_profile(role="super_admin")
     client = _client_for(super_admin)
 
-    with patch.object(odv, "_enqueue_generation", return_value="task-super"), patch.object(
-        odv, "_audit_official_document_queued"
-    ):
+    with patch.object(
+        odv, "_request_generation", return_value=(_open_job(), "task-super")
+    ), patch.object(odv, "_audit_official_document_queued"):
         response = client.post(
             f"/api/v1/applications/{world.application.id}/official-documents/application_slip/"
         )

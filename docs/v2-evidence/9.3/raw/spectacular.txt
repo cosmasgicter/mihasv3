@@ -1,0 +1,7 @@
+Warning: operationId "api_v2_admin_onboarding_retrieve" has collisions [('/api/v2/admin/onboarding/', 'get'), ('/api/v2/admin/onboarding/{onboarding_id}/', 'get')]. resolving with numeral suffixes.
+
+Schema generation summary:
+Warnings: 3 (3 unique)
+Errors:   116 (26 unique)
+
+SPECTACULAR_EXIT=0

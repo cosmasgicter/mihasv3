@@ -9,6 +9,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_HOME, platform_base_url
 
 
 def render(context: dict) -> tuple[str, str]:
@@ -27,7 +28,7 @@ def render(context: dict) -> tuple[str, str]:
     program = context.get("program_name") or "the programme you applied for"
     intake = context.get("intake_name") or "the current intake"
     note = context.get("reviewer_note")
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
 
     subject = f"Application update — {app_no}"
 
@@ -62,7 +63,7 @@ def render(context: dict) -> tuple[str, str]:
                 "qualifications and career goals."
             ),
             metadata_card([("Application Number", app_no)]),
-            cta_button("Explore other programmes", portal + "/#programs"),
+            cta_button("Explore other programmes", portal + ROUTE_HOME + "#programs"),
             signature_block(),
         ]
     )

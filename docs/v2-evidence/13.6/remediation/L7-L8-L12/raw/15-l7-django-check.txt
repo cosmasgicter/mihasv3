@@ -1,0 +1,15 @@
+### 2026-08-14T10:52:16Z manage.py check with the real backend/.env
+# This script sources ONLY backend/.env. .localtest-host-env.sh is not read here,
+# so no substitution of REDIS_URL or DATABASE_URL is possible.
+# TESTING must be unset and REDIS_URL must be byte-identical to .env's value -
+# either one being otherwise produces a spurious django_ratelimit.E003.
+# Values are compared by sha256 so no secret is printed.
+
+TESTING in env                     : <unset>
+REDIS_URL sha256[0:16] from .env    : 12b6ca8071ff38a5
+REDIS_URL sha256[0:16] in process   : ea35bc1c259b6771
+REDIS_URL substituted?              : YES-PROBLEM
+DJANGO_SETTINGS_MODULE              : config.settings.prod
+
+System check identified no issues (1 silenced).
+manage.py check exit=0

@@ -144,6 +144,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
 - Payment in the admissions wizard supports mobile money (primary) and card widget (secondary). Mobile money is initiated via `POST /api/v1/payments/mobile-money/` and polled for completion. The Lenco card widget (`LencoPay.getPaid`) remains available as a fallback. Students may also defer payment and submit without paying upfront. Do not reintroduce the retired pre-Lenco payment UX.
+- Payment ownership is split at submission (task 8.3, R12.3): the **wizard** owns pre-submission pay-or-defer and renders no history or recovery; **`/student/payment`** owns deferred, failed, expired, and pending recovery plus history, and may take a payment for a fee still owed after submission. Do not restore the "payment page is read-only" description — that contradiction is finding STU-09.
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
 - Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
 - Use speculative prefetching (`src/lib/speculativePrefetch.ts`) for predictive data loading — prefetch catalog data on login success, wizard chunks on dashboard mount.
@@ -243,33 +244,62 @@ The platform uses Lenco as its payment gateway for application fees. Key compone
 | `paymentRecoveryStore` | `apps/admissions/src/stores/paymentRecoveryStore.ts` | Zustand + localStorage recovery store keyed by `application_id` with 24-hour TTL (Phase 4). |
 | `paymentNextActions` | `apps/admissions/src/lib/paymentNextActions.ts` | Stable-code-driven `PaymentNextAction` union with user-facing copy. |
 | `zambianMsisdn` | `apps/admissions/src/lib/zambianMsisdn.ts` | Client-side Zambian MSISDN format validation + normalisation (no operator inference). |
-| `derivePaymentUiState` | `apps/admissions/src/lib/paymentStatus.ts` | Pure mapper from `{backendStatus, inflight, stableCode, pollingExceededTimeout}` to `PaymentUiState` (Phase 4). |
+| `derivePaymentUiState` | `apps/admissions/src/lib/paymentStatus.ts` | Pure mapper from `{backendStatus, inflight, stableCode, pollingExceededTimeout, phase}` to `PaymentUiState`. Unconditional since task 8.2. |
+| `payment_phase` | `backend/apps/documents/payment_phase.py` | `derive_payment_phase(status, provider_initiation)` — the single answer to *who is being waited on*: `action_required` (student must approve a handset prompt, 120 s UI budget) vs `provider_processing` (waiting on Lenco, 600 s, no retry offered). Derived, never stored; exposed as `phase` / `phase_timeout_seconds` on `PaymentSerializer`. Frontend mirror `PaymentPhase` + `PAYMENT_WAITING_STATES` in `apps/admissions/src/lib/paymentStatus.ts`, drift-guarded both ways by `backend/tests/unit/test_payment_phase_8_2.py` (task 8.2, STU-09). |
+| `paymentRecovery` | `apps/admissions/src/lib/paymentRecovery.ts` | `PAYMENT_RECOVERY_PRESENTATION` — the **total** `PaymentUiState → {label, tone, detail, action, allowsInitiate}` map the `/student/payment` page renders, plus the `deferred` override. `allowsInitiate` is `false` for every waiting state (double-charge guard) and `resendAvailable` is true **only** for a spent `action_required` budget. Adds no state vocabulary and restates no wait budget — both come from task 8.2's `paymentStatus.ts` (task 8.3, STU-09). |
+| `tenantSupport` | `apps/admissions/src/lib/tenantSupport.ts` | `resolveTenantSupportContact` — the student support affordance from resolved tenant context, with the neutral in-app `/contact` route as the only fallback. Never a hardcoded address, never MIHAS/KATC (task 8.3, STU-24). |
+| `PaymentApplicationCard` | `apps/admissions/src/components/student/payment/PaymentApplicationCard.tsx` | One submitted application's payment state, its single recovery action, and its ledger history. The post-submission half of the ownership split (task 8.3, R12.3). |
+| `SettlementQueryService` | `backend/apps/documents/settlement_service.py` | The one settlement/fee-administration query authority (task 8.4, ADM-06): scope through `visible_institution_queryset` + `AccessScopeService.filter_payments` **before** any lookup, SQL filters, SQL grouping, whole-filtered-set aggregates, derived reconciliation state (`RECONCILIATION_STALE_HOURS = 24`, read from the sweep's own cutoff), capability-driven `RedactionPolicy`, and the page-independent export bounded by `EXPORT_ROW_LIMIT`. |
+| `AdminFeeListView` | `backend/apps/documents/fee_admin_views.py` | `GET /api/v1/admin/fees/` — the scoped fee-administration report (filters, page, coverage aggregates, `?export=csv`). Replaces the admin page's per-offering broad fetch. Read authority `tenant.program.read`. |
 | `SuperAdminPaymentCorrectionView` | `backend/apps/documents/views.py` | `POST /api/v1/payments/{id}/correct/` — super-admin-only correction endpoint, reason ≥ 10 chars (Phase 5). |
 | `RiskFlagsListView` | `backend/apps/documents/risk_views.py` | `GET /api/v1/payments/risk-flags/` — super-admin-only paginated risk-flag review (Phase 5). |
 | `dev_bypass` | `backend/apps/common/dev_bypass.py` | `require_not_dev_bypass_in_production` decorator — 404 on any bypass vector under production settings (Phase 5). |
 | `throttling` | `backend/apps/common/throttling.py` | `PaymentUserScopedRateThrottle` keyed by `user.pk` or client IP (Phase 5). |
 
-Payment hardening status: Phases 1–5 shipped. See
-`docs/runbooks/payment-hardening-rollout.md` for the enable/disable
-matrix and rollback order.
+Payment hardening status: Phases 1–5 shipped, then converged onto a single
+path by admissions-v2 task 8.2 (one state machine, one service path, one dedup
+contract, one flag). See `docs/runbooks/payment-hardening-rollout.md` for the
+current state and what rollback actually means now.
 
-## Payment Hardening Feature Flags
+## Payment Feature Flags
 
-The payment-hardening rollout (spec `.kiro/specs/payment-hardening/`) ships
-behind the following per-phase environment flags. Each defaults to `False`
-so the legacy code path remains in effect until the flag is explicitly
-flipped.
+There is **one** payment feature flag. admissions-v2 task 8.2 deleted the other
+four together with the duplicate implementations they selected, so the payment
+state machine, webhook dedup contract, admin-override ledger shape, and payment
+UI are unconditional.
 
-| Flag | Phase | Scope | Gates |
-|------|-------|-------|-------|
-| `PAYMENT_HARDENING_FORWARD_ONLY` | 2 | Backend | `PaymentService._transition()` forward-only guard + hardened view branches |
-| `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT` | 3 | Backend | Canonical-JSON + `WebhookEventIdentity` strict dedup on `/api/v1/payments/webhook/lenco/` |
-| `PAYMENT_HARDENING_RATE_LIMITS` | 5 | Backend | Per-user DRF throttle scopes (`payment_initiate`, `payment_mobile_money`, `payment_verify`, `payment_resolve_fee`) |
-| `PAYMENT_HARDENING_FORCE_APPROVED` | 5 | Backend | Admin override creates a `force_approved` Payment instead of synthetic zero-amount `successful` |
-| `VITE_PAYMENT_HARDENING_UI` | 4 | Frontend (Vercel build-time) | New PaymentStep UI state matrix + recovery store + stable error-code copy |
+| Flag | Scope | Gates |
+|------|-------|-------|
+| `PAYMENT_HARDENING_RATE_LIMITS` | Backend | Per-user DRF throttle scopes (`payment_initiate`, `payment_mobile_money`, `payment_verify`, `payment_resolve_fee`) |
 
-Rollback for any phase is a flag flip (set to `False`) and redeploy — no
-schema revert required because Phase 1 schema changes are additive.
+This is a policy switch, not a second code path: both settings run the same
+payment path. It reads `"1" | "true" | "yes"` as enabled and is hardcoded `True`
+in `prod.py` / `staging.py`.
+
+**Retired flags — do not reintroduce.** `PAYMENT_HARDENING_FORWARD_ONLY`,
+`PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`, `PAYMENT_HARDENING_FORCE_APPROVED`, and
+the frontend `VITE_PAYMENT_HARDENING_UI` no longer exist. Setting them does
+nothing. Two guard tests fail if one reappears
+(`tests/unit/test_payment_single_path_8_2.py`,
+`tests/unit/test_prod_settings_required_flags.py`). Parity between the promoted
+path and each deleted duplicate was demonstrated before removal — see
+`docs/v2-evidence/8.2/`.
+
+**Rollback is no longer a flag flip** for the payment state machine, dedup,
+override, or UI: it is a code revert. Rate limits still roll back by flipping the
+flag. Phase 1 schema stays in place (additive). Full detail:
+`docs/runbooks/payment-hardening-rollout.md`.
+
+Admin money surfaces are server-owned (admissions-v2 task 8.4, findings ADM-06 /
+AUTH-02). Settlement and fee administration filter, paginate, aggregate, derive
+reconciliation state, redact, and export **on the backend**; authority resolves
+through `AdminCapabilityService` (`tenant.payment.read` for settlement,
+`tenant.program.read` for fee reads, `platform.program_assignment.manage` for fee
+writes, `tenant.application.export` for either export), and an out-of-scope
+identifier is a masked 404 rather than an empty page. Do not reintroduce a broad
+fetch with client-side institution filtering, a browser-side settlement total, or
+a role-string gate on these surfaces — `apps/admissions/tests/unit/feeProviderSourceScan.test.ts`
+and `backend/tests/unit/test_settlement_fee_authority_8_4.py` fail if one returns.
 
 Payment API endpoints:
 - `POST /api/v1/payments/initiate/` — create pending payment, returns widget config
@@ -277,7 +307,9 @@ Payment API endpoints:
 - `POST /api/v1/payments/{id}/verify/` — verify payment via Lenco API
 - `POST /api/v1/payments/webhook/lenco/` — webhook receiver (unauthenticated, HMAC-validated)
 - `GET /api/v1/payments/resolve-fee/` — resolve fee for program + residency
-- `GET/POST/PUT/DELETE /api/v1/programs/{id}/fees/` — admin fee management
+- `GET /api/v1/payments/settlements/` — scoped, paginated settlement report with server aggregates, reconciliation state, and an audited `?export=csv`
+- `GET /api/v1/admin/fees/` — scoped, paginated fee-administration report with coverage aggregates and an audited `?export=csv`
+- `GET/POST/PUT/DELETE /api/v1/programs/{id}/fees/` — canonical fee management (read `tenant.program.read`, write `platform.program_assignment.manage`, every write audited as `tenant.fee.<verb>`)
 
 Related admissions flow endpoints:
 - `POST /api/v1/applications/{id}/submit/` — canonical student submission endpoint with submission gates
@@ -443,33 +475,53 @@ Two layers of uptime monitoring are in place:
 
 A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotation.md`. It covers JWT signing key, database credentials, Resend API key, S3/R2 keys, and Redis URL rotation with step-by-step procedures and rollback guidance.
 
-## AI-Powered Features
+## Generative AI Boundary
 
-| Feature | Backend | Frontend | Model |
-|---------|---------|----------|-------|
-| OCR grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` | Education step in wizard | Tesseract via Celery task |
-| AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | Admin review panel | `gpt-4o-mini` via `AI_GATEWAY_API_KEY` |
-| AI preview summary | Review step in wizard | Personalized application summary | `gpt-4o-mini` |
+**Admissions makes no generative AI call.** Admissions-v2 task 7.4 removed the
+whole admissions AI surface (R11.1, R11.9) and task 12.4 removed what was left of
+its dependency footprint and documentation. The only remaining generative
+integration on the platform belongs to **jobs-ops**.
 
-- AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the Vercel AI Gateway.
-- The gateway supports multiple model tiers configured in `base.py`: `AI_MODEL_FAST` (gemini-2.5-flash), `AI_MODEL_VISION` (gemini-2.5-flash), `AI_MODEL_ANALYSIS` (gpt-4o-mini), `AI_MODEL_SMART` (deepseek-v3).
-- OCR never overwrites manually entered grades. The `extract_document_text_task` Celery task runs with a 120s soft / 180s hard time limit; the frontend `useOcrGradeExtraction` hook polls for up to 90 seconds before giving up gracefully.
-- AI admin summary and student preview summary each have a 24-hour Redis cache keyed by application fingerprint (see `backend/apps/common/ai_cache.py`). Super-admins can force-refresh the admin summary with `?refresh=1`.
-- AI-touching endpoints are individually throttled per user when `AI_HARDENING_RATE_LIMITS=True`: admin summary 60/hour, student preview 10/hour, document OCR re-extract 5/hour (see `backend/apps/common/throttling.py` — `AIUserScopedRateThrottle`).
-- Every AI call runs through `apps.common.ai_circuit_breaker.with_circuit_breaker`, which short-circuits for 5 minutes after 3 consecutive failures when `AI_HARDENING_CIRCUIT_BREAKER=True`. Callers already treat `None` as "AI unavailable, degrade gracefully".
-- PII redaction (`apps.common.ai_prompt_redactor`) strips `full_name` / NRC / passport / DOB / contact details from the admin summary prompt and replaces `full_name` with `first_name` in the student preview prompt when `AI_HARDENING_REDACTION=True`. Fallback paths (template copy, `None` return) remain unchanged.
-- See `docs/ai-data-flows.md` for the full data map, retention notes, and feature-flag matrix.
+| Surface | Where | Model | Boundary |
+|---------|-------|-------|----------|
+| Jobs-ops match scoring, resume tailoring, outreach drafting, posting analysis | `backend/apps/jobs/ai_service.py` | Vercel AI Gateway (`JOBS_OPS_AI_MODEL_*`) | jobs-ops only |
+| Admissions grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` → `apps/documents/grade_extraction.py` | **server-side Tesseract**, no model | admissions; deterministic |
+| Admissions review readiness | `apps/applications` review-workspace query | none — deterministic evaluator | admissions |
+| Student submission summary | wizard review step | none — composed from stored fields + validation | admissions |
 
-### AI hardening feature flags
+- The gateway settings live in the **jobs-ops namespace**:
+  `JOBS_OPS_AI_GATEWAY_API_KEY`, `JOBS_OPS_AI_GATEWAY_BASE_URL`,
+  `JOBS_OPS_AI_MODEL_FAST` (gemini-2.5-flash), `JOBS_OPS_AI_MODEL_ANALYSIS`
+  (gpt-4o-mini), `JOBS_OPS_AI_MODEL_SMART` (deepseek-v3). The **env var** names
+  are unchanged (`AI_GATEWAY_API_KEY`, `AI_MODEL_*`) so no deployment was
+  re-keyed; only the Django setting names moved.
+- `openai` is declared in `backend/requirements.txt` under an explicit
+  **jobs-ops-only** section. Its single importer in the whole backend is
+  `apps/jobs/ai_service.py`. It is not a platform dependency and must not become
+  one.
+- **OCR is deterministic assistance, not AI, and it never has authority.**
+  `extract_document_text_task` (120 s soft / 180 s hard) proposes
+  `(subject_id, grade, confidence, provenance)` candidates resolved *only* through
+  the versioned alias catalogue; the student must confirm each row before it
+  becomes application data, and a manual entry always wins. An unrecognised label
+  stays unresolved rather than being guessed. The per-user cap on re-extract is
+  `DOCUMENT_EXTRACT_RATE_LIMITS` — a CPU/DoS lever, never an AI flag.
+- The **frontend ships no OCR or AI package at all**: browser `tesseract.js` /
+  `tesseract.js-core` and their 29 MB asset step were removed by task 7.5.
+- See `docs/ai-data-flows.md` for what actually leaves the platform.
 
-| Flag | Phase | Default | Purpose |
-|------|-------|---------|---------|
-| `AI_HARDENING_CIRCUIT_BREAKER` | 1.1 | `False` | Enable Redis-backed circuit breaker on every AI call |
-| `AI_HARDENING_RATE_LIMITS` | 1.2 | `False` | Enable `AIUserScopedRateThrottle` on admin-summary, student-preview, and document-extract |
-| `AI_HARDENING_CACHE` | 1.3 | `False` | Enable 24 h Redis cache on admin-summary and student-preview |
-| `AI_HARDENING_REDACTION` | 2 | `False` | Strip PII from prompts before they leave the platform |
-
-Rollback is a flag flip — no schema changes ship with Phases 1–3.
+**Retired — do not reintroduce.** `GET /api/v1/applications/{id}/admin-summary/`,
+`GET /api/v1/applications/{id}/preview-summary/`,
+`backend/apps/common/ai_service.py`, `ai_cache.py`, `ai_circuit_breaker.py`,
+`ai_prompt_redactor.py`, `AIUserScopedRateThrottle`, the un-namespaced
+`AI_GATEWAY_*` / `AI_MODEL_*` Django settings, and the entire
+`AI_HARDENING_CIRCUIT_BREAKER` / `AI_HARDENING_RATE_LIMITS` /
+`AI_HARDENING_CACHE` / `AI_HARDENING_REDACTION` flag family. Setting any of those
+flags does nothing. `backend/tests/unit/test_no_admissions_generative_ai_guard.py`
+fails if an admissions module imports a generative client, reads a gateway
+setting, re-registers a retired route, or re-defines a retired flag — and also if
+the jobs-ops service or the server-side OCR dependencies disappear, because
+isolation proven by deleting the other product is not isolation.
 
 ## Current Jobs Ops State
 

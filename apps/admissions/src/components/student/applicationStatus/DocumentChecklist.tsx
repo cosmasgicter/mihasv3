@@ -1,4 +1,3 @@
-import React from 'react'
 import { FileText, Eye } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { Button } from '@/components/ui/Button'

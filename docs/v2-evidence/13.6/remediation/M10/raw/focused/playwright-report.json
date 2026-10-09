@@ -1,0 +1,487 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-required",
+        "name": "chromium-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-required",
+        "name": "mobile-required",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gatecheck-negative",
+        "name": "gatecheck-negative",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/gatecheck\\/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.6/remediation/M10/raw/focused/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "required/axe-viewport-sweep.spec.ts",
+      "file": "required/axe-viewport-sweep.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7597,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:55:56.294Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "edd43817f2fcce32233c-332d7311069fd1be1600",
+          "file": "required/axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8342,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:57:20.559Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "edd43817f2fcce32233c-ea60908829382b3ed2f9",
+          "file": "required/axe-viewport-sweep.spec.ts",
+          "line": 227,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "title": "required/tenant-launch.spec.ts",
+      "file": "required/tenant-launch.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Onboarding wizard renders the real canonical steps (TEN-02, R7.3)",
+          "file": "required/tenant-launch.spec.ts",
+          "line": 161,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the wizard exposes program / intake / fee / routing steps on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-required",
+                  "projectName": "chromium-required",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1376,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-25T15:56:06.595Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6ec4b9981f907274fd23-7f7add4e8ac4b99d85d7",
+              "file": "required/tenant-launch.spec.ts",
+              "line": 166,
+              "column": 5
+            },
+            {
+              "title": "the wizard exposes program / intake / fee / routing steps on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-required",
+                  "projectName": "mobile-required",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1396,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-25T15:57:30.976Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6ec4b9981f907274fd23-0d34342c2542caca592d",
+              "file": "required/tenant-launch.spec.ts",
+              "line": 166,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "required/two-tenant-adversarial-matrix.spec.ts",
+      "file": "required/two-tenant-adversarial-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 61472,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:476:55",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                      "column": 55,
+                      "line": 476
+                    },
+                    "snippet": "  474 |   await postponeWizardAutosave(page.context());\n  475 |   await openWizard(page, applicant, w.A.origin);\n> 476 |   await expect(page.getByTestId(\"wizard-action-bar\")).toBeVisible({\n      |                                                       ^\n  477 |     timeout: 60_000,\n  478 |   });\n  479 |   await openPersonalStep(page);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                        "column": 55,
+                        "line": 476
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n\n  474 |   await postponeWizardAutosave(page.context());\n  475 |   await openWizard(page, applicant, w.A.origin);\n> 476 |   await expect(page.getByTestId(\"wizard-action-bar\")).toBeVisible({\n      |                                                       ^\n  477 |     timeout: 60_000,\n  478 |   });\n  479 |   await openPersonalStep(page);\n\u001b[2m    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:476:55\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:56:08.006Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-chromium-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                    "column": 55,
+                    "line": 476
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-3cfbbbbdaa6cc694c37a",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        },
+        {
+          "title": "F3 tab/device switch: a stale dirty wizard surfaces conflict and reloads the winner",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 61463,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:476:55",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                      "column": 55,
+                      "line": 476
+                    },
+                    "snippet": "  474 |   await postponeWizardAutosave(page.context());\n  475 |   await openWizard(page, applicant, w.A.origin);\n> 476 |   await expect(page.getByTestId(\"wizard-action-bar\")).toBeVisible({\n      |                                                       ^\n  477 |     timeout: 60_000,\n  478 |   });\n  479 |   await openPersonalStep(page);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                        "column": 55,
+                        "line": 476
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('wizard-action-bar')\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('wizard-action-bar')\u001b[22m\n\n\n  474 |   await postponeWizardAutosave(page.context());\n  475 |   await openWizard(page, applicant, w.A.origin);\n> 476 |   await expect(page.getByTestId(\"wizard-action-bar\")).toBeVisible({\n      |                                                       ^\n  477 |     timeout: 60_000,\n  478 |   });\n  479 |   await openPersonalStep(page);\n\u001b[2m    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts:476:55\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:57:32.402Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-mobile-required/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/apps/admissions/test-results/artifacts/required-two-tenant-advers-7996d-lict-and-reloads-the-winner-mobile-required/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts",
+                    "column": 55,
+                    "line": 476
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1215904aa74ea170e550-c86adadcdb0aeee9e10b",
+          "file": "required/two-tenant-adversarial-matrix.spec.ts",
+          "line": 447,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "required/two-tenant-isolation-matrix.spec.ts",
+      "file": "required/two-tenant-isolation-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "S06 capacity: the capacity reported for an application belongs to its own tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-required",
+              "projectName": "chromium-required",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 251,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:57:14.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cd1ecd7f40eb77de03b1-0be2a340543c5d3541d3",
+          "file": "required/two-tenant-isolation-matrix.spec.ts",
+          "line": 491,
+          "column": 1
+        },
+        {
+          "title": "S06 capacity: the capacity reported for an application belongs to its own tenant",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-required",
+              "projectName": "mobile-required",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 282,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-25T15:58:38.682Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cd1ecd7f40eb77de03b1-234842c0fdf8c16561ef",
+          "file": "required/two-tenant-isolation-matrix.spec.ts",
+          "line": 491,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-25T15:55:54.637Z",
+    "duration": 168679.222,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

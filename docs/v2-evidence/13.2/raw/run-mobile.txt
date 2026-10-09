@@ -1,0 +1,11 @@
+
+Running 1 test using 1 worker
+
+  ✓  1 [mobile-13-2] › tests/harness-e2e/required/two-tenant-golden-journey.spec.ts:155:3 › The complete golden journey on a resolved tenant host (R18.2) › one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal (10.3s)
+
+  1 passed (20.5s)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report ../../docs/v2-evidence/13.2/raw/html-report[39m
+[36m[39m

@@ -117,7 +117,7 @@ class TestTerminalPaymentsNotReVerified(SimpleTestCase):
             mock_payment_qs.get.return_value = payment
 
             service = PaymentService()
-            result = service.verify_payment(payment_id)
+            result = service.verify(payment_id)
 
         # Terminal payments must NOT hit Lenco at all.
         mock_lenco.assert_not_called()

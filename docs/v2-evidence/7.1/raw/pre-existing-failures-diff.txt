@@ -1,0 +1,29 @@
+# Failing/erroring node sets — 7.1 vs the 6.5 recorded baseline
+
+Command (both sides): cd backend && DATABASE_URL="postgresql:///beanola" python -m pytest tests/unit/ -q --tb=no
+
+## Unique failing/erroring node ids
+  7.1: 112
+  6.5: 112
+
+### NEW in 7.1 (LC_ALL=C comm -13)
+  (empty above == zero new failures introduced by 7.1)
+
+### Present at the 6.5 baseline, green under 7.1 (comm -23)
+  (empty above == nothing silently 'fixed' as a side effect)
+
+## Totals
+  7.1: 33 failed, 2514 passed, 72 skipped, 2 xfailed, 1 xpassed, 1245 warnings, 79 errors in 122.59s (0:02:02)
+  6.5: 33 failed, 2503 passed, 72 skipped, 2 xfailed, 1 xpassed, 1245 warnings, 79 errors in 116.53s (0:01:56)
+  (+11 passed == backend/tests/unit/test_subject_catalog_migration_7_1.py)
+
+## Integration surface
+  7.1: 4 failed, 241 passed, 1 skipped, 133 warnings in 22.53s
+  The 4 failures are the same node ids 6.5 recorded in raw/pre-existing-failures.txt.
+
+## Rollback-lint property (pre-existence proof)
+  With backend/scripts/2026_07_25_01_canonical_subject_catalog*.sql physically
+  moved out of the tree, tests/property/test_rollback_safe_operations.py still
+  fails both tests (4 earlier v2 data-migration rollbacks), and
+  test_migration_properties.py + test_schema_reconciliation_invariants.py fail
+  identically. See README -> 'One open question for review'.

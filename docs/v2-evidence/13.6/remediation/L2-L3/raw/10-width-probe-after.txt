@@ -1,0 +1,20 @@
+### 2026-08-13T23:10:31Z L2 AFTER - 13.5/raw/width-drift-probe.py on v2_snap_13_6
+# BEFORE (raw/02-width-probe-before.txt): narrower_columns=3, probe exit=1
+# read-only; the probe pins SET default_transaction_read_only = on itself
+
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+database           : v2_snap_13_6
+server_version     : 17.10 (29ad1b7)
+managed=False models with a table here : 78
+bounded-length fields compared          : 339
+
+NARROWER than the model declares (500 risk) : 0
+
+WIDER than the model declares (harmless)    : 0
+
+column absent (already check_schema_drift's job) : 0
+
+managed=False tables absent from this database   : 0
+
+VERDICT: PASS - narrower_columns=0
+probe exit=0

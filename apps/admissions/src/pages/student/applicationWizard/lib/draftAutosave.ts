@@ -1,5 +1,59 @@
 import { normalizePhoneNumberInput, type WizardFormData, type WizardProgram } from '../types'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
+import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
+import { sanitizePhoneInput } from '../hooks/wizard/wizardControllerUtils'
+
+/**
+ * The personal answers the canonical draft PATCH carries — and nothing else.
+ *
+ * Assignment (`program` / `intake` / `institution` and their ids) is immutable
+ * after creation and moves only through the reroute command (task 6.4, R10.5),
+ * so it is deliberately absent: changing the programme must never produce an
+ * answer write.
+ */
+export const DRAFT_ANSWER_FIELDS = [
+  'full_name',
+  'nrc_number',
+  'passport_number',
+  'date_of_birth',
+  'sex',
+  'phone',
+  'email',
+  'residence_town',
+  'country',
+  'nationality',
+  'next_of_kin_name',
+  'next_of_kin_phone',
+] as const
+
+export type DraftAnswerField = (typeof DRAFT_ANSWER_FIELDS)[number]
+
+/**
+ * The canonical answer projection (admissions-v2 task 6.3): exactly the body of
+ * `PATCH /applications/drafts/{id}/` minus `expected_version`. The draft machine
+ * compares this — not the whole form — with what the server last acknowledged,
+ * so a value the PATCH would not send can never cause a write, and an unchanged
+ * draft never writes at all.
+ *
+ * Lifted unchanged from the `updatePayload` literal `useWizardDraftPersistence`
+ * built inline; blank values are omitted (`undefined`), as before.
+ */
+export function projectDraftAnswers(formData: Partial<WizardFormData>): Record<string, string | undefined> {
+  return {
+    full_name: formData.full_name || undefined,
+    nrc_number: formData.nrc_number || undefined,
+    passport_number: formData.passport_number || undefined,
+    date_of_birth: formData.date_of_birth || undefined,
+    sex: formData.sex?.toLowerCase() || undefined,
+    phone: sanitizePhoneInput(formData.phone) || undefined,
+    email: formData.email || undefined,
+    residence_town: normalizeResidenceTown(formData.residence_town) || undefined,
+    country: formData.country || DEFAULT_RESIDENCE_COUNTRY,
+    nationality: formData.nationality || undefined,
+    next_of_kin_name: formData.next_of_kin_name || undefined,
+    next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || undefined,
+  }
+}
 
 type DraftApplicationPayload = {
   full_name: string

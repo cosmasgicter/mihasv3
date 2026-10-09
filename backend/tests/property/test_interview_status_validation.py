@@ -46,12 +46,24 @@ def test_generated_invalid_interview_statuses_are_rejected(status_value):
 
     application = MagicMock()
 
+    # Authority is neutralised at the seam that exists. Task 9.4 replaced
+    # ``Application.objects.get`` + ``_staff_can_access_application`` in this view
+    # with the shared ``resolve_scoped_application`` (scope before lookup, masked
+    # 404/403) and added an optimistic-version assertion; patching the retired
+    # names raised ``AttributeError`` and this property never ran.
+    # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+    #
+    # The substitution is deliberate and equivalent: the property under test is
+    # *status validation*, and both the old and the new patch set neutralise
+    # authority so validation is what the assertion observes. Nothing about the
+    # 400/INVALID_STATUS claim below is weakened.
     with patch(
-        "apps.applications.interview_views.Application.objects.get",
+        "apps.applications.interview_views.resolve_scoped_application",
         return_value=application,
     ), patch(
-        "apps.applications.interview_views._staff_can_access_application",
-        return_value=True,
+        "apps.applications.review_workspace_service.ApplicationReviewWorkspaceService"
+        ".assert_version",
+        return_value=None,
     ), patch(
         "apps.applications.interview_views.ApplicationInterview.objects.select_related",
         return_value=queryset,

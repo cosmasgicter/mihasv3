@@ -48,16 +48,21 @@ export interface TerminateSessionResult {
 
 export async function listActiveSessions(): Promise<ListSessionsResult> {
   try {
-    const result = await apiClient.request<DeviceSession[] | { sessions?: DeviceSession[]; count?: number }>('/sessions/', {
+    // `GET /api/v1/sessions/` returns `{"success": true, "data": [...]}` and the
+    // client unwraps exactly one envelope level, so this is a bare array. Task
+    // 12.2 (R14.5, finding API-02) deleted the `{sessions: […]}` and `{count}`
+    // branches: `SessionListView` has neither key, so neither could ever be
+    // read. The `count` branch is the one worth naming — it existed so a server
+    // total could override the page length, and this endpoint publishes no
+    // total at all (it returns at most 10 rows, unpaginated), so the override
+    // never happened and `sessions.length` was always the answer.
+    const result = await apiClient.request<DeviceSession[]>('/sessions/', {
       method: 'GET',
     })
 
-    const sessions = (Array.isArray(result)
-      ? result
-      : Array.isArray(result?.sessions)
-        ? result.sessions
-        : []
-    ).map((session) => ({
+    // Field map, not an envelope sniff: the endpoint publishes `last_active`
+    // and the domain type reads `last_activity`. This stays.
+    const sessions = (Array.isArray(result) ? result : []).map((session) => ({
       ...session,
       last_activity:
         session.last_activity ||
@@ -68,9 +73,7 @@ export async function listActiveSessions(): Promise<ListSessionsResult> {
     return {
       success: true,
       sessions,
-      count: typeof result === 'object' && result !== null && !Array.isArray(result) && typeof result.count === 'number'
-        ? result.count
-        : sessions.length,
+      count: sessions.length,
       accessIssue: false,
     }
   } catch (error) {

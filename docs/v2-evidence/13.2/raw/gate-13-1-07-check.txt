@@ -1,0 +1,54 @@
+== GATE-13.1-07 side-effect check (task 13.2) ==
+
+13.1 §7.1 catalogued three instruments that write into docs/v2-evidence/**.
+This task ran the harness, so the question is which of them fired.
+
+-- mechanism 1: the base harness Playwright config's hard-coded report path --
+39:    ['json', { outputFile: '../../docs/v2-evidence/0.4/playwright-report.json' }],
+
+current state of task 0.4's Required_Evidence artifact:
+docs/v2-evidence/0.4/playwright-report.json  mtime=2026-08-12 06:05:02.078137261 +0200  size=3951
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+
+-- what THIS task's config writes instead --
+112:  outputDir: `${EVIDENCE}/artifacts`,
+115:    ['json', { outputFile: `${EVIDENCE}/playwright-report.json` }],
+116:    ['html', { outputFolder: `${EVIDENCE}/html-report`, open: 'never' }],
+
+-- mechanism 2: the six required specs that write screenshots into 11.1-11.5 --
+apps/admissions/tests/harness-e2e/required/admin-mobile-journeys.spec.ts
+apps/admissions/tests/harness-e2e/required/design-system-defluff.spec.ts
+apps/admissions/tests/harness-e2e/required/student-dashboard-task-first.spec.ts
+apps/admissions/tests/harness-e2e/required/student-document-density.spec.ts
+apps/admissions/tests/harness-e2e/required/student-wizard-characterisation.spec.ts
+apps/admissions/tests/harness-e2e/required/student-wizard-mobile.spec.ts
+
+screenshot directory mtimes under 11.1-11.5:
+11.1   2026-08-09 15:09:52.086244350 +0200  files=7
+11.2   2026-08-10 01:04:27.321468158 +0200  files=10
+11.3   2026-08-10 08:30:05.497301040 +0200  files=10
+11.4   2026-08-10 10:02:53.940331945 +0200  files=16
+11.5   2026-08-10 17:02:10.687236810 +0200  files=20
+
+-- mechanism 3: the backend property test that writes 2.2's summary --
+4:(``docs/v2-evidence/2.1/authority-case-matrix.json``) — it does not invent a
+21:``docs/v2-evidence/2.2/authority-conformance-summary.json`` (real runtime
+58:_CASE_MATRIX_PATH = _REPO_ROOT / "docs" / "v2-evidence" / "2.1" / "authority-case-matrix.json"
+docs/v2-evidence/2.2/authority-conformance-summary.json  mtime=2026-08-12 05:00:40.919517818 +0200
+
+-- this task's own 13.2 spec files, hashed --
+985df711be7878b3aa5a30b9a00dcec650dd092d260e44d22af09978f571ea43  apps/admissions/playwright.harness.13-2.config.ts
+04ce7f5ff984d445c3e821716cdcb6ebbc55af9e4fb21202548dbfb50065729d  apps/admissions/tests/harness-e2e/helpers/two-tenant.ts
+2c36538a46605dfe1f730d6c7c44fe3137d8f615ab7864e143c245fdfbde0af8  apps/admissions/tests/harness-e2e/required/two-tenant-isolation-matrix.spec.ts
+188ae424844b5cd25e0db230807f36b226ebfab78dd7f91a17312c343319e8e2  apps/admissions/tests/harness-e2e/required/two-tenant-golden-journey.spec.ts
+46a456fcc3a1c40a6dc3f6c8470f4579a7e9b8c2a955f3f14239cbabf9fd01d6  apps/admissions/tests/harness-e2e/required/two-tenant-adversarial-matrix.spec.ts
+e091b1fb9bd2a0206c7daa29005770f1f2f5ea40958a3626d9a0ea3cbd43e362  docs/v2-evidence/13.2/invariants.sql
+
+== re-checked after the final two slices ==
+docs/v2-evidence/0.4/playwright-report.json mtime=2026-08-12 06:05:02.078137261 +0200
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+11.1   2026-08-09 15:09:52.086244350 +0200
+11.2   2026-08-10 01:04:27.321468158 +0200
+11.3   2026-08-10 08:30:05.497301040 +0200
+11.4   2026-08-10 10:02:53.940331945 +0200
+11.5   2026-08-10 17:02:10.687236810 +0200

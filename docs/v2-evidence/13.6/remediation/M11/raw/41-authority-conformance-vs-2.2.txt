@@ -1,0 +1,38 @@
+=== M11: task 2.2's conformance suite re-run on today's tree, output redirected via V2_EVIDENCE_DIR (2.2's own file untouched) ===
+  protected_endpoint_method_count          2.2=204      now=204
+  total_cases_evaluated                    2.2=1940     now=1940
+  conformant_cases                         2.2=1805     now=1803
+  conformance_pct                          2.2=93.0     now=92.9
+  hard_guarantee_cases                     2.2=591      now=591
+  hard_guarantee_failures                  2.2=0        now=0
+  reported_nonconformant_cases             2.2=135      now=137
+  existence_disclosure_403_vs_404_count    2.2=17       now=17
+
+reported examples listed: 2.2=40 (capped list), now=40
+
+examples present in 2.2's list but not today's (closed or no longer listed):
+  - ('GET /api/v1/admin/institutions/', 'tenant_admin_A', 'deny', 403, 200)
+
+examples present today but not in 2.2's list:
+  + ('GET /api/v1/applications/', 'student_A', 'deny', 404, 200)
+
+today's examples touching /api/v1/admin/institutions/:
+   GET /api/v1/admin/institutions/{id}/ platform_admin allow 200 -> 404
+   GET /api/v1/admin/institutions/{id}/assets/ tenant_admin_A deny 403 -> 200
+   GET /api/v1/admin/institutions/{id}/document-profiles/ tenant_admin_A deny 403 -> 200
+   GET /api/v1/admin/institutions/{id}/domains/ tenant_admin_A deny 403 -> 200
+   GET /api/v1/admin/institutions/{id}/programs/ tenant_admin_A deny 403 -> 200
+   GET /api/v1/admin/institutions/{id}/programs/{id}/ platform_admin allow 200 -> 404
+   GET /api/v1/admin/institutions/{id}/programs/{id}/ platform_admin allow 200 -> 404
+   GET /api/v1/admin/institutions/{id}/readiness/ reviewer_A allow 200 -> 403
+   GET /api/v1/admin/institutions/{id}/required-documents/ tenant_admin_A deny 403 -> 200
+   GET /api/v1/admin/institutions/{id}/templates/ tenant_admin_A deny 403 -> 200
+
+note 2.2: Hard guarantees (unauthenticated denial + cross-tenant object masking) are enforced. Remaining reported non-conformances are tracked task-2.2 follow-up where staff endpoints still gate on the raw-role
+note now: Hard guarantees (unauthenticated denial + cross-tenant object masking) are enforced. Remaining reported non-conformances are tracked task-2.2 follow-up where staff endpoints still gate on the raw-role
+
+=== each of 2.2's 40 listed non-conformant examples, looked up in today's FULL list (raw/42) ===
+  CLOSED: ('GET /api/v1/admin/institutions/', 'tenant_admin_A', 'deny', 403) 2.2 actual: 200
+  still non-conformant: 39 / 40   closed: 1
+
+full population today: 137 non-conformant of 1940 (2.2 recorded 135; its full list was never written)

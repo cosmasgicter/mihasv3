@@ -268,7 +268,10 @@ def _s_routing_simulate(client, ctx):
 # that are expected to return the actor's own rows; None for surfaces that are
 # expected to deny / mask (detail, foreign audit, foreign document, routing).
 SURFACES: dict[str, tuple] = {
-    "list_institutions": (_s_institutions_list, lambda ctx: ctx.world_a.institution_id),
+    # This is the platform-wide directory, not the tenant self-description
+    # surface. A Tenant_Admin is denied by platform.tenant.read_all; its own
+    # institutions come from /api/v1/admin/scope/ instead.
+    "list_institutions": (_s_institutions_list, None),
     "detail_institution_foreign": (_s_institution_detail_foreign, None),
     "audit_institution_foreign": (_s_institution_audit_foreign, None),
     "audit_tenant_list": (_s_tenant_audit_list, None),
@@ -352,7 +355,23 @@ def _build_isolated_pair(extra_b_apps: int = 0):
         build_document(application=extra_app)
 
     actor = build_profile(role="admin")
-    build_membership(user=actor, institution=world_a.institution, role="admin")
+    # ``export`` is named because two of the surfaces in this matrix ARE exports
+    # (``applications_export``, ``users_export``) and an export is its own grant:
+    # ``AdminCapabilityService`` gives an in-scope institution the read-default
+    # bundle and layers ``tenant.application.export`` on only when the membership
+    # names ``export`` ("read by default, mutate only when granted"). Admissions-v2
+    # task 8.4 made that explicit — "an export requires the explicit
+    # ``tenant.application.export`` capability rather than being implied by read
+    # access" (``docs/v2-evidence/8.4/README.md``). Without it the export surfaces
+    # answered 403, which satisfies the no-leak half vacuously and fails the
+    # tenant-A witness half — the property could not see its own subject. Nothing
+    # else is granted: every other surface here is a read the default bundle covers.
+    build_membership(
+        user=actor,
+        institution=world_a.institution,
+        role="admin",
+        permissions=["export"],
+    )
     ctx = _Ctx(world_a, world_b, payment_a, payment_b, document_a, document_b)
     return ctx, _client_for(actor)
 
@@ -416,6 +435,9 @@ class TestProperty4CrossTenantInvisibility:
                 "status": status_code,
                 "blob": blob[:2000],
             }
+
+        if surface_key == "list_institutions":
+            assert status_code == 403, (status_code, body)
 
         # Analytics (count) dimension of Property 4: the scoped funnel total
         # counts only tenant A's single application when the jobs/ops analytics

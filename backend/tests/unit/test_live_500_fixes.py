@@ -39,8 +39,18 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+        # Only patch the module-level name if it is still there. Task 9.4 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point this
+        # fixture began raising ``AttributeError`` **at setup** and every case in this
+        # file errored rather than ran. Guarding the patch target (rather than only
+        # the import) is what makes the fixture describe the code that exists. The
+        # remaining ``apps.catalog.services.AccessScopeService`` target below is the
+        # real seam: ``resolve_scoped_application`` imports it lazily from there.
+        # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -98,52 +108,82 @@ class TestReviewViewNoDebugWrapper(SimpleTestCase):
 # =========================================================================
 
 
+def _answering_metrics_payload(by_status, *, value=0):
+    """A ``DashboardMetricsService.build`` payload where every source answered.
+
+    Task **9.2** replaced the dashboard's direct ``Application`` / ``Profile`` /
+    ``AuditLog`` queryset reads with :class:`~apps.accounts.dashboard_metrics.DashboardMetricsService`,
+    and the module-level ``AuditLog`` import these tests patched no longer
+    exists — which is why they raised ``AttributeError`` at *setup* rather than
+    running (GATE-13.1-02 → B9). ``build`` is the live seam, so it is what is
+    stubbed here; the payload it returns is the post-9.2 shape (``metrics``
+    entries are ``{"state", "value"}`` and a metric that did not answer is
+    ``unknown`` with ``None``).
+
+    Nothing about the shape under test is stubbed: ``AdminDashboardView._legacy_blocks``
+    still runs for real, so these cases pin the actual 9.2 contract — a metric
+    that answered ``ok`` reaches the legacy block, and ``by_status`` is carried
+    from ``windows``.
+    """
+    def ok(v):
+        return {"state": "ok", "value": v}
+
+    return {
+        "no_school_access": False,
+        "scope": {
+            "kind": "platform",
+            "institution_id": None,
+            "all_access": True,
+            "institution_count": None,
+        },
+        "metrics": {
+            "total_applications": ok(value),
+            "today_activity": ok(value),
+            "applications_this_week": ok(value),
+            "applications_this_month": ok(value),
+            "staff_accounts_total": ok(value),
+            "staff_accounts_enabled": ok(value),
+            "pending_documents": ok(value),
+            "payment_review": ok(value),
+            "upcoming_interviews": ok(value),
+            "overdue_reviews": ok(value),
+            "deadline_pressure": ok(value),
+        },
+        "sources": {},
+        "health": {"state": "ok", "definition": "every source answered"},
+        "freshness": {"generated_at": "2026-01-01T00:00:00+00:00", "stale_after_seconds": 45},
+        "windows": {"by_status": by_status},
+        "recent_activity": [],
+        "activity_state": "ok",
+    }
+
+
+def _admin_dashboard_request():
+    request = factory.get("/api/v1/admin/dashboard/")
+    request.user = MagicMock()
+    request.user.pk = "00000000-0000-0000-0000-000000000001"
+    request.user.is_authenticated = True
+    request.user.role = "admin"
+    return request
+
+
 class TestAdminDashboardResponseShape(SimpleTestCase):
     """Verify admin dashboard returns JSON with expected top-level keys."""
 
-    @patch("apps.accounts.admin_user_views.AuditLog")
-    @patch("apps.accounts.admin_user_views.Profile")
-    @patch("apps.applications.models.Application")
-    def test_response_contains_expected_keys(
-        self, mock_app, mock_profile, mock_audit
-    ):
+    def test_response_contains_expected_keys(self):
         """AdminDashboardView must return applications, users, and recent_activity."""
         from apps.accounts.admin_views import AdminDashboardView
 
-        # Mock Application.objects
-        mock_qs = MagicMock()
-        mock_qs.values_list.return_value.annotate.return_value.values_list.return_value = [
-            ("draft", 5),
-            ("submitted", 10),
-        ]
-        mock_qs.filter.return_value.count.return_value = 2
-        mock_qs.count.return_value = 15
-        mock_app.objects = mock_qs
+        payload = _answering_metrics_payload(
+            {"draft": 5, "submitted": 10}, value=15
+        )
 
-        # Mock Profile.objects
-        mock_profile.objects.count.return_value = 26
-        mock_profile.objects.filter.return_value.count.return_value = 25
-
-        # Mock AuditLog.objects
-        mock_audit_qs = MagicMock()
-        mock_audit_qs.__getitem__ = MagicMock(return_value=[])
-        mock_audit.objects.order_by.return_value = mock_audit_qs
-
-        # Build request with admin user
-        request = factory.get("/api/v1/admin/dashboard/")
-        request.user = MagicMock()
-        request.user.pk = "00000000-0000-0000-0000-000000000001"
-        request.user.is_authenticated = True
-        request.user.role = "admin"
-
-        with (
-            patch("apps.applications.models.ApplicationStatusHistory.objects"),
-            patch("apps.documents.models.Payment.objects"),
-            patch("apps.documents.models.ApplicationDocument.objects"),
-            patch("apps.applications.models.ApplicationInterview.objects"),
+        with patch(
+            "apps.accounts.dashboard_metrics.DashboardMetricsService.build",
+            return_value=payload,
         ):
             view = AdminDashboardView()
-            response = view.get(request)
+            response = view.get(_admin_dashboard_request())
 
         self.assertEqual(response.status_code, 200)
 
@@ -152,42 +192,18 @@ class TestAdminDashboardResponseShape(SimpleTestCase):
         self.assertIn("users", data)
         self.assertIn("recent_activity", data)
 
-    @patch("apps.accounts.admin_user_views.AuditLog")
-    @patch("apps.accounts.admin_user_views.Profile")
-    @patch("apps.applications.models.Application")
-    def test_applications_contains_expected_subkeys(
-        self, mock_app, mock_profile, mock_audit
-    ):
+    def test_applications_contains_expected_subkeys(self):
         """The applications key must contain by_status, today, this_week, this_month, total."""
         from apps.accounts.admin_views import AdminDashboardView
 
-        mock_qs = MagicMock()
-        mock_qs.values_list.return_value.annotate.return_value.values_list.return_value = []
-        mock_qs.filter.return_value.count.return_value = 0
-        mock_qs.count.return_value = 0
-        mock_app.objects = mock_qs
+        payload = _answering_metrics_payload({}, value=0)
 
-        mock_profile.objects.count.return_value = 0
-        mock_profile.objects.filter.return_value.count.return_value = 0
-
-        mock_audit_qs = MagicMock()
-        mock_audit_qs.__getitem__ = MagicMock(return_value=[])
-        mock_audit.objects.order_by.return_value = mock_audit_qs
-
-        request = factory.get("/api/v1/admin/dashboard/")
-        request.user = MagicMock()
-        request.user.pk = "00000000-0000-0000-0000-000000000001"
-        request.user.is_authenticated = True
-        request.user.role = "admin"
-
-        with (
-            patch("apps.applications.models.ApplicationStatusHistory.objects"),
-            patch("apps.documents.models.Payment.objects"),
-            patch("apps.documents.models.ApplicationDocument.objects"),
-            patch("apps.applications.models.ApplicationInterview.objects"),
+        with patch(
+            "apps.accounts.dashboard_metrics.DashboardMetricsService.build",
+            return_value=payload,
         ):
             view = AdminDashboardView()
-            response = view.get(request)
+            response = view.get(_admin_dashboard_request())
 
         data = response.data.get("data", response.data)
         apps_data = data["applications"]

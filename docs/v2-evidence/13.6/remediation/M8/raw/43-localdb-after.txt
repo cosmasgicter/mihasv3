@@ -1,0 +1,12 @@
+]633;E;echo "=== local test stack, after ===";26ad7e72-f73b-48e9-98a3-15379b43bce8]633;C=== local test stack, after ===
+Postgres mihas_localtest 127.0.0.1:5433 + Redis 127.0.0.1:6380 via the isolated backend/.env.local.test
+
+test_% / v2_% databases remaining:
+(none)
+count: 0
+
+containers (left RUNNING; 'down -v' never used):
+mihas-localtest-postgres-1  Up 2 days (healthy)
+mihas-localtest-redis-1  Up 2 days (healthy)
+
+no DSN, password, token or key is printed above.

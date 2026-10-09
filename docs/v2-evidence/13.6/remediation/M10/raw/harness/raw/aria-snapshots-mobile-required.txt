@@ -1,0 +1,257 @@
+===== dashboard =====
+- main:
+  - heading "Welcome back, Harness" [level=1]
+  - region "Welcome back, Harness":
+    - region "Pay or defer the application fee":
+      - paragraph: Next action
+      - text: Draft
+      - heading "Pay or defer the application fee" [level=2]
+      - paragraph: Payment must be completed or deferred before submitting the application.
+      - status: "Next action: Pay or defer the application fee"
+      - link "Pay or defer the application fee":
+        - /url: /student/application-wizard?mode=resume&draftId=fdd8f551-0170-47d1-bf66-8fec6af5d51d&step=payment
+      - list:
+        - listitem:
+          - link "Add your Grade 12 results":
+            - /url: /student/application-wizard?mode=resume&draftId=fdd8f551-0170-47d1-bf66-8fec6af5d51d&step=education
+    - button "Refresh"
+    - img
+    - heading "Your draft" [level=2]
+    - link "Start another":
+      - /url: /student/application-wizard?mode=new
+    - list:
+      - listitem:
+        - paragraph: Diploma in Registered Nursing
+        - paragraph: Saved 25 Aug 2026
+        - link "Continue":
+          - /url: /student/application-wizard?mode=resume&draftId=fdd8f551-0170-47d1-bf66-8fec6af5d51d
+        - button "Delete draft Diploma in Registered Nursing": Delete
+    - img
+    - heading "My applications" [level=2]
+    - img
+    - heading "Diploma in Registered Nursing" [level=3]
+    - paragraph: "#MIHAS202600038"
+    - text: SUBMITTED
+    - paragraph: Next action
+    - paragraph: Pay the application fee
+    - paragraph: The application fee has not been settled yet.
+    - link "Pay the application fee":
+      - /url: /student/payment?applicationId=4685fecc-f549-408c-b306-a498060c1245
+    - img
+    - text: "Intake: Task 13.3 dims Intake 71468688"
+    - img
+    - text: "Submitted: 25 Aug 2026"
+    - link "View Details":
+      - /url: /student/application/4685fecc-f549-408c-b306-a498060c1245/status
+      - button "View Details"
+    - paragraph: Your application slip is ready to download.
+    - button "More document options (2)"
+    - img
+    - heading "Intake deadlines" [level=2]
+    - list:
+      - listitem:
+        - text: Audit Scope Intake 70571556 Closes
+        - time: 30 Jun 2027
+      - listitem:
+        - text: Blocker Moves Intake 70484019 Closes
+        - time: 30 Jun 2027
+      - listitem:
+        - text: Blockers Intake 70546743 Closes
+        - time: 30 Jun 2027
+    - img
+    - heading "Your details" [level=2]
+    - term: Full name
+    - definition: Harness Thirteen
+    - term: Email
+    - definition: harness.13-3.dims.71468688@example.com
+    - term: Phone
+    - definition: Not provided
+    - term: Residence
+    - definition: Not provided
+    - link "Update your details":
+      - /url: /student/settings
+  - text: Runtime Frontend 2.0.0-harnes Backend 2.0.0
+
+===== status =====
+- main:
+  - paragraph: Application Status
+  - 'heading "Application #MIHAS202600038" [level=1]'
+  - paragraph: Diploma in Registered Nursing • Submitted on 25 Aug 2026
+  - img
+  - text: SUBMITTED
+  - 'region "Application #MIHAS202600038"':
+    - link "Back to dashboard":
+      - /url: /student/dashboard
+      - img
+      - text: Back to dashboard
+    - region "Pay the application fee":
+      - paragraph: Next action
+      - text: Submitted
+      - heading "Pay the application fee" [level=2]
+      - paragraph: The application fee has not been settled yet.
+      - status: "Next action: Pay the application fee"
+      - link "Pay the application fee":
+        - /url: /student/payment?applicationId=4685fecc-f549-408c-b306-a498060c1245
+    - img
+    - heading "Interview status" [level=2]
+    - paragraph: Our admissions team will contact you if a new interview is required.
+    - paragraph: If you have questions, please reach out to admissions support.
+    - img
+    - heading "Application progress" [level=2]
+    - paragraph: Track how far along your application is in the review process.
+    - img
+    - paragraph: Application submitted successfully
+    - paragraph: 25 Aug 2026
+    - img
+    - heading "Recorded changes" [level=2]
+    - paragraph: Every change the admissions team has committed to this application.
+    - list:
+      - listitem:
+        - paragraph: Draft → Submitted
+        - paragraph: 25 Aug 2026, 17:24
+        - paragraph: Platform Admin
+    - img
+    - heading "Application details" [level=2]
+    - paragraph: Review the information you submitted with this application.
+    - heading "Personal information" [level=3]
+    - term: Full name
+    - definition: Harness Thirteen Three 71468688
+    - term: Date of birth
+    - definition: 2004-05-04
+    - term: Sex
+    - definition: male
+    - term: Phone
+    - definition: "+260971234567"
+    - term: Email
+    - definition: harness.13-3.dims.71468688@example.com
+    - term: Nationality
+    - definition: Zambian
+    - heading "Contact information" [level=3]
+    - term: Residence town
+    - definition: Lusaka
+    - term: NRC
+    - definition: 469596/28/7
+    - term: Next of kin
+    - definition: Not provided
+    - term: Next of kin phone
+    - definition: Not provided
+    - heading "Payment information" [level=3]
+    - term: Payment status
+    - definition: Awaiting Payment
+    - term: Application fee
+    - definition: K153
+    - term: Payment method
+    - definition: Lenco Payment Gateway
+    - paragraph: Payment still needs attention before review can continue.
+    - img
+    - heading "Supporting documents" [level=2]
+    - paragraph: Access the files you uploaded with this application.
+    - img
+    - paragraph: Result slip
+    - paragraph: ✓ Uploaded
+    - link "View uploaded result slip":
+      - /url: http://minio:9000/harness/media/documents/4685fecc-f549-408c-b306-a498060c1245/result_slip/ab018454348b4dd88b923cca297db96f_result_slip.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=harnessminio%2F20260825%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260825T152430Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=812ff24ed09ff0072d396cf86a3cc9b28a19c6db1995582b85e35c2543f00ee6
+      - img
+      - text: View
+    - img
+    - paragraph: Identity document (NRC or Passport)
+    - paragraph: ✓ Uploaded
+    - link "View uploaded identity document":
+      - /url: http://minio:9000/harness/media/documents/4685fecc-f549-408c-b306-a498060c1245/nrc/2baf8e8b9da14c19bc037d31febb1ebb_nrc.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=harnessminio%2F20260825%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260825T152429Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=cd6eb383660289a0a464040ec6776833e52a84516ebd07bec34855c4b5a27c82
+      - img
+      - text: View
+    - img
+    - heading "Request an amendment" [level=2]
+    - paragraph: Request a change to your personal details. Amendments require admin approval.
+    - text: Field to amend
+    - combobox "Field to amend":
+      - option "Select a field" [selected]
+      - option "Phone"
+      - option "Email"
+      - option "Address Line 1"
+      - option "Address Line 2"
+      - option "Residence Town"
+      - option "Next of Kin Name"
+      - option "Next of Kin Phone"
+    - text: New value
+    - textbox "New value":
+      - /placeholder: Enter the corrected value
+    - text: Reason for change
+    - textbox "Reason for change":
+      - /placeholder: Explain why this change is needed
+    - button "Submit amendment request" [disabled]:
+      - img
+      - text: Submit amendment request
+    - img
+    - heading "Your amendment requests" [level=2]
+    - paragraph: Track the changes you have asked for and where each one stands.
+    - img
+    - heading "No amendment requests yet" [level=3]
+    - paragraph: Requests you make to change your personal details will appear here with their status.
+    - img
+    - heading "Documents and records" [level=2]
+    - paragraph: Download your application slip and other available documents.
+    - paragraph: Your application slip is ready to download.
+    - button "Download Slip"
+    - button "More document options (1)"
+    - status
+    - img
+    - heading "Quick information" [level=2]
+    - paragraph: Essential application details at a glance.
+    - term: Application number
+    - definition: "#MIHAS202600038"
+    - term: Program
+    - definition: Diploma in Registered Nursing
+    - term: Institution
+    - definition: MIHAS
+    - term: Intake
+    - definition: Task 13.3 dims Intake 71468688
+    - term: Submitted
+    - definition: 25 Aug 2026
+    - term: Last updated
+    - definition: 25 Aug 2026
+    - img
+    - heading "Public tracking" [level=2]
+    - paragraph: Share this application's status without sharing your account.
+    - paragraph: Track this application without signing in, or share its status with someone. Getting a link replaces any link you shared before.
+    - button "Get tracking link"
+    - img
+    - heading "Messages and notifications" [level=2]
+    - paragraph: Every message the admissions team has sent you, with its delivery state.
+    - link "Open your communications history":
+      - /url: /student/communications
+    - img
+    - heading "Next actions" [level=2]
+    - paragraph: Stay in control of your application.
+    - link "Start new application":
+      - /url: /student/application-wizard?mode=new
+    - button "Withdraw application":
+      - img
+      - text: Withdraw application
+    - link "Back to dashboard":
+      - /url: /student/dashboard
+  - text: Runtime Frontend 2.0.0-harnes Backend 2.0.0
+
+===== payment =====
+- main:
+  - paragraph: Payments
+  - heading "Application payment" [level=1]
+  - paragraph: Complete an outstanding application fee, or check a payment that is still in progress.
+  - link "Back to dashboard":
+    - /url: /student/dashboard
+  - region "Application payment":
+    - heading "Your applications" [level=2]
+    - paragraph: 1 of 1 still needs a payment.
+    - article:
+      - heading "Diploma in Registered Nursing" [level=3]
+      - paragraph: MIHAS202600038 · Submitted
+      - text: Not paid
+      - status:
+        - paragraph: The application fee has not been paid yet. You can pay it here at any time.
+        - button "Pay now"
+      - paragraph: No payment attempts recorded for this application yet.
+    - heading "Need help with a payment?" [level=2]
+    - paragraph: Send us the details of the payment and we will trace it with the provider.
+    - link "Contact support":
+      - /url: /contact
+  - text: Runtime Frontend 2.0.0-harnes Backend 2.0.0

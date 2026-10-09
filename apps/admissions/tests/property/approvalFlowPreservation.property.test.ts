@@ -211,113 +211,117 @@ describe('[PBT] Bug 3 Preservation — No dev bypass in production', () => {
 // ---------------------------------------------------------------------------
 // Bug 4 Preservation — Normal auto-save and offline recovery unchanged
 // ---------------------------------------------------------------------------
+// Originally source scans of `src/hooks/useAutoSave.ts`. Admissions-v2 task 6.3
+// retired that hook in favour of the one draft machine
+// (`lib/wizardDraftController.ts`); the same preserved behaviours are asserted
+// on the machine, by driving it.
 describe('[PBT] Bug 4 Preservation — Normal auto-save cycle unchanged', () => {
   /**
    * **Validates: Requirements 3.7, 3.8**
    *
    * Normal auto-save cycle (auth never expired) continues to work.
-   * Online recovery with non-empty save queue still calls processSaveQueue().
+   * Online recovery with queued work still sends it.
    */
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
-  const hookPath = path.resolve(
-    __dirname,
-    '../../src/hooks/useAutoSave.ts'
-  )
+  async function hydrated() {
+    const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
+    const h = createDraftHarness()
+    h.machine.activate()
+    h.hydrate()
+    return { h, settle }
+  }
 
-  it('property: saveData is called on interval for normal auto-save', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    fc.assert(
-      fc.property(fc.constant(true), () => {
-        // The hook must set up an interval that calls saveData
-        expect(source).toContain('setInterval')
-        expect(source).toContain('saveData')
-
-        // The interval setup must reference the interval option
-        const intervalSetupMatch = source.match(
-          /setInterval\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?saveData[\s\S]*?\}\s*,\s*interval\s*\)/
-        )
-        expect(intervalSetupMatch).not.toBeNull()
+  it('property: saves on the 8-second sweep for normal auto-save', async () => {
+    const { WIZARD_DRAFT_AUTOSAVE_INTERVAL_MS } = await import('@/lib/wizardDraftController')
+    expect(WIZARD_DRAFT_AUTOSAVE_INTERVAL_MS).toBe(8000)
+    await fc.assert(
+      fc.asyncProperty(fc.constantFrom('Lusaka', 'Ndola', 'Kitwe'), async (town) => {
+        const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
+        const h = createDraftHarness()
+        h.hydrate()
+        h.edit('residence_town', town)
+        h.machine.activate()
+        await vi.advanceTimersByTimeAsync(8_000)
+        await settle()
+        expect(h.server.answers.residence_town).toBe(town)
+        h.machine.dispose()
       }),
-      { numRuns: 1 }
+      { numRuns: 3 },
     )
   })
 
-  it('property: online recovery calls processSaveQueue', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    fc.assert(
-      fc.property(fc.constant(true), () => {
-        // The online handler must call processSaveQueue
-        const onlineHandlerMatch = source.match(
-          /handleOnline[\s\S]*?processSaveQueue/
-        )
-        expect(onlineHandlerMatch).not.toBeNull()
-      }),
-      { numRuns: 1 }
-    )
+  it('property: online recovery sends the queued work', async () => {
+    const { h, settle } = await hydrated()
+    h.setOnline(false)
+    h.edit('residence_town', 'Queued offline')
+    await vi.advanceTimersByTimeAsync(8_000)
+    await settle()
+    expect(h.server.updateCalls).toHaveLength(0)
+    h.setOnline(true)
+    await settle()
+    expect(h.server.answers.residence_town).toBe('Queued offline')
   })
 
-  it('property: processSaveQueue processes items when queue is non-empty', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    fc.assert(
-      fc.property(fc.constant(true), () => {
-        // processSaveQueue must check saveQueue.length and process items
-        const processFnMatch = source.match(
-          /processSaveQueue[\s\S]*?saveQueue\.length/
-        )
-        expect(processFnMatch).not.toBeNull()
-
-        // It must iterate over queued items and call onSave
-        expect(source).toContain('onSave(queuedData')
-      }),
-      { numRuns: 1 }
-    )
+  it('property: queued work is sent as one command carrying every queued edit', async () => {
+    const { h, settle } = await hydrated()
+    h.setOnline(false)
+    h.edit('residence_town', 'Offline town')
+    h.edit('next_of_kin_name', 'Offline kin')
+    await vi.advanceTimersByTimeAsync(8_000)
+    await settle()
+    h.setOnline(true)
+    await settle()
+    expect(h.server.updateCalls).toHaveLength(1)
+    expect(h.server.updateCalls[0]!.payload).toMatchObject({
+      residence_town: 'Offline town',
+      next_of_kin_name: 'Offline kin',
+    })
   })
 
-  it('property: auth-recovered handler still calls processSaveQueue', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    // The handleAuthRecovered handler must still call processSaveQueue
-    // (this is existing behavior that must be preserved)
-    const authRecoveredMatch = source.match(
-      /handleAuthRecovered[\s\S]*?processSaveQueue/
-    )
-    expect(authRecoveredMatch).not.toBeNull()
+  it('property: auth recovery still sends work queued while offline', async () => {
+    const { h, settle } = await hydrated()
+    h.machine.authExpiredExternally()
+    h.setOnline(false)
+    h.edit('residence_town', 'Queued and expired')
+    h.setOnline(true)
+    await settle()
+    expect(h.server.updateCalls).toHaveLength(0)
+    h.machine.authRecovered()
+    await settle()
+    expect(h.server.answers.residence_town).toBe('Queued and expired')
   })
 
-  it('property: localStorage persistence works during saves', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    fc.assert(
-      fc.property(fc.constant(true), () => {
-        // saveData must persist to localStorage via cachedSetItem
-        expect(source).toContain('cachedSetItem')
-        expect(source).toContain('storageKey')
-
-        // The save function must save to localStorage before cloud
-        const saveDataFn = source.match(
-          /const saveData[\s\S]*?cachedSetItem/
-        )
-        expect(saveDataFn).not.toBeNull()
-      }),
-      { numRuns: 1 }
-    )
+  it('property: local persistence happens before the cloud save', async () => {
+    const { h, settle } = await hydrated()
+    const order: string[] = []
+    const persist = h.adapters.persistLocal
+    h.adapters.persistLocal = (meta) => {
+      order.push(meta.pending ? 'local:pending' : 'local:clean')
+      persist(meta)
+    }
+    const update = h.adapters.updateDraft
+    h.adapters.updateDraft = async (...args) => {
+      order.push('cloud')
+      return update(...args)
+    }
+    h.edit('residence_town', 'Local first')
+    await vi.advanceTimersByTimeAsync(2_000)
+    await settle()
+    expect(order.indexOf('local:pending')).toBeGreaterThanOrEqual(0)
+    expect(order.indexOf('local:pending')).toBeLessThan(order.indexOf('cloud'))
   })
 
-  it('property: offline handler sets status to offline', () => {
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    fc.assert(
-      fc.property(fc.constant(true), () => {
-        // The offline handler must set save status to 'offline'
-        const offlineHandlerMatch = source.match(
-          /handleOffline[\s\S]*?setSaveStatus\s*\(\s*['"]offline['"]\s*\)/
-        )
-        expect(offlineHandlerMatch).not.toBeNull()
-      }),
-      { numRuns: 1 }
-    )
+  it('property: going offline with unsaved work shows the offline status', async () => {
+    const { deriveWizardDraftSaveView } = await import('@/lib/wizardDraftController')
+    const { h } = await hydrated()
+    h.edit('residence_town', 'Typed')
+    h.setOnline(false)
+    expect(deriveWizardDraftSaveView(h.machine.getSnapshot()).status).toBe('offline')
   })
 })

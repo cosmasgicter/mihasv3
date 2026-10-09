@@ -8,6 +8,7 @@ export function domainStatusTone(status?: string | null): TenantDomainTone {
     case 'pending_review':
       return 'info'
     case 'failed':
+    case 'rejected':
       return 'warning'
     case 'disabled':
       return 'muted'
@@ -30,6 +31,8 @@ export function domainStatusLabel(status?: string | null): string {
       return 'Failed'
     case 'disabled':
       return 'Disabled'
+    case 'rejected':
+      return 'Rejected'
     default:
       return status ? String(status) : 'Unknown'
   }

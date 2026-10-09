@@ -1,0 +1,22 @@
+{
+  "total_routes": 185,
+  "classified": 185,
+  "unclassified_count": 0,
+  "unclassified": [],
+  "zero_unclassified": true,
+  "by_class": {
+    "api_docs": 3,
+    "api_root": 1,
+    "authenticated": 60,
+    "django_admin": 1,
+    "health": 3,
+    "internal_callback": 5,
+    "owner": 12,
+    "platform_capability": 19,
+    "public": 18,
+    "tenant_capability": 63
+  },
+  "target_authority_class_count": 117,
+  "weak_authenticated_pending_matrix": 60,
+  "infra_meta_count": 8
+}

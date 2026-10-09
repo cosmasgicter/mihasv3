@@ -4,6 +4,7 @@ import { toError } from '@/lib/toError'
 import { logger } from '@/lib/logger'
 import { applicationService } from '@/services/applications'
 import { isApplicationMissingError } from '@/lib/applicationSession'
+import { syncableGrades } from '@/lib/canonicalSubjectId'
 import { resolveWizardSubjectId } from '../../lib/educationCatalog'
 import { normalizeDraftResumeGrades } from '../../lib/draftResume'
 import type { SubjectGrade } from '../../types'
@@ -80,7 +81,16 @@ export function useWizardGrades(params: UseWizardGradesParams) {
 
   const getUsedSubjects = useCallback(() => selectedGradesRef.current.map(grade => grade.subject_id).filter(Boolean), [selectedGradesRef])
 
-  // OCR merge rule: OCR only fills empty slots, never overwrites manual entries
+  /**
+   * Apply grades the student has EXPLICITLY confirmed from the deterministic OCR
+   * suggestion panel (task 7.5, R11.4).
+   *
+   * Two rules, in order of importance:
+   *  1. a manually entered subject is never overwritten — the manual value wins,
+   *     always, even against a confirmed suggestion for the same subject;
+   *  2. nothing arrives here unconfirmed. `useOcrGradeExtraction` no longer calls
+   *     back on its own; the only caller is the education step's confirm action.
+   */
   const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
     if (grades.length === 0) return
 
@@ -97,15 +107,18 @@ export function useWizardGrades(params: UseWizardGradesParams) {
     setSelectedGrades(merged)
 
     if (hadManualGrades && newGrades.length > 0) {
-      showSuccess(`\u2728 AI detected ${grades.length} subjects \u2014 added ${newGrades.length} new subjects (your ${currentGrades.length} existing entries were kept). Please verify.`)
+      showSuccess(`Added ${newGrades.length} confirmed subject${newGrades.length === 1 ? '' : 's'} — your ${currentGrades.length} existing entr${currentGrades.length === 1 ? 'y was' : 'ies were'} kept unchanged. Please check each grade.`)
     } else if (hadManualGrades && newGrades.length === 0) {
-      showSuccess(`\u2728 AI detected ${grades.length} subjects, but all were already entered. Please verify your grades.`)
+      showSuccess('Those subjects were already entered, so nothing changed. Please check each grade.')
     } else {
-      showSuccess(`\u2728 AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
+      showSuccess(`Added ${newGrades.length} confirmed subject${newGrades.length === 1 ? '' : 's'} from your result slip. Please check each grade is correct.`)
     }
 
     if (applicationId) {
-      const syncable = merged.filter(g => !g.subject_id.startsWith('fallback-'))
+      // R11.5 / STU-11: only canonical server identities are syncable. The
+      // shared allowlist replaces a `fallback-` denylist that let any other
+      // malformed reference reach the API to be rejected there.
+      const syncable = syncableGrades(merged)
       if (syncable.length > 0) {
         syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch((err) => logger.warn('Grade sync failed', toError(err)))
       }

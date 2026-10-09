@@ -1,11 +1,14 @@
 /**
  * Canonical application-status color helpers.
  *
- * Two palettes exist by design:
- *   - `application` (default): design-token-based badge classes used in
- *     student list items, detail pages, and admin tables.
- *   - `timeline`: explicit light/dark classes used in history timelines
- *     and communication panels where the token palette is too subtle.
+ * Two palettes exist by design, and since admissions-v2 task 11.5 both are
+ * written in the same semantic-token vocabulary — they differ in fill strength,
+ * not in colour system:
+ *   - `application` (default): badge classes used in student list items, detail
+ *     pages, and admin tables — a `/20` tint with `text-foreground`.
+ *   - `timeline`: the paired from/to pills in history timelines and communication
+ *     panels — a lighter `/15` tint, which separates two adjacent pills the badge
+ *     palette's `/20` would run together.
  *
  * All consumers should import from this module instead of defining local
  * STATUS_COLORS maps.
@@ -30,18 +33,47 @@ const APPLICATION_STATUS_COLORS: Record<string, string> = {
 
 const APPLICATION_FALLBACK = 'bg-muted text-foreground border border-border'
 
-// ─── Timeline palette (explicit dark mode) ───
+// ─── Timeline palette (semantic tokens, stronger fill) ───
 
+/**
+ * The timeline palette exists because a history entry renders **two** pills side
+ * by side — the status a transition moved *from* and the one it moved *to* — and
+ * the badge palette's `/20` fill reads as one continuous band at that size. So
+ * the timeline keeps its own, more saturated fill and coloured text.
+ *
+ * What it no longer keeps is its own **vocabulary** (admissions-v2 task 11.5,
+ * R16.4). It was written in raw Tailwind palette steps (`bg-blue-100
+ * text-blue-700`, plus a `dark:` variant per entry for a mode this app does not
+ * have), which is a second colour system for the same domain concept. Every
+ * entry now resolves through the same semantic tokens as `StatusBadge` and the
+ * badge palette above: `--color-info-rgb`, `--color-warning-rgb`,
+ * `--color-success-rgb`, `--color-destructive-rgb`, each documented AA as text on
+ * the card background.
+ *
+ * Colour is never the only signal here: both call sites render the status **word**
+ * inside the pill, and the transition arrow between them carries the direction.
+ *
+ * The **text** is `text-foreground`, not the tone, and that is a measured
+ * decision rather than a stylistic one. A tone-coloured label on its own `/15`
+ * tint does not clear AA — `--color-info` #2563eb over a 15 % #2563eb wash on
+ * white is **4.18 : 1**, and axe called it `[serious] color-contrast @
+ * .bg-info/15` on `/student/history` the first time this map was tokenized. The
+ * raw palette it replaced (`bg-blue-100 text-blue-700`) was 5.54 : 1, so the
+ * thing wrong with the old map was its vocabulary, never its contrast, and the
+ * replacement has to keep the ratio it inherited. `text-foreground` #0f172a on
+ * the same wash is ≈ 16 : 1; the tone stays in the fill, where a large flat area
+ * is not text and is not held to 4.5 : 1.
+ */
 const TIMELINE_STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-400',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  under_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  waitlisted: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  draft: 'bg-muted text-foreground',
+  submitted: 'bg-info/15 text-foreground',
+  under_review: 'bg-warning/15 text-foreground',
+  approved: 'bg-success/15 text-foreground',
+  rejected: 'bg-destructive/15 text-foreground',
+  waitlisted: 'bg-warning/15 text-foreground',
 }
 
-const TIMELINE_FALLBACK = 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400'
+const TIMELINE_FALLBACK = 'bg-muted text-foreground'
 
 // ─── Public API ───
 

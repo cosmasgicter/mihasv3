@@ -26,15 +26,16 @@ class TestApplicationTrackingSerializerFields:
         assert "institution" in ApplicationTrackingSerializer.Meta.fields
 
     def test_expected_tracking_fields_present(self):
+        # admissions-v2 task 10.5 (R13.12, STU-22): the public contract is stated
+        # under the names the tracker page reads, and publishes strictly less.
         expected = {
             "application_number",
-            "public_tracking_code",
             "status",
-            "program",
-            "intake",
+            "program_name",
+            "intake_name",
             "institution",
-            "created_at",
             "submitted_at",
+            "updated_at",
         }
         assert expected == set(ApplicationTrackingSerializer.Meta.fields)
 

@@ -10,7 +10,7 @@ import { toast } from '@/hooks/useToast'
 import { tenantAdminService, type TenantTemplate } from '@/services/admin/tenants'
 import { tenantErrorMessage } from './errors'
 import { ProfilesPanel } from './ProfilesPanel'
-import { ResourceList, TENANT_SELECT_CLASS } from './primitives'
+import { TENANT_SELECT_CLASS } from './primitives'
 
 const DOCUMENT_TYPES = [
   { value: 'application_slip', label: 'Application slip' },

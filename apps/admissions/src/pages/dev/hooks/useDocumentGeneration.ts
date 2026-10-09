@@ -17,7 +17,12 @@ import {
   generatePaymentReceipt,
 } from '@/lib/pdf';
 import { applicationService } from '@/services/applications';
-import { apiClient } from '@/services/client';
+import {
+  listPayments,
+  readPaymentReceipt,
+  type PaymentReceipt,
+  type PaymentRow,
+} from '@/services/payments';
 
 import { isPaymentVerified } from '@/lib/paymentStatus';
 
@@ -45,21 +50,13 @@ type ApplicationPayload = {
   conditions?: Array<{ description: string; deadline?: string }>;
 };
 
-interface PaymentRecord {
-  id: string;
-  status: string;
-  amount: number | null;
-  currency: string | null;
-  payment_method?: string | null;
-  transaction_reference?: string | null;
-  created_at: string;
-  updated_at?: string;
-}
-
-interface PaymentListResponse {
-  results?: PaymentRecord[];
-  [key: string]: unknown;
-}
+/**
+ * The canonical row and receipt shapes come from the payments domain service since task
+ * 13.6 remediation L12 — this hook used to declare narrower private copies of both and
+ * fetch them over the raw client, which the R14.3 rule forbids from `src/pages`.
+ */
+type PaymentRecord = PaymentRow;
+type BackendReceiptData = PaymentReceipt;
 
 const summarizePayloadShape = (payload: unknown) => {
   if (!payload || typeof payload !== 'object') {
@@ -141,10 +138,7 @@ function normalizeAmount(value: number | string | null | undefined): number {
 
 async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRecord | null> {
   try {
-    const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-      `/payments/?application_id=${encodeURIComponent(applicationId)}`
-    );
-    const records = Array.isArray(data) ? data : (data?.results ?? []);
+    const records = await listPayments({ applicationId });
     return records.find(r => r.status === 'successful') ?? records[0] ?? null;
   } catch {
     return null;
@@ -171,20 +165,9 @@ function buildReceiptData(application: ApplicationPayload, payment: PaymentRecor
   };
 }
 
-interface BackendReceiptData {
-  payment_id: string
-  amount: string
-  currency: string
-  status: string
-  created_at: string | null
-  application_number: string | null
-  program: string | null
-  applicant_name: string | null
-}
-
 async function fetchReceiptData(paymentId: string): Promise<BackendReceiptData | null> {
   try {
-    return await apiClient.request<BackendReceiptData>(`/payments/${encodeURIComponent(paymentId)}/receipt/`)
+    return await readPaymentReceipt(paymentId)
   } catch {
     return null
   }

@@ -1,0 +1,29 @@
+{
+  "all_specs": false,
+  "error_count": 0,
+  "evidence_root": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence",
+  "findings": [],
+  "metadata_ok": true,
+  "ok": true,
+  "spec_results": [
+    {
+      "checked_task_count": 2,
+      "error_count": 0,
+      "finding_count": 70,
+      "findings": [],
+      "has_findings": true,
+      "has_requirements": true,
+      "has_tasks": true,
+      "ok": true,
+      "requirement_count": 18,
+      "spec": "admissions-v2-canonical-rebuild",
+      "spec_dir": "/home/cosmas/Downloads/mihasv3/.kiro/specs/admissions-v2-canonical-rebuild",
+      "status": "planned",
+      "task_count": 73,
+      "warning_count": 0
+    }
+  ],
+  "specs_root": "/home/cosmas/Downloads/mihasv3/.kiro/specs",
+  "target_spec": "admissions-v2-canonical-rebuild",
+  "warning_count": 0
+}

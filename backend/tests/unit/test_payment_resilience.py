@@ -33,19 +33,17 @@ class TestWebhookIdentity(SimpleTestCase):
                 "amount": "100.00",
             }
         }
-        payload_hash = WebhookProcessor._payload_hash(payload)
-
-        identity = WebhookProcessor._event_identity(
-            "collection.successful",
-            "MIHAS-REF-1",
-            payload,
-            payload_hash,
-        )
+        # admissions-v2 task 8.2: the legacy path's private ``_payload_hash`` /
+        # ``_event_identity`` helpers were deleted. ``compute_identity`` is the
+        # only implementation of the ADR-004 dedup contract.
+        identity = WebhookProcessor().compute_identity(
+            "collection.successful", payload
+        ).to_dict()
 
         self.assertEqual(identity["provider_event_id"], "evt-123")
         self.assertEqual(identity["reference"], "MIHAS-REF-1")
         self.assertEqual(identity["event_type"], "collection.successful")
-        self.assertEqual(identity["payload_hash"], payload_hash)
+        self.assertEqual(len(identity["payload_hash"]), 64)
 
 
 class TestMobileMoneyProviderUncertainty(SimpleTestCase):

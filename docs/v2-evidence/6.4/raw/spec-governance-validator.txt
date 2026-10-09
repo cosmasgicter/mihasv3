@@ -1,0 +1,24 @@
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 1  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=71 tasks=73 (checked=35)
+
+ERRORS (block):
+  [admissions-v2-canonical-rebuild] (missing-evidence) task 4.1 is checked but has no linked Required_Evidence at /home/cosmas/Downloads/mihasv3/docs/v2-evidence/4.1 (a checklist mark is not evidence)
+
+RESULT: FAIL (governance violations present)
+
+---
+Note (task 6.4): the single error above is PRE-EXISTING and belongs to task 4.1
+(checked without an evidence directory). Task 6.4's evidence exists at
+docs/v2-evidence/6.4/ with raw artifacts, so 6.4 is not among the violations.
+The validator only inspects CHECKED tasks; 6.4's checkbox transition is the
+orchestrator's to make.
+
+$ cd backend && python manage.py check
+System check identified no issues (1 silenced).

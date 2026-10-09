@@ -2,7 +2,17 @@
 
 from django.urls import path
 
+from apps.catalog.admin_intake_views import (
+    AdminIntakeDetailView,
+    AdminIntakeListCreateView,
+)
 from apps.catalog.admin_program_intake_views import AdminProgramIntakeCreateView
+from apps.catalog.staff_invitation_views import (
+    AdminStaffCandidateSearchView,
+    AdminStaffInvitationListCreateView,
+    AdminStaffInvitationResendView,
+    AdminStaffInvitationRevokeView,
+)
 from apps.catalog.admin_views import (
     AdminAccessGrantDetailView,
     AdminAccessGrantListCreateView,
@@ -16,8 +26,12 @@ from apps.catalog.admin_views import (
     AdminTenantAuditView,
     AdminTenantDetailView,
     AdminTenantDomainActivateView,
+    AdminTenantDomainApproveView,
     AdminTenantDomainDetailView,
     AdminTenantDomainListCreateView,
+    AdminTenantDomainReactivateView,
+    AdminTenantDomainRejectView,
+    AdminTenantDomainRetryView,
     AdminTenantListCreateView,
     AdminTenantProfileCloneView,
     AdminTenantProfileDetailView,
@@ -39,6 +53,11 @@ urlpatterns = [
     path("institutions/<uuid:institution_id>/domains/", AdminTenantDomainListCreateView.as_view(), name="admin-tenant-domains"),
     path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/", AdminTenantDomainDetailView.as_view(), name="admin-tenant-domain-detail"),
     path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/activate/", AdminTenantDomainActivateView.as_view(), name="admin-tenant-domain-activate"),
+    # Domain lifecycle commands on the one DomainStatusMachine (task 4.4, R5.1).
+    path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/retry/", AdminTenantDomainRetryView.as_view(), name="admin-tenant-domain-retry"),
+    path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/approve/", AdminTenantDomainApproveView.as_view(), name="admin-tenant-domain-approve"),
+    path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/reject/", AdminTenantDomainRejectView.as_view(), name="admin-tenant-domain-reject"),
+    path("institutions/<uuid:institution_id>/domains/<uuid:item_id>/reactivate/", AdminTenantDomainReactivateView.as_view(), name="admin-tenant-domain-reactivate"),
     path("institutions/<uuid:institution_id>/programs/", AdminTenantProgramListView.as_view(), name="admin-tenant-programs"),
     path("institutions/<uuid:institution_id>/programs/<uuid:item_id>/", AdminTenantProgramDetailView.as_view(), name="admin-tenant-program-detail"),
     path("institutions/<uuid:institution_id>/assets/", AdminTenantAssetListCreateView.as_view(), name="admin-tenant-assets"),
@@ -63,7 +82,16 @@ urlpatterns = [
     path("memberships/<uuid:membership_id>/", AdminMembershipDetailView.as_view(), name="admin-tenant-membership-detail"),
     path("access-grants/", AdminAccessGrantListCreateView.as_view(), name="admin-tenant-access-grants"),
     path("access-grants/<uuid:grant_id>/", AdminAccessGrantDetailView.as_view(), name="admin-tenant-access-grant-detail"),
+    # Atomic tenant staff invitation + membership handoff (task 4.2, R4.3-R4.4, R6.3).
+    path("staff/invitations/", AdminStaffInvitationListCreateView.as_view(), name="admin-staff-invitations"),
+    path("staff/invitations/<uuid:invitation_id>/resend/", AdminStaffInvitationResendView.as_view(), name="admin-staff-invitation-resend"),
+    path("staff/invitations/<uuid:invitation_id>/revoke/", AdminStaffInvitationRevokeView.as_view(), name="admin-staff-invitation-revoke"),
+    path("staff/candidates/", AdminStaffCandidateSearchView.as_view(), name="admin-staff-candidates"),
     path("routing/simulate/", AdminRoutingSimulateView.as_view(), name="admin-routing-simulate"),
     path("tenant-audit/", AdminTenantAuditView.as_view(), name="admin-tenant-audit"),
     path("program-intakes/", AdminProgramIntakeCreateView.as_view(), name="admin-program-intake-create"),
+    # Canonical global intake-period management home (task 5.1, R7.3). The
+    # legacy /catalog/intakes/ writes are frozen + deprecation-signalled.
+    path("intakes/", AdminIntakeListCreateView.as_view(), name="admin-intake-list-create"),
+    path("intakes/<uuid:intake_id>/", AdminIntakeDetailView.as_view(), name="admin-intake-detail"),
 ]

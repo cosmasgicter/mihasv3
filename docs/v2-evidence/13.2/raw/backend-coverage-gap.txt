@@ -1,0 +1,63 @@
+== GATE-13.1-02 mapped onto task 13.2's sixteen isolation surfaces ==
+
+13.1 section 2.2 found that test modules patch
+`apps.applications.document_views.AccessScopeService`, a symbol task 9.4
+removed, so `mock.patch` raises AttributeError **at fixture setup** and every
+case in those files errors instead of running. The dispatch for 13.2 asks the
+question this file answers: does any of them cover a surface in the isolation
+matrix, in which case the browser row may be that surface's only live coverage.
+
+== The patch target, measured directly (not inferred from a suite run) ==
+
+  $ cd backend && DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python3 -c \
+      'import django; django.setup(); import apps.applications.document_views as dv, \
+       apps.applications.interview_views as iv; print(hasattr(dv, "AccessScopeService")); ...'
+  document_views.AccessScopeService present: False
+  interview_views._staff_can_access_application present: False
+
+  Both are absent, so every fixture that patches them raises AttributeError at
+  setup and that module's cases do not run.
+
+== The modules, case counts, whether they carry 9.4's own guard, and the
+   13.2 surface each is coverage for ==
+
+  backend/tests/property/test_application_endpoints.py          13 cases  DEAD AT SETUP   S03 drafts, S04 grades
+  backend/tests/unit/test_admin_export_hardening.py              5 cases  GUARDED (runs)  S15 settlement (export half)
+  backend/tests/unit/test_application_endpoints.py              22 cases  DEAD AT SETUP   S03 drafts, S04 grades
+  backend/tests/unit/test_application_number_generator.py        3 cases  DEAD AT SETUP   - (not a 13.2 surface)
+  backend/tests/unit/test_application_review_force_approved.py   2 cases  DEAD AT SETUP   S09 payment
+  backend/tests/unit/test_application_review_payment_gate.py     3 cases  DEAD AT SETUP   S09 payment, S12 review
+  backend/tests/unit/test_live_500_fixes.py                      5 cases  DEAD AT SETUP   - (not a 13.2 surface)
+  backend/tests/unit/test_payment_review_reopen.py               3 cases  DEAD AT SETUP   S09 payment, S12 review
+  backend/tests/unit/test_review_notifications.py                6 cases  DEAD AT SETUP   S11 notifications, S12 review
+  backend/tests/unit/test_student_number_generation.py           8 cases  DEAD AT SETUP   - (not a 13.2 surface)
+  backend/tests/unit/test_waitlist.py                           20 cases  DEAD AT SETUP   S07 waitlist, S08 promotion
+
+  modules examined: 11   guarded: 1   dead: 10
+  cases not running because of this: 85
+
+== What that means for this task ==
+
+  7 of the sixteen isolation surfaces have backend coverage that has not
+  executed since task 9.4:
+    - S03 drafts
+    - S04 grades
+    - S07 waitlist
+    - S08 promotion
+    - S09 payment
+    - S11 notifications
+    - S12 review
+
+  S15's export half is the one that is NOT affected: task 9.4 wrote its
+  `hasattr` guard into `test_admin_export_hardening.py`, so that module runs.
+
+  For the affected surfaces the browser rows in
+  `two-tenant-isolation-matrix.spec.ts` are, on this checkout, the live
+  coverage - the pytest modules that would otherwise assert the same scoping
+  error before their first assertion executes.
+
+  Not claimed: that the browser rows are equivalent to those modules. They
+  assert the tenant boundary end to end over HTTP; the dead modules assert
+  unit-level scope behaviour against a patched service. Neither replaces the
+  other, and the fix - 9.4's own guard, already written in one of the ten -
+  remains the admin-query/scope lane's.

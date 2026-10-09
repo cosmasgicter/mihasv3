@@ -1,0 +1,16 @@
+]633;E;echo "=== full backend tree: collection only ===";06724981-915f-49d6-9b40-929e2b76c95e]633;C=== full backend tree: collection only ===
+tests/unit/test_withdrawal_eligibility.py::TestWithdrawalEligibility::test_withdrawal_rejected[rejected]
+tests/unit/test_withdrawal_eligibility.py::TestWithdrawalEligibility::test_withdrawal_rejected[withdrawn]
+tests/unit/test_withdrawal_eligibility.py::TestWithdrawalEligibility::test_withdrawable_set_is_exactly_5
+
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_api_quality_script.py:31
+  /home/cosmas/Downloads/mihasv3/backend/tests/unit/test_api_quality_script.py:31: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+5419 tests collected in 9.29s

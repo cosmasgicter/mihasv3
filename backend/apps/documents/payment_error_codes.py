@@ -126,6 +126,50 @@ PAYMENT_ERROR_CODES: dict[str, PaymentErrorCode] = {
         http_status=status.HTTP_404_NOT_FOUND,
         message="Fee is not available for this program and residency",
     ),
+    # Canonical fee resolution (admissions-v2 task 5.4, R7.4/R7.5, R12.1-R12.2).
+    # The offering is resolvable but its canonical FeeSchedule is missing or not
+    # unique. Fail closed — never substitute a hardcoded amount (DATA-05, STU-08).
+    "FEE_NOT_CONFIGURED": PaymentErrorCode(
+        code="FEE_NOT_CONFIGURED",
+        http_status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        message="The application fee is not configured for this option.",
+    ),
+    "FEE_AMBIGUOUS": PaymentErrorCode(
+        code="FEE_AMBIGUOUS",
+        http_status=status.HTTP_409_CONFLICT,
+        message="More than one active application fee is configured for this option.",
+    ),
+
+    # Server-authored fee quotes (admissions-v2 task 8.1, R12.1/R12.2/R12.6).
+    # A quote is the money contract for one payment attempt: it is signed, it
+    # expires, it is bound to the fee configuration it was minted from, and it is
+    # single-use. Every refusal below fails closed — the caller must never fall
+    # back to a client-computed or hardcoded amount (STU-08, DATA-05).
+    "QUOTE_NOT_FOUND": PaymentErrorCode(
+        code="QUOTE_NOT_FOUND",
+        http_status=status.HTTP_404_NOT_FOUND,
+        message="This fee quote was not found.",
+    ),
+    "QUOTE_EXPIRED": PaymentErrorCode(
+        code="QUOTE_EXPIRED",
+        http_status=status.HTTP_409_CONFLICT,
+        message="This fee quote has expired. Please refresh the fee and try again.",
+    ),
+    "QUOTE_ALREADY_REDEEMED": PaymentErrorCode(
+        code="QUOTE_ALREADY_REDEEMED",
+        http_status=status.HTTP_409_CONFLICT,
+        message="This fee quote has already been used for a payment.",
+    ),
+    "QUOTE_INVALID": PaymentErrorCode(
+        code="QUOTE_INVALID",
+        http_status=status.HTTP_409_CONFLICT,
+        message="This fee quote could not be verified. Please refresh the fee.",
+    ),
+    "QUOTE_CONFIGURATION_CHANGED": PaymentErrorCode(
+        code="QUOTE_CONFIGURATION_CHANGED",
+        http_status=status.HTTP_409_CONFLICT,
+        message="The application fee changed. Please review the new amount before paying.",
+    ),
 
     # Sensitive-field + draft locks
     "PAYMENT_SENSITIVE_FIELDS_LOCKED": PaymentErrorCode(

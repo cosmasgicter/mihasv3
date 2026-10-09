@@ -1,16 +1,10 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { Button } from '@/components/ui/Button'
-import { FileText, CheckCircle } from 'lucide-react'
+import { useCallback, useState, useMemo } from 'react'
+import { FileText } from 'lucide-react'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 import { logger } from '@/lib/logger'
 
 interface ApplicationsTableProps {
   applications: ApplicationSummary[]
-  totalCount: number
-  loadedCount: number
-  hasMore: boolean
-  isLoadingMore: boolean
-  onLoadMore: () => void | Promise<void>
   onStatusUpdate: (id: string, status: string) => void | Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
@@ -20,11 +14,6 @@ interface ApplicationsTableProps {
 
 export function ApplicationsTable({
   applications,
-  totalCount,
-  loadedCount,
-  hasMore,
-  isLoadingMore,
-  onLoadMore,
   onStatusUpdate,
   onPaymentStatusUpdate,
   onViewDetails,
@@ -126,44 +115,11 @@ export function ApplicationsTable({
             ))}
           </div>
           
-          <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-foreground">
-                Showing <span className="font-semibold text-foreground">{loadedCount}</span>
-                {totalCount > 0 && (
-                  <>
-                    {' '}of{' '}
-                    <span className="font-semibold text-foreground">{totalCount}</span>
-                  </>
-                )}{' '}
-                applications
-              </div>
-              {totalCount > 0 && (
-                <div className="h-4 w-px bg-muted" />
-              )}
-              <div className="text-xs text-foreground">
-                {Math.round((loadedCount / Math.max(totalCount, 1)) * 100)}% loaded
-              </div>
-            </div>
-
-            {hasMore ? (
-              <Button
-                type="button"
-                onClick={onLoadMore}
-                loading={isLoadingMore}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isLoadingMore ? 'Loading more...' : 'Load more applications'}
-              </Button>
-            ) : (
-              totalCount > 0 && (
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                  All applications loaded
-                </div>
-              )
-            )}
-          </div>
+          {/*
+            The page navigator lives one level up (``RosterPagination``) so every
+            view mode shares one, and so this component holds no page arithmetic
+            of its own.
+          */}
         </>
       ) : (
         <div className="rounded-lg border border-border bg-card py-16 text-center">

@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsOwnerOrAdmin
 from apps.applications.duplicate_checker import DuplicateChecker
+from apps.applications.readiness_service import resolve_minimum_grades
 from apps.applications.models import (
     Application,
     ApplicationAmendment,
@@ -41,7 +42,6 @@ from apps.applications.serializers import (
     ApplicationAmendmentRequestSerializer,
     ApplicationConfirmEnrollmentRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
-    ApplicationAiSummaryResponseSerializer,
     ApplicationWaitlistPositionResponseSerializer,
 )
 from apps.applications.services import (
@@ -53,7 +53,6 @@ from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
-from apps.common.throttling import AIUserScopedRateThrottle
 
 from ._view_helpers import (
     ApplicationConditionSerializer,
@@ -69,8 +68,6 @@ from ._view_helpers import (
     ApplicationSummarySerializer,
     ApplicationGradesResponseSerializer,
     ConditionVerifyRequestSerializer,
-    EmailSlipEnvelopeResponseSerializer,
-    EmailSlipSerializer,
     WithdrawalReasonSerializer,
     WithdrawalResponseSerializer,
     _generate_application_number,
@@ -146,6 +143,26 @@ class ApplicationSubmitView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Optional optimistic version (admissions-v2 task 6.5, R10.6). When the
+        # client sends the version it read, submission refuses a stale command
+        # with VERSION_CONFLICT (409) instead of submitting answers the student
+        # never saw. Omitting it keeps the previous behaviour.
+        expected_version = None
+        raw_version = request.data.get("version") if isinstance(request.data, dict) else None
+        if raw_version is not None:
+            try:
+                expected_version = int(raw_version)
+            except (TypeError, ValueError):
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Validation failed",
+                        "code": "VALIDATION_ERROR",
+                        "details": {"version": ["Must be an integer application version."]},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         if app.status == "submitted":
             return Response({"success": True, "data": ApplicationSerializer(app).data}, status=status.HTTP_200_OK)
 
@@ -153,6 +170,10 @@ class ApplicationSubmitView(APIView):
             submitted_app, _old_status = submit_application(
                 application=app,
                 changed_by=str(request.user.id),
+                # The declaration accompanies this command and is re-checked
+                # under the row lock, not only here (R10.6 "declarations").
+                declarations_accepted=confirmed,
+                expected_version=expected_version,
             )
         except ApplicationSubmissionError as exc:
             if exc.code == "ALREADY_SUBMITTED":
@@ -164,137 +185,15 @@ class ApplicationSubmitView(APIView):
             next_action = getattr(exc, "next_action", None)
             if next_action:
                 payload["next_action"] = next_action
+            # Surface the retryable flag so the client can distinguish a stable
+            # retryable configuration outage (CONFIGURATION_UNAVAILABLE, 503) from
+            # a terminal validation failure (R11.6, DATA-04).
+            if getattr(exc, "retryable", False):
+                payload["retryable"] = True
             return Response(payload, status=error_status)
 
         response_data = ApplicationSerializer(submitted_app).data
         return Response({"success": True, "data": response_data})
-
-
-# ---------------------------------------------------------------------------
-# Application Preview Summary (AI-powered)
-# ---------------------------------------------------------------------------
-
-
-class ApplicationPreviewSummaryView(APIView):
-    """GET /api/v1/applications/{id}/preview-summary/
-
-    Returns a personalized AI-generated summary for the student's review step.
-    Cached for 10 minutes per application. Best-effort - returns a template
-    fallback if AI is unavailable or slow.
-    """
-
-    permission_classes = [IsAuthenticated]
-    serializer_class = ApplicationAiSummaryResponseSerializer
-    # AI hardening: per-student rate throttle (10/hour) when flag is on.
-    throttle_classes = [AIUserScopedRateThrottle]
-    throttle_scope = "ai_student_preview"
-
-    @extend_schema(
-        request=None,
-        responses={
-            200: OpenApiResponse(response=ApplicationAiSummaryResponseSerializer),
-            404: OpenApiResponse(response=ErrorResponseSerializer),
-        },
-        tags=["applications"],
-        summary="Get AI-generated application summary (student preview)",
-    )
-    def get(self, request, application_id):
-        try:
-            app = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if str(app.user_id) != str(request.user.id):
-            return Response(
-                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        from apps.common.ai_cache import (
-            cached_ai_call,
-            compute_application_fingerprint,
-            compute_grades_fingerprint,
-        )
-
-        grades_qs = ApplicationGrade.objects.filter(
-            application_id=app.id,
-        ).values("subject_id", "grade")
-        grades_list = list(grades_qs)
-        subjects_count = len({g["subject_id"] for g in grades_list if g.get("subject_id")})
-
-        first_name = (app.full_name or "").split()[0] or "Student"
-        program = app.program or "your chosen programme"
-        intake = getattr(app, "intake", "") or ""
-
-        # Cache-key fingerprint includes grades - if the student edits
-        # grades we regenerate the summary rather than serving stale
-        # copy for 24 h.
-        grades_fp = compute_grades_fingerprint(grades_list)
-        fingerprint = compute_application_fingerprint(
-            app.id,
-            app.updated_at,
-            extra=f"grades:{grades_fp}|intake:{intake}",
-        )
-
-        def _generate_ai():
-            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
-
-            from apps.common.ai_prompt_redactor import redact_for_student_preview
-            from apps.common.ai_service import generate_student_preview_summary
-
-            def _call_ai():
-                raw = {
-                    "full_name": app.full_name,
-                    "program": program,
-                    # Pass through the legacy institution snapshot as-is; the AI
-                    # service substitutes a neutral phrase when it is blank
-                    # rather than defaulting to a single school's brand.
-                    "institution": getattr(app, "institution", "") or "",
-                    "intake": intake,
-                    "grades_summary": build_grades_summary(app),
-                    "subjects_count": subjects_count,
-                }
-                return generate_student_preview_summary(redact_for_student_preview(raw))
-
-            try:
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(_call_ai)
-                    result = future.result(timeout=15)
-                if result and len(result) >= 50:
-                    return result
-                return None
-            except (FuturesTimeoutError, Exception):
-                logger.info("AI preview summary unavailable for %s, using fallback", application_id)
-                return None
-
-        summary = None
-        source = "fallback"
-        try:
-            summary = cached_ai_call(
-                namespace="student_preview",
-                fingerprint=fingerprint,
-                generator=_generate_ai,
-            )
-            if summary and len(summary) >= 50:
-                source = "ai"
-        except Exception:
-            summary = None
-
-        if not summary or len(summary) < 50:
-            parts = [f"{first_name}, your application for {program} is looking great."]
-            if subjects_count > 0:
-                parts.append(f"You've recorded {subjects_count} subject{'s' if subjects_count != 1 else ''} so far.")
-            if intake:
-                parts.append(f"Once submitted, the admissions team will review your application for the {intake} intake promptly.")
-            else:
-                parts.append("Once submitted, the admissions team will review your application promptly.")
-            summary = " ".join(parts)
-            source = "fallback"
-
-        return Response({"success": True, "data": {"summary": summary, "source": source}})
 
 
 # ---------------------------------------------------------------------------
@@ -364,23 +263,13 @@ class ApplicationSummaryView(APIView):
                     else None,
                 }
             )
-        # AI-powered summary for admin reviewers (best-effort)
-        ai_summary = None
-        role = getattr(request.user, "role", "student")
-        if role in ("admin", "super_admin", "reviewer"):
-            try:
-                from apps.common.ai_service import summarize_application
-                ai_summary = summarize_application({
-                    "full_name": app.full_name,
-                    "program": app.program,
-                    "status": app.status,
-                    "payment_status": app.payment_status,
-                    "grades_summary": build_grades_summary(app),
-                    "nationality": getattr(app, "nationality", ""),
-                    "institution": getattr(app, "institution", ""),
-                })
-            except Exception:
-                logger.exception("AI summary generation failed for app=%s", app.id)
+        # admissions-v2 task 7.4 (R11.1, R11.3, STU-06): this payload used to
+        # carry a generative ``ai_summary`` for staff. Admissions is deterministic
+        # now — the reviewer's structured readiness checklist is served by the
+        # canonical readiness query
+        # (``GET /api/v2/student/applications/{id}/readiness/`` →
+        # ``review_readiness``), so there is no generated second view of the same
+        # facts that could disagree with it.
         return Response(
             {
                 "success": True,
@@ -389,7 +278,6 @@ class ApplicationSummaryView(APIView):
                     "documents_count": docs_count,
                     "grades_count": grades_count,
                     "status_history": history,
-                    "ai_summary": ai_summary,
                     "grades_summary": build_grades_summary(app),
                     "grades": build_grades_payload(app),
                 },
@@ -510,13 +398,24 @@ class ApplicationGradesView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if len(normalized) < 5:
+            # R11.5 (task 7.1): the minimum is the configured, policy-floored one
+            # readiness and submission enforce — never a literal in this view.
+            minimum_required = resolve_minimum_grades()
+            if len(normalized) < minimum_required:
+                shortfall = minimum_required - len(normalized)
                 return Response(
                     {
                         "success": False,
-                        "error": f"At least 5 unique valid subjects are required; received {len(normalized)}.",
+                        "error": (
+                            f"At least {minimum_required} unique valid subjects are required; "
+                            f"received {len(normalized)}."
+                        ),
                         "code": "MINIMUM_SUBJECTS_REQUIRED",
-                        "details": {"grades": [f"Add {5 - len(normalized)} more unique subject{'s' if 5 - len(normalized) != 1 else ''}."]},
+                        "details": {
+                            "grades": [
+                                f"Add {shortfall} more unique subject{'s' if shortfall != 1 else ''}."
+                            ]
+                        },
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )

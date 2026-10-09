@@ -1,0 +1,96 @@
+Task 9.1 — the roster's aggregates equal an independent SQL count (live system)
+================================================================================
+
+The pytest half of this claim is
+`backend/tests/unit/test_application_query_contract_9_1.py::TestAggregatesEqualIndependentSql`
+(15 counters recomputed with hand-written SQL against the same filtered set).
+This file repeats the comparison against the **running** harness stack — a real
+uvicorn backend answering a real cookie-authenticated HTTP request, and psql
+inside the harness Postgres container — so the claim does not rest only on the
+test client.
+
+Captured: 2026-08-07 (UTC), immediately after the recorded browser run
+(`harness-roster-journeys.txt`), which left 56 applications in the harness DB
+(2 x 28: each Playwright project seeded its own two offerings).
+
+--------------------------------------------------------------------------------
+1. The server's answer, asked for PAGE 3 OF 12
+--------------------------------------------------------------------------------
+$ curl -c /tmp/h.jar -X POST http://localhost:8090/api/v1/auth/login/ \
+    -d '{"email":"platform-admin@harness.beanola.local","password":"..."}'
+  login=200
+
+$ curl -b /tmp/h.jar 'http://localhost:8090/api/v1/admin/applications/?pageSize=5&page=3'
+
+  page / pageSize / totalCount / totalPages : 3  5  56  12
+  rows on page                              : 5
+
+  aggregates.total                   = 56
+  aggregates.draft_count             = 56
+  aggregates.submitted_count         = 0
+  aggregates.decision_queue_count    = 0
+  aggregates.accepted_count          = 0
+  aggregates.payment_unpaid_count    = 56
+  aggregates.unassigned_count        = 56
+  aggregates.deadline_pressure_count = 0
+  aggregates.late_submission_count   = 0
+
+  aggregates.review_sla_days         = 5     (the configured Setting)
+  aggregates.deadline_pressure_hours = 48    (the server's own window)
+
+  facets.status            = [('draft', 56)]
+  facets.program_offering  = [('Roster Primary 32426403', 26),
+                              ('Roster Primary 32448542', 26),
+                              ('Roster Secondary 32426403', 2),
+                              ('Roster Secondary 32448542', 2)]
+
+  redaction  = {'applied': False, 'withheld_fields': []}   (platform all-access)
+  can_export = True                                        (holds the export grant)
+
+Note the shape of the request: **five rows were returned and fifty-six were
+counted.** That is the whole of ADM-01 in one line — the old surface would have
+reported 5.
+
+--------------------------------------------------------------------------------
+2. The same numbers, counted independently in psql
+--------------------------------------------------------------------------------
+$ docker compose -f harness/docker-compose.harness.yml exec postgres \
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+
+SELECT count(*)                                    AS total,
+       count(*) FILTER (WHERE status = 'draft')     AS draft_count,
+       count(*) FILTER (WHERE status IN ('submitted','under_review'))
+                                                    AS decision_queue_count,
+       count(*) FILTER (WHERE status IN ('approved','conditionally_approved','enrolled'))
+                                                    AS accepted_count,
+       count(*) FILTER (WHERE payment_status IS NULL
+                           OR payment_status IN ('','not_paid','unpaid'))
+                                                    AS payment_unpaid_count,
+       count(*) FILTER (WHERE assigned_reviewer_id IS NULL)
+                                                    AS unassigned_count
+FROM applications;
+
+ total | draft_count | decision_queue_count | accepted_count | payment_unpaid_count | unassigned_count
+-------+-------------+----------------------+----------------+----------------------+------------------
+    56 |          56 |                    0 |              0 |                   56 |               56
+
+Every counter matches the aggregate block above, and none of them matches the
+five rows the request returned.
+
+--------------------------------------------------------------------------------
+3. The facet counts, counted independently
+--------------------------------------------------------------------------------
+SELECT p.name AS offering, count(*) AS applications
+FROM applications a JOIN programs p ON p.id = a.program_offering_id
+GROUP BY p.name ORDER BY p.name;
+
+          offering         | applications
+---------------------------+--------------
+ Roster Primary 32426403   |           26
+ Roster Primary 32448542   |           26
+ Roster Secondary 32426403 |            2
+ Roster Secondary 32448542 |            2
+
+Identical to `facets.program_offering`, including the two-row offerings that
+appear on no page of a 5-row window. A pick list harvested from the loaded rows
+could not contain them, and could not carry a count at all.

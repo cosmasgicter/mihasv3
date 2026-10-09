@@ -1,0 +1,141 @@
+F............F................F...................F..................... [ 43%]
+........................................................................ [ 86%]
+.......................                                                  [100%]
+=================================== FAILURES ===================================
+________________ TestAdminJourneyDrill.test_full_admin_journey _________________
+tests/integration/test_admin_journey_drill.py:396: in test_full_admin_journey
+    assert app_id in scoped_ids
+E   AssertionError: assert 'b6f9d366-f52d-44cf-a7f4-da63669d145f' in set()
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T14:43:40.419426+00:00", "level": "ERROR", "logger": "apps.common.audit_network", "message": "Invalid AUDIT_LOG_ENCRYPTION_KEY configuration", "request_id": "54b24cd0-ece7-40bf-b6b8-63929efda34d", "request_method": "POST", "request_path": "/api/v1/admin/institutions/", "exc_info": "Traceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py\", line 35, in __init__\n    key = base64.urlsafe_b64decode(key)\n  File \"/usr/lib/python3.14/base64.py\", line 131, in urlsafe_b64decode\n    return b64decode(s)\n  File \"/usr/lib/python3.14/base64.py\", line 85, in b64decode\n    return binascii.a2b_base64(s, strict_mode=validate)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nbinascii.Error: Incorrect padding\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/cosmas/Downloads/mihasv3/backend/apps/common/audit_network.py\", line 37, in _get_fernet\n    fernet = Fernet(key.encode())\n  File \"/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py\", line 37, in __init__\n    raise ValueError(\n        \"Fernet key must be 32 url-safe base64-encoded bytes.\"\n    ) from exc\nValueError: Fernet key must be 32 url-safe base64-encoded bytes."}
+{"time": "2026-08-15T14:43:40.422671+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "54b24cd0-ece7-40bf-b6b8-63929efda34d", "request_method": "POST", "request_path": "/api/v1/admin/institutions/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/", "status_code": 201, "duration_ms": 230.5}
+{"time": "2026-08-15T14:43:40.445604+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "b632a4a1-b5a6-4f6a-8b93-83b8caf04f89", "request_method": "POST", "request_path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/assets/upload/", "status_code": 201, "duration_ms": 19.6}
+{"time": "2026-08-15T14:43:40.454781+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "03ca6729-67fb-459c-8c4e-3fc723544fb9", "request_method": "POST", "request_path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/assets/upload/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/assets/upload/", "status_code": 201, "duration_ms": 8.1}
+{"time": "2026-08-15T14:43:40.466584+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "4801fcca-4d5c-47b6-9f8e-cc13759a755d", "request_method": "POST", "request_path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/document-profiles/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/institutions/c7be013d-c6e7-4ccd-bc00-7e751ad0c19e/document-profiles/", "status_code": 201, "duration_ms": 9.4}
+{"time": "2026-08-15T14:43:40.508538+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "3b78bc33-fd5b-410f-a1e5-aecf1435c06b", "request_method": "POST", "request_path": "/api/v1/admin/routing/simulate/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/routing/simulate/", "status_code": 200, "duration_ms": 31.2}
+{"time": "2026-08-15T14:43:40.526599+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "84621515-196f-401d-a68c-a8b61be79789", "request_method": "POST", "request_path": "/api/v1/admin/memberships/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/memberships/", "status_code": 201, "duration_ms": 15.8}
+{"time": "2026-08-15T14:43:40.549593+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "9a3ca499-88a3-4686-93a6-5884989a07ac", "request_method": "POST", "request_path": "/api/v1/admin/access-grants/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/access-grants/", "status_code": 201, "duration_ms": 18.7}
+{"time": "2026-08-15T14:43:40.649235+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering ff9bac1e-58ef-4b42-b51f-96b49ca1744a during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "76ddc81e-a976-45a5-b3be-2ea628b84663", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T14:43:40.655661+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-76167203 year=2026", "request_id": "76ddc81e-a976-45a5-b3be-2ea628b84663", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T14:43:40.696123+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "76ddc81e-a976-45a5-b3be-2ea628b84663", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 140.7}
+{"time": "2026-08-15T14:43:40.735465+00:00", "level": "INFO", "logger": "apps.applications.admin_review_views", "message": "No canonical application fee for offering ff9bac1e-58ef-4b42-b51f-96b49ca1744a during create; leaving snapshot NULL (fail closed at payment time)", "request_id": "694ec1a2-5607-4b92-90a7-1f46c471b3b0", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T14:43:40.739812+00:00", "level": "WARNING", "logger": "apps.applications._view_helpers", "message": "next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-76167203 year=2026", "request_id": "694ec1a2-5607-4b92-90a7-1f46c471b3b0", "request_method": "POST", "request_path": "/api/v1/applications/"}
+{"time": "2026-08-15T14:43:40.761638+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "694ec1a2-5607-4b92-90a7-1f46c471b3b0", "request_method": "POST", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "POST", "path": "/api/v1/applications/", "status_code": 201, "duration_ms": 62.8}
+{"time": "2026-08-15T14:43:40.844470+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "fd7e5e06-9a2c-4e8c-8b37-86bc41655fba", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 70.3}
+{"time": "2026-08-15T14:43:40.856931+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "d3a4dde4-ea4e-4c3e-8af9-18a90ea7e1d3", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 11.4}
+------------------------------ Captured log call -------------------------------
+ERROR    apps.common.audit_network:audit_network.py:41 Invalid AUDIT_LOG_ENCRYPTION_KEY configuration
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py", line 35, in __init__
+    key = base64.urlsafe_b64decode(key)
+  File "/usr/lib/python3.14/base64.py", line 131, in urlsafe_b64decode
+    return b64decode(s)
+  File "/usr/lib/python3.14/base64.py", line 85, in b64decode
+    return binascii.a2b_base64(s, strict_mode=validate)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+binascii.Error: Incorrect padding
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/backend/apps/common/audit_network.py", line 37, in _get_fernet
+    fernet = Fernet(key.encode())
+  File "/home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/cryptography/fernet.py", line 37, in __init__
+    raise ValueError(
+        "Fernet key must be 32 url-safe base64-encoded bytes."
+    ) from exc
+ValueError: Fernet key must be 32 url-safe base64-encoded bytes.
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering ff9bac1e-58ef-4b42-b51f-96b49ca1744a during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-76167203 year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.applications.admin_review_views:admin_review_views.py:393 No canonical application fee for offering ff9bac1e-58ef-4b42-b51f-96b49ca1744a during create; leaving snapshot NULL (fail closed at payment time)
+WARNING  apps.applications._view_helpers:_view_helpers.py:267 next_application_number SQL helper unavailable, falling back to count+attempt for code=JRNY-76167203 year=2026
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestProperty7CapabilityGatedWrites.test_super_admin_or_global_admin_creation_requires_super_admin _
+tests/property/test_capability_gated_writes.py:414: in test_super_admin_or_global_admin_creation_requires_super_admin
+    @given(actor_kind=ACTOR, target_role=st.sampled_from(["super_admin", "admin"]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/property/test_capability_gated_writes.py:451: in test_super_admin_or_global_admin_creation_requires_super_admin
+    assert resp.data.get("code") == "PRIVILEGE_ESCALATION", resp.data
+E   AssertionError: {'code': 'INSUFFICIENT_PRIVILEGES', 'error': 'You cannot assign a role higher than your own.', 'success': False}
+E   assert 'INSUFFICIENT_PRIVILEGES' == 'PRIVILEGE_ESCALATION'
+E     
+E     - PRIVILEGE_ESCALATION
+E     + INSUFFICIENT_PRIVILEGES
+E   Falsifying example: test_super_admin_or_global_admin_creation_requires_super_admin(
+E       self=<tests.property.test_capability_gated_writes.TestProperty7CapabilityGatedWrites object at 0x7d1c2b927e30>,
+E       production_scope=None,
+E       actor_kind='tenant_admin_manage',
+E       target_role='super_admin',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T14:43:53.967520+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "44923191-2a76-4519-864d-bf3b3d945f89", "request_method": "POST", "request_path": "/api/v1/admin/users/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/users/", "status_code": 403, "duration_ms": 9.2}
+{"time": "2026-08-15T14:43:54.000960+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "c69ef59e-198c-4962-bc47-873ea8bca1c3", "request_method": "POST", "request_path": "/api/v1/admin/users/", "type": "request_metric", "method": "POST", "path": "/api/v1/admin/users/", "status_code": 403, "duration_ms": 7.3}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestEndpointGrantScopeFidelityHttp.test_application_grant_does_not_widen_to_sibling _
+tests/unit/test_cross_tenant_isolation.py:456: in test_application_grant_does_not_widen_to_sibling
+    assert world_a.application_id in ids  # the granted application
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert '8017ec58-da6f-49c0-9970-267b9922f57c' in set()
+E    +  where '8017ec58-da6f-49c0-9970-267b9922f57c' = TenantWorld(institution=<Institution: Test School 8eec6788 (SCH-8EEC6788)>, canonical_program=<CanonicalProgram: Diplo...6-5272-4315-a3a0-ad4bd908c69b)>, access_grant=<AccessGrant: AccessGrant object (fc8e3ec8-5374-42cf-b597-2cda85831f67)>).application_id
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T14:43:54.923829+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "e25d5fd8-3fe5-4cbd-b1d4-8a16b4b4d265", "request_method": "GET", "request_path": "/api/v1/applications/", "type": "request_metric", "method": "GET", "path": "/api/v1/applications/", "status_code": 200, "duration_ms": 14.9}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+_ TestCapabilityDerivedEndpointAuthority.test_tenant_admin_cannot_reach_platform_tenant_directory _
+tests/unit/test_admissions_v2_authority_policies.py:77: in test_tenant_admin_cannot_reach_platform_tenant_directory
+    assert response.status_code == 403, response.content
+E   AssertionError: b'{"success":true,"data":{"page":1,"pageSize":20,"totalCount":1,"results":[{"id":"71265643-af22-4c76-ad0a-329cc31f7cdf...ive":true,"description":null,"created_at":"2026-08-15T14:43:56.425122Z","updated_at":"2026-08-15T14:43:56.425122Z"}]}}'
+E   assert 200 == 403
+E    +  where 200 = <Response status_code=200, "application/json">.status_code
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-08-15T14:43:56.446866+00:00", "level": "INFO", "logger": "apps.common.middleware", "message": "request_metric", "request_id": "23e9c74f-4191-4956-90a3-2ecb1632f1fb", "request_method": "GET", "request_path": "/api/v1/admin/institutions/", "type": "request_metric", "method": "GET", "path": "/api/v1/admin/institutions/", "status_code": 200, "duration_ms": 8.3}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.middleware:middleware.py:215 request_metric
+=============================== warnings summary ===============================
+tests/integration/test_admin_journey_drill.py: 1 warning
+tests/integration/test_tenant_lifecycle_drill.py: 1 warning
+tests/property/test_cross_tenant_invisibility.py: 1 warning
+tests/property/test_production_scope_masking_properties.py: 6 warnings
+tests/property/test_capability_gated_writes.py: 6 warnings
+tests/unit/test_cross_tenant_isolation.py: 14 warnings
+tests/unit/test_scoped_access_matrix.py: 16 warnings
+tests/unit/test_admissions_v2_authority_policies.py: 5 warnings
+tests/property/test_drift_bug3_preservation.py: 1 warning
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='137559920573280'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='137559920566224'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='137559896362016'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='137559896369408'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+tests/property/test_application_properties.py::TestPublicTrackingWithoutAuth::test_track_view_returns_404_for_a_nonexistent_tracking_secret
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/cache/backends/base.py:119: CacheKeyWarning: Cache key contains characters that will cause errors if used with memcached: ":1:throttle_public_tracking_failure_ip_<MagicMock name='mock.META.get()' id='137559921731504'>"
+    warnings.warn(warning, CacheKeyWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+4 failed, 163 passed, 56 warnings in 24.76s
+EXIT=1

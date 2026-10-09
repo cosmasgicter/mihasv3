@@ -1,0 +1,3073 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.13-3.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-13-3",
+        "name": "chromium-13-3",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/viewport-pixel-matrix\\.spec\\.ts$/",
+          "/required\\/a11y-zoom-dimensions\\.spec\\.ts$/",
+          "/required\\/axe-viewport-sweep\\.spec\\.ts$/",
+          "/required\\/long-content-tenant-strings\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-13-3",
+        "name": "mobile-13-3",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/viewport-pixel-matrix\\.spec\\.ts$/",
+          "/required\\/a11y-zoom-dimensions\\.spec\\.ts$/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.3/raw/playwright-report.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "../../docs/v2-evidence/13.3/raw/html-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "a11y-zoom-dimensions.spec.ts",
+      "file": "a11y-zoom-dimensions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the dashboard is fully operable by keyboard, with a visible focus indicator at every stop",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1446,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:24.545Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-7044dc4012fc51582693",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 113,
+          "column": 1
+        },
+        {
+          "title": "the student surfaces expose a coherent accessibility tree to a screen reader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2285,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:28.909Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-6f06c7e78316f3de2169",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 232,
+          "column": 1
+        },
+        {
+          "title": "a product dialog contains focus and returns it to the trigger on dismissal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1812,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:31.307Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-863ebc7dee4026d8fe87",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a refused sign-in reaches a user who cannot see the layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1368,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:33.226Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-24ce486216a2cc540639",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 473,
+          "column": 1
+        },
+        {
+          "title": "reduced motion is honoured on every animated surface",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3071,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:34.664Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-2199c295736e0bc9022b",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 574,
+          "column": 1
+        },
+        {
+          "title": "the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3501,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:37.820Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-ec7e2a2f59305ab6788d",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 675,
+          "column": 3
+        },
+        {
+          "title": "the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4210,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:41.439Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-95af52f6d2d8e22ed0d0",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 675,
+          "column": 3
+        },
+        {
+          "title": "the next action and autosave state stay understandable on slow 3G and offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24995,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:05:45.761Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-bf523d252c58a3e4d9bf",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 823,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-10: an offline chunk failure tells the student about the connection (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                    "line": 1129,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4302,
+                  "error": {
+                    "message": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1183:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                      "column": 7,
+                      "line": 1183
+                    },
+                    "snippet": "  1181 |       shown.namesTheConnection,\n  1182 |       `an offline failure must name the connection; measured: \"${shown.text}\"`,\n> 1183 |     ).toBeTruthy();\n       |       ^\n  1184 |     expect(\n  1185 |       shown.leaksInternalError,\n  1186 |       `an offline failure must not print an internal error at the student; ` +"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                        "column": 7,
+                        "line": 1183
+                      },
+                      "message": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  1181 |       shown.namesTheConnection,\n  1182 |       `an offline failure must name the connection; measured: \"${shown.text}\"`,\n> 1183 |     ).toBeTruthy();\n       |       ^\n  1184 |     expect(\n  1185 |       shown.leaksInternalError,\n  1186 |       `an offline failure must not print an internal error at the student; ` +\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1183:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:10.884Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                        "line": 1129,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                    "column": 7,
+                    "line": 1183
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-fbac3130b6f52e045f95",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 1129,
+          "column": 6
+        },
+        {
+          "title": "the dashboard is fully operable by keyboard, with a visible focus indicator at every stop",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1796,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:23.226Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-d-ca0c0-cus-indicator-at-every-stop-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-98ed1130a6d0f314370a",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 113,
+          "column": 1
+        },
+        {
+          "title": "the student surfaces expose a coherent accessibility tree to a screen reader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2466,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:28.300Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-s-95ca2-ity-tree-to-a-screen-reader-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-7a87d58d4de550412335",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 232,
+          "column": 1
+        },
+        {
+          "title": "a product dialog contains focus and returns it to the trigger on dismissal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1960,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:30.878Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-pro-b72c3-to-the-trigger-on-dismissal-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-b6b3673b8f1776ac83ca",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "a refused sign-in reaches a user who cannot see the layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1520,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:32.950Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-a-ref-a8432-r-who-cannot-see-the-layout-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-b3d2230b0034707895c5",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 473,
+          "column": 1
+        },
+        {
+          "title": "reduced motion is honoured on every animated surface",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3557,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:34.555Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-reduc-84ba3-d-on-every-animated-surface-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-fd57de932eb1382e0b44",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 574,
+          "column": 1
+        },
+        {
+          "title": "the next action survives 200 percent text zoom (WCAG 1.4.4 at the 320 px design width)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:38.206Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-fab16-at-the-320-px-design-width--mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-fa93ea82ad21e0923ae3",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 675,
+          "column": 3
+        },
+        {
+          "title": "the next action survives 400 percent text zoom (WCAG 1.4.10's 1280x1024 reflow construction)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5154,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:42.056Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-e0a25-0x1024-reflow-construction--mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-4985a407ea20a673c629",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 675,
+          "column": 3
+        },
+        {
+          "title": "the next action and autosave state stay understandable on slow 3G and offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24858,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:47.341Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-the-n-0103e-able-on-slow-3G-and-offline-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-3c01d9b1155db3e3cd3e",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 823,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-10: an offline chunk failure tells the student about the connection (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                    "line": 1129,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4168,
+                  "error": {
+                    "message": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1183:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                      "column": 7,
+                      "line": 1183
+                    },
+                    "snippet": "  1181 |       shown.namesTheConnection,\n  1182 |       `an offline failure must name the connection; measured: \"${shown.text}\"`,\n> 1183 |     ).toBeTruthy();\n       |       ^\n  1184 |     expect(\n  1185 |       shown.leaksInternalError,\n  1186 |       `an offline failure must not print an internal error at the student; ` +"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                        "column": 7,
+                        "line": 1183
+                      },
+                      "message": "Error: an offline failure must name the connection; measured: \"Something went wrong Cannot read properties of undefined (reading 'SessionMonitor') Try Again Contact Support\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  1181 |       shown.namesTheConnection,\n  1182 |       `an offline failure must name the connection; measured: \"${shown.text}\"`,\n> 1183 |     ).toBeTruthy();\n       |       ^\n  1184 |     expect(\n  1185 |       shown.leaksInternalError,\n  1186 |       `an offline failure must not print an internal error at the student; ` +\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts:1183:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:24:12.331Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                        "line": 1129,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--mobile-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/a11y-zoom-dimensions-GATE--7f084-onnection-expected-failure--mobile-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/a11y-zoom-dimensions.spec.ts",
+                    "column": 7,
+                    "line": 1183
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "687916cbc182ff74cbfe-9d5d0056c6a784eed6ab",
+          "file": "a11y-zoom-dimensions.spec.ts",
+          "line": 1129,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "axe-viewport-sweep.spec.ts",
+      "file": "axe-viewport-sweep.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7527,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:15.331Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-b618d-ocking-violation-at-320x568-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-b618d-ocking-violation-at-320x568-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-221ba606579d1e9e8711",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8486,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:25.823Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-b8be9-ocking-violation-at-375x667-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-b8be9-ocking-violation-at-375x667-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-a844fd22638344f506ca",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7463,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:35.407Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-a8b77-ocking-violation-at-390x844-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-a8b77-ocking-violation-at-390x844-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-710dc055c2ec109a09ad",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8080,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:43.999Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-3e471-cking-violation-at-768x1024-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-3e471-cking-violation-at-768x1024-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-4b53dc9561fb6068d59e",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7703,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:06:53.326Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-ba795-cking-violation-at-1280x800-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-ba795-cking-violation-at-1280x800-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-d303a5446537ddd0b01c",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "axe WCAG A/AA reports no blocking violation at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7625,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:07:02.126Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-ec2a8-cking-violation-at-1440x900-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-axe-WCA-ec2a8-cking-violation-at-1440x900-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-51aa6f9b7b87188eec39",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 228,
+          "column": 3
+        },
+        {
+          "title": "GATE-13.3-11: the bottom navigation has accessible names at 320x568 (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts",
+                    "line": 269,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1894,
+                  "error": {
+                    "message": "Error: the bottom navigation should expose an accessible name for every item at 320x568; measured names: [{\"href\":\"/student/dashboard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/application-wizard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/communications\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/payment\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":null,\"ariaLabel\":\"More navigation items\",\"text\":\"\"}]\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"[serious] link-name x4\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: the bottom navigation should expose an accessible name for every item at 320x568; measured names: [{\"href\":\"/student/dashboard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/application-wizard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/communications\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/payment\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":null,\"ariaLabel\":\"More navigation items\",\"text\":\"\"}]\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"[serious] link-name x4\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts:312:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts",
+                      "column": 7,
+                      "line": 312
+                    },
+                    "snippet": "  310 |       `the bottom navigation should expose an accessible name for every item at ` +\n  311 |         `320x568; measured names: ${JSON.stringify(names)}`,\n> 312 |     ).toEqual([]);\n      |       ^\n  313 |   },\n  314 | );\n  315 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts",
+                        "column": 7,
+                        "line": 312
+                      },
+                      "message": "Error: the bottom navigation should expose an accessible name for every item at 320x568; measured names: [{\"href\":\"/student/dashboard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/application-wizard\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/communications\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":\"/student/payment\",\"ariaLabel\":null,\"text\":\"\"},{\"href\":null,\"ariaLabel\":\"More navigation items\",\"text\":\"\"}]\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"[serious] link-name x4\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  310 |       `the bottom navigation should expose an accessible name for every item at ` +\n  311 |         `320x568; measured names: ${JSON.stringify(names)}`,\n> 312 |     ).toEqual([]);\n      |       ^\n  313 |   },\n  314 | );\n  315 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts:312:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:07:10.791Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts",
+                        "line": 269,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-GATE-13-b7cfe-t-320x568-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-GATE-13-b7cfe-t-320x568-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/axe-viewport-sweep-GATE-13-b7cfe-t-320x568-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/axe-viewport-sweep.spec.ts",
+                    "column": 7,
+                    "line": 312
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c38022f9de0ec7d511d-a3f719751d708edfb26a",
+          "file": "axe-viewport-sweep.spec.ts",
+          "line": 269,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "long-content-tenant-strings.spec.ts",
+      "file": "long-content-tenant-strings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a 180-character program name and 120-character intake name hold at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168407,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:07:12.954Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-86466-name-hold-at-all-six-widths-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-86466-name-hold-at-all-six-widths-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-89fb02266378c76fe04e",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 396,
+          "column": 1
+        },
+        {
+          "title": "localized program names (RTL, CJK, Devanagari) hold at the narrowest and widest widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 28977,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:10:03.669Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-e8bd2-narrowest-and-widest-widths-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-e8bd2-narrowest-and-widest-widths-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-be5496c826995e6a4ca7",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 466,
+          "column": 1
+        },
+        {
+          "title": "a 150-character tenant name resolves through context without breaking a layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 42342,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:10:32.819Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-73c9e-t-without-breaking-a-layout-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-73c9e-t-without-breaking-a-layout-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-303edf00d7984bbe04bc",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 538,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-13: an application can be created for a legally-named long intake (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "line": 646,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 946,
+                  "error": {
+                    "message": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"0c765031-7ba5-4f4d-8a13-d5dc418bcfc7\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m",
+                    "stack": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"0c765031-7ba5-4f4d-8a13-d5dc418bcfc7\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:727:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                      "column": 7,
+                      "line": 727
+                    },
+                    "snippet": "  725 |       `application create should not be a server error for an intake name the ` +\n  726 |         `catalogue accepted (${OVERLONG_INTAKE_NAME.length} chars); got ${status}: ${body.slice(0, 200)}`,\n> 727 |     ).toBeLessThan(500);\n      |       ^\n  728 |   },\n  729 | );\n  730 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "column": 7,
+                        "line": 727
+                      },
+                      "message": "Error: application create should not be a server error for an intake name the catalogue accepted (113 chars); got 500: {\"success\":false,\"error\":\"An unexpected error occurred. Please try again later.\",\"code\":\"INTERNAL_ERROR\",\"request_id\":\"0c765031-7ba5-4f4d-8a13-d5dc418bcfc7\"}\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m500\u001b[39m\nReceived:   \u001b[31m500\u001b[39m\n\n  725 |       `application create should not be a server error for an intake name the ` +\n  726 |         `catalogue accepted (${OVERLONG_INTAKE_NAME.length} chars); got ${status}: ${body.slice(0, 200)}`,\n> 727 |     ).toBeLessThan(500);\n      |       ^\n  728 |   },\n  729 | );\n  730 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:727:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:11:15.232Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "line": 646,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-ef28a-ng-intake-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-ef28a-ng-intake-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "column": 7,
+                    "line": 727
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-fb8b3d4dac39f4986647",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 646,
+          "column": 6
+        },
+        {
+          "title": "GATE-13.3-14: the rendered font stack is the full declared chain (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "line": 771,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1146,
+                  "error": {
+                    "message": "Error: the rendered font stack should carry the declared fallbacks; measured 3: Inter, system-ui, sans-serif\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"Noto Sans\"\u001b[39m\nReceived array: \u001b[31m[\"Inter\", \"system-ui\", \"sans-serif\"]\u001b[39m",
+                    "stack": "Error: the rendered font stack should carry the declared fallbacks; measured 3: Inter, system-ui, sans-serif\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"Noto Sans\"\u001b[39m\nReceived array: \u001b[31m[\"Inter\", \"system-ui\", \"sans-serif\"]\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:808:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                      "column": 7,
+                      "line": 808
+                    },
+                    "snippet": "  806 |       `the rendered font stack should carry the declared fallbacks; measured ` +\n  807 |         `${families.length}: ${measured.body}`,\n> 808 |     ).toContain('Noto Sans');\n      |       ^\n  809 |   },\n  810 | );\n  811 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "column": 7,
+                        "line": 808
+                      },
+                      "message": "Error: the rendered font stack should carry the declared fallbacks; measured 3: Inter, system-ui, sans-serif\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"Noto Sans\"\u001b[39m\nReceived array: \u001b[31m[\"Inter\", \"system-ui\", \"sans-serif\"]\u001b[39m\n\n  806 |       `the rendered font stack should carry the declared fallbacks; measured ` +\n  807 |         `${families.length}: ${measured.body}`,\n> 808 |     ).toContain('Noto Sans');\n      |       ^\n  809 |   },\n  810 | );\n  811 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts:808:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:11:16.216Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                        "line": 771,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-1dbad-red-chain-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-1dbad-red-chain-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/long-content-tenant-string-1dbad-red-chain-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/long-content-tenant-strings.spec.ts",
+                    "column": 7,
+                    "line": 808
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59a96934c718e0448461-499aa1eb5ef4638af97e",
+          "file": "long-content-tenant-strings.spec.ts",
+          "line": 771,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "viewport-pixel-matrix.spec.ts",
+      "file": "viewport-pixel-matrix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "every student surface holds at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 112579,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:11:17.513Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-81ef44a7a29fa868aab4",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113037,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:13:12.364Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-9afd0f094cd0f36f8c83",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 112529,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:15:05.611Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-fe7db2d326a1b5e56775",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113053,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:16:58.371Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-22ab512c148e69354052",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113570,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:18:51.639Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-d5de7b9353c7d7d78be8",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113956,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:20:45.397Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-9265cc4e12f90757129c",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "the server-derived next action is fully visible, unscrolled, at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1021,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:22:39.524Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-da32e5baf5cb2b99e8f6",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 339,
+          "column": 1
+        },
+        {
+          "title": "the wizard action bar and bottom navigation respect the bottom safe area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2481,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:22:40.649Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-888895af479675c91c3f",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 448,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-01: every pointer target is >= 44x44 on the dashboard (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 547,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1346,
+                  "error": {
+                    "message": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at assertTouchTargets (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts:928:5)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:581:5",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                      "column": 5,
+                      "line": 928
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39m../helpers/pixel-checks.ts:928\n\n  926 |     `${surface}: every pointer target should be >= 44x44 CSS px (R16.2); ` +\n  927 |       `scanned ${report.scanned}, min ${report.minWidth}x${report.minHeight}`,\n> 928 |   ).toEqual([]);\n      |     ^\n  929 | }\n  930 |\n  931 | export function assertNoOverflow(report: OverflowReport, surface: string): void {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                        "column": 5,
+                        "line": 928
+                      },
+                      "message": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n   at ../helpers/pixel-checks.ts:928\n\n  926 |     `${surface}: every pointer target should be >= 44x44 CSS px (R16.2); ` +\n  927 |       `scanned ${report.scanned}, min ${report.minWidth}x${report.minHeight}`,\n> 928 |   ).toEqual([]);\n      |     ^\n  929 | }\n  930 |\n  931 | export function assertNoOverflow(report: OverflowReport, surface: string): void {\n    at assertTouchTargets (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts:928:5)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:581:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:22:43.252Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 547,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                    "column": 5,
+                    "line": 928
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-74b135206dec370d3960",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 547,
+          "column": 6
+        },
+        {
+          "title": "cumulative layout shift stays within budget at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 32382,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:22:44.682Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-chromium-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-c39cdfca490c5cf35270",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 602,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-09/-04: the bare /student/status route resolves and its controls meet 44px (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 695,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2481,
+                  "error": {
+                    "message": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m",
+                    "stack": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:758:11",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                      "column": 11,
+                      "line": 758
+                    },
+                    "snippet": "  756 |       `a student owning ${owned.length} application(s) should not be told none exists ` +\n  757 |         `on the canonical status route; rendered: \"${shown.bodyText}\"`,\n> 758 |     ).not.toMatch(/not found/i);\n      |           ^\n  759 |     // GATE-13.3-04's claim: every control on the error state meets 44 px.\n  760 |     assertTouchTargets(targets, '/student/status (no id)');\n  761 |   },"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "column": 11,
+                        "line": 758
+                      },
+                      "message": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m\n\n  756 |       `a student owning ${owned.length} application(s) should not be told none exists ` +\n  757 |         `on the canonical status route; rendered: \"${shown.bodyText}\"`,\n> 758 |     ).not.toMatch(/not found/i);\n      |           ^\n  759 |     // GATE-13.3-04's claim: every control on the error state meets 44 px.\n  760 |     assertTouchTargets(targets, '/student/status (no id)');\n  761 |   },\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:758:11"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:17.513Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 695,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "column": 11,
+                    "line": 758
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-6d1e95d65afdd18c3f7c",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 695,
+          "column": 6
+        },
+        {
+          "title": "GATE-13.3-16: no fixed bar overlaps the next action at 320x568 (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 798,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "chromium-13-3",
+              "projectName": "chromium-13-3",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1247,
+                  "error": {
+                    "message": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 457.156-525.156 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.267,\u001b[39m\n\u001b[31m+     \"overlapPx\": 18.156,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 457.156-525.156 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.267,\u001b[39m\n\u001b[31m+     \"overlapPx\": 18.156,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:836:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                      "column": 7,
+                      "line": 836
+                    },
+                    "snippet": "  834 |         `first mobile viewport (R16.3, R16.7); the action spans ` +\n  835 |         `${action.top}-${action.bottom} of a ${action.viewportHeight}px viewport`,\n> 836 |     ).toEqual([]);\n      |       ^\n  837 |   },\n  838 | );\n  839 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "column": 7,
+                        "line": 836
+                      },
+                      "message": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 457.156-525.156 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.267,\u001b[39m\n\u001b[31m+     \"overlapPx\": 18.156,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  834 |         `first mobile viewport (R16.3, R16.7); the action spans ` +\n  835 |         `${action.top}-${action.bottom} of a ${action.viewportHeight}px viewport`,\n> 836 |     ).toEqual([]);\n      |       ^\n  837 |   },\n  838 | );\n  839 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:836:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:23:20.054Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 798,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--chromium-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--chromium-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--chromium-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "column": 7,
+                    "line": 836
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-e72dfefb174f2bbcc962",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 798,
+          "column": 6
+        },
+        {
+          "title": "every student surface holds at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113583,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:24:16.590Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-320x568-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-16dbf1e46820f9664edb",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 375x667",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114256,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:26:12.263Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-375x667-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-116083a5b5b1575afbed",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 390x844",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 113920,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:28:06.667Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-every-student-surface-holds-at-390x844-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-09c560fbe96caad8ff7b",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 768x1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 114095,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:30:00.756Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-0e544-t-surface-holds-at-768x1024-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-c9358dab3cb1d0e90c8e",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1280x800",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 116520,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:31:55.206Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-b6de9-t-surface-holds-at-1280x800-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-487d6c61aff08ed1e98a",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "every student surface holds at 1440x900",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 116457,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:33:52.012Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-ever-4ebd6-t-surface-holds-at-1440x900-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-e473f263cba9f79cdd4f",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 292,
+          "column": 3
+        },
+        {
+          "title": "the server-derived next action is fully visible, unscrolled, at 320x568",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1565,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:35:48.763Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--5011c-sible-unscrolled-at-320x568-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-25a221a7f8b3e0fe52d7",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 339,
+          "column": 1
+        },
+        {
+          "title": "the wizard action bar and bottom navigation respect the bottom safe area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2641,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:35:50.413Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-the--d4074-espect-the-bottom-safe-area-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-c7a5a0fc166a22159ed1",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 448,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-01: every pointer target is >= 44x44 on the dashboard (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 547,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1491,
+                  "error": {
+                    "message": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at assertTouchTargets (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts:928:5)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:581:5",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                      "column": 5,
+                      "line": 928
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39m../helpers/pixel-checks.ts:928\n\n  926 |     `${surface}: every pointer target should be >= 44x44 CSS px (R16.2); ` +\n  927 |       `scanned ${report.scanned}, min ${report.minWidth}x${report.minHeight}`,\n> 928 |   ).toEqual([]);\n      |     ^\n  929 | }\n  930 |\n  931 | export function assertNoOverflow(report: OverflowReport, surface: string): void {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                        "column": 5,
+                        "line": 928
+                      },
+                      "message": "Error: /student/dashboard @ 320x568 (unweakened): every pointer target should be >= 44x44 CSS px (R16.2); scanned 19, min 40x40\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"button[Open profile settings] 40x40\",\u001b[39m\n\u001b[31m+   \"button[Log out] 40x40\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n   at ../helpers/pixel-checks.ts:928\n\n  926 |     `${surface}: every pointer target should be >= 44x44 CSS px (R16.2); ` +\n  927 |       `scanned ${report.scanned}, min ${report.minWidth}x${report.minHeight}`,\n> 928 |   ).toEqual([]);\n      |     ^\n  929 | }\n  930 |\n  931 | export function assertNoOverflow(report: OverflowReport, surface: string): void {\n    at assertTouchTargets (/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts:928:5)\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:581:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:35:53.215Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 547,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--mobile-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-d0bfa-dashboard-expected-failure--mobile-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/helpers/pixel-checks.ts",
+                    "column": 5,
+                    "line": 928
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-cdb8ac93231b9147fbf6",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 547,
+          "column": 6
+        },
+        {
+          "title": "cumulative layout shift stays within budget at all six widths",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 33907,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:35:54.801Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-cumu-09126-in-budget-at-all-six-widths-mobile-13-3/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-d76b3b8574a366b8a807",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 602,
+          "column": 1
+        },
+        {
+          "title": "GATE-13.3-09/-04: the bare /student/status route resolves and its controls meet 44px (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 695,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2582,
+                  "error": {
+                    "message": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m",
+                    "stack": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:758:11",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                      "column": 11,
+                      "line": 758
+                    },
+                    "snippet": "  756 |       `a student owning ${owned.length} application(s) should not be told none exists ` +\n  757 |         `on the canonical status route; rendered: \"${shown.bodyText}\"`,\n> 758 |     ).not.toMatch(/not found/i);\n      |           ^\n  759 |     // GATE-13.3-04's claim: every control on the error state meets 44 px.\n  760 |     assertTouchTargets(targets, '/student/status (no id)');\n  761 |   },"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "column": 11,
+                        "line": 758
+                      },
+                      "message": "Error: a student owning 2 application(s) should not be told none exists on the canonical status route; rendered: \"Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: not \u001b[32m/not found/i\u001b[39m\nReceived string:      \u001b[31m\"Skip to main content Application Status 1 Application Status Application \u001b[7mNot Found\u001b[27m Application not found or access denied Try Again Contact Support Runtime Frontend 2.0.0-harnes Backend 2.0.0\"\u001b[39m\n\n  756 |       `a student owning ${owned.length} application(s) should not be told none exists ` +\n  757 |         `on the canonical status route; rendered: \"${shown.bodyText}\"`,\n> 758 |     ).not.toMatch(/not found/i);\n      |           ^\n  759 |     // GATE-13.3-04's claim: every control on the error state meets 44 px.\n  760 |     assertTouchTargets(targets, '/student/status (no id)');\n  761 |   },\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:758:11"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:36:29.235Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 695,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--mobile-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-657d9-meet-44px-expected-failure--mobile-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "column": 11,
+                    "line": 758
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-975c222fef9f0bde1e13",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 695,
+          "column": 6
+        },
+        {
+          "title": "GATE-13.3-16: no fixed bar overlaps the next action at 320x568 (expected failure)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [
+                {
+                  "type": "fail",
+                  "location": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "line": 798,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "failed",
+              "projectId": "mobile-13-3",
+              "projectName": "mobile-13-3",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1409,
+                  "error": {
+                    "message": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 459.546-527.546 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.3021,\u001b[39m\n\u001b[31m+     \"overlapPx\": 20.546,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 459.546-527.546 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.3021,\u001b[39m\n\u001b[31m+     \"overlapPx\": 20.546,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:836:7",
+                    "location": {
+                      "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                      "column": 7,
+                      "line": 836
+                    },
+                    "snippet": "  834 |         `first mobile viewport (R16.3, R16.7); the action spans ` +\n  835 |         `${action.top}-${action.bottom} of a ${action.viewportHeight}px viewport`,\n> 836 |     ).toEqual([]);\n      |       ^\n  837 |   },\n  838 | );\n  839 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "column": 7,
+                        "line": 836
+                      },
+                      "message": "Error: no fixed or sticky surface should overlap the primary next action in the first mobile viewport (R16.3, R16.7); the action spans 459.546-527.546 of a 568px viewport\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 8\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"bar\": \"nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr\",\u001b[39m\n\u001b[31m+     \"barTop\": 507,\u001b[39m\n\u001b[31m+     \"fractionOfActionCovered\": 0.3021,\u001b[39m\n\u001b[31m+     \"overlapPx\": 20.546,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  834 |         `first mobile viewport (R16.3, R16.7); the action spans ` +\n  835 |         `${action.top}-${action.bottom} of a ${action.viewportHeight}px viewport`,\n> 836 |     ).toEqual([]);\n      |       ^\n  837 |   },\n  838 | );\n  839 |\n    at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts:836:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-12T14:36:31.877Z",
+                  "annotations": [
+                    {
+                      "type": "fail",
+                      "location": {
+                        "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                        "line": 798,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--mobile-13-3/test-finished-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--mobile-13-3/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.3/raw/artifacts/viewport-pixel-matrix-GATE-06dbb-t-320x568-expected-failure--mobile-13-3/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/viewport-pixel-matrix.spec.ts",
+                    "column": 7,
+                    "line": 836
+                  }
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3dee936daaafefc5cd28-e93c5acece570ee4dcfc",
+          "file": "viewport-pixel-matrix.spec.ts",
+          "line": 798,
+          "column": 6
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-12T14:05:23.302Z",
+    "duration": 1870224.01,
+    "expected": 54,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

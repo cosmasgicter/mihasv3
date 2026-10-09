@@ -1,0 +1,179 @@
+=== COMMAND: python3 scripts/validate_spec_metadata.py ===
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /home/cosmas/Downloads/mihasv3/.kiro/specs
+Live specs: 8
+Errors: 0  Warnings: 2
+
+Live spec IDs:
+  admin-dashboard-overhaul: 8c3a1e06-83ec-4d86-bea1-a8a53e7ec222
+  admissions-v2-canonical-rebuild: d1300058-e07d-433d-8aac-87e9986794a6
+  beanola-launch-verification: 06876e0c-0ba4-44d5-b3ad-a44493273873
+  communications-history: 1a48f276-e3fe-4fb9-9b0c-496404ffe6b8
+  full-platform-remediation-2026-07: full-platform-remediation-2026-07
+  profile-updates: a7462ced-57e8-4ead-8df5-b89b703a2c48
+  student-payment-interview-pages: <no-config>
+  student-ui-ux-mobile-remediation: <no-id>
+
+WARNINGS (informational):
+  [student-payment-interview-pages] no .config.kiro file (spec has no tracked metadata)
+  [student-ui-ux-mobile-remediation] no spec id field (expected one of: specId, spec_id, id)
+
+RESULT: PASS
+EXIT=0
+
+=== COMMAND: python3 scripts/tests/test_validate_spec_metadata.py ===
+test_alternate_id_key_is_accepted (__main__.ConfigIntegrityTests.test_alternate_id_key_is_accepted) ... ok
+test_invalid_json_is_an_error (__main__.ConfigIntegrityTests.test_invalid_json_is_an_error) ... ok
+test_missing_config_is_a_warning (__main__.ConfigIntegrityTests.test_missing_config_is_a_warning) ... ok
+test_missing_id_field_is_a_warning (__main__.ConfigIntegrityTests.test_missing_id_field_is_a_warning) ... ok
+test_archived_specs_are_ignored (__main__.DuplicateDetectionTests.test_archived_specs_are_ignored)
+An underscore-prefixed holding area is history, not a live spec. ... ok
+test_duplicate_live_ids_are_an_error (__main__.DuplicateDetectionTests.test_duplicate_live_ids_are_an_error)
+Intentional failing fixture: two live specs sharing one id. ... ok
+test_unique_live_ids_pass (__main__.DuplicateDetectionTests.test_unique_live_ids_pass) ... ok
+test_admissions_v2_spec_is_registered_and_unique (__main__.RealRepoRegressionTests.test_admissions_v2_spec_is_registered_and_unique) ... ok
+test_repo_specs_have_no_duplicate_ids (__main__.RealRepoRegressionTests.test_repo_specs_have_no_duplicate_ids)
+GOV-03 closure guard: the live repo specs carry unique ids. ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.003s
+
+OK
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpo4w4iyfv
+Live specs: 1
+Errors: 0  Warnings: 1
+
+Live spec IDs:
+  no-config: <no-config>
+
+WARNINGS (informational):
+  [no-config] no .config.kiro file (spec has no tracked metadata)
+
+RESULT: PASS
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpo4w4iyfv
+Live specs: 1
+Errors: 0  Warnings: 1
+
+Live spec IDs:
+  no-config: <no-config>
+
+WARNINGS (informational):
+  [no-config] no .config.kiro file (spec has no tracked metadata)
+
+RESULT: PASS
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmpjs1w2uy8
+Live specs: 2
+Errors: 2  Warnings: 0
+
+Live spec IDs:
+  alpha: dup-id-xyz
+  beta: dup-id-xyz
+
+ERRORS (block):
+  [alpha] duplicate live spec id 'dup-id-xyz' shared by: alpha, beta
+  [beta] duplicate live spec id 'dup-id-xyz' shared by: alpha, beta
+
+RESULT: FAIL (duplicate/invalid spec metadata)
+============================================================
+SPEC METADATA VALIDATION
+============================================================
+Specs root: /tmp/tmp_htxo8_e
+Live specs: 2
+Errors: 0  Warnings: 0
+
+Live spec IDs:
+  alpha: id-a
+  beta: id-b
+
+RESULT: PASS
+EXIT=0
+
+=== COMMAND: python3 scripts/tests/test_validate_spec_governance.py ===
+test_fully_satisfied_spec_passes (__main__.CleanSpecPassesTests.test_fully_satisfied_spec_passes) ... ok
+test_clean_target_exits_zero (__main__.CliExitCodeTests.test_clean_target_exits_zero) ... ok
+test_violation_exits_two (__main__.CliExitCodeTests.test_violation_exits_two) ... ok
+test_finding_row_parser_ignores_header_and_separator (__main__.ParserRobustnessTests.test_finding_row_parser_ignores_header_and_separator) ... ok
+test_requirement_tokens_ignore_trailing_underscore_and_ranges (__main__.ParserRobustnessTests.test_requirement_tokens_ignore_trailing_underscore_and_ranges) ... ok
+test_task_ids_with_and_without_trailing_period (__main__.ParserRobustnessTests.test_task_ids_with_and_without_trailing_period) ... ok
+test_admissions_v2_spec_passes_all_rules (__main__.RealRepoRegressionTests.test_admissions_v2_spec_passes_all_rules) ... FAIL
+test_all_specs_audit_detects_known_false_completed (__main__.RealRepoRegressionTests.test_all_specs_audit_detects_known_false_completed) ... ok
+test_v2_spec_shape_is_parsed (__main__.RealRepoRegressionTests.test_v2_spec_shape_is_parsed) ... FAIL
+test_duplicate_live_spec_id_fails_via_delegation (__main__.RuleDuplicateSpecIdTests.test_duplicate_live_spec_id_fails_via_delegation) ... ok
+test_unique_ids_do_not_trip_duplicate_rule (__main__.RuleDuplicateSpecIdTests.test_unique_ids_do_not_trip_duplicate_rule) ... ok
+test_completed_spec_with_all_tasks_checked_passes_status_rule (__main__.RuleFalseCompletedTests.test_completed_spec_with_all_tasks_checked_passes_status_rule) ... ok
+test_completed_spec_with_unchecked_task_fails (__main__.RuleFalseCompletedTests.test_completed_spec_with_unchecked_task_fails) ... ok
+test_checked_task_with_descriptor_but_no_evidence_dir_fails (__main__.RuleMissingEvidenceTests.test_checked_task_with_descriptor_but_no_evidence_dir_fails) ... ok
+test_checked_task_without_evidence_descriptor_or_dir_fails (__main__.RuleMissingEvidenceTests.test_checked_task_without_evidence_descriptor_or_dir_fails) ... ok
+test_unchecked_task_needs_no_evidence (__main__.RuleMissingEvidenceTests.test_unchecked_task_needs_no_evidence) ... ok
+test_finding_owned_as_last_token_with_trailing_underscore_passes (__main__.RuleUnownedFindingTests.test_finding_owned_as_last_token_with_trailing_underscore_passes) ... ok
+test_finding_without_owner_requirement_fails (__main__.RuleUnownedFindingTests.test_finding_without_owner_requirement_fails) ... ok
+test_all_requirements_referenced_passes (__main__.RuleUnreferencedRequirementTests.test_all_requirements_referenced_passes) ... ok
+test_requirement_referenced_by_no_task_fails (__main__.RuleUnreferencedRequirementTests.test_requirement_referenced_by_no_task_fails) ... ok
+
+======================================================================
+FAIL: test_admissions_v2_spec_passes_all_rules (__main__.RealRepoRegressionTests.test_admissions_v2_spec_passes_all_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/scripts/tests/test_validate_spec_governance.py", line 464, in test_admissions_v2_spec_passes_all_rules
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        result["ok"],
+        ^^^^^^^^^^^^^
+        msg="V2 governance errors: %s"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        % [f for f in result["findings"] if f["severity"] == "error"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: False is not true : V2 governance errors: [{'severity': 'error', 'spec': 'admissions-v2-canonical-rebuild', 'rule': 'missing-evidence', 'message': 'task 4.1 is checked but has no linked Required_Evidence at /home/cosmas/Downloads/mihasv3/docs/v2-evidence/4.1 (a checklist mark is not evidence)'}, {'severity': 'error', 'spec': 'admissions-v2-canonical-rebuild', 'rule': 'missing-evidence', 'message': 'task 7.4 is checked but has no linked Required_Evidence at /home/cosmas/Downloads/mihasv3/docs/v2-evidence/7.4 (a checklist mark is not evidence)'}]
+
+======================================================================
+FAIL: test_v2_spec_shape_is_parsed (__main__.RealRepoRegressionTests.test_v2_spec_shape_is_parsed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/cosmas/Downloads/mihasv3/scripts/tests/test_validate_spec_governance.py", line 480, in test_v2_spec_shape_is_parsed
+    self.assertEqual(result["finding_count"], 70)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 71 != 70
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.026s
+
+FAILED (failures=2)
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmptk0op6_9/.kiro/specs
+Evidence root: /tmp/tmptk0op6_9/docs/v2-evidence
+Target:        only-spec
+Errors: 0  Warnings: 0
+
+[only-spec] status=planned reqs=1 findings=1 tasks=1 (checked=1)
+
+RESULT: PASS
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmpknzxwnms/.kiro/specs
+Evidence root: /tmp/tmpknzxwnms/docs/v2-evidence
+Target:        only-spec
+Errors: 1  Warnings: 0
+
+[only-spec] status=completed reqs=1 findings=1 tasks=1 (checked=0)
+
+ERRORS (block):
+  [only-spec] (false-completed) spec is marked status=completed but 1 required task(s) are unchecked: 1.1
+
+RESULT: FAIL (governance violations present)
+EXIT=1

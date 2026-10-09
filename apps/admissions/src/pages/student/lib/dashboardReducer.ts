@@ -1,10 +1,6 @@
 import type { Application, Intake, ApplicationInterview } from '@/types/database'
 import type { QueryClient } from '@tanstack/react-query'
 import type { PaginatedApplicationsResponse } from '@/services/applications'
-import { draftManager } from '@/lib/draftManager'
-import { useToastStore } from '@/hooks/useToast'
-import { logApiError } from '@/lib/apiErrorLogger'
-import { toError } from '@/lib/toError'
 
 // -- State ------------------------------------------------------------------
 
@@ -19,7 +15,6 @@ export interface DashboardState {
   interviewsError: string
   sessionError: string
   hasDraft: boolean
-  isClearingAllDrafts: boolean
 }
 
 export const initialDashboardState: DashboardState = {
@@ -33,7 +28,6 @@ export const initialDashboardState: DashboardState = {
   interviewsError: '',
   sessionError: '',
   hasDraft: false,
-  isClearingAllDrafts: false,
 }
 
 // -- Actions ----------------------------------------------------------------
@@ -49,7 +43,6 @@ export type DashboardAction =
   | { type: 'SET_INTERVIEWS_ERROR'; payload: string }
   | { type: 'SET_SESSION_ERROR'; payload: string }
   | { type: 'SET_HAS_DRAFT'; payload: boolean }
-  | { type: 'SET_CLEARING_DRAFTS'; payload: boolean }
   | { type: 'RESET_ALL' }
   | { type: 'LOAD_START'; isInitial: boolean }
   | { type: 'LOAD_COMPLETE'; isInitial: boolean }
@@ -78,8 +71,6 @@ export function dashboardReducer(state: DashboardState, action: DashboardAction)
       return { ...state, sessionError: action.payload }
     case 'SET_HAS_DRAFT':
       return { ...state, hasDraft: action.payload }
-    case 'SET_CLEARING_DRAFTS':
-      return { ...state, isClearingAllDrafts: action.payload }
     case 'RESET_ALL':
       return { ...initialDashboardState, isInitialLoading: false }
     case 'LOAD_START':
@@ -139,67 +130,22 @@ export function removeDraftsFromApplicationCaches(queryClient: QueryClient, ids:
   )
   idsToRemove.forEach((id) => {
     queryClient.removeQueries({ queryKey: ['applications', 'detail', id] })
-    queryClient.removeQueries({ queryKey: ['application-detail', id] })
+    // Task 10.6 (R13.13): the one canonical workspace key.
+    queryClient.removeQueries({ queryKey: ['application-workspace', id] })
   })
 }
 
-// -- Clear all drafts helper ------------------------------------------------
-
-export interface ClearAllDraftsParams {
-  userId: string
-  applications: Application[]
-  dispatch: React.Dispatch<DashboardAction>
-  queryClient: QueryClient
-  reload: () => Promise<void>
-}
-
-export async function executeClearAllDrafts({
-  userId,
-  applications,
-  dispatch,
-  queryClient,
-  reload,
-}: ClearAllDraftsParams): Promise<void> {
-  dispatch({ type: 'SET_CLEARING_DRAFTS', payload: true })
-  try {
-    const draftIdsBeforeDelete = applications.filter((a) => a.status === 'draft').map((a) => a.id)
-    const deleteResult = await draftManager.clearAllDrafts(userId)
-    const deletedIds = deleteResult.deletedIds?.length ? deleteResult.deletedIds : (deleteResult.success ? draftIdsBeforeDelete : [])
-
-    if (deletedIds.length > 0) {
-      suppressDeletedDraftIds(deletedIds)
-      removeDraftsFromApplicationCaches(queryClient, deletedIds)
-      dispatch({ type: 'SET_APPLICATIONS', payload: applications.filter(app => !deletedIds.includes(app.id)) })
-    }
-
-    if (!deleteResult.success) {
-      if (deleteResult.code === 'DRAFT_HAS_PAYMENT_ACTIVITY') {
-        dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: '' })
-        dispatch({ type: 'SET_HAS_DRAFT', payload: true })
-        useToastStore.getState().warning('Draft protected', 'Some drafts have payment activity and cannot be deleted. Continue the application or contact admissions for help.')
-        await reload()
-        return
-      }
-      const errorMessage = deleteResult.error || 'Failed to clear all drafts from the server'
-      dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: errorMessage })
-      useToastStore.getState().addToast('error', errorMessage)
-      await reload()
-      return
-    }
-
-    if (deletedIds.length === 0) {
-      dispatch({ type: 'SET_APPLICATIONS', payload: applications.filter(app => app.status !== 'draft') })
-    }
-    dispatch({ type: 'SET_HAS_DRAFT', payload: false })
-    dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: '' })
-    useToastStore.getState().addToast('success', 'All drafts cleared successfully')
-    await reload()
-  } catch (error) {
-    logApiError('student-dashboard', '/api/v1/applications/ (clear drafts)', error)
-    const errorMsg = toError(error).message || 'Failed to clear drafts'
-    dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: errorMsg })
-    useToastStore.getState().addToast('error', errorMsg)
-  } finally {
-    dispatch({ type: 'SET_CLEARING_DRAFTS', payload: false })
-  }
-}
+/*
+ * `executeClearAllDrafts` lived here until admissions-v2 task 11.1 (R10.10,
+ * findings STU-04 / STU-12).
+ *
+ * It called `draftManager.clearAllDrafts(userId)` — a global wipe of every draft
+ * the student had, plus a sweep of every draft key in `localStorage` — from a
+ * control that sat on the dashboard beside "Continue application". Draft deletion
+ * is now addressed to exactly one `(user, application)` by
+ * `lib/studentDraftCleanup.ts::deleteStudentDraft`, which is task 6.3's rule, and
+ * it is offered per draft inside `DraftManagementCard` rather than as a bulk
+ * shortcut on a primary workflow (R16.5).
+ *
+ * Nothing replaced it: there is no clear-all on any student surface.
+ */

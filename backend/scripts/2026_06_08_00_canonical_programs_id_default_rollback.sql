@@ -1,0 +1,61 @@
+-- Rollback for 2026_06_08_00_canonical_programs_id_default.sql
+-- (task 13.6 remediation L3).
+--
+-- Operator-run only: *_rollback.sql files are excluded from the
+-- apply_sql_migrations boot sweep by the suffix filter in
+-- ``_iter_migration_files``, so this is never auto-applied.
+--
+-- ===========================================================================
+-- THIS ROLLBACK IS DELIBERATELY LEDGER-ONLY, AND FOR A SHARPER REASON THAN USUAL
+-- ===========================================================================
+--
+-- The mechanical inverse exists and is harmless to data:
+--
+--     ALTER TABLE canonical_programs ALTER COLUMN id DROP DEFAULT;
+--
+-- It is deliberately NOT here, for two independent reasons - either one would be
+-- sufficient:
+--
+--   1. IT WOULD RE-CREATE THE DEFECT. Dropping the default restores exactly the
+--      state GATE-13.4-02 describes: ``apply_sql_migrations`` aborts at
+--      ``2026_06_08_01`` on ``null value in column "id" of relation
+--      "canonical_programs"``, the boot gate keeps refusing, and a restored
+--      backup can no longer be brought forward. A rollback whose effect is "the
+--      database can no longer start" is not a rollback.
+--
+--   2. IT IS OUTSIDE REQUIREMENT 9.2's CLOSED SET.
+--      ``backend/tests/property/test_rollback_safe_operations.py`` allows
+--      ``DROP INDEX / COLUMN / TABLE / SEQUENCE``, ``DELETE FROM
+--      migration_history``, a scoped ``DELETE ... WHERE``, ``ALTER TABLE ...
+--      DROP COLUMN`` and ``ALTER TABLE ... DROP CONSTRAINT``. An
+--      ``ALTER COLUMN ... DROP DEFAULT`` matches none of them and would be
+--      reported as a violation. There are already 26 pre-existing violations in
+--      nine other lanes' files (13.4 §6.1); this pair does not add a 27th, and
+--      it does not widen the allow-list to make room for itself either.
+--
+-- WHAT THIS FILE THEREFORE UNDOES
+-- -------------------------------
+-- The one thing the migration did that outlives it: its ``migration_history``
+-- tracking row. That matters concretely. If an operator ever rolls back
+-- ``2026_06_08_01`` with its own ``*_rollback.sql`` and later re-applies it, the
+-- table can be dropped and recreated; leaving this script's tracking row saying
+-- "applied" would let the sweep skip it, and the database could sit one
+-- ``CREATE TABLE`` variant away from the same deadlock with nothing pending to
+-- explain it. Removing the row lets the next sweep re-assert the default; on a
+-- database that already has it, that re-run is a complete no-op because the
+-- DO-block guard only fires while ``column_default IS NULL``.
+--
+-- SO WHAT IS THE HONEST ROLLBACK STORY FOR R9.2?
+-- ----------------------------------------------
+-- "The forward change is a one-statement catalogue default that no row depends
+-- on, it is safe to leave in place under old application code, and the only
+-- reversible artefact is the ledger row - which this file removes." Rolling the
+-- application back does not require the default to go away: nothing reads it
+-- except an INSERT that omits an id, and a column having a usable default has
+-- never been a compatibility problem for older code. Per
+-- ``.kiro/steering/infrastructure.md`` a rollback is still an operator step -
+-- prove it on Neon, take a backup, never make production the first place it
+-- lands.
+
+DELETE FROM migration_history
+WHERE migration_name = '2026_06_08_00_canonical_programs_id_default.sql';

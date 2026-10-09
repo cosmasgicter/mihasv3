@@ -1,0 +1,181 @@
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+=== Migration Verification Run: 4a47550f ===
+Started at: 2026-07-15T07:38:52.238002+00:00
+
+Step 1: Row count verification
+  [err]  profiles: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  applications: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  application_documents: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  application_grades: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  application_interviews: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  application_status_history: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  application_drafts: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  programs: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  intakes: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  program_intakes: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  course_requirements: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  subjects: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  institutions: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  payments: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  notifications: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  user_notification_preferences: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  email_queue: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  outbox_events: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  device_sessions: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  csrf_tokens: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  password_reset_tokens: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  login_attempts: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  audit_logs: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  idempotency_keys: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  settings: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  user_permission_overrides: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  migration_history: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  program_fees: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  webhook_event_logs: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  error_logs: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+
+Step 2: Foreign key integrity checks
+  [check] applications.user_id → profiles.id
+  [err]  applications.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_documents.application_id → applications.id
+  [err]  application_documents.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_documents.verified_by → profiles.id
+  [err]  application_documents.verified_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_grades.application_id → applications.id
+  [err]  application_grades.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_grades.subject_id → subjects.id
+  [err]  application_grades.subject_id → subjects.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_status_history.application_id → applications.id
+  [err]  application_status_history.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_status_history.changed_by → profiles.id
+  [err]  application_status_history.changed_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_drafts.application_id → applications.id
+  [err]  application_drafts.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_drafts.user_id → profiles.id
+  [err]  application_drafts.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_interviews.application_id → applications.id
+  [err]  application_interviews.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_interviews.created_by → profiles.id
+  [err]  application_interviews.created_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] application_interviews.updated_by → profiles.id
+  [err]  application_interviews.updated_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] applications.payment_verified_by → profiles.id
+  [err]  applications.payment_verified_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] applications.admin_feedback_by → profiles.id
+  [err]  applications.admin_feedback_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] applications.reviewed_by → profiles.id
+  [err]  applications.reviewed_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] payments.application_id → applications.id
+  [err]  payments.application_id → applications.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] payments.user_id → profiles.id
+  [err]  payments.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] payments.verified_by → profiles.id
+  [err]  payments.verified_by → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] programs.institution_id → institutions.id
+  [err]  programs.institution_id → institutions.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] program_intakes.program_id → programs.id
+  [err]  program_intakes.program_id → programs.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] program_intakes.intake_id → intakes.id
+  [err]  program_intakes.intake_id → intakes.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] course_requirements.program_id → programs.id
+  [err]  course_requirements.program_id → programs.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] course_requirements.subject_id → subjects.id
+  [err]  course_requirements.subject_id → subjects.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] device_sessions.user_id → profiles.id
+  [err]  device_sessions.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] csrf_tokens.user_id → profiles.id
+  [err]  csrf_tokens.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] password_reset_tokens.user_id → profiles.id
+  [err]  password_reset_tokens.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] notifications.user_id → profiles.id
+  [err]  notifications.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] user_notification_preferences.user_id → profiles.id
+  [err]  user_notification_preferences.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [check] user_permission_overrides.user_id → profiles.id
+  [err]  user_permission_overrides.user_id → profiles.id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+
+Step 3: Index verification for commonly filtered columns
+  [err]  applications.user_id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  applications.status: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  applications.program: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  applications.institution: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  audit_logs.entity_type: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  audit_logs.actor_id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  device_sessions.user_id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+  [err]  notifications.user_id: connection to server at "localhost" (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied
+
+
+=== Verification Complete ===
+Run ID: 4a47550f
+Duration: 0.8s
+Tables checked: 30
+Errors: 59
+Log written to: /home/cosmas/Downloads/mihasv3/backend/migration_logs/migration_4a47550f.json

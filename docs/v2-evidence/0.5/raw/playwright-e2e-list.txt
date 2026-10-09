@@ -1,0 +1,141 @@
+Listing tests:
+  [chromium] › accessibility.spec.ts:105:3 › Accessibility — public pages › login page has no critical/serious violations
+  [chromium] › accessibility.spec.ts:111:3 › Accessibility — public pages › registration page has no critical/serious violations
+  [chromium] › accessibility.spec.ts:129:3 › Accessibility — wizard steps › wizard step 1 (Basic KYC) has no critical/serious violations
+  [chromium] › accessibility.spec.ts:135:3 › Accessibility — wizard steps › wizard step 2 (Education) has no critical/serious violations
+  [chromium] › accessibility.spec.ts:168:3 › Accessibility — wizard steps › wizard step 3 (Payment) has no critical/serious violations
+  [chromium] › adminJourney.spec.ts:76:3 › Admin E2E journey (R8.2) › super-admin onboards a school, scopes staff, reviews, and audits
+  [chromium] › applicationFlow.spec.ts:205:3 › Complete Application Flow › user can register and land on the student dashboard
+  [chromium] › applicationFlow.spec.ts:211:3 › Complete Application Flow › registered user can log in and reach the dashboard
+  [chromium] › applicationFlow.spec.ts:224:3 › Complete Application Flow › student can reach the payment step in the application wizard
+  [chromium] › applicationFlow.spec.ts:236:3 › Registration form validation › shows error when submitting empty registration form
+  [chromium] › applicationFlow.spec.ts:244:3 › Registration form validation › shows error for invalid email format
+  [chromium] › applicationFlow.spec.ts:257:3 › Login form validation › shows error for wrong credentials
+  [chromium] › applicationFlow.spec.ts:270:3 › Wizard navigation guard › unauthenticated user is redirected away from the wizard
+  [chromium] › applicationFlow.spec.ts:280:3 › Logout flow › student can log out and protected routes are blocked
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:37:3 › Canonical multi-tenant alignment E2E workflows › 35.1 student starts a brand-new application while an existing draft is present
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:51:3 › Canonical multi-tenant alignment E2E workflows › 35.2 student resumes a selected draft
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:64:3 › Canonical multi-tenant alignment E2E workflows › 35.3 student submits a program-first application
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:77:3 › Canonical multi-tenant alignment E2E workflows › 35.4 student sees required documents from the assigned offering
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:89:3 › Canonical multi-tenant alignment E2E workflows › 35.5 student downloads the backend official application slip
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:103:3 › Canonical multi-tenant alignment E2E workflows › 35.6 super-admin onboards a tenant through the canonical route
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:118:3 › Canonical multi-tenant alignment E2E workflows › 35.7 super-admin uploads tenant logo and signature
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:131:3 › Canonical multi-tenant alignment E2E workflows › 35.8 super-admin configures a document profile
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:144:3 › Canonical multi-tenant alignment E2E workflows › 35.9 tenant-admin sees only assigned school data
+  [chromium] › canonicalMultiTenantAlignment.spec.ts:156:3 › Canonical multi-tenant alignment E2E workflows › 35.10 tenant-admin cannot create a tenant
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-landing @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-landing @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-landing @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-landing @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-landing @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-track-application @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-track-application @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-track-application @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-track-application @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-track-application @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-contact @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-contact @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-contact @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-contact @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-contact @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signin @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signin @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signin @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signin @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signin @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signup @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signup @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signup @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signup @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-signup @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-forgot-password @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-forgot-password @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-forgot-password @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-forgot-password @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-forgot-password @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-not-found @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-not-found @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-not-found @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-not-found @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › public-not-found @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-dashboard @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-dashboard @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-dashboard @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-dashboard @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-dashboard @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-application-wizard @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-application-wizard @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-application-wizard @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-application-wizard @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-application-wizard @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-status @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-status @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-status @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-status @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-status @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-payment @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-payment @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-payment @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-payment @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-payment @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-interview @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-interview @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-interview @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-interview @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-interview @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-settings @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-settings @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-settings @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-settings @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › student-settings @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-dashboard @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-dashboard @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-dashboard @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-dashboard @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-dashboard @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-applications @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-applications @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-applications @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-applications @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-applications @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-tenants @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-tenants @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-tenants @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-tenants @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-tenants @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-users @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-users @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-users @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-users @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-users @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-audit @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-audit @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-audit @ 768x1024
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-audit @ 1024x768
+  [chromium] › mobileBreakpointScreenshots.spec.ts:197:7 › Mobile-breakpoint screenshot evidence (R7.11) › admin-audit @ 1440x900
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-001 /student/application-wizard @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-001 /student/application-wizard @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-003 /student/status @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-003 /student/status @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-004 /admin/applications @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-004 /admin/applications @ 390x844
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-005 /admin/tenants @ 360x800
+  [chromium] › mobileBreakpointScreenshots.spec.ts:237:7 › Failure-screenshot evidence for open UI-R7-### issues (R7.11) › UI-R7-005 /admin/tenants @ 390x844
+  [chromium] › studentJourney.spec.ts:108:3 › Student E2E journey on staging (R8.1) › signup → verification (dev equivalent)
+  [chromium] › studentJourney.spec.ts:125:3 › Student E2E journey on staging (R8.1) › application creation → canonical-program + intake selection → assigned institution
+  [chromium] › studentJourney.spec.ts:136:3 › Student E2E journey on staging (R8.1) › document upload (mandatory NRC/passport)
+  [chromium] › studentJourney.spec.ts:144:3 › Student E2E journey on staging (R8.1) › save-draft and resume
+  [chromium] › studentJourney.spec.ts:152:3 › Student E2E journey on staging (R8.1) › pay-or-defer (where allowed) → submission
+  [chromium] › studentJourney.spec.ts:162:3 › Student E2E journey on staging (R8.1) › download the backend application slip
+  [chromium] › studentJourney.spec.ts:172:3 › Student E2E journey on staging (R8.1) › public tracking exposes status without login
+  [chromium] › studentJourney.spec.ts:180:3 › Student E2E journey on staging (R8.1) › receiving a communication (notifications)
+  [chromium] › studentJourney.spec.ts:188:3 › Student E2E journey on staging (R8.1) › the interview path
+  [chromium] › studentJourney.spec.ts:194:3 › Student E2E journey on staging (R8.1) › receiving a decision → download acceptance/conditional-offer + receipt
+  [chromium] › styling-smoke.spec.ts:58:3 › build styling smoke › home page is fully styled under the production CSP
+  [chromium] › whiteLabelHostOverride.spec.ts:87:3 › White-label host-override (R3.3, R14.4) › active white-label host brands from the institution and filters offerings to it
+  [chromium] › whiteLabelHostOverride.spec.ts:102:3 › White-label host-override (R3.3, R14.4) › shared Beanola host brands as Beanola and applies no institution filter
+  [chromium] › whiteLabelHostOverride.spec.ts:113:3 › White-label host-override (R3.3, R14.4) › inactive-domain host falls back to Beanola and never exposes the inactive school (R3.3)
+  [chromium] › whiteLabelHostOverride.spec.ts:190:3 › White-label host-override (stubbed backend, real browser) › white-label host renders the institution brand in the browser
+  [chromium] › whiteLabelHostOverride.spec.ts:197:3 › White-label host-override (stubbed backend, real browser) › inactive-domain host renders Beanola fallback, not the inactive school
+Total: 138 tests in 8 files
+EXIT=0

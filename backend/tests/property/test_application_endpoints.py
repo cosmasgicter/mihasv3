@@ -20,12 +20,14 @@ os.environ["TESTING"] = "1"
 import uuid  # noqa: E402
 from unittest.mock import MagicMock, patch  # noqa: E402
 
+import pytest  # noqa: E402
+
 import django  # noqa: E402
 
 django.setup()
 
 from django.utils import timezone  # noqa: E402
-from hypothesis import given, settings  # noqa: E402
+from hypothesis import HealthCheck, given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
@@ -46,11 +48,21 @@ _IDEM = "apps.common.models.IdempotencyKey.objects"
 _PAY = "apps.documents.models.Payment.objects"
 _TASK_LETTER = "apps.applications.tasks.generate_acceptance_letter_task"
 _TASK_RECEIPT = "apps.applications.tasks.generate_finance_receipt_task"
-# Multi-tenant scoping: document_views routes every fetch through
-# AccessScopeService().filter_applications(), which hits the DB. These property
-# tests mock Application.objects, so the scope service must be neutralised too
-# (it returns the queryset unchanged for the mocked single-tenant path).
-_SCOPE = "apps.applications.document_views.AccessScopeService"
+# Multi-tenant scoping: the document/verify/letter/receipt views route every
+# fetch through AccessScopeService().filter_applications(), which hits the DB.
+# These property tests mock Application.objects, so the scope service must be
+# neutralised too (it returns the queryset unchanged for the mocked
+# single-tenant path).
+#
+# This names the CANONICAL source, not ``document_views``. Task 9.4 moved
+# ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+# dropped its module-level ``AccessScopeService`` import, so patching that name
+# raised ``AttributeError`` and every case using _SCOPE failed rather than ran.
+# ``resolve_scoped_application`` imports ``AccessScopeService`` lazily from
+# ``apps.catalog.services``, so patching the canonical source neutralises the
+# same scoping through the new seam — it is the real target, not a weaker one.
+# (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+_SCOPE = "apps.catalog.services.AccessScopeService"
 
 
 def _patch_scope(mock_scope):
@@ -122,6 +134,105 @@ def _auth_request(factory, method, path, user, **kwargs):
     return request
 
 
+# ---------------------------------------------------------------------------
+# Real-database staff helpers (remediation L4)
+# ---------------------------------------------------------------------------
+#
+# Properties 2, 3, 5, 6, 7 and 11 exercise code paths that, since tasks 7.3, 9.4
+# and 10.4, touch the database: the scoped lookup
+# (``resolve_scoped_application``), the evidence-ledger transition
+# (``document_evidence.record_verification_decision``) and the **committed**
+# durable official-document job (``official_document_jobs.request_generation``).
+# Mock-only they raised pytest-django's "Database access not allowed" and the
+# view answered 500 — or, on the official-document path, the 503 it *correctly*
+# answers rather than reporting phantom queued work it could not commit.
+#
+# These properties therefore run against a real database with real tenant rows.
+# Only the broker dispatch is stubbed (``_enqueue_generation``, the one symbol
+# ``official_document_views`` documents for this purpose): there is no Celery
+# broker in a property run, and dispatch is best-effort *after* the commit by
+# design.
+#
+# Hypothesis + a function-scoped ``db`` fixture: the fixture is set up once per
+# test function, not once per example, so ``function_scoped_fixture`` is
+# suppressed and every example builds its **own** tenant world inside the
+# transaction. That keeps examples independent without a per-example fixture.
+
+_db_settings = settings(
+    max_examples=5,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+
+
+def _staff_jwt_user(profile):
+    """A ``JWTUser`` for a persisted ``Profile`` (the real actor identity)."""
+    return JWTUser({
+        "user_id": str(profile.id),
+        "email": profile.email,
+        "role": profile.role,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name,
+    })
+
+
+def _build_staff_world(**kwargs):
+    """A tenant world whose staff admin holds the mutation capabilities used here.
+
+    ``build_tenant_world`` derives the tenant **read** set only from an empty
+    ``permissions`` bundle (read-by-default / mutate-only-when-granted), so
+    ``review`` / ``verify_documents`` / ``verify_payments`` are granted
+    explicitly. Authority still resolves through ``AdminCapabilityService`` —
+    never from a role string.
+    """
+    from tests.tenant_fixtures import build_tenant_world
+
+    world = build_tenant_world(application_status="approved", **kwargs)
+    world.membership.permissions = ["review", "verify_documents", "verify_payments"]
+    world.membership.save(update_fields=["permissions"])
+    return world
+
+
+def _stub_broker_dispatch(task_id):
+    """Patch the official-document **dispatch** only; the commit stays real."""
+    return patch(
+        "apps.applications.official_document_views._enqueue_generation",
+        return_value=task_id,
+    )
+
+
+def _legacy_audit_rows(entity_type, action=None, entity_id=None):
+    """The persisted legacy ``audit_logs`` rows for one entity type / action / id.
+
+    ``entity_id`` matters under Hypothesis: the ``db`` fixture wraps the whole
+    test *function*, so every example shares one transaction and rows accumulate
+    across examples. Scoping to the row this example created keeps the assertion
+    about this example.
+    """
+    from apps.common.models import AuditLog
+
+    queryset = AuditLog.objects.filter(entity_type=entity_type)
+    if action is not None:
+        queryset = queryset.filter(action=action)
+    if entity_id is not None:
+        queryset = queryset.filter(entity_id=entity_id)
+    return list(queryset)
+
+
+#: The refusal an actor with **no scope** over the application receives.
+#:
+#: Property 3 was written when these three endpoints gated on a role-string
+#: permission class that answered ``403``. Since task 9.4 authority is the
+#: derived ``tenant.document.verify`` / ``tenant.application.review`` /
+#: ``tenant.payment.read`` capability resolved by ``resolve_scoped_application``,
+#: which refuses an out-of-scope caller with the **indistinguishable 404**
+#: required by R4.4 / AUTH-07 — a 403 would confirm the application exists. The
+#: property ("a non-admin is refused, and nothing changes") is unchanged; only
+#: the disclosure contract got stricter, so this pins 404 exactly rather than
+#: accepting either code.
+_REFUSED_STATUS = 404
+
+
 
 # =========================================================================
 # Property 2: Document verification updates status correctly
@@ -141,41 +252,36 @@ class TestDocumentVerificationStatusUpdate:
 
     # Feature: post-migration-cleanup, Property 2: Document verification updates status correctly
 
+    @pytest.mark.django_db
     @given(verification_status=st.sampled_from(["verified", "rejected"]))
-    @_default_settings
-    def test_verification_status_matches_request(self, verification_status):
-        """Document verification_status is set to the requested status value."""
+    @_db_settings
+    def test_verification_status_matches_request(self, db, verification_status):
+        """Document verification_status is *persisted* as the requested value."""
+        from tests.tenant_fixtures import build_document
+
         factory = APIRequestFactory()
         view = ApplicationVerifyDocumentView.as_view()
-        admin = _admin_user()
 
-        app_id = uuid.uuid4()
-        doc_id = uuid.uuid4()
-        application = _make_application(app_id=app_id)
-        document = _make_document(doc_id=doc_id, application_id=app_id)
+        world = _build_staff_world()
+        document = build_document(application=world.application)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_DOC) as mock_doc_qs, \
-             patch(_AUDIT):
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_doc_qs.select_related.return_value.get.return_value = document
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/verify-document/",
+            _staff_jwt_user(world.staff),
+            data={"documentId": str(document.id), "status": verification_status},
+            format="json",
+        )
+        response = view(request, application_id=world.application.id)
 
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/verify-document/",
-                admin,
-                data={"documentId": str(doc_id), "status": verification_status},
-                format="json",
-            )
-            response = view(request, application_id=app_id)
-
-            assert response.status_code == 200
-            assert response.data["success"] is True
-            assert "data" in response.data
-            # The document mock's verification_status should have been set
-            assert document.verification_status == verification_status
+        assert response.status_code == 200, response.data
+        assert response.data["success"] is True
+        assert "data" in response.data
+        # Read back from the database: the property is that the platform stored
+        # the requested decision, not that a setter ran.
+        document.refresh_from_db()
+        assert document.verification_status == verification_status
+        assert document.lifecycle_state == verification_status
 
 
 # =========================================================================
@@ -194,58 +300,81 @@ class TestAdminPermissionEnforcement:
 
     # Feature: post-migration-cleanup, Property 3: Admin permission enforcement on new endpoints
 
+    @pytest.mark.django_db
     @given(role=st.sampled_from(["student", "reviewer"]))
-    @_default_settings
-    def test_non_admin_rejected_on_verify_document(self, role):
-        """Non-admin users get 403 on verify-document endpoint."""
+    @_db_settings
+    def test_non_admin_rejected_on_verify_document(self, db, role):
+        """An unscoped student/reviewer is refused on verify-document."""
+        from tests.tenant_fixtures import build_document, build_profile
+
         factory = APIRequestFactory()
         view = ApplicationVerifyDocumentView.as_view()
-        user = _make_user(role=role)
 
-        app_id = uuid.uuid4()
+        world = _build_staff_world()
+        document = build_document(application=world.application)
+        outsider = build_profile(role=role)
+
         request = _auth_request(
             factory, "post",
-            f"/api/v1/applications/{app_id}/verify-document/",
-            user,
-            data={"documentId": str(uuid.uuid4()), "status": "verified"},
+            f"/api/v1/applications/{world.application.id}/verify-document/",
+            _staff_jwt_user(outsider),
+            data={"documentId": str(document.id), "status": "verified"},
             format="json",
         )
-        response = view(request, application_id=app_id)
-        assert response.status_code == 403
+        response = view(request, application_id=world.application.id)
 
+        assert response.status_code == _REFUSED_STATUS
+        document.refresh_from_db()
+        assert document.verification_status == "pending"
+
+    @pytest.mark.django_db
     @given(role=st.sampled_from(["student", "reviewer"]))
-    @_default_settings
-    def test_non_admin_rejected_on_acceptance_letter(self, role):
-        """Non-admin users get 403 on acceptance-letter endpoint."""
+    @_db_settings
+    def test_non_admin_rejected_on_acceptance_letter(self, db, role):
+        """An unscoped student/reviewer is refused on acceptance-letter."""
+        from apps.applications import official_document_jobs as jobs
+        from tests.tenant_fixtures import build_profile
+
         factory = APIRequestFactory()
         view = AcceptanceLetterView.as_view()
-        user = _make_user(role=role)
 
-        app_id = uuid.uuid4()
+        world = _build_staff_world()
+        outsider = build_profile(role=role)
+
         request = _auth_request(
             factory, "post",
-            f"/api/v1/applications/{app_id}/acceptance-letter/",
-            user,
+            f"/api/v1/applications/{world.application.id}/acceptance-letter/",
+            _staff_jwt_user(outsider),
         )
-        response = view(request, application_id=app_id)
-        assert response.status_code == 403
+        response = view(request, application_id=world.application.id)
 
+        assert response.status_code == _REFUSED_STATUS
+        assert jobs.read_job(world.application.id, "acceptance_letter") is None
+
+    @pytest.mark.django_db
     @given(role=st.sampled_from(["student", "reviewer"]))
-    @_default_settings
-    def test_non_admin_rejected_on_finance_receipt(self, role):
-        """Non-admin users get 403 on finance-receipt endpoint."""
+    @_db_settings
+    def test_non_admin_rejected_on_finance_receipt(self, db, role):
+        """An unscoped student/reviewer is refused on finance-receipt."""
+        from apps.applications import official_document_jobs as jobs
+        from tests.tenant_fixtures import build_payment, build_profile
+
         factory = APIRequestFactory()
         view = FinanceReceiptView.as_view()
-        user = _make_user(role=role)
 
-        app_id = uuid.uuid4()
+        world = _build_staff_world()
+        build_payment(application=world.application, status="successful")
+        outsider = build_profile(role=role)
+
         request = _auth_request(
             factory, "post",
-            f"/api/v1/applications/{app_id}/finance-receipt/",
-            user,
+            f"/api/v1/applications/{world.application.id}/finance-receipt/",
+            _staff_jwt_user(outsider),
         )
-        response = view(request, application_id=app_id)
-        assert response.status_code == 403
+        response = view(request, application_id=world.application.id)
+
+        assert response.status_code == _REFUSED_STATUS
+        assert jobs.read_job(world.application.id, "finance_receipt") is None
 
 
 
@@ -266,123 +395,101 @@ class TestAuditLogCreation:
 
     # Feature: post-migration-cleanup, Property 5: Audit log creation on successful operations
 
+    @pytest.mark.django_db
     @given(verification_status=st.sampled_from(["verified", "rejected"]))
-    @_default_settings
-    def test_audit_log_on_verify_document(self, verification_status):
-        """Verify-document creates AuditLog with entity_type=application_documents."""
+    @_db_settings
+    def test_audit_log_on_verify_document(self, db, verification_status):
+        """Verify-document persists an AuditLog row with entity_type=application_documents."""
+        from tests.tenant_fixtures import build_document
+
         factory = APIRequestFactory()
         view = ApplicationVerifyDocumentView.as_view()
-        admin = _admin_user()
 
-        app_id = uuid.uuid4()
-        doc_id = uuid.uuid4()
-        application = _make_application(app_id=app_id)
-        document = _make_document(doc_id=doc_id, application_id=app_id)
+        world = _build_staff_world()
+        document = build_document(application=world.application)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_DOC) as mock_doc_qs, \
-             patch(_AUDIT) as mock_audit:
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_doc_qs.select_related.return_value.get.return_value = document
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/verify-document/",
+            _staff_jwt_user(world.staff),
+            data={"documentId": str(document.id), "status": verification_status},
+            format="json",
+        )
+        response = view(request, application_id=world.application.id)
+        assert response.status_code == 200, response.data
 
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/verify-document/",
-                admin,
-                data={"documentId": str(doc_id), "status": verification_status},
-                format="json",
-            )
-            view(request, application_id=app_id)
+        # The verify path also emits an institution-scoped tenant Audit_Event
+        # (enterprise-tenant-authority R10.5/R10.8) alongside the legacy row.
+        # Both land in ``audit_logs``; assert the legacy document-verification
+        # row is present and well-formed.
+        rows = _legacy_audit_rows(
+            "application_documents",
+            f"document_{verification_status}",
+            entity_id=document.id,
+        )
+        assert len(rows) == 1
+        row = rows[0]
+        assert row.entity_type == "application_documents"
+        assert row.action == f"document_{verification_status}"
+        assert str(row.actor_id) == str(world.staff.id)
+        assert str(row.entity_id) == str(document.id)
 
-            # The verify path now emits an additional institution-scoped tenant
-            # Audit_Event (enterprise-tenant-authority R10.5/R10.8) alongside the
-            # legacy audit row. Both go through AuditLog.objects.create; assert
-            # the legacy document-verification row is present and well-formed.
-            legacy_calls = [
-                c for c in mock_audit.create.call_args_list
-                if c.kwargs.get("entity_type") == "application_documents"
-            ]
-            assert len(legacy_calls) == 1
-            call_kwargs = legacy_calls[0].kwargs
-            assert call_kwargs["entity_type"] == "application_documents"
-            assert call_kwargs["action"] == f"document_{verification_status}"
-            assert call_kwargs["actor_id"] == str(admin.id)
-
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_audit_log_on_acceptance_letter(self, admin_id):
-        """Acceptance-letter creates AuditLog with entity_type=applications."""
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_audit_log_on_acceptance_letter(self, db, task_suffix):
+        """Acceptance-letter persists an AuditLog row with entity_type=applications."""
         factory = APIRequestFactory()
         view = AcceptanceLetterView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
+        world = _build_staff_world()
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/acceptance-letter/",
+            _staff_jwt_user(world.staff),
+        )
+        with _stub_broker_dispatch(f"celery-{task_suffix.hex[:8]}"):
+            response = view(request, application_id=world.application.id)
+        assert response.status_code == 202, response.data
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_TASK_LETTER) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT) as mock_audit:
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = "task-id"
-            mock_task.delay.return_value = mock_result
+        rows = _legacy_audit_rows(
+            "applications", "generate_acceptance_letter", entity_id=world.application.id
+        )
+        assert len(rows) == 1
+        row = rows[0]
+        assert row.entity_type == "applications"
+        assert row.action == "generate_acceptance_letter"
+        assert str(row.actor_id) == str(world.staff.id)
 
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/acceptance-letter/",
-                admin,
-            )
-            view(request, application_id=app_id)
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_audit_log_on_finance_receipt(self, db, task_suffix):
+        """Finance-receipt persists an AuditLog row with entity_type=applications."""
+        from tests.tenant_fixtures import build_payment
 
-            mock_audit.create.assert_called_once()
-            call_kwargs = mock_audit.create.call_args[1]
-            assert call_kwargs["entity_type"] == "applications"
-            assert call_kwargs["action"] == "generate_acceptance_letter"
-            assert call_kwargs["actor_id"] == str(admin_id)
-
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_audit_log_on_finance_receipt(self, admin_id):
-        """Finance-receipt creates AuditLog with entity_type=applications."""
         factory = APIRequestFactory()
         view = FinanceReceiptView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
+        world = _build_staff_world()
+        build_payment(application=world.application, status="successful")
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/finance-receipt/",
+            _staff_jwt_user(world.staff),
+        )
+        with _stub_broker_dispatch(f"celery-{task_suffix.hex[:8]}"):
+            response = view(request, application_id=world.application.id)
+        assert response.status_code == 202, response.data
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_PAY) as mock_pay_qs, \
-             patch(_TASK_RECEIPT) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT) as mock_audit:
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_pay_qs.filter.return_value.exists.return_value = True
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = "task-id"
-            mock_task.delay.return_value = mock_result
-
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/finance-receipt/",
-                admin,
-            )
-            view(request, application_id=app_id)
-
-            mock_audit.create.assert_called_once()
-            call_kwargs = mock_audit.create.call_args[1]
-            assert call_kwargs["entity_type"] == "applications"
-            assert call_kwargs["action"] == "generate_finance_receipt"
-            assert call_kwargs["actor_id"] == str(admin_id)
+        rows = _legacy_audit_rows(
+            "applications", "generate_finance_receipt", entity_id=world.application.id
+        )
+        assert len(rows) == 1
+        row = rows[0]
+        assert row.entity_type == "applications"
+        assert row.action == "generate_finance_receipt"
+        assert str(row.actor_id) == str(world.staff.id)
 
 
 
@@ -404,43 +511,42 @@ class TestAcceptanceLetter202Response:
 
     # Feature: post-migration-cleanup, Property 6: Acceptance letter endpoint returns 202 for approved applications
 
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_approved_application_returns_202_with_correct_shape(self, admin_id):
-        """Approved application returns 202 with task_id, application_id, status=queued."""
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_approved_application_returns_202_with_correct_shape(self, db, task_suffix):
+        """Approved application returns 202 with task_id, application_id, status=queued.
+
+        Task 10.4 strengthened this property: a 202 is only ever answered on the
+        far side of a **committed** durable job, so the committed record is
+        asserted alongside the response shape. Without the commit the view
+        answers 503 rather than reporting queued work nothing recorded.
+        """
+        from apps.applications import official_document_jobs as jobs
+
         factory = APIRequestFactory()
         view = AcceptanceLetterView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
+        world = _build_staff_world()
+        task_id = f"celery-{task_suffix.hex[:8]}"
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/acceptance-letter/",
+            _staff_jwt_user(world.staff),
+        )
+        with _stub_broker_dispatch(task_id):
+            response = view(request, application_id=world.application.id)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_TASK_LETTER) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT):
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = f"celery-{uuid.uuid4().hex[:8]}"
-            mock_task.delay.return_value = mock_result
-
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/acceptance-letter/",
-                admin,
-            )
-            response = view(request, application_id=app_id)
-
-            assert response.status_code == 202
-            assert response.data["success"] is True
-            data = response.data["data"]
-            assert isinstance(data["task_id"], str)
-            assert len(data["task_id"]) > 0
-            assert data["application_id"] == str(app_id)
-            assert data["status"] == "queued"
+        assert response.status_code == 202, response.data
+        assert response.data["success"] is True
+        data = response.data["data"]
+        assert isinstance(data["task_id"], str)
+        assert len(data["task_id"]) > 0
+        assert data["application_id"] == str(world.application.id)
+        assert data["status"] == "queued"
+        job = jobs.read_job(world.application.id, "acceptance_letter")
+        assert job is not None
+        assert job.task_id == task_id
 
 
 # =========================================================================
@@ -462,45 +568,42 @@ class TestFinanceReceipt202Response:
 
     # Feature: post-migration-cleanup, Property 7: Finance receipt endpoint returns 202 for applications with verified payment
 
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_verified_payment_returns_202_with_correct_shape(self, admin_id):
-        """Application with verified payment returns 202 with task_id, application_id, status=queued."""
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_verified_payment_returns_202_with_correct_shape(self, db, task_suffix):
+        """Application with a completed payment returns 202 with the queued shape.
+
+        As with Property 6, the committed job is asserted with the response: the
+        202 means recorded work, not merely an accepted request.
+        """
+        from apps.applications import official_document_jobs as jobs
+        from tests.tenant_fixtures import build_payment
+
         factory = APIRequestFactory()
         view = FinanceReceiptView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
+        world = _build_staff_world()
+        build_payment(application=world.application, status="successful")
+        task_id = f"celery-{task_suffix.hex[:8]}"
+        request = _auth_request(
+            factory, "post",
+            f"/api/v1/applications/{world.application.id}/finance-receipt/",
+            _staff_jwt_user(world.staff),
+        )
+        with _stub_broker_dispatch(task_id):
+            response = view(request, application_id=world.application.id)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_PAY) as mock_pay_qs, \
-             patch(_TASK_RECEIPT) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT):
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_pay_qs.filter.return_value.exists.return_value = True
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = f"celery-{uuid.uuid4().hex[:8]}"
-            mock_task.delay.return_value = mock_result
-
-            request = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/finance-receipt/",
-                admin,
-            )
-            response = view(request, application_id=app_id)
-
-            assert response.status_code == 202
-            assert response.data["success"] is True
-            data = response.data["data"]
-            assert isinstance(data["task_id"], str)
-            assert len(data["task_id"]) > 0
-            assert data["application_id"] == str(app_id)
-            assert data["status"] == "queued"
+        assert response.status_code == 202, response.data
+        assert response.data["success"] is True
+        data = response.data["data"]
+        assert isinstance(data["task_id"], str)
+        assert len(data["task_id"]) > 0
+        assert data["application_id"] == str(world.application.id)
+        assert data["status"] == "queued"
+        job = jobs.read_job(world.application.id, "finance_receipt")
+        assert job is not None
+        assert job.task_id == task_id
 
 
 
@@ -613,120 +716,87 @@ class TestIdempotentGenerationRequests:
 
     # Feature: post-migration-cleanup, Property 11: Idempotent generation requests
 
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_acceptance_letter_idempotency(self, admin_id):
-        """Second acceptance-letter request returns cached task_id, no new Celery task."""
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_acceptance_letter_idempotency(self, db, task_suffix):
+        """A repeated acceptance-letter request returns the same task_id, dispatching once.
+
+        Post-10.4 the idempotency identity is the **committed job** keyed on
+        ``(application, document_type)``, not a cached ``IdempotencyKey`` row: an
+        open job is returned untouched, so the second request answers 202 with the
+        first request's ``task_id`` and no second dispatch happens. Both requests
+        run against the real database here — the convergence is the platform's,
+        not a mock's.
+        """
+        from apps.applications import official_document_jobs as jobs
+
         factory = APIRequestFactory()
         view = AcceptanceLetterView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
-        original_task_id = f"celery-{uuid.uuid4().hex[:8]}"
+        world = _build_staff_world()
+        original_task_id = f"celery-{task_suffix.hex[:8]}"
+        path = f"/api/v1/applications/{world.application.id}/acceptance-letter/"
+        actor = _staff_jwt_user(world.staff)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_TASK_LETTER) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT):
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-
-            # First request: no existing idempotency key
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = original_task_id
-            mock_task.delay.return_value = mock_result
-
-            request1 = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/acceptance-letter/",
-                admin,
+        with _stub_broker_dispatch(original_task_id) as mock_dispatch:
+            response1 = view(
+                _auth_request(factory, "post", path, actor),
+                application_id=world.application.id,
             )
-            response1 = view(request1, application_id=app_id)
-            assert response1.status_code == 202
+            assert response1.status_code == 202, response1.data
             assert response1.data["data"]["task_id"] == original_task_id
-            mock_task.delay.assert_called_once()
+            mock_dispatch.assert_called_once()
 
-            # Second request: existing idempotency key returns cached response
-            cached_response = {
-                "task_id": original_task_id,
-                "application_id": str(app_id),
-                "status": "queued",
-            }
-            existing_key = MagicMock()
-            existing_key.response_body = cached_response
-            mock_idem_qs.filter.return_value.first.return_value = existing_key
-            mock_task.delay.reset_mock()
-
-            request2 = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/acceptance-letter/",
-                admin,
+            mock_dispatch.reset_mock()
+            response2 = view(
+                _auth_request(factory, "post", path, actor),
+                application_id=world.application.id,
             )
-            response2 = view(request2, application_id=app_id)
-            assert response2.status_code == 202
-            assert response2.data["data"]["task_id"] == original_task_id
-            # No second Celery task enqueued
-            mock_task.delay.assert_not_called()
 
-    @given(admin_id=st.uuids())
-    @_default_settings
-    def test_finance_receipt_idempotency(self, admin_id):
-        """Second finance-receipt request returns cached task_id, no new Celery task."""
+        assert response2.status_code == 202, response2.data
+        assert response2.data["data"]["task_id"] == original_task_id
+        # No second dispatch, and still exactly one committed job.
+        mock_dispatch.assert_not_called()
+        job = jobs.read_job(world.application.id, "acceptance_letter")
+        assert job is not None
+        assert job.task_id == original_task_id
+
+    @pytest.mark.django_db
+    @given(task_suffix=st.uuids())
+    @_db_settings
+    def test_finance_receipt_idempotency(self, db, task_suffix):
+        """A repeated finance-receipt request returns the same task_id, dispatching once."""
+        from apps.applications import official_document_jobs as jobs
+        from tests.tenant_fixtures import build_payment
+
         factory = APIRequestFactory()
         view = FinanceReceiptView.as_view()
-        admin = _admin_user(user_id=admin_id)
 
-        app_id = uuid.uuid4()
-        application = _make_application(app_id=app_id, status="approved")
-        original_task_id = f"celery-{uuid.uuid4().hex[:8]}"
+        world = _build_staff_world()
+        build_payment(application=world.application, status="successful")
+        original_task_id = f"celery-{task_suffix.hex[:8]}"
+        path = f"/api/v1/applications/{world.application.id}/finance-receipt/"
+        actor = _staff_jwt_user(world.staff)
 
-        with patch(_APP) as mock_app_qs, \
-             patch(_SCOPE) as mock_scope, \
-             patch(_PAY) as mock_pay_qs, \
-             patch(_TASK_RECEIPT) as mock_task, \
-             patch(_IDEM) as mock_idem_qs, \
-             patch(_AUDIT):
-            _patch_scope(mock_scope)
-            mock_app_qs.select_related.return_value.get.return_value = application
-            mock_pay_qs.filter.return_value.exists.return_value = True
-
-            # First request: no existing idempotency key
-            mock_idem_qs.filter.return_value.first.return_value = None
-            mock_result = MagicMock()
-            mock_result.id = original_task_id
-            mock_task.delay.return_value = mock_result
-
-            request1 = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/finance-receipt/",
-                admin,
+        with _stub_broker_dispatch(original_task_id) as mock_dispatch:
+            response1 = view(
+                _auth_request(factory, "post", path, actor),
+                application_id=world.application.id,
             )
-            response1 = view(request1, application_id=app_id)
-            assert response1.status_code == 202
+            assert response1.status_code == 202, response1.data
             assert response1.data["data"]["task_id"] == original_task_id
-            mock_task.delay.assert_called_once()
+            mock_dispatch.assert_called_once()
 
-            # Second request: existing idempotency key returns cached response
-            cached_response = {
-                "task_id": original_task_id,
-                "application_id": str(app_id),
-                "status": "queued",
-            }
-            existing_key = MagicMock()
-            existing_key.response_body = cached_response
-            mock_idem_qs.filter.return_value.first.return_value = existing_key
-            mock_task.delay.reset_mock()
-
-            request2 = _auth_request(
-                factory, "post",
-                f"/api/v1/applications/{app_id}/finance-receipt/",
-                admin,
+            mock_dispatch.reset_mock()
+            response2 = view(
+                _auth_request(factory, "post", path, actor),
+                application_id=world.application.id,
             )
-            response2 = view(request2, application_id=app_id)
-            assert response2.status_code == 202
-            assert response2.data["data"]["task_id"] == original_task_id
-            # No second Celery task enqueued
-            mock_task.delay.assert_not_called()
+
+        assert response2.status_code == 202, response2.data
+        assert response2.data["data"]["task_id"] == original_task_id
+        mock_dispatch.assert_not_called()
+        job = jobs.read_job(world.application.id, "finance_receipt")
+        assert job is not None
+        assert job.task_id == original_task_id

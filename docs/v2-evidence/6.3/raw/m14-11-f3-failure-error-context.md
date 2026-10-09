@@ -1,0 +1,285 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - link "Skip to main content":
+    - /url: "#app-main-content"
+  - complementary "Main navigation" [ref=e5]:
+    - generic [ref=e6]:
+      - img "Beanola Admissions" [ref=e7]:
+        - generic [ref=e9]: BA
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Admissions
+          - generic [ref=e12]: Beanola Student
+      - button "Collapse sidebar" [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+    - navigation [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]: Student Workspace
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /student/dashboard
+          - img [ref=e21]
+          - generic [ref=e24]: Dashboard
+        - link "Apply" [ref=e25] [cursor=pointer]:
+          - /url: /student/application-wizard
+          - img [ref=e26]
+          - generic [ref=e29]: Apply
+        - link "Communications" [ref=e30] [cursor=pointer]:
+          - /url: /student/communications
+          - img [ref=e31]
+          - generic [ref=e33]: Communications
+        - link "Activity History" [ref=e34] [cursor=pointer]:
+          - /url: /student/history
+          - img [ref=e35]
+          - generic [ref=e40]: Activity History
+        - link "Payment" [ref=e41] [cursor=pointer]:
+          - /url: /student/payment
+          - img [ref=e42]
+          - generic [ref=e44]: Payment
+        - link "Interview" [ref=e45] [cursor=pointer]:
+          - /url: /student/interview
+          - img [ref=e46]
+          - generic [ref=e48]: Interview
+        - link "Notification settings" [ref=e49] [cursor=pointer]:
+          - /url: /student/notifications
+          - img [ref=e50]
+          - generic [ref=e53]: Notification settings
+        - link "Profile & Settings" [ref=e54] [cursor=pointer]:
+          - /url: /student/settings
+          - img [ref=e55]
+          - generic [ref=e58]: Profile & Settings
+    - generic [ref=e60]:
+      - img [ref=e62]
+      - generic [ref=e64]:
+        - paragraph [ref=e65]: Workspace ready
+        - paragraph [ref=e66]: Navigation synced
+  - generic [ref=e67]:
+    - banner [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e71]:
+          - img [ref=e73]
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Student workspace
+            - heading "Harness f3-two-devices" [level=2] [ref=e78]
+        - generic [ref=e79]:
+          - button "Notifications" [ref=e81] [cursor=pointer]:
+            - img
+          - button "User menu for Harness" [ref=e83] [cursor=pointer]:
+            - generic [ref=e84]:
+              - img
+            - generic [ref=e85]: Harness
+            - img
+    - main [ref=e86]:
+      - generic [ref=e90]:
+        - generic [ref=e95]:
+          - paragraph [ref=e96]: Application Flow
+          - heading "Student Application" [level=1] [ref=e97]
+          - paragraph [ref=e98]: Complete 6 steps with autosave. You can leave and come back at any time.
+        - region "Student Application" [ref=e99]:
+          - generic [ref=e100]: "Step 3 of 6: Personal details"
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - button "Back to Dashboard" [ref=e103] [cursor=pointer]:
+                - img [ref=e104]
+                - text: Back to Dashboard
+              - status "Only the selected saved draft is loaded in this session." [ref=e106]: Resuming draft
+            - region "Personal details" [ref=e107]:
+              - paragraph [ref=e108]: Step 3 of 6
+              - heading "Personal details" [level=2] [ref=e109]
+              - paragraph [ref=e110]: Confirm your personal and contact details.
+              - generic [ref=e111]:
+                - progressbar "Application progress" [ref=e112]
+                - generic [ref=e114]: 60%
+              - generic [ref=e116]:
+                - paragraph [ref=e117]:
+                  - img [ref=e118]
+                  - generic [ref=e120]: 3 things are still needed
+                - list [ref=e121]:
+                  - listitem [ref=e122]: Payment must be completed or deferred before submitting the application.
+                  - listitem [ref=e123]: An NRC or Passport document must be uploaded before submission.
+                - paragraph [ref=e124]: and 1 more, listed in the requirements below.
+            - group "Application steps" [ref=e129]:
+              - 'button "Step 1: Programme (completed)" [ref=e130] [cursor=pointer]':
+                - img [ref=e132]
+                - generic [ref=e135]: Programme
+                - generic [ref=e136]: Step 1 of 6
+                - generic [ref=e137]: Click to return
+              - 'button "Step 2: Assigned school (completed)" [ref=e138] [cursor=pointer]':
+                - img [ref=e140]
+                - generic [ref=e143]: Assigned school
+                - generic [ref=e144]: Step 2 of 6
+                - generic [ref=e145]: Click to return
+              - 'button "Step 3: Personal (current)" [disabled] [ref=e146]':
+                - img [ref=e148]
+                - generic [ref=e152]: Personal
+                - generic [ref=e153]: Step 3 of 6
+              - 'button "Step 4: Education" [disabled] [ref=e154]':
+                - img [ref=e156]
+                - generic [ref=e159]: Education
+                - generic [ref=e160]: Step 4 of 6
+              - 'button "Step 5: Payment" [disabled] [ref=e161]':
+                - img [ref=e163]
+                - generic [ref=e165]: Payment
+                - generic [ref=e166]: Step 5 of 6
+              - 'button "Step 6: Review" [disabled] [ref=e167]':
+                - img [ref=e169]
+                - generic [ref=e172]: Review
+                - generic [ref=e173]: Step 6 of 6
+          - generic [ref=e175]:
+            - generic [ref=e177]:
+              - generic [ref=e179]:
+                - generic [ref=e180]:
+                  - heading "Personal details" [level=2] [ref=e181]
+                  - button "Profile 33% complete. 6 fields missing. Click to see details." [ref=e183] [cursor=pointer]:
+                    - img [ref=e184]
+                    - generic [ref=e187]: Profile 33% Complete
+                    - img [ref=e188]
+                - generic [ref=e190]:
+                  - generic [ref=e191]:
+                    - img [ref=e192]
+                    - generic [ref=e195]: Profile details pre-filled
+                  - paragraph [ref=e196]: Review them before continuing.
+                - group "Personal Information" [ref=e197]:
+                  - generic [ref=e198]: Personal Information
+                  - generic [ref=e199]:
+                    - generic [ref=e201]:
+                      - generic [ref=e202]: Full Name *
+                      - textbox "Full Name *" [ref=e204]: Adversarial f3-two-devices
+                    - generic [ref=e206]:
+                      - generic [ref=e207]: NRC Number
+                      - textbox "NRC Number" [ref=e209]:
+                        - /placeholder: e.g., 123456/78/9
+                        - text: 127030/58/5
+                      - paragraph [ref=e210]: NRC or Passport required
+                    - generic [ref=e212]:
+                      - generic [ref=e213]: Passport Number
+                      - textbox "Passport Number" [ref=e215]
+                      - paragraph [ref=e216]: NRC or Passport required
+                    - generic [ref=e218]:
+                      - generic [ref=e219]: Date of Birth *
+                      - textbox "Date of Birth *" [ref=e221]: 2004-05-04
+                    - generic [ref=e223]:
+                      - generic [ref=e224]: Sex*
+                      - combobox "Sex*" [ref=e225] [cursor=pointer]:
+                        - generic:
+                          - generic:
+                            - generic: Male
+                        - img [ref=e226]
+                      - combobox [ref=e228]
+                    - generic [ref=e230]:
+                      - generic [ref=e231]: Phone Number *
+                      - textbox "Phone Number *" [ref=e233]:
+                        - /placeholder: e.g., +260971234567
+                        - text: "+260971000001"
+                      - paragraph [ref=e234]: Use digits only after +260; spaces are removed automatically.
+                    - generic [ref=e236]:
+                      - generic [ref=e237]: Email Address *
+                      - textbox "Email Address *" [ref=e239]: harness.13-2.f3-two-devices.179150012593720963@example.com
+                    - generic [ref=e243]:
+                      - generic [ref=e245]:
+                        - generic [ref=e246]: Country of Residence
+                        - textbox "Country of Residence" [ref=e248]: Zambia
+                        - paragraph [ref=e249]: Type to search countries.
+                      - generic [ref=e251]:
+                        - generic [ref=e252]: Residence town **
+                        - textbox "Residence town **" [ref=e254]:
+                          - /placeholder: Start typing your town
+                          - text: Winner device one 00110183
+                        - paragraph [ref=e255]: Type your town.
+                    - generic [ref=e257]:
+                      - generic [ref=e258]: Nationality
+                      - combobox "Nationality" [ref=e259] [cursor=pointer]:
+                        - generic:
+                          - generic:
+                            - generic: Zambian
+                        - img [ref=e260]
+                      - combobox [ref=e262]
+                    - generic [ref=e264]:
+                      - generic [ref=e265]: Next of Kin Name (Optional)
+                      - textbox "Next of Kin Name (Optional)" [ref=e267]
+                    - generic [ref=e269]:
+                      - generic [ref=e270]: Next of Kin Phone (Optional)
+                      - textbox "Next of Kin Phone (Optional)" [ref=e272]
+              - generic [ref=e273]:
+                - generic [ref=e274]:
+                  - status [ref=e276]:
+                    - generic [ref=e277]:
+                      - img [ref=e278]
+                      - text: Saved
+                  - button "Save Now" [ref=e280] [cursor=pointer]:
+                    - img
+                    - generic [ref=e281]: Save Now
+                - generic [ref=e282]:
+                  - button "Go back to Assigned school" [ref=e284] [cursor=pointer]:
+                    - img
+                    - generic [ref=e285]: Previous
+                  - button "Continue to Education" [ref=e287] [cursor=pointer]:
+                    - generic [ref=e288]: Next Step
+                    - img
+            - complementary "Application context" [ref=e289]:
+              - generic [ref=e290]:
+                - region "What this step needs" [ref=e291]:
+                  - heading "What this step needs" [level=2] [ref=e292]
+                  - generic [ref=e293]:
+                    - generic [ref=e294]:
+                      - generic [ref=e295]:
+                        - heading "Step Checklist" [level=3] [ref=e296]
+                        - generic [ref=e297]: 4/4
+                      - generic [ref=e298]:
+                        - generic [ref=e299]:
+                          - img [ref=e300]
+                          - generic [ref=e303]: Personal details complete
+                        - generic [ref=e304]:
+                          - img [ref=e305]
+                          - generic [ref=e308]: Contact information provided
+                        - generic [ref=e309]:
+                          - img [ref=e310]
+                          - generic [ref=e313]: NRC or Passport provided
+                        - generic [ref=e314]:
+                          - img [ref=e315]
+                          - generic [ref=e318]: Address details added
+                    - generic [ref=e319]:
+                      - heading "Application Preview" [level=3] [ref=e320]:
+                        - img [ref=e321]
+                        - text: Application Preview
+                      - generic [ref=e324]:
+                        - generic [ref=e325]:
+                          - img [ref=e326]
+                          - generic [ref=e329]:
+                            - paragraph [ref=e330]: Personal Info
+                            - paragraph [ref=e331]: Adversarial f3-two-devices
+                            - paragraph [ref=e332]: harness.13-2.f3-two-devices.179150012593720963@example.com
+                        - generic [ref=e333]:
+                          - img [ref=e334]
+                          - generic [ref=e337]:
+                            - paragraph [ref=e338]: Program
+                            - paragraph [ref=e339]: Diploma in Registered Nursing
+                            - paragraph [ref=e340]: Shared Intake Name 00110183
+                        - generic [ref=e341]:
+                          - img [ref=e342]
+                          - generic [ref=e344]:
+                            - paragraph [ref=e345]: Payment
+                            - paragraph [ref=e346]: Processed via Lenco
+                    - generic [ref=e347]:
+                      - heading "Step notes" [level=3] [ref=e348]
+                      - list [ref=e349]:
+                        - listitem [ref=e350]: Contact details
+                        - listitem [ref=e351]: NRC or passport
+                - generic [ref=e352]:
+                  - heading "Your applications" [level=2] [ref=e356]
+                  - generic [ref=e357]:
+                    - paragraph [ref=e358]: Your other saved applications are untouched while you work on this one.
+                    - generic [ref=e359]:
+                      - button "Switch application" [ref=e360] [cursor=pointer]:
+                        - img
+                        - text: Switch application
+                      - button "Start a new application" [ref=e361] [cursor=pointer]:
+                        - img
+                        - text: Start a new application
+          - button "Show keyboard shortcuts" [ref=e362] [cursor=pointer]:
+            - img
+      - generic "Frontend build 2.0.0-harness. Backend build 2.0.0." [ref=e364]:
+        - generic [ref=e365]: Runtime
+        - 'generic "Frontend build: 2.0.0-harness" [ref=e366]': Frontend 2.0.0-harnes
+        - 'generic "Backend build: 2.0.0" [ref=e367]': Backend 2.0.0
+```

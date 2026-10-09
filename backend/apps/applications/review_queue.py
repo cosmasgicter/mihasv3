@@ -51,8 +51,16 @@ class ReviewQueueScorer:
         return ReviewPriority(round(total, 1), classification)
 
     def _deadline_urgency(self, application) -> float:
-        from apps.catalog.models import Intake
-        intake = Intake.objects.filter(name=application.intake).first()
+        # Resolved through the application's own canonical ``intake_id``, never
+        # the ``intake`` display snapshot (remediation L1, DATA-01 / STU-01):
+        # scoring an application against a same-name other tenant's deadline
+        # reorders this tenant's review queue from another tenant's calendar.
+        # No canonical intake id → the neutral 50, which is exactly what an
+        # unresolvable intake has always scored (fail closed, never a borrowed
+        # deadline). The caller has already scoped the queryset.
+        from apps.applications.canonical_reads import resolve_intake
+
+        intake = resolve_intake(application)
         if not intake or not intake.application_deadline:
             return 50
         days_left = (intake.application_deadline - date.today()).days

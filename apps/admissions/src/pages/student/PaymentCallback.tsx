@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react'
-import { apiClient } from '@/services/client'
+import { verifyPayment } from '@/services/payments'
 import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, getStorageItemWithLegacyFallback } from '@/lib/browserNamespace'
 
 type CallbackStatus = 'verifying' | 'successful' | 'failed' | 'pending'
@@ -25,7 +25,7 @@ export default function PaymentCallback() {
       if (lencoStatus === 'successful' || lencoStatus === 'paid') {
         if (paymentId) {
           try {
-            await apiClient.request(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })
+            await verifyPayment(paymentId)
           } catch { /* webhook will handle it */ }
           localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
           localStorage.removeItem(LEGACY_PAYMENT_ID_STORAGE_KEY)
@@ -46,7 +46,7 @@ export default function PaymentCallback() {
       // Pending or unknown — try to verify
       if (paymentId) {
         try {
-          const result = await apiClient.request<{ status: string }>(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })
+          const result = await verifyPayment(paymentId)
           if (result?.status === 'successful' || result?.status === 'paid') {
             localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
             localStorage.removeItem(LEGACY_PAYMENT_ID_STORAGE_KEY)

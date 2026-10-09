@@ -109,9 +109,11 @@ describe('ApiClient 401 Retry Unit Tests', () => {
 
     const { apiClient } = await import('@/services/client');
 
+    // Include Idempotency-Key to allow safe replay of the POST
     const result = await apiClient.request('/applications/', {
       method: 'POST',
       retries: 0,
+      headers: { 'Idempotency-Key': 'test-key-123' },
     });
 
     // Caller should get the successful response data
@@ -126,6 +128,44 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     expect(urls[0]).toBe(APPLICATIONS_URL);
     expect(urls[1]).toBe(REFRESH_URL);
     expect(urls[2]).toBe(APPLICATIONS_URL);
+  });
+
+  // _Requirements: R9.2 (prevent blind unsafe-method replay)_
+  it('401 → refresh succeeds → unsafe method without idempotency key throws REFRESH_NO_REPLAY', async () => {
+    let callCount = 0;
+
+    const mockFetch = vi.fn(async (url: string | URL | Request, _init?: RequestInit) => {
+      const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      callCount++;
+
+      if (callCount === 1) {
+        return makeJsonResponse(401, { success: false, error: 'Unauthorized' });
+      }
+
+      if (urlStr === REFRESH_URL) {
+        return makeJsonResponse(200, { success: true, data: { refreshed: true } }, 'fresh-csrf');
+      }
+
+      return makeJsonResponse(200, { success: true, data: { result: 'ok' } });
+    });
+
+    vi.stubGlobal('fetch', mockFetch);
+
+    const { apiClient } = await import('@/services/client');
+
+    // POST without Idempotency-Key — should NOT be replayed
+    await expect(
+      apiClient.request('/applications/', {
+        method: 'POST',
+        retries: 0,
+      })
+    ).rejects.toMatchObject({
+      code: 'REFRESH_NO_REPLAY',
+      refreshed: true,
+    });
+
+    // Only 2 calls: original (401) + refresh (200), no retry
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
   it('GET 401 through cache layer refreshes and retries the original request', async () => {

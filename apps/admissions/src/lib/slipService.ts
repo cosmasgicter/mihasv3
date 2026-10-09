@@ -2,7 +2,6 @@ import type { ApplicationSlipData } from './applicationSlip'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
-import { apiClient } from '@/services/client'
 import { toError } from '@/lib/toError'
 
 export interface SlipServiceOptions {
@@ -82,35 +81,33 @@ export async function createApplicationSlip(
       toast?.showWarning?.('Storage issue', 'We could not store your slip automatically. You can still download it below.')
     }
 
+    /*
+      admissions-v2 task 10.6 (R13.5, finding **API-04**): this function no longer
+      emails anything.
+
+      It used to POST the deprecated `/applications/{id}/email-slip/` route, which
+      task 10.6 removed after two measurements of zero production call sites. It
+      is not repointed at the canonical official-document email either, and that
+      is deliberate: emailing an official document is a *backend* command with
+      stored provenance and a delivery record (task 10.4), and this module renders
+      the slip in the browser. Wiring a client-rendered PDF into the canonical
+      email would put an unfingerprinted artifact into the official pipeline.
+
+      Callers who want the slip emailed use
+      `services/officialDocuments.ts::emailOfficialDocument`. `sendEmail` is
+      answered honestly — the request is declined with a reason rather than
+      silently ignored — because a caller that believes it queued an email and did
+      not is worse than one that is told no.
+    */
+    const emailed = false
+    const queuedId: string | undefined = undefined
     let emailError: string | undefined
-    let emailed = false
-    let queuedId: string | undefined
     let fallbackDownloadUrl: string | undefined
     if (options.sendEmail) {
       fallbackDownloadUrl = publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
-      if (!data.email) {
-        emailError = 'Missing applicant email address'
-        toast?.showError?.('Email not sent', 'No email address was available to send the application slip.')
-      } else {
-        try {
-          const response = await apiClient.request<{ queued_id: string }>(
-            `/applications/${data.application_id}/email-slip/`,
-            {
-              method: 'POST',
-              body: JSON.stringify({ email: data.email }),
-            }
-          )
-          if (response?.queued_id) {
-            emailed = true
-            queuedId = response.queued_id
-            toast?.showSuccess?.('Email queued', 'Your application slip will be sent shortly.')
-          }
-        } catch (emailErr) {
-          emailError = toError(emailErr).message || 'Failed to send application slip email'
-          logger.warn('[slipService] Email slip failed, falling back to download:', emailError)
-          toast?.showWarning?.('Email not sent', 'We could not email your slip. You can still download it below.')
-        }
-      }
+      emailError = 'Slip email is handled by the official-document service'
+      logger.warn('[slipService] sendEmail is no longer supported here; use officialDocuments.emailOfficialDocument')
+      toast?.showWarning?.('Email not sent', 'You can still download your slip below.')
     }
 
     return {

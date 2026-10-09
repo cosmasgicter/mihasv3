@@ -1,0 +1,32 @@
+-- Admissions V2 — task 6.2 (valid server draft start/list/rename policy),
+-- application draft label column. EXPAND phase (additive, idempotent).
+--
+-- Spec:        .kiro/specs/admissions-v2-canonical-rebuild/
+-- Requirements: R10.1, R10.3, R10.9
+-- Findings:    STU-12
+-- Design:      design.md §7.2 (Application Assignment — Application.id is the
+--              online draft identity), §8.2 (Frontend Draft Machine — multi
+--              draft list keyed by application id).
+--
+-- What this adds
+-- --------------
+-- One additive, nullable column on ``applications`` so a student's online
+-- draft can carry an optional, human-supplied label (R10.9 "Draft rename SHALL
+-- either be a supported, validated server field or be removed from all
+-- clients"). Before this migration the frontend sent ``draft_name`` on create
+-- and on rename but the ``applications`` table had no such column, so the value
+-- was silently dropped (finding STU-12). This makes ``draft_name`` a real,
+-- validated, persisted server field written by the canonical draft-start create
+-- and by the dedicated draft rename command.
+--
+--   * draft_name — optional student-facing label for a draft application. NULL
+--     for legacy rows and for drafts created without a label; the client falls
+--     back to the program display snapshot when NULL.
+--
+-- Online-safety: ADD COLUMN with no default (NULL) is metadata-only on PG 11+.
+-- The statement is idempotent (ADD COLUMN IF NOT EXISTS) so a re-run after a
+-- tracking-table wipe converges. No data mutation, no backfill: existing rows
+-- keep NULL and read through the client's program-name fallback.
+
+ALTER TABLE applications
+    ADD COLUMN IF NOT EXISTS draft_name varchar(255) NULL;

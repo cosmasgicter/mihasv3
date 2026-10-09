@@ -1,0 +1,27 @@
+=== 4.1 evidence hunt ===
+-- v2-evidence dir? --
+ls: cannot access 'docs/v2-evidence/4.1': No such file or directory
+-- any file/dir named 4.1 under docs? --
+-- references to 4.1 evidence in repo docs --
+./docs/v2-evidence/7.2/README.md:244:| Spec governance validator | `python3 scripts/validate_spec_governance.py` | 1 error — **pre-existing and unrelated**: task **4.1** is checked with no `docs/v2-evidence/4.1`. Nothing is reported against 7.2 | `raw/spec-governance.txt` |
+
+=== 7.4 evidence hunt ===
+ls: cannot access 'docs/v2-evidence/7.4': No such file or directory
+./docs/ai-data-flows.md:14:> `docs/audits/ai-and-ocr-final.md` and in `docs/v2-evidence/7.4/` – `7.5/`; this
+./docs/ai-data-flows.md:178:  `docs/v2-evidence/7.4/`, `docs/v2-evidence/7.5/`, `docs/v2-evidence/9.4/`.
+=== 4.1 named evidence: 'service/integration tests for every state, retry, and compensation' ===
+-rw-rw-r-- 1 cosmas cosmas 18934 Jul 26 05:34 backend/tests/integration/test_tenant_onboarding_workflow.py
+-rw-rw-r-- 1 cosmas cosmas  9552 Jun 19 05:47 backend/tests/property/test_launch_verification_onboarding.py
+-rw-rw-r-- 1 cosmas cosmas 16739 Jun 19 10:48 backend/tests/unit/test_scenario_super_admin_onboarding.py
+-rw-rw-r-- 1 cosmas cosmas 18039 Jul 26 05:34 backend/tests/unit/test_tenant_onboarding_service.py
+backend/tests/integration/test_tenant_lifecycle_drill.py
+backend/tests/integration/test_tenant_onboarding_workflow.py
+backend/tests/property/test_launch_verification_onboarding.py
+backend/tests/unit/test_scenario_super_admin_onboarding.py
+backend/tests/unit/test_tenant_onboarding_service.py
+
+=== 7.4 named evidence: 'grep/import/runtime network guard proving zero admissions AI calls' ===
+backend/tests/unit/test_no_admissions_generative_ai_guard.py
+
+=== 7.4 doc audit ===
+-rw-rw-r-- 1 cosmas cosmas 4242 May 29 08:14 docs/audits/ai-and-ocr-final.md

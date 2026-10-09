@@ -1,0 +1,161 @@
+# Zero-dead-import scan (admissions-v2 task 12.4)
+# A: declared dependency with no import   B: import binding never used
+# C: first-party specifier resolving to no file
+
+## A. apps/admissions — 75 declared, 1150 files scanned
+imported: 51   non-import consumer: 24   declined (owner named): 0   DEAD: 0
+
+  status                imports  classes                        package
+  imported                   12  production                      @hookform/resolvers
+  imported                    1  production                      @radix-ui/react-accordion
+  imported                    1  production                      @radix-ui/react-alert-dialog
+  imported                    1  production                      @radix-ui/react-checkbox
+  imported                    1  production                      @radix-ui/react-dialog
+  imported                    1  production                      @radix-ui/react-dropdown-menu
+  imported                    1  production                      @radix-ui/react-label
+  imported                    1  production                      @radix-ui/react-progress
+  imported                    1  production                      @radix-ui/react-radio-group
+  imported                    1  production                      @radix-ui/react-select
+  imported                    1  production                      @radix-ui/react-separator
+  imported                    1  production                      @radix-ui/react-slot
+  imported                    1  production                      @radix-ui/react-switch
+  imported                    1  production                      @radix-ui/react-tabs
+  imported                    1  production                      @radix-ui/react-tooltip
+  imported                   22  dev-preview,production,script   @react-pdf/renderer
+  imported                    7  production,test                 @sentry/react
+  non-import-consumer         0  tailwind.config plugin          @tailwindcss/forms
+  imported                  112  production,test                 @tanstack/react-query
+  imported                    1  production                      @tanstack/react-virtual
+  imported                    8  production                      class-variance-authority
+  imported                    1  production                      clsx
+  imported                    1  production                      dompurify
+  imported                    2  production                      framer-motion
+  imported                    2  production                      jspdf
+  imported                    4  production                      jspdf-autotable
+  imported                  210  production,test                 lucide-react
+  imported                    2  production                      pdf-lib
+  imported                    1  production                      qrcode
+  imported                  433  dev-preview,production,script,  react
+  imported                   92  production,test                 react-dom
+  imported                    1  production                      react-dropzone
+  imported                   37  production,test                 react-hook-form
+  imported                    1  production                      react-intersection-observer
+  imported                   91  production,test                 react-router-dom
+  imported                    1  production                      tailwind-merge
+  imported                    7  production,test                 zod
+  imported                    5  production                      zustand
+  imported                    2  harness,test                    @axe-core/playwright
+  non-import-consumer         0  font asset                      @fontsource/jetbrains-mono
+  non-import-consumer         0  font asset                      @fontsource/playfair-display
+  non-import-consumer         0  font asset                      @fontsource/source-sans-3
+  imported                   16  config,harness,test             @playwright/test
+  imported                   53  test                            @testing-library/react
+  non-import-consumer         0  ambient types                   @types/node
+  non-import-consumer         0  ambient types                   @types/qrcode
+  non-import-consumer         0  ambient types                   @types/react
+  non-import-consumer         0  ambient types                   @types/react-dom
+  non-import-consumer         0  eslint plugin                   @typescript-eslint/eslint-plugin
+  non-import-consumer         0  eslint parser                   @typescript-eslint/parser
+  imported                    1  config                          @vitejs/plugin-react
+  non-import-consumer         0  vitest coverage provider        @vitest/coverage-v8
+  non-import-consumer         0  PostCSS plugin resolved by nam  autoprefixer
+  non-import-consumer         0  browserslist data               baseline-browser-mapping
+  non-import-consumer         0  multi-process dev/test invocat  concurrently
+  imported                    1  config                          critters
+  non-import-consumer         0  eslint binary                   eslint
+  imported                    1  config                          eslint-plugin-import
+  imported                    1  config                          eslint-plugin-react-hooks
+  imported                    1  config                          eslint-plugin-react-refresh
+  imported                  197  test                            fast-check
+  imported                    1  script                          fast-glob
+  imported                    1  config                          globals
+  non-import-consumer         0  vitest environment              jsdom
+  non-import-consumer         0  generate:api-types              openapi-typescript
+  non-import-consumer         0  PostCSS core                    postcss
+  non-import-consumer         0  shadcn component-add CLI        shadcn
+  non-import-consumer         0  vite image pipeline / Optimize  sharp
+  non-import-consumer         0  PostCSS/Tailwind plugin resolv  tailwindcss
+  non-import-consumer         0  tailwind.config plugin          tailwindcss-animate
+  non-import-consumer         0  vite minifier, selected by nam  terser
+  non-import-consumer         0  tsc, invoked by build/type-che  typescript
+  imported                    1  config                          typescript-eslint
+  imported                    1  config                          vite
+  imported                  497  config,test                     vitest
+
+  imported here but declared by no manifest (9):
+       1  @arcjet/node   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       2  @neondatabase/serverless   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       1  @vercel/analytics   e.g. apps/admissions/tests/unit/appGlobalLazyLoading.test.ts
+       1  @vercel/node   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       1  @vercel/speed-insights   e.g. apps/admissions/tests/unit/appGlobalLazyLoading.test.ts
+       1  arcjet   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       1  bcryptjs   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       1  jose   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+       1  lib   e.g. apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts
+
+## A. apps/jobs-ops — 31 declared, 57 files scanned
+imported: 17   non-import consumer: 11   declined (owner named): 3   DEAD: 0
+
+  status                imports  classes                        package
+  declined                    0  jobs-ops: declared for planned  @hookform/resolvers
+  imported                   18  production,test                 @tanstack/react-query
+  imported                    1  config                          @vitejs/plugin-react
+  non-import-consumer         0  PostCSS plugin resolved by nam  autoprefixer
+  imported                    3  production                      clsx
+  imported                    7  production                      lucide-react
+  non-import-consumer         0  PostCSS core                    postcss
+  imported                   15  production,test                 react
+  imported                    1  production                      react-dom
+  declined                    0  jobs-ops: declared for planned  react-hook-form
+  imported                   10  production,test                 react-router-dom
+  non-import-consumer         0  PostCSS/Tailwind plugin resolv  tailwindcss
+  non-import-consumer         0  tsc, invoked by build/type-che  typescript
+  imported                    1  config                          vite
+  declined                    0  jobs-ops: declared for planned  zod
+  imported                    1  production                      zustand
+  imported                    1  test                            @testing-library/jest-dom
+  imported                    2  test                            @testing-library/react
+  non-import-consumer         0  ambient types                   @types/node
+  non-import-consumer         0  ambient types                   @types/react
+  non-import-consumer         0  ambient types                   @types/react-dom
+  non-import-consumer         0  eslint plugin                   @typescript-eslint/eslint-plugin
+  non-import-consumer         0  eslint parser                   @typescript-eslint/parser
+  non-import-consumer         0  eslint binary                   eslint
+  imported                    1  config                          eslint-plugin-react-hooks
+  imported                    1  config                          eslint-plugin-react-refresh
+  imported                    1  config                          globals
+  non-import-consumer         0  vitest environment              jsdom
+  imported                    6  test                            msw
+  imported                    1  config                          typescript-eslint
+  imported                    5  config,test                     vitest
+
+## A. <root> — 0 declared, 5 files scanned
+imported: 0   non-import consumer: 0   declined (owner named): 0   DEAD: 0
+
+  status                imports  classes                        package
+
+  imported here but declared by no manifest (1):
+       1  puppeteer-core   e.g. scripts/launch-verification/measure-mobile-ui.mjs
+
+## B. dead imports (tsc --noUnusedLocals): 0
+# projects: apps/admissions (tsconfig.build.json), apps/jobs-ops (tsconfig.build.json)
+
+## B2. unused non-import locals (reported, not a failure): 13
+  production   apps/admissions/src/components/motion/index.tsx:11:10  TS6133  'useDuration' is declared but its value is never read.
+  production   apps/admissions/src/components/student/NotificationBell.tsx:31:5  TS6133  'refresh' is declared but its value is never read.
+  production   apps/admissions/src/lib/applicationSession.ts:729:17  TS6133  'getNextVersion' is declared but its value is never read.
+  production   apps/admissions/src/lib/connectionFix.ts:60:13  TS6133  'errorMessage' is declared but its value is never read.
+  production   apps/admissions/src/lib/speculativePrefetch.ts:145:10  TS6133  'prefetchStudentApplications' is declared but its value is never read.
+  production   apps/admissions/src/lib/speculativePrefetch.ts:207:10  TS6133  'preloadStudentSecondaryPages' is declared but its value is never read.
+  production   apps/admissions/src/pages/admin/Applications.tsx:283:10  TS6133  'bulkActionLoading' is declared but its value is never read.
+  production   apps/admissions/src/pages/admin/Applications.tsx:284:10  TS6133  'modalLoading' is declared but its value is never read.
+  production   apps/admissions/src/pages/admin/Applications.tsx:304:9  TS6133  'searchInputRef' is declared but its value is never read.
+  production   apps/admissions/src/pages/student/Dashboard.tsx:96:28  TS6133  'scheduledInterviews' is declared but its value is never read.
+  production   apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts:43:9  TS6133  'debouncedValues' is declared but its value is never read.
+  production   apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts:372:5  TS6133  'wizardCatalogContext' is declared but its value is never read.
+  production   apps/admissions/src/services/admin/dashboard.ts:657:13  TS6133  'users' is declared but its value is never read.
+
+## C. unresolved first-party imports: 0
+
+OVERALL PASS = true
+EXIT=0

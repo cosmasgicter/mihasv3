@@ -93,22 +93,30 @@ describe('Property 10: Preservation — PDF Download and Missing Email Error Unc
   });
 
   /**
-   * STRUCTURAL TEST: slipService.ts checks for missing email and returns
-   * the "Missing applicant email address" error.
+   * STRUCTURAL TEST: an `sendEmail` request is answered, not silently dropped.
    *
-   * This verifies the missing-email guard exists on both unfixed and
-   * fixed code.
+   * This case used to require the literal string "Missing applicant email
+   * address", i.e. the per-recipient guard around the client's own email call.
+   * admissions-v2 task **10.6** removed that call together with the deprecated
+   * `/applications/{id}/email-slip/` route (R13.5, finding API-04) — emailing an
+   * official document is a backend command with stored provenance and a delivery
+   * record now, so there is no recipient for this module to validate.
+   *
+   * The *preserved* property is the one that mattered: a caller that asks for an
+   * email and does not get one is **told**. A silent no-op is the failure mode
+   * this case exists to prevent, and it is still prevented — see
+   * `tests/unit/slipServiceEmail.test.ts` for the behavioural half.
    *
    * **Validates: Requirements 3.12**
    */
-  it('slipService.ts returns "Missing applicant email address" when email is empty', () => {
+  it('slipService.ts answers a declined slip email instead of dropping it', () => {
     const source = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
 
-    // The file must check for missing email
-    expect(source).toContain('Missing applicant email address');
+    // The `sendEmail` request still sets an error the caller can read.
+    expect(source).toContain('emailError =');
 
-    // The file must check data.email
-    expect(source).toContain('data.email');
+    // And it names the one authority that does email official documents.
+    expect(source).toContain('official-document service');
   });
 
   /**

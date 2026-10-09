@@ -1,0 +1,8 @@
+### 2026-08-14T10:34:37Z local test-database state: BEFORE the L7 test runs
+# Postgres mihas_localtest 127.0.0.1:5433, Redis 127.0.0.1:6380
+# (isolated backend/.env.local.test stack via .localtest-host-env.sh, so the
+#  Neon DSN cannot leak into a test run)
+test_% databases present : <none>
+redis ping               : /tmp/l7_tests.sh: line 60: redis-cli: command not found
+(redis-cli unavailable)
+containers               : mihas-localtest-postgres-1 (Up 30 hours (healthy)),mihas-localtest-redis-1 (Up 30 hours (healthy))

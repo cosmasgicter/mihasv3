@@ -46,7 +46,7 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.throttling import PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
@@ -74,15 +74,6 @@ def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
     return False
 
 
-def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
-    """Extract AI analysis JSON from verification_notes field."""
-    if not verification_notes:
-        return None
-    try:
-        data = json.loads(verification_notes)
-        return data.get("ai_analysis") if isinstance(data, dict) else None
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def _document_not_found_response():

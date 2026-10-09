@@ -21,6 +21,8 @@
     "lint:admissions": "cd apps/admissions && bun run lint",
     "lint:jobs-ops": "cd apps/jobs-ops && bun run lint",
     "lint:design": "bun scripts/design-audit-gate.ts",
-    "type-check:jobs-ops": "cd apps/jobs-ops && bun run type-check"
+    "type-check:jobs-ops": "cd apps/jobs-ops && bun run type-check",
+    "generate:api-types": "./scripts/generate-api-types.sh",
+    "generate:api-types:only": "./scripts/generate-api-types.sh --types"
   }
 }

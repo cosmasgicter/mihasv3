@@ -129,6 +129,22 @@ function TableView<T>({
   )
 }
 
+/**
+ * The phone-width record list.
+ *
+ * R16.1 lets an admin table become a compact record list "without losing
+ * commands, filters, state, or pagination". Until admissions-v2 task 11.4 this
+ * view was handed only the `always` columns and **dropped every `desktop` one**,
+ * so an operator on a phone could not see an intake's start date, end date or
+ * seat capacity, an institution's code or active-programme count, or a
+ * programme's duration at all — the record was silently shorter than the record
+ * the server sent. Compact is a density decision; it is not licence to withhold
+ * a field.
+ *
+ * Both priorities render now. `always` fields lead, `desktop` fields follow in
+ * the same definition list, and the split still means something: it decides
+ * order and prominence, not presence.
+ */
 function CardView<T>({
   columns,
   data,
@@ -138,9 +154,13 @@ function CardView<T>({
   data: T[]
   onRowClick?: (row: T) => void
 }) {
-  const alwaysColumns = columns.filter((col) => col.priority === 'always')
-  const primaryColumn = alwaysColumns[0]
-  const secondaryColumns = alwaysColumns.slice(1)
+  // `priority` now decides only which column earns the card's headline. Every
+  // other column follows in the order the table declares them, so the compact
+  // record reads as the same record in the same order — and a column carrying the
+  // row's commands stays where the table put it (last), instead of being
+  // reshuffled into the middle of the card by a priority-first sort.
+  const primaryColumn = columns.find((col) => col.priority === 'always') ?? columns[0]
+  const secondaryColumns = columns.filter((col) => col !== primaryColumn)
 
   return (
     <div className="flex flex-col gap-3" role="list">
@@ -184,9 +204,20 @@ function CardView<T>({
                     ? col.render(row[col.key], row)
                     : String(row[col.key] ?? '')
                   return (
-                    <div key={col.id ?? String(col.key)} className="flex justify-between text-sm">
-                      <dt className="text-muted-foreground">{col.header}</dt>
-                      <dd className="text-foreground font-medium">{value}</dd>
+                    <div
+                      key={col.id ?? String(col.key)}
+                      data-column-key={col.id ?? String(col.key)}
+                      data-column-priority={col.priority}
+                      /*
+                        `flex-wrap` and `min-w-0`, because a two-column row at
+                        320 px with a long value (a fee amount, an institution's
+                        full name) used to push the card wider than the viewport.
+                        The label and the value wrap onto separate lines instead.
+                      */
+                      className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm"
+                    >
+                      <dt className="min-w-0 break-words text-muted-foreground">{col.header}</dt>
+                      <dd className="min-w-0 break-words text-right font-medium text-foreground">{value}</dd>
                     </div>
                   )
                 })}
@@ -231,13 +262,18 @@ export function ResponsiveTable<T>({
           caption={caption}
         />
       </div>
-      {/* Mobile: stacked card layout */}
+      {/*
+        Mobile: stacked card layout.
+
+        The whole column set is handed over. This used to be
+        `columns.filter(col => col.priority === 'always')`, which is where the
+        record got shorter than the record the server sent: `CardView` could not
+        render a `desktop` field because it was never given one. `CardView` now
+        owns the ordering decision (`always` first, `desktop` after) and renders
+        both, so "compact" is about prominence rather than about presence.
+      */}
       <div className="md:hidden">
-        <CardView
-          columns={columns.filter((col) => col.priority === 'always')}
-          data={data}
-          onRowClick={onRowClick}
-        />
+        <CardView columns={columns} data={data} onRowClick={onRowClick} />
       </div>
     </div>
   )

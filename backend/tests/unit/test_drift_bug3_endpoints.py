@@ -290,11 +290,32 @@ class TestDocumentDeleteEndpoint(SimpleTestCase):
 
         mock_doc = _make_mock_document(doc_id, owner_id=user.id)
 
-        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
+        # Admissions-v2 task 7.3 (R11.7-R11.8, STU-19) moved this command onto the
+        # document-evidence lifecycle: the view no longer soft-deletes the row
+        # itself, it calls ``document_evidence.delete_document``, which opens a
+        # transaction, records an immutable ``DocumentVerificationEvent``, and
+        # decides whether the stored object is retained. That service is imported
+        # inside ``delete``, so patching the model manager the *old* inline
+        # implementation used no longer neutralises the write — the real service
+        # reached for a database this ``SimpleTestCase`` has none of, which is the
+        # 500. Patch the seam that replaced the inline delete, exactly as 13.6 §5.3
+        # did for ``test_interview_status_validation.py``.
+        #
+        # ``mock_doc.save`` remains the assertion below and still means "the command
+        # wrote this document": the service is the writer now, and the two added
+        # assertions pin that the view handed *this* document to it. The lifecycle's
+        # own behaviour — immutable history, object retention, and the legacy
+        # ``result_slip_url`` projection being cleared — is proven against real rows
+        # by ``tests/integration/test_document_evidence_compensation_7_3.py``.
+        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
+             patch("apps.documents.document_evidence.delete_document") as mock_delete:
             _mock_document_lookup(mock_qs, mock_doc)
+            mock_delete.side_effect = lambda *, document, **kwargs: document.save()
             view = DocumentDeleteView.as_view()
             response = view(request, document_id=doc_id)
 
+        mock_delete.assert_called_once()
+        assert mock_delete.call_args.kwargs["document"] is mock_doc
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
         mock_doc.save.assert_called_once()

@@ -1,0 +1,1 @@
+[32m[harness] ✓ harness down (volumes wiped)[0m

@@ -1,0 +1,37 @@
+]633;E;echo "=== TASK 7.4 — _Evidence: \\"grep/import/runtime network guard proving zero admissions AI calls\\" ===";27d7bb48-f6a4-4e48-84c8-c055f8c2ea5d]633;C=== TASK 7.4 — _Evidence: "grep/import/runtime network guard proving zero admissions AI calls" ===
+=== RETROSPECTIVE RECORD produced during 13.6 remediation item L11 ===
+=== DATE: 2026-08-14T05:04:32Z ===
+=== COMMIT: bae29a28d9657f288b3339062adb31285959c966 ===
+=== ENV: isolated local test stack (backend/.env.local.test via .localtest-host-env.sh) ===
+=== INVOCATION: serial, single worker, -p no:randomly ===
+
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0 -- /home/cosmas/Downloads/mihasv3/backend/.venv/bin/python3
+hypothesis profile 'default'
+django: version: 5.2.14, settings: config.settings.dev (from env)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 18 items
+
+tests/unit/test_no_admissions_generative_ai_guard.py::test_the_app_split_is_total PASSED [  5%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_no_admissions_module_imports_a_generative_client PASSED [ 11%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_no_admissions_module_reads_a_generative_model_setting PASSED [ 16%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_the_generative_client_has_exactly_one_importer_and_it_is_jobs_ops PASSED [ 22%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_the_jobs_ops_ai_service_still_exists_and_reads_only_its_own_settings PASSED [ 27%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_admissions_ai_module_is_absent[common/ai_service.py] PASSED [ 33%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_admissions_ai_module_is_absent[common/ai_cache.py] PASSED [ 38%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_admissions_ai_module_is_absent[common/ai_circuit_breaker.py] PASSED [ 44%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_admissions_ai_module_is_absent[common/ai_prompt_redactor.py] PASSED [ 50%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_ai_hardening_flag_is_not_defined_on_settings[AI_HARDENING_CIRCUIT_BREAKER] PASSED [ 55%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_ai_hardening_flag_is_not_defined_on_settings[AI_HARDENING_RATE_LIMITS] PASSED [ 61%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_ai_hardening_flag_is_not_defined_on_settings[AI_HARDENING_CACHE] PASSED [ 66%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_retired_ai_hardening_flag_is_not_defined_on_settings[AI_HARDENING_REDACTION] PASSED [ 72%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_un_namespaced_ai_settings_are_not_defined PASSED [ 77%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_no_retired_generative_route_is_registered PASSED [ 83%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_requirements_scopes_the_generative_sdk_to_jobs_ops PASSED [ 88%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_server_side_ocr_dependencies_are_retained PASSED [ 94%]
+tests/unit/test_no_admissions_generative_ai_guard.py::test_the_admissions_frontend_declares_no_ai_or_browser_ocr_package PASSED [100%]
+
+============================== 18 passed in 1.64s ==============================
+pytest exit=0

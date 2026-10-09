@@ -63,18 +63,36 @@ describe('Real ECZ OCR sample — end-to-end validation', () => {
     expect(result.diagnostics.every(d => d.issue === null)).toBe(true)
   })
 
-  it('validateLiveGrades works with fallback-* IDs when backend is empty', () => {
-    // Simulate: backend subjects table empty, frontend uses fallback IDs
+  it('counts nothing when the backend catalogue is empty, and says why', () => {
+    // Admissions-v2 task 7.1 (R11.5, STU-11): with no server catalogue there is
+    // nothing to select. The wizard used to fill the gap with `fallback-*` IDs and
+    // count them as progress; those rows were then dropped on persist, so the
+    // student reached "ready to submit" holding no grades at all. Now an
+    // unresolvable subject is reported, not counted.
     const rows: SubjectGrade[] = OCR_SAMPLE.subjects.map((s, i) => ({
       row_id: `fallback-row-${i}`,
+      subject_id: findBestSubjectId(s.name, []) || '',
+      grade: s.grade,
+    }))
+
+    const result = validateLiveGrades(rows)
+
+    expect(result.validCount).toBe(0)
+    expect(result.diagnostics.every(d => d.issue === 'missing_subject')).toBe(true)
+    expect(result.hintMessage).toMatch(/need a subject/i)
+  })
+
+  it('reports a stale fallback-* reference as unresolved rather than valid', () => {
+    const rows: SubjectGrade[] = OCR_SAMPLE.subjects.map((s, i) => ({
+      row_id: `stale-row-${i}`,
       subject_id: `fallback-${s.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
       grade: s.grade,
     }))
 
     const result = validateLiveGrades(rows)
 
-    expect(result.validCount).toBe(7)
-    expect(result.hintMessage).toBeNull()
-    expect(result.diagnostics.every(d => d.issue === null)).toBe(true)
+    expect(result.validCount).toBe(0)
+    expect(result.diagnostics.every(d => d.issue === 'unresolved_subject')).toBe(true)
+    expect(result.hintMessage).toMatch(/re-selected from the list/i)
   })
 })

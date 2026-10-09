@@ -1,0 +1,68 @@
+Task 3.5 — READ-ONLY preflight/inventory on the Neon DEFAULT (authoring) branch
+br-floral-scene-aha2ybfd. No mutation. Project wild-bar-37055823.
+
+--- Payment orphan / duplicate inventory (payments table) ---
+total_payments                     21
+null_application_orphans            0
+dangling_application_fk             0   (FK payments_application_id_fkey convalidated=true)
+apps_with_multiple_payments         5   (legitimate histories, NOT duplicates — see below)
+dup_txn_ref_groups                  0   (uq_payments_transaction_reference_present already enforced)
+dup_lenco_ref_groups                0
+orphans_with_metadata_appid         0
+
+payments_application_id_fkey  convalidated=true  def=ON DELETE SET NULL  (drift vs model CASCADE)
+
+--- The 5 multi-payment applications (all legitimate; max 1 active) ---
+2aa18278…  n=3 active=0  failed,failed,successful
+950db45b…  n=3 active=0  expired,expired,expired
+e7823622…  n=3 active=1  expired,deferred,successful
+37758b75…  n=2 active=0  failed,successful
+be7fde30…  n=2 active=0  failed,successful
+=> uq_payments_one_active_per_application already enforces one active per app; no dup remediation needed.
+
+--- Deprecated APPLICATION payment columns (33 applications; PRESERVE, do NOT contract here) ---
+application_fee        32
+payment_method         17   (also a payments column)
+payer_name             15
+payer_phone            13   (PII)
+amount                 17   (also a payments column)
+paid_at                17
+momo_ref                1
+pop_url                12
+payment_status         31   (ADR-001 DERIVED summary — stays as read projection)
+payment_verified_at    13
+payment_verified_by    13
+
+--- Payment-projection mismatch baseline (why deprecated columns cannot be contracted yet) ---
+total_apps                                33
+apps_with_any_payment                     13
+apps_with_no_payment                      20
+apps_status_verified_equiv                27
+reverse_orphans_verified_no_paymentrow    18   (payment_status verified/force_approved, NO Payment row
+                                                = AUDIT-2.3-001 legacy pre-Lenco manual proof-of-payment)
+verified_status_no_verified_payment       18
+verified_payment_but_status_not_verified   0   (the ADR-001 derivation is never contradicted the other way)
+
+--- application_documents duplicate inventory ---
+total_docs                        91
+dup_app_doctype_groups            10
+docs_null_app                      0   (application_id already NOT NULL)
+distinct_doc_types                 7
+docs_with_notes                   10
+docs_with_extracted_text           9   (legacy OCR/AI provenance; preserved — de-AI cleanup is task 7.x)
+
+dup groups by type:   application_slip 7 groups / 24 rows / 17 to supersede
+                      extra_kyc        2 groups /  9 rows /  7 to supersede
+                      result_slip      1 group  /  2 rows /  1 to supersede
+                      TOTAL           10 groups        / 25 to supersede
+
+Conclusions:
+* Payment.application: ZERO orphans/dangling/duplicates on the authoring DB, so the
+  mandatory-application CHECK validates cleanly. FK ON DELETE SET NULL is reconciled
+  to CASCADE (matches the Django model + Django's own cascade behaviour).
+* application_documents: 10 duplicate (application,document_type) groups must be
+  version-reconciled (newest=current, older=preserved superseded history) BEFORE the
+  one-current partial unique index can be built.
+* Deprecated application payment columns hold live legacy values and 18 reverse-orphan
+  mismatches remain -> they are PRESERVED as read-only snapshots; contraction is owned
+  by task 12.3 after mismatch + use telemetry reach zero (R15.6/R15.9).

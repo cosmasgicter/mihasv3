@@ -1,0 +1,62 @@
+{
+  "duplicate_ids": {},
+  "error_count": 0,
+  "findings": [
+    {
+      "message": "no .config.kiro file (spec has no tracked metadata)",
+      "severity": "warning",
+      "spec": "student-payment-interview-pages"
+    },
+    {
+      "message": "no spec id field (expected one of: specId, spec_id, id)",
+      "severity": "warning",
+      "spec": "student-ui-ux-mobile-remediation"
+    }
+  ],
+  "live_spec_count": 8,
+  "ok": true,
+  "specs": [
+    {
+      "has_config": true,
+      "name": "admin-dashboard-overhaul",
+      "spec_id": "8c3a1e06-83ec-4d86-bea1-a8a53e7ec222"
+    },
+    {
+      "has_config": true,
+      "name": "admissions-v2-canonical-rebuild",
+      "spec_id": "d1300058-e07d-433d-8aac-87e9986794a6"
+    },
+    {
+      "has_config": true,
+      "name": "beanola-launch-verification",
+      "spec_id": "06876e0c-0ba4-44d5-b3ad-a44493273873"
+    },
+    {
+      "has_config": true,
+      "name": "communications-history",
+      "spec_id": "1a48f276-e3fe-4fb9-9b0c-496404ffe6b8"
+    },
+    {
+      "has_config": true,
+      "name": "full-platform-remediation-2026-07",
+      "spec_id": "full-platform-remediation-2026-07"
+    },
+    {
+      "has_config": true,
+      "name": "profile-updates",
+      "spec_id": "a7462ced-57e8-4ead-8df5-b89b703a2c48"
+    },
+    {
+      "has_config": false,
+      "name": "student-payment-interview-pages",
+      "spec_id": null
+    },
+    {
+      "has_config": true,
+      "name": "student-ui-ux-mobile-remediation",
+      "spec_id": null
+    }
+  ],
+  "specs_root": "/home/cosmas/Downloads/mihasv3/.kiro/specs",
+  "warning_count": 2
+}

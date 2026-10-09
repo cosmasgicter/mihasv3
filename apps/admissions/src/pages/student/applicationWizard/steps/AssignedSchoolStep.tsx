@@ -4,6 +4,7 @@ import { animateClasses } from '@/lib/animations'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
 import type { AssignmentPreview } from '@/services/catalog'
+import { formatServerAmount } from '@/lib/serverAmount'
 import AssignmentRecoveryPanel from './AssignmentRecoveryPanel'
 import type { AssignmentRecoveryGuidance } from '../lib/assignmentRecovery'
 
@@ -26,11 +27,19 @@ interface AssignedSchoolStepProps {
   contactMailto?: string | null
 }
 
+/**
+ * Render the server-resolved assignment fee.
+ *
+ * Task 8.1: the amount is displayed exactly as the server sent it. The step used
+ * to re-quantise it through `Number(...).toLocaleString(…, {minimumFractionDigits:
+ * 2})`, which is the client deciding money precision — the same class of defect as
+ * the retired 1% arithmetic (finding STU-08). No fee means no amount: the caller
+ * says the fee is confirmed at the payment step rather than showing a placeholder.
+ */
 function formatFee(fee: AssignmentPreview['fee']): string | null {
   if (!fee) return null
-  const amount = Number(fee.amount)
-  const display = Number.isFinite(amount) ? amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : fee.amount
-  return `${fee.currency} ${display}`
+  const amount = typeof fee.amount === 'number' ? String(fee.amount) : fee.amount
+  return formatServerAmount(amount, fee.currency) || null
 }
 
 /**

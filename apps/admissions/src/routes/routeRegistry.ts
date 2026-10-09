@@ -31,13 +31,13 @@ export type ProductRouteId =
   | 'auth.signUp'
   | 'auth.forgotPassword'
   | 'auth.resetPassword'
+  | 'auth.acceptInvitation'
   | 'auth.callback'
   | 'payment.callback'
   | 'dashboard.redirect'
   | 'student.dashboard'
   | 'student.applicationWizard'
   | 'student.status'
-  | 'student.applicationDetail'
   | 'student.settings'
   | 'student.notifications'
   | 'student.payment'
@@ -71,7 +71,24 @@ export interface RouteNavMetadata {
 export interface ProductRouteDefinition {
   id: ProductRouteId
   path: string
+  /**
+   * Additional live paths that render the same page. An alias is *equivalent* to
+   * `path` — both resolve, neither redirects.
+   */
   aliases?: string[]
+  /**
+   * Paths that used to be a **second implementation** of this route and now
+   * redirect to it (task 10.6, R13.13).
+   *
+   * Deliberately not an alias. An alias keeps two live URLs for one surface,
+   * which is the shape R13.13 forbids; a duplicate redirect keeps the old
+   * bookmark working while leaving exactly one address at which the workspace
+   * actually renders. `matchesRoutePath` therefore ignores these — a duplicate
+   * path is not this route, it is a hop to it — while `routeByPath` still
+   * resolves them so a caller can tell the difference between "retired
+   * duplicate" and "unknown URL".
+   */
+  duplicateRedirects?: string[]
   guard: RouteGuard
   skeletonType: SkeletonType
   requiresSuperAdmin?: boolean
@@ -138,6 +155,16 @@ export const ROUTES = {
     guard: 'public',
     skeletonType: 'auth',
   },
+  // Staff-invitation acceptance handoff (task 4.2, R4.3): an invited tenant
+  // admin/reviewer sets their OWN password by consuming a single-use token.
+  // Public — the invitee is not yet signed in. Must match the backend link in
+  // backend/apps/common/email_links.py → ROUTE_ACCEPT_INVITATION.
+  authAcceptInvitation: {
+    id: 'auth.acceptInvitation',
+    path: '/auth/accept-invitation',
+    guard: 'public',
+    skeletonType: 'auth',
+  },
   authCallback: {
     id: 'auth.callback',
     path: '/auth/callback',
@@ -179,10 +206,23 @@ export const ROUTES = {
       activeMatchPaths: ['/student/application-wizard', '/apply'],
     },
   },
+  /**
+   * The one canonical student application workspace (task 10.6, R13.13,
+   * finding **STU-23**).
+   *
+   * It owns status, next action, payment position, documents, interview,
+   * conditions, amendments, enrollment readiness, status history and public
+   * tracking for one application. `/student/application/:id` used to be a second
+   * workspace over the same data; it is now a redirect (see
+   * `DuplicateRouteRedirect` in `routes/config.tsx`), which is why it is listed
+   * here as `duplicateRedirects` rather than as an alias — an alias would render
+   * the workspace at two live URLs, and R13.13 asks for one.
+   */
   studentStatus: {
     id: 'student.status',
     path: '/student/status',
     aliases: ['/student/application-status', '/application/:id', '/student/application/:id/status'],
+    duplicateRedirects: ['/student/application/:id'],
     guard: 'student',
     skeletonType: 'detail',
     nav: {
@@ -193,12 +233,6 @@ export const ROUTES = {
       section: 'student',
       activeMatchPaths: ['/student/status'],
     },
-  },
-  studentApplicationDetail: {
-    id: 'student.applicationDetail',
-    path: '/student/application/:id',
-    guard: 'student',
-    skeletonType: 'detail',
   },
   studentSettings: {
     id: 'student.settings',
@@ -218,10 +252,12 @@ export const ROUTES = {
   },
   studentNotifications: {
     id: 'student.notifications',
+    // Task 10.1 (R13.8): preferences only. The inbox/history is
+    // `student.communications`, which is the one place messages are read.
     path: '/student/notifications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Notifications', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
+    nav: { label: 'Notification settings', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
   },
   studentPayment: {
     id: 'student.payment',
@@ -241,10 +277,13 @@ export const ROUTES = {
   },
   studentCommunications: {
     id: 'student.communications',
+    // Task 10.1 (R13.8): the single communications/inbox history. `mobile: true`
+    // is not decoration — this is the student's primary mobile tab, so the flag
+    // now matches where the navigation actually sends them.
     path: '/student/communications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Communications', icon: MessageSquare, desktop: true, order: 25, section: 'student' },
+    nav: { label: 'Communications', icon: MessageSquare, desktop: true, mobile: true, order: 25, section: 'student' },
   },
   studentHistory: {
     id: 'student.history',
@@ -371,14 +410,101 @@ export function studentApplicationNewPath(params: Record<string, string | undefi
   return `${pathFor('student.applicationWizard')}?${query.toString()}`
 }
 
-export function studentApplicationResumePath(draftId: string): string {
+/**
+ * The wizard step keys a link may address (admissions-v2 task 11.2).
+ *
+ * Declared here rather than imported from the wizard so the registry stays free of
+ * page imports, and drift-guarded against `applicationWizard/steps/config.ts` by
+ * `wizardMobileRecomposition.test.tsx` — one vocabulary, mechanically compared, the
+ * same arrangement task 8.2 uses for the payment-phase mirror.
+ */
+export const WIZARD_DEEP_LINK_STEPS = [
+  'program',
+  'assignedSchool',
+  'personal',
+  'education',
+  'payment',
+  'submit',
+] as const
+
+export type WizardDeepLinkStep = (typeof WIZARD_DEEP_LINK_STEPS)[number]
+
+/**
+ * Resume one draft, optionally at the step a server action names (task 11.2).
+ *
+ * The step is *advisory*: the wizard clamps an unreachable one to the
+ * assigned-school checkpoint (R10.3) and says so, so a link can never dead-end a
+ * student on a step they have not earned. An unrecognised step is dropped rather
+ * than passed through, which keeps this builder incapable of emitting a `?step=`
+ * the wizard would ignore.
+ */
+export function studentApplicationResumePath(draftId: string, step?: string | null): string {
   const query = new URLSearchParams({ mode: 'resume', draftId })
+  if (step && (WIZARD_DEEP_LINK_STEPS as readonly string[]).includes(step)) {
+    query.set('step', step)
+  }
   return `${pathFor('student.applicationWizard')}?${query.toString()}`
 }
 
 export function studentApplicationLocalResumePath(): string {
   const query = new URLSearchParams({ localDraft: 'true' })
   return `${pathFor('student.applicationWizard')}?${query.toString()}`
+}
+
+/**
+ * The one canonical student application workspace URL for one application
+ * (task 10.6, R13.13, finding STU-23).
+ *
+ * Every first-party link to a student's own application goes through this. The
+ * point is not brevity: before 10.6 the app linked to `/student/application/:id`
+ * from three places and to `/student/application/:id/status` from others, so two
+ * different pages were reached from one dashboard depending on which control the
+ * student pressed. A single builder means a future rename moves every caller at
+ * once, and `studentDashboardTaskFirst.test.ts` §3 fails if a raw string appears
+ * instead — which matters more since the guard below, because a caller that
+ * builds the path by hand does not get it.
+ *
+ * An id that cannot address an application has no workspace URL, so it answers
+ * the dashboard rather than a traversal path — the same fallback
+ * `DuplicateRouteRedirect` uses for a missing param (see {@link isDotSegment}).
+ */
+export function studentApplicationWorkspacePath(applicationId: string): string {
+  const segment = encodeURIComponent(applicationId ?? '')
+  if (!segment || isDotSegment(segment)) return pathFor('student.dashboard')
+  return `/student/application/${segment}/status`
+}
+
+/**
+ * Whether an already-encoded path segment is a relative-path segment.
+ *
+ * `encodeURIComponent` is the guard task 10.6 put on the workspace builder, and
+ * for a hostile id like `a/../../admin` it works: the slashes become `%2F`, so no
+ * `..` survives as a segment of its own. What it cannot do is escape a *bare* `.`
+ * or `..`, because `.` is an unreserved character — `encodeURIComponent('..')` is
+ * `'..'`. Percent-encoding the dots is not a fix either: the URL standard defines
+ * a double-dot segment ASCII-case-insensitively as `..`, `.%2e`, `%2e.` or
+ * `%2e%2e`, so `%2E%2E` is normalised away exactly like `..`.
+ *
+ * So the honest answer is that such an id is not an application id at all. Found
+ * by admissions-v2 task 11.1's property suite
+ * (`studentNextAction.property.test.ts`, counterexample `applicationId: '..'`),
+ * which quantifies over every path the student's next action can build.
+ */
+function isDotSegment(encodedSegment: string): boolean {
+  const lowered = encodedSegment.toLowerCase()
+  return (
+    lowered === '.' ||
+    lowered === '%2e' ||
+    lowered === '..' ||
+    lowered === '.%2e' ||
+    lowered === '%2e.' ||
+    lowered === '%2e%2e'
+  )
+}
+
+/** The retired duplicate paths that now redirect into `route`. */
+export function duplicateRedirectPaths(route: ProductRouteDefinition): string[] {
+  return [...(route.duplicateRedirects ?? [])]
 }
 
 function matchesPathPattern(pathname: string, pattern: string): boolean {
@@ -396,10 +522,30 @@ export function matchesRoutePath(pathname: string, route: ProductRouteDefinition
   return Boolean(route.aliases?.some((alias) => matchesPathPattern(pathname, alias)))
 }
 
+/**
+ * True when `pathname` is a retired duplicate that redirects into `route`
+ * (task 10.6). Kept separate from `matchesRoutePath` on purpose: a duplicate
+ * path is *not* this route — it is a hop to it — and collapsing the two would
+ * make nav highlighting and skeleton selection treat a redirect as a
+ * destination.
+ */
+export function matchesDuplicateRedirect(
+  pathname: string,
+  route: ProductRouteDefinition,
+): boolean {
+  return Boolean(route.duplicateRedirects?.some((path) => matchesPathPattern(pathname, path)))
+}
+
 export function routeByPath(pathname: string): ProductRouteDefinition | null {
-  return [...PRODUCT_ROUTES]
-    .sort((a, b) => b.path.length - a.path.length)
-    .find((route) => matchesRoutePath(pathname, route)) ?? null
+  const sorted = [...PRODUCT_ROUTES].sort((a, b) => b.path.length - a.path.length)
+  // Live paths win over retired duplicates: `/student/application/:id/status` is
+  // the workspace itself, and `/student/application/:id` is the redirect into it,
+  // so the longer live path must be tested first or the redirect would swallow it.
+  return (
+    sorted.find((route) => matchesRoutePath(pathname, route)) ??
+    sorted.find((route) => matchesDuplicateRedirect(pathname, route)) ??
+    null
+  )
 }
 
 export function routesByGuard(guard: RouteGuard): ProductRouteDefinition[] {

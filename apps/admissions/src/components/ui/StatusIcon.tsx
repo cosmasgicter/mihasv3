@@ -1,13 +1,9 @@
-import React from 'react'
 import {
-  CheckCircle,
   XCircle,
   Clock,
   AlertTriangle,
   Trophy,
   Rocket,
-  Search,
-  HeartCrack,
   Target
 } from 'lucide-react'
 import { cn } from '@/lib/utils'

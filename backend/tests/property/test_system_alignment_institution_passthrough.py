@@ -71,6 +71,24 @@ def _make_application_instance(**overrides):
     for key, value in defaults.items():
         setattr(mock, key, value)
 
+    # A *legacy* row: no canonical records attached. This property is stated over
+    # the legacy display snapshot on the row, and admissions-v2 task 10.5 (R13.12 /
+    # R14, STU-22) made ``ApplicationTrackingSerializer`` prefer the canonical
+    # record's name and *fall back* to that snapshot. Its own docstring says so:
+    # "``program_name`` / ``intake_name`` / ``institution`` prefer the canonical
+    # record's name and fall back to the legacy display snapshot on the row, which
+    # is what legacy applications have. They are display values, never authority."
+    # On a bare ``MagicMock`` every canonical attribute auto-exists and is truthy,
+    # so the serializer read ``institution_ref.brand_name`` — itself a MagicMock —
+    # and the pass-through claim was being made about a row shape that has no
+    # snapshot to pass through. Setting the three canonical references to ``None``
+    # is what makes this mock the legacy row the property is about, and it turns the
+    # assertion into a pin on 10.5's documented fallback rather than an accident of
+    # mock auto-attributes.
+    for canonical_attr in ("institution_ref", "canonical_program", "intake_ref"):
+        if canonical_attr not in defaults:
+            setattr(mock, canonical_attr, None)
+
     return mock
 
 

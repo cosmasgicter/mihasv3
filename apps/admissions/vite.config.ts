@@ -252,7 +252,6 @@ export default defineConfig(({ mode, command }) => {
               !dep.includes('vendor-sentry') &&
               !dep.includes('vendor-pdf') &&
               !dep.includes('vendor-react-pdf') &&
-              !dep.includes('vendor-ocr') &&
               // vendor-framer-motion is a decorative-animation-only engine
               // (FadeIn/Crossfade/PageTransition/ScaleOnHover). Even a
               // bare/unused static import of it (see manualChunks comment
@@ -417,15 +416,27 @@ export default defineConfig(({ mode, command }) => {
                 return 'vendor-react-pdf'
               }
 
-              // OCR — tesseract.js, dynamically imported
-              if (id.includes('/tesseract.js/')) {
-                return 'vendor-ocr'
-              }
+              // No OCR chunk. admissions-v2 task 7.5 removed the browser
+              // tesseract.js / tesseract.js-core packages and the 29 MB WASM
+              // asset copy step (R11.9, finding STU-07): nothing in the browser
+              // ever imported them. Grade extraction is a server-side Tesseract
+              // read behind the Celery task, and its output is a suggestion the
+              // student confirms. `tests/unit/ocrAssetRemoval.test.ts` fails if
+              // any of it comes back.
 
-              // Charts — recharts, dynamically imported
-              if (id.includes('/recharts/') || id.includes('/d3-')) {
-                return 'vendor-charts'
-              }
+              // No chart chunk. admissions-v2 task 12.4 removed the `recharts`
+              // dependency (R11.9, R16.5): the dependency-and-import scan
+              // (`bun scripts/module-size-report.ts --dead-code`) measured
+              // **zero** imports of it anywhere in `src/`, `tests/` or
+              // `scripts/`, so this branch and the `vendor-charts`/`d3-` chunk it
+              // named could never fire. The admin dashboards render their
+              // numbers as `SectionCard` figures, and the `BarChart3`/`PieChart`
+              // names still in the tree are lucide-react **icons**.
+              // `scripts/check-entry-chunk.ts` and
+              // `scripts/launchBundlePredicate.ts` keep their `recharts` /
+              // `vendor-charts` markers on purpose — the removal is the fix, the
+              // guard is the seatbelt if a chart engine is ever added back
+              // (7.5's precedent for the same decision about tesseract).
 
               // framer-motion — used only by a handful of decorative
               // primitives in the `@/components/motion` barrel (FadeIn,

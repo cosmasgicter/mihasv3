@@ -1,0 +1,18 @@
+
+Running 12 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:226:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (3.6s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:296:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (3.4s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:340:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (2.7s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:400:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (3.8s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:480:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (4.2s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:583:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (3.4s)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:226:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (3.3s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:296:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (3.5s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:340:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (2.6s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:400:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (4.0s)
+  ✓  11 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:480:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (5.4s)
+  ✓  12 [mobile-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:583:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (3.8s)
+
+  12 passed (47.6s)
+EXIT=0

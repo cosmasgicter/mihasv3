@@ -12,6 +12,7 @@ from apps.common.email.components import (
     section_heading,
     signature_block,
 )
+from apps.common.email_links import ROUTE_STUDENT_DASHBOARD, platform_base_url
 
 
 def render(context: dict) -> tuple[str, str]:
@@ -26,7 +27,7 @@ def render(context: dict) -> tuple[str, str]:
     program = context.get("program_name") or "your selected programme"
     intake = context.get("intake_name") or "the upcoming intake"
     start = context.get("start_date") or "the programme start date"
-    portal = context.get("portal_url") or "https://apply.beanola.com"
+    portal = context.get("portal_url") or platform_base_url()
     conditions = context.get("conditions") or []
 
     # Build a formatted list of conditions with optional deadlines.
@@ -79,7 +80,7 @@ def render(context: dict) -> tuple[str, str]:
                     "Complete registration once all conditions are verified.",
                 ]
             ),
-            cta_button("Upload evidence", portal + "/student/application"),
+            cta_button("Upload evidence", portal + ROUTE_STUDENT_DASHBOARD),
             signature_block(division=derive_division(program)),
         ]
     )

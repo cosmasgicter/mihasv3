@@ -1,0 +1,303 @@
+{
+  "config": {
+    "configFile": "/home/cosmas/Downloads/mihasv3/apps/admissions/playwright.harness.13-2.config.ts",
+    "rootDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-13-2",
+        "name": "chromium-13-2",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/two-tenant-(isolation-matrix|golden-journey|adversarial-matrix)\\.spec\\.ts$/"
+        ],
+        "timeout": 300000
+      },
+      {
+        "outputDir": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-13-2",
+        "name": "mobile-13-2",
+        "testDir": "/home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required",
+        "testIgnore": [],
+        "testMatch": [
+          "/required\\/two-tenant-golden-journey\\.spec\\.ts$/"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/v2-evidence/13.2/raw/playwright-report.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "../../docs/v2-evidence/13.2/raw/html-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "two-tenant-golden-journey.spec.ts",
+      "file": "two-tenant-golden-journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "The complete golden journey on a resolved tenant host (R18.2)",
+          "file": "two-tenant-golden-journey.spec.ts",
+          "line": 154,
+          "column": 6,
+          "specs": [
+            {
+              "title": "one applicant walks register → verify → login → autosave → two drafts → assignment → grades → documents → pay/defer → submit → interview/comms → amendment → condition → approval → official docs → enrollment → tracking → withdrawal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [
+                    {
+                      "type": "step 01 register",
+                      "description": "201 on mihas.localhost for a brand-new account"
+                    },
+                    {
+                      "type": "step 02 verify",
+                      "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                    },
+                    {
+                      "type": "step 03 login",
+                      "description": "signed in through the page; landed on /student/dashboard"
+                    },
+                    {
+                      "type": "step 04 profile autosave",
+                      "description": "\"Autosaved 17180398\" persisted and survived a page reload"
+                    },
+                    {
+                      "type": "step 05 two drafts",
+                      "description": "2 drafts for the same program+intake; resumed f4d0617a-9627-498b-8a5b-cbbb5cac1b65 by explicit mode=resume"
+                    },
+                    {
+                      "type": "step 06 assignment",
+                      "description": "canonical offering 8aacdcce-9cfd-4797-89f5-192b9aa3c0d0; reviewer cd8f08cd-6ede-409d-b70c-361397d6745d assigned"
+                    },
+                    {
+                      "type": "step 07 five grades",
+                      "description": "5 unique ECZ subjects persisted"
+                    },
+                    {
+                      "type": "step 08 documents",
+                      "description": "uploaded result_slip, nrc; nothing required left missing"
+                    },
+                    {
+                      "type": "step 09 pay/defer",
+                      "description": "deferred, then settled 153.00 ZMW on payment 001bf4be-833b-419a-a394-8988b1a6ea2d"
+                    },
+                    {
+                      "type": "step 10 submit",
+                      "description": "MIHAS202600026 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                    },
+                    {
+                      "type": "step 11 interview/comms",
+                      "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                    },
+                    {
+                      "type": "step 12 amendment",
+                      "description": "506349fc-c4e6-472e-a649-ccd4dd121370 requested by the student and approved by an admin (before the condition — platform order)"
+                    },
+                    {
+                      "type": "step 13 condition",
+                      "description": "condition e83f8044-5101-416c-805d-5d234a3bb44d assigned with the conditional offer and verified met"
+                    },
+                    {
+                      "type": "step 14 approval",
+                      "description": "conditionally_approved → approved"
+                    },
+                    {
+                      "type": "step 15 official docs",
+                      "description": "application_slip issued at \"approved\" and reached \"ready\""
+                    },
+                    {
+                      "type": "step 16 enrollment",
+                      "description": "deadline 2026-08-26T06:46:34.111368Z authored by the server; confirmed to \"enrolled\""
+                    },
+                    {
+                      "type": "step 17 tracking",
+                      "description": "TRK-AH0T2TW5-B7QA99S9BVVY9R8JB4TH resolved anonymously to MIHAS202600026 / enrolled"
+                    },
+                    {
+                      "type": "step 18 withdrawal / new application where legal",
+                      "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 5031c3e9-6610-40bd-97e4-59d76f6975cb was then accepted"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-13-2",
+                  "projectName": "mobile-13-2",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10334,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-12T06:46:19.824Z",
+                      "annotations": [
+                        {
+                          "type": "step 01 register",
+                          "description": "201 on mihas.localhost for a brand-new account"
+                        },
+                        {
+                          "type": "step 02 verify",
+                          "description": "NOT PERFORMED — removed by design (task 1.6 / R9.7 / STU-21): no verify-email route (404), registration mints no session, and login is not gated. Registered Legacy_Exception: profiles.email_verified"
+                        },
+                        {
+                          "type": "step 03 login",
+                          "description": "signed in through the page; landed on /student/dashboard"
+                        },
+                        {
+                          "type": "step 04 profile autosave",
+                          "description": "\"Autosaved 17180398\" persisted and survived a page reload"
+                        },
+                        {
+                          "type": "step 05 two drafts",
+                          "description": "2 drafts for the same program+intake; resumed f4d0617a-9627-498b-8a5b-cbbb5cac1b65 by explicit mode=resume"
+                        },
+                        {
+                          "type": "step 06 assignment",
+                          "description": "canonical offering 8aacdcce-9cfd-4797-89f5-192b9aa3c0d0; reviewer cd8f08cd-6ede-409d-b70c-361397d6745d assigned"
+                        },
+                        {
+                          "type": "step 07 five grades",
+                          "description": "5 unique ECZ subjects persisted"
+                        },
+                        {
+                          "type": "step 08 documents",
+                          "description": "uploaded result_slip, nrc; nothing required left missing"
+                        },
+                        {
+                          "type": "step 09 pay/defer",
+                          "description": "deferred, then settled 153.00 ZMW on payment 001bf4be-833b-419a-a394-8988b1a6ea2d"
+                        },
+                        {
+                          "type": "step 10 submit",
+                          "description": "MIHAS202600026 reached \"submitted\" through POST …/submit/ with confirm_submission"
+                        },
+                        {
+                          "type": "step 11 interview/comms",
+                          "description": "1 interview visible to the student; 3 message(s) in the one inbox"
+                        },
+                        {
+                          "type": "step 12 amendment",
+                          "description": "506349fc-c4e6-472e-a649-ccd4dd121370 requested by the student and approved by an admin (before the condition — platform order)"
+                        },
+                        {
+                          "type": "step 13 condition",
+                          "description": "condition e83f8044-5101-416c-805d-5d234a3bb44d assigned with the conditional offer and verified met"
+                        },
+                        {
+                          "type": "step 14 approval",
+                          "description": "conditionally_approved → approved"
+                        },
+                        {
+                          "type": "step 15 official docs",
+                          "description": "application_slip issued at \"approved\" and reached \"ready\""
+                        },
+                        {
+                          "type": "step 16 enrollment",
+                          "description": "deadline 2026-08-26T06:46:34.111368Z authored by the server; confirmed to \"enrolled\""
+                        },
+                        {
+                          "type": "step 17 tracking",
+                          "description": "TRK-AH0T2TW5-B7QA99S9BVVY9R8JB4TH resolved anonymously to MIHAS202600026 / enrolled"
+                        },
+                        {
+                          "type": "step 18 withdrawal / new application where legal",
+                          "description": "refused from \"enrolled\" (INVALID_STATUS_FOR_WITHDRAWAL); allowed from \"submitted\"; a replacement draft 5031c3e9-6610-40bd-97e4-59d76f6975cb was then accepted"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-golden-journey--08c10-ent-→-tracking-→-withdrawal-mobile-13-2/test-finished-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.2/raw/artifacts/two-tenant-golden-journey--08c10-ent-→-tracking-→-withdrawal-mobile-13-2/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b33cc70fee0588d1f3f0-942b94bed321d0e8c8ae",
+              "file": "two-tenant-golden-journey.spec.ts",
+              "line": 155,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-12T06:46:18.102Z",
+    "duration": 20514.602000000003,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

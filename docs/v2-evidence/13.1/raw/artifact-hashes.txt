@@ -1,0 +1,42 @@
+]633;E;echo "=== artifact hashes (this task's own outputs) ===";aba460bf-def5-42e2-be33-478f84efb324]633;C=== artifact hashes (this task's own outputs) ===
+16cfe1b0b55c2837605dc4bb4f29e1187eb4e14d1cb80efd333cadc71e40bf87  docs/v2-evidence/13.1/raw/manifest.fresh-from-empty.json
+1e952e982c34be7bd6f1477d814615ff4951cd7c7458e95e07662ba84635a2eb  docs/v2-evidence/13.1/raw/manifest.migrated-snapshot.json
+cc56c849c860db608157f520304d16ebb6685dd218126b5948821d873687a438  docs/v2-evidence/13.1/raw/manifest.neon-authoring.json
+2518fb7ced0146b57955c75b2bb86d6a746aac2cc414a7857179eb304cfca26c  docs/v2-evidence/13.1/raw/schema-diff-report.json
+
+=== schema fingerprints ===
+fresh-from-empty     label=None vendor=None server=? tables=89 fp=None
+migrated-snapshot    label=None vendor=None server=? tables=87 fp=None
+neon-authoring       label=None vendor=None server=? tables=78 fp=None
+
+=== schema manifest meta (task 3.1 tool) ===
+fresh-from-empty:
+    label = fresh-from-empty
+    generated_at = 2026-08-12T02:47:22.180386+00:00
+    vendor = postgresql
+    server_version = 16.14
+    schema = public
+    environment_identity = host=127.0.0.1 db=v2_fresh_13_1
+    reduced = False
+    schema_fingerprint = sha256:a48a176d78ed2663ecfd4272793fbfaba60750a1dd38a60101a838cf312c629b
+    tables = 89  migrations = 43  not_valid_fks = 9
+migrated-snapshot:
+    label = migrated-snapshot
+    generated_at = 2026-08-12T02:47:24.261463+00:00
+    vendor = postgresql
+    server_version = 16.14
+    schema = public
+    environment_identity = host=127.0.0.1 db=mihas_localtest
+    reduced = False
+    schema_fingerprint = sha256:bc5ab0499c8b0ef146c82377bab0390c0b98732326ee003d1f7bf76ef6367246
+    tables = 87  migrations = 5  not_valid_fks = 28
+neon-authoring:
+    label = neon-authoring
+    generated_at = 2026-08-12T02:48:15.352686+00:00
+    vendor = postgresql
+    server_version = 17.10 (29ad1b7)
+    schema = public
+    environment_identity = host=ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech db=neondb
+    reduced = False
+    schema_fingerprint = sha256:9d4bc5c7f5233e9d01e8b498c6951e9a776a3feb487f94bf14074822d2d5ee66
+    tables = 78  migrations = 44  not_valid_fks = 9

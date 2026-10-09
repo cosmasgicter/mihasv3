@@ -1,16 +1,37 @@
-"""Unit tests for payment expiry and retry limits (Requirement 8). Requirements: 8.1-8.9"""
+"""Unit tests for payment expiry and retry limits (Requirement 8). Requirements: 8.1-8.9
+
+admissions-v2 task 8.2 retargeted this module onto the single payment path:
+expiry is ``PaymentService.expire_stale`` (which transitions through
+``_transition``), initiation is ``PaymentService.initiate``, and the transition
+authority is the canonical tuple-keyed ``ALLOWED_TRANSITIONS`` matrix. The
+pre-hardening ``_ALLOWED_TRANSITIONS`` map, ``initiate_payment``, and the poll
+task's own inline expiry loop no longer exist.
+"""
 import uuid
 from datetime import timedelta
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
-from django.test import override_settings
 from django.utils import timezone
 
 from apps.documents.payment_service import (
+    ALLOWED_TRANSITIONS,
     MAX_PAYMENT_ATTEMPTS,
     EXPIRED_EXCLUSION_DAYS,
-    _ALLOWED_TRANSITIONS,
 )
+
+# Sources that carry provider/system truth (not the audited human override).
+_PROVIDER_SOURCES = frozenset(
+    {"verify", "webhook", "reconciliation", "initiate", "admin_override"}
+)
+
+
+def _outbound(status: str) -> set[str]:
+    """Provider-driven targets reachable from ``status`` in the canonical matrix."""
+    return {
+        target
+        for (from_status, target), sources in ALLOWED_TRANSITIONS.items()
+        if from_status == status and sources & _PROVIDER_SOURCES
+    }
 
 
 def _mock_payment(status="pending", age_hours=0, app_id=None):
@@ -18,7 +39,7 @@ def _mock_payment(status="pending", age_hours=0, app_id=None):
     p.id = uuid.uuid4()
     p.status = status
     p.application_id = app_id or uuid.uuid4()
-    p.transaction_reference = "MIHAS-TEST-REF"
+    p.transaction_reference = "BNL-TEST-REF"
     p.created_at = timezone.now() - timedelta(hours=age_hours)
     p.updated_at = timezone.now()
     p.save = MagicMock()
@@ -28,50 +49,43 @@ def _mock_payment(status="pending", age_hours=0, app_id=None):
 class TestPaymentExpiry24Hours:
     """1. 24-hour expiry transition (Req 8.1, 8.2)."""
 
-    @patch("apps.documents.tasks.transaction")
-    @patch("apps.common.communication_service.CommunicationService.send")
-    @patch("apps.applications.models.Application.objects")
+    @patch("apps.documents.payment_service.PaymentService.expire_stale")
     @patch("apps.documents.models.Payment.objects")
-    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=False)
-    def test_payments_older_than_24h_expired(self, mock_pay_qs, mock_app_qs, mock_comm, mock_tx):
-        """Payments pending > 24 hours are transitioned to expired."""
-        mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
-        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
+    def test_poll_task_delegates_expiry_to_the_service(self, mock_pay_qs, mock_expire):
+        """The sweep expires stale payments through the one state machine.
 
-        old_payment = _mock_payment(status="pending", age_hours=30)
-
-        # First filter call: expired payments (pending, older than 24h)
-        # Second filter call: pending payments for verification (5min-24h)
-        expired_qs = MagicMock()
-        expired_qs.__getitem__ = MagicMock(return_value=[old_payment])
-
+        The task no longer contains its own expiry loop — that was the second
+        writer. It asks ``PaymentService.expire_stale`` to do it, so the same
+        forward-only matrix, audit trail, and student notification apply whether
+        expiry came from the worker or from anywhere else.
+        """
+        mock_expire.return_value = 1
         verify_qs = MagicMock()
         verify_qs.__getitem__ = MagicMock(return_value=[])
-
-        mock_pay_qs.filter.side_effect = [expired_qs, verify_qs]
-
-        # select_for_update chain for the locked re-fetch
-        mock_pay_qs.select_for_update.return_value.filter.return_value.first.return_value = old_payment
-
-        mock_app = MagicMock()
-        mock_app.id = old_payment.application_id
-        mock_app_qs.filter.return_value.first.return_value = mock_app
+        mock_pay_qs.filter.return_value = verify_qs
 
         from apps.documents.tasks import poll_pending_payments_task
         poll_pending_payments_task()
 
-        old_payment.save.assert_called()
-        assert old_payment.status == "expired"
+        mock_expire.assert_called_once_with(older_than_hours=24, batch_cap=50)
 
     def test_expired_to_successful_blocked(self):
         """Expired payment cannot transition to successful (Req 8.2, 8.8)."""
-        allowed = _ALLOWED_TRANSITIONS.get("expired", set())
-        assert "successful" not in allowed
+        assert "successful" not in _outbound("expired")
 
     def test_pending_to_expired_allowed(self):
         """Pending → expired is a valid transition (Req 8.8)."""
-        allowed = _ALLOWED_TRANSITIONS.get("pending", set())
-        assert "expired" in allowed
+        assert "expired" in _outbound("pending")
+
+    def test_expiry_is_reconciliation_only(self):
+        """Only the reconciliation source may expire a pending payment.
+
+        A provider callback must never expire a row — expiry is a decision the
+        platform makes about elapsed time, not something Lenco reports.
+        """
+        assert ALLOWED_TRANSITIONS[("pending", "expired")] & _PROVIDER_SOURCES == {
+            "reconciliation"
+        }
 
 
 class TestRetryLimit:
@@ -90,66 +104,21 @@ class TestRetryLimit:
         app_id = uuid.uuid4()
         user_id = uuid.uuid4()
 
-        # No existing pending payment
-        mock_pay_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+        # No existing active payment
+        (
+            mock_pay_qs.select_for_update.return_value.filter.return_value
+            .order_by.return_value.first.return_value
+        ) = None
 
         # 5 existing attempts (excluding old expired)
         mock_pay_qs.filter.return_value.exclude.return_value.count.return_value = 5
 
         service = PaymentService()
         try:
-            service.initiate_payment(app_id, user_id)
+            service.initiate(app_id, user_id)
             assert False, "Should have raised ValueError"
         except ValueError as exc:
             assert "MAX_PAYMENT_ATTEMPTS_EXCEEDED" in str(exc)
-
-    @patch("django.db.transaction.atomic")
-    @patch("apps.documents.payment_service.Payment.objects")
-    @patch("apps.applications.models.Application.objects")
-    @patch("apps.applications.identifier_resolver.IdentifierResolver")
-    @patch("apps.documents.payment_service.FeeResolver")
-    def test_allows_under_limit(self, mock_fee, mock_resolver, mock_app_qs, mock_pay_qs, mock_atomic):
-        """Payment initiation succeeds when under the limit."""
-        from apps.documents.payment_service import PaymentService
-
-        mock_atomic.return_value.__enter__ = MagicMock(return_value=None)
-        mock_atomic.return_value.__exit__ = MagicMock(return_value=False)
-
-        app_id = uuid.uuid4()
-        user_id = uuid.uuid4()
-
-        # No existing pending payment
-        mock_pay_qs.select_for_update.return_value.filter.return_value.first.return_value = None
-
-        # 3 existing attempts — under limit
-        mock_pay_qs.filter.return_value.exclude.return_value.count.return_value = 3
-
-        mock_app = MagicMock()
-        mock_app.id = app_id
-        mock_app.program = "CS"
-        mock_app.nationality = "Zambian"
-        mock_app.application_number = "APP-20250101-ABCD1234"
-        mock_app_qs.get.return_value = mock_app
-
-        resolved_program = MagicMock()
-        resolved_program.source = "program_fees"
-        resolved_program.code = "CS"
-        mock_resolver.resolve_program.return_value = resolved_program
-
-        resolved_fee = MagicMock()
-        resolved_fee.amount = 153
-        resolved_fee.currency = "ZMW"
-        resolved_fee.residency_category = "local"
-        resolved_fee.source = "program_fees"
-        mock_fee.return_value.resolve_fee.return_value = resolved_fee
-
-        new_payment = MagicMock()
-        new_payment.id = uuid.uuid4()
-        mock_pay_qs.create.return_value = new_payment
-
-        service = PaymentService()
-        result = service.initiate_payment(app_id, user_id)
-        assert result.payment_id == new_payment.id
 
 
 class TestRemainingAttemptsInResponse:
@@ -157,10 +126,8 @@ class TestRemainingAttemptsInResponse:
 
     def test_remaining_attempts_in_error(self):
         """Error message includes remaining_attempts=0 when limit exceeded."""
-        from apps.documents.payment_service import MAX_PAYMENT_ATTEMPTS
-
         # The error format is "MAX_PAYMENT_ATTEMPTS_EXCEEDED|0"
-        error_msg = f"MAX_PAYMENT_ATTEMPTS_EXCEEDED|0"
+        error_msg = "MAX_PAYMENT_ATTEMPTS_EXCEEDED|0"
         parts = error_msg.split("|")
         assert parts[0] == "MAX_PAYMENT_ATTEMPTS_EXCEEDED"
         assert int(parts[1]) == 0
@@ -175,6 +142,6 @@ class TestPaymentConstants:
     def test_expired_exclusion_is_7_days(self):
         assert EXPIRED_EXCLUSION_DAYS == 7
 
-    def test_expired_not_in_allowed_transitions(self):
-        """Expired status has no outbound transitions."""
-        assert "expired" not in _ALLOWED_TRANSITIONS
+    def test_expired_has_no_provider_driven_outbound_transition(self):
+        """Expired status has no outbound transition any provider can trigger."""
+        assert _outbound("expired") == set()

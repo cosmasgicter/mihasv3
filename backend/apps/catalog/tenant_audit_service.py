@@ -76,6 +76,74 @@ ACTION_DOCUMENT_VERIFICATION_DECIDED = "document.verification_decided"
 #: outcome status + stable code are recorded; never applicant PII.
 ACTION_PAYMENT_VERIFICATION_DECIDED = "payment.verification_decided"
 
+#: A settlement report was exported (admissions-v2 task 8.4, R6.5/R8.4). An
+#: export is a bulk read of a tenant's money record, so it is a recorded command:
+#: who exported, for which institution scope, with which filters, how many rows,
+#: and what the actor's capabilities withheld — never the rows themselves.
+ACTION_SETTLEMENT_EXPORTED = "settlement.exported"
+
+#: A fee-administration report was exported (admissions-v2 task 8.4, R6.5/R7.3).
+#: Same contract as :data:`ACTION_SETTLEMENT_EXPORTED`.
+ACTION_FEE_EXPORTED = "fee.exported"
+
+#: The applications roster was exported (admissions-v2 task 9.1, R6.5/R8.1). Same
+#: contract as :data:`ACTION_SETTLEMENT_EXPORTED`: the roster is applicant data,
+#: so a bulk read of it records the actor, the institution scope, the applied
+#: filters, the row count against the ceiling, and what redaction withheld —
+#: never a row. Registered here rather than in the view so the platform has one
+#: export vocabulary instead of one per surface.
+ACTION_APPLICATION_EXPORTED = "application.exported"
+
+#: A student amendment request was approved or rejected (admissions-v2 task 9.4,
+#: R8.3/R8.4, R10.5). An approved amendment rewrites an answer a decision is made
+#: on, so who decided it, for which school, on which field, and with what bounded
+#: reason is recorded. The amended **value** is not: it is applicant PII, and the
+#: application row already holds it.
+ACTION_AMENDMENT_REVIEW_DECIDED = "amendment.review_decided"
+
+#: A student requested an amendment and the platform resolved who to notify
+#: (admissions-v2 task 9.5, R13.10, finding AUTH-06). The event records the
+#: capability the recipients had to hold, how many were resolved for the
+#: application's own institution, and — when that is zero — *why*. A tenant
+#: notification with no authorized recipient is an operational gap, and this is
+#: where it is visible. The amended value never travels; nor does a recipient's
+#: name or email address (ids only).
+ACTION_AMENDMENT_REQUESTED = "amendment.requested"
+
+#: A tenant audit feed was exported (admissions-v2 task 9.5, R6.5/R6.6). Same
+#: contract as :data:`ACTION_SETTLEMENT_EXPORTED`: the actor, the institution the
+#: feed was scoped to, the applied filters, and the row count against the ceiling
+#: — never the events themselves. Exporting the audit trail is itself an audited
+#: act, so the export appears in the feed it exported.
+ACTION_AUDIT_EXPORTED = "audit.exported"
+
+#: An offer condition was verified, waived, or reopened (admissions-v2 task 9.4,
+#: R8.3/R8.4, R10.5). A waived mandatory condition is the difference between a
+#: conditional and an unconditional place, so the transition and its bounded
+#: reason are auditable for the school that owns the application.
+ACTION_CONDITION_VERIFICATION_DECIDED = "condition.verification_decided"
+
+#: A bulk review decision was applied (admissions-v2 task 9.4, R8.3/R8.4). A bulk
+#: command is one authorised act over many applications, so it records the actor,
+#: the institution scope, the target status, and the **count** — the affected ids
+#: are recorded, but no applicant field is.
+ACTION_REVIEW_BULK_DECIDED = "application.review_bulk_decided"
+
+#: A public tracking lookup was answered (admissions-v2 task 10.5, R13.12 /
+#: R17.2, findings STU-22 / TEN-10). Design §12: "Attempts are rate-limited and
+#: audited without logging the raw token." The event records the **outcome** — a
+#: disclosure, or which class of refusal — and, when a disclosure happened, whose
+#: application and school it was. It never records the submitted code, any part of
+#: it, or a hash of it: a stored digest of a live tracking secret would be a
+#: credential in the audit trail, and an audit trail is read by more people than a
+#: credential store should be.
+ACTION_TRACKING_ATTEMPTED = "application.tracking_attempted"
+
+#: An application owner issued (or re-issued) their public tracking link
+#: (admissions-v2 task 10.5, R13.12). Issuing revokes the previous secret, so this
+#: is the record of a credential rotation. The plaintext is never recorded.
+ACTION_TRACKING_LINK_ISSUED = "application.tracking_link_issued"
+
 #: Free-text reason/notes recorded on an Audit_Event are bounded to this many
 #: characters. Admin-authored notes are not value-scanned by the key-based PII
 #: redactor, so the length cap limits how much free text can ever be persisted.
@@ -498,6 +566,76 @@ class TenantAuditService:
         )
 
     # ------------------------------------------------------------------
+    # Public tracking (R13.12, R17.2 — admissions-v2 task 10.5)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def record_public_tracking_attempt(
+        *,
+        outcome: str,
+        application_id: Optional[Any] = None,
+        institution_id: Optional[Any] = None,
+        host_bound: bool = False,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record one public tracking lookup (design §12).
+
+        ``outcome`` is the view's own stable classification — ``disclosed``,
+        ``not_found``, ``host_mismatch``, ``secret_required``, ``invalid_format``
+        or ``rate_limited``. Nothing derived from the submitted code travels:
+        no plaintext, no prefix, no selector, no digest.
+
+        The caller is unauthenticated, so there is no actor id to record. The IP
+        and user agent arrive through the shared SHA-256 redactor in
+        :meth:`record_event`, which is what makes a repeated probe from one
+        client visible without storing anyone's address.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_TRACKING_ATTEMPTED,
+            entity_type="application",
+            entity_id=application_id,
+            actor_id=None,
+            institution_id=institution_id,
+            metadata={
+                "outcome": outcome,
+                # Whether a trusted tenant host constrained the answer, so an
+                # operator can tell a neutral-portal read from a white-label one.
+                "host_bound": bool(host_bound),
+            },
+            # A run of failures on an unauthenticated endpoint is a probe, and a
+            # probe is worth keeping for the 365-day window rather than 90.
+            retention_category="standard" if outcome == "disclosed" else "security",
+            request=request,
+        )
+
+    @staticmethod
+    def record_tracking_link_issued(
+        *,
+        application_id: Any,
+        institution_id: Optional[Any] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        replaced_previous: bool = False,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record a tracking-link issue/rotation (R13.12).
+
+        ``replaced_previous`` says whether this issue revoked a live secret — the
+        difference between a first link and a rotation. The plaintext code, the
+        selector, and the stored digest are all absent by construction.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_TRACKING_LINK_ISSUED,
+            entity_type="application",
+            entity_id=application_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={"replaced_previous": bool(replaced_previous)},
+            request=request,
+        )
+
+    # ------------------------------------------------------------------
     # Access-scope denials (R13.1)
     # ------------------------------------------------------------------
 
@@ -563,6 +701,122 @@ class TenantAuditService:
                 "old_status": old_status,
                 "new_status": new_status,
                 "status": new_status,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_amendment_review(
+        *,
+        amendment_id: Any,
+        application_id: Any,
+        institution_id: Any,
+        outcome_status: str,
+        field_name: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an amendment review decision (task 9.4, R8.3/R8.4, R10.5).
+
+        The field **name** is recorded; the amended **value** is not. A phone
+        number or an address is applicant PII, and the application row already
+        holds the applied value — repeating it in the audit trail would put PII in
+        the one place that must not carry it.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_AMENDMENT_REVIEW_DECIDED,
+            entity_type="application_amendment",
+            entity_id=amendment_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": "application_amendment",
+                "amendment_id": _uuid_str(amendment_id),
+                "application_id": _uuid_str(application_id),
+                "field_name": field_name,
+                "new_status": outcome_status,
+                "status": outcome_status,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_condition_verification(
+        *,
+        condition_id: Any,
+        application_id: Any,
+        institution_id: Any,
+        outcome_status: str,
+        old_status: Optional[str] = None,
+        condition_type: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an offer-condition verification decision (task 9.4, R8.3/R8.4)."""
+        TenantAuditService.record_event(
+            action=ACTION_CONDITION_VERIFICATION_DECIDED,
+            entity_type="application_condition",
+            entity_id=condition_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": "application_condition",
+                "condition_id": _uuid_str(condition_id),
+                "application_id": _uuid_str(application_id),
+                "condition_type": condition_type,
+                "old_status": old_status,
+                "new_status": outcome_status,
+                "status": outcome_status,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_bulk_review_decision(
+        *,
+        new_status: str,
+        application_ids: Any,
+        institution_ids: Any = (),
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record a bulk review decision (task 9.4, R8.3/R8.4).
+
+        One event for the whole command rather than one per application, because
+        the *command* is what was authorised. The affected ids and the institution
+        scope are recorded so a tenant admin can see their own school's share of
+        it; no applicant field travels.
+        """
+        ids = [_uuid_str(value) for value in (application_ids or [])]
+        scopes = [_uuid_str(value) for value in (institution_ids or []) if value]
+        TenantAuditService.record_event(
+            action=ACTION_REVIEW_BULK_DECIDED,
+            entity_type="application",
+            entity_id=None,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            # A bulk command may span several in-scope schools; the first is the
+            # event's own scope and every one of them is listed in the payload so
+            # the record is not silently narrower than the act.
+            institution_id=scopes[0] if scopes else None,
+            metadata={
+                "object_type": "application",
+                "new_status": new_status,
+                "status": new_status,
+                "application_ids": ids,
+                "application_count": len(ids),
+                "institution_ids": scopes,
                 "reason": _bounded_reason(reason),
             },
             request=request,
@@ -649,6 +903,55 @@ class TenantAuditService:
         )
 
     # ------------------------------------------------------------------
+    # Bulk exports (R6.5 — admissions-v2 task 8.4)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def record_export(
+        *,
+        action: str,
+        entity_type: str,
+        institution_id: Optional[Any] = None,
+        row_count: int = 0,
+        row_limit: Optional[int] = None,
+        export_format: str = "csv",
+        filters: Optional[dict] = None,
+        redaction: Optional[dict] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record a bulk export as a command (R6.5).
+
+        An export is a page-independent bulk read of tenant data, so the platform
+        records the *decision* rather than the data: the actor, the institution
+        scope, the applied filters, the row count against the ceiling, and which
+        fields the actor's capabilities withheld. The exported rows themselves —
+        and any applicant PII — are never written to the audit trail. Retained
+        under the ``security`` window because a bulk export is exactly the event
+        an operator needs to be able to look up months later.
+        """
+        TenantAuditService.record_event(
+            action=action,
+            entity_type=entity_type,
+            entity_id=None,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": entity_type,
+                "format": export_format,
+                "row_count": int(row_count or 0),
+                "row_limit": row_limit,
+                "page_independent": True,
+                "filters": filters or {},
+                "redaction": redaction or {},
+            },
+            retention_category="security",
+            request=request,
+        )
+
+    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
@@ -719,6 +1022,14 @@ __all__ = [
     "ACTION_REVIEW_DECIDED",
     "ACTION_DOCUMENT_VERIFICATION_DECIDED",
     "ACTION_PAYMENT_VERIFICATION_DECIDED",
+    "ACTION_APPLICATION_EXPORTED",
+    "ACTION_SETTLEMENT_EXPORTED",
+    "ACTION_FEE_EXPORTED",
+    "ACTION_AUDIT_EXPORTED",
+    "ACTION_AMENDMENT_REQUESTED",
+    "ACTION_AMENDMENT_REVIEW_DECIDED",
+    "ACTION_CONDITION_VERIFICATION_DECIDED",
+    "ACTION_REVIEW_BULK_DECIDED",
     "TENANT_CONFIG_ACTION_PREFIX",
     "OBSERVABILITY_CONFIG_PREFIX",
     "OBSERVABILITY_ROUTING_FAILURE_ACTION",

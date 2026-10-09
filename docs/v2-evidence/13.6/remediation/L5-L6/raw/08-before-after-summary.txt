@@ -1,0 +1,76 @@
+rows: after=183  before(13.3)=185
+
+=== SMALLEST TOUCH TARGET, per viewport (all surfaces, both profiles) ===
+viewport     before minW before minH  after minW  after minH  after offenders
+320x568               18          24          44          44                0
+375x667           20.547          24          44          44                0
+390x844           22.203          24          44          44                0
+768x1024              36          24          44          44                0
+1280x800              36          24          44          44                0
+1440x900              36          24          44          44                0
+
+=== TOTAL sub-44 offenders across the whole matrix ===
+before (13.3): 214 offender measurements; distinct controls: 15
+      42  Open profile settings
+      42  Log out
+      42  Collapse sidebar
+      12  Email — on
+      12  Payment reminders — on
+      12  Interview reminders — on
+       6  Step 1: Programme (completed)
+       6  Step 2: Assigned school (completed)
+       6  Step 3: Personal (completed)
+       6  Step 4: Education (current)
+       6  Step 5: Payment
+       6  Step 6: Review
+after  (13.6 L5-L6): 0 offender measurements; distinct controls: 0
+
+=== DASHBOARD CLS ===
+  before (13.3) {'320x568': [0.0851, 0.0948], '375x667': [0.1164, 0.1164], '390x844': [0.1046, 0.1085], '768x1024': [0.085, 0.085], '1280x800': [0.0544, 0.0542], '1440x900': [0.0485, 0.0487]}
+  after  (13.6) {'320x568': [0.0222, 0.024], '375x667': [0.0406, 0.0406], '390x844': [0.0357, 0.0357], '768x1024': [0.0431, 0.0431], '1280x800': [0.0333, 0.0291], '1440x900': [0.0129, 0.0274]}
+
+=== AXE blocking violations ===
+  before (13.3): axe rows=31 blocking node-count by rule: {'link-name': 16, 'color-contrast': 24}
+  after  (13.6): axe rows=31 blocking node-count by rule: {}
+
+=== GATE-13.3-16 occlusion of the primary next action, unscrolled at 320x568 ===
+  before (13.3) [chromium-13-3] top=457.159 bottom=525.159 h=68 vh=568 bars=[{'bar': 'nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr', 'barTop': 507, 'overlapPx': 18.159, 'fractionOfActionCovered': 0.267}]
+  before (13.3) [chromium-13-3] top=457.156 bottom=525.156 h=68 vh=568 bars=[{'bar': 'nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr', 'barTop': 507, 'overlapPx': 18.156, 'fractionOfActionCovered': 0.267}]
+  before (13.3) [mobile-13-3] top=460.85 bottom=528.85 h=68 vh=568 bars=[{'bar': 'nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr', 'barTop': 507, 'overlapPx': 21.85, 'fractionOfActionCovered': 0.3213}]
+  before (13.3) [mobile-13-3] top=459.546 bottom=527.546 h=68 vh=568 bars=[{'bar': 'nav.fixed bottom-0 left-0 right-0 z-50 border-t border-border/45 bg-backgr', 'barTop': 507, 'overlapPx': 20.546, 'fractionOfActionCovered': 0.3021}]
+  after  (13.6) [chromium-13-6-L5-L6] top=395.127 bottom=463.127 h=68 vh=568 bars=[]
+  after  (13.6) [chromium-13-6-L5-L6] top=392 bottom=460 h=68 vh=568 bars=[]
+  after  (13.6) [mobile-13-6-L5-L6] top=394.26 bottom=462.26 h=68 vh=568 bars=[]
+  after  (13.6) [mobile-13-6-L5-L6] top=392 bottom=460 h=68 vh=568 bars=[]
+
+=== FONT CHAIN in the browser ===
+  before (13.3) [chromium-13-3] rendered 3 of 11: ['Inter', 'system-ui', 'sans-serif']
+  after  (13.6) [chromium-13-6-L5-L6] rendered 11 of 11: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif']
+
+=== HEADING STRUCTURE ===
+  before (13.3) [chromium-13-3] /student/dashboard: h1=1 beforeH1=1 skips=['h2 -> h4 at "Diploma in Registered Nursing"']
+  before (13.3) [chromium-13-3] /student/application/041e6647-e817-4ece-9048-4d9e3e25846e/status: h1=1 beforeH1=1 skips=[]
+  before (13.3) [chromium-13-3] /student/payment: h1=1 beforeH1=1 skips=[]
+  before (13.3) [mobile-13-3] /student/dashboard: h1=1 beforeH1=1 skips=['h2 -> h4 at "Diploma in Registered Nursing"']
+  before (13.3) [mobile-13-3] /student/application/b8e8d69d-c6aa-4fbe-8469-2ca5556aa487/status: h1=1 beforeH1=1 skips=[]
+  before (13.3) [mobile-13-3] /student/payment: h1=1 beforeH1=1 skips=[]
+  after  (13.6) [chromium-13-6-L5-L6] /student/dashboard: h1=1 beforeH1=0 skips=[]
+  after  (13.6) [chromium-13-6-L5-L6] /student/application/6224760a-0d18-4c15-ae7a-71e769925d7c/status: h1=1 beforeH1=0 skips=[]
+  after  (13.6) [chromium-13-6-L5-L6] /student/payment: h1=1 beforeH1=0 skips=[]
+  after  (13.6) [mobile-13-6-L5-L6] /student/dashboard: h1=1 beforeH1=0 skips=[]
+  after  (13.6) [mobile-13-6-L5-L6] /student/application/709c36fc-0428-4b12-ab06-117b6e2a9b31/status: h1=1 beforeH1=0 skips=[]
+  after  (13.6) [mobile-13-6-L5-L6] /student/payment: h1=1 beforeH1=0 skips=[]
+
+=== /student/status (no id) ===
+  before (13.3) [chromium-13-3] owned=2 rendered={"headings": ["h2 \"Application Status\"", "h1 \"Application Status\"", "h3 \"Application Not Found\""], "bodyText": "Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Su
+      sub44 offenders on this surface: [{'label': 'Open profile settings', 'tag': 'button', 'id': '', 'width': 40, 'height': 40, 'inFixedBar': True}, {'label': 'Log out', 'tag': 'button', 'id': '', 'width': 40, 'height': 40, 'inFixedBar': True}, {'label': 'Contact Support', 'tag': 'a', 'id': '', 'width': 126.797, 'height': 20, 'inFixedBar': False}]
+  before (13.3) [mobile-13-3] owned=2 rendered={"headings": ["h2 \"Application Status\"", "h1 \"Application Status\"", "h3 \"Application Not Found\""], "bodyText": "Skip to main content Application Status 1 Application Status Application Not Found Application not found or access denied Try Again Contact Su
+      sub44 offenders on this surface: [{'label': 'Open profile settings', 'tag': 'button', 'id': '', 'width': 40, 'height': 40, 'inFixedBar': True}, {'label': 'Log out', 'tag': 'button', 'id': '', 'width': 40, 'height': 40, 'inFixedBar': True}, {'label': 'Contact Support', 'tag': 'a', 'id': '', 'width': 126.797, 'height': 20, 'inFixedBar': False}]
+  after  (13.6) [chromium-13-6-L5-L6] owned=2 rendered={"headings": ["h1 \"Application Status\"", "h2 \"Your applications\""], "bodyText": "Skip to main content Application Status 1 APPLICATION STATUS Application Status You have 2 applications. Choose the one you want to open. Your applications Each one opens its 
+      sub44 offenders on this surface: []
+  after  (13.6) [mobile-13-6-L5-L6] owned=2 rendered={"headings": ["h1 \"Application Status\"", "h2 \"Your applications\""], "bodyText": "Skip to main content Application Status 1 APPLICATION STATUS Application Status You have 2 applications. Choose the one you want to open. Your applications Each one opens its 
+      sub44 offenders on this surface: []
+
+=== OVERFLOW / OCCLUSION totals (all 96 cells) ===
+  before (13.3): cells=102  cells with doc overflow>0=0  clipped commands=0  still-occluded=0  occluded-at-rest=12
+  after  (13.6): cells=102  cells with doc overflow>0=0  clipped commands=0  still-occluded=0  occluded-at-rest=10

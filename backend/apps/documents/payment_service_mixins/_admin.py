@@ -229,6 +229,7 @@ class PaymentAdminMixin:
                             "created_at": payment.created_at.isoformat(),
                         },
                     )
+                    self._notify_payment_expired(payment)
             except Exception:
                 logger.exception(
                     "expire_stale: failed to expire payment %s — continuing",
@@ -240,3 +241,30 @@ class PaymentAdminMixin:
             len(candidates), batch_cap, expired,
         )
         return expired
+
+    @staticmethod
+    def _notify_payment_expired(payment) -> None:
+        """Tell the student their pending payment expired and they must retry.
+
+        The pre-8.2 reconciliation sweep in ``documents/tasks.py`` sent this
+        notification from inside the task. Expiry now happens only here, so the
+        notification lives with the transition that causes it — otherwise
+        promoting the single path would silently stop telling students their
+        payment window closed. Never allowed to break the sweep.
+        """
+        if not payment.application_id:
+            return
+        try:
+            from apps.applications.models import Application
+            from apps.common.communication_service import CommunicationService
+
+            application = Application.objects.filter(
+                id=payment.application_id
+            ).first()
+            if application is not None:
+                CommunicationService.send("payment_expired", application)
+        except Exception:
+            logger.exception(
+                "expire_stale: failed to notify student about expired payment %s",
+                payment.id,
+            )

@@ -33,9 +33,12 @@ import {
 } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { adminCapabilityService } from '@/services/admin/capabilities'
+import {
+  adminCapabilityService,
+  type AdminCapabilityInstitution,
+} from '@/services/admin/capabilities'
 import { useAuth } from '@/contexts/AuthContext'
-import { isAdmin as isAdminRole } from '@/types/roles'
+import { isReviewer as isReviewerOrAbove } from '@/types/roles'
 
 // Shared with InstitutionScopeContext so the selected tenant stays consistent
 // across both contexts and survives a page refresh for the session.
@@ -48,6 +51,14 @@ export interface CapabilityValue {
   capabilities: string[]
   /** institutionId -> tenant.* capabilities. */
   institutionCapabilities: Record<string, string[]>
+  /**
+   * The actor's in-scope schools with their names, straight from the capability
+   * endpoint. Exposed by admissions-v2 task 9.3 so a surface that has to *name* a
+   * school (the user import's target, R6.4) reads the same already-fetched,
+   * already-scoped list the capability checks use, rather than issuing a second
+   * institution read with a different authority.
+   */
+  institutions: AdminCapabilityInstitution[]
   selectedInstitutionId: string | null
   setSelectedInstitutionId: (id: string | null) => void
   can: (capability: string) => boolean
@@ -66,6 +77,7 @@ const NO_ACCESS_VALUE: CapabilityValue = {
   isTenantAdmin: false,
   capabilities: [],
   institutionCapabilities: {},
+  institutions: [],
   selectedInstitutionId: null,
   setSelectedInstitutionId: () => {},
   can: () => false,
@@ -76,12 +88,30 @@ const NO_ACCESS_VALUE: CapabilityValue = {
 
 export function CapabilityProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const isAdmin = isAdminRole(user)
+  /**
+   * Who may hold capabilities at all.
+   *
+   * Admissions-v2 task 9.4 (finding **AUTH-01**) widened this from `isAdmin` to
+   * **reviewer-or-above**. A scoped Reviewer does hold `tenant.*` capabilities —
+   * that is the platform's own authority model — but this provider never asked
+   * for them, so `AdminRoute` had nothing to admit them on and the review
+   * workspace was unreachable in a browser for the one role that exists to
+   * review.
+   *
+   * `isReviewer` is the hierarchy predicate "at least reviewer", so this reads as
+   * reviewer, admin, or super-admin. Spelling it as *not a student* would be
+   * wrong here: `isStudent` is also a hierarchy check ("at least student"), which
+   * every role satisfies, so `!isStudent(user)` is false for everyone and would
+   * disable the query entirely. A student is excluded rather than asked, because
+   * the endpoint masks them as a 404 and the call would spend a request to learn
+   * what the role already says. The backend remains the boundary either way.
+   */
+  const mayHoldCapabilities = Boolean(user) && isReviewerOrAbove(user)
 
   const { data: capabilitySet, isLoading } = useQuery({
     queryKey: ['admin', 'capabilities'],
     queryFn: () => adminCapabilityService.getCapabilities(),
-    enabled: isAdmin,
+    enabled: mayHoldCapabilities,
     staleTime: 5 * 60_000,
   })
 
@@ -101,6 +131,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     return map
   }, [capabilitySet])
 
+  const institutions = useMemo<AdminCapabilityInstitution[]>(
+    () => capabilitySet?.institutions ?? [],
+    [capabilitySet],
+  )
   const scopedInstitutionIds = useMemo(
     () => Object.keys(institutionCapabilities),
     [institutionCapabilities],
@@ -163,6 +197,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       isTenantAdmin,
       capabilities: platformCapabilities,
       institutionCapabilities,
+      institutions,
       selectedInstitutionId,
       setSelectedInstitutionId,
       can,
@@ -175,6 +210,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     isTenantAdmin,
     platformCapabilities,
     institutionCapabilities,
+    institutions,
     scopedInstitutionIds,
     selectedInstitutionId,
     noAccess,

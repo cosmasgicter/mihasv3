@@ -1,10 +1,14 @@
 """
 Bug 1 (HIGH) — Payment verification returns stale status: Fix Checking Test
 
-Property test verifying that verify_payment() returns the DB-consistent status
-after _update_payment_status() writes a new status. For all valid Lenco status
-mappings on pending payments, verify_payment() must return the mapped status,
-not 'pending'.
+Property test verifying that ``verify()`` returns the DB-consistent status after
+the write lands. For all Lenco statuses that map to a new internal status,
+``verify()`` must return that mapped status, not 'pending'.
+
+admissions-v2 task 8.2 collapsed the two payment paths into one, so the write
+this test observes now happens in ``PaymentService._transition`` — the sole
+status writer (ADR-007) — rather than the deleted ``_update_payment_status``.
+The property is unchanged; only the seam it patches moved.
 
 **Validates: Requirements 2.1, 2.2**
 """
@@ -30,13 +34,23 @@ from apps.documents.payment_service import (  # noqa: E402
     PaymentVerificationResult,
     _LENCO_STATUS_MAP,
 )
+from apps.documents.payment_types import TransitionResult  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Strategies
 # ---------------------------------------------------------------------------
 
-# Only statuses that actually map to a new internal status (successful, failed)
-lenco_api_statuses = st.sampled_from(list(_LENCO_STATUS_MAP.keys()))
+# Only statuses that actually map to a new internal status (successful, failed).
+# The ones that map back to 'pending' (``pending``, ``pay-offline``,
+# ``otp-required``) leave the row alone by design and return the
+# ``PAYMENT_PENDING`` stable code, so they are not examples of this property.
+lenco_api_statuses = st.sampled_from(
+    sorted(
+        status
+        for status, mapped in _LENCO_STATUS_MAP.items()
+        if mapped != "pending"
+    )
+)
 
 amounts = st.decimals(
     min_value=Decimal("0.01"),
@@ -121,12 +135,18 @@ class TestVerifyPaymentReturnsDBConsistentStatus(SimpleTestCase):
         mock_http_response.json.return_value = {"data": lenco_response_data}
         mock_http_response.raise_for_status = MagicMock()
 
-        def simulate_db_write_and_refresh(p, new_status, data):
-            """Simulate _update_payment_status writing to DB, then
-            refresh_from_db picking up the new status."""
-            p.status = new_status
+        def simulate_db_write_and_refresh(
+            p, target_status, *, source, actor, reason=None, provider_data=None
+        ):
+            """Simulate ``_transition`` writing to DB, then refresh_from_db
+            picking up the new status."""
+            data = provider_data or {}
+            p.status = target_status
             p.lenco_reference = data.get("lencoReference")
             p.payment_method = data.get("type")
+            return TransitionResult(
+                payment_id=p.id, status=target_status, risk_flag=None
+            )
 
         _VER = "apps.documents.payment_service_mixins._verification"
         with (
@@ -134,7 +154,7 @@ class TestVerifyPaymentReturnsDBConsistentStatus(SimpleTestCase):
             patch(f"{_VER}._call_lenco_collection_status") as mock_lenco,
             patch.object(
                 PaymentService,
-                "_update_payment_status",
+                "_transition",
                 side_effect=simulate_db_write_and_refresh,
             ),
             patch(f"{_VER}.settings") as mock_settings,
@@ -146,7 +166,7 @@ class TestVerifyPaymentReturnsDBConsistentStatus(SimpleTestCase):
             mock_lenco.return_value = (lenco_response_data, None)
 
             service = PaymentService()
-            result = service.verify_payment(payment_id)
+            result = service.verify(payment_id)
 
         self.assertIsInstance(result, PaymentVerificationResult)
         self.assertEqual(

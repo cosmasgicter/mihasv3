@@ -1,0 +1,15 @@
+]633;E;echo "=== COMMAND: python3 scripts/validate_spec_governance.py   (AFTER L11, BEFORE the L9 findings.md edit) ===";d450f000-c454-4b91-a2c3-af357d93c949]633;C=== COMMAND: python3 scripts/validate_spec_governance.py   (AFTER L11, BEFORE the L9 findings.md edit) ===
+=== DATE: 2026-08-14T05:08:42Z ===
+
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 0  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=71 tasks=73 (checked=71)
+
+RESULT: PASS
+EXIT=0

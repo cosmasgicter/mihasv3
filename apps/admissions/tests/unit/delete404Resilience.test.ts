@@ -160,8 +160,8 @@ describe('deleteDraft — 404 resilience', () => {
   })
 
   it('clears stale localStorage references for each attempted draft ID', async () => {
-    // Seed localStorage with draft references that clearStaleApplicationDraftReference
-    // should clean up for each draft ID after deletion.
+    // Seed the legacy unscoped records that clearStaleApplicationDraftReference
+    // strips the deleted ids out of.
     localStorage.setItem(
       'applicationDraft',
       JSON.stringify({ applicationId: 'id-1', savedAt: '2026-01-01T00:00:00Z' }),
@@ -179,9 +179,49 @@ describe('deleteDraft — 404 resilience', () => {
     const { applicationSessionManager } = await import('@/lib/applicationSession')
     await applicationSessionManager.deleteDraft('user-1')
 
-    // After deleteDraft, clearAllLocalStorage removes all draft keys entirely.
-    // Verify the draft keys are gone (cleared by the full cleanup at the end).
-    expect(localStorage.getItem('applicationDraft')).toBeNull()
-    expect(localStorage.getItem('applicationWizardDraft')).toBeNull()
+    // Task 6.3 (R10.10): the deleted ids no longer appear in any local record.
+    // The records themselves are not swept wholesale any more.
+    for (const key of ['applicationDraft', 'applicationWizardDraft']) {
+      const record = JSON.parse(localStorage.getItem(key) ?? '{}')
+      expect(record.applicationId).toBeUndefined()
+    }
+  })
+
+  // Task 6.3 completion pass (R10.4, R10.10): deleting a user's drafts clears the
+  // `(user, application)` record of each draft the server deleted, and nothing
+  // else — not a refused payment-linked draft, not another user's draft, not the
+  // payment-recovery store. It used to end in a whole-browser draft sweep.
+  it('clears only the deleted drafts’ own records, keeping a refused draft, another user and payment recovery', async () => {
+    const { getWizardDraftStorageKey } = await import('@/lib/draftStorageKeys')
+    const { BROWSER_KEYS } = await import('@/lib/browserNamespace')
+    const deletedKey = getWizardDraftStorageKey('user-1', 'draft-gone')
+    const refusedKey = getWizardDraftStorageKey('user-1', 'draft-paid')
+    const otherUserKey = getWizardDraftStorageKey('user-2', 'draft-theirs')
+    for (const key of [deletedKey, refusedKey, otherUserKey]) {
+      localStorage.setItem(key, JSON.stringify({ formData: { full_name: key }, version: 2 }))
+    }
+    localStorage.setItem(BROWSER_KEYS.paymentRecovery, JSON.stringify({ state: { entries: { x: 1 } } }))
+
+    listMock.mockResolvedValue({ applications: [{ id: 'draft-gone' }, { id: 'draft-paid' }] })
+    deleteMock.mockImplementation(async (id: string) => {
+      if (id === 'draft-paid') {
+        throw Object.assign(new Error('Draft has payment activity'), {
+          status: 409,
+          code: 'DRAFT_HAS_PAYMENT_ACTIVITY',
+        })
+      }
+      return { success: true }
+    })
+
+    const { applicationSessionManager } = await import('@/lib/applicationSession')
+    const result = await applicationSessionManager.deleteDraft('user-1')
+
+    expect(result.code).toBe('DRAFT_HAS_PAYMENT_ACTIVITY')
+    expect(result.deletedIds).toEqual(['draft-gone'])
+    expect(result.blockedIds).toEqual(['draft-paid'])
+    expect(localStorage.getItem(deletedKey)).toBeNull()
+    expect(localStorage.getItem(refusedKey)).not.toBeNull()
+    expect(localStorage.getItem(otherUserKey)).not.toBeNull()
+    expect(localStorage.getItem(BROWSER_KEYS.paymentRecovery)).not.toBeNull()
   })
 })

@@ -153,30 +153,51 @@ class TestDashboardNoScope:
 
     URL = "/api/v1/admin/dashboard/"
 
-    def test_no_scope_reviewer_sees_empty_and_flagged(self, two_tenant_worlds, production_scope):
-        """A no-scope admin (production scope semantics) sees zero applications
-        scoped to "no school access" — never the platform total (which is 2
-        here) — and the explicit ``no_school_access`` flag is set.
+    def test_no_scope_admin_is_masked_not_answered_with_zeros(
+        self, two_tenant_worlds, production_scope
+    ):
+        """A no-scope admin gets a **masked 404**, not a 200 of zeros.
 
-        The dashboard requires ``IsAdmin``, so the no-scope caller must be an
-        admin; ``production_scope`` disables the test-settings legacy-admin
-        all-access compat branch so the membership-less admin is genuinely
-        unscoped (the production behaviour)."""
+        This assertion was strengthened by admissions-v2 task 9.2. The dashboard's
+        authority moved off the raw ``IsAdmin`` role string onto
+        ``HasTenantCapability`` + ``tenant.application.read`` — the same grant and
+        the same ``authorize_tenant_surface`` disclosure contract the applications
+        roster (task 9.1) and the settlement/fee reports (task 8.4) already use.
+        So a caller with no tenant scope is refused rather than answered.
+
+        R4.6's requirement — that a no-scope caller is never shown the platform
+        total (2 here) and is told explicitly that they have no school access —
+        still holds, and holds *more strongly*: a refusal cannot be misread as a
+        quiet platform. The explicit "No school access assigned" state the
+        operator sees is rendered from their **own** capability payload
+        (``CapabilityContext.noAccess``, derived from
+        ``GET /api/v1/admin/capabilities/``), which is the honest source for a
+        statement about the actor's own authority — not from a masked error.
+
+        ``production_scope`` disables the test-settings legacy-admin all-access
+        compat branch so the membership-less admin is genuinely unscoped (the
+        production behaviour).
+        """
         world_a, world_b = two_tenant_worlds  # 2 applications exist globally
         no_scope = build_profile(role="admin")
 
-        body = _client(no_scope).get(self.URL).json()
-        assert body["success"] is True
-        data = body["data"]
+        response = _client(no_scope).get(self.URL)
 
-        # Explicit "no school access assigned" signal (R4.6).
-        assert data["no_school_access"] is True
-        # Zeros for the empty scope — NOT the global total of 2.
-        assert data["applications"]["total"] == 0
-        assert data["applications"]["by_status"] == {}
-        assert data["needs_attention"]["pending_payments"] == 0
-        assert data["needs_attention"]["pending_documents"] == 0
-        assert data["recent_activity"] == []
+        assert response.status_code == 404
+        body = response.json()
+        assert body["success"] is False
+        # The refusal discloses nothing: no counts, no tenant identifiers, and
+        # nothing that distinguishes "you have no scope" from "there is nothing
+        # here".
+        serialized = str(body)
+        assert "no_school_access" not in serialized
+        for leak in (
+            str(world_a.institution.id),
+            world_a.institution.name,
+            str(world_b.institution.id),
+            world_b.institution.name,
+        ):
+            assert leak not in serialized
 
     def test_scoped_staff_sees_own_school_only(self, two_tenant_worlds):
         """A staff member with a membership sees their one application, not the

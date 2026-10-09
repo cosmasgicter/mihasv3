@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ✓  1 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (18.8s)
+
+  1 passed (20.6s)

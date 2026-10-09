@@ -42,7 +42,6 @@ from apps.applications.serializers import (
     ApplicationAmendmentRequestSerializer,
     ApplicationConfirmEnrollmentRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
-    ApplicationAiSummaryResponseSerializer,
     ApplicationWaitlistPositionResponseSerializer,
 )
 from apps.applications.services import (
@@ -54,7 +53,6 @@ from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
-from apps.common.throttling import AIUserScopedRateThrottle
 
 from ._view_helpers import (
     ApplicationConditionSerializer,
@@ -65,13 +63,12 @@ from ._view_helpers import (
     ApplicationGradeReadSerializer,
     ApplicationGradeRequestSerializer,
     ApplicationGradeMutationSerializer,
+    ApplicationRequiredDocumentsResponseSerializer,
     ApplicationResponseSerializer,
     ApplicationSummaryResponseSerializer,
     ApplicationSummarySerializer,
     ApplicationGradesResponseSerializer,
     ConditionVerifyRequestSerializer,
-    EmailSlipEnvelopeResponseSerializer,
-    EmailSlipSerializer,
     WithdrawalReasonSerializer,
     WithdrawalResponseSerializer,
     _generate_application_number,
@@ -170,22 +167,26 @@ class ApplicationDocumentsView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Email Slip
+# Required documents contract (admissions-v2 task 7.2)
 # ---------------------------------------------------------------------------
 
 
-class EmailSlipView(APIView):
-    """POST /api/v1/applications/{id}/email-slip/
-
-    Generates an HTML email with application slip details and queues it
-    for delivery via the existing send_email_task + Resend infrastructure.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        operation_id="applications_email_slip",
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_required_documents",
         tags=["applications"],
+        summary="Required-document upload contract for one application",
+        description=(
+            "Returns the versioned required documents for this application — the "
+            "tenant-configured requirements captured in the application's "
+            "requirements snapshot, including custom tenant document types, plus "
+            "the platform baseline the submission gate always enforces. Each row "
+            "carries the label, whether it is required, help text, accepted MIME "
+            "types and extensions, the maximum size, the current state, and the "
+            "current document identity. A configuration that cannot be evaluated "
+            "returns a retryable CONFIGURATION_UNAVAILABLE (503) rather than an "
+            "empty requirement list."
+        ),
         parameters=[
             OpenApiParameter(
                 "application_id",
@@ -194,15 +195,34 @@ class EmailSlipView(APIView):
                 description="Application UUID.",
             ),
         ],
-        request=EmailSlipSerializer,
         responses={
-            200: OpenApiResponse(response=EmailSlipEnvelopeResponseSerializer),
-            400: OpenApiResponse(response=ErrorResponseSerializer),
+            200: OpenApiResponse(response=ApplicationRequiredDocumentsResponseSerializer),
             403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
         },
     )
-    def post(self, request, application_id):
+)
+class ApplicationRequiredDocumentsView(APIView):
+    """``GET /api/v1/applications/{id}/required-documents/``.
+
+    Task 7.2 / R11.6 / STU-13: the server contract the student wizard renders its
+    upload controls from, so a tenant-configured document type is rendered and
+    uploadable instead of being invisible behind two hardcoded fields.
+
+    Authority mirrors :class:`ApplicationDocumentsView`: the owner reads their own
+    application; a non-super-admin admin only within their ``AccessScopeService``
+    scope, and an out-of-scope read is masked as a genuine not-found so another
+    school's application (and its requirement configuration) cannot be inferred.
+    """
+
+    permission_classes = [IsOwnerOrAdmin]
+    serializer_class = ApplicationRequiredDocumentsResponseSerializer
+
+    def get(self, request, application_id):
+        from apps.applications.assignment_resolution import AssignmentConfigurationError
+        from apps.applications.required_documents import build_contract
+
         try:
             application = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
@@ -211,129 +231,58 @@ class EmailSlipView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if str(application.user_id) != str(request.user.id):
-            role = getattr(request.user, "role", "student")
-            if is_super_admin(request.user):
-                pass
-            elif role in ("admin", "reviewer"):
-                scoped = AccessScopeService().filter_applications(
-                    Application.objects.filter(id=application.id),
-                    request.user,
-                )
-                if not scoped.exists():
-                    return Response(
-                        {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-            else:
-                return Response(
-                    {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
-        serializer = EmailSlipSerializer(data=request.data)
-        if not serializer.is_valid():
+        if not IsOwnerOrAdmin().has_object_permission(request, self, application):
             return Response(
-                {"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        email = serializer.validated_data["email"]
-
-        from django.utils.html import escape as html_escape
-
-        submitted_at = ""
-        if application.submitted_at:
-            submitted_at = application.submitted_at.strftime("%d %B %Y")
-        created_at = ""
-        if application.created_at:
-            created_at = application.created_at.strftime("%d %B %Y")
-
-        from apps.common.email_templates import get_base_email_html
-
-        status_label = (application.status or "").replace("_", " ").title() or "Pending"
-
-        def _row(label, value):
-            return (
-                f"<tr><td style='padding:12px 14px;border-bottom:1px solid #e2e8f0;font-weight:600;"
-                f"color:#16324f;width:38%;background-color:#f8fbff;'>{label}</td>"
-                f"<td style='padding:12px 14px;border-bottom:1px solid #e2e8f0;color:#334155;background-color:#ffffff;'>"
-                f"{html_escape(str(value))}</td></tr>"
+        role = getattr(request.user, "role", "student")
+        if role == "admin" and not AccessScopeService().filter_applications(
+            Application.objects.filter(id=application.id), request.user
+        ).exists():
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        tracking_code = (
-            getattr(application, "public_tracking_code", "")
-            or getattr(application, "tracking_code", "")
-            or ""
-        )
-
-        slip_html = (
-            "<div style='padding-bottom:18px;'>"
-            "<div style='font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#64748b;font-weight:700;'>"
-            "Application record"
-            "</div>"
-            "<div style='padding-top:10px;font-size:16px;line-height:1.7;color:#334155;'>"
-            "Your application slip confirms that your submission has been received and recorded in the Beanola admissions system."
-            "</div>"
-            "</div>"
-            "<table role='presentation' style='width:100%;border-collapse:separate;border-spacing:0 0;"
-            "border:1px solid #dbe5ef;border-radius:18px;overflow:hidden;'>"
-            "<tr>"
-            "<td style='padding:16px 18px;background:linear-gradient(135deg,#eff6ff 0%,#f8fafc 100%);' colspan='2'>"
-            "<div style='font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#64748b;font-weight:700;'>"
-            "Current status"
-            "</div>"
-            f"<div style='padding-top:8px;display:inline-block;background-color:#10233f;color:#ffffff;"
-            "font-weight:700;font-size:13px;padding:8px 12px;border-radius:999px;'>"
-            f"{html_escape(status_label)}</div>"
-            "</td>"
-            "</tr>"
-            + _row("Application Number", application.application_number or "")
-            + _row("Applicant Name", application.full_name or "")
-            + _row("Program", application.program or "")
-            + _row("Tracking Code", tracking_code)
-            + _row("Submitted", submitted_at or "Not yet submitted")
-            + _row("Created", created_at or "N/A")
-            + "</table>"
-            "<div style='padding-top:18px;font-size:14px;line-height:1.75;color:#475569;'>"
-            "Keep this slip for reference when checking your application status or communicating with the admissions office."
-            "</div>"
-        )
-
-        body_html = get_base_email_html(slip_html, title="Application Slip")
-
-        from apps.common.outbox import queue_email
-
-        email_record = queue_email(
-            recipient_email=email,
-            recipient_name=application.full_name,
-            subject=f"Application Slip — {application.application_number}",
-            body=body_html,
-        )
-
-        # R16.3: emailing official-document (application slip) details is an
-        # auditable lifecycle event. Record only the application + institution
-        # ids and document type via TenantAuditService — never the recipient
-        # email address, applicant PII, or document body (R16.4). Best-effort.
         try:
-            from apps.catalog.tenant_audit_service import TenantAuditService
-
-            TenantAuditService.record_official_document_emailed(
-                application_id=getattr(application, "id", None),
-                institution_id=getattr(application, "institution_ref_id", None),
-                document_type="application_slip",
-                actor_id=getattr(request.user, "id", None),
-                actor_role=getattr(request.user, "role", None),
-                request=request,
-            )
-        except Exception:  # pragma: no cover - audit must never block the email
-            logger.warning(
-                "Unable to record official-document emailed audit for application %s",
-                getattr(application, "id", None),
-                exc_info=True,
+            contract = build_contract(application)
+        except AssignmentConfigurationError as exc:
+            # Fail closed (R11.6, DATA-04): never publish an empty requirement
+            # list built on a configuration we could not evaluate.
+            return Response(
+                {
+                    "success": False,
+                    "error": exc.message,
+                    "code": exc.code,
+                    "retryable": True,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        return Response(
-            {"success": True, "data": {"queued_id": str(email_record.id)}},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"success": True, "data": contract})
+
+
+# ---------------------------------------------------------------------------
+# Email Slip — removed (admissions-v2 task 10.6, R13.5, finding API-04)
+# ---------------------------------------------------------------------------
+#
+# ``EmailSlipView`` and ``POST /api/v1/applications/{id}/email-slip/`` are gone.
+#
+# It was the platform's original official-document email, and a parallel
+# implementation of one: it authorized inline, built an inline HTML table of
+# application fields, and called ``queue_email`` directly — bypassing task 10.1's
+# delivery gate, so the message appeared in no communications history and its
+# delivery state read ``unknown``. It also emailed to whatever address the request
+# body named.
+#
+# Task 10.4 replaced its body with a proxy onto
+# :class:`~apps.applications.official_document_views.OfficialDocumentEmailView`
+# and kept the route for the measured V1 window R13.5 requires. That window is
+# closed: zero production call sites, measured twice
+# (``docs/v2-evidence/10.4/README.md`` §8 and
+# ``docs/v2-evidence/10.6/raw/usage-measurement.txt``).
+#
+# The successor is
+# ``POST /api/v1/applications/{id}/official-documents/application_slip/email/``.

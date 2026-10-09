@@ -25,12 +25,13 @@
  * **Validates: Requirements R17.1, R17.2, R17.4**
  */
 
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render as rtlRender, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { deriveOfficialDocumentUiState } from '@/hooks/useOfficialDocument'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
-import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 import { DownloadReceiptButton } from '@/components/student/DownloadReceiptButton'
 import { AdminOfficialDocumentsPanel } from '@/components/admin/applications/AdminOfficialDocumentsPanel'
 import { ADMIN_OFFICIAL_DOCUMENT_TYPES } from '@/hooks/useAdminOfficialDocuments'
@@ -73,6 +74,40 @@ vi.mock('@/hooks/useToast', () => ({
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'u1', email: 'jane@example.com', role: 'student' } }),
 }))
+
+// admissions-v2 task 10.4: the failure path now renders
+// `OfficialDocumentRecovery`, whose tenant-resolved support affordance
+// (`resolveTenantSupportContact`) reads the runtime portal brand — a React Query
+// read of `/api/v1/catalog/context/`. Stub the resolved context rather than stand
+// up a QueryClientProvider: this file's subject is the document UI states, and
+// the neutral/white-label branches of that affordance are owned by
+// `usePortalBrand.test.tsx` and `officialDocumentDurability.test.tsx`.
+vi.mock('@/hooks/usePortalBrand', () => ({
+  usePortalBrand: () => ({
+    brandName: 'Beanola Admissions',
+    brandOwner: 'Beanola Technologies',
+    isWhiteLabel: false,
+    offeringInstitutionId: undefined,
+    supportEmail: null,
+    isLoading: false,
+  }),
+  DEFAULT_BRAND_NAME: 'Beanola Admissions',
+}))
+
+/**
+ * Every render here goes through a router, because the task-10.4 recovery state
+ * offers a real route to a human: when the resolved tenant publishes no
+ * admissions address, `resolveTenantSupportContact` falls back to the neutral
+ * in-app `/contact` route, which is a `<Link>` (STU-24 — never a hardcoded
+ * address). A bare `render` would fail on the router context rather than on
+ * anything this file is about.
+ */
+function render(
+  ui: ReactElement,
+  options?: Parameters<typeof rtlRender>[1],
+): ReturnType<typeof rtlRender> {
+  return rtlRender(ui, { wrapper: MemoryRouter, ...options })
+}
 
 const APP_ID = 'app-123'
 
@@ -166,12 +201,28 @@ describe('DocumentButtons — status-gated action visibility (R17.1)', () => {
 // ---------------------------------------------------------------------------
 // 3. email-of-stored-document (R17.2) — emails the backend record, not a blob
 // ---------------------------------------------------------------------------
-describe('ApplicationSlipActions — email of stored official document (R17.2)', () => {
+/*
+  These three cases were written against `ApplicationSlipActions`, which
+  admissions-v2 task **11.3** folded into `DocumentButtons` (finding STU-05: the
+  slip's own component existed to render two equally prominent buttons plus an
+  inline email form). The subject moved; the claims did not — the slip's download
+  and email still go through `services/officialDocuments.ts` and never through a
+  local `@/lib/pdf` render.
+
+  One case *is* gone, and deliberately: "blocks an invalid email address before
+  calling the service" guarded a text input that no longer exists. The platform
+  emails an official record to its owner and refuses every other address with
+  `RECIPIENT_NOT_PERMITTED` (task 10.4), so the pre-11.3 prefilled input accepted
+  an address the API would reject with a 400. The replacement case asserts the
+  input is absent, which is the same protection stated as a property of the
+  surface rather than as a client-side format check.
+*/
+describe('DocumentButtons — download and email of the stored slip (R17.2)', () => {
   it('downloads the backend-stored slip via the official-document service, not a local blob', async () => {
     generateMock.mockResolvedValue({ document_type: 'application_slip', status: 'ready' })
     downloadMock.mockResolvedValue(undefined)
 
-    render(<ApplicationSlipActions applicationId={APP_ID} />)
+    render(<DocumentButtons applicationId={APP_ID} status="submitted" paymentStatus={null} />)
     fireEvent.click(screen.getByText('Download Slip'))
 
     await waitFor(() => {
@@ -186,30 +237,27 @@ describe('ApplicationSlipActions — email of stored official document (R17.2)',
     generateMock.mockResolvedValue({ document_type: 'application_slip', status: 'ready' })
     emailMock.mockResolvedValue(undefined)
 
-    render(<ApplicationSlipActions applicationId={APP_ID} />)
+    render(<DocumentButtons applicationId={APP_ID} status="submitted" paymentStatus={null} />)
 
-    fireEvent.click(screen.getByText('Email Slip'))
-    const input = screen.getByLabelText('Email address for application slip') as HTMLInputElement
-    fireEvent.change(input, { target: { value: 'student@example.com' } })
-    fireEvent.click(screen.getByText('Send'))
+    // Every command that is not the one primary download lives behind the sheet.
+    fireEvent.click(screen.getByTestId('document-options-trigger'))
+    fireEvent.click(screen.getByText('Email application slip to me'))
 
     await waitFor(() => {
-      expect(emailMock).toHaveBeenCalledWith(APP_ID, 'application_slip', 'student@example.com')
+      // No address argument: the recipient is the owner, decided by the platform.
+      expect(emailMock).toHaveBeenCalledWith(APP_ID, 'application_slip', undefined)
     })
     // The backend-stored record is ensured-current before emailing (no local render).
     expect(generateMock).toHaveBeenCalledWith(APP_ID, 'application_slip')
-    await screen.findByText('Slip sent to student@example.com')
   })
 
-  it('blocks an invalid email address before calling the service', () => {
-    render(<ApplicationSlipActions applicationId={APP_ID} />)
-    fireEvent.click(screen.getByText('Email Slip'))
-    const input = screen.getByLabelText('Email address for application slip') as HTMLInputElement
-    fireEvent.change(input, { target: { value: 'not-an-email' } })
-    fireEvent.click(screen.getByText('Send'))
+  it('offers no address field, because an official record is not redirectable', () => {
+    render(<DocumentButtons applicationId={APP_ID} status="submitted" paymentStatus={null} />)
+    fireEvent.click(screen.getByTestId('document-options-trigger'))
 
-    expect(screen.getByText('Please enter a valid email address')).toBeTruthy()
-    expect(emailMock).not.toHaveBeenCalled()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(document.querySelector('input[type="email"]')).toBeNull()
+    expect(screen.getByText('Email application slip to me')).toBeTruthy()
   })
 })
 

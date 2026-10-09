@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+# Admissions V2 isolated local E2E harness — one-command control script.
+#
+#   harness/bin/harness smoke     # THE one command: build + up + strict E2E + evidence
+#   harness/bin/harness up        # build SPA + bring the stack up (seeded fresh)
+#   harness/bin/harness down      # tear the stack down and wipe volumes
+#   harness/bin/harness build     # build the admissions SPA (build output for Caddy)
+#   harness/bin/harness e2e       # run the strict Playwright projects only
+#   harness/bin/harness drain     # assert required background jobs drained
+#   harness/bin/harness logs [svc]# tail compose logs
+#   harness/bin/harness ps        # compose service status
+#
+# Clean-machine prerequisites: Docker + Docker Compose v2, and Bun (the repo's
+# standard JS runtime) for the frontend build. No production credentials, no
+# network access to Neon/R2/Zoho/Resend/Lenco.
+set -euo pipefail
+
+# --- paths ----------------------------------------------------------------
+HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "${HARNESS_DIR}/.." && pwd)"
+COMPOSE_FILE="${HARNESS_DIR}/docker-compose.harness.yml"
+ADMISSIONS_DIR="${REPO_ROOT}/apps/admissions"
+
+# --- where this run writes (task 13.6 remediation L8, finding GATE-13.1-07) ----
+# This script is a FOURTH write path into docs/v2-evidence/0.4 and 13.1 §7.1 did not
+# catalogue it: it catalogued the Playwright config's reporter. `run_required`,
+# `run_gatecheck` and `write_evidence` below copy/write three MORE files into 0.4
+# (`playwright-required-report.json`, `playwright-gatecheck-report.json`,
+# `smoke-run.md`). It is latent rather than dormant — those three still carry their
+# 2026-07-15 mtimes because nobody has run `harness smoke` since task 0.4 — but the next
+# `harness smoke` by any task would have replaced all three.
+#
+# Same three-branch rule as apps/admissions/tests/harness-e2e/helpers/evidence-dir.ts
+# and backend/tests/v2_evidence.py, in the same order. Bash cannot import either module,
+# so this is a third spelling of one rule; the drift guard
+# backend/tests/unit/test_evidence_dir_convention_l8.py reads all three sources and
+# fails if any of them stops agreeing.
+#
+#   V2_EVIDENCE_DIR=<repo-relative>  -> that directory        (this run's own home)
+#   V2_EVIDENCE_TASK_DIRS=1          -> docs/v2-evidence/0.4  (regenerate 0.4, on purpose)
+#   neither                          -> a run-scoped scratch directory (the default)
+#
+# The run id is stamped ONCE, here, and exported: `harness smoke` invokes Playwright
+# twice, and without this each invocation would mint its own timestamp, so the `cp` of
+# playwright-report.json would look in the previous run's directory.
+export V2_EVIDENCE_RUN_ID="${V2_EVIDENCE_RUN_ID:-$(date -u +%Y-%m-%dT%H-%M-%SZ)}"
+case "${V2_EVIDENCE_TASK_DIRS:-}" in
+  1|true|TRUE|True|yes|YES|on|ON) EVIDENCE_REL="docs/v2-evidence/0.4" ;;
+  *) EVIDENCE_REL="apps/admissions/test-results/harness-evidence/${V2_EVIDENCE_RUN_ID}/0.4" ;;
+esac
+[ -n "${V2_EVIDENCE_DIR:-}" ] && EVIDENCE_REL="${V2_EVIDENCE_DIR}"
+EVIDENCE_DIR="${REPO_ROOT}/${EVIDENCE_REL}"
+
+# Playwright config + specs live under the admissions app so @playwright/test
+# (installed in apps/admissions/node_modules, not hoisted) resolves. The harness
+# INFRA (compose, adapters, Caddyfile, env, this script) lives under harness/.
+PW_CONFIG="${ADMISSIONS_DIR}/playwright.harness.config.ts"
+
+DC=(docker compose -f "${COMPOSE_FILE}")
+
+# Edge (Caddy) and direct backend URLs.
+EDGE_URL="http://localhost:8090"
+API_URL="http://localhost:8000"
+MAILPIT_URL="http://localhost:58025"
+ADAPTER_URL="http://localhost:59099"
+
+# Same-origin sentinel: getApiBaseUrl() falls through to browserOrigin when
+# VITE_API_BASE_URL equals the production app origin, so every *.localhost host
+# calls its own origin and the tenant is resolved from the request Host.
+export VITE_API_BASE_URL="${VITE_API_BASE_URL:-https://apply.beanola.com}"
+export VITE_APP_BASE_URL="${VITE_APP_BASE_URL:-http://localhost:8090}"
+export VITE_SITE_URL="${VITE_SITE_URL:-http://localhost:8090}"
+export VITE_APP_VERSION="${VITE_APP_VERSION:-2.0.0-harness}"
+# Dummy DSN so the prod-mode env validation passes; errors-only + a clean run
+# means Sentry/GlitchTip performs zero network calls.
+export VITE_GLITCHTIP_DSN="${VITE_GLITCHTIP_DSN:-https://[email protected]/1}"
+
+log()  { printf '\033[36m[harness]\033[0m %s\n' "$*"; }
+ok()   { printf '\033[32m[harness] ✓ %s\033[0m\n' "$*"; }
+err()  { printf '\033[31m[harness] ✗ %s\033[0m\n' "$*" >&2; }
+
+# --- frontend build -------------------------------------------------------
+build_spa() {
+  log "building admissions SPA (bun) -> apps/admissions/dist"
+  ( cd "${REPO_ROOT}" && bun install --frozen-lockfile >/dev/null 2>&1 || bun install >/dev/null 2>&1 || true )
+  ( cd "${ADMISSIONS_DIR}" && bun run build )
+  [ -f "${ADMISSIONS_DIR}/dist/index.html" ] || { err "SPA build produced no dist/index.html"; exit 1; }
+  ok "SPA build output ready"
+}
+
+# --- stack lifecycle ------------------------------------------------------
+compose_up() {
+  log "starting the harness stack (fresh volumes)"
+  "${DC[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
+  "${DC[@]}" up -d --build
+}
+
+wait_healthy() {
+  log "waiting for the backend to become healthy (schema + seed)…"
+  local tries=0
+  until curl -fsS -H 'Host: localhost' "${API_URL}/health/live/" >/dev/null 2>&1; do
+    tries=$((tries + 1))
+    if [ "${tries}" -gt 120 ]; then
+      err "backend did not become healthy in time"
+      "${DC[@]}" ps
+      "${DC[@]}" logs --tail=80 web || true
+      exit 1
+    fi
+    sleep 2
+  done
+  ok "backend healthy"
+
+  log "waiting for the edge (Caddy) to serve the SPA…"
+  tries=0
+  until curl -fsS "${EDGE_URL}/" -H 'Host: localhost' >/dev/null 2>&1; do
+    tries=$((tries + 1))
+    if [ "${tries}" -gt 60 ]; then err "edge did not serve in time"; exit 1; fi
+    sleep 1
+  done
+  ok "edge serving SPA at ${EDGE_URL}"
+}
+
+# --- drain gate (undrained required jobs) ---------------------------------
+drain_check() {
+  log "asserting required background jobs drained"
+  local depth
+  depth="$(curl -fsS "${ADAPTER_URL}/__/queue-depth" || echo '{}')"
+  echo "  queue-depth: ${depth}"
+  # broker_queue_depth == 0 (Redis reachable, celery queue empty) OR -1 (adapter
+  # could not reach Redis — treated as non-fatal here but reported).
+  python3 - "$depth" <<'PY'
+import json, sys
+data = json.loads(sys.argv[1] or "{}")
+broker = data.get("broker_queue_depth", -1)
+unsettled = data.get("unsettled_payment_collections", 0)
+if broker > 0:
+    print(f"[harness] ✗ broker queue not drained: {broker} pending", file=sys.stderr); sys.exit(1)
+if unsettled > 0:
+    print(f"[harness] ✗ {unsettled} payment collection(s) never settled", file=sys.stderr); sys.exit(1)
+print("[harness] ✓ no undrained required jobs")
+PY
+}
+
+# --- strict Playwright projects ------------------------------------------
+ensure_browser() {
+  # When HARNESS_PW_CHANNEL is set (e.g. 'chrome'), the config runs against a
+  # system-installed browser, so skip the bundled-Chromium download. This is the
+  # escape hatch for OSes where Playwright's bundled Chromium build is
+  # unavailable; the default clean-machine/CI path (ubuntu-latest) installs the
+  # bundled Chromium as before.
+  if [ -n "${HARNESS_PW_CHANNEL:-}" ]; then
+    log "using system browser channel '${HARNESS_PW_CHANNEL}' (skipping bundled-Chromium install)"
+    return 0
+  fi
+  ( cd "${ADMISSIONS_DIR}" && bunx playwright install chromium >/dev/null 2>&1 || bunx playwright install-deps chromium >/dev/null 2>&1 || true )
+}
+
+run_required() {
+  log "running strict Playwright required projects (must PASS, zero skips)"
+  mkdir -p "${EVIDENCE_DIR}"
+  ( cd "${ADMISSIONS_DIR}" && PLAYWRIGHT_BASE_URL="${EDGE_URL}" bunx playwright test -c "${PW_CONFIG}" --project=chromium-required --project=mobile-required )
+  cp -f "${EVIDENCE_DIR}/playwright-report.json" "${EVIDENCE_DIR}/playwright-required-report.json" 2>/dev/null || true
+  ok "required projects passed (desktop + mobile)"
+}
+
+run_gatecheck() {
+  log "running gatecheck project (must FAIL — proves the gates fire)"
+  set +e
+  ( cd "${ADMISSIONS_DIR}" && PLAYWRIGHT_BASE_URL="${EDGE_URL}" bunx playwright test -c "${PW_CONFIG}" --project=gatecheck-negative )
+  local rc=$?
+  set -e
+  cp -f "${EVIDENCE_DIR}/playwright-report.json" "${EVIDENCE_DIR}/playwright-gatecheck-report.json" 2>/dev/null || true
+  if [ "${rc}" -eq 0 ]; then
+    err "gatecheck project PASSED but was expected to FAIL — the strict gates are NOT working"
+    exit 1
+  fi
+  ok "gatecheck project failed as expected (skip/console/failed-request/undrained gates fire)"
+}
+
+write_evidence() {
+  log "writing evidence to ${EVIDENCE_REL}/"
+  if [ "${EVIDENCE_REL}" = "docs/v2-evidence/0.4" ]; then
+    log "  (V2_EVIDENCE_TASK_DIRS is set: regenerating task 0.4's own artifacts on purpose)"
+  else
+    log "  (run-scoped; set V2_EVIDENCE_TASK_DIRS=1 to regenerate docs/v2-evidence/0.4/)"
+  fi
+  mkdir -p "${EVIDENCE_DIR}"
+  local commit
+  commit="$(cd "${REPO_ROOT}" && git rev-parse HEAD 2>/dev/null || echo 'unknown')"
+  {
+    echo "# Task 0.4 — smoke run"
+    echo
+    echo "- timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "- candidate_commit: ${commit}"
+    echo "- edge_url: ${EDGE_URL}"
+    echo "- api_url: ${API_URL}"
+    echo "- mailpit_url: ${MAILPIT_URL}"
+    echo "- adapter_url: ${ADAPTER_URL}"
+    echo
+    echo "## compose services"
+    echo '```'
+    "${DC[@]}" ps
+    echo '```'
+    echo
+    echo "## adapter queue-depth (drain gate)"
+    echo '```json'
+    curl -fsS "${ADAPTER_URL}/__/queue-depth" || true
+    echo
+    echo '```'
+  } > "${EVIDENCE_DIR}/smoke-run.md"
+  ok "evidence written to ${EVIDENCE_DIR}/smoke-run.md"
+}
+
+# --- commands -------------------------------------------------------------
+cmd="${1:-smoke}"
+case "${cmd}" in
+  build) build_spa ;;
+  up)    build_spa; compose_up; wait_healthy; ok "harness up. Edge: ${EDGE_URL}  Mailpit: ${MAILPIT_URL}" ;;
+  down)  "${DC[@]}" down -v --remove-orphans; ok "harness down (volumes wiped)" ;;
+  ps)    "${DC[@]}" ps ;;
+  logs)  shift || true; "${DC[@]}" logs --tail="${LINES:-120}" "$@" ;;
+  drain) drain_check ;;
+  e2e)   ensure_browser; run_required; run_gatecheck; drain_check ;;
+  smoke)
+    build_spa
+    compose_up
+    wait_healthy
+    ensure_browser
+    run_required
+    run_gatecheck
+    drain_check
+    write_evidence
+    ok "SMOKE PASSED — isolated harness came up, strict gates enforced, jobs drained."
+    ;;
+  *) err "unknown command: ${cmd}"; exit 2 ;;
+esac

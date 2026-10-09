@@ -102,7 +102,16 @@ def _build_five_payment_cases():
     build_payment(
         application=apps["paid"], amount=Decimal("750.00"), currency="ZMW",
         status="successful", payment_method="mobile_money", verified_at=now,
-        transaction_reference="REF-PAID", receipt_number=f"RCPT-{uuid.uuid4().hex[:8]}",
+        # `transaction_reference` is uniquified for the same reason
+        # `receipt_number` already was: `uq_payments_transaction_reference_present`
+        # is unique over non-null values, and this fixture is built TWICE in one
+        # test (baseline capture, then candidate capture), so a literal collided
+        # and the run-to-run stability check died in setup instead of comparing
+        # anything. The field is in `DEFAULT_VOLATILE_KEYS`, so both captures still
+        # normalize it to `<volatile>` and nothing about the comparison changes
+        # (13.6 remediation M3).
+        transaction_reference=f"REF-PAID-{uuid.uuid4().hex[:8]}",
+        receipt_number=f"RCPT-{uuid.uuid4().hex[:8]}",
     )
 
     # pending: a single pending payment (not verified).
@@ -134,7 +143,7 @@ def _build_five_payment_cases():
     build_payment(
         application=apps["multiple"], amount=Decimal("750.00"), currency="ZMW",
         status="successful", payment_method="mobile_money", verified_at=now,
-        transaction_reference="REF-MULTI", receipt_number=f"RCPT-{uuid.uuid4().hex[:8]}",
+        transaction_reference=f"REF-MULTI-{uuid.uuid4().hex[:8]}", receipt_number=f"RCPT-{uuid.uuid4().hex[:8]}",
         created_at=now, updated_at=now,
     )
 

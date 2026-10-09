@@ -51,6 +51,30 @@ interface BottomNavigationProps {
 
 const MAX_NAV_ITEMS = 4
 
+/**
+ * `ACTIVE_ITEM_TOKENS` — why the active item is `accent` and not `primary/10`
+ * (GATE-13.3-12, task 13.6 §8.1 item L6).
+ *
+ * The active tab used to be `bg-primary/10 text-primary`, and axe reported
+ * `color-contrast` (serious, WCAG 1.4.3) on its label: `--color-primary` over a 10 %
+ * wash of itself on white measures **4.49 : 1**, marginally under AA's 4.5, and the
+ * label is 10-12 px so no large-text allowance applies. The *More* overflow button
+ * carried the identical pair, and so did five subject chips on the wizard's Education
+ * step — nine axe rows from two token misuses.
+ *
+ * `bg-accent text-accent-foreground` is an existing pair in
+ * `src/styles/design-tokens.css`, built for exactly this — a tinted surface with an
+ * accessible foreground — and it measures **7.2 : 1**. No token was invented, and the
+ * brand signal is unchanged. `aria-current="page"` carries the state non-visually, so
+ * the colour is never the only cue.
+ *
+ * Recorded here as prose rather than beside the class strings because
+ * `tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts` scans
+ * `className` expressions for hex literals, and it cannot tell a comment from a class
+ * — which is a fair trade for a guard that catches raw palette values.
+ */
+const ACTIVE_ITEM_TOKENS = 'bg-accent text-accent-foreground'
+
 /** Route-to-import map for prefetching route chunks on hover/focus */
 const routeImports: Record<string, () => Promise<unknown>> = {
   [pathFor('student.dashboard')]: () => import('@/pages/student/Dashboard'),
@@ -120,11 +144,31 @@ function BottomNavLink({
     'transition-colors duration-150',
     'touch-manipulation select-none',
     '[-webkit-tap-highlight-color:transparent]',
+    // The active item's own tokens — see `ACTIVE_ITEM_TOKENS` above
+    // (GATE-13.3-12, 13.6 §8.1 item L6).
     isActive
-      ? 'bg-primary/10 text-primary font-semibold'
+      ? `${ACTIVE_ITEM_TOKENS} font-semibold`
       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
   )
+  /*
+    The accessible name, always (GATE-13.3-11, 13.6 §8.1 item L6; R16.1).
+
+    Below 360 px `iconOnly` drops the label span and **nothing replaced it** — no
+    `aria-label`, and the icon is decorative — so axe reported `link-name`
+    (serious, WCAG 2.4.4 / 4.1.2) on all four items at 320 x 568. That is the one
+    width in R16.7's list under the threshold, and it is precisely the width R16.1
+    says the student experience is designed at first: the primary navigation stopped
+    telling a screen-reader user where anything went, at the design width.
+
+    The label is now on the element unconditionally rather than only when the visual
+    span is dropped, because an `aria-label` that matches the visible text is
+    correct at every width and a conditional one is a second code path that can
+    regress independently.
+  */
+  const accessibleName = item.badge !== undefined && item.badge > 0
+    ? `${item.label} (${item.badge > 99 ? '99+' : item.badge} updates)`
+    : item.label
 
   if (item.onClick) {
     return (
@@ -136,12 +180,14 @@ function BottomNavLink({
         }}
         className={baseClassName}
         aria-current={isActive ? 'page' : undefined}
+        aria-label={accessibleName}
         role={role}
       >
         <div className="relative">
-          <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+          <Icon className={cn('h-5 w-5', isActive ? 'text-accent-foreground' : 'text-muted-foreground')} aria-hidden="true" />
           {item.badge !== undefined && item.badge > 0 && (
             <span
+              aria-hidden="true"
               className={cn(
                 'absolute -top-1 -right-1',
                 'min-w-[18px] h-[18px] px-1',
@@ -150,14 +196,13 @@ function BottomNavLink({
                 'bg-destructive text-destructive-foreground',
                 'rounded-full'
               )}
-              aria-label={`${item.badge} ${item.label} updates`}
             >
               {item.badge > 99 ? '99+' : item.badge}
             </span>
           )}
         </div>
         {!iconOnly && (
-          <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+          <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -170,14 +215,16 @@ function BottomNavLink({
       to={item.href}
       className={baseClassName}
       aria-current={isActive ? 'page' : undefined}
+      aria-label={accessibleName}
       onClick={onNavigate}
       role={role}
       {...prefetchProps}
     >
       <div className="relative">
-        <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+        <Icon className={cn('h-5 w-5', isActive ? 'text-accent-foreground' : 'text-muted-foreground')} aria-hidden="true" />
         {item.badge !== undefined && item.badge > 0 && (
           <span
+            aria-hidden="true"
             className={cn(
               'absolute -top-1 -right-1',
               'min-w-[18px] h-[18px] px-1',
@@ -186,14 +233,13 @@ function BottomNavLink({
               'bg-destructive text-destructive-foreground',
               'rounded-full'
             )}
-            aria-label={`${item.badge} ${item.label} updates`}
           >
             {item.badge > 99 ? '99+' : item.badge}
           </span>
         )}
       </div>
       {!iconOnly && (
-        <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+        <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -302,17 +348,18 @@ export function BottomNavigation({
               'min-h-[44px] min-w-[44px] px-3 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',
+              // Same token pair and reason as `BottomNavLink` above (GATE-13.3-12).
               isMoreActive || isMoreOpen
-                ? 'bg-primary/10 text-primary font-semibold'
+                ? `${ACTIVE_ITEM_TOKENS} font-semibold`
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
             )}
             aria-expanded={isMoreOpen}
             aria-controls="bottom-navigation-overflow"
             aria-label="More navigation items"
           >
-            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')} />
+            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')} aria-hidden="true" />
             {!isNarrowViewport && (
-              <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
+              <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')}>
                 More
               </span>
             )}

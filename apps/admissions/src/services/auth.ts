@@ -2,6 +2,20 @@ import { apiClient, AuthenticationError } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { getCsrfToken } from '@/lib/csrfToken'
 
+// ─── Generated Types (R14.3) ────────────────────────────────────────────────
+// Domain services import strict types from the generated OpenAPI client.
+// Pages/components consume this service — never the raw client or generated types directly.
+import type {
+  LoginRequest,
+  RegisterRequest,
+  Session,
+  PasswordResetRequest as PasswordResetRequestType,
+  PasswordResetConfirmRequest,
+} from '@/generated'
+
+// ─── Service-level types ─────────────────────────────────────────────────────
+// These map the domain interface that pages/hooks consume to the generated contract.
+
 interface RegisterData {
   email: string
   password: string
@@ -26,20 +40,25 @@ interface PasswordResetConfirmData {
 
 type ProfileUpdatePayload = Record<string, unknown>
 
+/** Validated session shape returned by the auth service */
+export type AuthSession = Session
+
 export const authService = {
-  register: async (data: RegisterData) => {
+  register: async (data: RegisterData): Promise<Session | null> => {
     const [firstName, ...lastNameParts] = data.fullName.split(' ')
+    // Build the request body conforming to the generated RegisterRequest shape
+    const body: RegisterRequest = {
+      email: data.email,
+      password: data.password,
+      first_name: firstName || '',
+      last_name: lastNameParts.join(' ') || '',
+      phone: data.phone || '',
+      nationality: data.nationality || '',
+    }
     try {
-      return await apiClient.request('/auth/register/', {
+      return await apiClient.request<Session>('/auth/register/', {
         method: 'POST',
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          first_name: firstName || '',
-          last_name: lastNameParts.join(' ') || '',
-          phone: data.phone || '',
-          nationality: data.nationality || '',
-        }),
+        body: JSON.stringify(body),
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/register/', error)
@@ -47,11 +66,16 @@ export const authService = {
     }
   },
 
-  login: async (data: LoginData) => {
+  login: async (data: LoginData): Promise<Session | null> => {
+    // Build the request body conforming to the generated LoginRequest shape
+    const body: LoginRequest = {
+      email: data.email,
+      password: data.password,
+    }
     try {
-      return await apiClient.request('/auth/login/', {
+      return await apiClient.request<Session>('/auth/login/', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/login/', error)
@@ -70,13 +94,13 @@ export const authService = {
     }
   },
 
-  session: async () => {
+  session: async (): Promise<Session | null> => {
     try {
       // After a page refresh the in-memory CSRF token is lost. Ask the server
       // to issue a fresh one so the next state-changing request doesn't 403.
       const needsCsrf = !getCsrfToken()
       const endpoint = needsCsrf ? '/auth/session/?refresh_csrf=1' : '/auth/session/'
-      return await apiClient.request(endpoint, {
+      return await apiClient.request<Session>(endpoint, {
         method: 'GET',
         retries: 0,
         timeout: 5_000,
@@ -133,10 +157,11 @@ export const authService = {
   },
 
   passwordReset: async (data: PasswordResetData) => {
+    const body: PasswordResetRequestType = { email: data.email }
     try {
       return await apiClient.request('/auth/password-reset/', {
         method: 'POST',
-        body: JSON.stringify({ email: data.email }),
+        body: JSON.stringify(body),
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/password-reset/', error)
@@ -145,17 +170,37 @@ export const authService = {
   },
 
   passwordResetConfirm: async (data: PasswordResetConfirmData) => {
+    const body: PasswordResetConfirmRequest = {
+      token: data.token,
+      new_password: data.newPassword,
+    }
     try {
       return await apiClient.request('/auth/password-reset/confirm/', {
         method: 'POST',
-        body: JSON.stringify({
-          token: data.token,
-          // Django PasswordResetConfirmSerializer expects snake_case `new_password`
-          new_password: data.newPassword,
-        }),
+        body: JSON.stringify(body),
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/password-reset/confirm/', error)
+      throw error
+    }
+  },
+
+  /**
+   * Accept a tenant staff invitation and set your OWN password (task 4.2, R4.3).
+   *
+   * The handoff: an invited tenant admin/reviewer consumes the single-use token
+   * from the emailed link and chooses their own password here. No password was
+   * ever set by, shown to, or stored for the inviting admin. Public/unauthenticated
+   * — the invitee is not yet signed in.
+   */
+  acceptStaffInvitation: async (data: { token: string; password: string }) => {
+    try {
+      return await apiClient.request('/auth/staff-invitation/accept/', {
+        method: 'POST',
+        body: JSON.stringify({ token: data.token, password: data.password }),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/staff-invitation/accept/', error)
       throw error
     }
   },

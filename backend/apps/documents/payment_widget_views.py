@@ -46,8 +46,11 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.object_authorization import authorize_owned_application
+from apps.common.throttling import PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
+from apps.documents.fee_quote_service import FeeQuoteError
+from apps.documents.fee_resolver import FeeConfigurationError
 from apps.documents.payment_helpers import _build_tenant_payment_metadata
 
 from django.http import HttpResponseRedirect
@@ -75,15 +78,6 @@ def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
     return False
 
 
-def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
-    """Extract AI analysis JSON from verification_notes field."""
-    if not verification_notes:
-        return None
-    try:
-        data = json.loads(verification_notes)
-        return data.get("ai_analysis") if isinstance(data, dict) else None
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def _document_not_found_response():
@@ -191,19 +185,23 @@ class PaymentInitiateView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Ownership check
+        # Ownership check (AUTH-07): payment initiation is an owner-class action
+        # (approved authority matrix — no composed staff). A valid-but-non-owned
+        # application id is masked as a canonical 404, never a distinguishable
+        # 403 NOT_OWNER that leaks existence.
         user = request.user
         role = getattr(user, "role", "student")
-        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+        denied = authorize_owned_application(
+            request, application, allow_scoped_staff=False, nested=True
+        )
+        if denied is not None:
             payment_metrics.increment(
                 "payment.initiation.failure",
                 tags={"endpoint": "initiate", "outcome": "failure"},
             )
-            return Response(
-                {"success": False, "error": {"code": "NOT_OWNER", "message": "Not authorized"}},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return denied
 
+        from apps.documents.payment_helpers import fee_authority_error_response
         from apps.documents.payment_service import PaymentService
 
         service = PaymentService()
@@ -213,6 +211,15 @@ class PaymentInitiateView(APIView):
                 application_id=application.id,
                 user_id=user.id,
             )
+        except (FeeConfigurationError, FeeQuoteError) as exc:
+            # Task 8.1 / 5.4: the server is the sole amount authority, so a missing
+            # fee or an unusable quote is a named, recoverable answer — never a
+            # generic 500 and never a substituted amount (R12.2, R12.6).
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "initiate", "outcome": "failure"},
+            )
+            return fee_authority_error_response(exc)
         except ValueError as exc:
             error_msg = str(exc)
 
@@ -319,12 +326,10 @@ class DeferPaymentView(APIView):
             )
 
         user = request.user
-        role = getattr(user, "role", "student")
-        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
-            return Response(
-                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # AUTH-07: owner-class action; a valid-but-non-owned id -> canonical 404 mask.
+        denied = authorize_owned_application(request, application, allow_scoped_staff=False)
+        if denied is not None:
+            return denied
 
         from apps.documents.payment_service import PaymentService
 
@@ -332,6 +337,12 @@ class DeferPaymentView(APIView):
             result = PaymentService().defer_payment(
                 application_id=application.id, user_id=user.id,
             )
+        except (FeeConfigurationError, FeeQuoteError) as exc:
+            # Deferring still records what the student will owe, so the same fee
+            # authority rules apply (task 8.1, R12.2).
+            from apps.documents.payment_helpers import fee_authority_error_response
+
+            return fee_authority_error_response(exc)
         except ValueError as exc:
             return Response(
                 {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
@@ -395,12 +406,10 @@ class PaymentDevBypassView(APIView):
             )
 
         user = request.user
-        role = getattr(user, "role", "student")
-        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
-            return Response(
-                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # AUTH-07: owner-class action; a valid-but-non-owned id -> canonical 404 mask.
+        denied = authorize_owned_application(request, application, allow_scoped_staff=False)
+        if denied is not None:
+            return denied
 
         now = timezone.now()
         amount = application.application_fee if application.application_fee is not None else Decimal("0.00")

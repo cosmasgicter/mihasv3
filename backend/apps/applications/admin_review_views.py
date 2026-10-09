@@ -33,7 +33,6 @@ from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 
 # Alias kept for backward-compat grep tests.
 _RESOLVED_PAYMENT_STATUSES = RESOLVED_PAYMENT_STATUSES  # "successful", "force_approved", "verified", "paid", "deferred"
-from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
 from apps.applications.models import (
@@ -55,7 +54,6 @@ from apps.applications.serializers import (
     ApplicationAutoAssignRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
     ApplicationFeeWaiverRequestSerializer,
-    ApplicationAiSummaryResponseSerializer,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -142,8 +140,22 @@ class ApplicationListCreateView(APIView):
 
     def get(self, request):
         user = request.user
-        role = getattr(user, "role", "student")
-        if role in ("admin", "super_admin"):
+        from apps.catalog.services import (
+            AccessScopeService,
+            AdminCapabilityService,
+            CapabilityResolutionError,
+        )
+
+        try:
+            staff_can_read = AdminCapabilityService().has_any_application_capability(
+                user, "tenant.application.read"
+            )
+        except CapabilityResolutionError:
+            # Owner reads remain available even if staff capability resolution
+            # fails; the staff branch itself fails closed.
+            staff_can_read = False
+
+        if staff_can_read:
             queryset = Application.objects.select_related(
                 'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by',
                 'assigned_reviewer_id',
@@ -159,10 +171,13 @@ class ApplicationListCreateView(APIView):
                 'applicationdocument_set', 'applicationgrade_set',
                 'applicationcondition_set', 'applicationamendment_set',
             ).all()
-            if role != "super_admin":
-                from apps.catalog.services import AccessScopeService
+            queryset = AccessScopeService().filter_applications(queryset, user)
+            # R8.2 / AUTH-01: a Reviewer's queue contains only tenant-authorized
+            # AND assigned work. This composes with (runs after) the tenant
+            # scope filter; it is a no-op for Tenant_Admins and platform admins.
+            from apps.common.tenant_authorization import apply_reviewer_assignment_scope
 
-                queryset = AccessScopeService().filter_applications(queryset, user)
+            queryset = apply_reviewer_assignment_scope(queryset, user)
             queryset = _with_payment_summary(queryset)
         else:
             # Student path: lightweight query - no payment summary subqueries,
@@ -179,7 +194,7 @@ class ApplicationListCreateView(APIView):
         queryset = filterset.qs
 
         sort_param = request.query_params.get("sort")
-        is_priority_sort = sort_param == "priority" and role in ("admin", "super_admin")
+        is_priority_sort = sort_param == "priority" and staff_can_read
 
         if not sort_param and not request.query_params.get("sortBy"):
             queryset = annotate_activity_at(queryset).order_by("-activity_at", "-created_at", "-id")
@@ -265,10 +280,21 @@ class ApplicationListCreateView(APIView):
         assigned = None
         required_documents = []
         if data.get("program_id") and data.get("intake_id"):
-            try:
-                from apps.catalog.services import OfferingAssignmentService
+            # Canonical write path (R7.1, DATA-01): resolve ONLY the canonical
+            # offering + intake IDs, derive every field server-side, and snapshot
+            # the dynamic required documents + eligibility + configuration version
+            # onto the application. No IdentifierResolver / name / code fallback.
+            # Resolution fails closed: a dependency failure returns a stable
+            # retryable CONFIGURATION_UNAVAILABLE (503), never a silent
+            # empty-requirements create (DATA-04, STU-13).
+            from apps.applications.assignment_resolution import (
+                AssignmentConfigurationError,
+                resolve_assignment_snapshot,
+            )
+            from apps.catalog.services import OfferingAssignmentError
 
-                assigned = OfferingAssignmentService().assign(
+            try:
+                assigned = resolve_assignment_snapshot(
                     program_id=str(data["program_id"]),
                     intake_id=str(data["intake_id"]),
                     country=data.get("country"),
@@ -280,14 +306,24 @@ class ApplicationListCreateView(APIView):
                     audit_actor_role=getattr(request.user, "role", None),
                     audit_domain_host=host,
                 )
-            except Exception as exc:
+            except AssignmentConfigurationError as exc:
+                return Response(
+                    {
+                        "success": False,
+                        "error": exc.message,
+                        "code": exc.code,
+                        "retryable": True,
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            except OfferingAssignmentError as exc:
                 return Response(
                     {"success": False, "error": str(exc), "code": getattr(exc, "code", "NO_ELIGIBLE_OFFERING")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            data["program"] = assigned.canonical_program.name
-            data["intake"] = assigned.intake.name
-            data["institution"] = assigned.institution.name
+            data["program"] = assigned.program_name
+            data["intake"] = assigned.intake_name
+            data["institution"] = assigned.institution_name
             required_documents = assigned.required_documents
         else:
             # Legacy string-create path (R15.7): the application is created from
@@ -336,22 +372,27 @@ class ApplicationListCreateView(APIView):
             )
 
         application_fee = None
-        try:
-            from apps.documents.fee_resolver import FeeResolver
+        # Pre-populate the (stale) application_fee snapshot column ONLY from the
+        # canonical offering — never a display-name lookup or an invented default
+        # (DATA-05, R7.4/R7.5). A missing/ambiguous fee leaves the column NULL;
+        # payment-time resolution fails closed with FEE_NOT_CONFIGURED (task 5.4).
+        offering = assigned.offering if assigned else None
+        if offering is not None:
+            try:
+                from apps.documents.fee_resolver import FeeResolver
 
-            program = assigned.offering if assigned else None
-            if program is None:
-                from apps.catalog.models import Program
-
-                program = Program.objects.get(name=data["program"], is_active=True)
-            resolved_fee = FeeResolver().resolve_fee(
-                program_code=program.code,
-                nationality=data.get("nationality"),
-                country=data.get("country"),
-            )
-            application_fee = resolved_fee.amount
-        except Exception:
-            logger.exception("Failed to resolve application fee during application create")
+                resolved_fee = FeeResolver().resolve_for_offering(
+                    offering,
+                    data.get("nationality"),
+                    data.get("country"),
+                )
+                application_fee = resolved_fee.amount
+            except Exception:
+                logger.info(
+                    "No canonical application fee for offering %s during create; "
+                    "leaving snapshot NULL (fail closed at payment time)",
+                    getattr(offering, "id", None),
+                )
 
         create_kwargs = {
             "user_id": str(request.user.id), "application_number": _generate_application_number(data.get('institution', '')),
@@ -366,13 +407,19 @@ class ApplicationListCreateView(APIView):
             "intake": data["intake"], "institution": data["institution"], "application_fee": application_fee,
             "status": "draft", "version": 1,
         }
+        # Optional student-facing draft label (admissions-v2 task 6.2, R10.9).
+        # The serializer validates it (<=255); persist a real value and
+        # normalise an empty string to NULL so the client falls back to the
+        # program display snapshot. Before task 6.2 this field was silently
+        # dropped here (finding STU-12).
+        _draft_name = (data.get("draft_name") or "").strip()
+        if _draft_name:
+            create_kwargs["draft_name"] = _draft_name
         if assigned:
-            create_kwargs.update(
-                institution_ref_id=assigned.institution.id,
-                canonical_program_id=assigned.canonical_program.id,
-                program_offering_id=assigned.offering.id,
-                intake_ref_id=assigned.intake.id,
-            )
+            # Snapshot the derived canonical assignment + configuration onto the
+            # application row (design §7.2/§9.3). The display strings above are
+            # snapshots too; the canonical IDs are the sole routing authority.
+            create_kwargs.update(assigned.snapshot_columns())
         application = Application.objects.create(**create_kwargs)
         response_data = ApplicationSerializer(application).data
         response_data["assigned_school"] = {
@@ -381,6 +428,11 @@ class ApplicationListCreateView(APIView):
             "code": assigned.institution.code,
         } if assigned else None
         response_data["required_documents"] = required_documents
+        # Return the configuration version so the client can pin the snapshot it
+        # was assigned against (R7.2); null on the legacy string-create path.
+        response_data["configuration_version"] = (
+            assigned.configuration_version if assigned else None
+        )
         return Response({"success": True, "data": response_data}, status=status.HTTP_201_CREATED)
 
 
@@ -418,7 +470,13 @@ class ApplicationListCreateView(APIView):
     ),
 )
 class ApplicationReviewView(APIView):
-    permission_classes = [IsAdmin]
+    # R3.1/R3.2: authority is the derived tenant capability
+    # (``tenant.application.review``) composed with scope-before-lookup, not a
+    # raw-role permission class. ``IsAuthenticated`` only rejects anonymous
+    # callers (401); the capability + scope decision is made per-object in the
+    # view via ``resolve_scoped_application`` so the disclosure policy (Student /
+    # out-of-tenant → 404 mask; in-scope missing capability → 403) is enforced.
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationReviewSerializer
 
     @staticmethod
@@ -445,17 +503,43 @@ class ApplicationReviewView(APIView):
 
     @idempotent
     def post(self, request, application_id):
-        try:
-            queryset = Application.objects.all()
-            if not is_super_admin(request.user):
-                from apps.catalog.services import AccessScopeService
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+            read_expected_version,
+        )
+        from apps.common.tenant_authorization import (
+            require_application_capability,
+            resolve_scoped_application,
+        )
 
-                queryset = AccessScopeService().filter_applications(queryset, request.user)
-            app = queryset.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        # Scope-before-lookup + tenant.application.review capability (role is only
+        # an input to the derivation inside AdminCapabilityService, never a second
+        # raw-role gate). Masks a Student / cross-tenant id as 404; a reviewer in
+        # scope without the review capability gets a non-revealing 403.
+        app = resolve_scoped_application(
+            request, application_id, capability="tenant.application.review"
+        )
+
+        # Versioned command (task 9.4). The workspace publishes the version it
+        # read; a decision carrying an older one is refused with VERSION_CONFLICT
+        # (409) rather than overwriting a newer decision that is not on the
+        # reviewer's screen. Opt-in: a caller that supplies nothing is unaffected.
+        expected_version = read_expected_version(request)
+        ApplicationReviewWorkspaceService.assert_version(app, expected_version)
 
         if isinstance(request.data, dict) and (request.data.get("paymentStatus") or request.data.get("payment_status")):
+            # A payment decision is *money*, and it needs its own capability
+            # (task 9.4, AUTH-02). This route carries two different commands
+            # behind one path, and until now both were authorised by
+            # ``tenant.application.review``: an operator granted review authority
+            # could verify a fee they were never granted authority over, and the
+            # workspace's published ``verify_payment: tenant.payment.verify``
+            # promised a check the backend did not make. The composition is
+            # deliberate — review scope still has to hold, because the actor is
+            # deciding about *this* application — and this adds the second
+            # capability the ledger write requires.
+            require_application_capability(request, app, "tenant.payment.verify")
+
             raw_payment_status = request.data.get("paymentStatus") or request.data.get("payment_status")
             raw_notes = request.data.get("verificationNotes") or request.data.get("notes") or ""
 
@@ -469,28 +553,21 @@ class ApplicationReviewView(APIView):
             payment_status = ps_serializer.validated_data["payment_status"]
             notes = ps_serializer.validated_data["notes"]
 
-            # Phase 5 gate (Task 45.2): ``PAYMENT_HARDENING_FORCE_APPROVED``
-            # routes admin verifications with no prior Payment through
-            # ``PaymentService.force_approve`` so the ledger gets a
-            # canonical ``force_approved`` row instead of the legacy
-            # synthetic zero-amount ``successful`` row (R2.3, R22.6).
-            force_approved_hardening = bool(
-                getattr(settings, "PAYMENT_HARDENING_FORCE_APPROVED", False)
-            )
-
             try:
                 from apps.documents.payment_service import PaymentService
                 from apps.documents.models import Payment as _Payment
 
                 service = PaymentService()
 
-                # Hardened path: admin force-approving a fresh application
-                # with no prior Payment row goes through ``force_approve``
-                # so the mutation routes through ``_transition`` and the
-                # security-retention audit is emitted.
+                # An admin verifying an application that has no Payment row at
+                # all is recording money that arrived outside the platform. That
+                # is a ``force_approved`` ledger row (ADR-002), routed through
+                # ``force_approve`` → ``_transition`` so the security-retention
+                # audit is emitted. Task 8.2 deleted the alternative — the
+                # synthetic zero-amount ``successful`` row — because it was
+                # indistinguishable in the ledger from a real collection.
                 use_force_approve = (
-                    force_approved_hardening
-                    and payment_status == "verified"
+                    payment_status == "verified"
                     and not _Payment.objects.filter(application_id=app.id).exists()
                 )
                 if use_force_approve:
@@ -530,19 +607,12 @@ class ApplicationReviewView(APIView):
 
                     app.refresh_from_db()
                 else:
-                    # LEGACY: Task 45.2 - when
-                    # ``PAYMENT_HARDENING_FORCE_APPROVED`` is False (or the
-                    # admin is targeting an application that already has a
-                    # Payment row), the legacy
-                    # ``PaymentService.review_application_payment`` path
-                    # is preserved. That path continues to create a
-                    # synthetic zero-amount ``successful`` Payment for
-                    # fresh ``verified`` reviews and mutate the latest
-                    # Payment row for reviews where one already exists.
-                    # The CANNOT_REVERSE_SUCCESSFUL_PAYMENT guard below
-                    # applies to both modes (Phase 2, R2.1 + R2.2). Once
-                    # the flag ships on by default this branch is
-                    # retired per spec Task 45.
+                    # The application already has a Payment row, so the review
+                    # is a decision *about that row* (verify / reject / defer /
+                    # reopen) rather than a record of off-platform money.
+                    # ``review_application_payment`` owns that decision, with
+                    # the CANNOT_REVERSE_SUCCESSFUL_PAYMENT guard below (R2.1,
+                    # R2.2).
                     app = service.review_application_payment(
                         application_id=app.id,
                         payment_status=payment_status,
@@ -621,10 +691,15 @@ class ApplicationReviewView(APIView):
             except Exception:  # pragma: no cover - audit must never block a write
                 pass
 
+            # The payment decision changed what the workspace shows, so the
+            # version every other command is checked against advances (task 9.4).
+            new_version = ApplicationReviewWorkspaceService.bump_version(app)
             return Response({"success": True, "data": {
                 "message": f"Payment status updated to {payment_status}",
                 "application_id": str(app.id),
                 "payment_status": payment_status,
+                "version": new_version,
+                "allowed_transitions": ApplicationReviewWorkspaceService.allowed_transitions(app),
             }})
 
         serializer = ApplicationReviewSerializer(data=self._normalize_legacy_review_payload(request.data))
@@ -637,15 +712,18 @@ class ApplicationReviewView(APIView):
 
         try:
             with transaction.atomic():
-                locked_queryset = Application.objects.select_for_update()
-                if not is_super_admin(request.user):
-                    from apps.catalog.services import AccessScopeService
+                app = resolve_scoped_application(
+                    request,
+                    application_id,
+                    capability="tenant.application.review",
+                    select_for_update=True,
+                )
 
-                    locked_queryset = AccessScopeService().filter_applications(
-                        locked_queryset,
-                        request.user,
-                    )
-                app = locked_queryset.get(id=application_id)
+                # Re-checked on the LOCKED row (task 9.4). The check above the
+                # transaction rejects an obviously stale command early; this one
+                # is the authoritative guard, because only here can no concurrent
+                # command move the row between the read and the write.
+                ApplicationReviewWorkspaceService.assert_version(app, expected_version)
 
                 if new_status == "approved" and not force:
                     # All statuses that mean "payment resolved" - includes legacy (verified, paid) and current (successful, force_approved, deferred)
@@ -707,7 +785,16 @@ class ApplicationReviewView(APIView):
                         )
                     except Exception:  # pragma: no cover - audit must never block a write
                         pass
-                    return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
+                    locked_app.refresh_from_db(fields=["status"])
+                    new_version = ApplicationReviewWorkspaceService.bump_version(locked_app)
+                    return Response({"success": True, "data": {
+                        "message": f"Status updated from {old_status} to {new_status}",
+                        "application_id": str(locked_app.id),
+                        "old_status": old_status,
+                        "new_status": new_status,
+                        "version": new_version,
+                        "allowed_transitions": ApplicationReviewWorkspaceService.allowed_transitions(locked_app),
+                    }})
 
                 conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
                 if new_status == "conditionally_approved" and conditions_payload:
@@ -775,10 +862,26 @@ class ApplicationReviewView(APIView):
         intake_name = getattr(app, "intake", None)
         has_resolved_intake = isinstance(intake_name, str) and bool(intake_name.strip())
 
-        if new_status in ("approved", "rejected") and has_resolved_intake:
+        if new_status in ("approved", "rejected"):
+            # Reconcile the Intake_Offering counter from the canonical rows
+            # (admissions-v2 task 5.3, R10.6 / DATA-02): when the application
+            # carries the canonical offering + intake identity, recompute the
+            # ProgramIntake counter keyed on those IDs so a same-name other
+            # tenant is never swept in. Legacy rows fall back to the name-based
+            # sync.
+            from apps.applications.capacity_service import CapacityService
+            from apps.applications.intake_enforcer import IntakeEnforcer
+
+            offering_id, intake_id = CapacityService.offering_ids(app)
             try:
-                from apps.applications.intake_enforcer import IntakeEnforcer
-                IntakeEnforcer.sync_enrollment(intake_name)
+                if offering_id and intake_id:
+                    # Canonical: reconcile only by IDs. The name-based
+                    # sync_enrollment must NOT run for a canonical app — it keys
+                    # program_intakes by program NAME and would sweep a same-name
+                    # other tenant's applications into this counter (DATA-02).
+                    CapacityService.reconcile(offering_id, intake_id)
+                elif has_resolved_intake:
+                    IntakeEnforcer.sync_enrollment(intake_name)
             except Exception:
                 logger.exception(
                     "Failed to sync intake enrollment for app=%s intake=%s",
@@ -820,22 +923,34 @@ class ApplicationReviewView(APIView):
             except Exception:
                 logger.exception("Failed to create notification/email for application %s", app.id)
 
+        # R8.4: every command returns the allowed next actions and the version a
+        # follow-up command must carry, so the reviewer's next move comes from the
+        # server rather than from a client-side transition table.
         response_data = {
             "message": f"Status updated from {old_status} to {new_status}",
             "application_id": str(app.id),
             "old_status": old_status,
             "new_status": new_status,
+            "version": ApplicationReviewWorkspaceService.bump_version(app),
+            "allowed_transitions": ApplicationReviewWorkspaceService.allowed_transitions(app),
         }
+        # Capacity echo resolved through the reviewed application's own canonical
+        # ``intake_id`` — never the ``intake`` display snapshot (remediation L1,
+        # DATA-01 / STU-01). ``app`` came from ``resolve_scoped_application``
+        # under ``tenant.application.review``, so the canonical-id lookup is
+        # scoped-before-lookup by construction. A legacy row without a canonical
+        # intake id echoes no capacity rather than a same-name other tenant's.
+        # Logged at ERROR rather than DEBUG so a resolution failure is observable.
         try:
-            from apps.catalog.models import Intake
-            intake = None
-            if has_resolved_intake:
-                intake = Intake.objects.filter(name=intake_name, is_active=True).first()
-            if intake:
-                response_data["intake_capacity"] = intake.max_capacity
-                response_data["intake_enrollment"] = intake.current_enrollment
+            from apps.applications.canonical_reads import intake_capacity_fields
+
+            response_data.update(intake_capacity_fields(app))
         except Exception:
-            logger.debug("Could not enrich response with intake capacity", exc_info=True)
+            logger.exception(
+                "Could not enrich review response for application %s with its "
+                "canonical intake capacity",
+                app.id,
+            )
         # R10.5/R10.8: emit an institution-scoped tenant Audit_Event for the
         # application review decision so a tenant admin can audit review
         # activity for their own school (filtered on ``changes.institution_id``).

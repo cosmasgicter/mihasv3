@@ -49,16 +49,7 @@ TransitionSource = Literal[
 # Allowed forward-only transitions
 # ---------------------------------------------------------------------------
 
-# LEGACY: used by ``_update_payment_status`` prior to payment-hardening.
-# Kept as-is so the pre-hardening code paths continue to work when
-# ``PAYMENT_HARDENING_FORWARD_ONLY`` is disabled.
-_ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    "pending": {"successful", "failed", "expired"},
-    "deferred": {"pending", "successful", "failed", "expired"},
-}
-
-
-# Forward-only state machine (payment-hardening Task 11.2).
+# The payment state machine. One matrix, forward-only, no alternative.
 #
 # Mirrors the "State Machine (Formal)" table in
 # ``.kiro/specs/payment-hardening/design.md``. Keys are
@@ -69,6 +60,10 @@ _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 # layer, not here). Listing every pair here would be noisy, so
 # ``PaymentService._transition()`` allows ``source == "super_admin_correction"``
 # when the tuple is not in ``ALLOWED_TRANSITIONS`` (terminal → anything).
+#
+# admissions-v2 task 8.2: the pre-hardening ``_ALLOWED_TRANSITIONS`` map (a
+# second, narrower matrix used by the deleted ``_update_payment_status``) is
+# gone. This is the only transition authority.
 ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
     # (none) → pending / deferred / force_approved
     ("", "pending"): {"initiate"},
@@ -108,6 +103,49 @@ PAYMENT_TO_APP_MAP: dict[str, str] = {
     "deferred": "deferred",
     "pending": "pending_review",
 }
+
+
+# Precedence used to project *all* of an application's payments onto the single
+# ``applications.payment_status`` summary (admissions-v2 task 8.2, R12.5/R15.9).
+#
+# Mapping one payment's status is not enough: an application can hold several
+# payment rows over its life (an expired attempt, a retry, an admin override),
+# and whichever row moved last is not necessarily the row that says what the
+# student owes. Deriving from the whole ledger with a fixed precedence makes the
+# projection converge — replaying a callback, re-running the reconciliation
+# sweep, or processing events out of order all land on the same answer instead of
+# flapping the summary.
+#
+# Highest precedence first. Legacy DB values (``verified``, ``paid``) sit with
+# their canonical equivalents so pre-hardening rows project identically.
+APP_PAYMENT_STATUS_PRECEDENCE: tuple[tuple[str, frozenset[str]], ...] = (
+    # Money has arrived, or the platform has accepted it as arrived.
+    ("verified", frozenset({"successful", "force_approved", "verified", "paid"})),
+    # The student was allowed to submit and pay later.
+    ("deferred", frozenset({"deferred"})),
+    # An attempt is in flight with the provider.
+    ("pending_review", frozenset({"pending"})),
+    # Every attempt ended badly; the most recent failure is what to show.
+    ("failed", frozenset({"failed"})),
+    # Attempts only ever timed out — the student still owes the fee.
+    ("not_paid", frozenset({"expired"})),
+)
+
+
+def derive_application_payment_status(payment_statuses) -> str | None:
+    """Project a set of Payment statuses onto the application summary.
+
+    Pure function. Returns ``None`` when no status maps — that is, when the
+    application has no payment rows at all (or only rows with statuses this
+    platform does not recognise), in which case the caller must leave the
+    existing summary alone rather than invent one.
+    """
+    present = {str(status or "").strip().lower() for status in payment_statuses}
+    present.discard("")
+    for app_status, ledger_statuses in APP_PAYMENT_STATUS_PRECEDENCE:
+        if present & ledger_statuses:
+            return app_status
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +227,9 @@ RECEIPT_ELIGIBLE_STATUSES: tuple[str, ...] = (
 
 __all__ = [
     "ALLOWED_TRANSITIONS",
+    "APP_PAYMENT_STATUS_PRECEDENCE",
     "CanonicalStatus",
+    "derive_application_payment_status",
     "COMPLETED_PAYMENT_STATUSES",
     "EXPIRED_EXCLUSION_DAYS",
     "MAX_PAYMENT_ATTEMPTS",
@@ -203,7 +243,6 @@ __all__ = [
     "RECEIPT_ELIGIBLE_STATUSES",
     "RESOLVED_PAYMENT_STATUSES",
     "TransitionSource",
-    "_ALLOWED_TRANSITIONS",
     "_LENCO_STATUS_MAP",
     "_LENCO_TIMEOUT",
     "_SECURITY_RETENTION_ACTION_PREFIXES",

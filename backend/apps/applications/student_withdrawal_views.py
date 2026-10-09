@@ -41,7 +41,6 @@ from apps.applications.serializers import (
     ApplicationAmendmentRequestSerializer,
     ApplicationConfirmEnrollmentRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
-    ApplicationAiSummaryResponseSerializer,
     ApplicationWaitlistPositionResponseSerializer,
 )
 from apps.applications.services import (
@@ -49,11 +48,11 @@ from apps.applications.services import (
     submit_application,
 )
 from apps.common.idempotency import idempotent
+from apps.common.object_authorization import authorize_owned_application
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
-from apps.common.throttling import AIUserScopedRateThrottle
 
 from ._view_helpers import (
     ApplicationConditionSerializer,
@@ -69,13 +68,10 @@ from ._view_helpers import (
     ApplicationSummarySerializer,
     ApplicationGradesResponseSerializer,
     ConditionVerifyRequestSerializer,
-    EmailSlipEnvelopeResponseSerializer,
-    EmailSlipSerializer,
     WithdrawalReasonSerializer,
     WithdrawalResponseSerializer,
     _generate_application_number,
     _generate_tracking_code,
-    _staff_can_access_application,
     _with_payment_summary,
 )
 
@@ -137,15 +133,11 @@ class ApplicationWithdrawView(APIView):
             )
 
         user_id = str(getattr(request.user, "id", ""))
-        if str(app.user_id) != user_id:
-            return Response(
-                {
-                    "success": False,
-                    "error": "Only the application owner can withdraw.",
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # AUTH-07: owner-only endpoint. A valid-but-non-owned id is masked as a
+        # canonical 404 (never a distinguishable 403 that leaks existence).
+        denied = authorize_owned_application(request, app, allow_scoped_staff=False)
+        if denied is not None:
+            return denied
 
         withdrawal_reason = (request.data or {}).get("withdrawal_reason", "")
         ip_address = request.META.get("REMOTE_ADDR", "")
@@ -206,28 +198,13 @@ class ApplicationWaitlistPositionView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user_id = str(getattr(request.user, "id", ""))
-        role = getattr(request.user, "role", "")
-        is_admin = role in ("admin", "super_admin")
-        is_owner = str(app.user_id) == user_id
-
-        if not is_owner and not is_admin:
-            return Response(
-                {
-                    "success": False,
-                    "error": "You do not have permission to view this.",
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # R5.2/R5.9: a scoped admin (non-owner) must be in AccessScopeService
-        # scope for this application; otherwise mask as not-found (R5.4).
-        if is_admin and not is_owner and not _staff_can_access_application(request, app):
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        # AUTH-07: owner or capability-scoped staff. A non-owner student and an
+        # out-of-scope staff caller are both masked as an identical canonical
+        # 404 — no distinguishable 403 that leaks existence. Role is only an
+        # input to AccessScopeService scope, never a raw authority gate.
+        denied = authorize_owned_application(request, app, allow_scoped_staff=True)
+        if denied is not None:
+            return denied
 
         try:
             position_data = WaitlistManager.get_position(str(application_id))
@@ -246,18 +223,28 @@ class ApplicationWaitlistPositionView(APIView):
 
 
 class ApplicationConditionsView(APIView):
-    """List conditions for an application.
+    """List conditions for an application, with their evidence and history.
 
     GET /api/v1/applications/{id}/conditions/
-    Owner or admin.
+    Owner or capability-scoped staff.
 
-    Requirements: 5.9
+    Task 10.2 (R13.9, STU-16) made this read useful rather than a status list:
+    every condition now carries its state definition, who the state is waiting
+    on, its current evidence version and the superseded ones, the reviewer's
+    reason, the append-only history, and the actions **this** reader may take.
+    The pre-10.2 keys are unchanged, so existing readers keep working; the whole
+    list costs two extra queries, never one per condition.
+
+    Requirements: 5.9, R13.2, R13.9
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationConditionSerializer
 
     def get(self, request, application_id):
+        from apps.applications import condition_evidence_service as condition_service
+        from apps.common.object_authorization import actor_owns_application
+
         try:
             app = Application.objects.select_related("user").get(id=application_id)
         except Application.DoesNotExist:
@@ -266,34 +253,21 @@ class ApplicationConditionsView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user_id = str(getattr(request.user, "id", ""))
-        role = getattr(request.user, "role", "")
-        is_admin = role in ("admin", "super_admin")
-        is_owner = str(app.user_id) == user_id
-
-        if not is_owner and not is_admin:
-            return Response(
-                {
-                    "success": False,
-                    "error": "You do not have permission to view this.",
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # R5.2/R5.9: a scoped admin (non-owner) must be in AccessScopeService
-        # scope for this application; otherwise mask as not-found (R5.4).
-        if is_admin and not is_owner and not _staff_can_access_application(request, app):
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        # AUTH-07: owner or capability-scoped staff; non-owner / out-of-scope
+        # collapse to the identical canonical 404 mask (no existence leak).
+        denied = authorize_owned_application(request, app, allow_scoped_staff=True)
+        if denied is not None:
+            return denied
 
         conditions = ApplicationCondition.objects.filter(
             application_id=application_id,
         ).order_by("deadline", "created_at")
 
-        data = ApplicationConditionSerializer(conditions, many=True).data
+        data = condition_service.conditions_payload(
+            app,
+            conditions,
+            is_owner=actor_owns_application(app, request.user),
+        )
         return Response({"success": True, "data": data})
 
 
@@ -308,7 +282,16 @@ class ApplicationConfirmEnrollmentView(APIView):
     POST /api/v1/applications/{id}/confirm-enrollment/
     Owner only.
 
-    Requirements: 10.5
+    Task 10.3 (R13.9, design §11.2, findings STU-15 / DATA-03) made the command
+    transactional: ``EnrollmentService.confirm_enrollment`` now locks the
+    Intake_Offering capacity row and then the application row (task 5.3's fixed
+    order) and re-runs the **same** readiness evaluation the read contracts
+    publish, so status, every condition, the deadline, capacity and any existing
+    enrollment are all re-read under the lock rather than before the transaction
+    opened. The view holds no lifecycle logic — it maps stable codes onto the
+    envelope.
+
+    Requirements: 10.5, R13.9, R17.1
     """
 
     permission_classes = [IsAuthenticated]
@@ -337,15 +320,10 @@ class ApplicationConfirmEnrollmentView(APIView):
             )
 
         user_id = str(getattr(request.user, "id", ""))
-        if str(app.user_id) != user_id:
-            return Response(
-                {
-                    "success": False,
-                    "error": "Only the application owner can confirm enrollment.",
-                    "code": "INSUFFICIENT_PERMISSIONS",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # AUTH-07: owner-only endpoint; a valid-but-non-owned id -> canonical 404 mask.
+        denied = authorize_owned_application(request, app, allow_scoped_staff=False)
+        if denied is not None:
+            return denied
 
         try:
             enrolled_app = EnrollmentService.confirm_enrollment(
@@ -353,9 +331,12 @@ class ApplicationConfirmEnrollmentView(APIView):
                 user_id=user_id,
             )
         except EnrollmentError as exc:
+            # A refusal that conflicts with committed state (a duplicate
+            # enrollment, an offering with no seat left) answers 409; every
+            # pre-10.3 refusal keeps its 400 through the error's default.
             return Response(
                 {"success": False, "error": exc.message, "code": exc.code},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=getattr(exc, "status_code", status.HTTP_400_BAD_REQUEST),
             )
 
         return Response({"success": True, "data": ApplicationSerializer(enrolled_app).data})

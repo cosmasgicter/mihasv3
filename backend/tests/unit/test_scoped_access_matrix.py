@@ -42,6 +42,7 @@ from tests.tenant_fixtures import (
     build_application,
     build_document,
     build_profile,
+    grant_tenant_permissions,
 )
 
 _RANDOM_ID = "00000000-0000-4000-8000-000000000000"
@@ -75,11 +76,26 @@ def _staff_client(world) -> APIClient:
 
 
 def _capture(response):
-    """Return ``(status_code, parsed_body)`` for a DRF response."""
+    """Return ``(status_code, parsed_body)`` for a DRF response.
+
+    ``request_id`` is dropped. It is a per-request correlation id the envelope
+    exception handler stamps on every error body, so it differs between *any* two
+    requests and carries nothing about the target. Comparing two masked responses
+    for byte-identity is the R5.4 claim; comparing their correlation ids is noise.
+
+    This became load-bearing with admissions-v2 task 9.4, which moved the
+    amendment and condition commands off hand-built ``Response({...})`` bodies
+    onto ``resolve_scoped_application`` — one disclosure decision, raised as
+    ``NotFound`` and rendered by the canonical handler. That is the stronger
+    shape (the mask is now decided in one place for every application route)
+    and it is what put the correlation id into these two bodies.
+    """
     try:
         body = response.json()
     except Exception:  # pragma: no cover - non-JSON body
         body = getattr(response, "data", None)
+    if isinstance(body, dict):
+        body = {key: value for key, value in body.items() if key != "request_id"}
     return response.status_code, body
 
 
@@ -218,6 +234,19 @@ class TestOutOfScopeReturnsNotFound:
 
         world_a, world_b = two_tenant_worlds
         Application.objects.filter(id=world_b.application.id).update(status="submitted")
+        # A bulk transition is a *command*, so the actor has to hold the command's
+        # capability. ``ApplicationBulkStatusView.post`` opens with
+        # ``authorize_tenant_surface(capability="tenant.application.review")``
+        # (admissions-v2 task 2.2, R3.1 / AUTH-02) and ``AdminCapabilityService``
+        # layers ``tenant.application.review`` on only when the membership names
+        # ``review`` ("read by default, mutate only when granted").
+        # ``build_tenant_world`` creates its staff read-only, so without this the
+        # surface answered a non-revealing 403 and the *per-id* claim this test
+        # makes — the out-of-scope id is reported NOT_FOUND and school B is never
+        # mutated — was never reached. Naming the grant is what 9.4's own suite does
+        # (``test_review_workspace_9_4.py::_grant``); the surface-level authority is
+        # asserted separately by ``test_admissions_v2_authority_policies.py``.
+        grant_tenant_permissions(world_a, ["review"])
 
         app_ids = [str(world_b.application_id)]
         new_status = "under_review"

@@ -1,0 +1,103 @@
+================================================================================
+task 12.3 — the guard-parity test, executed rather than claimed
+================================================================================
+Captured 2026-08-11 (UTC).
+
+WHY THIS FILE EXISTS SEPARATELY FROM backend-selection.txt
+  docs/v2-evidence/12.3/invariants.sql carries a comment that makes a promise
+  about another file:
+
+      "The CASE below is APP_PAYMENT_STATUS_PRECEDENCE from
+       backend/apps/documents/payment_constants.py, in its declared order. Keep
+       the two in sync: backend/tests/unit/test_legacy_column_contraction_12_3.py
+       parses this file and fails if they drift."
+
+  An un-executed claim in a comment is worth nothing, so the claim is run on its
+  own here, named, with the two cases that carry it identified.
+
+--------------------------------------------------------------------------------
+The run
+--------------------------------------------------------------------------------
+$ cd backend && DATABASE_URL="postgresql:///beanola_v2_scratch" \
+    .venv/bin/python3 -m pytest tests/unit/test_legacy_column_contraction_12_3.py \
+    -q -p no:randomly
+
+.................                                                        [100%]
+17 passed, 1 warning in 0.58s
+
+The two cases that carry the comment's promise:
+
+  TestInvariantSqlMatchesTheProjectionItClaimsToCheck
+    ::test_sql_encodes_the_precedence_in_declared_order[path0]   invariants.sql
+    ::test_sql_encodes_the_precedence_in_declared_order[path1]   the contract migration
+
+  Parametrised over BOTH files deliberately. The invariant queries and the
+  contract migration each reimplement APP_PAYMENT_STATUS_PRECEDENCE in SQL —
+  they have to, because they run inside the database, including on production
+  where no Python runs. Two reimplementations of one constant are two
+  opportunities to drift, so the same assertion covers both. It checks
+  membership (every derived value and every ledger status is named) AND ORDER
+  (the CASE branches appear in the constant's declared, highest-precedence-first
+  sequence), because an application holding both an expired and a successful
+  payment projects differently if the order moves.
+
+  Verified by breaking it on purpose, because a guard nobody has seen fail is
+  not a guard. The `deferred` and `pending_review` branches were swapped in
+  invariants.sql's FIRST projection CASE only — a change that leaves every
+  status still present, so only the ORDER assertion can catch it:
+
+    $ pytest ...::TestInvariantSqlMatchesTheProjectionItClaimsToCheck -q
+    FAILED ...::test_sql_encodes_the_precedence_in_declared_order[path0]
+    E   At index 1 diff: 8594 != 8503
+    1 failed, 3 passed
+
+  path0 (invariants.sql) failed on the branch-position comparison; path1 (the
+  contract migration, untouched) still passed, which is the parametrisation
+  earning its keep. The file was then restored and verified byte-identical:
+  SHA-256 40475b11502614da1c737d6b8db136886f48f3871844fc58ab7af8d1d7cb2865
+  before and after.
+
+The other 15 cases, and what each would catch:
+
+  TestOrmMappingIsWhatMakesTheContractionSafe (3)
+    the 7 columns becoming declared Application fields; the 2 registered columns
+    losing their declarations; profiles re-acquiring a registry entry or a model
+    field for a column dropped on 2026-07-12
+  TestRegisteredLegacyExceptions (4)
+    any of the 3 column entries losing its owner, end date, successor or
+    evaluable exit criteria; a revised end date that is not actually later than
+    the original SUNSET_DATE; SUNSET_DATE being edited instead of the register
+  TestContractMigrationIsGuardedAndUnreachable (6)
+    a missing guard; a guard that refuses without naming its number; the
+    migration moving out of future/ and becoming reachable by the boot sweep;
+    the drop set widening past the 7 source-clean columns; ADD COLUMN appearing
+    in the rollback; the superseded 2026-05-17 drop script becoming runnable
+    again
+  TestInvariantSqlMatchesTheProjectionItClaimsToCheck (2 of 4, beyond the pair
+  above)
+    invariants.sql acquiring any DROP / DELETE / UPDATE / INSERT / ALTER /
+    TRUNCATE — it is the file an operator runs against PRODUCTION, so it must
+    not be able to change anything; and any of the five gate markers going
+    missing
+
+--------------------------------------------------------------------------------
+One environment note, recorded because the first attempt looked like a failure
+--------------------------------------------------------------------------------
+Run with backend/.env sourced — which points DATABASE_URL at the Neon pooler —
+the same 17 cases report as 17 ERRORS, not failures:
+
+  ERROR ... TestOrmMappingIsWhatMakesTheContractionSafe::test_...
+  DETAIL: Key (application_id, document_type)=(5b94b973-…, application_slip)
+          is duplicated.
+
+That is a session-scoped database fixture colliding with existing rows in the
+shared Neon authoring database during setup. It is not these tests: all 17 are
+pure source/AST checks — `ast.parse` over two model modules and `read_text` over
+four SQL files — and none of them opens a cursor. Run against the local socket
+Postgres this repo's backend suites use (task 3.5's `beanola_v2_scratch`
+convention, the same DSN raw/backend-selection.txt records), the fixture builds
+cleanly and all 17 pass in 0.58s.
+
+Recorded rather than quietly re-run under the working DSN, because a reader who
+runs this file the obvious way — `source .env` first — will see 17 errors and
+should know immediately that it is the fixture and not the gate.

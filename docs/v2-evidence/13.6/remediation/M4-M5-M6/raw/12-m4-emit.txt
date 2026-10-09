@@ -1,0 +1,6 @@
+]633;E;echo "# M4 — emit the release report from the fresh-from-empty DB";a3a164cb-56e8-456b-afa2-eb14c33092a4]633;C# M4 — emit the release report from the fresh-from-empty DB
+# 2026-08-15T11:20:36Z
+
+Wrote migration-history report 'release-canonical-committed-path' -> ../docs/v2-evidence/3.6/migration-history.release.json (migrations=48 june_2026_plus=32 fingerprint=sha256:771c69eaf448361de576b0c120958ccb14dca6c8df1bee0a0e1acdc2220fc970 identity=host=127.0.0.1 db=v2_mig_history_m4)
+Wrote markdown mirror -> ../docs/v2-evidence/3.6/migration-history.release.md
+emit exit=0

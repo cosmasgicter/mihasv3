@@ -1,0 +1,65 @@
+Task 7.3 — Neon branch migration application record
+====================================================
+
+Project : mihasApplication (wild-bar-37055823)
+Branch  : br-jolly-pine-ahybtg2e  (REUSED — the project's branch limit is
+          exceeded, so prior admissions-v2 tasks reused this branch)
+Database: neondb
+Captured: 2026-08-05 UTC
+
+The five document scripts were staged into a scratch directory and applied by the
+REAL production mechanism (`apply_sql_migrations`, the same command the container
+runs on boot). Only these five were applied: the branch carries pre-existing drift
+that blocks the June tenant script (`canonical_programs.id` has no default on this
+branch), which is not this task's lane and was left alone.
+
+
+$ python3 manage.py apply_sql_migrations --dry-run --skip-checks   # full sweep, ordering check
+Pending migrations: 25/39
+  ...
+  [dry-run] would apply: 2026_07_19_01_payments_documents_expand.sql (sha256=861cdec7fb24)
+  [dry-run] would apply: 2026_07_19_02_payments_documents_backfill.sql (sha256=f07b48b821b3)
+  [dry-run] would apply: 2026_07_19_03_payments_documents_validate.sql (sha256=757c02c44883)
+  [dry-run] would apply: 2026_07_26_01_document_evidence_lifecycle.sql (sha256=4daf5f9ce42c)
+  [dry-run] would apply: 2026_07_26_02_document_current_slot_alignment.sql (sha256=c40ff6bac9a6)
+  ...
+
+  -> the new script sorts AFTER 2026_07_26_01 in the sweep's filename order,
+     which is the order it depends on (it reads lifecycle_state).
+
+
+$ python3 manage.py apply_sql_migrations --skip-checks --migrations-dir <document scripts>
+Pending migrations: 5/5
+  applying: 2026_07_19_01_payments_documents_expand.sql (sha256=861cdec7fb24) ... OK
+  applying: 2026_07_19_02_payments_documents_backfill.sql (sha256=f07b48b821b3) ... OK
+  applying: 2026_07_19_03_payments_documents_validate.sql (sha256=757c02c44883) ... OK
+  applying: 2026_07_26_01_document_evidence_lifecycle.sql (sha256=4daf5f9ce42c) ... OK
+  applying: 2026_07_26_02_document_current_slot_alignment.sql (sha256=c40ff6bac9a6) ... OK
+Applied 5 migration(s) successfully.
+
+
+$ python3 manage.py apply_sql_migrations --skip-checks --migrations-dir <document scripts>
+All 5 migrations already applied. Nothing to do.
+
+  -> re-run is a no-op, which is a production requirement: the boot sweep runs
+     every migration on every deploy.
+
+
+Post-apply invariant check (Neon MCP run_sql, real rows)
+--------------------------------------------------------
+  docs             = 91
+  current_rows     = 66
+  null_lifecycle   = 0    <- every legacy row got a derived lifecycle
+  stuck_slots      = 0    <- no deleted/superseded row holds the one-current slot
+  multi_current    = 0    <- exactly one current version per (application, type)
+  new_tables       = 2    <- document_upload_stages, document_verification_events
+
+The alignment script was a genuine no-op on this branch's existing data
+(0 soft-deleted rows), which is the expected outcome for a repair script on a
+database that never hit the defect. Its behaviour on data that DID hit it is
+proven in neon-alignment-proof.txt (real database, transaction rolled back) and
+pinned as a repeatable test by
+tests/unit/test_document_evidence_versions_7_3.py::TestMigrationApplies::
+test_the_alignment_script_frees_a_stuck_slot_and_is_idempotent.
+
+No destructive SQL was run. Production was not touched.

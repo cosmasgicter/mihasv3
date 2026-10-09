@@ -1,0 +1,365 @@
+{
+  "spec": "admissions-v2-canonical-rebuild",
+  "spec_task": "0.5",
+  "task_title": "Capture the immutable pre-change baseline",
+  "requirements": ["R1.5", "R18.5"],
+  "findings": ["GOV-04", "GOV-05"],
+  "generated_at_utc": "2026-07-15T07:40:00+00:00",
+  "nature": "Immutable pre-change measurement snapshot of the candidate. No product source was modified to make any suite greener; failing tests were left failing and skipped/unverified work is NOT relabeled as complete (R1.5). This capture supersedes the 2026-07-13 snapshot at the same commit because the working tree evolved (tasks 1.1-1.5 landed additional in-flight work); the numbers below are the current honest state.",
+  "capture_history": [
+    {"captured_utc": "2026-07-13", "note": "First 0.5 snapshot at this commit; working tree had tasks 0.1-0.4 / 1.1 in flight. Backend 4 failed / 3500 passed / 138 skipped; vitest 3476 passed + 5 harness collection-error files; OpenAPI 2.0.0 / 142 paths (blocked without --skip-checks)."},
+    {"captured_utc": "2026-07-15", "note": "Current refresh (this file). Same commit bae29a28; working tree now also includes tasks 1.2-1.5 (V2 envelope/demo endpoints, version drift guard, unified ApiClient, generated client, architecture-enforcement lint rule). Backend 14 failed / 3565 passed / 138 skipped; vitest 3 failed + 5 harness collection-error files / 3495 passed; OpenAPI 2.0.0 / 147 paths, now generates WITHOUT --skip-checks but emits 20 spectacular errors from the 5 new V2 demo APIViews; lint 24 errors (20 R14.3 architecture-enforcement + 4 unused-directive)."}
+  ],
+  "release_identity": {
+    "commit_sha": "bae29a28d9657f288b3339062adb31285959c966",
+    "git_branch": "main",
+    "git_describe": "bae29a28d-dirty",
+    "working_tree": "dirty",
+    "working_tree_note": "Pre-existing uncommitted work is present (in-flight tasks 0.1-1.5 plus user-owned edits). There is no clean pre-V2 tree available without reverting user work, which is out of scope for this task. Task 0.5 added only docs/v2-evidence/0.5/** and restored the one guard-generated file it incidentally touched (docs/launch-evidence/05-bundle/bundle-evidence.json). All other changes were left untouched.",
+    "working_tree_tracked_modified": [
+      ".env.example",
+      ".github/workflows/backend-governance.yml",
+      ".github/workflows/ci.yml",
+      ".kiro/specs/communications-history/.config.kiro",
+      "apps/admissions/.env.example",
+      "apps/admissions/eslint.config.js",
+      "apps/admissions/package.json",
+      "apps/admissions/scripts/launchBundlePredicate.ts",
+      "apps/admissions/src/services/auth.ts",
+      "apps/admissions/src/services/client.ts",
+      "apps/admissions/tests/property/apiClient.property.test.ts",
+      "apps/admissions/tests/unit/apiClient401Retry.test.ts",
+      "backend/apps/accounts/auth_views.py",
+      "backend/apps/accounts/password_views.py",
+      "backend/apps/catalog/tasks.py",
+      "backend/apps/common/openapi.py",
+      "backend/config/settings/base.py",
+      "backend/config/urls.py",
+      "backend/pyproject.toml",
+      "bun.lock",
+      "docs/canonical-truth-map.md",
+      "docs/runbooks/legacy-column-deprecation.md",
+      "docs/runbooks/post-deploy-smoke-check.md",
+      "docs/runbooks/scaling-playbook.md",
+      "package.json"
+    ],
+    "working_tree_untracked_additions": [
+      "harness/**",
+      "scripts/generate-api-types.sh",
+      "apps/admissions/playwright.harness.config.ts",
+      "apps/admissions/src/generated/**",
+      "apps/admissions/tests/harness-e2e/**",
+      "apps/admissions/tests/unit/apiClientUnified.test.ts",
+      "apps/admissions/tests/unit/architectureEnforcement.test.ts",
+      "apps/admissions/tests/unit/pageShellRenderSmoke.test.tsx",
+      "apps/admissions/tests/unit/versionDriftGuard.test.ts",
+      "backend/apps/common/v2/**",
+      "backend/apps/common/email_links.py",
+      "backend/apps/common/management/commands/harness_bootstrap.py",
+      "backend/apps/catalog/management/commands/harness_seed_tenants.py",
+      "backend/config/settings/harness.py",
+      "backend/schema/openapi.v2.candidate.yaml",
+      "backend/scripts/generate_version_manifest.py",
+      "backend/tests/contract/test_v2_endpoint_contract.py",
+      "backend/tests/contract/test_v2_envelope_contract.py",
+      "backend/tests/property/test_version_drift_properties.py",
+      "backend/tests/unit/test_harness_seed_tenants_command.py",
+      "backend/tests/unit/test_version_drift_guard.py",
+      ".github/workflows/spec-governance.yml",
+      ".github/workflows/v2-harness-smoke.yml",
+      "docs/v2-evidence/**",
+      ".kiro/specs/admissions-v2-canonical-rebuild/**"
+    ]
+  },
+  "product_version_sources": {
+    "apps/admissions/package.json": "2.0.0",
+    "backend/pyproject.toml": "2.0.0",
+    "backend APP_VERSION (settings/base.py)": "2.0.0",
+    "generated OpenAPI info.version (from current source)": "2.0.0",
+    "apps/jobs-ops/package.json": "0.1.0",
+    "note": "API URL prefix remains /api/v1/. Product version and API major are distinct (REL-01). A committed /api/v2/ candidate (backend/schema/openapi.v2.candidate.yaml) exists as in-flight task 1.x work."
+  },
+  "dependency_lock_checksums_sha256": {
+    "bun.lock": "bc2778a48ae4d34950b938a7371413bb821e86f230c0914be78132ac8f8858db",
+    "backend/requirements.txt": "7608961ee4ca6f996451d47241e0e913c9b5b95a3bb344fd85e6cdc4831e1680",
+    "backend/pyproject.toml": "33d289454b5f10bb64e75d811e79a93c4e3d7d4d04a9f805f5a404654826163e",
+    "backend .venv pip freeze": "63b6e7c9f30dc02d31f1518e98551a40d327c7baf99fb8a614331cec5e4b1adf",
+    "apps/admissions/package.json": "cfef2648b95a49bcd3cdce167e74f8f400dab4221ffb54e6198cffa77b3335c3",
+    "apps/jobs-ops/package.json": "c36b31c3b60acbfbeae90fbfdf144a9a2478e496f8b3f44252ccb1b2f9fc51fb",
+    "note": "bun.lock and apps/admissions/package.json checksums differ from the 2026-07-13 snapshot, confirming the working tree evolved (tasks 1.1-1.5)."
+  },
+  "toolchain": {
+    "bun": "1.3.14",
+    "node": "v24.15.0",
+    "python_system": "3.14.4",
+    "python_backend_venv": "3.14.4 (backend/.venv)",
+    "python_target_per_steering": "3.12+ (tech.md); venv runs 3.14.4",
+    "docker": "29.1.3"
+  },
+  "database_schema_fingerprint": {
+    "source": "Neon authoring/dev database (READ-ONLY introspection via backend/.env DATABASE_URL inside a READ ONLY transaction)",
+    "IMPORTANT": "This is the Neon dev/authoring DB, NOT the self-hosted production Postgres. Production values are captured separately at deploy time (tasks 3.x/13.x).",
+    "db_host": "ep-dawn-unit-ahj08a5x-pooler.c-3.us-east-1.aws.neon.tech",
+    "current_database": "neondb",
+    "server_version": "17.10",
+    "schema_fingerprint_sha256": "c48f57d9b789631f041026fa1568e49ca9a22b5e58f3abd9b39dec6755af4a2b",
+    "public_table_count": 73,
+    "public_column_count": 788,
+    "foreign_key_total": 93,
+    "foreign_key_not_valid_count": 0,
+    "check_constraint_not_valid_count": 0,
+    "index_count": 299,
+    "migration_history_count": 44,
+    "unchanged_since": "2026-07-13 (identical fingerprint; the Neon DB was not modified by task 1.x source changes)",
+    "raw_report": "raw/db-invariants.json"
+  },
+  "test_commands_and_results": [
+    {
+      "id": "backend-pytest",
+      "suite": "Backend unit + property + integration + contract (Django/DRF/pytest/hypothesis)",
+      "command": "cd backend && DJANGO_SETTINGS_MODULE=config.settings.test TESTING=1 .venv/bin/python -m pytest -q -p no:cacheprovider -rs --junitxml=<out>",
+      "settings": "config.settings.test (SQLite; documented fast local suite)",
+      "collected": 3720,
+      "passed": 3565,
+      "failed": 14,
+      "skipped": 138,
+      "xfailed": 2,
+      "xpassed": 1,
+      "duration_s": 544.02,
+      "exit_code": 1,
+      "result": "FAIL",
+      "verified_vs_inflight": "Of 14 failures: 4 are the same pre-existing in-flight task-0.4 harness failures seen on 2026-07-13; 9 are new in-flight task-1.3 V2-endpoint/contract failures; 1 (student-journey integration) reflects the in-flight email-verification contract change (task 1.6 / STU-21). None are regressions introduced by task 0.5.",
+      "failures": [
+        {"test": "tests/integration/test_student_journey_e2e.py::TestStudentJourneyE2E::test_full_student_journey", "message": "assert True is False (line 303: newly-registered account is now email_verified=True, but the test asserts it is False)", "attribution": "in-flight task 1.6 / STU-21 email-verification contract"},
+        {"test": "tests/unit/test_harness_seed_tenants_command.py::test_seeds_two_tenants_with_active_domains_and_shared_canonical", "message": "apps.catalog.models.Program.MultipleObjectsReturned: get() returned more than one Program -- it returned 2!", "attribution": "in-flight task 0.4 harness"},
+        {"test": "tests/unit/test_perf_catalog_cache.py::test_neutral_request_never_served_a_tenant_cached_entry", "message": "assert 3 == 2", "attribution": "in-flight task 0.4 / TEN-09 cache partitioning"},
+        {"test": "tests/unit/test_perf_catalog_cache.py::test_tenant_request_never_served_the_neutral_cached_entry", "message": "assert 3 == 2", "attribution": "in-flight task 0.4 / TEN-09 cache partitioning"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_anonymous_user", "message": "KeyError: 'success'", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_authenticated_user", "message": "KeyError: 'success'", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2ProgramListEndpoint::test_success_with_programs", "message": "AssertionError: Expected a Response/HttpResponse from the view, but received a MagicMock", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2ApplicationDetailEndpoint::test_success_owner_read", "message": "KeyError: 'success'", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2FeeResolveEndpoint::test_success_fee_resolved", "message": "KeyError: 'success'", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/contract/test_v2_endpoint_contract.py::TestV2DocumentListEndpoint::test_success_with_documents", "message": "AttributeError: module apps.documents.models has no attribute 'Document'", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/unit/test_brand_drift_guard.py::BrandDriftGuardTests::test_no_non_allowlisted_brand_strings_in_backend_apps", "message": "Lists differ: the new harness_seed_tenants command strings are not on the brand allowlist", "attribution": "in-flight task 0.4 harness"},
+        {"test": "tests/unit/test_launch_verification_spectacular.py::LaunchVerificationSpectacularTests::test_schema_generation_emits_zero_errors", "message": "AssertionError: 20 != 0 (drf-spectacular emits 20 errors from the 5 new V2 demo APIViews)", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/unit/test_public_endpoint_policy.py::test_every_allow_any_view_has_public_endpoint_classification", "message": "AssertionError: {'apps.common...V2SessionView'} == set() (V2SessionView unclassified)", "attribution": "in-flight task 1.3 V2 endpoints"},
+        {"test": "tests/unit/test_schema_tags.py::test_no_operation_is_tagged_only_api", "message": "AssertionError: Operations still only tagged 'api': 5 (the 5 new V2 demo endpoints)", "attribution": "in-flight task 1.3 V2 endpoints"}
+      ],
+      "skip_note": "138 skips (140 in JUnit terms incl. 2 xfailed). Dominant reasons: Postgres-only checks skipped on SQLite (pg_indexes, jsonb operators/has_key, CREATE INDEX CONCURRENTLY, information_schema FK joins, partial unique indexes, EXPLAIN plans) and Phase-gated future-work enforcement anchors (payment sensitive-fields lock Task 17.1, RECEIPT_NOT_ELIGIBLE gate, dev-bypass Phase 5, tenant-migration idempotency requiring TENANT_MIGRATION_NEON_BRANCH=1). A handful are stale (CSRF middleware refactor, pre-admin-force submission gates, 'Database not available', legacy lenco archive absent). NOT relabeled as passing.",
+      "raw_reports": ["raw/backend-pytest.txt", "raw/backend-pytest-junit.xml", "raw/backend-pytest-skips.txt", "raw/parse_junit_failures.py"]
+    },
+    {
+      "id": "admissions-vitest",
+      "suite": "Admissions frontend (Vitest unit/integration/property incl. fast-check + a11y tests)",
+      "command": "cd apps/admissions && bun x vitest run --reporter=dot --reporter=json --outputFile=<out>",
+      "test_files": {"passed": 422, "failed": 8, "skipped": 1, "total": 431},
+      "tests": {"passed": 3495, "failed": 3, "skipped": 1, "total": 3499},
+      "duration_s": 119.24,
+      "exit_code": 1,
+      "result": "FAIL",
+      "failure_breakdown": {
+        "real_assertion_failures": 3,
+        "playwright_collection_error_files": 5
+      },
+      "real_test_failures": [
+        {"test": "tests/property/refreshDeduplication.property.test.ts :: Property 7: Refresh deduplication — N concurrent 401s produce exactly 1 refresh call", "message": "fast-check: Property failed after 1 test", "attribution": "in-flight task 1.4 unified ApiClient refresh dedup"},
+        {"test": "tests/property/test_bug4_preservation.test.ts :: Property 2b: Preservation — Successful 401 refresh retries exactly once", "message": "fast-check: Property failed after 1 test", "attribution": "in-flight task 1.4 unified ApiClient refresh/retry"},
+        {"test": "tests/unit/sessionHardening.test.ts :: API client source distinguishes INSUFFICIENT_PERMISSIONS from auth failure", "message": "AssertionError: rewritten client.ts source no longer contains 'isPermissionDenial' (source-string assertion)", "attribution": "in-flight task 1.4 unified ApiClient rewrite"}
+      ],
+      "playwright_collection_error_files": [
+        "tests/harness-e2e/required/harness-smoke.spec.ts",
+        "tests/harness-e2e/gatecheck/console.gate.spec.ts",
+        "tests/harness-e2e/gatecheck/failed-request.gate.spec.ts",
+        "tests/harness-e2e/gatecheck/skip.gate.spec.ts",
+        "tests/harness-e2e/gatecheck/undrained.gate.spec.ts"
+      ],
+      "note": "The 5 collection-error files are task-0.4 Playwright harness specs incorrectly matched by vitest's default glob ('Playwright Test did not expect test()/test.describe()/test.afterAll()'). The vitest config still needs to exclude tests/harness-e2e/. Same category as the 2026-07-13 snapshot, but there are now ALSO 3 real assertion failures from the in-flight task-1.4 client rewrite.",
+      "raw_reports": ["raw/admissions-vitest.txt", "raw/admissions-vitest.json", "raw/admissions-vitest.exit", "raw/parse_vitest.py"]
+    },
+    {
+      "id": "admissions-typecheck",
+      "command": "cd apps/admissions && bun run type-check (tsc -p tsconfig.build.json --noEmit)",
+      "exit_code": 0,
+      "result": "PASS",
+      "raw_reports": ["raw/admissions-typecheck.txt"]
+    },
+    {
+      "id": "admissions-lint",
+      "command": "cd apps/admissions && bun run lint (eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0)",
+      "exit_code": 1,
+      "result": "FAIL",
+      "errors": 24,
+      "error_breakdown": {
+        "R14.3_architecture_enforcement_no_restricted_imports": 18,
+        "unused_eslint_disable_directive": 6
+      },
+      "failure_cause": "The R14.3 architecture-enforcement rule (added by in-flight task 1.5, eslint.config.js modified) forbids pages/components/hooks from importing '@/services/client' directly. 18 first-party files still import it (awaiting migration by tasks 2.x/8.x/9.x/10.x): UserImport.tsx, AISummaryPanel.tsx, ApplicationDetailModal.tsx, ProgramFees.tsx, useDocumentGeneration.ts, usePaymentReceipt.ts, useApplicationTracker.ts, ApplicationStatus.tsx, Payment.tsx, PaymentCallback.tsx, useApplicationFileUploads.ts, useOcrGradeExtraction.ts, useSmartAutoSave.ts, useWizardController.ts, wizard/useWizardFileUploads.ts, wizard/wizardControllerUtils.ts, PaymentStep.tsx, SubmitStep.tsx. Plus 6 unused-eslint-disable-directive errors (useWizardController.ts, EducationStep.tsx, SubmitStep.tsx, and task-0.4 harness files harness-fixtures.ts x2, helpers/ops.ts x1). This is a change from the 2026-07-13 snapshot (which had 3 lint errors, all harness) because the architecture rule now exists.",
+      "raw_reports": ["raw/admissions-lint.txt"]
+    },
+    {
+      "id": "admissions-build",
+      "command": "cd apps/admissions && bun run build (prepare-ocr-assets + tsc + vite build + check-html-csp)",
+      "exit_code": 0,
+      "result": "PASS",
+      "notes": "Built successfully; vite emits chunk-size warnings (vendor-react-pdf 1434KB, vendor-pdf 806KB, vendor-sentry 460KB). CSP-compatible HTML confirmed (inline <style> 15038 bytes).",
+      "raw_reports": ["raw/admissions-build.txt"]
+    },
+    {
+      "id": "jobs-ops-typecheck",
+      "command": "cd apps/jobs-ops && bun run type-check",
+      "exit_code": 0,
+      "result": "PASS",
+      "raw_reports": ["raw/jobs-ops-typecheck.txt"]
+    },
+    {
+      "id": "jobs-ops-lint",
+      "command": "cd apps/jobs-ops && bun run lint",
+      "exit_code": 0,
+      "result": "PASS",
+      "raw_reports": ["raw/jobs-ops-lint.txt"]
+    },
+    {
+      "id": "jobs-ops-build",
+      "command": "cd apps/jobs-ops && bun run build (tsc -p tsconfig.build.json --noEmit + vite build)",
+      "exit_code": 0,
+      "result": "PASS",
+      "notes": "dist JS 356.09 KB / gz 103.25 KB; CSS 24.19 KB / gz 5.30 KB; built in ~5.8s.",
+      "raw_reports": ["raw/jobs-ops-build.txt"]
+    },
+    {
+      "id": "openapi-generation",
+      "suite": "OpenAPI schema generation (drf-spectacular)",
+      "command": "cd backend && DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python manage.py spectacular [--skip-checks] --file <out>",
+      "exit_code": 0,
+      "result": "PASS (generates), but with 20 non-fatal schema errors",
+      "info_version": "2.0.0",
+      "openapi": "3.0.3",
+      "path_count": 147,
+      "artifact_sha256": "5bb6ab37a58219c8c50078dd28dbaab917443b61a658ab6ab5edb45e6b9ca4b6",
+      "change_since_2026_07_13": "Two changes: (1) generation now SUCCEEDS WITHOUT --skip-checks (the prior django_ratelimit.E003 'LocMemCache is not a shared cache' system-check blocker is no longer raised in this environment); (2) it now emits 20 drf-spectacular errors (5 unique) because the 5 new V2 demo APIViews (apps/common/v2/demo_views.py: V2SessionView, V2ProgramListView, V2FeeResolveView, V2ApplicationDetailView, V2DocumentListView) lack serializer_class and fall back gracefully. Path count rose 142 -> 147.",
+      "raw_reports": ["raw/openapi-candidate.yaml", "raw/openapi-generation.txt"]
+    },
+    {
+      "id": "contract-drift",
+      "suite": "OpenAPI committed baselines vs freshly generated candidate (GOV-05)",
+      "committed_v1_baseline": {"file": "backend/schema/openapi.v1.baseline.yaml", "version": "1.0.0", "path_count": 141, "sha256": "371587567e7c0b7ccbe915c4c7af8034e807014a651dd1a99cd88ed21cb87056"},
+      "committed_v2_candidate": {"file": "backend/schema/openapi.v2.candidate.yaml", "version": "2.0.0", "path_count": 142, "sha256": "233e75d784c2fc99aaff7fd2be3f25f92a626ac9713bfe3333069c7395a917ec"},
+      "freshly_generated_candidate": {"version": "2.0.0", "path_count": 147, "sha256": "5bb6ab37a58219c8c50078dd28dbaab917443b61a658ab6ab5edb45e6b9ca4b6"},
+      "drift_observed": "Committed v1 baseline frozen at 1.0.0/141 (see 1.1 evidence). Committed v2 candidate (142 paths) is already stale vs freshly generated source (147 paths) because tasks 1.3/1.5 are still in flight. A stabilized V2 baseline is owned by tasks 1.2/1.5.",
+      "result": "DRIFT (expected/known while V2 tasks 1.x are in flight)"
+    },
+    {
+      "id": "impeccable-detect",
+      "suite": "Design anti-pattern audit (Impeccable CLI)",
+      "command": "cd apps/admissions && yes | impeccable detect src/ (non-interactive)",
+      "exit_code": 2,
+      "result": "FINDINGS (non-actionable vs steering)",
+      "findings_count": 2,
+      "detail": "Both findings are [overused-font] on 'Inter' in src/index.css (lines 16, 52). Inter (with full fallback chain) is a MANDATED product decision (tech.md / design-skills.md: 'Inter font fallback chain stays full. Never reduce'). Recorded as a tool/steering conflict, not a real defect. Scanned 533 files.",
+      "raw_reports": ["raw/impeccable-detect.txt"]
+    },
+    {
+      "id": "admissions-check-all",
+      "suite": "Bundle/import/CSP guards",
+      "command": "cd apps/admissions && bun run check:all (check:imports + check:entry + check:html)",
+      "exit_code": 0,
+      "result": "PASS",
+      "notes": "Entry + preloaded chunks total 89.0 KB gz; CSP-compatible HTML.",
+      "raw_reports": ["raw/admissions-check-all.txt"]
+    },
+    {
+      "id": "launch-bundle-guard",
+      "suite": "Launch bundle budget/forbidden-chunk guard",
+      "command": "cd apps/admissions && bun scripts/launch-bundle-guard.ts",
+      "exit_code": 1,
+      "result": "FAIL",
+      "failure_cause": "Forbidden chunk on entry path: vendor-framer-motion-*.js (framer-motion). Entry path 144.1 KB gz over 19 chunks (under 150 KB budget); first PDF action 766.4 KB gz (under 772 KB budget). Only the forbidden-chunk rule fails. Same pre-existing regression as 2026-07-13 (BL-0.5-06). NOTE: the guard rewrites docs/launch-evidence/05-bundle/bundle-evidence.json as a side effect; that file was restored to its committed state after this run so the worktree was left intact.",
+      "raw_reports": ["raw/admissions-launch-bundle-guard.txt"]
+    },
+    {
+      "id": "schema-static-verify",
+      "suite": "Static schema verifier (Django models vs expected schema; no DB)",
+      "command": "cd backend && .venv/bin/python scripts/verify_schema_static.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "notes": "No-DB static check passes; index presence (8 expected indexes) requires a live DB and is confirmed separately.",
+      "raw_reports": ["raw/schema-static-verify.txt"]
+    },
+    {
+      "id": "verify-migration",
+      "suite": "Live migration/row-count verifier",
+      "command": "cd backend && .venv/bin/python scripts/verify_migration.py",
+      "exit_code": 1,
+      "result": "BLOCKED (environment)",
+      "environment_blocker": "Uses config.settings.dev which points at localhost:5432; every one of the 30 table checks fails with 'connection to server at localhost (127.0.0.1), port 5432 failed: fe_sendauth: no password supplied' (59 errors). It never connected to Neon or production. Read-only Neon introspection is captured separately (raw/db-invariants.json). Same blocker as 2026-07-13.",
+      "raw_reports": ["raw/verify_migration-attempt.json"]
+    },
+    {
+      "id": "db-invariants-neon",
+      "suite": "Database invariants (READ-ONLY Neon introspection)",
+      "command": "backend/.venv/bin/python docs/v2-evidence/0.5/raw/db_readonly_introspect.py (READ ONLY transaction, SELECT-only)",
+      "exit_code": 0,
+      "result": "CAPTURED",
+      "key_invariants": {
+        "applications_total": 33,
+        "applications_null_institution_id": 33,
+        "applications_null_program_offering_id": 33,
+        "applications_null_intake_id": 33,
+        "applications.canonical_program_id_column": "DOES NOT EXIST",
+        "applications.intake_offering_id_column": "DOES NOT EXIST",
+        "payments_total": 21,
+        "payments_null_application": 0,
+        "institutions_active": 2,
+        "duplicate_active_hostnames": 0,
+        "canonical_programs": 0,
+        "user_institution_memberships_active": 0
+      },
+      "note": "Identical to 2026-07-13. This is the Neon authoring/dev DB, not production.",
+      "raw_reports": ["raw/db-invariants.json", "raw/db_readonly_introspect.py"]
+    },
+    {
+      "id": "route-inventory",
+      "suite": "Route/authority/domain/source inventory (task 0.3 generator, re-run at this commit)",
+      "command": "backend/.venv/bin/python scripts/inventory_admissions_v2.py --out docs/v2-evidence/0.5/raw/inventory --json",
+      "exit_code": 0,
+      "result": "PASS (reproduced)",
+      "backend_routes": 185,
+      "backend_routes_2026_07_13": 180,
+      "platform_capabilities": 17,
+      "tenant_capabilities": 17,
+      "frontend_routes": 35,
+      "pages_components_direct_api_calls": 17,
+      "zero_unclassified": true,
+      "note": "Backend route count rose 180 -> 185 due to the 5 new /api/v2 demo endpoints (task 1.3). Still zero unclassified.",
+      "raw_reports": ["raw/inventory/", "raw/route-inventory-summary.json", "raw/route-inventory.log"]
+    },
+    {
+      "id": "browser-suites",
+      "suite": "Playwright browser suites (legacy default config)",
+      "default_config_command": "cd apps/admissions && bun x playwright test --list (enumeration only)",
+      "enumerated": {"tests": 138, "files": 8},
+      "files": ["accessibility.spec.ts", "adminJourney.spec.ts", "applicationFlow.spec.ts", "canonicalMultiTenantAlignment.spec.ts", "mobileBreakpointScreenshots.spec.ts", "studentJourney.spec.ts", "styling-smoke.spec.ts", "whiteLabelHostOverride.spec.ts"],
+      "result": "RUNTIME-GATED (not executed in this baseline)",
+      "gating_note": "The 8 legacy e2e specs enumerate 138 tests but skip by default: they are gated behind env flags (STUDENT_JOURNEY_E2E, ADMIN_JOURNEY_E2E, WHITE_LABEL_E2E, CANONICAL_MULTI_TENANT_E2E, UI_SCREENSHOTS_E2E) and require external storage state (PLAYWRIGHT_STORAGE_STATE / STUDENT|ADMIN|TENANT_ADMIN|SUPER_ADMIN_STORAGE_STATE) plus an external base URL and staff credentials. grep confirms 28 test.skip guards and the env-flag/storage-state pattern. This is exactly finding GOV-04. NOT run and NOT relabeled as passing.",
+      "ungated_replacement": "The task 0.4 isolated harness (playwright.harness.config.ts + harness/bin/harness smoke, docker compose) is the un-gated replacement; its required project evidence lives in docs/v2-evidence/0.4/. Not re-run here (0.4 owns that evidence).",
+      "raw_reports": ["raw/playwright-e2e-list.txt"]
+    },
+    {
+      "id": "accessibility-smoke",
+      "suite": "Accessibility smoke",
+      "result": "PARTIAL (vitest a11y passed; Playwright a11y gated)",
+      "note": "Vitest-based accessibility tests (e.g. tests/ui/application-wizard-accessibility.test.tsx, tests/property/keyboard-navigation.property.test.tsx) executed within admissions-vitest and PASSED (part of the 3495 passing tests). The Playwright accessibility.spec.ts (part of the 8 runtime-gated e2e specs, GOV-04) was NOT executed.",
+      "raw_reports": ["raw/admissions-vitest.txt"]
+    }
+  ],
+  "baseline_findings_file": "docs/v2-evidence/0.5/baseline-findings.md",
+  "known_exceptions": [
+    "Backend suite runs on SQLite (config.settings.test); Postgres-only schema/index/jsonb suites are skipped by design and must be exercised on a real Postgres (tasks 3.x/13.x).",
+    "OpenAPI generation now emits 20 non-fatal drf-spectacular errors from the 5 new in-flight V2 demo APIViews (task 1.3); the schema still generates. The earlier --skip-checks requirement (django_ratelimit.E003) no longer reproduces.",
+    "Neon DB figures are the authoring/dev database, not self-hosted production; production invariants are captured at deploy time.",
+    "14 backend failures, 3 real vitest failures (plus 5 vitest harness-collection-error files), and 24 admissions lint errors all originate in in-flight V2 work (tasks 0.4, 1.3, 1.4, 1.5, 1.6) or first-party files awaiting migration, not in shipped/committed product regressions introduced by task 0.5.",
+    "launch-bundle-guard fails (framer-motion on entry path) — a real pre-existing budget regression recorded as baseline finding BL-0.5-06.",
+    "verify_migration.py is environment-blocked (localhost:5432, no credentials); it never reached Neon/production."
+  ],
+  "rollback_decision": "N/A — this is a read-only measurement task. No schema, product source, or deployment change was made. The only tracked file incidentally written by a measurement command (docs/launch-evidence/05-bundle/bundle-evidence.json) was restored; the stray verify_migration run-log was removed. Nothing else to roll back."
+}

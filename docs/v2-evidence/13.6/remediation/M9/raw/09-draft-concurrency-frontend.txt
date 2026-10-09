@@ -1,0 +1,20 @@
+DOCUMENT TYPE: derived verification summary. Runner output is retained in
+23-frontend-full-gates.txt; the final browser reports are retained separately.
+
+Frontend draft verification after M9 changes:
+
+- queue/ref safety focus: 4 files, 49 tests passed
+- fail-closed selected-draft loader focus: 4 files, 25 tests passed
+- rendered VERSION_CONFLICT recovery UI: included in wizard mobile recomposition
+- error catalog + mirror drift guard: 2 files, 15 tests passed
+- production TypeScript check: passed
+- scoped ESLint: passed
+
+Pinned behavior:
+- every save joins one promise chain;
+- the current application id and server version are read at execution time;
+- a create latches its id/version before the next queued command;
+- one stable idempotency key survives retries;
+- VERSION_CONFLICT is terminal and offers reload;
+- an unavailable/empty authoritative record aborts before list-projection blanks
+  can hydrate or overwrite saved answers.

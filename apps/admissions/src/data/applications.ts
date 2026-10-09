@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
-import { fetchDashboardStats, POLLING_INTERVAL } from '@/hooks/useAdminDashboardPolling'
-import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
+import { adminDashboardPollingKey, fetchDashboardStats, POLLING_INTERVAL } from '@/hooks/useAdminDashboardPolling'
+import { sanitizeForLog } from '@/lib/security'
 import type { Application } from '@/types/database'
 import { logger } from '@/lib/logger'
 import { toError } from '@/lib/toError'
@@ -150,26 +149,35 @@ export const applicationsData = {
   // owner is mounted, its interval drives refetches and React Query dedups the
   // shared key; on failure the last-good cached stats are retained and surfaced
   // via query.error without crashing. On unmount the query unsubscribes.
-  useStats: () => {
+  useStats: (institutionId?: string | null) => {
     return useQuery({
-      queryKey: ['admin-dashboard-polling'],
-      queryFn: fetchDashboardStats,
+      // Scoped, so this consumer reads the entry for the school the dashboard
+      // is showing rather than sharing one bare key with every scope (task 9.2,
+      // ADM-02).
+      queryKey: adminDashboardPollingKey(institutionId),
+      queryFn: () => fetchDashboardStats(institutionId),
       select: (data) => {
         const stats = data.stats
         const approved = stats?.approvedApplications ?? 0
         const rejected = stats?.rejectedApplications ?? 0
-        const totalReviewed = approved + rejected
-        const approvalRate = totalReviewed > 0
-          ? Number(((approved / totalReviewed) * 100).toFixed(1))
-          : 0
+        const decisionsRecorded = approved + rejected
+        // `null`, not `0`, when nothing has been decided: "0% approval" and "no
+        // decisions recorded yet" are different statements and only the second is
+        // true (task 9.2, ADM-02). The denominator ships with the rate so a
+        // consumer can say which one it is holding.
+        const approvalRate = decisionsRecorded > 0
+          ? Number(((approved / decisionsRecorded) * 100).toFixed(1))
+          : null
 
         return {
           totalApplications: stats?.totalApplications ?? 0,
           todayApplications: stats?.todayApplications ?? 0,
           pendingReviews: stats?.pendingApplications ?? 0,
           approvalRate,
+          decisionsRecorded,
           avgProcessingTime: stats?.avgProcessingTime ?? 0,
-          systemHealth: stats?.systemHealth ?? 'good',
+          // No `?? 'good'`: an unmeasured health grade stays unmeasured.
+          systemHealth: stats?.systemHealth ?? null,
           activeUsers: stats?.activeUsers ?? 0,
         }
       },
@@ -222,7 +230,7 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (data: ApplicationCreateData) => applicationService.create(stripNulls(data)),
+      mutationFn: (data: ApplicationCreateData) => applicationService.startDraft(stripNulls(data)),
       onSuccess: async () => {
         // Force immediate invalidation and refetch of all related queries
         await queryClient.invalidateQueries({ 

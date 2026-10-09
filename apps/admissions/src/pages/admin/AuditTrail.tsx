@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useId, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatDistanceFromNow, formatTimestampFull } from '@/lib/dateFormat'
@@ -16,8 +16,7 @@ import {
   adminAuditService,
   type AuditCategory,
   type AuditLogEntry,
-  type AuditLogFilters,
-  type AuditLogResponse,
+  type AuditLogFilters
 } from '@/services/admin/audit'
 import {
   exportAuditEntriesToCsv,
@@ -145,6 +144,7 @@ function stringifyPayload(value: unknown) {
 
 const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
   const [expanded, setExpanded] = useState(false)
+  const panelId = useId()
 
   const relativeTime = useMemo(() => {
     try {
@@ -223,10 +223,22 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
         </div>
 
         <div className="flex items-center gap-2">
+          {/*
+            A real ARIA disclosure (task 11.4, R16.2). It was a plain button
+            toggling React state with **no** `aria-expanded` and **no**
+            `aria-controls`, so a screen-reader operator was told the control's
+            label had changed but never that a region had opened or where it was.
+            The name states the event it belongs to, because an audit page renders
+            one of these per row.
+          */}
           <Button
             type="button"
             variant="outline"
             size="sm"
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            aria-label={`${expanded ? 'Hide' : 'View'} details for ${sanitizeForDisplay(entry.action)}`}
+            data-testid="audit-entry-details-trigger"
             onClick={() => setExpanded((current) => !current)}
           >
             {expanded ? (
@@ -244,10 +256,30 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
         </div>
       </div>
 
-      {expanded ? (
-        <div className="border-t border-border bg-muted/15 p-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-border bg-card p-4">
+      {/*
+        `hidden` **and** the display utility in agreement, because the attribute
+        alone does not survive Tailwind (11.3 §3) — and the panel stays mounted so
+        the disclosure's state is what changes, not the tree.
+      */}
+      <div
+        id={panelId}
+        hidden={!expanded}
+        data-testid="audit-entry-details-panel"
+        className={expanded ? 'block border-t border-border bg-muted/15 p-5' : 'hidden'}
+      >
+        {/*
+          One container deep (admissions-v2 task 11.5, R16.4; DESIGN.md
+          "SectionCard > content, never SectionCard > Card > Card").
+
+          This panel held two `border … bg-card p-4` cards, and the entry it
+          expands from is itself a `bg-card` card — a card surface inside a card
+          surface, which is the shape the design system bans and which task 11.4
+          §11 recorded here as this task's. The two blocks are the same two
+          blocks; they are sections of the panel now rather than cards within it,
+          separated by their headings and, on one column, a rule.
+        */}
+        <div className="grid gap-5 divide-y divide-border md:grid-cols-2 md:gap-6 md:divide-y-0">
+            <div className="pt-5 first:pt-0 md:pt-0">
               <h4 className="text-sm font-semibold text-foreground">Request context</h4>
               <dl className="mt-3 space-y-3 text-sm">
                 <div>
@@ -273,10 +305,17 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
               </dl>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="pt-5 first:pt-0 md:pt-0">
               <h4 className="text-sm font-semibold text-foreground">Change payload</h4>
               {payloadText ? (
-                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs text-foreground">
+                /*
+                  `break-all` and `whitespace-pre-wrap`: a change payload is
+                  machine-authored JSON with no break opportunities, so at 390 px
+                  a `<pre>` that only scrolled horizontally inside itself let a
+                  long value push the page into a horizontal scroll. It wraps now,
+                  and keeps its own vertical bound.
+                */
+                <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-muted p-3 text-xs text-foreground">
                   {payloadText}
                 </pre>
               ) : (
@@ -285,9 +324,8 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
                 </p>
               )}
             </div>
-          </div>
         </div>
-      ) : null}
+      </div>
     </div>
   )
 })
@@ -425,12 +463,13 @@ export default function AuditTrailPage() {
       subtitle="Review real operational history across authentication, application management, settings, and staff actions."
       maxWidth="7xl"
       tone="admin"
-      metrics={[
-        { label: 'Total events', value: response?.totalCount || 0, helper: `${response?.entries.length || 0} loaded in this view` },
-        { label: 'Actors', value: summary?.uniqueActors || 0, helper: 'Unique staff or system actors' },
-        { label: 'Top category', value: topCategory?.[0] || 'None', helper: topCategory ? `${topCategory[1]} events` : 'No activity loaded' },
-        { label: 'Page', value: `${response?.page || 1}/${response?.totalPages || 1}`, helper: 'Current export and review window' },
-      ]}
+      /*
+        No `metrics` row (task 11.5, R16.5). Task 9.5's server summary is kept and
+        still rendered **once**, in the four-card block at the top of this page's
+        body. Three of these tiles were that same block again in the first
+        viewport, and the fourth restated the pagination control at the foot of
+        the same page.
+      */
       actions={
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
@@ -624,9 +663,21 @@ export default function AuditTrailPage() {
                   icon={<User className="h-4 w-4" />}
                 />
 
+                {/*
+                  `htmlFor`/`id` (task 11.4, R16.2). These two `<label>`s were
+                  siblings of their `<select>`s with no association, so both
+                  filters were **unnamed** controls: a screen reader announced
+                  "combo box" with no indication of what it filtered, and a tap on
+                  the visible word did not move focus into the control — which is
+                  exactly the kind of thing a desktop operator never notices and a
+                  phone operator cannot work around. Associating them keeps the
+                  visible word as the accessible name, so "Label in Name" (2.5.3)
+                  holds too.
+                */}
                 <div className="w-full">
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Entity</label>
+                  <label htmlFor="audit-filter-entity" className="mb-1.5 block text-sm font-medium text-foreground">Entity</label>
                   <select
+                    id="audit-filter-entity"
                     value={formFilters.targetTable}
                     onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
                     className="h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -640,8 +691,9 @@ export default function AuditTrailPage() {
                 </div>
 
                 <div className="w-full">
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Category</label>
+                  <label htmlFor="audit-filter-category" className="mb-1.5 block text-sm font-medium text-foreground">Category</label>
                   <select
+                    id="audit-filter-category"
                     value={formFilters.category}
                     onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
                     className="h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -679,8 +731,9 @@ export default function AuditTrailPage() {
                   Reset
                 </Button>
                 <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Page size</span>
+                  <label htmlFor="audit-filter-page-size">Page size</label>
                   <select
+                    id="audit-filter-page-size"
                     value={pageSize}
                     onChange={(event) => {
                       setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)

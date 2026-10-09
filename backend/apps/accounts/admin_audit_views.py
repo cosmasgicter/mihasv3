@@ -38,6 +38,7 @@ from apps.common.openapi_helpers import (
     paginated_serializer,
 )
 from apps.common.pagination import StandardPagination
+from apps.catalog.permissions import HasTenantCapability
 
 # Stream 9 decomposition: shared serializers live in admin_serializers.
 from apps.accounts.admin_serializers import (  # noqa: F401
@@ -185,7 +186,8 @@ class AdminAuditLogView(APIView):
     Filter by entity_type, action, actor, date range. Admin only. Paginated.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, HasTenantCapability]
+    required_capability = "tenant.audit.read"
     serializer_class = AuditLogSerializer
 
     def get(self, request):
@@ -195,11 +197,11 @@ class AdminAuditLogView(APIView):
         # Narrow non-super-admins to audit entries authored by actors within
         # their institution membership scope (scope comes from
         # AccessScopeService, never legacy strings). Super-admins see all.
-        if not is_super_admin(request.user):
-            from apps.catalog.models import UserInstitutionMembership
-            from apps.catalog.services import AccessScopeService
+        from apps.catalog.models import UserInstitutionMembership
+        from apps.catalog.services import AccessScopeService
 
-            scope_filters = AccessScopeService().filters_for_user(request.user)
+        scope_filters = AccessScopeService().filters_for_user(request.user)
+        if not scope_filters.all_access:
             scoped_actor_ids = set(
                 str(uid)
                 for uid in UserInstitutionMembership.objects.filter(

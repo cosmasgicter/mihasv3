@@ -243,7 +243,7 @@ export default function SignUpPage() {
             label="Email"
             aria-label="Email"
             error={errors.email?.message || serverFieldErrors.email}
-            helperText="We'll verify this address. If you already have an account, sign in instead."
+            helperText="We'll send account updates here. If you already have an account, sign in instead."
             autoComplete="email"
             disabled={signUpMutation.isPending}
             required

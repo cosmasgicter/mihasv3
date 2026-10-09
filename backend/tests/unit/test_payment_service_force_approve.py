@@ -162,7 +162,6 @@ def _audits_for(entity_id, action):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_force_approve_rejects_short_reason_without_mutating_payment(
     seed_applicant,
 ):
@@ -197,7 +196,6 @@ def test_force_approve_rejects_short_reason_without_mutating_payment(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_force_approve_rejects_when_successful_payment_exists(seed_applicant):
     """Existing ``successful`` Payment blocks override; nothing mutates.
 
@@ -243,7 +241,6 @@ def test_force_approve_rejects_when_successful_payment_exists(seed_applicant):
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_force_approve_happy_path_creates_new_payment_with_metadata_and_receipt(
     seed_applicant,
 ):
@@ -327,7 +324,6 @@ def test_force_approve_happy_path_creates_new_payment_with_metadata_and_receipt(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_force_approve_transitions_existing_pending_payment(seed_applicant):
     """Override with an existing pending row transitions it in place.
 

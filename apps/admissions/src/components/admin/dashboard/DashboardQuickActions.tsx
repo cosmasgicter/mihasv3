@@ -5,22 +5,44 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { canSeeAdminNavPath } from '@/components/navigation/adminNavAccess'
 
+/**
+ * Quick-action counts are optional, and `null` means *not measured* (task 9.2,
+ * ADM-02 / MAINT-02).
+ *
+ * The previous props were three required numbers rendered as `"N pending"`,
+ * `"N active"`, and `"N students"`. Two of them were untruthful even when they
+ * arrived: `totalPrograms` has no source in the dashboard payload at all, so it
+ * was always the `0` its initial state supplied; and `totalStudents` is fed by
+ * the account total, which counts **staff accounts in scope**, not applicants.
+ * A nav shortcut does not need a decorative number, so a count is now rendered
+ * only where a real, definition-carrying metric supplies it.
+ */
 interface DashboardQuickActionsProps {
-  pendingApplications: number
-  totalPrograms: number
-  totalStudents: number
+  /** The `decision_queue` metric's value, or `null` when it is unknown. */
+  pendingApplications: number | null
+  /** The `staff_accounts_total` metric's value, or `null` when it is unknown. */
+  staffAccounts: number | null
 }
 
 export function DashboardQuickActions({
   pendingApplications,
-  totalPrograms,
-  totalStudents
+  staffAccounts
 }: DashboardQuickActionsProps) {
   const caps = useCapabilities()
   const quickActions = [
-    { label: 'Applications', description: `${pendingApplications} pending`, to: '/admin/applications', icon: FileText },
-    { label: 'Programs', description: `${totalPrograms} active`, to: '/admin/programs', icon: GraduationCap },
-    { label: 'Users', description: `${totalStudents} students`, to: '/admin/users', icon: Users },
+    {
+      label: 'Applications',
+      description: pendingApplications === null ? '' : `${pendingApplications} pending`,
+      to: '/admin/applications',
+      icon: FileText,
+    },
+    { label: 'Programs', description: '', to: '/admin/programs', icon: GraduationCap },
+    {
+      label: 'Users',
+      description: staffAccounts === null ? '' : `${staffAccounts} accounts`,
+      to: '/admin/users',
+      icon: Users,
+    },
     { label: 'Audit Trail', description: 'System activity', to: '/admin/audit', icon: ScrollText },
     { label: 'Settings', description: 'Configure platform', to: '/admin/settings', icon: Settings }
   ]
@@ -44,7 +66,9 @@ export function DashboardQuickActions({
                   <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                   <span className="text-sm font-medium text-foreground">{action.label}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{action.description}</span>
+                {action.description ? (
+                  <span className="text-xs text-muted-foreground">{action.description}</span>
+                ) : null}
               </Link>
             </ScaleOnHover>
           )

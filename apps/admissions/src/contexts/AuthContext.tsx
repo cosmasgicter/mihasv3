@@ -103,29 +103,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }, [queryClient])
 
-  // Synchronize secure storage and preload cache when auth.user changes
+  // Synchronize secure storage and the preload cache with the signed-in owner.
+  //
+  // The encrypted local storage (the wizard's draft outbox) belongs to the
+  // signed-in user. It is cleared when that user goes away — sign-out, a
+  // cross-tab logout, the auth-failure cascade, or another user signing in in
+  // this tab — and NOT on page load, where the session is simply not known yet.
+  // Clearing there destroyed the salt and every encrypted draft record before the
+  // session resolved, so a student's unsent offline edits never survived a
+  // refresh, a closed tab or a crash (admissions-v2 task 6.3, M13; R10.4, R10.8).
+  // Explicit sign-out and the auth-failure cascade still clear it themselves.
+  const storageOwnerRef = useRef<string | null>(null)
   useEffect(() => {
-    const user = auth.user
-    if (user) {
+    const previousOwner = storageOwnerRef.current
+    const nextOwner = auth.user?.id ?? null
+    storageOwnerRef.current = nextOwner
+    if (nextOwner) {
+      // Same owner, a refreshed user object: the key is already derived.
+      if (nextOwner === previousOwner) return
       void (async () => {
         try {
-          await secureStorage.init(user.id)
+          if (previousOwner) {
+            // Another user signed in in this tab: the previous owner's records go first.
+            await clearSession()
+            resetCache()
+          }
+          await secureStorage.init(nextOwner)
           await preloadSecureStorage()
         } catch {
           // best effort secure storage initialization
         }
       })()
-    } else {
-      void (async () => {
-        try {
-          await clearSession()
-        } catch {
-          // best effort session cleanup
-        } finally {
-          resetCache()
-        }
-      })()
+      return
     }
+    // No signed-in owner has gone away (page load before the session resolves).
+    if (!previousOwner) return
+    void (async () => {
+      try {
+        await clearSession()
+      } catch {
+        // best effort session cleanup
+      } finally {
+        resetCache()
+      }
+    })()
   }, [auth.user])
 
   // Re-validate session on tab refocus or bfcache restore.

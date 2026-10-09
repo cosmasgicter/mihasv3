@@ -1,0 +1,55 @@
+]633;E;echo "### $(date -u +%Y-%m-%dT%H:%M:%SZ) L8 - does run 2 destroy run 1's evidence?";80c1d632-867a-424b-a00d-281964f0e066]633;C### 2026-08-14T16:53:57Z L8 - does run 2 destroy run 1's evidence?
+# The defect this probe found: Playwright deletes outputDir at the start of every
+# run, and the base config's default outputDir is apps/admissions/test-results -
+# the tree the run-scoped evidence root lives under. Fixed by confining the cleanup
+# to ./test-results/artifacts. This proves the fix by running the SAME spec twice
+# and checking both run directories survive.
+
+--- run 1 (defaulted; one fast spec is enough - the reporter fires either way) ---
+
+Running 6 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:234:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (2.1s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:304:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (2.3s)
+  ✓  3 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:348:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (1.8s)
+  ✓  4 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:408:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (3.4s)
+  ✓  5 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:488:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (2.6s)
+  ✓  6 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:591:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (2.6s)
+
+  6 passed (15.9s)
+run 1 exit=0
+--- run 2 (defaulted; one fast spec is enough - the reporter fires either way) ---
+
+Running 6 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:234:3 › The student dashboard is composed around the next action (R13.1) › the dashboard shows the platform’s own first blocker, above everything else (2.6s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:304:3 › The student dashboard is composed around the next action (R13.1) › clearing one blocker changes the action to the next one the platform published (2.8s)
+  ✓  3 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:348:3 › The student dashboard is composed around the next action (R13.1) › no metric tile, no duplicate payment affordance, and no clear-all (2.3s)
+  ✓  4 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:408:3 › The student dashboard is composed around the next action (R13.1) › deleting one of two drafts leaves the other, through a real dialog (3.7s)
+  ✓  5 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:488:3 › The student dashboard is composed around the next action (R13.1) › holds at 320, 375 and 390 with the action in the first viewport (3.7s)
+  ✓  6 [chromium-required] › tests/harness-e2e/required/student-dashboard-task-first.spec.ts:591:3 › The student dashboard is composed around the next action (R13.1) › the next action wraps rather than clipping at 200% text size (2.7s)
+
+  6 passed (19.3s)
+run 2 exit=0
+]633;E;echo;80c1d632-867a-424b-a00d-281964f0e066]633;C
+--- run-scoped directories that SURVIVED both runs ---
+  2026-08-14T16-39-40-792Z
+  2026-08-14T16-53-58-215Z
+  2026-08-14T16-54-17-477Z
+  directories: 3
+--- each directory's report + screenshot count ---
+  2026-08-14T16-39-40-792Z -> report=yes screenshots=53
+  2026-08-14T16-53-58-215Z -> report=yes screenshots=4
+  2026-08-14T16-54-17-477Z -> report=yes screenshots=4
+]633;E;echo;5bd2da00-eedd-4747-8be4-ee49ab49cdce]633;C
+--- and the guarded files after three defaulted runs in this session ---
+85799ced60e970fe5a0ada2870950c1747af7136dc74442eec6e2690d35a7c68  docs/v2-evidence/0.4/playwright-report.json
+db5f2873c20491527b2f4ce6b10c25ebb94c83806d5a54ddcccbb7b79ecf4de2  docs/v2-evidence/2.2/authority-conformance-summary.json
+11.1: 7 png, newest 2026-08-12
+11.2: 10 png, newest 2026-08-12
+11.3: 10 png, newest 2026-08-12
+11.4: 16 png, newest 2026-08-12
+11.5: 20 png, newest 2026-08-12
+
+--- anything under docs/v2-evidence written since the harness came up, outside this batch ---
+  (nothing = no other task's evidence was written by any of the three runs)

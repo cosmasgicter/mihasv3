@@ -2,12 +2,23 @@
 /**
  * Payment Page Verification Test
  *
- * Verifies the payment page correctly processes Django API response shapes
- * for application payment fields and renders payment status correctly.
- * Mocks services with actual Django response shapes (after envelope unwrap)
- * and asserts correct rendering.
+ * Verifies `/student/payment` against the real Django response shapes: the
+ * application list mapping, the canonical payment-row list, and what each
+ * post-submission state renders.
  *
- * Requirements: 12.1, 12.2, 12.3
+ * Rewritten by **admissions-v2 task 8.3** ("Complete the student payment ownership
+ * split"). The previous version pinned the surface this task replaced — the
+ * "Payment: Action Required" badge vocabulary, the "Pay outstanding fees directly
+ * from this page" marketing block, the "No need to go back to the application
+ * wizard" line, the stale `applications.application_fee` column, and the hardcoded
+ * `admissions@beanola.com` support address (finding STU-24). Keeping those
+ * assertions would have meant keeping the findings.
+ *
+ * What is preserved is every assertion that was about *behaviour* rather than copy:
+ * the queryFn's mapping of the Django payload, the loading and error paths, and the
+ * rule that draft work never routes through this page.
+ *
+ * Requirements: R12.3, R12.4, R12.6, R13.1.
  */
 
 import React from 'react'
@@ -34,8 +45,10 @@ Object.defineProperty(window, 'matchMedia', {
 // ── Mock react-router-dom ──────────────────────────────────────────────
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
   useNavigate: () => mockNavigate,
   useSearchParams: () => [new URLSearchParams(), vi.fn()],
@@ -58,44 +71,86 @@ vi.mock('@/contexts/AuthContext', () => ({
   }),
 }))
 
+// ── Tenant context (R13.1 / STU-24) ───────────────────────────────────
+// The page reads the runtime brand + support address from resolved tenant
+// context. The default here is the NEUTRAL shared portal: no tenant address is
+// configured, so the page must route to the in-app contact page and print no
+// address at all.
+let currentPortalBrand = {
+  brandName: 'Beanola Admissions',
+  brandOwner: 'Beanola Technologies',
+  isWhiteLabel: false,
+  offeringInstitutionId: undefined as string | undefined,
+  supportEmail: null as string | null,
+  isLoading: false,
+}
+vi.mock('@/hooks/usePortalBrand', () => ({
+  usePortalBrand: () => currentPortalBrand,
+  DEFAULT_BRAND_NAME: 'Beanola Admissions',
+}))
+
 // ── Mock services ─────────────────────────────────────────────────────
 
 const mockApplicationServiceList = vi.fn()
-const mockApplicationServiceUpdate = vi.fn()
 
 vi.mock('@/services/applications', () => ({
   applicationService: {
     list: (...args: unknown[]) => mockApplicationServiceList(...args),
-    update: (...args: unknown[]) => mockApplicationServiceUpdate(...args),
+    update: vi.fn(),
     delete: vi.fn().mockResolvedValue({ success: true }),
   },
 }))
 
-vi.mock('@/services/documents', () => ({
-  documentService: {
-    upload: vi.fn().mockResolvedValue({ url: 'https://example.com/proof.pdf' }),
-  },
-}))
+const mockListPayments = vi.fn()
+vi.mock('@/services/payments', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/payments')>()
+  return {
+    ...actual,
+    listPayments: (...args: unknown[]) => mockListPayments(...args),
+  }
+})
 
 vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
-// ── Mock tanstack react-query ─────────────────────────────────────────
-// Payment page uses useQuery + useQueryClient directly
-const mockInvalidateQueries = vi.fn()
-const mockRefetch = vi.fn()
+// The per-application card's own hooks. `usePaymentStatus` is the poller and
+// `useFeeQuote` mints/reads the server quote; neither may reach the network here.
+const paymentStatusState = {
+  status: null as 'pending' | 'successful' | 'failed' | 'deferred' | null,
+  phase: null as string | null,
+  pollingExceededTimeout: false,
+}
+vi.mock('@/hooks/usePaymentStatus', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/hooks/usePaymentStatus')>()
+  return {
+    ...actual,
+    usePaymentStatus: () => ({
+      status: paymentStatusState.status,
+      phase: paymentStatusState.phase,
+      refetch: vi.fn().mockResolvedValue(undefined),
+      setStatus: vi.fn(),
+      pollingExceededTimeout: paymentStatusState.pollingExceededTimeout,
+      lastUpdated: null,
+    }),
+  }
+})
+vi.mock('@/hooks/useFeeQuote', () => ({
+  useFeeQuote: () => ({ quote: null, isLoading: false, error: null, isExpired: false, refresh: vi.fn() }),
+}))
 
+// ── Mock tanstack react-query ─────────────────────────────────────────
+const mockRefetch = vi.fn()
 let capturedApplicationQueryFn: (() => Promise<unknown>) | null = null
+let capturedPaymentsQueryFn: (() => Promise<unknown>) | null = null
 
 vi.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({
-    invalidateQueries: mockInvalidateQueries,
-  }),
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
   useQuery: (options: { queryFn?: () => Promise<unknown>; queryKey?: unknown[] }) => {
     const queryKey = Array.isArray(options.queryKey) ? options.queryKey : []
 
     if (queryKey[0] === 'payment-records') {
+      capturedPaymentsQueryFn = options.queryFn ?? null
       return {
         data: currentMockPaymentsData,
         isLoading: currentMockLoading,
@@ -120,9 +175,9 @@ let currentMockPaymentsData: Record<string, unknown[]> = {}
 let currentMockLoading = false
 let currentMockError: Error | null = null
 
-// ── Django application response shapes (payment fields on Application) ─
-// These match the actual Django API response for GET /api/v1/applications/?mine=true
-// after envelope unwrap and normalizePaginatedApplications processing.
+// ── Django application response shapes ────────────────────────────────
+// GET /api/v1/applications/?mine=true after envelope unwrap +
+// normalizePaginatedApplications.
 
 const djangoApplicationsWithPayment = {
   applications: [
@@ -130,6 +185,7 @@ const djangoApplicationsWithPayment = {
       id: 'app-001',
       user_id: 'user-001',
       status: 'submitted',
+      application_number: 'APP-20250115-AAAAAAAA',
       payment_status: null,
       last_payment_audit_notes: null,
       created_at: '2025-01-15T10:00:00Z',
@@ -137,19 +193,16 @@ const djangoApplicationsWithPayment = {
       full_name: 'Jane Doe',
       email: 'student@example.com',
       phone: '+260970000001',
+      // The stale `applications.application_fee` column is still on the wire; the
+      // page must NOT map or display it (task 8.1 — the quote is the only price).
       application_fee: 153,
     },
     {
       id: 'app-002',
       user_id: 'user-001',
       status: 'submitted',
+      application_number: 'APP-20250201-BBBBBBBB',
       payment_status: 'pending_review',
-      payment_method: 'MTN Money',
-      paid_amount: 153,
-      paid_at: '2025-02-01T14:30:00Z',
-      payment_reference: 'TXN-12345',
-      last_payment_reference: 'TXN-12345',
-      receipt_number: null,
       last_payment_audit_notes: null,
       created_at: '2025-02-01T08:00:00Z',
       program: 'Diploma in Pharmacy',
@@ -162,12 +215,8 @@ const djangoApplicationsWithPayment = {
       id: 'app-003',
       user_id: 'user-001',
       status: 'submitted',
+      application_number: 'APP-20241210-CCCCCCCC',
       payment_status: 'verified',
-      payment_method: 'Airtel Money',
-      paid_amount: 153,
-      paid_at: '2025-01-20T09:00:00Z',
-      payment_reference: 'TXN-67890',
-      last_payment_reference: 'TXN-67890',
       receipt_number: 'RCT-003',
       last_payment_audit_notes: null,
       created_at: '2024-12-10T08:00:00Z',
@@ -181,14 +230,10 @@ const djangoApplicationsWithPayment = {
       id: 'app-004',
       user_id: 'user-001',
       status: 'submitted',
+      application_number: 'APP-20250301-DDDDDDDD',
       payment_status: 'rejected',
-      payment_method: 'MTN Money',
-      paid_amount: 153,
-      paid_at: '2025-03-01T11:00:00Z',
-      payment_reference: 'TXN-INVALID',
-      last_payment_reference: 'TXN-INVALID',
-      receipt_number: null,
-      last_payment_audit_notes: 'The last payment attempt could not be verified. Please review the latest instructions and try again.',
+      last_payment_audit_notes:
+        'The last payment attempt could not be verified. Please review the latest instructions and try again.',
       created_at: '2025-03-01T08:00:00Z',
       program: 'Bachelor of Nursing',
       full_name: 'Jane Doe',
@@ -202,57 +247,63 @@ const djangoApplicationsWithPayment = {
   pageSize: 50,
 }
 
-// Pre-processed applications as the Payment page's useQuery would return them
-// (the queryFn in Payment.tsx maps from applicationService.list response)
+/** Applications as the page's own queryFn maps them. */
 function buildPaymentApplications(apps: typeof djangoApplicationsWithPayment.applications) {
   return apps.map((app) => ({
     id: app.id,
     status: app.status,
     payment_status: typeof app.payment_status === 'string' ? app.payment_status : null,
-    last_payment_audit_notes: typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
-    created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
     program: typeof app.program === 'string' ? app.program : null,
+    application_number: typeof app.application_number === 'string' ? app.application_number : null,
     full_name: typeof app.full_name === 'string' ? app.full_name : null,
     email: typeof app.email === 'string' ? app.email : null,
     phone: typeof app.phone === 'string' ? app.phone : null,
-    application_fee: typeof app.application_fee === 'number' ? app.application_fee : null,
+    created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
+    last_payment_audit_notes:
+      typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
   }))
 }
 
+// DRF serialises `Payment.amount` (a DecimalField) as a **string** — the wire
+// shape is `"153.00"`, not `153`. Task 8.1 made the UI render that string verbatim
+// instead of re-quantising it, and task 8.2 added the derived `phase`.
 const djangoPaymentRecords = [
   {
     id: 'payment-002',
     application_id: 'app-002',
     status: 'pending',
-    amount: 153,
+    amount: '153.00',
     currency: 'ZMW',
     created_at: '2025-02-01T14:30:00Z',
+    phase: 'action_required',
+    phase_timeout_seconds: 120,
   },
   {
     id: 'payment-003',
     application_id: 'app-003',
     status: 'successful',
-    amount: 153,
+    amount: '153.00',
     currency: 'ZMW',
     created_at: '2025-01-20T09:00:00Z',
+    phase: 'paid',
+    phase_timeout_seconds: null,
   },
   {
     id: 'payment-004',
     application_id: 'app-004',
     status: 'failed',
-    amount: 153,
+    amount: '153.00',
     currency: 'ZMW',
     created_at: '2025-03-01T11:00:00Z',
+    phase: 'failed_retryable',
+    phase_timeout_seconds: null,
   },
 ]
 
 function buildPaymentsByApplication(records: typeof djangoPaymentRecords) {
   return records.reduce<Record<string, typeof djangoPaymentRecords>>((acc, record) => {
     const existing = acc[record.application_id] ?? []
-    return {
-      ...acc,
-      [record.application_id]: [...existing, record],
-    }
+    return { ...acc, [record.application_id]: [...existing, record] }
   }, {})
 }
 
@@ -267,10 +318,22 @@ describe('Payment page verification', () => {
     mockNavigate.mockClear()
     mockRefetch.mockClear()
     mockApplicationServiceList.mockResolvedValue(djangoApplicationsWithPayment)
+    mockListPayments.mockResolvedValue(djangoPaymentRecords)
     currentMockError = null
     currentMockLoading = false
     currentMockApplicationsData = buildPaymentApplications(djangoApplicationsWithPayment.applications)
     currentMockPaymentsData = buildPaymentsByApplication(djangoPaymentRecords)
+    currentPortalBrand = {
+      brandName: 'Beanola Admissions',
+      brandOwner: 'Beanola Technologies',
+      isWhiteLabel: false,
+      offeringInstitutionId: undefined,
+      supportEmail: null,
+      isLoading: false,
+    }
+    paymentStatusState.status = null
+    paymentStatusState.phase = null
+    paymentStatusState.pollingExceededTimeout = false
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -282,6 +345,7 @@ describe('Payment page verification', () => {
     container.remove()
     vi.clearAllMocks()
     capturedApplicationQueryFn = null
+    capturedPaymentsQueryFn = null
   })
 
   function renderAndWait(ms = 300) {
@@ -293,9 +357,7 @@ describe('Payment page verification', () => {
 
   it('renders without errors and shows the page title', async () => {
     await renderAndWait()
-
-    const text = container.textContent || ''
-    expect(text).toContain('Application Payment')
+    expect(container.textContent || '').toContain('Application payment')
   })
 
   it('shows loading state when data is loading', async () => {
@@ -304,131 +366,121 @@ describe('Payment page verification', () => {
     currentMockPaymentsData = {}
 
     await renderAndWait()
-
-    const text = container.textContent || ''
-    expect(text).toContain('Loading payment information')
+    expect(container.textContent || '').toContain('Loading your payments')
   })
 
-  // ── Payment status display ──────────────────────────────────────────
+  // ── R12.3: every post-submission state, with its recovery affordance ──
 
-  it('displays applications with payment_status=null as requiring action', async () => {
+  it('an unpaid submitted application can be paid from this page', async () => {
     await renderAndWait()
 
-    const text = container.textContent || ''
-    // app-001 has null payment_status → normalizes to 'not_paid' → requires action
-    expect(text).toContain('Payment: Action Required')
-    expect(text).toContain('Bachelor of Nursing')
+    const card = container.querySelector('[data-application-id="app-001"]')
+    expect(card).not.toBeNull()
+    expect(card!.getAttribute('data-payment-ui-state')).toBe('idle')
+    expect(card!.textContent).toContain('Bachelor of Nursing')
+    expect(card!.querySelector('[data-testid="payment-pay-action"]')?.textContent).toContain('Pay now')
   })
 
-  it('displays applications with payment_status=pending_review under review section', async () => {
+  it('a pending payment renders the server phase, not a dead end', async () => {
     await renderAndWait()
 
-    const text = container.textContent || ''
-    // app-002 has pending_review status
-    expect(text).toContain('Payment: Awaiting Review')
-    expect(text).toContain('Diploma in Pharmacy')
+    // app-002's latest row is pending with phase=action_required (task 8.2).
+    const card = container.querySelector('[data-application-id="app-002"]')
+    expect(card).not.toBeNull()
+    expect(card!.getAttribute('data-payment-ui-state')).toBe('action_required')
+    expect(card!.getAttribute('data-payment-phase')).toBe('action_required')
+    // The student is told to approve on their handset and can re-check the status…
+    expect(card!.textContent?.toLowerCase()).toContain('pin')
+    expect(card!.querySelector('[data-testid="payment-check-status"]')).not.toBeNull()
+    // …and is never invited to start a second collection.
+    expect(card!.querySelector('[data-testid="payment-pay-action"]')).toBeNull()
   })
 
-  it('displays applications with payment_status=verified in history section', async () => {
+  it('a verified payment offers the receipt and no payment affordance', async () => {
     await renderAndWait()
 
-    const text = container.textContent || ''
-    // app-003 has verified status
-    expect(text).toContain('Payment: Verified')
-    expect(text).toContain('Certificate in Community Health')
+    const card = container.querySelector('[data-application-id="app-003"]')
+    expect(card).not.toBeNull()
+    expect(card!.getAttribute('data-payment-ui-state')).toBe('confirmed')
+    expect(card!.textContent).toContain('Certificate in Community Health')
+    expect(card!.querySelector('[data-testid="payment-pay-action"]')).toBeNull()
   })
 
-  it('displays rejected payment with audit notes', async () => {
+  it('a failed payment shows the admissions note and offers a retry', async () => {
     await renderAndWait()
 
-    const text = container.textContent || ''
-    // app-004 has rejected status with audit notes
-    expect(text).toContain('Rejected')
-    expect(text).toContain('The last payment attempt could not be verified')
+    const card = container.querySelector('[data-application-id="app-004"]')
+    expect(card).not.toBeNull()
+    expect(card!.getAttribute('data-payment-ui-state')).toBe('retry_with_different_number')
+    expect(card!.textContent).toContain('The last payment attempt could not be verified')
+    expect(card!.querySelector('[data-testid="payment-pay-action"]')?.textContent).toContain('Try again')
   })
 
-  it('renders retry buttons for payment actions on the dedicated payment page', async () => {
+  it('orders applications that still need payment before settled ones (R13.1)', async () => {
     await renderAndWait()
 
-    // app-001 (null payment) and app-004 (rejected) should show Pay Now toggle buttons
-    const text = container.textContent || ''
-    expect(text).toContain('Pay Now')
+    const ids = Array.from(container.querySelectorAll('[data-application-id]')).map((node) =>
+      node.getAttribute('data-application-id'),
+    )
+    expect(ids).toHaveLength(4)
+    // app-003 is the only verified one, so it sorts last.
+    expect(ids[ids.length - 1]).toBe('app-003')
   })
 
-  // ── Summary cards ───────────────────────────────────────────────────
-
-  it('shows the key payment states across applications', async () => {
+  it('renders each application payment history from the canonical rows', async () => {
     await renderAndWait()
 
-    const text = container.textContent || ''
-    expect(text).toContain('Action Required')
-    expect(text).toContain('Awaiting Review')
-    expect(text).toContain('Verified')
+    const toggles = container.querySelectorAll('[data-testid="payment-history-toggle"]')
+    // Three of the four applications have a payment row.
+    expect(toggles.length).toBe(3)
+    expect(Array.from(toggles).some((node) => node.textContent?.includes('Payment history (1)'))).toBe(true)
   })
 
-  // ── Payment method display ──────────────────────────────────────────
-
-  it('displays payment record amounts and statuses', async () => {
+  it('renders server amounts verbatim, and no stale application_fee column', async () => {
     await renderAndWait()
 
     const html = container.innerHTML || ''
     expect(html).toContain('K153.00')
-    expect(html).toContain('Successful')
+    // The page must not render the legacy integer fee column (`153` with no
+    // decimals) as an amount — the ledger/quote strings are the only money.
+    expect(html).not.toContain('>K153<')
   })
 
-  // ── Empty state ─────────────────────────────────────────────────────
+  // ── Empty states / ownership hand-off ───────────────────────────────
 
-  it('shows empty state when no applications exist', async () => {
+  it('shows an empty state when no applications exist', async () => {
     currentMockApplicationsData = []
     currentMockPaymentsData = {}
 
     await renderAndWait()
-
     const text = container.textContent || ''
-    expect(text).toContain('No payments yet')
-    expect(text).toContain('Payment records will appear here once you submit')
+    expect(text).toContain('No application fees yet')
+    expect(text).toContain('Once you submit an application')
   })
 
-  // ── Error handling ──────────────────────────────────────────────────
-
-  it('shows error message when fetch fails', async () => {
-    currentMockError = new Error('Network timeout')
-    currentMockApplicationsData = []
+  it('hands a draft-only student back to the wizard (R12.3)', async () => {
+    currentMockApplicationsData = [
+      {
+        id: 'draft-001',
+        status: 'draft',
+        payment_status: null,
+        program: 'Draft Programme',
+        application_number: null,
+        full_name: 'Jane Doe',
+        email: 'student@example.com',
+        phone: '+260970000001',
+        created_at: '2026-04-01T08:00:00Z',
+        last_payment_audit_notes: null,
+      },
+    ]
     currentMockPaymentsData = {}
 
     await renderAndWait()
-
     const text = container.textContent || ''
-    expect(text).toContain('Failed to load payment information')
-  })
-
-  it('shows retry button when fetch fails', async () => {
-    currentMockError = new Error('Network timeout')
-    currentMockApplicationsData = []
-    currentMockPaymentsData = {}
-
-    await renderAndWait()
-
-    const text = container.textContent || ''
-    expect(text).toContain('Try Again')
-  })
-
-  // ── Static content ──────────────────────────────────────────────────
-
-  it('displays per-application fee guidance', async () => {
-    await renderAndWait()
-
-    const text = container.textContent || ''
-    expect(text).toContain('Pay outstanding fees directly from this page')
-    expect(text).toContain('Application Fee')
-  })
-
-  it('explains that submitted payments can be retried outside the wizard', async () => {
-    await renderAndWait()
-
-    const text = container.textContent || ''
-    expect(text).toContain('No need to go back to the application wizard')
-    expect(text).toContain('Pay Now')
+    // The fee for a draft is paid in the wizard, and the page says so instead of
+    // showing an empty history.
+    expect(text).toContain('Your application fee is paid in the application form')
+    expect(text).toContain('Continue your application')
   })
 
   it('does not route draft work through the payment page', async () => {
@@ -438,13 +490,13 @@ describe('Payment page verification', () => {
         id: 'draft-001',
         status: 'draft',
         payment_status: null,
-        last_payment_audit_notes: null,
-        created_at: '2026-04-01T08:00:00Z',
         program: 'Draft Programme',
+        application_number: null,
         full_name: 'Jane Doe',
         email: 'student@example.com',
         phone: '+260970000001',
-        application_fee: 153,
+        created_at: '2026-04-01T08:00:00Z',
+        last_payment_audit_notes: null,
       },
     ]
 
@@ -452,49 +504,95 @@ describe('Payment page verification', () => {
 
     const text = container.textContent || ''
     expect(text).not.toContain('Draft Programme')
-    expect(text).not.toContain('Continue draft in wizard')
-    expect(container.querySelector('a[href="/student/application-wizard"]')).toBeNull()
+    expect(container.querySelector('[data-application-id="draft-001"]')).toBeNull()
   })
 
-  it('displays the help/support contact', async () => {
-    await renderAndWait()
+  // ── Error handling ──────────────────────────────────────────────────
 
+  it('shows an error message and a retry when the fetch fails', async () => {
+    currentMockError = new Error('Network timeout')
+    currentMockApplicationsData = []
+    currentMockPaymentsData = {}
+
+    await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('admissions@beanola.com')
+    expect(text).toContain('Unable to load your payments')
+    expect(text).toContain('Try Again')
   })
 
-  // ── queryFn correctly maps Django response ──────────────────────────
+  // ── R13.1 / STU-24: support contact comes from tenant context ────────
 
-  it('queryFn maps Django application response to payment fields', async () => {
-    // Render to capture the queryFn
+  it('routes support to the in-app contact page on the neutral portal', async () => {
     await renderAndWait()
 
-    // The queryFn should have been captured by our useQuery mock
-    expect(capturedApplicationQueryFn).toBeDefined()
+    const link = container.querySelector('[data-testid="payment-page-support"]')
+    expect(link).not.toBeNull()
+    expect(link!.getAttribute('data-support-kind')).toBe('platform_contact_page')
+    expect(link!.getAttribute('href')).toBe('/contact')
+    // No hardcoded platform address anywhere on the page — that was STU-24.
+    expect((container.innerHTML || '').toLowerCase()).not.toContain('admissions@beanola.com')
+  })
 
-    // Call the captured queryFn to verify it maps Django response correctly
+  it('uses the resolved tenant admissions address when the host resolved a school', async () => {
+    currentPortalBrand = {
+      ...currentPortalBrand,
+      brandName: 'Example School',
+      isWhiteLabel: true,
+      supportEmail: 'admissions@example-school.edu.zm',
+    }
+
+    await renderAndWait()
+
+    const link = container.querySelector('[data-testid="payment-page-support"]')
+    expect(link).not.toBeNull()
+    expect(link!.getAttribute('data-support-kind')).toBe('tenant_email')
+    expect(link!.getAttribute('href')).toContain('mailto:admissions@example-school.edu.zm')
+    expect(container.textContent).toContain('Example School')
+  })
+
+  // ── queryFn correctly maps the Django response ──────────────────────
+
+  it('queryFn maps the Django application response to the payment surface fields', async () => {
+    await renderAndWait()
+
+    expect(capturedApplicationQueryFn).toBeDefined()
     const result = await capturedApplicationQueryFn!()
     const apps = result as Array<Record<string, unknown>>
 
     expect(apps).toHaveLength(4)
 
-    // app-001: null payment status
+    // app-001: null payment status stays null (never coerced to a string).
     expect(apps[0].id).toBe('app-001')
     expect(apps[0].payment_status).toBeNull()
+    expect(apps[0].application_number).toBe('APP-20250115-AAAAAAAA')
 
-    // app-002: pending_review with audit metadata preserved
-    expect(apps[1].id).toBe('app-002')
+    // app-002: pending_review preserved.
     expect(apps[1].payment_status).toBe('pending_review')
     expect(apps[1].program).toBe('Diploma in Pharmacy')
-    expect(apps[1].application_fee).toBe(153)
 
-    // app-003: verified
+    // app-003 / app-004: verified + rejected with the audit note preserved.
     expect(apps[2].payment_status).toBe('verified')
-
-    // app-004: rejected with audit notes
     expect(apps[3].payment_status).toBe('rejected')
     expect(apps[3].last_payment_audit_notes).toBe(
-      'The last payment attempt could not be verified. Please review the latest instructions and try again.'
+      'The last payment attempt could not be verified. Please review the latest instructions and try again.',
     )
+
+    // The stale fee column is deliberately NOT carried onto the payment surface.
+    for (const app of apps) {
+      expect(app.application_fee).toBeUndefined()
+    }
+  })
+
+  it('groups the canonical payment rows by application', async () => {
+    await renderAndWait()
+
+    expect(capturedPaymentsQueryFn).toBeDefined()
+    const grouped = (await capturedPaymentsQueryFn!()) as Record<string, unknown[]>
+
+    expect(mockListPayments).toHaveBeenCalled()
+    expect(Object.keys(grouped).sort()).toEqual(['app-001', 'app-002', 'app-003', 'app-004'])
+    expect(grouped['app-001']).toHaveLength(0)
+    expect(grouped['app-002']).toHaveLength(1)
+    expect((grouped['app-002'][0] as Record<string, unknown>).phase).toBe('action_required')
   })
 })

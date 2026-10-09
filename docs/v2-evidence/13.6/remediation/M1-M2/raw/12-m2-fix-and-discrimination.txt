@@ -1,0 +1,37 @@
+]633;E;echo "### $(date -u +%FT%TZ) M2 fix - the discriminating runs";2fde8435-33d2-4975-b6a1-1b3ace0a6b21]633;C### 2026-08-15T07:16:12Z M2 fix - the discriminating runs
+
+== 1. the ORDER-DEPENDENT reproduction, now (the run that failed 2/7 before the fix) ==
+$ pytest tests/property/test_production_cors_pagination_fix_exploration.py tests/property/test_production_readiness_metrics.py -q -rs
+.......                                                                  [100%]
+7 passed in 1.96s
+
+== 2. the new sampling + pollution guard suite ==
+$ pytest tests/unit/test_metrics_middleware_sampling.py -q
+.......................                                                  [100%]
+23 passed in 1.23s
+
+== 3. does the pollution guard DISCRIMINATE? re-introduce the setdefault and re-run ==
+temporarily restored the os.environ.setdefault in prod.py
+$ pytest tests/unit/test_metrics_middleware_sampling.py tests/property/test_production_cors_pagination_fix_exploration.py tests/property/test_production_readiness_metrics.py -q
+    assert offenders == [], (
+E   AssertionError: a settings module writes to os.environ at import time, which makes importing it for inspection change unrelated runtime behaviour (task 13.6 remediation M2):
+E   assert ["prod.py:76 ...ATE', '0.1')"] == []
+    assert re.search(
+E   AssertionError: prod.py must still sample healthy 200s at 10%
+E   assert None
+    assert after == before, (
+E   AssertionError: importing config.settings.prod changed REQUEST_METRIC_SAMPLE_RATE in os.environ (None -> '0.1'); that is the M2 defect
+E   assert '0.1' == None
+FAILED tests/unit/test_metrics_middleware_sampling.py::TestSettingsModulesDoNotMutateTheEnvironment::test_no_environ_write_at_import_time[prod.py]
+FAILED tests/unit/test_metrics_middleware_sampling.py::TestSettingsModulesDoNotMutateTheEnvironment::test_prod_still_declares_the_sample_rate_as_a_setting
+FAILED tests/unit/test_metrics_middleware_sampling.py::TestSettingsModulesDoNotMutateTheEnvironment::test_importing_prod_settings_leaves_the_sample_rate_alone
+3 failed, 27 passed in 2.30s
+restored prod.py: 1 setting line, 1 environ.setdefault lines
+
+== 4. and with the fix in place, all three files together ==
+..............................                                           [100%]
+30 passed in 2.14s
+]633;E;echo "== 4. and with the fix in place, all three files together ==";cd847a3a-693c-43fe-a447-d8ee0bcf49e6]633;C== 4. and with the fix in place, all three files together ==
+..............................                                           [100%]
+30 passed in 2.45s
+### 2026-08-15T07:16:48Z done

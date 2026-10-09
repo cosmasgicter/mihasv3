@@ -202,25 +202,44 @@ class TestPreservationTrackingValidCode:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.public_views.Application.objects")
-    def test_valid_code_returns_tracking_data(self, mock_qs):
-        """Preservation: Valid tracking code returns application tracking data.
+    def test_valid_code_returns_tracking_data(self):
+        """Preservation: A valid tracking credential returns tracking data.
 
         Validates: Requirements 3.19
+
+        admissions-v2 task 10.5 (R13.12, STU-22) changed what a valid credential
+        *is*: ``TRK-ABCDEF123456`` is a legacy tracking code and no longer
+        authorises public disclosure, so this case now presents a tracking secret.
+        The preserved contract is the one this test was written for — a valid
+        credential returns the minimal tracking payload in the envelope and never
+        ``payment_status``.
         """
+        from apps.applications.tracking_secret import build_code
+
+        code = build_code("4KP2M9XT", "9QW3RT7VZ2KDN8YH6JF4")
+
         mock_app = MagicMock()
         mock_app.application_number = "APP-20250101-ABCD1234"
-        mock_app.public_tracking_code = "TRK-ABCDEF123456"
         mock_app.status = "submitted"
         mock_app.program = "Computer Science"
         mock_app.intake = "January 2026"
-        mock_app.created_at = datetime.now(timezone.utc)
+        mock_app.canonical_program = None
+        mock_app.intake_ref = None
+        mock_app.institution_ref = None
+        mock_app.institution = "Example College"
         mock_app.submitted_at = datetime.now(timezone.utc)
+        mock_app.updated_at = datetime.now(timezone.utc)
 
-        mock_qs.get.return_value = mock_app
-
-        request = self.factory.get("/api/v1/applications/track/?code=TRK-ABCDEF123456")
-        response = self.view(request)
+        with patch(
+            "apps.applications.tracking_secret.resolve", return_value=mock_app
+        ), patch(
+            "apps.applications.public_views.InstitutionContextService"
+        ) as context_service:
+            context_service.return_value.resolve.return_value = MagicMock(
+                institution=None
+            )
+            request = self.factory.get(f"/api/v1/applications/track/?code={code}")
+            response = self.view(request)
 
         assert response.status_code == 200, (
             f"Expected 200 for valid tracking code, got {response.status_code}: {response.data}"

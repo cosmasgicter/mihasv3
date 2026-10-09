@@ -103,7 +103,22 @@ describe('auth page form markup', () => {
     const markup = renderAuthPage(<SignUpPage />)
 
     // The redesigned helper text is more direct and honest.
-    expect(markup).toContain("We&#x27;ll verify this address.")
+    //
+    // Updated by 13.6 remediation M3. This assertion expected
+    // "We'll verify this address." — copy admissions-v2 task 1.6 **deliberately
+    // removed**, because the platform performs no email verification at all
+    // (`docs/v2-evidence/1.6/README.md` §2 row 7: *"Removed verification copy →
+    // 'We'll send account updates here.'"*, alongside removing the same promise
+    // from the landing page and the register response).
+    //
+    // So the page was right and the expectation was pre-1.6 — and the two were
+    // in direct conflict, because a test named "uses honest helper copy" was
+    // requiring a sentence that promises a step the platform never takes. The
+    // shipped copy is asserted, and the retired promise is now asserted ABSENT,
+    // so removing a stale string leaves a guard for 1.6's decision behind
+    // instead of a gap.
+    expect(markup).toContain("We&#x27;ll send account updates here.")
+    expect(markup).not.toContain('verify this address')
     expect(markup).not.toContain('Checking...')
     expect(markup).not.toContain('>Available<')
     expect(markup).not.toContain('action=check-email')

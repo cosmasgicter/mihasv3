@@ -1,45 +1,74 @@
 /**
- * useOcrGradeExtraction -- polls for OCR results after result slip upload
- * and delivers matched grades to the consumer's callback.
+ * useOcrGradeExtraction — polls for the backend's DETERMINISTIC grade candidates
+ * after a result-slip upload and holds them as unconfirmed suggestions.
  *
- * Resilience guarantees:
- * - Never blocks the wizard -- all failures are silent
- * - Returns matched grades to the consumer; the consumer is responsible
- *   for merging with existing manual entries. The wizard controller's
- *   `handleOcrGrades` only fills empty slots and never overwrites
- *   manually entered grades (canonical rule per .kiro/steering/tech.md).
- * - Stops polling on unmount, navigation, or timeout
- * - Uses refs for callbacks to avoid stale closures
- * - Validates every AI response field before use
+ * Spec:         `.kiro/specs/admissions-v2-canonical-rebuild/` task 7.5.
+ * Requirements: R11.4 — "STUDENTS SHALL enter grades manually. Optional local OCR
+ *               MAY propose subject and grade candidates against a versioned
+ *               alias catalogue, but candidates SHALL include
+ *               provenance/confidence and require EXPLICIT CONFIRMATION before
+ *               they become application data."
+ * Findings:     STU-06, STU-07.
+ *
+ * What changed at 7.5, and why
+ * ----------------------------
+ * This hook used to read `ai_analysis` off the document and call
+ * `onGradesExtracted(...)` the moment it found anything — the grid was populated
+ * before the student had seen, let alone agreed to, a single value. "It only
+ * fills empty slots" limited the damage but did not make it a choice.
+ *
+ * Now the hook only *holds* candidates. Applying them is a separate, explicit
+ * action the student takes (`EducationStep`'s confirmation panel), and the
+ * candidates it hands over are exactly the ones the student selected. It also no
+ * longer does any client-side subject matching: identity is resolved on the
+ * server through the task-7.1 versioned alias catalogue, so there is one mapping,
+ * not two that can disagree.
+ *
+ * Resilience guarantees (unchanged):
+ * - never blocks the wizard; every failure is silent and leaves manual entry intact
+ * - stops polling on unmount, navigation, or timeout
+ * - uses refs for callbacks/values to avoid stale closures
+ * - validates every field of the server payload before use
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { apiClient } from '@/services/client'
+import { documentService } from '@/services/documents'
 import { logger } from '@/lib/logger'
-import { findBestSubjectId } from '@/lib/subjectMatcher'
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
 
-interface AiSubject {
-  name: string
+/** One deterministic suggestion. Mirrors the backend `GradeCandidate` shape. */
+export interface OcrGradeCandidate {
+  subject_id: string
+  subject_code: string
+  subject_name: string
   grade: number
+  /** 0..1 — the server's deterministic confidence, never a model score. */
+  confidence: number
+  /** `canonical` = printed name/code matched exactly; `alias` = resolved via the catalogue. */
+  match: 'canonical' | 'alias'
+  matched_alias: string | null
+  /** 1-based line of the OCR text the value came from. */
+  source_line: number
+  source_text: string
+  provenance: string
+  raw_label: string
 }
 
-interface AiAnalysis {
-  subjects?: AiSubject[]
-  exam_number?: string
-  year?: string
+/** Candidates the server resolved but will not offer pre-selected. */
+export interface OcrWithheldCandidate {
+  raw_label: string
+  grade: number | null
+  status: 'low_confidence' | 'unresolved' | 'duplicate' | 'invalid_grade'
+  subject_name: string | null
+  confidence: number
+  source_line: number
 }
 
-interface DocumentInfo {
-  id: string
-  extracted_text: boolean
-  ai_analysis: AiAnalysis | null
-  verification_status?: string | null
-  ocr_state?: string | null
-  ai_analysis_available?: boolean
-}
-
-interface CatalogSubject {
-  id: string
-  name: string
+export interface OcrExtractionMeta {
+  examNumber: string | null
+  year: string | null
+  parserVersion: string | null
+  catalogVersion: string | null
+  meanConfidence: number
 }
 
 export interface MatchedGrade {
@@ -47,72 +76,141 @@ export interface MatchedGrade {
   grade: number
 }
 
+interface DocumentInfo {
+  id: string
+  extracted_text: boolean
+  verification_status?: string | null
+  ocr_state?: string | null
+  extraction?: unknown
+}
+
 const POLL_INTERVAL = 3000
 const MAX_POLLS = 30 // 90 seconds max — Celery cold-start can take 30-60s
 const POST_EXTRACTION_GRACE_POLLS = 3
+
+const WITHHELD_STATUSES = new Set(['low_confidence', 'unresolved', 'duplicate', 'invalid_grade'])
 
 function isValidEczGrade(grade: unknown): grade is number {
   return typeof grade === 'number' && Number.isInteger(grade) && grade >= 1 && grade <= 9
 }
 
-function mapAiGradesToCatalog(
-  aiSubjects: unknown,
-  catalogSubjects: CatalogSubject[]
-): MatchedGrade[] {
-  // Defensive: validate the AI response shape
-  if (!Array.isArray(aiSubjects)) return []
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
 
-  const matched: MatchedGrade[] = []
-  const usedIds = new Set<string>()
+function str(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
 
-  for (const ai of aiSubjects) {
-    if (!ai || typeof ai !== 'object') continue
-    const name = typeof (ai as AiSubject).name === 'string' ? (ai as AiSubject).name : ''
-    const grade = (ai as AiSubject).grade
+/**
+ * Split the server payload into confirmable candidates and withheld rows.
+ *
+ * Defensive on purpose: a candidate is only offered when it carries a canonical
+ * server-issued subject id (R11.5) and a valid 1-9 ECZ grade. Anything else is
+ * shown as withheld context, so the student sees that the slip had a row there
+ * without being handed a value the grade mutation would reject.
+ */
+export function readExtractionPayload(payload: unknown): {
+  candidates: OcrGradeCandidate[]
+  withheld: OcrWithheldCandidate[]
+  meta: OcrExtractionMeta
+} | null {
+  const extraction = asRecord(payload)
+  if (!extraction) return null
+  const rawCandidates = extraction.candidates
+  if (!Array.isArray(rawCandidates)) return null
 
-    if (!name || !isValidEczGrade(grade)) continue
+  const candidates: OcrGradeCandidate[] = []
+  const withheld: OcrWithheldCandidate[] = []
+  const seen = new Set<string>()
 
-    const subjectId = findBestSubjectId(name, catalogSubjects)
-    if (subjectId && !usedIds.has(subjectId)) {
-      matched.push({ subject_id: subjectId, grade })
-      usedIds.add(subjectId)
+  for (const entry of rawCandidates) {
+    const record = asRecord(entry)
+    if (!record) continue
+    const subjectId = str(record.subject_id)
+    const grade = record.grade
+    const confidence = typeof record.confidence === 'number' ? record.confidence : 0
+    const status = typeof record.status === 'string' ? record.status : ''
+    const sourceLine = typeof record.source_line === 'number' ? record.source_line : 0
+    const rawLabel = str(record.raw_label) || ''
+
+    const offerable =
+      record.confirmable === true &&
+      subjectId !== null &&
+      isCanonicalSubjectId(subjectId) &&
+      isValidEczGrade(grade) &&
+      !seen.has(subjectId)
+
+    if (offerable && subjectId && isValidEczGrade(grade)) {
+      seen.add(subjectId)
+      candidates.push({
+        subject_id: subjectId,
+        subject_code: str(record.subject_code) || '',
+        subject_name: str(record.subject_name) || rawLabel,
+        grade,
+        confidence,
+        match: record.match === 'alias' ? 'alias' : 'canonical',
+        matched_alias: str(record.matched_alias),
+        source_line: sourceLine,
+        source_text: str(record.source_text) || '',
+        provenance: str(record.provenance) || 'deterministic_ocr',
+        raw_label: rawLabel,
+      })
+      continue
     }
+
+    withheld.push({
+      raw_label: rawLabel,
+      grade: isValidEczGrade(grade) ? grade : null,
+      status: (WITHHELD_STATUSES.has(status)
+        ? status
+        : 'low_confidence') as OcrWithheldCandidate['status'],
+      subject_name: str(record.subject_name),
+      confidence,
+      source_line: sourceLine,
+    })
   }
 
-  return matched
+  const rawYear = extraction.exam_year
+  return {
+    candidates,
+    withheld,
+    meta: {
+      examNumber: str(extraction.exam_number),
+      year: typeof rawYear === 'number' && Number.isInteger(rawYear) ? String(rawYear) : str(rawYear),
+      parserVersion: str(extraction.parser_version),
+      catalogVersion: str(extraction.catalog_version),
+      meanConfidence:
+        typeof extraction.mean_confidence === 'number' ? extraction.mean_confidence : 0,
+    },
+  }
 }
 
-export type OcrFailureReason = 'timeout' | 'server_failed' | 'skipped' | 'no_text' | 'no_grades_matched' | null
+export type OcrFailureReason =
+  | 'timeout'
+  | 'server_failed'
+  | 'skipped'
+  | 'no_text'
+  | 'no_grades_matched'
+  | null
 
-export interface OcrExtractionMeta {
-  subjects: AiSubject[]
-  examNumber: string | null
-  year: string | null
-}
-
-export function useOcrGradeExtraction(
-  documentId: string | null,
-  catalogSubjects: CatalogSubject[],
-  onGradesExtracted: (grades: MatchedGrade[]) => void,
-) {
-  const [status, setStatus] = useState<'idle' | 'polling' | 'done' | 'failed'>('idle')
-  const [extractedCount, setExtractedCount] = useState(0)
-  const [failureReason, setFailureReason] = useState<OcrFailureReason>(null)
+export function useOcrGradeExtraction(documentId: string | null) {
+  const [status, setStatus] = useState<'idle' | 'polling' | 'suggested' | 'applied' | 'dismissed' | 'failed'>('idle')
+  const [candidates, setCandidates] = useState<OcrGradeCandidate[]>([])
+  const [withheld, setWithheld] = useState<OcrWithheldCandidate[]>([])
   const [extractionMeta, setExtractionMeta] = useState<OcrExtractionMeta | null>(null)
+  const [failureReason, setFailureReason] = useState<OcrFailureReason>(null)
+  const [appliedCount, setAppliedCount] = useState(0)
 
-  // Use refs for values that change between polls to avoid stale closures
   const pollCountRef = useRef(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const doneRef = useRef(false)
   const runIdRef = useRef(0)
-  const catalogRef = useRef(catalogSubjects)
-  const callbackRef = useRef(onGradesExtracted)
   const docIdRef = useRef(documentId)
   const mountedRef = useRef(true)
 
-  // Keep refs in sync
-  catalogRef.current = catalogSubjects
-  callbackRef.current = onGradesExtracted
   docIdRef.current = documentId
 
   useEffect(() => {
@@ -144,76 +242,57 @@ export function useOcrGradeExtraction(
     }
 
     try {
-      const info = await apiClient.request<DocumentInfo>(`/documents/${currentDocId}/info/`)
+      const info = await documentService.getInfo<DocumentInfo>(currentDocId)
       if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current || docIdRef.current !== currentDocId) return
       if (!info) {
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
         return
       }
 
-      // Stop early if backend reports permanent OCR failure
-      const vStatus = info.ocr_state || info.verification_status
-      if (vStatus === 'ocr_failed' || vStatus === 'ocr_skipped') {
+      // Stop early if the backend reports a permanent extraction outcome.
+      const state = info.ocr_state || info.verification_status
+      if (state === 'ocr_failed' || state === 'ocr_skipped') {
         if (mountedRef.current) {
-          setFailureReason(vStatus === 'ocr_skipped' ? 'skipped' : 'server_failed')
+          setFailureReason(state === 'ocr_skipped' ? 'skipped' : 'server_failed')
           setStatus('failed')
         }
-        logger.info('[OCR] Backend reported permanent failure', { status: vStatus })
-        return
-      }
-      if (vStatus === 'ocr_no_text' || vStatus === 'ocr_no_grades') {
-        if (mountedRef.current) {
-          setFailureReason(vStatus === 'ocr_no_grades' ? 'no_grades_matched' : 'no_text')
-          setStatus('failed')
-        }
-        logger.info('[OCR] Backend reported no usable grades', { status: vStatus })
+        logger.info('[OCR] Backend reported permanent failure', { state })
         return
       }
 
-      const analysis = info.ai_analysis
-      if (analysis?.subjects && Array.isArray(analysis.subjects) && analysis.subjects.length > 0) {
-        // Wait for catalog subjects to load before attempting match
-        if (catalogRef.current.length === 0) {
-          timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
-          return
+      const parsed = readExtractionPayload(info.extraction)
+      if (parsed && parsed.candidates.length > 0 && !doneRef.current) {
+        doneRef.current = true
+        if (mountedRef.current) {
+          setCandidates(parsed.candidates)
+          setWithheld(parsed.withheld)
+          setExtractionMeta(parsed.meta)
+          // NOT 'applied'. The student has not agreed to anything yet — this is
+          // the whole point of R11.4. No callback fires from here.
+          setStatus('suggested')
         }
-        const matched = mapAiGradesToCatalog(analysis.subjects, catalogRef.current)
-        if (matched.length > 0 && !doneRef.current) {
-          doneRef.current = true
-          if (mountedRef.current) {
-            setExtractedCount(matched.length)
-            // Only keep subjects that have a valid name + valid 1-9 grade.
-            // Prevents downstream NaN in Math.min / average computations
-            // and guards against AI returning malformed entries.
-            const cleanSubjects: AiSubject[] = []
-            for (const s of analysis.subjects as unknown[]) {
-              if (!s || typeof s !== 'object') continue
-              const name = (s as AiSubject).name
-              const grade = (s as AiSubject).grade
-              if (typeof name === 'string' && name.trim().length > 0 && isValidEczGrade(grade)) {
-                cleanSubjects.push({ name: name.trim(), grade })
-              }
-            }
-            const rawExam = typeof analysis.exam_number === 'string' ? analysis.exam_number.trim() : null
-            const rawYear = typeof analysis.year === 'string' ? analysis.year.trim() : null
-            setExtractionMeta({
-              subjects: cleanSubjects,
-              examNumber: rawExam && rawExam.length <= 20 ? rawExam : null,
-              year: rawYear && /^\d{4}$/.test(rawYear) ? rawYear : null,
-            })
-            setStatus('done')
-          }
-          callbackRef.current(matched)
-          logger.info('[OCR] Auto-populated grades from AI', { matched: matched.length, total: analysis.subjects.length })
-          return
-        }
+        logger.info('[OCR] Deterministic candidates available for confirmation', {
+          candidates: parsed.candidates.length,
+          withheld: parsed.withheld.length,
+        })
+        return
       }
 
-      // Text extracted but no usable analysis yet — keep polling
+      if (state === 'ocr_no_text' || state === 'ocr_no_grades') {
+        if (mountedRef.current) {
+          setWithheld(parsed?.withheld ?? [])
+          setFailureReason(state === 'ocr_no_grades' ? 'no_grades_matched' : 'no_text')
+          setStatus('failed')
+        }
+        logger.info('[OCR] Backend reported no confirmable candidates', { state })
+        return
+      }
+
+      // Text extracted but no candidate set yet — keep polling to the grace window.
       if (info.extracted_text && pollCountRef.current >= MAX_POLLS - POST_EXTRACTION_GRACE_POLLS) {
-        const reason = (analysis?.subjects && analysis.subjects.length > 0) ? 'no_grades_matched' : 'no_text'
         if (mountedRef.current) {
-          setFailureReason(reason)
+          setWithheld(parsed?.withheld ?? [])
+          setFailureReason(parsed ? 'no_grades_matched' : 'no_text')
           setStatus('failed')
         }
         return
@@ -223,7 +302,7 @@ export function useOcrGradeExtraction(
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
       }
     } catch {
-      // Non-critical — retry silently
+      // Non-critical — retry silently, then degrade to manual entry.
       if (mountedRef.current && pollCountRef.current < MAX_POLLS) {
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL * 2)
       } else if (mountedRef.current) {
@@ -242,18 +321,42 @@ export function useOcrGradeExtraction(
     runIdRef.current += 1
     pollCountRef.current = 0
     setStatus('polling')
-    setExtractedCount(0)
+    setCandidates([])
+    setWithheld([])
     setExtractionMeta(null)
     setFailureReason(null)
+    setAppliedCount(0)
     stopPolling()
     // Delay first poll — give Celery time to pick up the task
     timeoutRef.current = setTimeout(poll, POLL_INTERVAL + 1000)
   }, [poll, stopPolling])
 
+  /**
+   * The student's explicit confirmation. Returns only the selected candidates, so
+   * a caller cannot "apply" something the student did not tick.
+   */
+  const confirmCandidates = useCallback((subjectIds: string[]): MatchedGrade[] => {
+    const allowed = new Set(subjectIds)
+    const confirmed = candidates
+      .filter(candidate => allowed.has(candidate.subject_id))
+      .map(candidate => ({ subject_id: candidate.subject_id, grade: candidate.grade }))
+    if (confirmed.length === 0) return []
+    setAppliedCount(confirmed.length)
+    setStatus('applied')
+    return confirmed
+  }, [candidates])
+
+  const dismissCandidates = useCallback(() => {
+    setStatus('dismissed')
+    setCandidates([])
+  }, [])
+
   useEffect(() => {
     doneRef.current = false
     pollCountRef.current = 0
-    setExtractedCount(0)
+    setCandidates([])
+    setWithheld([])
+    setAppliedCount(0)
     setStatus('idle')
     stopPolling()
   }, [documentId, stopPolling])
@@ -261,5 +364,16 @@ export function useOcrGradeExtraction(
   // Cleanup on unmount
   useEffect(() => () => stopPolling(), [stopPolling])
 
-  return { status, extractedCount, failureReason, extractionMeta, startPolling, stopPolling }
+  return {
+    status,
+    candidates,
+    withheld,
+    extractionMeta,
+    failureReason,
+    appliedCount,
+    startPolling,
+    stopPolling,
+    confirmCandidates,
+    dismissCandidates,
+  }
 }

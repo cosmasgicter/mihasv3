@@ -23,7 +23,22 @@ import { AuthenticationError } from '@/services/client';
 
 // ── Source paths ────────────────────────────────────────────────────────
 
+/*
+  The student workspace's one detail read now lives in
+  `hooks/student/useApplicationWorkspace.ts` (admissions-v2 task **12.1**,
+  MAINT-01). The `queryFn` — including the `AuthenticationError` re-throw these
+  cases exist to defend — was lifted verbatim out of the page; the page composes
+  the hook and renders the result.
+
+  This is a **source-location** repoint only: every behavioural claim below is the
+  same claim, about the same code, made of the same strings.
+*/
 const APPLICATION_STATUS_PATH = path.resolve(
+  __dirname,
+  '../../src/hooks/student/useApplicationWorkspace.ts',
+);
+/** The page that composes it, for the claims that are about the page's own gate. */
+const APPLICATION_STATUS_PAGE_PATH = path.resolve(
   __dirname,
   '../../src/pages/student/ApplicationStatus.tsx',
 );
@@ -91,7 +106,9 @@ describe('Property 6: Preservation — Non-Auth Errors Still Show Application No
    * **Validates: Requirements 3.3, 3.4**
    */
   it('ApplicationStatus renders ErrorDisplay with "Application Not Found" title', () => {
-    const source = fs.readFileSync(APPLICATION_STATUS_PATH, 'utf-8');
+    // This one is about *rendering*, so it reads the page rather than the hook
+    // (admissions-v2 task 12.1): the read moved, the error branch did not.
+    const source = fs.readFileSync(APPLICATION_STATUS_PAGE_PATH, 'utf-8');
 
     // The component must render ErrorDisplay with the correct title
     expect(source).toContain('ErrorDisplay');
@@ -128,12 +145,28 @@ describe('Property 6: Preservation — Non-Auth Errors Still Show Application No
    */
   it('ApplicationStatus useQuery is enabled only with valid id and user', () => {
     const source = fs.readFileSync(APPLICATION_STATUS_PATH, 'utf-8');
+    const page = fs.readFileSync(APPLICATION_STATUS_PAGE_PATH, 'utf-8');
 
-    // The query must be enabled only when both id and user are present
-    expect(source).toContain('enabled: !!id && !!user');
+    // The query must be enabled only when both id and user are present.
+    //
+    // The gate is now stated in two places rather than one (admissions-v2 task
+    // 12.1, MAINT-01): the read lives in `useApplicationWorkspace`, which gates on
+    // `!!id` and on the enablement its caller passes, and the page passes `!!user`.
+    // Same condition, asserted as both halves instead of as one literal — a hook
+    // that reached into `AuthContext` itself would be the worse design, so the
+    // assertion follows the code rather than the code following the assertion.
+    expect(source).toContain('enabled: !!id && enabled');
+    expect(page).toContain('useApplicationWorkspace(id, !!user)');
 
-    // The query key must include the application id
-    expect(source).toContain("queryKey: ['application-status', id]");
+    // The query key must include the application id.
+    //
+    // The key was renamed `application-status` → `application-workspace` by
+    // admissions-v2 task 10.6 (R13.13, finding STU-23): there were two workspaces
+    // over one application, each with its own cache key, so a mutation on one left
+    // the other stale. One workspace now means one key, and this suite's own
+    // property — that the read is keyed by the application and enabled only for a
+    // signed-in owner with an id — is unchanged.
+    expect(source).toContain("queryKey: ['application-workspace', id]");
   });
 
   /**

@@ -468,10 +468,17 @@ class TestPublicTrackerLeaksNoPII:
         )
         application.refresh_from_db()
 
-        # Anonymous client (no auth) tracks by application number.
+        # Anonymous client (no auth) tracks with the issued tracking secret.
+        # admissions-v2 task 10.5 (R13.12, STU-22): the application NUMBER no
+        # longer authorises public disclosure, so this journey presents the
+        # credential the owner is issued. The privacy property under test is
+        # unchanged — and strictly stronger, because the response publishes less.
+        from apps.applications import tracking_secret
+
+        code = tracking_secret.issue(application).code
         public = APIClient()
         status_code, body = _capture(
-            public.get(f"/api/v1/applications/track/?code={application.application_number}")
+            public.get(f"/api/v1/applications/track/?code={code}")
         )
 
         assert status_code == 200, (status_code, body)
@@ -481,13 +488,12 @@ class TestPublicTrackerLeaksNoPII:
         # Whitelist: only the minimal, non-PII status fields are present.
         allowed_keys = {
             "application_number",
-            "public_tracking_code",
             "status",
-            "program",
-            "intake",
+            "program_name",
+            "intake_name",
             "institution",
-            "created_at",
             "submitted_at",
+            "updated_at",
         }
         assert set(data.keys()) <= allowed_keys, set(data.keys()) - allowed_keys
 
@@ -500,11 +506,21 @@ class TestPublicTrackerLeaksNoPII:
         assert "2000-01-01" not in blob  # date_of_birth
 
     def test_public_tracker_unknown_code_is_not_found(self):
-        """A valid-format but unknown code returns a clean not-found, leaking
-        nothing about whether any application exists."""
+        """A well-formed but unknown credential returns a clean not-found, leaking
+        nothing about whether any application exists.
+
+        Task 10.5: the well-formed credential is a tracking secret. The legacy
+        ``TRK-ABCDEF123456`` shape this case used is answered before any lookup
+        now, so it could no longer exercise the not-found path it was written for.
+        """
+        from apps.applications import tracking_secret
+
         public = APIClient()
         status_code, body = _capture(
-            public.get("/api/v1/applications/track/?code=TRK-ABCDEF123456")
+            public.get(
+                "/api/v1/applications/track/?code="
+                + tracking_secret.build_code("4KP2M9XT", "9QW3RT7VZ2KDN8YH6JF4")
+            )
         )
         assert status_code == 404, (status_code, body)
         assert body["success"] is False

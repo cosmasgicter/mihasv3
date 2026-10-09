@@ -1,0 +1,93 @@
+name: V2 Isolated Harness Smoke (task 0.4)
+
+# Admissions V2 canonical rebuild — task 0.4 CI artifact (R1.4, R18.1-R18.5).
+#
+# Runs the ONE-COMMAND isolated local E2E harness on a clean CI machine:
+#   bash harness/bin/harness smoke
+# which builds the admissions SPA, brings up the fully local, disposable stack
+# (Postgres, Redis, MinIO object storage, Mailpit console email, deterministic
+# payment/domain adapters, Django web + Celery worker/beat, Caddy edge), seeds
+# two example tenants, then runs the STRICT Playwright projects:
+#   - chromium-required  : desktop viewport; must PASS with zero skips
+#   - mobile-required    : Pixel-5 viewport; must PASS with zero skips
+#   - gatecheck-negative : must FAIL (proving the strict gates actually fire)
+# and asserts required background jobs drained. The evidence directory is
+# uploaded as the CI artifact (R18.5). This never touches Neon, Cloudflare R2,
+# Zoho, Resend, or the real Lenco gateway — every dependency is local.
+#
+# This workflow is intentionally SEPARATE from ci.yml so it does not disturb
+# unrelated in-flight workflow changes, and is path/dispatch-scoped so it does
+# not block routine PRs.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'harness/**'
+      - 'apps/admissions/playwright.harness.config.ts'
+      - 'apps/admissions/tests/harness-e2e/**'
+      - 'backend/config/settings/harness.py'
+      - 'backend/apps/common/management/commands/harness_bootstrap.py'
+      - 'backend/apps/catalog/management/commands/harness_seed_tenants.py'
+      - '.github/workflows/v2-harness-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'harness/**'
+      - 'apps/admissions/tests/harness-e2e/**'
+
+concurrency:
+  group: v2-harness-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harness-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      # Bun is the repo's standard JS runtime — used to build the SPA and run
+      # the Playwright projects (bunx playwright ...).
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Show toolchain
+        run: |
+          docker --version
+          docker compose version
+          bun --version
+
+      # V2_EVIDENCE_TASK_DIRS=1 is the DELIBERATE-regeneration case of the evidence
+      # convention task 13.6 remediation L8 introduced (finding GATE-13.1-07). By default
+      # the harness now writes run-scoped, so that an incidental local run cannot
+      # overwrite a recorded artifact. This job is not incidental: task 0.4's
+      # Required_Evidence IS the CI smoke run record, and the upload step below is what
+      # publishes it. So the flag is set here, on purpose, in the one place where writing
+      # docs/v2-evidence/0.4/ is the intent rather than a side effect.
+      # See apps/admissions/tests/harness-e2e/helpers/evidence-dir.ts.
+      - name: Run the one-command isolated harness smoke
+        env:
+          V2_EVIDENCE_TASK_DIRS: "1"
+        run: bash harness/bin/harness smoke
+
+      # R18.5: the smoke run evidence (compose status, drain gate, Playwright
+      # required + gatecheck reports, smoke-run.md with the candidate commit) is
+      # the CI artifact. Always upload so a failing run is diagnosable.
+      - name: Upload task 0.4 harness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-harness-0.4-evidence
+          path: docs/v2-evidence/0.4/
+          retention-days: 30
+
+      # On any failure, capture container logs to aid triage.
+      - name: Dump harness logs on failure
+        if: failure()
+        run: bash harness/bin/harness logs || true
+
+      - name: Tear the harness down
+        if: always()
+        run: bash harness/bin/harness down || true

@@ -1,0 +1,45 @@
+-- Rollback for legacy_columns_contract_2026_08_15.sql.
+--
+-- Spec: .kiro/specs/admissions-v2-canonical-rebuild/ task 12.3
+-- Requirements: R9.2 (inverse-additive rollback operations only), R15.6, R15.7
+-- Evidence: docs/v2-evidence/12.3/README.md §5 (the rehearsed round trip)
+--
+-- READ THIS FIRST — WHAT THIS ROLLBACK DOES AND DOES NOT RECOVER
+-- --------------------------------------------------------------
+-- DROP COLUMN is irreversible with respect to DATA. Postgres does not retain
+-- dropped column values; there is no `UNDROP COLUMN`. This script therefore
+-- restores the platform's *bookkeeping* only:
+--
+--   RECOVERED : the migration_history row, so the forward script is re-runnable
+--               and the schema-drift checker stops reporting it as applied.
+--   NOT RECOVERED : the values of applications.payment_method, payer_name,
+--               payer_phone, amount, paid_at, momo_ref, pop_url. They are gone.
+--
+-- R9.2 forbids ADD COLUMN in a rollback script, so this file does not try to
+-- re-create the columns. If the columns themselves must come back, that is a
+-- NEW forward migration (they will be empty/NULL) — which is exactly why the
+-- forward script's Guard 2 and Guard 3 refuse to run while any value remains.
+--
+-- THE REAL ROLLBACK FOR A CONTRACTION IS A RESTORE
+-- ------------------------------------------------
+-- Neon:       reset the branch from its parent, or branch from a timestamp
+--             before the apply (Neon point-in-time). Cheap and complete.
+-- Production: restore the pre-apply dump taken by `./deploy/backup-db.sh`,
+--             per docs/runbooks/database-backup-restore.md. Neon PITR does NOT
+--             cover the self-hosted production Postgres — the two databases are
+--             unrelated (.kiro/steering/infrastructure.md).
+--
+-- Because of that, the production procedure
+-- (docs/v2-evidence/12.3/raw/production-procedure.md) makes the backup step
+-- step 1, before anything else, and treats the restore as the rollback of
+-- record. This script is the bookkeeping half, not the recovery.
+--
+-- APPLICATION NOTES (R9.5)
+-- ------------------------
+-- Apply manually with autocommit. Never invoke via apply_sql_migrations — the
+-- runner skips every `*_rollback.sql` by suffix, deliberately.
+--
+--   psql "$DATABASE_URL" -f backend/scripts/future/legacy_columns_contract_2026_08_15_rollback.sql
+
+DELETE FROM migration_history
+WHERE migration_name = 'legacy_columns_contract_2026_08_15.sql';

@@ -18,8 +18,8 @@ from apps.documents.payment_constants import (
     TransitionSource,
 )
 from apps.documents.payment_helpers import (
-    _forward_only_enabled,
     _generate_receipt_number,
+    _parse_amount,
     _sanitize_lenco_response,
 )
 from apps.documents.payment_types import (
@@ -45,31 +45,15 @@ class PaymentCoreMixin:
         reason: Optional[str] = None,
         provider_data: Optional[dict] = None,
     ) -> TransitionResult:
-        """Sole mutation entry point for ``payments.status`` (ADR-007)."""
-        from django.db import transaction
+        """Sole mutation entry point for ``payments.status`` (ADR-007).
 
-        # LEGACY: when the hardening flag is disabled, delegate to the
-        # pre-hardening mutator for verify/webhook/reconciliation sources.
-        if not _forward_only_enabled():
-            if target_status in ("successful", "failed") and source in (
-                "verify",
-                "webhook",
-                "reconciliation",
-            ):
-                try:
-                    self._update_payment_status(
-                        payment, target_status, provider_data or {}
-                    )
-                    payment.refresh_from_db()
-                except Payment.DoesNotExist:  # pragma: no cover - defensive
-                    pass
-                return TransitionResult(
-                    payment_id=payment.id,
-                    status=payment.status,  # type: ignore[arg-type]
-                    risk_flag=None,
-                )
-            # Fall through to the hardened path for anything the legacy
-            # mutator does not understand (force_approved, expired, etc.).
+        There is exactly one path through this method. The pre-hardening
+        mutator and the ``PAYMENT_HARDENING_FORWARD_ONLY`` fallback it hid
+        behind were deleted in admissions-v2 task 8.2 after the parity matrix
+        in ``tests/unit/test_payment_path_parity_8_2.py`` proved the two paths
+        produced the same ledger.
+        """
+        from django.db import transaction
 
         with transaction.atomic():
             locked = (
@@ -141,6 +125,21 @@ class PaymentCoreMixin:
                     locked.lenco_reference = provider_data["lencoReference"]
                 if provider_data.get("type"):
                     locked.payment_method = provider_data["type"]
+                # Provider settlement facts. ``fee``/``bearer`` start life as the
+                # *quoted* values bound by task 8.1's ``_bind_fee_quote``; the
+                # provider's own numbers supersede them once it reports, and the
+                # failure reason is the only explanation an admin gets for a
+                # declined collection. Captured here — in the sole writer — so
+                # every source (verify, webhook, reconciliation) records the same
+                # facts instead of each caller remembering to.
+                provider_fee = _parse_amount(provider_data.get("fee"))
+                if provider_fee is not None:
+                    locked.fee = provider_fee
+                if provider_data.get("bearer"):
+                    locked.bearer = provider_data["bearer"]
+                failure_reason = provider_data.get("reasonForFailure")
+                if failure_reason and target_status == "failed":
+                    locked.notes = str(failure_reason)[:500]
                 locked.metadata = meta
                 locked.save(
                     update_fields=[
@@ -148,11 +147,36 @@ class PaymentCoreMixin:
                         "metadata",
                         "lenco_reference",
                         "payment_method",
+                        "fee",
+                        "bearer",
+                        "notes",
                         "updated_at",
                     ]
                 )
             else:
                 locked.save(update_fields=["status", "updated_at"])
+
+            logger.info(
+                "Payment %s transitioned to %s (lenco_ref=%s)",
+                locked.id,
+                target_status,
+                locked.lenco_reference,
+            )
+
+            # Business metric for completed collections. This lived in the
+            # deleted pre-hardening mutator; it belongs with the transition that
+            # completes a payment, so promoting the single path could not quietly
+            # stop reporting revenue.
+            if target_status == "successful":
+                logger.info(
+                    "business_metric",
+                    extra={
+                        "type": "business_metric",
+                        "metric": "payment_completed",
+                        "amount": str(locked.amount),
+                        "currency": locked.currency or "ZMW",
+                    },
+                )
 
             # --- Step 5: sync Application.payment_status (ADR-1) ---
             app_status = PAYMENT_TO_APP_MAP.get(target_status)
@@ -358,17 +382,67 @@ class PaymentCoreMixin:
     def _update_application_payment_status(
         self, application_id: UUID, status: str
     ) -> None:
-        """Sync ``application.payment_status`` when payment succeeds or fails."""
+        """Recompute ``applications.payment_status`` from the payment ledger.
+
+        ADR-001: this column is a projection, not a second source of truth. It is
+        derived from **every** payment row the application holds, using the fixed
+        precedence in ``APP_PAYMENT_STATUS_PRECEDENCE`` — not from whichever row
+        happened to move last.
+
+        That distinction is what makes the projection converge (R12.5): replaying
+        a callback, re-running the reconciliation sweep, or receiving provider
+        events out of order all recompute the same answer, so the summary cannot
+        flap between ``verified`` and ``failed`` depending on arrival order. The
+        derivation runs inside the caller's transaction, so it sees the row the
+        transition just wrote.
+
+        ``status`` is the projection of the row that triggered this call. It is
+        used only as the fallback when the ledger cannot be read.
+        """
         from apps.applications.models import Application
+        from apps.documents.payment_constants import (
+            derive_application_payment_status,
+        )
+
+        ledger_statuses: list[str] = []
+        try:
+            ledger_statuses = list(
+                Payment.objects.filter(application_id=application_id).values_list(
+                    "status", flat=True
+                )
+            )
+        except Exception:  # pragma: no cover - defensive
+            # The projection is a convenience read. If the ledger cannot be
+            # re-read, fall back to the transitioned row's own projection rather
+            # than abort the transition that has already been decided.
+            logger.exception(
+                "Could not re-read the payment ledger for application %s; "
+                "projecting the transitioned row only",
+                application_id,
+            )
+
+        derived = derive_application_payment_status(ledger_statuses) or status
+        if not derived:
+            return
 
         updated = Application.objects.filter(id=application_id).update(
-            payment_status=status,
+            payment_status=derived,
             updated_at=timezone.now(),
         )
         if updated:
-            logger.info(
-                "Application %s payment_status set to %s", application_id, status
-            )
+            if derived != status:
+                logger.info(
+                    "Application %s payment_status derived as %s from ledger %s "
+                    "(transitioned row projected %s)",
+                    application_id,
+                    derived,
+                    sorted(set(ledger_statuses)),
+                    status,
+                )
+            else:
+                logger.info(
+                    "Application %s payment_status set to %s", application_id, derived
+                )
         else:
             logger.warning(
                 "Application %s not found when updating payment_status", application_id

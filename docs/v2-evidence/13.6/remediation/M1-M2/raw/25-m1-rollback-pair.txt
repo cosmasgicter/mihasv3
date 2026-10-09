@@ -1,0 +1,110 @@
+### 2026-08-15T07:37:19Z M1 - the rollback pair: apply it, prove what it does and does NOT undo, re-converge
+# The rollback is LEDGER-ONLY by design (R9.2). See the file's own header for why a
+# widen has no safe inverse. This run proves the three claims that shape makes.
+
+--- 0. state before the rollback ---
+ migration_history_rows 
+------------------------
+                     77
+(1 row)
+
+ m1_ledger_rows 
+----------------
+              1
+(1 row)
+
+ intake_width 
+--------------
+          255
+(1 row)
+
+
+--- 1. apply the rollback with psql (never auto-applied: the runner's suffix filter excludes *_rollback.sql) ---
+DELETE 1
+rollback exit=0
+
+--- 2. what it undid (the ledger row) and what it deliberately did NOT undo (the width) ---
+ migration_history_rows 
+------------------------
+                     76
+(1 row)
+
+ m1_ledger_rows 
+----------------
+              0
+(1 row)
+
+ intake_width 
+--------------
+          255
+(1 row)
+
+ rows_over_the_old_100_ceiling 
+-------------------------------
+                             0
+(1 row)
+
+
+--- 3. the next sweep re-asserts it, and because the guard is width-based the re-run is a no-op ---
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Pending migrations: 1/46
+  [dry-run] would apply: 2026_08_15_01_widen_application_intake_snapshot.sql (sha256=b68c5261f6f5)
+[dry-run] NOTHING WAS APPLIED. 1 migration(s) would be applied. Re-run without --dry-run to apply them.
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Pending migrations: 1/46
+  applying: 2026_08_15_01_widen_application_intake_snapshot.sql (sha256=b68c5261f6f5) ... OK
+Applied 1 migration(s) successfully.
+re-apply exit=0
+
+--- 4. re-converged, and the boot gate still exits 0 under --strict ---
+ migration_history_rows 
+------------------------
+                     77
+(1 row)
+
+ intake_width 
+--------------
+          255
+(1 row)
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+No schema drift. Verified 78 managed=False model(s).
+check_schema_drift --strict exit=0
+
+--- 5. L2's pair still applies too (the two widens compose, and neither is order-dependent) ---
+DELETE 1
+ migration_history_rows 
+------------------------
+                     76
+(1 row)
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+Pending migrations: 1/46
+  applying: 2026_08_13_01_widen_application_snapshot_columns.sql (sha256=a53d8a78e95d) ... OK
+Applied 1 migration(s) successfully.
+ migration_history_rows 
+------------------------
+                     77
+(1 row)
+
+ column_name | character_maximum_length 
+-------------+--------------------------
+ institution |                      255
+ intake      |                      255
+ program     |                      255
+(3 rows)
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+No schema drift. Verified 78 managed=False model(s).
+final check_schema_drift --strict exit=0
+### 2026-08-15T07:40:03Z done

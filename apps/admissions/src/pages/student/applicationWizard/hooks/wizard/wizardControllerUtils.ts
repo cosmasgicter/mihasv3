@@ -1,7 +1,7 @@
 import { safeJsonParse } from '@/lib/utils'
 import { sanitizeInput } from '@/lib/security'
 import { normalizePhoneNumberInput } from '../../types'
-import { AuthenticationError } from '@/services/client'
+import { AuthenticationError } from '@/services/errors'
 import { BROWSER_KEYS } from '@/lib/browserNamespace'
 import type { Intake } from '@/types/database'
 import type { WizardIntake } from '../../types'
@@ -25,6 +25,12 @@ export type ResolvedIntakeIdentity = {
 
 export type SaveDraftOptions = {
   syncServer?: boolean
+  /**
+   * Used by Continue/manual save when advancing is unsafe unless the server
+   * accepted the exact draft command. Autosave may retain a local copy and
+   * surface retry state; a required save rejects instead.
+   */
+  requireServer?: boolean
 }
 
 // ── Pure helpers ──

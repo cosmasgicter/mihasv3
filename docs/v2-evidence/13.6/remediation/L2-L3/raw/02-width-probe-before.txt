@@ -1,0 +1,28 @@
+### 2026-08-13T22:18:08Z L2 BEFORE - 13.5/raw/width-drift-probe.py on v2_snap_13_6
+# read-only; SET default_transaction_read_only = on is pinned by the probe itself
+
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+database           : v2_snap_13_6
+server_version     : 17.10 (29ad1b7)
+managed=False models with a table here : 76
+bounded-length fields compared          : 330
+
+NARROWER than the model declares (500 risk) : 3
+  NARROWER applications.institution: model declares 255, column is varchar(50) -> DataError at 51 chars
+  NARROWER applications.intake: model declares 100, column is varchar(50) -> DataError at 51 chars
+  NARROWER applications.program: model declares 255, column is varchar(50) -> DataError at 51 chars
+
+WIDER than the model declares (harmless)    : 0
+
+column absent (already check_schema_drift's job) : 2
+  MISSING  applications.configuration_version
+  MISSING  applications.draft_name
+
+managed=False tables absent from this database   : 2
+  no table tenant_change_requests
+  no table tenant_staff_invitations
+
+VERDICT: FAIL - narrower_columns=3
+probe exit=1

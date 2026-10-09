@@ -12,7 +12,12 @@ from drf_spectacular.views import (
 from apps.common.health import LivenessView, ReadinessView, RedisHealthView
 from rest_framework.permissions import IsAuthenticated
 from apps.common.views import APIHomeView
-from apps.documents.urls import document_urlpatterns, payment_urlpatterns, program_fee_urlpatterns
+from apps.documents.urls import (
+    document_urlpatterns,
+    fee_admin_urlpatterns,
+    payment_urlpatterns,
+    program_fee_urlpatterns,
+)
 
 urlpatterns = [
     path("", APIHomeView.as_view(), name="api-root"),
@@ -46,12 +51,18 @@ urlpatterns = [
     path("api/v1/admin/", include("apps.accounts.admin_urls")),
     path("api/v1/admin/", include("apps.catalog.admin_urls")),
     path("api/v1/admin/", include("apps.common.template_urls")),
+    # Scoped fee administration report (admissions-v2 task 8.4, ADM-06)
+    path("api/v1/admin/", include((fee_admin_urlpatterns, "fee-admin"))),
+    # One scoped applications query + aggregate contract (task 9.1, ADM-01)
+    path("api/v1/admin/", include("apps.applications.admin_urls")),
     # Notification endpoints
     path("api/v1/notifications/", include("apps.common.notification_urls")),
     # Email endpoints
     path("api/v1/email/", include("apps.common.email_urls")),
     # Error monitoring endpoints
     path("api/v1/errors/", include("apps.common.error_urls")),
+    # V2 API namespace (canonical envelope/error contract — Task 1.3)
+    path("api/v2/", include("apps.common.v2.urls")),
 ]
 
 # Scaffold domains — gated for production safety

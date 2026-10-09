@@ -1,0 +1,74 @@
+$ cd apps/admissions && bun run test
+
+$ bun x vitest run
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+[90mstderr[2m | tests/unit/apiClientTimeoutRetry.test.ts[2m > [22m[2mApiClient timeout and retry[2m > [22m[2mReq 24.4 — Retry for network/5xx errors[2m > [22m[2mretries on network error and succeeds on later attempt
+[22m[39m[API Client] Retrying POST /api/v1/api/applications (attempt 1/2) [90mundefined[39m
+
+[90mstderr[2m | tests/unit/authPageFormMarkup.test.tsx[2m > [22m[2mauth page form markup[2m > [22m[2mdisables native browser validation on the sign-in form so inline errors can render
+[22m[39mWarning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at MemoryRouter (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at SignInPage (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/SignInPage.tsx:68:57)
+    at Router (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at SignInPage (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/SignInPage.tsx:68:57)
+    at Router (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at LinkWithRef (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router-dom@6.30.3+6dbf9a050bc9aadb/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:814:9)
+    at div
+    at div
+    at AuthShell (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/auth/AuthShell.tsx:13:3)
+    at SignInPage (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/SignInPage.tsx:68:57)
+    at Router (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+    at LinkWithRef (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router-dom@6.30.3+6dbf9a050bc9aadb/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:814:9)
+    at p
+    at header
+    at main
+    at div
+    at div
+    at AuthShell (/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/auth/AuthShell.tsx:13:3)
+    at SignInPage (/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/SignInPage.tsx:68:57)
+    at Router (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/home/cosmas/Downloads/mihasv3/node_modules/.bun/react-router@6.30.3+f4eacebf2041cd4f/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+    at QueryClientProvider (file:///home/cosmas/Downloads/mihasv3/node_modules/.bun/@tanstack+react-query@5.100.9+f4eacebf2041cd4f/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: useLayoutEffect does nothing on the server, because its effect cannot be encoded into the server renderer's output format. This will lead to a mismatch between the initial, non-hydrated UI and the intended UI. To avoid this, useLayoutEffect should only be used in components that render exclusively on the client. See https://reactjs.org/link/uselayouteffect-ssr for common fixes.
+
+  … [middle of the log elided; the only failure is reproduced below] …
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/authPageFormMarkup.test.tsx[2m > [22mauth page form markup[2m > [22muses honest helper copy instead of fake email availability states
+[31m[1mAssertionError[22m: expected '<div class="min-h-dvh bg-muted"><div …' to contain 'We&#x27;ll verify this address.'[39m
+
+Expected: [32m"We&#x27;ll verify this address."[39m
+Received: [31m"<div class="min-h-dvh bg-muted"><div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-10 sm:px-6 sm:py-16"><a class="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring foc  … [long rendered-markup line elided for the artefact] …
+
+[36m [2m❯[22m tests/unit/authPageFormMarkup.test.tsx:[2m106:20[22m[39m
+    [90m104| [39m
+    [90m105| [39m    [90m// The redesigned helper text is more direct and honest.[39m
+    [90m106| [39m    [34mexpect[39m(markup)[33m.[39m[34mtoContain[39m([32m"We&#x27;ll verify this address."[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m107| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Checking...'[39m)
+    [90m108| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'>Available<'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m468 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (470)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4044 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (4046)[39m
+[2m   Start at [22m 13:12:37
+[2m   Duration [22m 210.57s[2m (transform 95.18s, setup 23.00s, import 515.82s, tests 536.49s, environment 1137.53s)[22m
+
+error: script "test" exited with code 1
+TEST_EXIT=1

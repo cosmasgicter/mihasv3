@@ -47,6 +47,7 @@ vi.mock('@/contexts/CapabilityContext', () => ({
 
 // ── Mock the tenant service so list + detail reads resolve deterministically.
 const listInstitutions = vi.fn()
+const getInstitution = vi.fn()
 const listDomains = vi.fn()
 const listAssets = vi.fn()
 const listTemplates = vi.fn()
@@ -60,6 +61,7 @@ const updateInstitution = vi.fn()
 vi.mock('@/services/admin/tenants', () => ({
   tenantAdminService: {
     listInstitutions: (...a: unknown[]) => listInstitutions(...a),
+    getInstitution: (...a: unknown[]) => getInstitution(...a),
     listDomains: (...a: unknown[]) => listDomains(...a),
     listAssets: (...a: unknown[]) => listAssets(...a),
     listTemplates: (...a: unknown[]) => listTemplates(...a),
@@ -129,6 +131,7 @@ function superAdminCaps(): CapabilityValue {
     isTenantAdmin: false,
     capabilities: PLATFORM_CAPS,
     institutionCapabilities: {},
+    institutions: [],
     selectedInstitutionId: null,
     setSelectedInstitutionId: vi.fn(),
     can: (capability: string) => PLATFORM_CAPS.includes(capability),
@@ -155,6 +158,14 @@ function tenantAdminCaps(): CapabilityValue {
     isTenantAdmin: true,
     capabilities: [],
     institutionCapabilities,
+    institutions: [
+      {
+        id: MIHAS.id,
+        code: MIHAS.code,
+        name: MIHAS.name,
+        capabilities: MIHAS_TENANT_CAPS,
+      },
+    ],
     selectedInstitutionId: MIHAS.id,
     setSelectedInstitutionId: vi.fn(),
     // tenant-admin can() resolves against the (single) scoped institution.
@@ -187,6 +198,7 @@ function renderTree(ui: ReactNode) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  getInstitution.mockResolvedValue(MIHAS)
   emptyDetail()
 })
 

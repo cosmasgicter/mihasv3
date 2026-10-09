@@ -1,0 +1,3384 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "0.1 Register this spec as the active admissions V2 authority": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467134
+      },
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878499532
+      },
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783882009532
+      }
+    ],
+    "0.2 Build the V2 finding/requirement/task/evidence validator": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467306
+      },
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783882017127
+      },
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783883649641
+      }
+    ],
+    "0.3 Generate complete route, authority, domain, and source inventories": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467442
+      },
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783883657579
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886904908
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886980598
+      },
+      {
+        "executionId": "01160d6e-4294-4a37-8a27-2f53aefd4acb",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783922351216
+      }
+    ],
+    "0.4 Replace gated descriptive E2E setup with an isolated local harness": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467546
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905062
+      },
+      {
+        "executionId": "01160d6e-4294-4a37-8a27-2f53aefd4acb",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783923159400
+      },
+      {
+        "executionId": "01160d6e-4294-4a37-8a27-2f53aefd4acb",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783926531237
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849730
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943877123
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097727030
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097786002
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784099701376
+      }
+    ],
+    "0.5 Capture the immutable pre-change baseline": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467665
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905188
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849747
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097727307
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784099708794
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784101851434
+      }
+    ],
+    "1.2 Add an executable version and API-major drift guard": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467787
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905363
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849761
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097727629
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784101861029
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784102536185
+      }
+    ],
+    "1.3 Define and implement the canonical V2 response/error serializers": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878467913
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905485
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849777
+      }
+    ],
+    "1.4 Unify `ApiClient` request, refresh, CSRF, retry, abort, and error handling": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468042
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905636
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849786
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097728301
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784102548883
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784105819665
+      }
+    ],
+    "1.5 Generate the V2 TypeScript client from candidate OpenAPI": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468235
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905746
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849797
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097728531
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784105831604
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784108286732
+      }
+    ],
+    "1.6 Implement or deliberately remove the unimplemented email-verification contract": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468364
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905855
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849807
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097728772
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784108300489
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784110825045
+      }
+    ],
+    "1.7 Make backend project installation/release metadata reproducible": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468483
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886905986
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849821
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097728973
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784110837003
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784112763753
+      }
+    ],
+    "2.1 Generate and approve the endpoint authority matrix": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468595
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906105
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849827
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097729179
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784112775084
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784115973790
+      }
+    ],
+    "2.2 Replace raw role checks with capability/ownership/assignment policies": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468737
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906225
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849841
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097729631
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784115985582
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148697896
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148729394
+      }
+    ],
+    "2.3 Make tenant host resolution fail closed": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468886
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906352
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849863
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097730050
+      },
+      {
+        "executionId": "2395b7f6-9941-4fc7-897a-fdfa3c708c5e",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784136729942
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148698491
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784152293725
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784153692698
+      }
+    ],
+    "2.4 Retire the fake permissions UI and legacy override authority": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878468997
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906465
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849874
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097730228
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148698968
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784153703811
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784157067545
+      }
+    ],
+    "2.5 Repair reviewer membership, queue, assignment, and workload rules": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878469127
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906605
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849882
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097730387
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148699457
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784157079557
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784161193002
+      }
+    ],
+    "3.1 Replace static hand lists with a live schema manifest/diff tool": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878469285
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906712
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849905
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097730588
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148699689
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784161209241
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784171599647
+      }
+    ],
+    "3.2 Inventory and remediate canonical assignment data": [
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906824
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849912
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097730805
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148700253
+      },
+      {
+        "executionId": "907f09bb-54e2-4916-930d-ffe1cb62f1dd",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784171619846
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157415
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184181564
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784185155939
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784186116237
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784193182876
+      }
+    ],
+    "3.3 Add catalog, fee, grant, template, waitlist, and capacity constraints": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878469578
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886906931
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849917
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731003
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148700447
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157550
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784193220519
+      },
+      {
+        "executionId": "2c91dc50-a493-404a-b8ba-06f4a2c402e0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784662361186
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784694329172
+      }
+    ],
+    "3.4 Validate every tenant foreign key": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878469720
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907061
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849926
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731175
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148700683
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157616
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664152587
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784694365418
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784698937048
+      }
+    ],
+    "3.5 Reconcile canonical payments and document versions": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878469862
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907195
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849931
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731353
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148700878
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157687
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664152722
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784698947642
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784716510522
+      }
+    ],
+    "3.6 Generate migration history from real databases": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470005
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907333
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849937
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731528
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148701081
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157768
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664152816
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784716521282
+      },
+      {
+        "executionId": "c83f56d4-b7d1-4a5a-b8ba-942443f8f2f1",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784722414905
+      }
+    ],
+    "4.1 Implement durable resumable tenant onboarding": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470145
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907464
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849943
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731763
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148701312
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157838
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664152963
+      },
+      {
+        "executionId": "c83f56d4-b7d1-4a5a-b8ba-942443f8f2f1",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784722435296
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728242950
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728291663
+      }
+    ],
+    "4.2 Implement atomic tenant-admin invitation and membership handoff": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470261
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907579
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849950
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097731938
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148701518
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184157936
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153118
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728243221
+      },
+      {
+        "executionId": "27684f68-5c13-4c56-904f-6af1e0942951",
+        "chatSessionId": "sess_23d0cab8-0214-4ae0-9535-36de7a54f785",
+        "timestamp": 1784736474851
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784759202351
+      }
+    ],
+    "4.3 Make onboarding configuration steps real canonical mutations": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470389
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907714
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849956
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097732121
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148701742
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158006
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153235
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728243449
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784759227924
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784764899931
+      }
+    ],
+    "4.4 Complete domain verification and lifecycle": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470517
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907838
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849965
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097732265
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148701914
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158065
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153344
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728243736
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784764910969
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784767986070
+      }
+    ],
+    "4.5 Implement tenant change requests end to end": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470656
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886907951
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849970
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097732515
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148702131
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158134
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153464
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728244304
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784769145311
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784772528203
+      }
+    ],
+    "5.1 Retire legacy catalog writes from the frontend": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470790
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908065
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849978
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097732718
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148702364
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158202
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153635
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728244527
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784772548140
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784777716993
+      }
+    ],
+    "5.2 Make assignment and requirement resolution canonical and fail closed": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470891
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908181
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849982
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097732913
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148702883
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158309
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153729
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728244710
+      },
+      {
+        "executionId": "2d4d8c9d-4ea6-4efd-9704-6eac993c2909",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784777734459
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784850693449
+      }
+    ],
+    "5.3 Rebuild capacity, waitlist, withdrawal, and promotion around IDs/locks": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878470989
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908333
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849987
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097733092
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148703079
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158383
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153855
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728244928
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784850713546
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784854178897
+      }
+    ],
+    "5.4 Replace fee defaults/name lookup with canonical fee schedules": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878471088
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908435
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849992
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097733286
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148703264
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158496
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664153962
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728245471
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784854204433
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784861803253
+      }
+    ],
+    "6.1 Make profile/settings autosave canonical": [
+      {
+        "executionId": "452bdd7c-a103-475d-9a29-0634c99c7112",
+        "chatSessionId": "sess_ea80f39c-7935-4133-91c2-dacb12a5e464",
+        "timestamp": 1783878471174
+      },
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908564
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943849998
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097733476
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148703469
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158579
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154085
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728245647
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784861967678
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784865504405
+      }
+    ],
+    "6.2 Implement valid server draft start/list/rename policy": [
+      {
+        "executionId": "9d950fac-6933-47bd-9b21-4ea7275163e5",
+        "chatSessionId": "sess_cec85a1a-27a8-42b0-b1f9-064c2f315ac3",
+        "timestamp": 1783886908718
+      },
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850002
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097733650
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148703672
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158684
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154189
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728245859
+      },
+      {
+        "executionId": "f7a77b8b-a216-4dc8-b682-477a89f52fa9",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784865520512
+      },
+      {
+        "executionId": "290ff6a8-df85-47be-a694-cc5e18f4d0e6",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784927471717
+      },
+      {
+        "executionId": "290ff6a8-df85-47be-a694-cc5e18f4d0e6",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784929774612
+      }
+    ],
+    "6.3 Consolidate draft persistence into one state machine": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148703849
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158761
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154312
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728245992
+      },
+      {
+        "executionId": "290ff6a8-df85-47be-a694-cc5e18f4d0e6",
+        "chatSessionId": "sess_0c349832-542f-4ef9-849f-4a98e27bf169",
+        "timestamp": 1784929793919
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996052392
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996071039
+      },
+      {
+        "executionId": "ff48fb26-260e-4029-937d-152166f9f4b2",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791442920494
+      },
+      {
+        "executionId": "ff48fb26-260e-4029-937d-152166f9f4b2",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791443109811
+      },
+      {
+        "executionId": "ff48fb26-260e-4029-937d-152166f9f4b2",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791504215148
+      }
+    ],
+    "6.4 Add transactional application selection change": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850011
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097734030
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148704054
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158821
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154429
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728246170
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958367227
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996052597
+      },
+      {
+        "executionId": "94561acb-e9d4-4e1a-8243-ccb7376d8c52",
+        "chatSessionId": "sess_629db56e-0d8f-4ff0-8d96-7b50fb188a22",
+        "timestamp": 1785010980213
+      },
+      {
+        "executionId": "94561acb-e9d4-4e1a-8243-ccb7376d8c52",
+        "chatSessionId": "sess_629db56e-0d8f-4ff0-8d96-7b50fb188a22",
+        "timestamp": 1785015553265
+      }
+    ],
+    "6.5 Add authoritative server readiness and locked submission": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850018
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097734237
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148704287
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158900
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154591
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728246764
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958367465
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996052762
+      },
+      {
+        "executionId": "94561acb-e9d4-4e1a-8243-ccb7376d8c52",
+        "chatSessionId": "sess_629db56e-0d8f-4ff0-8d96-7b50fb188a22",
+        "timestamp": 1785015562405
+      },
+      {
+        "executionId": "699e8ab5-3695-42df-9d72-53e99309003f",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785039444122
+      }
+    ],
+    "7.1 Seed and enforce the canonical subject/grade contract": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850023
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097734410
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148704750
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184158965
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154694
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728246965
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958367642
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996052941
+      },
+      {
+        "executionId": "699e8ab5-3695-42df-9d72-53e99309003f",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785039451927
+      },
+      {
+        "executionId": "699e8ab5-3695-42df-9d72-53e99309003f",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785046343089
+      }
+    ],
+    "7.2 Render and persist dynamic required documents": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850028
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097734588
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148704941
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159094
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154811
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728247158
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958367821
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053062
+      },
+      {
+        "executionId": "699e8ab5-3695-42df-9d72-53e99309003f",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785046353515
+      },
+      {
+        "executionId": "2dde2b95-c684-4468-834f-065dcca6ca73",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785059856498
+      }
+    ],
+    "7.3 Implement immutable document versions and storage compensation": [
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664154929
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728247362
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958367986
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053233
+      },
+      {
+        "executionId": "2dde2b95-c684-4468-834f-065dcca6ca73",
+        "chatSessionId": "sess_c0ac2bb6-76e5-47d5-96c1-1c2df3ea7f82",
+        "timestamp": 1785059872387
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184208198
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184254544
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960231421
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960252092
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785968848484
+      }
+    ],
+    "7.4 Remove admissions generative AI and generated summaries": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097734954
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148705330
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159282
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155038
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728247644
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368142
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053364
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184208403
+      },
+      {
+        "executionId": "defcf41b-e4d7-4348-b938-92a4137f2dfe",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785262306234
+      },
+      {
+        "executionId": "defcf41b-e4d7-4348-b938-92a4137f2dfe",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785265413671
+      }
+    ],
+    "7.5 Make deterministic OCR optional assistance only": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097735145
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148705549
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159344
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155158
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728247896
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368296
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053489
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184208596
+      },
+      {
+        "executionId": "3c3551b9-2bc4-4fde-980d-23909b27dc52",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785330392596
+      },
+      {
+        "executionId": "3c3551b9-2bc4-4fde-980d-23909b27dc52",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785337221741
+      }
+    ],
+    "8.1 Implement expiring server-authored fee quotes": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097735318
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148705732
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159431
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155287
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248126
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368496
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053647
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184208771
+      },
+      {
+        "executionId": "3c3551b9-2bc4-4fde-980d-23909b27dc52",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785337232438
+      },
+      {
+        "executionId": "3c3551b9-2bc4-4fde-980d-23909b27dc52",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785358034659
+      }
+    ],
+    "8.2 Converge on one payment state machine and service path": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097735548
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148705952
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159510
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155402
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248276
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368607
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053789
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184208952
+      },
+      {
+        "executionId": "3c3551b9-2bc4-4fde-980d-23909b27dc52",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785358043773
+      },
+      {
+        "executionId": "170e2c54-c256-4b13-8eaa-239a45103580",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785441747561
+      }
+    ],
+    "8.3 Complete the student payment ownership split": [
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159597
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155521
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248450
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368754
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996053921
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209119
+      },
+      {
+        "executionId": "170e2c54-c256-4b13-8eaa-239a45103580",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785441761902
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960231597
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785968857058
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785988862803
+      }
+    ],
+    "8.4 Make fee administration and settlement server-scoped/capability-gated": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148706309
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159678
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155661
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248613
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368877
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054065
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209298
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960231721
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785988870401
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785996358913
+      }
+    ],
+    "9.1 Create one scoped applications query and aggregate contract": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148706529
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159753
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664155798
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248774
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958368994
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054220
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209470
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960231891
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785996370947
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786150522509
+      }
+    ],
+    "9.2 Make dashboard metrics truthful": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148706784
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159830
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156006
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728248911
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369134
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054370
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209594
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232013
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786150532721
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786163856580
+      }
+    ],
+    "9.3 Rebuild user directory CRUD, import, bulk, and export": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148706956
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159902
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156104
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728249128
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369294
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054492
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209750
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232137
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786163868511
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786172280999
+      }
+    ],
+    "9.4 Build one deterministic admin review workspace": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148707147
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184159985
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156213
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728249296
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369391
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054691
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184209941
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232276
+      },
+      {
+        "executionId": "2ea88b90-5260-49b6-b80c-2d66bc37a71f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786172294184
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786183236906
+      }
+    ],
+    "9.5 Correct tenant audit and amendment notification scope": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097736855
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148707313
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160067
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156327
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728249463
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369509
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054806
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184210114
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232410
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786189911539
+      }
+    ],
+    "10.1 Consolidate notifications and communications": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737054
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148707618
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160141
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156434
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728249647
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369635
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996054949
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184210334
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232590
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786197067629
+      }
+    ],
+    "10.2 Implement condition evidence and amendment history": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737215
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148707797
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160198
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156532
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728249892
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369744
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055153
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184210500
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232720
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786216991889
+      }
+    ],
+    "10.3 Make enrollment readiness and confirmation transactional": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737431
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148707995
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160250
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156645
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250078
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369851
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055274
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184210683
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232878
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786221912632
+      }
+    ],
+    "10.4 Make official-document work durable and historically readable": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737614
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148708175
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160313
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156795
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250279
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958369974
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055436
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184210819
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960232994
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786225971992
+      }
+    ],
+    "10.5 Secure and correct public tracking": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737806
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148708439
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160413
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664156952
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250475
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370097
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055628
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211051
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233103
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786235367863
+      }
+    ],
+    "10.6 Consolidate the student application workspace": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097737996
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148708644
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160499
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157052
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250641
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370226
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055791
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211209
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233233
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786261781525
+      }
+    ],
+    "11.1 Recompose the student dashboard around next action": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097738171
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148708855
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160573
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157173
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250837
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370363
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996055922
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211358
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233341
+      },
+      {
+        "executionId": "5c37182f-bc83-452a-9598-a8b1b1bbad3f",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786275584538
+      }
+    ],
+    "11.2 Recompose the mobile wizard": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097738348
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148709125
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160654
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157305
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728250976
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370499
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056070
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211509
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233468
+      },
+      {
+        "executionId": "f8b5a7d5-d0ac-4eb9-8e68-d2ed0602165a",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786309339724
+      }
+    ],
+    "11.3 Reduce application/document action density": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097738535
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148709300
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160737
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157423
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728251124
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370660
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056174
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211655
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233586
+      },
+      {
+        "executionId": "f8b5a7d5-d0ac-4eb9-8e68-d2ed0602165a",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786333626806
+      }
+    ],
+    "11.4 Make admin surfaces complete on mobile": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097738745
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148709494
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160798
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157548
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728251369
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370792
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056304
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184211835
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233755
+      },
+      {
+        "executionId": "f8b5a7d5-d0ac-4eb9-8e68-d2ed0602165a",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786344627617
+      }
+    ],
+    "11.5 Apply the product design system and remove operational fluff": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097738943
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148709688
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160864
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157660
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728251528
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958370924
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056443
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212005
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960233870
+      },
+      {
+        "executionId": "f8b5a7d5-d0ac-4eb9-8e68-d2ed0602165a",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786353264493
+      }
+    ],
+    "12.1 Split oversized modules after behavior is protected": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097739131
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148709865
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160915
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157795
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728251701
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371028
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056605
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212179
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234006
+      },
+      {
+        "executionId": "f8b5a7d5-d0ac-4eb9-8e68-d2ed0602165a",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1786375954759
+      }
+    ],
+    "12.2 Remove V1 first-party compatibility normalizers and duplicate routes": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850138
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097739339
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148710072
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184160982
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664157951
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728251867
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371208
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056728
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212334
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234134
+      }
+    ],
+    "12.3 Contract legacy identity and payment columns safely": [
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097739523
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148710270
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161044
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158061
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252038
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371334
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996056850
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212586
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234271
+      },
+      {
+        "executionId": "c4ffbd9f-f074-4929-aa0e-0346cc98e1c8",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791517499346
+      }
+    ],
+    "12.4 Remove admissions AI/OCR/browser and other dead dependencies/assets": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850146
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097739666
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148710549
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161113
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158169
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252263
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371514
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057011
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212715
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234443
+      }
+    ],
+    "12.5 Run the final grep-loop canonical-path review": [
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148710744
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161181
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158380
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252458
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371607
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057143
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184212892
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234617
+      },
+      {
+        "executionId": "c4ffbd9f-f074-4929-aa0e-0346cc98e1c8",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791516453744
+      },
+      {
+        "executionId": "c4ffbd9f-f074-4929-aa0e-0346cc98e1c8",
+        "chatSessionId": "sess_d2cddacf-e2ad-43e5-ba60-d127f2c7acbc",
+        "timestamp": 1791517500386
+      }
+    ],
+    "13.1 Run the complete functional and quality gate": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850155
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097740138
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711016
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161246
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158489
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252613
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371724
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057256
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213060
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234754
+      }
+    ],
+    "13.2 Run the two-tenant golden and adversarial matrix": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850159
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097740299
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711200
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161320
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158602
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252765
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371851
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057380
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213220
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960234931
+      }
+    ],
+    "13.3 Verify mobile, zoom, accessibility, and long-content behavior": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850163
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097740493
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711397
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161388
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158762
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728252925
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958371959
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057512
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213380
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960235103
+      }
+    ],
+    "13.4 Rehearse data migration, rollback, and operational recovery": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850167
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097740649
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711579
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161463
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664158886
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728253073
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958372078
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057656
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213510
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960235250
+      }
+    ],
+    "13.5 Deploy canary and run production read-only/post-deploy proof": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850170
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097740911
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711762
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161531
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664159013
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728253307
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958372181
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057793
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213674
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960235389
+      }
+    ],
+    "13.6 Close the spec truthfully": [
+      {
+        "executionId": "5d537afc-7596-4120-bf31-215cc05c8d3e",
+        "chatSessionId": "sess_df7fe61b-f43f-41d2-9fc3-1bb92e1f7176",
+        "timestamp": 1783943850174
+      },
+      {
+        "executionId": "6e825c3d-8a0f-4066-a150-7a29308a68f6",
+        "chatSessionId": "sess_91ed7e13-d68b-4b1d-8492-518c4453e9c0",
+        "timestamp": 1784097741062
+      },
+      {
+        "executionId": "70317a7f-3e87-494b-b87f-ad8961bb6146",
+        "chatSessionId": "sess_141d458c-0d72-42d7-8a3c-644aac4fcfd7",
+        "timestamp": 1784148711961
+      },
+      {
+        "executionId": "f795ada0-08a0-4bc7-85c7-772c28ff1ac0",
+        "chatSessionId": "sess_36002ad8-d448-436c-b6af-ea1076c40824",
+        "timestamp": 1784184161600
+      },
+      {
+        "executionId": "9a5344b2-8c11-4ecf-9adc-54d1473f43b8",
+        "chatSessionId": "sess_dde22655-0f56-436e-a3b5-eb1c5eb46175",
+        "timestamp": 1784664159131
+      },
+      {
+        "executionId": "c919a793-8118-464f-b13b-c2823424022e",
+        "chatSessionId": "sess_ff3dae76-0ec8-4de8-ab6f-a851ab6d0d7f",
+        "timestamp": 1784728253469
+      },
+      {
+        "executionId": "606c9105-0181-4bfc-b2cf-7b1b32144e52",
+        "chatSessionId": "sess_2b3daf5a-ab1c-43fd-ab36-e49450679ef8",
+        "timestamp": 1784958372345
+      },
+      {
+        "executionId": "9262a921-6d4c-4cea-b734-72bc9e67567a",
+        "chatSessionId": "sess_48760031-f882-4a95-8f71-39d8aa6c8c9b",
+        "timestamp": 1784996057941
+      },
+      {
+        "executionId": "ff743839-bf8a-459e-ac74-67daa61a0d6c",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785184213805
+      },
+      {
+        "executionId": "405d3978-cab6-4514-894a-cb1f21c3e592",
+        "chatSessionId": "sess_84452e45-ea36-49b1-9d0a-060b001a47e4",
+        "timestamp": 1785960235527
+      }
+    ]
+  }
+}

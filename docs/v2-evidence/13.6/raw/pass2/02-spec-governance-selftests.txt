@@ -1,0 +1,57 @@
+=== 13.6 SECOND PASS (O10) — spec governance validator SELF-TESTS ===
+DATE: 2026-08-14T19:38:29Z
+CMD : python3 -m unittest scripts.tests.test_validate_spec_governance -v
+STATE: FINAL (see 01)
+FIRST PASS: Ran 20 tests - FAILED (failures=2)
+
+test_fully_satisfied_spec_passes (scripts.tests.test_validate_spec_governance.CleanSpecPassesTests.test_fully_satisfied_spec_passes) ... ok
+test_clean_target_exits_zero (scripts.tests.test_validate_spec_governance.CliExitCodeTests.test_clean_target_exits_zero) ... ok
+test_violation_exits_two (scripts.tests.test_validate_spec_governance.CliExitCodeTests.test_violation_exits_two) ... ok
+test_finding_row_parser_ignores_header_and_separator (scripts.tests.test_validate_spec_governance.ParserRobustnessTests.test_finding_row_parser_ignores_header_and_separator) ... ok
+test_requirement_tokens_ignore_trailing_underscore_and_ranges (scripts.tests.test_validate_spec_governance.ParserRobustnessTests.test_requirement_tokens_ignore_trailing_underscore_and_ranges) ... ok
+test_task_ids_with_and_without_trailing_period (scripts.tests.test_validate_spec_governance.ParserRobustnessTests.test_task_ids_with_and_without_trailing_period) ... ok
+test_admissions_v2_spec_passes_all_rules (scripts.tests.test_validate_spec_governance.RealRepoRegressionTests.test_admissions_v2_spec_passes_all_rules) ... ok
+test_all_specs_audit_detects_known_false_completed (scripts.tests.test_validate_spec_governance.RealRepoRegressionTests.test_all_specs_audit_detects_known_false_completed) ... ok
+test_v2_spec_shape_is_parsed (scripts.tests.test_validate_spec_governance.RealRepoRegressionTests.test_v2_spec_shape_is_parsed) ... ok
+test_duplicate_live_spec_id_fails_via_delegation (scripts.tests.test_validate_spec_governance.RuleDuplicateSpecIdTests.test_duplicate_live_spec_id_fails_via_delegation) ... ok
+test_unique_ids_do_not_trip_duplicate_rule (scripts.tests.test_validate_spec_governance.RuleDuplicateSpecIdTests.test_unique_ids_do_not_trip_duplicate_rule) ... ok
+test_completed_spec_with_all_tasks_checked_passes_status_rule (scripts.tests.test_validate_spec_governance.RuleFalseCompletedTests.test_completed_spec_with_all_tasks_checked_passes_status_rule) ... ok
+test_completed_spec_with_unchecked_task_fails (scripts.tests.test_validate_spec_governance.RuleFalseCompletedTests.test_completed_spec_with_unchecked_task_fails) ... ok
+test_checked_task_with_descriptor_but_no_evidence_dir_fails (scripts.tests.test_validate_spec_governance.RuleMissingEvidenceTests.test_checked_task_with_descriptor_but_no_evidence_dir_fails) ... ok
+test_checked_task_without_evidence_descriptor_or_dir_fails (scripts.tests.test_validate_spec_governance.RuleMissingEvidenceTests.test_checked_task_without_evidence_descriptor_or_dir_fails) ... ok
+test_unchecked_task_needs_no_evidence (scripts.tests.test_validate_spec_governance.RuleMissingEvidenceTests.test_unchecked_task_needs_no_evidence) ... ok
+test_finding_owned_as_last_token_with_trailing_underscore_passes (scripts.tests.test_validate_spec_governance.RuleUnownedFindingTests.test_finding_owned_as_last_token_with_trailing_underscore_passes) ... ok
+test_finding_without_owner_requirement_fails (scripts.tests.test_validate_spec_governance.RuleUnownedFindingTests.test_finding_without_owner_requirement_fails) ... ok
+test_all_requirements_referenced_passes (scripts.tests.test_validate_spec_governance.RuleUnreferencedRequirementTests.test_all_requirements_referenced_passes) ... ok
+test_requirement_referenced_by_no_task_fails (scripts.tests.test_validate_spec_governance.RuleUnreferencedRequirementTests.test_requirement_referenced_by_no_task_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.034s
+
+OK
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmpkdeesn1l/.kiro/specs
+Evidence root: /tmp/tmpkdeesn1l/docs/v2-evidence
+Target:        only-spec
+Errors: 0  Warnings: 0
+
+[only-spec] status=planned reqs=1 findings=1 tasks=1 (checked=1)
+
+RESULT: PASS
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmpb7dmxxcb/.kiro/specs
+Evidence root: /tmp/tmpb7dmxxcb/docs/v2-evidence
+Target:        only-spec
+Errors: 1  Warnings: 0
+
+[only-spec] status=completed reqs=1 findings=1 tasks=1 (checked=0)
+
+ERRORS (block):
+  [only-spec] (false-completed) spec is marked status=completed but 1 required task(s) are unchecked: 1.1
+
+RESULT: FAIL (governance violations present)
+EXIT=0

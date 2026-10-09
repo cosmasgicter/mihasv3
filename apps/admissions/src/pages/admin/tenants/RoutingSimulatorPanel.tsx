@@ -50,6 +50,32 @@ export function RoutingSimulatorPanel({
   institutionId: string
   institutionName: string
 }) {
+  return (
+    <SectionCard
+      title="Test routing"
+      description="Dry-run the real assignment service for a program + intake. The result matches exactly what a real submission would route — no application is created."
+      icon={<Route className="h-5 w-5" />}
+    >
+      <RoutingSimulatorBody institutionId={institutionId} institutionName={institutionName} />
+    </SectionCard>
+  )
+}
+
+/**
+ * Card-less routing-simulator body (task 4.3).
+ *
+ * Extracted from {@link RoutingSimulatorPanel} so the tenant onboarding wizard
+ * can embed the identical "Test routing" experience inside its own step
+ * `SectionCard` without nesting cards (design §13.3). The console panel wraps
+ * this in its own `SectionCard`; the wizard renders it bare.
+ */
+export function RoutingSimulatorBody({
+  institutionId,
+  institutionName,
+}: {
+  institutionId: string
+  institutionName: string
+}) {
   const [form, setForm] = useState<SimulatorForm>({
     program_id: '',
     intake_id: '',
@@ -107,11 +133,7 @@ export function RoutingSimulatorPanel({
   const loadError = programsQuery.isError || intakesQuery.isError
 
   return (
-    <SectionCard
-      title="Test routing"
-      description="Dry-run the real assignment service for a program + intake. The result matches exactly what a real submission would route — no application is created."
-      icon={<Route className="h-5 w-5" />}
-    >
+    <>
       {loadError ? (
         <ErrorDisplay
           message="Could not load programs or intakes for the simulator."
@@ -195,7 +217,7 @@ export function RoutingSimulatorPanel({
           {result && <RoutingSimulationOutcome result={result} />}
         </div>
       )}
-    </SectionCard>
+    </>
   )
 }
 

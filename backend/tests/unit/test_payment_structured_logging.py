@@ -192,7 +192,7 @@ def seed_pending_payment(seed_owner):
 )
 @pytest.mark.django_db(transaction=True)
 def test_payment_service_initiation_emits_structured_extra(seed_owner):
-    """``PaymentService.initiate_payment`` logs carry the R22.5 ``extra`` dict.
+    """``PaymentService.initiate`` logs carry the R22.5 ``extra`` dict.
 
     Validates: Requirements R22.5
     """
@@ -203,7 +203,8 @@ def test_payment_service_initiation_emits_structured_extra(seed_owner):
 
     with patch("apps.documents.payment_service.logger") as mock_logger:
         try:
-            PaymentService().initiate_payment(
+            # ``initiate`` is the only initialisation path since task 8.2.
+            PaymentService().initiate(
                 application_id=application.id, user_id=profile.id,
             )
         except Exception:
@@ -214,7 +215,7 @@ def test_payment_service_initiation_emits_structured_extra(seed_owner):
     extras = _captured_extras(mock_logger)
     assert extras, (
         "Expected at least one ``extra=``-tagged log record during "
-        "PaymentService.initiate_payment; got none."
+        "PaymentService.initiate; got none."
     )
     for extra in extras:
         _assert_structured_extra(extra)
@@ -233,10 +234,6 @@ def test_payment_service_initiation_emits_structured_extra(seed_owner):
     strict=False,
 )
 @pytest.mark.django_db(transaction=True)
-@override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-    PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True,
-)
 def test_webhook_processor_cycle_emits_structured_extra(
     seed_pending_payment,
 ):

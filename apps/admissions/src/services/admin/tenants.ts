@@ -15,6 +15,7 @@ export interface TenantInstitution {
   admissions_email?: string | null
   phone?: string | null
   website?: string | null
+  address?: string | null
   primary_color?: string | null
   secondary_color?: string | null
   accreditation_status?: string | null
@@ -53,6 +54,7 @@ export type TenantDomainStatus =
   | 'active'
   | 'disabled'
   | 'failed'
+  | 'rejected'
 
 export interface TenantDomain {
   id: string
@@ -232,6 +234,45 @@ export interface TenantMembership {
   is_active?: boolean
 }
 
+/**
+ * A tenant staff invitation (task 4.2, R4.3-R4.4). The atomic invite endpoint
+ * creates the identity, this invitation, and the membership in one transaction
+ * and emails a single-use accept link — it NEVER returns a token or password,
+ * so this shape deliberately has no `token`/`password` field.
+ */
+export interface TenantStaffInvitation {
+  id: string
+  institution_id: string
+  email: string
+  invited_role: string
+  permissions?: string[] | null
+  status: 'pending' | 'accepted' | 'revoked' | 'expired' | string
+  profile_id?: string | null
+  membership_id?: string | null
+  expires_at?: string | null
+  accepted_at?: string | null
+  revoked_at?: string | null
+  last_sent_at?: string | null
+  resend_count?: number
+  created_at?: string | null
+}
+
+/** A candidate identity for the invite-by-email search selector (R6.3, TEN-05). */
+export interface TenantStaffCandidate {
+  id: string
+  email: string
+  full_name: string
+  role: string
+}
+
+export interface TenantStaffInvitePayload {
+  institution_id: string
+  email: string
+  role?: string
+  full_name?: string
+  permissions?: string[]
+}
+
 export interface TenantAccessGrant {
   id: string
   user_id: string
@@ -297,27 +338,113 @@ export interface RoutingSimulationResult {
   }
 }
 
+/**
+ * A canonical application/tuition fee row for a program offering (R7.3, R7.4).
+ * Mirrors the backend `ProgramFeeSerializer` (`/api/v1/programs/{id}/fees/`).
+ * One active fee is enforced per `(program, fee_type, residency_category)`;
+ * a duplicate race returns `DUPLICATE_ACTIVE_FEE` (409).
+ */
+export interface TenantProgramFee {
+  id: string
+  program_id: string
+  fee_type: 'application' | 'tuition' | string
+  residency_category: 'local' | 'international' | string
+  amount: string | number
+  currency: string
+  is_active?: boolean
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export type TenantProgramFeePayload = Pick<
+  TenantProgramFee,
+  'fee_type' | 'residency_category' | 'amount'
+> & { currency?: string }
+
+/**
+ * Payload to assign a Canonical_Program to a tenant, creating an
+ * Institution_Program_Offering (R7.1, R7.3). Posted to
+ * `POST /api/v1/catalog/programs/`; the server derives the tenant + snapshots
+ * from the canonical IDs. `canonical_program_id` is the only write authority —
+ * never a display string.
+ */
+export interface CreateOfferingPayload {
+  canonical_program_id: string
+  name: string
+  code: string
+  duration_months?: number
+  assignment_priority?: number
+  offering_status?: string
+  tuition_fee?: number | string
+  regulatory_body?: string
+  accreditation_status?: string
+  requirements?: Record<string, unknown>
+}
+
+/**
+ * A created Intake_Offering junction row (R7.3). Mirrors the backend
+ * `AdminProgramIntakeSerializer` (`POST /api/v1/admin/program-intakes/`).
+ */
+export interface TenantProgramIntake {
+  id: string
+  program_id: string
+  intake_id: string
+  max_capacity?: number | null
+  current_enrollment?: number | null
+  assignment_priority?: number | null
+  is_active?: boolean
+}
+
+/** Payload to link an offering to an intake with an optional seat capacity (R4.2, R7.3). */
+export interface CreateProgramIntakePayload {
+  program_id: string
+  intake_id: string
+  max_capacity?: number | null
+  assignment_priority?: number | null
+}
+
 export type TenantAssetPayload = Pick<TenantAsset, 'asset_type' | 'storage_key' | 'mime_type'> & Partial<TenantAsset>
 export type TenantTemplatePayload = Pick<TenantTemplate, 'document_type' | 'name'> & Partial<TenantTemplate>
 export type TenantRequiredDocumentPayload = Pick<TenantRequiredDocument, 'document_type' | 'label'> & Partial<TenantRequiredDocument>
 export type TenantMembershipPayload = Pick<TenantMembership, 'user_id' | 'institution_id' | 'role'> & Partial<TenantMembership>
 export type TenantAccessGrantPayload = Pick<TenantAccessGrant, 'user_id' | 'scope_type'> & Partial<TenantAccessGrant>
 
+/**
+ * Read the item list out of an admin tenant list response.
+ *
+ * Task 12.2 (R14.5, finding API-02) deleted the `.data` and `.data.results`
+ * branches: `apiClient.request` unwraps exactly one `{success, data}` level, so
+ * both required a second envelope no admin endpoint emits. The two remaining
+ * shapes are real — `{page, pageSize, totalCount, results}` from
+ * `StandardPagination`, and a bare array from the endpoints that return
+ * `{"success": True, "data": [...]}` unpaginated.
+ *
+ * Zero first-party callers, measured by `scripts/v1_surface_telemetry.py`
+ * (surface `normalizer.admin_tenants.listFromResponse`).
+ */
 function listFromResponse<T>(response: RawList<T>): T[] {
   if (Array.isArray(response)) return response
   if (!response || typeof response !== 'object') return []
   if (Array.isArray(response.results)) return response.results
-  if (Array.isArray(response.data)) return response.data
-  if (response.data && typeof response.data === 'object' && Array.isArray(response.data.results)) {
-    return response.data.results
-  }
   return []
 }
 
+/**
+ * The list plus its server-owned total.
+ *
+ * `response.count` — DRF's *default* pagination key — was removed by task 12.2.
+ * This platform's pagination class is `StandardPagination`, which publishes
+ * `totalCount` and has no `count` key at all (`backend/apps/common/pagination.py`).
+ * Reading `count` was reading a key from a pagination class this platform does
+ * not use, and its effect when both were absent was to report the **page
+ * length** as the total — a browser-side number standing in for a server one,
+ * which is the habit finding ADM-06 named. `items.length` remains as the
+ * un-paginated fallback, where it is the true total rather than a guess.
+ */
 function listResult<T>(response: RawList<T>) {
   const items = listFromResponse(response)
   const totalCount = response && typeof response === 'object' && !Array.isArray(response)
-    ? response.totalCount ?? response.count ?? items.length
+    ? response.totalCount ?? items.length
     : items.length
   return { items, totalCount }
 }
@@ -347,6 +474,16 @@ export const tenantAdminService = {
       })
     } catch (error) {
       logApiError('admin-tenants', '/api/v1/admin/institutions/', error)
+      throw error
+    }
+  },
+
+  getInstitution: async (id: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(id)}/`
+    try {
+      return await apiClient.request<TenantInstitution>(endpoint, { method: 'GET' })
+    } catch (error) {
+      logApiError('admin-tenant-detail', endpoint, error)
       throw error
     }
   },
@@ -393,6 +530,73 @@ export const tenantAdminService = {
    */
   activateDomain: async (institutionId: string, domainId: string) => {
     const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/activate/`
+    try {
+      return await apiClient.request<TenantDomain>(endpoint, { method: 'POST' })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Re-run verification for a domain (R5.1). Super-admin only
+   * (`AdminTenantDomainRetryView`, `platform.domain.manage`). Valid from
+   * `pending_dns` / `failed` / `rejected` — the backend commits a fresh
+   * verification job before returning `202 Accepted`; any other status is
+   * rejected with `DOMAIN_TRANSITION_REJECTED` (409).
+   */
+  retryDomain: async (institutionId: string, domainId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/retry/`
+    try {
+      return await apiClient.request<TenantDomain>(endpoint, { method: 'POST' })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Approve a DNS-verified domain (R5.1): `pending_review → verified`.
+   * Super-admin only (`platform.domain.manage`). Approving does not make the
+   * domain route a tenant — a subsequent `activateDomain` does.
+   */
+  approveDomain: async (institutionId: string, domainId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/approve/`
+    try {
+      return await apiClient.request<TenantDomain>(endpoint, { method: 'POST' })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Reject a domain pending review (R5.1): `pending_review → rejected`. An
+   * optional operator `reason` is stored on the domain. Super-admin only
+   * (`platform.domain.manage`). A rejected domain can only re-enter the
+   * lifecycle via `retryDomain`.
+   */
+  rejectDomain: async (institutionId: string, domainId: string, reason?: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/reject/`
+    try {
+      return await apiClient.request<TenantDomain>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(reason ? { reason } : {}),
+      })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Reactivate a disabled domain (R5.1): `disabled → active`. Super-admin only
+   * (`platform.domain.manage`); sets the row active again so the fail-closed
+   * resolver routes the tenant. A hostname another tenant activated meanwhile
+   * returns `HOSTNAME_CONFLICT` (409).
+   */
+  reactivateDomain: async (institutionId: string, domainId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/reactivate/`
     try {
       return await apiClient.request<TenantDomain>(endpoint, { method: 'POST' })
     } catch (error) {
@@ -539,6 +743,68 @@ export const tenantAdminService = {
       body: JSON.stringify(data),
     }),
 
+  // --- Staff invitations (task 4.2, R4.3-R4.4, R6.3) ---------------------
+  //
+  // The atomic invite command replaces the old fragile flow (create user, then
+  // separately create a membership, with an operator-set password shown and
+  // persisted in localStorage — TEN-01). It creates the identity + invitation +
+  // membership server-side in one transaction, emails a single-use accept link,
+  // and returns NO token or password.
+
+  /** List staff invitations for a tenant (pending/accepted/revoked/expired). */
+  listStaffInvitations: async (institutionId: string, params?: { status?: string }) => {
+    const query = buildQueryString({ institution: institutionId, status: params?.status })
+    const endpoint = `/admin/staff/invitations/${query}`
+    try {
+      const response = await apiClient.request<RawList<TenantStaffInvitation>>(endpoint)
+      return listResult(response).items
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /** Atomically invite a staff member by email (never sets/returns a password). */
+  inviteStaff: async (data: TenantStaffInvitePayload) => {
+    const endpoint = '/admin/staff/invitations/'
+    try {
+      return await apiClient.request<TenantStaffInvitation>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /** Rotate the token and re-send a pending/expired invitation. */
+  resendStaffInvitation: async (invitationId: string) =>
+    apiClient.request<TenantStaffInvitation>(
+      `/admin/staff/invitations/${encodeURIComponent(invitationId)}/resend/`,
+      { method: 'POST' }
+    ),
+
+  /** Revoke an invitation and deactivate the membership it granted. */
+  revokeStaffInvitation: async (invitationId: string) =>
+    apiClient.request<TenantStaffInvitation>(
+      `/admin/staff/invitations/${encodeURIComponent(invitationId)}/revoke/`,
+      { method: 'POST' }
+    ),
+
+  /** Search existing identities by email/name for the invite selector (R6.3). */
+  searchStaffCandidates: async (query: string, institutionId?: string) => {
+    const qs = buildQueryString({ q: query, institution: institutionId, limit: 10 })
+    const endpoint = `/admin/staff/candidates/${qs}`
+    try {
+      const response = await apiClient.request<RawList<TenantStaffCandidate>>(endpoint)
+      return listResult(response).items
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
   listAccessGrants: async (params?: { userId?: string; institutionId?: string }) => {
     const query = buildQueryString({ user: params?.userId, institution: params?.institutionId })
     const response = await apiClient.request<RawList<TenantAccessGrant>>(`/admin/access-grants/${query}`)
@@ -601,6 +867,76 @@ export const tenantAdminService = {
     try {
       const response = await apiClient.request<RawList<TenantSettlementRow>>(endpoint)
       return listResult(response).items
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Assign a Canonical_Program to a tenant, creating an
+   * Institution_Program_Offering (R7.1, R7.3, TEN-03). Posts the canonical
+   * program id + institution id to `POST /api/v1/catalog/programs/`; the server
+   * derives snapshots and re-enforces `can_manage_program` for the owning
+   * institution. This is the only offering write path — no legacy string
+   * identifiers.
+   */
+  createOffering: async (institutionId: string, data: CreateOfferingPayload) => {
+    const endpoint = '/catalog/programs/'
+    try {
+      return await apiClient.request<TenantOffering>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ ...data, institution_id: institutionId }),
+      })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Link a tenant offering to a global Intake, creating an Intake_Offering with
+   * an optional seat capacity (R4.2, R7.3, TEN-03). Posts to
+   * `POST /api/v1/admin/program-intakes/` (platform.intake.manage). A duplicate
+   * `(program_id, intake_id)` pair returns `ALREADY_LINKED` (409).
+   */
+  createProgramIntake: async (data: CreateProgramIntakePayload) => {
+    const endpoint = '/admin/program-intakes/'
+    try {
+      return await apiClient.request<TenantProgramIntake>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /** List the canonical fees configured for an offering (R7.3, R7.4). */
+  listProgramFees: async (programId: string) => {
+    const endpoint = `/programs/${encodeURIComponent(programId)}/fees/`
+    try {
+      const response = await apiClient.request<RawList<TenantProgramFee>>(endpoint)
+      return listResult(response).items
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Create a canonical application/tuition fee for an offering (R7.3, R7.4).
+   * Posts to `POST /api/v1/programs/{id}/fees/` (super-admin). A duplicate
+   * active `(fee_type, residency)` returns `DUPLICATE_ACTIVE_FEE` (409).
+   */
+  createProgramFee: async (programId: string, data: TenantProgramFeePayload) => {
+    const endpoint = `/programs/${encodeURIComponent(programId)}/fees/`
+    try {
+      return await apiClient.request<TenantProgramFee>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ currency: 'ZMW', ...data }),
+      })
     } catch (error) {
       logApiError('admin-tenants', endpoint, error)
       throw error

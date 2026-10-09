@@ -145,6 +145,13 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
         app_num_1 = f"UC1-{uuid.uuid4().hex[:8].upper()}"
         app_num_2 = f"UC2-{uuid.uuid4().hex[:8].upper()}"
 
+        # `assignment_version` is NOT NULL with a *Python-level* default of 1
+        # (apps/applications/models.py:171). Django keeps such defaults in Python,
+        # not in the column, so a raw INSERT that bypasses the ORM must supply the
+        # value. This factory did not, so the constraint under test was never
+        # reached -- the NOT NULL fired first. Fixed by 13.6 remediation M3; the
+        # assertion (that a duplicate public_tracking_code is rejected) is
+        # unchanged.
         try:
             with self._conn.cursor() as cur:
                 cur.execute(
@@ -153,11 +160,12 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
                         (id, application_number, user_id, full_name,
                           date_of_birth, sex, phone, email, residence_town,
                           program, intake, institution, public_tracking_code,
-                          status, version, is_late_submission)
+                          status, version, is_late_submission,
+                          assignment_version)
                     VALUES (%s, %s, %s, 'Test', '2000-01-01',
                             'M', '0000000000', 't@t.local', 'Test',
                             'test-prog', 'test-int', 'MIH', %s,
-                            'draft', 1, false)
+                            'draft', 1, false, 1)
                     """,
                     (str(app_id_1), app_num_1, str(self._profile_id), tracking_code),
                 )
@@ -170,11 +178,12 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
                             (id, application_number, user_id, full_name,
                               date_of_birth, sex, phone, email, residence_town,
                               program, intake, institution, public_tracking_code,
-                              status, version, is_late_submission)
+                              status, version, is_late_submission,
+                          assignment_version)
                         VALUES (%s, %s, %s, 'Test', '2000-01-01',
                                 'M', '0000000000', 't@t.local', 'Test',
                                 'test-prog', 'test-int', 'MIH', %s,
-                                'draft', 1, false)
+                                'draft', 1, false, 1)
                         """,
                         (str(app_id_2), app_num_2, str(self._profile_id), tracking_code),
                     )

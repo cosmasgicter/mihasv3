@@ -1,0 +1,124 @@
+]633;E;echo "# M6 — validator AFTER both edits";040eebf2-88a0-46b2-8655-6fa615225688]633;C# M6 — validator AFTER both edits
+# 2026-08-15T11:40:06Z
+
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /home/cosmas/Downloads/mihasv3/.kiro/specs
+Evidence root: /home/cosmas/Downloads/mihasv3/docs/v2-evidence
+Target:        admissions-v2-canonical-rebuild
+Errors: 0  Warnings: 0
+
+[admissions-v2-canonical-rebuild] status=planned reqs=18 findings=110 tasks=73 (checked=71)
+
+RESULT: PASS
+EXIT=0
+
+## self-tests
+test_fully_satisfied_spec_passes (__main__.CleanSpecPassesTests.test_fully_satisfied_spec_passes) ... ok
+test_clean_target_exits_zero (__main__.CliExitCodeTests.test_clean_target_exits_zero) ... ok
+test_violation_exits_two (__main__.CliExitCodeTests.test_violation_exits_two) ... ok
+test_finding_row_parser_ignores_header_and_separator (__main__.ParserRobustnessTests.test_finding_row_parser_ignores_header_and_separator) ... ok
+test_requirement_tokens_ignore_trailing_underscore_and_ranges (__main__.ParserRobustnessTests.test_requirement_tokens_ignore_trailing_underscore_and_ranges) ... ok
+test_task_ids_with_and_without_trailing_period (__main__.ParserRobustnessTests.test_task_ids_with_and_without_trailing_period) ... ok
+test_admissions_v2_spec_passes_all_rules (__main__.RealRepoRegressionTests.test_admissions_v2_spec_passes_all_rules) ... ok
+test_all_specs_audit_detects_known_false_completed (__main__.RealRepoRegressionTests.test_all_specs_audit_detects_known_false_completed) ... ok
+test_every_registered_finding_has_an_owner_requirement (__main__.RealRepoRegressionTests.test_every_registered_finding_has_an_owner_requirement)
+R1.3 rule 3 over the REAL register, dotted ids included. ... ok
+test_finding_ids_are_not_truncated_by_a_dotted_neighbour (__main__.RealRepoRegressionTests.test_finding_ids_are_not_truncated_by_a_dotted_neighbour)
+No live spec contains a string the id grammar truncates. ... ok
+test_v2_spec_shape_is_parsed (__main__.RealRepoRegressionTests.test_v2_spec_shape_is_parsed) ... ok
+test_duplicate_live_spec_id_fails_via_delegation (__main__.RuleDuplicateSpecIdTests.test_duplicate_live_spec_id_fails_via_delegation) ... ok
+test_unique_ids_do_not_trip_duplicate_rule (__main__.RuleDuplicateSpecIdTests.test_unique_ids_do_not_trip_duplicate_rule) ... ok
+test_completed_spec_with_all_tasks_checked_passes_status_rule (__main__.RuleFalseCompletedTests.test_completed_spec_with_all_tasks_checked_passes_status_rule) ... ok
+test_completed_spec_with_unchecked_task_fails (__main__.RuleFalseCompletedTests.test_completed_spec_with_unchecked_task_fails) ... ok
+test_checked_task_with_descriptor_but_no_evidence_dir_fails (__main__.RuleMissingEvidenceTests.test_checked_task_with_descriptor_but_no_evidence_dir_fails) ... ok
+test_checked_task_without_evidence_descriptor_or_dir_fails (__main__.RuleMissingEvidenceTests.test_checked_task_without_evidence_descriptor_or_dir_fails) ... ok
+test_unchecked_task_needs_no_evidence (__main__.RuleMissingEvidenceTests.test_unchecked_task_needs_no_evidence) ... ok
+test_dotted_finding_with_owner_requirement_passes (__main__.RuleUnownedFindingTests.test_dotted_finding_with_owner_requirement_passes)
+The other half: a dotted id on a `_Findings:` line counts as owned. ... ok
+test_dotted_finding_without_owner_requirement_fails (__main__.RuleUnownedFindingTests.test_dotted_finding_without_owner_requirement_fails)
+The guard item M6 owes the next dotted finding (GATE-13.6-04). ... ok
+test_finding_owned_as_last_token_with_trailing_underscore_passes (__main__.RuleUnownedFindingTests.test_finding_owned_as_last_token_with_trailing_underscore_passes) ... ok
+test_finding_without_owner_requirement_fails (__main__.RuleUnownedFindingTests.test_finding_without_owner_requirement_fails) ... ok
+test_all_requirements_referenced_passes (__main__.RuleUnreferencedRequirementTests.test_all_requirements_referenced_passes) ... ok
+test_requirement_referenced_by_no_task_fails (__main__.RuleUnreferencedRequirementTests.test_requirement_referenced_by_no_task_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.042s
+
+OK
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmpwirbb_qd/.kiro/specs
+Evidence root: /tmp/tmpwirbb_qd/docs/v2-evidence
+Target:        only-spec
+Errors: 0  Warnings: 0
+
+[only-spec] status=planned reqs=1 findings=1 tasks=1 (checked=1)
+
+RESULT: PASS
+================================================================
+SPEC GOVERNANCE VALIDATION (finding/requirement/task/evidence)
+================================================================
+Specs root:    /tmp/tmpvp7t2c16/.kiro/specs
+Evidence root: /tmp/tmpvp7t2c16/docs/v2-evidence
+Target:        only-spec
+Errors: 1  Warnings: 0
+
+[only-spec] status=completed reqs=1 findings=1 tasks=1 (checked=0)
+
+ERRORS (block):
+  [only-spec] (false-completed) spec is marked status=completed but 1 required task(s) are unchecked: 1.1
+
+RESULT: FAIL (governance violations present)
+EXIT=0
+]633;E;echo;a245c4a9-b4c6-4a1f-a2f2-26099b717927]633;C
+## The blocking CI gate's own four steps (.github/workflows/spec-governance.yml)
+
+### $ python3 scripts/tests/test_validate_spec_metadata.py
+Errors: 2  Warnings: 0
+RESULT: FAIL (duplicate/invalid spec metadata)
+Errors: 0  Warnings: 0
+RESULT: PASS
+exit=0
+
+### $ python3 scripts/tests/test_validate_spec_governance.py
+Errors: 0  Warnings: 0
+RESULT: PASS
+Errors: 1  Warnings: 0
+RESULT: FAIL (governance violations present)
+exit=0
+
+### $ python3 scripts/validate_spec_metadata.py
+Errors: 0  Warnings: 2
+RESULT: PASS
+exit=0
+
+### $ python3 scripts/validate_spec_governance.py
+Errors: 0  Warnings: 0
+RESULT: PASS
+exit=0
+
+## R1.3 rule 3, stated explicitly
+  findings parsed as DEFINITIONS : 110   (71 plain + 39 dotted)
+  ids owned by some requirement  : 110
+  rule-3 'unowned-finding' errors: 0
+  -> 0 unowned over all 110: True
+
+## per-requirement attribution of the 39 (findings_by_requirement)
+  R1    6  GATE-13.1-02, GATE-13.1-03, GATE-13.1-07, GATE-13.6-01, GATE-13.6-02, GATE-13.6-04
+  R2    2  GATE-13.4-01, GATE-13.5-05
+  R5    2  GATE-13.4-01, GATE-13.5-03
+  R7    3  GATE-13.2-01, GATE-13.2-02, GATE-13.5-02
+  R8    1  GATE-13.1-04
+  R10   4  GATE-13.2-01, GATE-13.2-03, GATE-13.3-13, GATE-13.5-02
+  R13   1  GATE-13.3-09
+  R14   2  GATE-13.1-03, GATE-13.1-05
+  R15  11  GATE-13.1-01, GATE-13.1-05, GATE-13.1-06, GATE-13.1-08, GATE-13.2-01, GATE-13.3-13, GATE-13.4-02, GATE-13.5-01, GATE-13.5-02, GATE-13.6-01, GATE-13.6-03
+  R16  15  GATE-13.3-01, GATE-13.3-02, GATE-13.3-03, GATE-13.3-04, GATE-13.3-05, GATE-13.3-06, GATE-13.3-07, GATE-13.3-08, GATE-13.3-09, GATE-13.3-10, GATE-13.3-11, GATE-13.3-12, GATE-13.3-14, GATE-13.3-15, GATE-13.3-16
+  R17   2  GATE-13.1-04, GATE-13.3-07
+  R18   6  GATE-13.1-02, GATE-13.1-07, GATE-13.4-03, GATE-13.5-03, GATE-13.5-04, GATE-13.5-05
+  total (requirement, dotted finding) pairs: 55
+  distinct dotted findings covered: 39

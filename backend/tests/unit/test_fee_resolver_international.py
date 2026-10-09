@@ -69,6 +69,7 @@ class TestFeeResolverInternational(SimpleTestCase):
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
+            mock_fee_qs.filter.return_value.count.return_value = 1
             mock_fee_qs.filter.return_value.first.return_value = mock_fee
 
             resolver = FeeResolver()

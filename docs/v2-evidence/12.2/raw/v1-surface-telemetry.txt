@@ -1,0 +1,168 @@
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+V1 LEGACY-SURFACE CALLER TELEMETRY — admissions-v2 task 12.2
+==============================================================================
+R2.5-R2.7, R14.5-R14.7 · findings API-02, API-04, REL-01, STU-23
+
+-- HALF 1: SOURCE TELEMETRY ---------------------------------------------------
+   roots scanned: apps/admissions/src (+ tests where declared)
+   a 'production' match is the only kind that blocks a removal;
+   test pins, dev-preview callers, the definition itself and comments
+   are counted and shown separately rather than filtered out silently.
+
+   surface                                          disp            prod  other
+   normalizer.catalog.collection_key_sniff          removed            0  self=1
+   normalizer.catalog.mutation_key_sniff            removed            0  self=2
+   normalizer.admin_catalog.listFrom                removed            0  self=1
+   normalizer.admin_tenants.listFromResponse        removed            0  self=1
+   normalizer.notifications.response_sniff          removed            0  self=1
+   normalizer.payments.row_sniff                    removed            0  -
+   normalizer.applications.rival_pagination         removed            0  -
+   normalizer.admin_audit.rival_pagination          removed            0  self=1
+   normalizer.sessions.triple_shape                 removed            0  -
+   workspace.student_application_detail             already_closed     0  test=3
+   route.applications.email_slip                    already_closed     0  comment=2
+   route.applications.preview_summary               already_closed     0  comment=1
+   alias.applications.generate_star                 already_closed     0  -
+   route.catalog.legacy_institution_write           kept_external      0  -
+   route.catalog.legacy_intake_write                kept_external      0  -
+   route.catalog.legacy_program_write               kept_external      0  -
+   route.applications.condition_verify              kept_external      0  -
+
+   PASS=True  failures=none
+
+   [normalizer.catalog.collection_key_sniff]
+     what      : services/catalog.ts normalizeCollection: the `{[key]: [...]}` branch (`{programs:[]}` / `{intakes:[]}` / `{subjects:[]}` / `{institutions:[]}`) and the 'first array-valued property' fallback
+     pattern   : first array-valued property|unexpected response shape for
+     successor : the one paginated shape {page,pageSize,totalCount,results}
+     self       : apps/admissions/src/services/catalog.ts:396  * - the "first array-valued property" fallback with its `logger.warn`. It could
+
+   [normalizer.catalog.mutation_key_sniff]
+     what      : services/catalog.ts mutation unwrappers: the `'program' in response` / `'intake' in response` / `'institution' in response` re-unwrap of an already-unwrapped envelope
+     pattern   : '(program|intake|institution)' in response
+     successor : apiClient.request already unwrapped exactly one {success,data}
+     self       : apps/admissions/src/services/catalog.ts:452  // it to the domain type. Task 12.2 (R14.5) deleted the `'program' in response`
+     self       : apps/admissions/src/services/catalog.ts:453  // / `'intake' in response` / `'institution' in response` pre-step each one had:
+
+   [normalizer.admin_catalog.listFrom]
+     what      : services/admin/catalog.ts listFrom: the `.programs`, `.data`, `.data.results` and `.data.programs` branches (a double envelope and a domain-keyed list the backend never emits)
+     pattern   : response\.data\.(results|programs)|Array\.isArray\(response\.programs\)
+     successor : the one paginated shape {page,pageSize,totalCount,results}
+     self       : apps/admissions/src/services/admin/catalog.ts:160  *   (`httpClient.unwrapApiResponse`), so reaching `response.data.results` means
+
+   [normalizer.admin_tenants.listFromResponse]
+     what      : services/admin/tenants.ts listFromResponse: the `.data` and `.data.results` double-envelope branches, and listResult's `count` (DRF default) totalCount fallback
+     pattern   : response\.data\.results|response\.totalCount \?\? response\.count
+     successor : the one paginated shape {page,pageSize,totalCount,results}
+     self       : apps/admissions/src/services/admin/catalog.ts:160  *   (`httpClient.unwrapApiResponse`), so reaching `response.data.results` means
+
+   [normalizer.notifications.response_sniff]
+     what      : services/notifications.ts normalizeNotificationsResponse: the bare array, `{data:[…]}`, `{data:{results}}`, `{data:{notifications}}` and `{notifications:[…]}` branches, plus the `firstArrayValue` helper whose length>0 test made an empty page fall through to the next candidate key. The FUNCTION stays (3 legitimate callers); only the sniff is gone, and it now reads `.results` and nothing else
+     pattern   : firstArrayValue|envelope\.notifications|nested\.notifications
+     successor : the one paginated shape the notification list publishes
+     self       : apps/admissions/src/services/notifications.ts:150  * - `firstArrayValue`, the helper that tried keys in order and returned the
+
+   [normalizer.payments.row_sniff]
+     what      : the payments-list envelope sniff, in TWO copies over ONE endpoint: services/payments.ts normalizePaymentRows and hooks/usePaymentStatus.ts normalizeRecords. The `.payments`, `.data` and `.data.results` branches are deleted and the hook's copy is gone
+     pattern   : Array\.isArray\(pay(load|ment)?\.(payments|data)\)|payload\.data\.results
+     successor : one strict normalizePaymentRows over {page,pageSize,totalCount,results}
+     matches   : (none)
+
+   [normalizer.applications.rival_pagination]
+     what      : services/applications.ts normalizePaginatedApplications: the `.applications` list key, the `.count` DRF-default total and the `.limit` limit/offset page size — three keys from two rival pagination contracts. Also narrowed out of `BackendPaginatedApplications`
+     pattern   : Array\.isArray\(response\?\.applications\)|response\?\.totalCount \?\? response\?\.count|response\?\.pageSize \?\? response\?\.limit
+     successor : {page,pageSize,totalCount,results} from StandardPagination
+     matches   : (none)
+
+   [normalizer.admin_audit.rival_pagination]
+     what      : services/admin/audit.ts: the `result.entries` list-key sniff and the `result.count` DRF-default pagination-key sniff
+     pattern   : result\.entries|result\.totalCount \?\? result\.count
+     successor : {page,pageSize,totalCount,results} from StandardPagination
+     self       : apps/admissions/src/services/admin/audit.ts:300  // Task 12.2 (R14.5, finding API-02): `result.entries` and `result.count`
+
+   [normalizer.sessions.triple_shape]
+     what      : services/sessionService.ts: the bare-array / `{sessions:[...]}` / `{count}` triple sniff over GET /sessions/
+     pattern   : Array\.isArray\(result\?\.sessions\)
+     successor : the registered {success,data:[...]} envelope
+     matches   : (none)
+
+   [workspace.student_application_detail]
+     what      : the SECOND student application workspace at /student/application/:id (its own getById under its own cache key, its own payment / document / interview / timeline rendering, a different action set)
+     pattern   : pages/student/ApplicationDetail|student\.applicationDetail
+     successor : /student/status (task 10.6 chose it; the duplicate now redirects)
+     note      : closed by task 10.6, re-measured here
+     test       : apps/admissions/tests/unit/studentWorkspaceConsolidation.test.tsx:252  it('there is no longer a separate student.applicationDetail route id', () => {
+     test       : apps/admissions/tests/unit/studentWorkspaceConsolidation.test.tsx:253  expect(() => routeById('student.applicationDetail' as never)).toThrow()
+     test       : apps/admissions/tests/unit/pageShellRenderSmoke.test.tsx:139  // `pages/student/ApplicationDetail.tsx` removed by admissions-v2 task 10.6
+
+   [route.applications.email_slip]
+     what      : POST /api/v1/applications/{id}/email-slip/
+     pattern   : email-slip
+     successor : .../official-documents/{document_type}/email/
+     note      : route removed by 10.6; registry entry de-registered by 12.2
+     comment    : apps/admissions/src/lib/slipService.ts:88  It used to POST the deprecated `/applications/{id}/email-slip/` route, which
+     comment    : apps/admissions/src/services/officialDocuments.ts:231  * Task 10.4 left the legacy `/email-slip/` route in place as a thin proxy onto
+
+   [route.applications.preview_summary]
+     what      : GET /api/v1/applications/{id}/preview-summary/
+     pattern   : preview-summary|previewSummary
+     successor : the deterministic review step (no generative call) — R11.1
+     note      : route removed by 7.4; registry entry de-registered by 12.2
+     comment    : apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx:6  * that fetched `GET /applications/{id}/preview-summary/` on every mount, retried
+
+   [alias.applications.generate_star]
+     what      : applicationService.generate* (5 legacy document-generation methods)
+     pattern   : applicationService\.generate
+     successor : services/officialDocuments.ts (backend official-document pipeline)
+     note      : removed by 10.6; re-measured here
+     matches   : (none)
+
+   [route.catalog.legacy_institution_write]
+     what      : POST/PATCH/DELETE /api/v1/catalog/institutions/[{id}/]
+     pattern   : catalog/institutions/[^']*'\s*,\s*\{\s*method:\s*'(POST|PATCH|PUT|DELETE)
+     successor : /api/v1/admin/institutions/
+     note      : frozen by task 5.1; published /api/v1 surface, external callers possible
+     matches   : (none)
+
+   [route.catalog.legacy_intake_write]
+     what      : POST/PATCH/DELETE /api/v1/catalog/intakes/[{id}/]
+     pattern   : catalog/intakes/[^']*'\s*,\s*\{\s*method:\s*'(POST|PATCH|PUT|DELETE)
+     successor : /api/v1/admin/intakes/
+     note      : frozen by task 5.1
+     matches   : (none)
+
+   [route.catalog.legacy_program_write]
+     what      : PATCH/DELETE /api/v1/catalog/programs/{id}/
+     pattern   : catalog/programs/\$\{[^}]*\}/'\s*,\s*\{\s*method:\s*'(PATCH|PUT|DELETE)
+     successor : /api/v1/admin/institutions/{id}/programs/{id}/
+     note      : frozen by task 5.1; POST /catalog/programs/ is the CANONICAL offering create
+     matches   : (none)
+
+   [route.applications.condition_verify]
+     what      : POST /api/v1/applications/{id}/conditions/{cid}/verify/
+     pattern   : conditions/\$\{[^}]*\}/verify/
+     successor : .../conditions/{cid}/review/ (three outcomes)
+     note      : deprecated by 10.6, which measured zero use for the FIRST time
+     matches   : (none)
+
+-- HALF 2: ROUTE TELEMETRY (registry vs the LIVE URLConf) --------------------
+   live routes            : 230
+   registry entries       : 182
+   stale registry entries : none
+   retired routes still served : none
+   kept-external surfaces : 4
+   PASS=True
+
+-- HALF 3: ANNOUNCED END DATE FOR EVERY KEPT-EXTERNAL SURFACE ----------------
+   catalog legacy writes (institution / intake / program) Deprecation=True  Sunset=True  Link=True
+   applications .../conditions/{cid}/verify/            Deprecation=True  Sunset=True  Link=True
+   compatibility register present : True
+     registered: applications.condition_verify
+     registered: catalog.legacy_institution_write
+     registered: catalog.legacy_intake_write
+     registered: catalog.legacy_program_write
+   PASS=True  missing=none
+
+==============================================================================
+OVERALL PASS = True

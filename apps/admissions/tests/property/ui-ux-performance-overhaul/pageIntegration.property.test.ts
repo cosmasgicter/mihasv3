@@ -46,7 +46,8 @@ const PAGE_SHELL_PAGES = {
   StudentPayment: resolve(PAGES_DIR, 'student/Payment.tsx'),
   StudentInterview: resolve(PAGES_DIR, 'student/Interview.tsx'),
   StudentNotificationSettings: resolve(PAGES_DIR, 'student/NotificationSettings.tsx'),
-  StudentApplicationDetail: resolve(PAGES_DIR, 'student/ApplicationDetail.tsx'),
+  // `student/ApplicationDetail.tsx` removed by admissions-v2 task 10.6 (R13.13,
+  // STU-23) — one canonical student application workspace.
   StudentApplicationStatus: resolve(PAGES_DIR, 'student/ApplicationStatus.tsx'),
   AdminDashboard: resolve(PAGES_DIR, 'admin/Dashboard.tsx'),
   AdminApplications: resolve(PAGES_DIR, 'admin/Applications.tsx'),

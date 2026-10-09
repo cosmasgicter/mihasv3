@@ -1,0 +1,88 @@
+]633;E;echo "=== schema diff matrix (baseline = fresh-from-empty) ===";af1105fd-b13f-4371-bff7-1fc3ea9ab61c]633;C=== schema diff matrix (baseline = fresh-from-empty) ===
+FAIL  missing_migration: 2026_06_25_02_jobs_ops_scaffold_tables.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_06_18_01_institution_domain_lifecycle.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: perf_idx_applications_status_submitted_at.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_26_02_document_current_slot_alignment.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_06_08_01_multi_tenant_beanola_admissions.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_26_01_document_evidence_lifecycle.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_25_01_canonical_subject_catalog.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_20_01_tenant_onboarding.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_16_03_canonical_assignment_validate.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_17_01_integrity_constraints_expand.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_08_06_01_admin_saved_filters.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_06_08_student_number.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_06_25_01_multi_tenant_fk_index_backfill.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_16_02_canonical_assignment_backfill.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_23_01_application_assignment_snapshot.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_18_01_tenant_fk_validate.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_19_01_payments_documents_expand.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_19_02_payments_documents_backfill.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_22_01_tenant_change_requests.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_08_09_01_application_tracking_secret.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_16_01_canonical_assignment_expand.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_30_01_payment_fee_quotes.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_06_08_03_institution_document_profiles.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_19_03_payments_documents_validate.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_24_01_application_draft_name.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_21_01_tenant_staff_invitations.sql - migration recorded in baseline but not candidate
+FAIL  missing_migration: 2026_07_17_02_communication_template_unique_switch.sql - migration recorded in baseline but not candidate
+FAIL  migration_checksum_changed: schema_cleanup_device_session_default.sql - baseline=dd4ad056bfa4d6e5cf5d9413c0b546163ce70f284c0648edc468992b3c975897 candidate=dd4ad056bfa4
+FAIL  migration_checksum_changed: schema_cleanup_drop_stale_columns.sql - baseline=629381770d610efcef40dfdd59a5552390221b05d4e28ebe991dd7c27c9e6a75 candidate=629381770d61
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_requested_by_id_fk - FK is NOT VALID: FOREIGN KEY (requested_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_reviewed_by_id_fk - FK is NOT VALID: FOREIGN KEY (reviewed_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_invited_by_id_fk - FK is NOT VALID: FOREIGN KEY (invited_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_membership_id_fk - FK is NOT VALID: FOREIGN KEY (membership_id) REFERENCES user_institution_memberships(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_profile_id_fk - FK is NOT VALID: FOREIGN KEY (profile_id) REFERENCES profiles(id) NOT VALID
+DRIFT: 628 failure(s), 186 warning(s).
+Matrix report written to /home/cosmas/Downloads/mihasv3/docs/v2-evidence/13.1/raw/schema-diff-report.json
+matrix_exit=1
+
+=== intrinsic verify: fresh-from-empty ===
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_requested_by_id_fk - FK is NOT VALID: FOREIGN KEY (requested_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_reviewed_by_id_fk - FK is NOT VALID: FOREIGN KEY (reviewed_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_invited_by_id_fk - FK is NOT VALID: FOREIGN KEY (invited_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_membership_id_fk - FK is NOT VALID: FOREIGN KEY (membership_id) REFERENCES user_institution_memberships(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_profile_id_fk - FK is NOT VALID: FOREIGN KEY (profile_id) REFERENCES profiles(id) NOT VALID
+DRIFT: 9 failure(s), 0 warning(s).
+verify_exit=1
+
+=== intrinsic verify: migrated-snapshot ===
+FAIL  unvalidated_foreign_key: institution_document_templates.institution_templates_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_domains.institution_domains_approved_by_id_fk - FK is NOT VALID: FOREIGN KEY (approved_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_domains.institution_domains_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_domains.institution_domains_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_required_documents.required_documents_canonical_program_id_fk - FK is NOT VALID: FOREIGN KEY (canonical_program_id) REFERENCES canonical_programs(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_required_documents.required_documents_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: institution_required_documents.required_documents_program_id_fk - FK is NOT VALID: FOREIGN KEY (program_id) REFERENCES programs(id) NOT VALID
+FAIL  unvalidated_foreign_key: programs.programs_canonical_program_id_fk - FK is NOT VALID: FOREIGN KEY (canonical_program_id) REFERENCES canonical_programs(id) NOT VALID
+FAIL  unvalidated_foreign_key: user_institution_memberships.memberships_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: user_institution_memberships.memberships_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: user_institution_memberships.memberships_user_id_fk - FK is NOT VALID: FOREIGN KEY (user_id) REFERENCES profiles(id) NOT VALID
+DRIFT: 28 failure(s), 0 warning(s).
+verify_exit=1
+
+=== intrinsic verify: neon-authoring ===
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_requested_by_id_fk - FK is NOT VALID: FOREIGN KEY (requested_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_change_requests.tenant_change_requests_reviewed_by_id_fk - FK is NOT VALID: FOREIGN KEY (reviewed_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_created_by_id_fk - FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_onboarding.tenant_onboarding_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_institution_id_fk - FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_invited_by_id_fk - FK is NOT VALID: FOREIGN KEY (invited_by_id) REFERENCES profiles(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_membership_id_fk - FK is NOT VALID: FOREIGN KEY (membership_id) REFERENCES user_institution_memberships(id) NOT VALID
+FAIL  unvalidated_foreign_key: tenant_staff_invitations.tenant_staff_invitations_profile_id_fk - FK is NOT VALID: FOREIGN KEY (profile_id) REFERENCES profiles(id) NOT VALID
+DRIFT: 9 failure(s), 0 warning(s).
+verify_exit=1
+

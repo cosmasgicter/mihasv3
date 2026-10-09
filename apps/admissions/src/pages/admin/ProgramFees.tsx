@@ -1,21 +1,43 @@
 /**
- * Admin Program Fee Management Page
+ * Admin Program Fee Management Page (Admissions V2, tasks 5.1 and 8.4).
  *
- * CRUD interface for managing per-program application fees.
- * Calls ProgramFeeViewSet endpoints: GET/POST/PUT/DELETE /api/v1/programs/{id}/fees/
- * Soft delete via DELETE (sets is_active=false).
+ * Canonical FeeSchedule management for a program offering. Writes go through the
+ * canonical catalog domain hooks/service (`useCatalogAdmin` /
+ * `catalogAdminService`) — never the raw transport client (task 5.1, R14.3/R14.5).
  *
- * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
+ * **Task 8.4 (findings ADM-06, AUTH-02) changed how this page reads.** It used to
+ * load every offering and then fire one `/programs/{id}/fees/` request per
+ * offering, flatten the results in the browser, and derive its headline numbers —
+ * fee rules, programs with fees, coverage — from whatever had arrived. That made
+ * the request count grow with the catalogue and made the totals describe the
+ * loaded payload rather than the tenant's real configuration. It now reads the
+ * one scoped, server-filtered, server-paginated fee report
+ * (`GET /api/v1/admin/fees/`), whose aggregates are computed over the whole
+ * filtered set, and it prints the server's amount strings rather than
+ * re-formatting money itself.
+ *
+ * Fees resolve per offering, fee type, and residency category; one active fee is
+ * enforced per `(offering, fee_type, residency)` on the backend and a duplicate
+ * race returns `DUPLICATE_ACTIVE_FEE` (409) surfaced as an error (R7.4). Fee
+ * writes require the platform offering-configuration capability; a read-only
+ * tenant admin can read this page and not mutate it (R3.1).
+ *
+ * Requirements: R3.1, R6.5, R7.3, R7.4, R14.3, R14.5.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from '@/lib/zod'
-import { apiClient } from '@/services/client'
-import { programService } from '@/services/catalog'
+import { toError } from '@/lib/toError'
+import {
+  useCatalogOfferings,
+  useFeeMutations,
+} from '@/hooks/admin/useCatalogAdmin'
+import { useFeeExport, useFeeReport } from '@/hooks/admin/useMoneyAdmin'
+import type { FeeAdminRow } from '@/services/admin/settlement'
+import { formatServerAmount } from '@/lib/serverAmount'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
@@ -32,35 +54,12 @@ import {
 import { DashboardSkeleton } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
-import { ArrowLeft, DollarSign, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, DollarSign, Download, Pencil, Plus, Trash2 } from 'lucide-react'
 
 // --- Types ---
 
-interface Program {
-  id: string
-  name: string
-  code?: string
-}
-
-interface ProgramFee {
-  id: string
-  program_id: string
-  fee_type: string
-  residency_category: string
-  amount: string | number
-  currency: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
-
-type ProgramFeeListResponse =
-  | ProgramFee[]
-  | {
-      results?: ProgramFee[]
-      fees?: ProgramFee[]
-      data?: ProgramFee[] | { results?: ProgramFee[]; fees?: ProgramFee[] }
-    }
+/** One row of the server's fee report, as this page renders it. */
+type FeeWithProgram = FeeAdminRow & { programName: string; program_id: string }
 
 export const feeFormSchema = z.object({
   fee_type: z.enum(['application', 'tuition'], { error: 'Fee type is required' }),
@@ -96,6 +95,9 @@ const initialFeeForm: FeeFormData = {
   currency: 'ZMW',
 }
 
+/** Rows per server page (task 8.4 — the page is the server's, not the payload's). */
+const PAGE_SIZE = 20
+
 export function validateFeeAmount(amount: string): string | null {
   const parsedAmount = Number(amount)
   if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -104,88 +106,31 @@ export function validateFeeAmount(amount: string): string | null {
   return null
 }
 
-export function formatFeeAmount(currency: string, amount: string | number): string {
-  const parsedAmount = Number(amount)
-  const formattedAmount = Number.isFinite(parsedAmount) ? parsedAmount.toFixed(2) : '0.00'
-  return `${currency} ${formattedAmount}`
-}
-
-// --- API helpers ---
-
-export function normalizeProgramFeeResponse(result: ProgramFeeListResponse | null | undefined): ProgramFee[] {
-  if (!result) return []
-  if (Array.isArray(result)) return result
-  if (Array.isArray(result.results)) return result.results
-  if (Array.isArray(result.fees)) return result.fees
-  if (Array.isArray(result.data)) return result.data
-  if (result.data && typeof result.data === 'object') {
-    if (Array.isArray(result.data.results)) return result.data.results
-    if (Array.isArray(result.data.fees)) return result.data.fees
-  }
-  return []
-}
-
-async function fetchFeesForProgram(programId: string): Promise<ProgramFee[]> {
-  const result = await apiClient.request<ProgramFeeListResponse>(
-    `/programs/${encodeURIComponent(programId)}/fees/`
-  )
-  return normalizeProgramFeeResponse(result)
-}
-
-async function createFee(programId: string, data: FeeFormData): Promise<ProgramFee | null> {
-  return apiClient.request<ProgramFee>(
-    `/programs/${encodeURIComponent(programId)}/fees/`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        fee_type: data.fee_type,
-        residency_category: data.residency_category,
-        amount: data.amount,
-        currency: data.currency,
-      }),
-    }
-  )
-}
-
-async function updateFee(
-  programId: string,
-  feeId: string,
-  data: FeeFormData
-): Promise<ProgramFee | null> {
-  return apiClient.request<ProgramFee>(
-    `/programs/${encodeURIComponent(programId)}/fees/${encodeURIComponent(feeId)}/`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({
-        fee_type: data.fee_type,
-        residency_category: data.residency_category,
-        amount: data.amount,
-        currency: data.currency,
-      }),
-    }
-  )
-}
-
-async function deleteFee(programId: string, feeId: string): Promise<void> {
-  await apiClient.request<void>(
-    `/programs/${encodeURIComponent(programId)}/fees/${encodeURIComponent(feeId)}/`,
-    { method: 'DELETE' }
-  )
+/**
+ * Display a server-authored fee amount.
+ *
+ * Task 8.4: this used to be `Number(amount).toFixed(2)` with a `'0.00'` fallback —
+ * a client-side re-quantisation of money plus an invented amount when parsing
+ * failed. The server sends already-quantised decimal strings, so the only job
+ * left is putting a currency marker in front of them, which is what the one
+ * canonical formatter does. A missing amount renders as an em dash rather than a
+ * fabricated zero.
+ */
+export function formatFeeAmount(currency: string, amount: string | null | undefined): string {
+  return formatServerAmount(amount, currency) || '—'
 }
 
 // --- Component ---
 
 export default function ProgramFees() {
-  const queryClient = useQueryClient()
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
 
   // Dialog state
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [selectedProgramId, setSelectedProgramId] = useState('')
-  const [currentFee, setCurrentFee] = useState<(ProgramFee & { programName: string }) | null>(null)
+  const [currentFee, setCurrentFee] = useState<FeeWithProgram | null>(null)
 
   const createFeeForm = useForm<FeeFormData>({
     resolver: zodResolver(feeFormSchema),
@@ -197,58 +142,55 @@ export default function ProgramFees() {
     defaultValues: initialFeeForm,
   })
 
-  // Fetch programs
-  const { data: programsData, isLoading: loadingPrograms } = useQuery({
-    queryKey: ['admin', 'programs-for-fees'],
-    queryFn: async () => {
-      const response = await programService.list({ pageSize: 500 })
-      const programs = (response?.programs || []) as Program[]
-      return programs.sort((a, b) => a.name.localeCompare(b.name))
-    },
-  })
+  // The offering list is still needed to *write* a fee (the create dialog picks
+  // an offering); it is no longer the source of the fee rows.
+  const { data: offeringsData, isLoading: loadingPrograms } = useCatalogOfferings()
+  const programs = useMemo(
+    () =>
+      (offeringsData ?? [])
+        .map((offering) => ({ id: offering.id, name: offering.name }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [offeringsData],
+  )
 
-  const programs = programsData || []
+  // One scoped, server-filtered, server-paginated fee report (task 8.4). Not one
+  // request per offering, and not a client-side flatten.
+  const [page, setPage] = useState(1)
+  const feeQuery = useMemo(() => ({ page, pageSize: PAGE_SIZE }), [page])
+  const { data: feeReport, isLoading: loadingFees } = useFeeReport(feeQuery)
+  const exportMutation = useFeeExport()
 
-  // Fetch fees for all programs
-  const { data: allFees, isLoading: loadingFees } = useQuery({
-    queryKey: ['admin', 'program-fees'],
-    queryFn: async () => {
-      if (programs.length === 0) return []
-      const results = await Promise.all(
-        programs.map(async (program) => {
-          const fees = await fetchFeesForProgram(program.id)
-          return fees.map((fee) => ({ ...fee, programName: program.name }))
-        })
-      )
-      return results.flat()
-    },
-    enabled: programs.length > 0,
-  })
-
-  const fees = allFees || []
+  const fees = useMemo<FeeWithProgram[]>(
+    () =>
+      (feeReport?.results ?? []).map((row) => ({
+        ...row,
+        program_id: row.program_offering_id ?? '',
+        programName: row.program_name,
+      })),
+    [feeReport],
+  )
+  const aggregates = feeReport?.aggregates
+  // The page count is the server's answer, not a division done here.
+  const totalPages = feeReport?.totalPages ?? 1
   const loading = loadingPrograms || loadingFees
 
-  const invalidateFees = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['admin', 'program-fees'] })
-  }, [queryClient])
+  const { create, update, deactivate } = useFeeMutations()
+  const saving = create.isPending || update.isPending || deactivate.isPending
 
   // --- Handlers ---
 
-  const handleOperation = async (operation: () => Promise<void>, onSuccess: () => void) => {
-    try {
-      setSaving(true)
+  const runMutation = useCallback(
+    async (op: () => Promise<unknown>, onSuccess: () => void) => {
       setError('')
-      await operation()
-      onSuccess()
-      invalidateFees()
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Unable to save changes'
-      setError(message)
-    } finally {
-      setSaving(false)
-    }
-  }
+      try {
+        await op()
+        onSuccess()
+      } catch (err: unknown) {
+        setError(toError(err).message || 'Unable to save changes')
+      }
+    },
+    [],
+  )
 
   const openCreate = useCallback(() => {
     if (programs.length === 0) return
@@ -258,20 +200,22 @@ export default function ProgramFees() {
     setShowCreate(true)
   }, [programs, createFeeForm])
 
-  const openEdit = useCallback((fee: ProgramFee & { programName: string }) => {
+  const openEdit = useCallback((fee: FeeWithProgram) => {
     setError('')
     setCurrentFee(fee)
     setSelectedProgramId(fee.program_id)
     editFeeForm.reset({
+      // The server's amount string is put back verbatim; the form never
+      // re-derives or re-rounds it (R12.1).
       fee_type: fee.fee_type as 'application' | 'tuition',
       residency_category: fee.residency_category as 'local' | 'international',
-      amount: String(fee.amount),
+      amount: fee.amount ?? '',
       currency: fee.currency as 'ZMW' | 'USD',
     })
     setShowEdit(true)
   }, [editFeeForm])
 
-  const openDelete = useCallback((fee: ProgramFee & { programName: string }) => {
+  const openDelete = useCallback((fee: FeeWithProgram) => {
     setError('')
     setCurrentFee(fee)
     setShowDelete(true)
@@ -282,50 +226,48 @@ export default function ProgramFees() {
       setError('Please select a program')
       return
     }
-
-    void handleOperation(
-      () => createFee(selectedProgramId, values).then(() => undefined),
+    void runMutation(
+      () => create.mutateAsync({ offeringId: selectedProgramId, data: values }),
       () => {
         setShowCreate(false)
         createFeeForm.reset(initialFeeForm)
-      }
+      },
     )
   })
 
   const handleUpdate = editFeeForm.handleSubmit((values) => {
     if (!currentFee) return
-
-    void handleOperation(
-      () =>
-        updateFee(currentFee.program_id, currentFee.id, values).then(
-          () => undefined
-        ),
+    void runMutation(
+      () => update.mutateAsync({ offeringId: currentFee.program_id, feeId: currentFee.id, data: values }),
       () => {
         setShowEdit(false)
         setCurrentFee(null)
-      }
+      },
     )
   })
 
   const handleDelete = () => {
     if (!currentFee) return
-
-    void handleOperation(
-      () => deleteFee(currentFee.program_id, currentFee.id),
+    void runMutation(
+      () => deactivate.mutateAsync({ offeringId: currentFee.program_id, feeId: currentFee.id }),
       () => {
         setShowDelete(false)
         setCurrentFee(null)
-      }
+      },
     )
   }
 
-  // --- Stats ---
-
-  const totalFees = fees.length
-  const programsWithFees = new Set(fees.map((f) => f.program_id)).size
-
-  // Group fees by program for display
-  type FeeWithProgram = ProgramFee & { programName: string }
+  // --- Stats (server aggregates, over the whole filtered set) ---
+  //
+  // These three numbers used to be `fees.length`, a `Set` over the loaded rows,
+  // and a ratio against however many offerings had come back — all derived from
+  // one payload (ADM-06). They are now the server's answer for the actor's whole
+  // scope, so they do not change when the operator turns a page.
+  const totalFees = aggregates?.fee_count ?? 0
+  const programsWithFees = aggregates?.configured_offering_count ?? 0
+  const offeringsInScope = aggregates?.offerings_in_scope ?? 0
+  const unconfiguredOfferings = aggregates?.unconfigured_offering_count ?? 0
+  const mayExport = feeReport?.can_export ?? false
 
   return (
     <>
@@ -341,12 +283,13 @@ export default function ProgramFees() {
       subtitle="Manage application and tuition fees for each program and residency category."
       maxWidth="7xl"
       tone="admin"
-      metrics={[
-        { label: 'Fee rules', value: totalFees, helper: `${programsWithFees} programs currently configured` },
-        { label: 'Programs', value: programs.length, helper: 'Available catalog programs' },
-        { label: 'Coverage', value: `${programsWithFees}/${programs.length || 0}`, helper: 'Programs with at least one fee configured' },
-        { label: 'State', value: loading ? 'Loading' : error ? 'Needs attention' : 'Ready', helper: error || 'Fees can be updated safely' },
-      ]}
+      /*
+        No `metrics` row (task 11.5, R16.5). Task 8.4's server coverage
+        aggregates are kept and still rendered **once**, in this page's own
+        summary block below. Three of these four tiles were the same aggregates a
+        second time in the first viewport; the fourth read the page's own
+        loading/error state.
+      */
       actions={
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Link to="/admin" className="w-full sm:w-auto">
@@ -355,6 +298,18 @@ export default function ProgramFees() {
               Back
             </Button>
           </Link>
+          {mayExport && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+              loading={exportMutation.isPending}
+              onClick={() => exportMutation.mutate(feeQuery)}
+            >
+              <Download className="h-4 w-4 mr-2" aria-hidden="true" />
+              Export CSV
+            </Button>
+          )}
           <Button onClick={openCreate} disabled={programs.length === 0} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Fee
@@ -369,6 +324,12 @@ export default function ProgramFees() {
           </div>
         ) : (
           <>
+            {exportMutation.isError && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive" role="alert">
+                {toError(exportMutation.error).message}
+              </div>
+            )}
+
             {error && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -405,15 +366,23 @@ export default function ProgramFees() {
 
               <Card className="rounded-lg border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardDescription>Programs with Fees</CardDescription>
+                  <CardDescription>Offerings with Fees</CardDescription>
                   <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                     <DollarSign className="h-6 w-6 text-primary" />
-                    {programsWithFees} / {programs.length}
+                    {programsWithFees} / {offeringsInScope}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Programs that have at least one active fee configured.
+                    {/*
+                      The actionable half of coverage, from task 8.4's server
+                      aggregate. It used to be reachable only from the retired
+                      first-viewport tile row (task 11.5); the operator still
+                      needs to know how many offerings have no fee at all.
+                    */}
+                    {unconfiguredOfferings === 0
+                      ? 'Every offering in your scope has at least one active fee configured.'
+                      : `${unconfiguredOfferings} offering${unconfiguredOfferings === 1 ? '' : 's'} in your scope still have no fee configured.`}
                   </p>
                 </CardContent>
               </Card>
@@ -520,6 +489,32 @@ export default function ProgramFees() {
                 caption="Program fees"
                 loading={false}
               />
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Page {feeReport?.page ?? page} of {totalPages} · {feeReport?.totalCount ?? 0} fee rules
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={(feeReport?.page ?? page) <= 1}
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={(feeReport?.page ?? page) >= totalPages}
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             )}
           </>
         )}

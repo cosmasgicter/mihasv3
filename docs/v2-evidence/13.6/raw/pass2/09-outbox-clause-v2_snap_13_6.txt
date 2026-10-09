@@ -1,0 +1,39 @@
+=== 13.6 SECOND PASS (O10) — closure clause (v): no hanging required job/outbox ===
+DATE: 2026-08-14T18:58:30Z
+INSTRUMENT: docs/v2-evidence/13.6/raw/outbox-clause.sql  (13.5 canary S6 block + beat proxies)
+DATABASE  : v2_snap_13_6 — the L2-L3 / L7 rehearsal copy of the PRODUCTION LINEAGE
+            (Neon branch br-jolly-pine-ahybtg2e, endpoint ep-proud-cherry-ah8n4q0f)
+READ-ONLY : the instrument's first statement is SET default_transaction_read_only = on
+NOT TOUCHED: v2_snap_13_4 · v2_fresh_13_4 · v2_batch_13_4 · the Neon default branch · production
+
+SET
+== 13.6 clause (v): required job/outbox ledger ==
+-[ RECORD 1 ]-----------------------------
+database   | v2_snap_13_6
+sampled_at | 2026-08-14 18:58:39.664212+00
+
+-- S6 jobs: the durable outbox ledger --
+-[ RECORD 1 ]-----+-------------------------------
+signal            | S6 jobs
+outbox_pending    | 0
+s6_outbox_failed  | 0
+s6_outbox_stale   | 0
+outbox_total      | 347
+worst_retry_count | 0
+verdict           | PASS - no hanging outbox event
+
+-- S6 beat-sweep liveness proxies (the beat container log is authoritative) --
+-[ RECORD 1 ]-------------+----------------------------------
+signal                    | S6 beat proxies
+domain_sweep_last_checked | 
+domain_backlog_over_1h    | 0
+payment_sweep_overdue     | 0
+email_sweep_wedged        | 0
+email_failed              | 0
+verdict                   | PASS - no sweep is visibly behind
+
+EXIT=0
+
+-- LLEN celery: NOT MEASURABLE HERE. Broker depth is a Redis command against a
+-- running broker; the only broker that satisfies this clause is production's,
+-- and production is off limits. An empty result reads 'cannot tell', never zero.

@@ -1,0 +1,5 @@
+{"kind":"axe","project":"chromium-required","viewport":"1440x900","surface":"/track-application","finding":"STU-24","navMs":970,"axeMs":572,"scanMs":1542,"passes":26,"incomplete":1,"blocking":[],"nonBlocking":[]}
+{"kind":"axe","project":"chromium-required","viewport":"1440x900","surface":"/student/dashboard","finding":"STU-04","navMs":911,"axeMs":487,"scanMs":1398,"passes":27,"incomplete":2,"blocking":[],"nonBlocking":[]}
+{"kind":"axe","project":"chromium-required","viewport":"1440x900","surface":"/student/application-wizard","finding":"STU-03","navMs":440,"axeMs":569,"scanMs":1009,"passes":27,"incomplete":2,"blocking":[],"nonBlocking":[]}
+{"kind":"axe","project":"chromium-required","viewport":"1440x900","surface":"/student/status","finding":"STU-23","navMs":925,"axeMs":377,"scanMs":1302,"passes":23,"incomplete":1,"blocking":[],"nonBlocking":[]}
+{"kind":"axe","project":"chromium-required","viewport":"1440x900","surface":"/student/settings","finding":"STU-20","navMs":911,"axeMs":443,"scanMs":1354,"passes":25,"incomplete":2,"blocking":[],"nonBlocking":[]}

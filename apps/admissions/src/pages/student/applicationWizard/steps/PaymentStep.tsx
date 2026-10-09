@@ -5,30 +5,26 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { Skeleton } from '@/components/ui'
 import { animateClasses } from '@/lib/animations'
-import { apiClient } from '@/services/client'
-import { useFeeResolver } from '@/hooks/useFeeResolver'
+import { deferPayment, devBypassPayment } from '@/services/payments'
+import { useFeeQuote } from '@/hooks/useFeeQuote'
 import { PaymentForm } from '@/components/student/PaymentForm'
-import { isPaymentHardeningUiEnabled, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import { FeeQuoteRefusal } from '@/components/student/FeeQuoteRefusal'
+import { isPaymentResolvedForProgress, type PaymentPhase } from '@/lib/paymentStatus'
+import { PAYMENT_ERROR_COPY } from '@/lib/paymentErrorCodes'
+import { PAYMENT_NEXT_ACTION_COPY } from '@/lib/paymentNextActions'
+import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount } from '@/lib/serverAmount'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
-
-/** Transaction fee rate charged by the payment gateway (1%) */
-const TRANSACTION_FEE_RATE = 0.01
-
 interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
-  polledStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
+  polledStatus?: 'pending' | 'successful' | 'failed' | 'deferred'| null
+ /** Server-derived phase of the pending payment (task 8.2, STU-09). */
+ paymentPhase?: PaymentPhase | null
   onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | 'deferred' | null) => void
   onPaymentStatusRefresh?: () => Promise<void>
-}
-
-function formatCurrency(amount: number, currency: string): string {
-  if (currency === 'ZMW') return `K${amount.toFixed(2)}`
-  if (currency === 'USD') return `$${amount.toFixed(2)}`
-  return `${currency} ${amount.toFixed(2)}`
 }
 
 const PaymentStep = ({
@@ -36,15 +32,26 @@ const PaymentStep = ({
   form,
   applicationId,
   polledStatus = null,
-  onPaymentStatusChange,
+ paymentPhase = null,
+ onPaymentStatusChange,
   onPaymentStatusRefresh,
 }: PaymentStepProps) => {
   const { watch } = form
-  const programCode = watch('program') || ''
-  const nationality = watch('nationality') || ''
-  const country = watch('country') || ''
 
-  const { fee, isLoading: feeLoading, error: feeError } = useFeeResolver(programCode, nationality, country)
+ // Task 8.1 (R12.1/R12.6): the amounts, provider fee, currency, bearer,
+ // residency, and expiry all come from the server-authored quote. This step
+ // computes no percentage, no total, and has no fallback fee — a missing fee
+ // configuration shows the server's reason instead of an invented number.
+
+  const {
+ quote,
+ isLoading: quoteLoading,
+ error: quoteError,
+ isExpired: quoteExpired,
+ refresh: refreshQuote,
+ } = useFeeQuote(applicationId)
+ const quoteUsable = quote !== null && !quoteExpired
+ const expiryLabel = formatExpiryTime(quote?.expires_at)
 
   const [deferring, setDeferring] = useState(false)
   const [deferred, setDeferred] = useState(false)
@@ -53,11 +60,12 @@ const PaymentStep = ({
   const [devBypassing, setDevBypassing] = useState(false)
   const [devBypassError, setDevBypassError] = useState<string | null>(null)
 
-  // Phase 4 (Task 38.2) — recovery store integration, flag-gated.
-  const hardeningUiEnabled = isPaymentHardeningUiEnabled()
-  const recoveryStore = usePaymentRecoveryStore()
-  const recoveredEntry =
-    hardeningUiEnabled && applicationId
+  // Recovery store integration. Unconditional since admissions-v2 task 8.2:
+ // a student who refreshes mid-payment always gets their pending payment back,
+ // because "did the build set VITE_PAYMENT_HARDENING_UI?" is not an acceptable
+ // answer to "where did my payment go?".
+ const recoveryStore = usePaymentRecoveryStore()
+  const recoveredEntry = applicationId
       ? recoveryStore.get(applicationId)
       : null
 
@@ -81,10 +89,7 @@ const PaymentStep = ({
     setDeferring(true)
     setDeferError(null)
     try {
-      await apiClient.request('/payments/defer/', {
-        method: 'POST',
-        body: JSON.stringify({ application_id: applicationId }),
-      })
+      await deferPayment(applicationId)
       setDeferred(true)
       onPaymentStatusChange?.('deferred')
     } catch (err) {
@@ -99,10 +104,7 @@ const PaymentStep = ({
     setDevBypassing(true)
     setDevBypassError(null)
     try {
-      await apiClient.request('/payments/dev-bypass/', {
-        method: 'POST',
-        body: JSON.stringify({ application_id: applicationId }),
-      })
+      await devBypassPayment(applicationId)
       onPaymentStatusChange?.('successful')
     } catch (err) {
       setDevBypassError(err instanceof Error ? err.message : 'Dev bypass failed')
@@ -129,34 +131,70 @@ const PaymentStep = ({
       <fieldset className="border-none p-0 m-0 space-y-6">
         <legend className="sr-only">Payment</legend>
 
-        {/* Fee display */}
-        <div className="rounded-lg border border-border bg-card p-5">
+        {/* Fee display — every value below is rendered exactly as the server sent it */}
+        <div className="rounded-lg border border-border bg-card p-5" data-testid="fee-quote-panel">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
-              {feeLoading ? (
-                <div className="mt-2 space-y-2" role="status" aria-label="Resolving fee">
+              {quoteLoading ? (
+                <div className="mt-2 space-y-2" role="status" aria-label="Preparing fee">
                   <Skeleton className="h-7 w-32" />
                   <Skeleton className="h-4 w-40" />
                 </div>
-              ) : feeError ? (
-                <p className="mt-1 text-sm text-destructive">{feeError}</p>
-              ) : fee ? (
+              ) : quoteError ? (
+ <FeeQuoteRefusal error={quoteError} onRefresh={refreshQuote} className="mt-1"/>
+              ) : quote ? (
                 <>
-                  <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
+                  <p className="mt-1 text-2xl font-bold text-foreground" data-testid="fee-quote-total">
+ {formatServerAmount(quote.total_amount, quote.currency)}
+ </p>
                   <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                    <div className="flex justify-between"><span>Application fee</span><span>{formatCurrency(fee.amount, fee.currency)}</span></div>
-                    <div className="flex justify-between"><span>Transaction fee (1%)</span><span>{formatCurrency(fee.amount * TRANSACTION_FEE_RATE, fee.currency)}</span></div>
-                    <div className="flex justify-between border-t border-border pt-1 font-semibold text-foreground"><span>Total charged</span><span>{formatCurrency(fee.amount * (1 + TRANSACTION_FEE_RATE), fee.currency)}</span></div>
+ <div className="flex justify-between gap-6">
+ <span>Application fee</span>
+ <span>{formatServerAmount(quote.base_amount, quote.currency)}</span>
+ </div>
+ {isNonZeroServerAmount(quote.provider_fee) && (
+ <div className="flex justify-between gap-6">
+ <span>Transaction fee</span>
+ <span>{formatServerAmount(quote.provider_fee, quote.currency)}</span>
+ </div>
+ )}
+ <div className="flex justify-between gap-6 border-t border-border pt-1 font-semibold text-foreground">
+ <span>Total charged</span>
+ <span>{formatServerAmount(quote.total_amount, quote.currency)}</span>
                   </div>
-                </>
+ {quote.waiver_applied && (
+ <p className="pt-1">A fee waiver has been applied to your application.</p>
+ )}
+ </div>
+ {quoteExpired ? (
+ <div className="mt-3 space-y-1" role="status">
+ <p className="text-sm text-foreground" data-testid="fee-quote-expired">
+ {PAYMENT_ERROR_COPY.QUOTE_EXPIRED.body}
+ </p>
+ <button
+ type="button" className="min-h-touch text-sm font-medium text-primary underline" onClick={refreshQuote}
+ data-testid="fee-quote-refresh">
+ {PAYMENT_NEXT_ACTION_COPY.refresh_quote.label}
+ </button>
+ </div>
+ ) : expiryLabel ? (
+ <p className="mt-3 text-xs text-muted-foreground" data-testid="fee-quote-expiry">
+ This price is held until {expiryLabel}.
+ </p>
+ ) : null}
+ </>
               ) : (
-                <p className="mt-1 text-sm text-muted-foreground">Select a program to see the fee</p>
+ /* No quote yet, and therefore no price. The step says so rather
+ than showing a placeholder amount (finding STU-08). */
+ <p className="mt-1 text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
+ Save your a pplication to see the fee for your programme.
+ </p>
               )}
             </div>
-            {fee?.residency_category && (
+            {quote?.residency_category && (
               <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
-                {fee.residency_category}
+                {quote.residency_category}
               </span>
             )}
           </div>
@@ -169,17 +207,19 @@ const PaymentStep = ({
               <Clock className="h-4 w-4" />Payment deferred
             </AlertTitle>
             <AlertDescription className="text-muted-foreground">
-              You can pay anytime from your dashboard. Proceed to submit your application.
+              You can pay anytime from the payment page. Proceed to submit your application.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Payment form */}
-        {!deferred && fee && applicationId && (
+        {/* Payment form — only reachable with a live, unexpired server quote */}
+        {!deferred && quoteUsable && quote && applicationId && (
           <PaymentForm
             applicationId={applicationId}
-            amount={fee.amount}
-            currency={fee.currency}
+ baseAmount={quote.base_amount}
+ providerFee={quote.provider_fee}
+ totalAmount={quote.total_amount}
+ currency={quote.currency}
             phone={watch('phone') || ''}
             fullName={watch('full_name') || ''}
             email={watch('email') || ''}
@@ -187,11 +227,12 @@ const PaymentStep = ({
             onPaymentStatusChange={onPaymentStatusChange}
             onPaymentStatusRefresh={onPaymentStatusRefresh}
             pendingPaymentId={pendingPaymentIdFromRecovery}
-          />
+ paymentPhase={paymentPhase}
+ />
         )}
 
         {/* Pay Later — visible card option */}
-        {!isPaymentSettledForWizard && !deferred && fee && applicationId && (
+        {!isPaymentSettledForWizard && !deferred && quote && applicationId && (
           <div className="space-y-2">
             {deferError && <p className="text-sm text-destructive text-center">{deferError}</p>}
 
@@ -208,13 +249,13 @@ const PaymentStep = ({
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Pay Later</p>
-                    <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from your dashboard.</p>
+                    <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
                   </div>
                 </div>
               </button>
             ) : (
               <div className={`rounded-lg border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
-                <p className="text-sm text-foreground">You can submit now and pay anytime from your dashboard.</p>
+                <p className="text-sm text-foreground">You can submit now and pay anytime from the payment page.</p>
                 <div className="mt-3 flex items-center gap-3">
                   <button
                     type="button"
@@ -231,34 +272,34 @@ const PaymentStep = ({
                   >
                     {deferring ? 'Deferring…' : 'Yes, pay later'}
                   </button>
-                </div>
-              </div>
+ </div>
+ </div>
+ )}
+ </div>
             )}
-          </div>
-        )}
-        {/* Dev payment bypass — only in development with VITE_PAYMENT_DEV_BYPASS=true */}
+ {/* Dev payment bypass — only in development with VITE_PAYMENT_DEV_BYPASS=true */}
         {showDevBypass && applicationId && (
           <div className="space-y-2">
             {devBypassError && <p className="text-sm text-destructive text-center">{devBypassError}</p>}
             <button
               type="button"
-              className="w-full rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-950/20 dark:hover:bg-orange-950/40"
+              className="w-full rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50"
               onClick={handleDevBypass}
               disabled={devBypassing}
               data-testid="dev-bypass-button"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                  <Zap className="h-5 w-5 text-orange-700 dark:text-orange-300" aria-hidden="true" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">
+                  <Zap className="h-5 w-5 text-orange-700" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                  <p className="text-sm font-semibold text-orange-700">
                     {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
-                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
-                </div>
-              </div>
-            </button>
+                  <p className="text-xs text-orange-600/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
+ </div>
+ </div>
+ </button>
           </div>
         )}
       </fieldset>

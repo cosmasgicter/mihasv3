@@ -2,6 +2,9 @@ import { z } from '@/lib/zod'
 
 export const programFormSchema = z.object({
   name: z.string().min(1, 'Program name is required'),
+  // R7.1 / TEN-03: an offering must reference a Canonical_Program. Free-text
+  // programs (no canonical link) are rejected by the backend freeze.
+  canonical_program_id: z.string().min(1, 'Canonical program is required'),
   description: z.string(),
   duration_years: z.number().min(1, 'Duration must be at least 1 year').max(10, 'Duration must be at most 10 years'),
   institution_id: z.string().min(1, 'Institution is required'),
@@ -28,6 +31,7 @@ export type InstitutionFormData = z.infer<typeof institutionFormSchema>
 
 export const defaultProgramForm: ProgramFormData = {
   name: '',
+  canonical_program_id: '',
   description: '',
   duration_years: 1,
   institution_id: '',

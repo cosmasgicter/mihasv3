@@ -1,0 +1,103 @@
+
+Running 32 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (5.0s)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (1.4s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (1.2s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.4s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.6s)
+  ✓   6 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (12.3s)
+  ✓   7 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (270ms)
+  ✘   8 [chromium-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace (31.6s)
+  ✓   9 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:279:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (7.0s)
+  ✓  10 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:420:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (2.7s)
+  ✓  11 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:463:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (2.7s)
+  ✓  12 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:502:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.4s)
+  ✓  13 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:548:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (11.6s)
+  ✓  14 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:620:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (3.4s)
+  ✓  15 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:682:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (2.9s)
+  ✓  16 [chromium-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:757:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (3.8s)
+  ✓  17 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:224:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › every tile carries a definition and a measured state (4.3s)
+  ✓  18 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:262:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › a tile is the roster it opens (1.3s)
+  ✓  19 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:284:3 › the admin dashboard states what it measured (task 9.2, ADM-02) › nothing on the page claims to measure who is online (MAINT-02) (1.3s)
+  ✓  20 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:301:3 › tenant selection survives polling (ADM-02) › every poll carries the selected school (39.3s)
+  ✓  21 [mobile-required] › tests/harness-e2e/required/admin-dashboard-metrics.spec.ts:356:3 › a failed source is unknown, never a healthy zero (R8.6, R17.6) › the dashboard says Unknown when its read fails (18.6s)
+  ✓  22 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.6s)
+  ✓  23 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (322ms)
+  ✘  24 [mobile-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace (31.6s)
+  ✓  25 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:279:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › renders one bottom action surface at 320, 375 and 390, with no overflow (8.3s)
+  ✓  26 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:420:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › offers the step checklist on a 320px phone, by keyboard (3.5s)
+  ✓  27 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:463:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › shows the platform’s own blockers, not a browser-derived list (3.0s)
+  ✓  28 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:502:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › opens the step a link names, and clamps one the student has not earned (3.2s)
+  ✓  29 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:548:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › says it is offline, keeps accepting input, and still has the work on reconnect (11.9s)
+  ✓  30 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:620:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › releases the action bar when the on-screen keyboard opens (3.8s)
+  ✓  31 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:682:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › the progress summary and action bar reflow at 200% text size (4.7s)
+  ✓  32 [mobile-required] › tests/harness-e2e/required/student-wizard-mobile.spec.ts:757:3 › The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8) › a resumed draft rehydrates the answers the list projection omits (4.3s)
+
+
+  1) [chromium-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace 
+
+    Error: a deferred fee must be actionable from the one workspace, not a dead end
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Next actions/i }).first().locator('xpath=ancestor::section[1]').locator('a[href^="/student/payment"]').first()
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - a deferred fee must be actionable from the one workspace, not a dead end with timeout 30000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Next actions/i }).first().locator('xpath=ancestor::section[1]').locator('a[href^="/student/payment"]').first()[22m
+
+
+      371 |       payLink,
+      372 |       'a deferred fee must be actionable from the one workspace, not a dead end',
+    > 373 |     ).toBeVisible({ timeout: 30_000 });
+          |       ^
+      374 |     await expect(payLink).toContainText(/Complete deferred payment/i);
+      375 |     await payLink.click();
+      376 |
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/student-lifecycle-golden.spec.ts:373:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-student-lifecycle-00b17-d-tracking-on-one-workspace-chromium-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-student-lifecycle-00b17-d-tracking-on-one-workspace-chromium-required/error-context.md
+
+  2) [mobile-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace 
+
+    Error: a deferred fee must be actionable from the one workspace, not a dead end
+
+    [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Next actions/i }).first().locator('xpath=ancestor::section[1]').locator('a[href^="/student/payment"]').first()
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - a deferred fee must be actionable from the one workspace, not a dead end with timeout 30000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Next actions/i }).first().locator('xpath=ancestor::section[1]').locator('a[href^="/student/payment"]').first()[22m
+
+
+      371 |       payLink,
+      372 |       'a deferred fee must be actionable from the one workspace, not a dead end',
+    > 373 |     ).toBeVisible({ timeout: 30_000 });
+          |       ^
+      374 |     await expect(payLink).toContainText(/Complete deferred payment/i);
+      375 |     await payLink.click();
+      376 |
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/student-lifecycle-golden.spec.ts:373:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-student-lifecycle-00b17-d-tracking-on-one-workspace-mobile-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-student-lifecycle-00b17-d-tracking-on-one-workspace-mobile-required/error-context.md
+
+  2 failed
+    [chromium-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace 
+    [mobile-required] › tests/harness-e2e/required/student-lifecycle-golden.spec.ts:310:3 › The golden student lifecycle, in one canonical workspace (R13.7, R13.13) › one student meets payment recovery, amendment, interview, communication, decision, their official document, and tracking on one workspace 
+  30 passed (5.2m)

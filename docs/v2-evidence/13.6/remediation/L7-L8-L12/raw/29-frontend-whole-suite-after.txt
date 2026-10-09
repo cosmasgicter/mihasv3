@@ -1,0 +1,29 @@
+### 2026-08-14T17:18:20Z L8 - frontend whole suite
+$ cd apps/admissions && bun run test        # bun x vitest run
+# Baseline: 1 failed / 4619 passed / 1 skipped over 495 files (../L12/raw/05)
+# The raw stdout is 29661 lines, dominated by ONE assertion that prints an entire
+# rendered DOM (~11 kB on a single line). The summary and the failure identity are kept
+# here; the DOM dump is not, because an artifact nobody can read is not evidence.
+
+--- summary ---
+ Test Files  1 failed | 493 passed | 1 skipped (495)
+      Tests  1 failed | 4619 passed | 1 skipped (4621)
+   Start at  19:13:38
+   Duration  196.03s (transform 87.93s, setup 17.03s, import 432.21s, tests 516.02s, environment 929.96s)
+bun run test exit=1
+
+--- the one failure, identified ---
+ FAIL  tests/unit/authPageFormMarkup.test.tsx > auth page form markup > uses honest helper copy instead of fake email availability states
+ ❯ tests/unit/authPageFormMarkup.test.tsx:106:20
+
+# This is the same pre-existing failure L5-L6, L9-L11 and L12 all recorded
+# (13.6 §9.2: another lane's). L8 did not open that file or the page it asserts on.
+# Its assertion wants "We'll verify this address." and the page says "We'll send account
+# updates here. If you already have an account, sign in instead." - a copy divergence in
+# the auth lane, not a defect this batch can attribute to itself.
+
+--- did this batch add or change any vitest test? ---
+# No. The five specs L8 edited are Playwright (tests/harness-e2e/required/), which vitest
+# does not collect, and evidence-dir.ts has no vitest suite: its behaviour is pinned by
+# the cross-language guard backend/tests/unit/test_evidence_dir_convention_l8.py (38
+# cases). Total vitest cases are therefore unchanged at 4621, and they are.

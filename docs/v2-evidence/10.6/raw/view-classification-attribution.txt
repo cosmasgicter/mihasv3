@@ -1,0 +1,22 @@
+]633;E;echo "The view-classification failure is PRE-EXISTING and 10.6 SHRANK it.";ee90953e-8163-4a0b-90ea-901eeeee778d]633;CThe view-classification failure is PRE-EXISTING and 10.6 SHRANK it.
+
+tests/unit/test_view_auth_classification.py::test_all_api_views_are_classified
+asserts that every APIView in backend/apps appears in one of the file's
+classification sets. It fails in BOTH runs. The number it fails with is the
+attribution:
+
+  with the HEAD (pre-10.6) classification file : 55 unclassified views
+  with 10.6's classification file              : 38 unclassified views
+
+10.6's own edit to that file is a REMOVAL (EmailSlipView, deleted with its
+route), so it cannot add an unclassified view. The 38 that remain belong to
+tasks 3.x-9.x: tenant onboarding v2, tenant change requests v2, staff
+invitations, admin intake views, domain lifecycle commands, the admin
+application query, readiness v2, the fee quote and the fee admin list, plus
+task 7.2's ApplicationRequiredDocumentsView. None is 10.6's.
+
+Reproduce:
+  cp tests/unit/test_view_auth_classification.py /tmp/cand.py
+  git show HEAD:backend/tests/unit/test_view_auth_classification.py > tests/unit/test_view_auth_classification.py
+  .venv/bin/python3 -m pytest tests/unit/test_view_auth_classification.py::test_all_api_views_are_classified -q --tb=line
+  cp /tmp/cand.py tests/unit/test_view_auth_classification.py

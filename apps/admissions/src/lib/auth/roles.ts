@@ -9,7 +9,7 @@
  * keeps the canonical hierarchy in sync with backend/apps/accounts/permissions.py.
  */
 
-import { hasRole, isAdmin, isReviewer, isStudent, isSuperAdmin, ROLE_HIERARCHY, type Role } from '@/types/roles'
+import { isAdmin } from '@/types/roles'
 
 export type { Role } from '@/types/roles'
 export { ROLE_HIERARCHY, hasRole, isAdmin, isReviewer, isStudent, isSuperAdmin } from '@/types/roles'

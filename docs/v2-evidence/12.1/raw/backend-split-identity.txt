@@ -1,0 +1,637 @@
+
+==============================================================================
+backend/apps/catalog/admin_views.py  vs  admin plan (8 modules)
+==============================================================================
+  anchor (HEAD): 1805 lines, 53 top-level definitions
+  plan: 52 definitions across 8 modules
+
+  byte-identical to HEAD: 36/52   differs: 9   not at HEAD: 7
+
+  --- differs from HEAD (must be attributed to another lane) ---
+  * AdminTenantDetailView -> admin_tenant_views.py  (+6 / -20 lines)
+      --- HEAD
+      +++ admin_tenant_views.py
+      @@ -27,23 +27,9 @@
+                   return Response({"success": False, "error": "Institution not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+      -        serializer = AdminInstitutionSerializer(institution, data=request.data, partial=True)
+      -        serializer.is_valid(raise_exception=True)
+      -        # R6.9: deactivating a tenant predictably suspends that tenant's staff
+      -        # memberships in the same transaction, so a deactivated tenant can never
+      -        # leave behind live memberships that would still resolve scope/capabilities.
+      -        with transaction.atomic():
+      -            institution = serializer.save()
+      -            if verb == "deactivated":
+      -                UserInstitutionMembership.objects.filter(
+      -                    institution_id=institution.id, is_active=True
+      -                ).update(is_active=False)
+      -        _audit_config_change(
+      -            request,
+      -            resource="institution",
+      -            verb=verb,
+      -            entity_id=institution.id,
+      -            institution_id=institution.id,
+      +        # Delegate to the single canonical institution-profile command. This is
+      +        # the SAME command the tenant change-request apply path calls on approval
+      +        # (task 4.5): serializer-validated write, R6.9 membership suspension on
+      +        # deactivate, canonical audit event, and catalog-cache invalidation.
+      +        institution = apply_institution_profile_change(
+      +            institution, request.data, request=request
+               )
+      -        # R4.3: tenant activation/branding change flows into cached catalog
+      -        # offerings + the shared portal listing; invalidate before returning.
+      -        invalidate_catalog_scopes(institution.id, user=request.user)
+               return Response({"success": True, "data": AdminInstitutionSerializer(institution).data})
+  * AdminTenantProgramDetailView -> admin_tenant_views.py  (+3 / -15 lines)
+      --- HEAD
+      +++ admin_tenant_views.py
+      @@ -29,17 +29,5 @@
+       
+      -        payload = request.data.copy()
+      -        payload["institution_id"] = str(institution_id)
+      -        serializer = ProgramCreateUpdateSerializer(program, data=payload, partial=True)
+      -        serializer.is_valid(raise_exception=True)
+      -        for attr, value in serializer.validated_data.items():
+      -            setattr(program, attr, value)
+      -        program.save()
+      -        _audit_config_change(
+      -            request,
+      -            resource="program",
+      -            verb=_verb_for_payload(request.data, created=False),
+      -            entity_id=program.id,
+      -            institution_id=institution_id,
+      -        )
+      -        invalidate_catalog_scopes(institution_id, user=request.user)
+      +        # Delegate to the single canonical program-offering command — the SAME
+      +        # command the tenant change-request apply path calls on approval (4.5).
+      +        program = apply_program_offering_change(program, request.data, request=request)
+               return Response({"success": True, "data": self.serializer_class(program).data})
+  * AdminTenantDomainListCreateView -> admin_domain_views.py  (+13 / -30 lines)
+      --- HEAD
+      +++ admin_domain_views.py
+      @@ -25,34 +25,17 @@
+       
+      -        payload = request.data.copy()
+      -        payload["institution_id"] = str(institution_id)
+      -        serializer = self.serializer_class(data=payload)
+      -        serializer.is_valid(raise_exception=True)
+      -
+      -        hostname = serializer.validated_data["hostname"]
+      -        verification_token = secrets.token_urlsafe(_DOMAIN_VERIFICATION_TOKEN_BYTES)
+      -        dns_target = _generate_dns_target()
+      -
+      +        # Delegate to the single canonical domain-create command (shared with the
+      +        # tenant change-request apply path, task 4.5). It forces ``pending_dns``
+      +        # with a fresh token + dns_target, records the ``tenant.domain.created``
+      +        # audit event, and commits a durable verification job before returning
+      +        # (R5.1; design §6.3). A concurrent same-hostname insert surfaces as an
+      +        # IntegrityError which maps to the stable hostname-conflict code (R7.10).
+               try:
+      -            with transaction.atomic():
+      -                instance = serializer.save(
+      -                    created_by_id=getattr(request.user, "id", None),
+      -                    status=InstitutionDomain.STATUS_PENDING_DNS,
+      -                    verification_token=verification_token,
+      -                    dns_target=dns_target,
+      -                    created_at=timezone.now(),
+      -                )
+      +            instance, dns_record = create_institution_domain(
+      +                institution_id,
+      +                request.data,
+      +                request=request,
+      +                created_by_id=getattr(request.user, "id", None),
+      +            )
+               except IntegrityError:
+      -            # Defensive: a concurrent insert of the same hostname. The serializer
+      -            # already rejects known collisions, so this is the last line of
+      -            # defence and maps to the stable hostname-conflict code (R7.10).
+                   return _hostname_conflict_response()
+      -
+      … 14 more diff lines
+  * AdminTenantProfileCloneView -> admin_document_config_views.py  (+13 / -5 lines)
+      --- HEAD
+      +++ admin_document_config_views.py
+      @@ -52,9 +52,17 @@
+               try:
+      -            new_version = InstitutionDocumentProfileService().create_new_version(
+      -                profile,
+      -                created_by_id=getattr(request.user, "id", None),
+      -                **changes,
+      -            )
+      +            with transaction.atomic():
+      +                new_version = InstitutionDocumentProfileService().create_new_version(
+      +                    profile,
+      +                    created_by_id=getattr(request.user, "id", None),
+      +                    **changes,
+      +                )
+               except TemplateValidationError as exc:
+                   return _template_rejected_response(exc.message)
+      +        except IntegrityError:
+      +            # Concurrent clone computed the same next version for this scope and
+      +            # lost the race to uq_doc_profiles_scope_version (task 3.3, R15.5).
+      +            return _integrity_conflict_response(
+      +                "DUPLICATE_DOCUMENT_PROFILE_VERSION",
+      +                "A newer version of this document profile already exists. Reload and retry.",
+      +            )
+               _audit_config_change(
+  * AdminMembershipListCreateView -> admin_access_views.py  (+7 / -0 lines)
+      --- HEAD
+      +++ admin_access_views.py
+      @@ -46,2 +46,9 @@
+               )
+      +        # R3.5: a new membership grants tenant authority — revoke the member's
+      +        # in-flight sessions so their next request re-resolves capabilities.
+      +        revoke_sessions_for_authority_change(
+      +            getattr(membership, "user_id", None),
+      +            reason="membership_created",
+      +            actor_id=getattr(request.user, "id", None),
+      +        )
+               return Response({"success": True, "data": AdminMembershipSerializer(membership).data}, status=status.HTTP_201_CREATED)
+  * AdminMembershipDetailView -> admin_access_views.py  (+7 / -0 lines)
+      --- HEAD
+      +++ admin_access_views.py
+      @@ -30,2 +30,9 @@
+               )
+      +        # R3.5: a membership change (role/permissions/is_active) alters the
+      +        # member's authority — revoke their in-flight sessions.
+      +        revoke_sessions_for_authority_change(
+      +            getattr(membership, "user_id", None),
+      +            reason="membership_updated",
+      +            actor_id=getattr(request.user, "id", None),
+      +        )
+               return Response({"success": True, "data": AdminMembershipSerializer(membership).data})
+  * AdminAccessGrantListCreateView -> admin_access_views.py  (+19 / -1 lines)
+      --- HEAD
+      +++ admin_access_views.py
+      @@ -25,3 +25,14 @@
+               serializer.is_valid(raise_exception=True)
+      -        grant = serializer.save(created_by_id=getattr(request.user, "id", None))
+      +        # The serializer validates the (user, scope_type, target) active-duplicate
+      +        # guard, but the DB partial uniques (task 3.3) are the final race guard:
+      +        # a concurrent double-submit that passes validation twice fails closed
+      +        # here and returns a stable 409 instead of a 500 (R6.7).
+      +        try:
+      +            with transaction.atomic():
+      +                grant = serializer.save(created_by_id=getattr(request.user, "id", None))
+      +        except IntegrityError:
+      +            return _integrity_conflict_response(
+      +                "DUPLICATE_ACCESS_GRANT",
+      +                "An active access grant already exists for this user and target.",
+      +            )
+               _audit_config_change(
+      @@ -33,2 +44,9 @@
+               )
+      +        # R3.5: a new access grant widens the user's authority — revoke their
+      +        # in-flight sessions so the new scope is re-resolved.
+      +        revoke_sessions_for_authority_change(
+      +            getattr(grant, "user_id", None),
+      +            reason="grant_created",
+      +            actor_id=getattr(request.user, "id", None),
+      +        )
+               return Response({"success": True, "data": AdminAccessGrantSerializer(grant).data}, status=status.HTTP_201_CREATED)
+  * AdminAccessGrantDetailView -> admin_access_views.py  (+7 / -0 lines)
+      --- HEAD
+      +++ admin_access_views.py
+      @@ -30,2 +30,9 @@
+               )
+      +        # R3.5: a grant change (permissions/scope/expiry/is_active) alters the
+      +        # user's authority — revoke their in-flight sessions.
+      +        revoke_sessions_for_authority_change(
+      +            getattr(grant, "user_id", None),
+      +            reason="grant_updated",
+      +            actor_id=getattr(request.user, "id", None),
+      +        )
+               return Response({"success": True, "data": AdminAccessGrantSerializer(grant).data})
+  * AdminInstitutionAuditView -> admin_audit_views.py  (+167 / -28 lines)
+      --- HEAD
+      +++ admin_audit_views.py
+      @@ -1,14 +1,26 @@
+       class AdminInstitutionAuditView(APIView):
+      -    """GET /api/v1/admin/institutions/<id>/audit/ — scoped per-institution feed (R13.5).
+      +    """GET /api/v1/admin/institutions/<id>/audit/ — the one tenant audit feed.
+       
+      -    Returns tenant Audit_Events for a single institution. A non-super-admin
+      -    School_Staff caller may only read audit events for an institution within
+      -    their membership/grant scope; an out-of-scope institution is masked as
+      -    not-found (no leakage of another school's existence or activity). Events
+      -    are matched on ``changes.institution_id`` (always recorded by
+      -    :class:`TenantAuditService`).
+      +    The **selected institution** endpoint R6.6 requires: scoped, capability-gated,
+      +    filtered and paginated in SQL, with server-computed facets and a
+      +    page-independent audited CSV export. All of it is delegated to
+      +    :class:`~apps.catalog.tenant_audit_query_service.TenantAuditQueryService`; this
+      +    view resolves the actor's access, asks the service, and answers.
+      +
+      +    Authority (task 9.5, finding **ADM-05**): the institution id is resolved
+      +    through ``visible_institution_queryset`` **before** any audit query, so an
+      +    out-of-scope, unknown or malformed id is one indistinguishable masked 404;
+      +    then ``tenant.audit.read`` is required *for that institution* through
+      +    ``AdminCapabilityService`` (a Super_Admin passes on platform authority). The
+      +    previous ``IsAdmin`` role class plus inline scope-id set is gone: no role
+      +    string is compared on this surface.
+      +
+      +    Requirements: R3, R6.6, R13.5.
+           """
+       
+      -    permission_classes = [IsAdmin]
+      +    permission_classes = [IsAuthenticated]
+           serializer_class = TenantAuditLogSerializer
+      +
+      +    #: Bulk extraction is a separate capability from reading (R6.5).
+      +    export_capability = _TENANT_AUDIT_EXPORT_CAPABILITY
+       
+      @@ -19,27 +31,154 @@
+                   OpenApiParameter("institution_id", OpenApiTypes.UUID, OpenApiParameter.PATH),
+      -            OpenApiParameter("action", OpenApiTypes.STR, OpenApiParameter.QUERY),
+      … 172 more diff lines
+
+  --- not present at HEAD (added by an in-flight task) ---
+  * AdminTenantDomainApproveView -> admin_domain_views.py
+  * AdminTenantDomainReactivateView -> admin_domain_views.py
+  * AdminTenantDomainRejectView -> admin_domain_views.py
+  * AdminTenantDomainRetryView -> admin_domain_views.py
+  * _domain_transition_conflict_response -> _admin_view_helpers.py
+  * _get_domain_or_404 -> admin_domain_views.py
+  * _integrity_conflict_response -> _admin_view_helpers.py
+
+  --- provenance of the symbols the deltas introduce ---
+  * TenantAuditService                         from tenant_audit_service.py          mtime 2026-08-09
+  * apply_institution_profile_change           from canonical_config_commands.py     mtime 2026-07-23
+  * apply_program_offering_change              from canonical_config_commands.py     mtime 2026-07-23
+  * create_institution_domain                  from canonical_config_commands.py     mtime 2026-07-23
+
+  partition: every top-level definition in the 8 split modules is in the plan (86 further names are bound by the hand-written headers — imports and one logger)
+
+  --- at HEAD but not in the plan: where each one lives now ---
+  * _DOMAIN_VERIFICATION_TOKEN_BYTES       now defined in canonical_config_commands.py (as DOMAIN_VERIFICATION_TOKEN_BYTES)
+  * _build_dns_record                      now defined in canonical_config_commands.py (as build_dns_record)
+  * _domain_verification_base              now defined in canonical_config_commands.py (as domain_verification_base)
+  * _generate_dns_target                   now defined in canonical_config_commands.py (as generate_dns_target)
+  * _readiness_item                        now defined in tenant_readiness.py
+  partition: all 5 relocated by a prior in-flight task, none lost by this split
+
+  reconciliation
+    HEAD: 1805 lines = 66 header + 1625 definition + 114 separator/other
+    pre-split (recorded): 2072 lines
+    split modules: 1873 definition lines carried
+    => implied pre-split header/import block: 85 lines (vs 66 at HEAD)
+
+==============================================================================
+backend/apps/catalog/views.py  vs  catalog plan (6 modules)
+==============================================================================
+  anchor (HEAD): 1356 lines, 38 top-level definitions
+  plan: 42 definitions across 6 modules
+
+  byte-identical to HEAD: 26/42   differs: 11   not at HEAD: 5
+
+  --- differs from HEAD (must be attributed to another lane) ---
+  * SubjectListResponseSerializer -> _catalog_view_helpers.py  (+14 / -3 lines)
+      --- HEAD
+      +++ _catalog_view_helpers.py
+      @@ -1,4 +1,15 @@
+      -SubjectListResponseSerializer = envelope_serializer(
+      -    "CatalogSubjectListResponse",
+      -    SubjectSerializer(many=True),
+      +#: The subjects list carries one extra top-level key beyond the standard
+      +#: envelope: ``meta.subject_catalog_version`` (design §9.2 — "the subject catalog
+      +#: is seeded and versioned by the backend"). ``data`` stays a plain list so every
+      +#: existing consumer is unchanged.
+      +SubjectListResponseSerializer = inline_serializer(
+      +    name="CatalogSubjectListResponse",
+      +    fields={
+      +        "success": drf_serializers.BooleanField(default=True),
+      +        "data": SubjectSerializer(many=True),
+      +        "meta": inline_serializer(
+      +            name="CatalogSubjectListMeta",
+      +            fields={"subject_catalog_version": drf_serializers.CharField()},
+      +        ),
+      +    },
+       )
+  * _catalog_scope_signature -> _catalog_view_helpers.py  (+28 / -16 lines)
+      --- HEAD
+      +++ _catalog_view_helpers.py
+      @@ -1,20 +1,32 @@
+       def _catalog_scope_signature(request):
+      -    """Resolve the catalog cache scope signature for a request (R4.5, R4.6).
+      +    """Resolve the catalog cache scope signature for a request (R2.4, R5.3).
+       
+      -    The signature embeds the resolved tenant scope so a cached catalog response
+      -    is reused only within the same tenant scope it was computed for, and two
+      -    distinct scopes can never share an entry (R4.5):
+      +    For the two allowlisted public selector endpoints, scope by the effective
+      +    canonical institution before considering the caller's generic cache scope:
+      +    a trusted tenant host wins over a query value, and a registered neutral
+      +    shared portal selection uses that selected tenant's ``inst:<id>`` partition.
+      +    An unregistered/unknown host remains neutral. All other catalog endpoints
+      +    preserve their existing admin and host-derived cache behavior.
+      +    """
+      +    selector_endpoint = _CATALOG_EXPLICIT_SELECTOR_ENDPOINTS.get(
+      +        getattr(request, "path", "")
+      +    )
+      +    if selector_endpoint:
+      +        try:
+      +            context = _resolve_public_request_context(request)
+      +            institution_id = OfferingDirectoryService().resolved_institution_id(
+      +                context,
+      +                request.query_params.get("institution"),
+      +                request_host=_request_host(request),
+      +                endpoint=selector_endpoint,
+      +            )
+      +        except Exception:  # pragma: no cover - defensive
+      +            logger.warning(
+      +                "catalog cache: effective institution resolution failed; using neutral",
+      +                exc_info=True,
+      +            )
+      +            institution_id = None
+      +        if institution_id is not None:
+      +            return catalog_institution_scope(institution_id)
+       
+      -    * **Authenticated admins / super-admins** key on their resolved tenant scope
+      -      (visible institutions + role) via
+      … 11 more diff lines
+  * ProgramListCreateView -> program_views.py  (+26 / -17 lines)
+      --- HEAD
+      +++ program_views.py
+      @@ -66,20 +66,12 @@
+       
+      -            # Filter by intake if provided (uses program_intakes junction table)
+      -            # Accepts either an intake UUID or an intake name string.
+      -            intake_id = request.query_params.get("intake")
+      -            if intake_id:
+      -                from apps.catalog.models import ProgramIntake, Intake
+      -                import uuid as _uuid
+      +            # Filter by intake if provided (uses program_intakes junction table).
+      +            # Accepts either an intake UUID or an intake name string, through the
+      +            # one resolver the canonical-program listing also uses.
+      +            resolved_intake_id = _resolve_intake_filter(
+      +                request.query_params.get("intake")
+      +            )
+      +            if resolved_intake_id is not None:
+      +                from apps.catalog.models import ProgramIntake
+       
+      -                # Determine if the value is a UUID or a name
+      -                resolved_intake_id = None
+      -                try:
+      -                    resolved_intake_id = str(_uuid.UUID(intake_id))
+      -                except (ValueError, AttributeError):
+      -                    # Not a UUID - try to resolve by name
+      -                    intake_obj = Intake.objects.filter(name=intake_id, is_active=True).first()
+      -                    if intake_obj:
+      -                        resolved_intake_id = str(intake_obj.id)
+      -
+      -                if resolved_intake_id:
+      +                if resolved_intake_id is not _INTAKE_FILTER_UNRESOLVED:
+                           program_ids = ProgramIntake.objects.filter(
+      @@ -127,2 +119,15 @@
+       
+      +        # R7.1 freeze (TEN-03 / DATA-01): a ``Program`` row is an
+      +        # Institution_Program_Offering and MUST reference a Canonical_Program.
+      +        # The legacy display-string write (a bare program created from a typed
+      +        # name with no canonical link) is rejected with a stable code so the
+      +        # only offering-create path is Canonical_Program -> Program_Offering. The
+      +        # canonical write (task 4.3 ``createOffering``) already supplies it.
+      … 15 more diff lines
+  * CanonicalProgramListView -> program_views.py  (+26 / -5 lines)
+      --- HEAD
+      +++ program_views.py
+      @@ -37,9 +37,20 @@
+           def get(self, request):
+      -        intake_id = request.query_params.get("intake")
+      +        # ``?intake=`` accepts a UUID or an intake name (the wizard hydrates a
+      +        # resumed draft from the legacy display snapshot). Resolving it here is
+      +        # what keeps a malformed value a 200-with-no-matches instead of an
+      +        # unhandled UUID ``ValidationError`` bubbling out as a 500.
+      +        raw_intake = request.query_params.get("intake")
+      +        resolved_intake = _resolve_intake_filter(raw_intake)
+      +        intake_unresolved = resolved_intake is _INTAKE_FILTER_UNRESOLVED
+      +        intake_id = None if intake_unresolved else resolved_intake
+               portal_context = _resolve_request_context(request)
+               directory = OfferingDirectoryService()
+      -        # Tenant portal (R8.7) when a tenant resolves from the host or an explicit
+      -        # ``institution`` param is supplied; shared Beanola portal (R8.6) otherwise.
+      +        # A trusted tenant host is authoritative. The query selector is accepted
+      +        # only for the registered neutral shared portal on this allowlisted
+      +        # endpoint; unknown hosts stay neutral.
+               institution_id = directory.resolved_institution_id(
+      -            portal_context, request.query_params.get("institution")
+      +            portal_context,
+      +            request.query_params.get("institution"),
+      +            request_host=_request_host(request),
+      +            endpoint=_CANONICAL_PROGRAM_SELECTOR_ENDPOINT,
+               )
+      @@ -55,2 +66,7 @@
+                   )
+      +            if intake_unresolved:
+      +                # An intake was named and matched nothing. Narrow to empty rather
+      +                # than silently listing every offering (which would answer a
+      +                # different question than the one asked).
+      +                queryset = queryset.none()
+       
+      @@ -101,5 +117,10 @@
+       
+      +        # The sub-key carries the *resolved* intake, plus an explicit marker when
+      +        # a named intake resolved to nothing — otherwise "no intake requested"
+      +        # (list everything) and "an intake that does not exist" (list nothing)
+      … 7 more diff lines
+  * AssignmentPreviewView -> program_views.py  (+40 / -10 lines)
+      --- HEAD
+      +++ program_views.py
+      @@ -52,7 +52,12 @@
+       
+      -        # White-label context restricts candidate offerings to the host school.
+      +        # Use the same central policy as canonical-program listing: trusted
+      +        # tenant context wins, while explicit selection is limited to a
+      +        # registered neutral shared portal on this allowlisted endpoint.
+               portal_context = _resolve_request_context(request)
+      -        institution_id = request.query_params.get("institution")
+      -        if not institution_id and portal_context.institution is not None:
+      -            institution_id = str(portal_context.institution.id)
+      +        institution_id = OfferingDirectoryService().resolved_institution_id(
+      +            portal_context,
+      +            request.query_params.get("institution"),
+      +            request_host=_request_host(request),
+      +            endpoint=_ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT,
+      +        )
+       
+      @@ -93,9 +98,16 @@
+                   fee_data = None
+      +            fee_blocker = None
+                   try:
+      -                from apps.documents.fee_resolver import FeeResolver
+      -
+      -                resolved_fee = FeeResolver().resolve_fee(
+      -                    program_code=offering.code,
+      -                    nationality=nationality,
+      -                    country=country,
+      +                from apps.documents.fee_resolver import (
+      +                    FeeConfigurationError,
+      +                    FeeResolver,
+      +                )
+      +
+      +                # Resolve from the already-assigned canonical offering object
+      +                # (task 5.4): offering-keyed, tenant-scoped, and fail-closed —
+      +                # no code re-lookup, no default amount.
+      +                resolved_fee = FeeResolver().resolve_for_offering(
+      +                    offering,
+      +                    nationality,
+      … 26 more diff lines
+  * ProgramDetailView -> program_views.py  (+19 / -2 lines)
+      --- HEAD
+      +++ program_views.py
+      @@ -119,4 +119,13 @@
+               )
+      +        # R14.7: this legacy offering-update route is frozen. The canonical
+      +        # successor is PATCH /admin/institutions/{id}/programs/{id}/. Measure
+      +        # residual callers and signal deprecation to any that remain.
+      +        record_catalog_write(request, resource="program", method="PATCH", legacy=True)
+               out = ProgramSerializer(program)
+      -        return Response({"success": True, "data": out.data})
+      +        response = Response({"success": True, "data": out.data})
+      +        return mark_deprecated(
+      +            response,
+      +            resource="program",
+      +            successor=f"/api/v1/admin/institutions/{program.institution_id}/programs/{program.id}/",
+      +        )
+       
+      @@ -137,2 +146,10 @@
+               invalidate_catalog_scopes(program.institution_id, user=request.user)
+      -        return Response({"success": True, "data": {"message": "Program deactivated"}})
+      +        # R14.7: frozen legacy route; canonical successor is a PATCH
+      +        # is_active=false on /admin/institutions/{id}/programs/{id}/.
+      +        record_catalog_write(request, resource="program", method="DELETE", legacy=True)
+      +        response = Response({"success": True, "data": {"message": "Program deactivated"}})
+      +        return mark_deprecated(
+      +            response,
+      +            resource="program",
+      +            successor=f"/api/v1/admin/institutions/{program.institution_id}/programs/{program.id}/",
+      +        )
+  * IntakeListCreateView -> intake_views.py  (+4 / -1 lines)
+      --- HEAD
+      +++ intake_views.py
+      @@ -96,3 +96,6 @@
+               invalidate_catalog_scopes(user=request.user)
+      +        # R14.7: frozen legacy route; canonical successor is /admin/intakes/.
+      +        record_catalog_write(request, resource="intake", method="POST", legacy=True)
+               out = IntakeSerializer(intake)
+      -        return Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
+      +        response = Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
+      +        return mark_deprecated(response, resource="intake", successor="/api/v1/admin/intakes/")
+  * IntakeDetailView -> intake_views.py  (+12 / -2 lines)
+      --- HEAD
+      +++ intake_views.py
+      @@ -87,3 +87,8 @@
+               invalidate_catalog_scopes(user=request.user)
+      -        return Response({"success": True, "data": IntakeSerializer(intake).data})
+      +        # R14.7: frozen legacy route; canonical successor is /admin/intakes/{id}/.
+      +        record_catalog_write(request, resource="intake", method="PATCH", legacy=True)
+      +        response = Response({"success": True, "data": IntakeSerializer(intake).data})
+      +        return mark_deprecated(
+      +            response, resource="intake", successor=f"/api/v1/admin/intakes/{intake.id}/"
+      +        )
+       
+      @@ -101,2 +106,7 @@
+               invalidate_catalog_scopes(user=request.user)
+      -        return Response({"success": True, "data": {"message": "Intake deactivated"}})
+      +        # R14.7: frozen legacy route; canonical successor is /admin/intakes/{id}/.
+      +        record_catalog_write(request, resource="intake", method="DELETE", legacy=True)
+      +        response = Response({"success": True, "data": {"message": "Intake deactivated"}})
+      +        return mark_deprecated(
+      +            response, resource="intake", successor=f"/api/v1/admin/intakes/{intake.id}/"
+      +        )
+  * SubjectListView -> subject_views.py  (+18 / -4 lines)
+      --- HEAD
+      +++ subject_views.py
+      @@ -9,3 +9,11 @@
+       class SubjectListView(APIView):
+      -    """GET /api/v1/catalog/subjects/ - list subjects (public)"""
+      +    """GET /api/v1/catalog/subjects/ - list subjects (public)
+      +
+      +    R11.5 (admissions-v2 task 7.1, finding STU-11): this endpoint is the **only**
+      +    source of selectable subject identities. It serves active canonical rows
+      +    only — a deactivated subject can still be referenced by an old grade, but
+      +    server readiness never counts it, so offering it would be a trap — and it
+      +    publishes the versioned alias catalogue (R11.4) alongside each subject so no
+      +    client has to keep its own subject or alias table.
+      +    """
+       
+      @@ -19,5 +27,11 @@
+               def compute():
+      -            queryset = Subject.objects.all().order_by("name")
+      -            serializer = SubjectSerializer(queryset, many=True)
+      -            return {"success": True, "data": serializer.data}
+      +            queryset = active_subjects_queryset()
+      +            serializer = SubjectSerializer(
+      +                queryset, many=True, context={"alias_map": aliases_by_code()}
+      +            )
+      +            return {
+      +                "success": True,
+      +                "data": serializer.data,
+      +                "meta": {"subject_catalog_version": SUBJECT_CATALOG_VERSION},
+      +            }
+       
+  * InstitutionListCreateView -> institution_views.py  (+4 / -1 lines)
+      --- HEAD
+      +++ institution_views.py
+      @@ -71,3 +71,6 @@
+               invalidate_catalog_scopes(institution.id, user=request.user)
+      +        # R14.7: frozen legacy route; canonical successor is /admin/institutions/.
+      +        record_catalog_write(request, resource="institution", method="POST", legacy=True)
+               out = InstitutionSerializer(institution)
+      -        return Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
+      +        response = Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
+      +        return mark_deprecated(response, resource="institution", successor="/api/v1/admin/institutions/")
+  * InstitutionDetailView -> institution_views.py  (+16 / -2 lines)
+      --- HEAD
+      +++ institution_views.py
+      @@ -100,4 +100,11 @@
+               invalidate_catalog_scopes(institution.id, user=request.user)
+      +        # R14.7: frozen legacy route; canonical successor is /admin/institutions/{id}/.
+      +        record_catalog_write(request, resource="institution", method="PATCH", legacy=True)
+               out = InstitutionSerializer(institution)
+      -        return Response({"success": True, "data": out.data})
+      +        response = Response({"success": True, "data": out.data})
+      +        return mark_deprecated(
+      +            response,
+      +            resource="institution",
+      +            successor=f"/api/v1/admin/institutions/{institution.id}/",
+      +        )
+       
+      @@ -132,2 +139,9 @@
+               invalidate_catalog_scopes(institution.id, user=request.user)
+      -        return Response({"success": True, "data": {"message": "Institution deactivated"}})
+      +        # R14.7: frozen legacy route; canonical successor is /admin/institutions/{id}/.
+      +        record_catalog_write(request, resource="institution", method="DELETE", legacy=True)
+      +        response = Response({"success": True, "data": {"message": "Institution deactivated"}})
+      +        return mark_deprecated(
+      +            response,
+      +            resource="institution",
+      +            successor=f"/api/v1/admin/institutions/{institution.id}/",
+      +        )
+
+  --- not present at HEAD (added by an in-flight task) ---
+  * _ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT -> _catalog_view_helpers.py
+  * _CANONICAL_PROGRAM_SELECTOR_ENDPOINT -> _catalog_view_helpers.py
+  * _CATALOG_EXPLICIT_SELECTOR_ENDPOINTS -> _catalog_view_helpers.py
+  * _INTAKE_FILTER_UNRESOLVED -> _catalog_view_helpers.py
+  * _resolve_intake_filter -> _catalog_view_helpers.py
+
+  --- provenance of the symbols the deltas introduce ---
+  * OfferingDirectoryService                   from services.py                      mtime 2026-07-26
+  * SUBJECT_CATALOG_VERSION                    from subject_catalog.py               mtime 2026-07-26
+  * active_subjects_queryset                   from subject_catalog.py               mtime 2026-07-26
+  * aliases_by_code                            from subject_catalog.py               mtime 2026-07-26
+  * canonical_program_required_response        from legacy_write_telemetry.py        mtime 2026-07-23
+  * catalog_institution_scope                  from catalog_cache.py                 mtime 2026-06-22
+  * mark_deprecated                            from legacy_write_telemetry.py        mtime 2026-07-23
+  * record_catalog_write                       from legacy_write_telemetry.py        mtime 2026-07-23
+
+  partition: every top-level definition in the 6 split modules is in the plan (79 further names are bound by the hand-written headers — imports and one logger)
+  partition: every top-level definition at HEAD is accounted for
+
+  reconciliation
+    HEAD: 1356 lines = 59 header + 1241 definition + 56 separator/other
+    pre-split (recorded): 1570 lines
+    split modules: 1435 definition lines carried
+    => implied pre-split header/import block: 79 lines (vs 59 at HEAD)
+
+==============================================================================
+RESULT: clean

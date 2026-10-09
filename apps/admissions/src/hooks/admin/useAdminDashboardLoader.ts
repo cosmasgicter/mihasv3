@@ -5,11 +5,24 @@ import type {
   AdminDashboardDiagnostics,
   AdminDashboardStats,
 } from '@/services/admin/dashboard'
+import type {
+  DashboardFreshness,
+  DashboardHealth,
+  DashboardMetrics,
+} from '@/pages/admin/lib/dashboardMetrics'
 
 interface MinimalUser {
   id?: string | null
 }
 
+/**
+ * The pre-9.2 stats block's initial value.
+ *
+ * Every number is `0` here **only** because the type demands one; nothing on the
+ * dashboard reads this block any more. The dashboard renders `metrics`, whose
+ * initial value is `{}` — so an unloaded metric renders "Unknown", not zero
+ * (task 9.2, ADM-02).
+ */
 const INITIAL_STATS: AdminDashboardStats = {
   totalApplications: 0,
   pendingApplications: 0,
@@ -31,7 +44,7 @@ const INITIAL_STATS: AdminDashboardStats = {
   decisionVelocity24h: 0,
   activeUsers: 0,
   activeUsersLast7d: 0,
-  systemHealth: 'good',
+  systemHealth: null,
   pendingPayments: 0,
   pendingDocuments: 0,
   upcomingInterviews: 0,
@@ -44,6 +57,17 @@ export type DashboardPhase = 'idle' | 'initial-loading' | 'success' | 'refreshin
 
 export interface DashboardState {
   phase: DashboardPhase
+  /**
+   * The metric registry — the dashboard's authority (task 9.2). `{}` until a
+   * read lands, so an unloaded metric is *absent* rather than zero.
+   */
+  metrics: DashboardMetrics
+  /** Derived read health, or `null` while nothing has been measured. */
+  health: DashboardHealth | null
+  /** When these numbers were computed, and when to call them stale. */
+  freshness: DashboardFreshness | null
+  /** The school the loaded numbers describe, for the freshness/scope line. */
+  loadedInstitutionId: string | null
   stats: AdminDashboardStats
   recentActivity: AdminDashboardActivity[]
   error: string | null
@@ -54,15 +78,39 @@ export interface DashboardState {
   noSchoolAccess: boolean
 }
 
+interface LoadSuccess {
+  type: 'load-success'
+  stats: AdminDashboardStats
+  metrics: DashboardMetrics
+  health: DashboardHealth | null
+  freshness: DashboardFreshness
+  institutionId: string | null
+  activity: AdminDashboardActivity[]
+  shapeInvalid: boolean
+  noSchoolAccess: boolean
+}
+
 type Action =
   | { type: 'load-start'; isRefresh: boolean }
-  | { type: 'load-success'; stats: AdminDashboardStats; activity: AdminDashboardActivity[]; emptyPayload: boolean; noSchoolAccess: boolean }
+  | LoadSuccess
+  | { type: 'no-school-access' }
   | { type: 'load-error'; message: string; isNetwork: boolean }
   | { type: 'patch-stats'; patch: Partial<AdminDashboardStats> }
+  | {
+      type: 'patch-metrics'
+      metrics: DashboardMetrics
+      health: DashboardHealth | null
+      freshness: DashboardFreshness
+      institutionId: string | null
+    }
   | { type: 'patch-activity'; activity: AdminDashboardActivity[] }
 
 const initialState: DashboardState = {
   phase: 'idle',
+  metrics: {},
+  health: null,
+  freshness: null,
+  loadedInstitutionId: null,
   stats: INITIAL_STATS,
   recentActivity: [],
   error: null,
@@ -86,13 +134,37 @@ function reducer(state: DashboardState, action: Action): DashboardState {
         ...state,
         phase: 'success',
         stats: action.stats,
+        metrics: action.metrics,
+        health: action.health,
+        freshness: action.freshness,
+        loadedInstitutionId: action.institutionId,
         recentActivity: action.activity,
         lastUpdated: new Date(),
         hasLoadedOnce: true,
         noSchoolAccess: action.noSchoolAccess,
-        error: action.emptyPayload
-          ? 'Dashboard API returned an empty payload. Data is available but currently empty, not crashed.'
+        // A payload with no metric registry is a *shape* problem and is reported
+        // as one. It used to be reported whenever every number was zero — which
+        // told a school with nothing outstanding that its dashboard was broken,
+        // and is the mirror image of ADM-02's healthy zero.
+        error: action.shapeInvalid
+          ? 'The dashboard response did not contain any metrics. The numbers below are unknown.'
           : null,
+        errorIsNetwork: false,
+      }
+    case 'no-school-access':
+      // A settled, correct answer — not a failure. The page renders R11.6's
+      // explicit "No school access assigned" state, so there is no error to show
+      // and no number to render.
+      return {
+        ...state,
+        phase: 'success',
+        metrics: {},
+        health: null,
+        freshness: null,
+        recentActivity: [],
+        hasLoadedOnce: true,
+        noSchoolAccess: true,
+        error: null,
         errorIsNetwork: false,
       }
     case 'load-error':
@@ -101,11 +173,30 @@ function reducer(state: DashboardState, action: Action): DashboardState {
         phase: 'error',
         error: action.message,
         errorIsNetwork: action.isNetwork,
+        // A failed read invalidates the numbers rather than leaving the last-good
+        // ones on screen dressed as current (R8.6). `metrics: {}` renders
+        // "Unknown"; `health: null` renders no health claim at all.
+        metrics: {},
+        health: null,
       }
     case 'patch-stats':
       return {
         ...state,
         stats: { ...state.stats, ...action.patch },
+        lastUpdated: new Date(),
+      }
+    case 'patch-metrics':
+      // Only a poll for the school currently on screen may patch the numbers.
+      // The polling hook already discards a mismatched payload; this is the
+      // second gate, on the reducer, so a future caller cannot bypass it.
+      if (action.institutionId !== state.loadedInstitutionId) {
+        return state
+      }
+      return {
+        ...state,
+        metrics: action.metrics,
+        health: action.health,
+        freshness: action.freshness,
         lastUpdated: new Date(),
       }
     case 'patch-activity':
@@ -125,6 +216,12 @@ function isNetworkFailure(d: AdminDashboardDiagnostics): boolean {
 export interface UseAdminDashboardLoaderResult extends DashboardState {
   load: (mode?: 'initial' | 'manual') => Promise<void>
   patchStats: (patch: Partial<AdminDashboardStats>) => void
+  patchMetrics: (payload: {
+    metrics: DashboardMetrics
+    health: DashboardHealth | null
+    freshness: DashboardFreshness
+    institutionId: string | null
+  }) => void
   patchActivity: (activity: AdminDashboardActivity[]) => void
   isInitialLoading: boolean
   isRefreshing: boolean
@@ -162,6 +259,26 @@ export function useAdminDashboardLoader(
     }
 
     if (!result.diagnostics.ok) {
+      /**
+       * A masked 404 on the actor's **own** unscoped dashboard is "you have no
+       * school access" (task 9.2, R11.6).
+       *
+       * Task 9.2 moved the dashboard onto `HasTenantCapability`, so a caller with
+       * no tenant scope is refused rather than answered with zeros and a
+       * `no_school_access` flag. That is the right disclosure contract — and for a
+       * request that named **no** institution, the refusal is not ambiguous: the
+       * actor asked for their own scoped dashboard and the platform declined, with
+       * no other tenant's identity involved and nothing disclosed. So it is
+       * reported as the explicit no-scope state rather than as a generic failure.
+       *
+       * The `institutionIdRef.current` guard is what keeps that honest: when a
+       * school **was** named, a 404 means *that* school is out of scope, which is
+       * a different statement and stays an error.
+       */
+      if (result.diagnostics.status === 404 && !institutionIdRef.current) {
+        dispatch({ type: 'no-school-access' })
+        return
+      }
       dispatch({
         type: 'load-error',
         message: `Failed to load dashboard data: ${result.diagnostics.errorMessage ?? 'Unknown dashboard API error'}`,
@@ -173,8 +290,14 @@ export function useAdminDashboardLoader(
     dispatch({
       type: 'load-success',
       stats: result.data.stats,
+      metrics: result.data.metrics,
+      health: result.data.health,
+      freshness: result.data.freshness,
+      // Recorded from the ref that was live for *this* request, so the state
+      // knows which school its numbers describe.
+      institutionId: institutionIdRef.current,
       activity: result.data.recentActivity ?? [],
-      emptyPayload: result.diagnostics.responseShape === 'empty',
+      shapeInvalid: result.diagnostics.responseShape === 'empty',
       noSchoolAccess: result.data.noSchoolAccess,
     })
   }, [])
@@ -182,6 +305,18 @@ export function useAdminDashboardLoader(
   const patchStats = useCallback((patch: Partial<AdminDashboardStats>) => {
     dispatch({ type: 'patch-stats', patch })
   }, [])
+
+  const patchMetrics = useCallback(
+    (payload: {
+      metrics: DashboardMetrics
+      health: DashboardHealth | null
+      freshness: DashboardFreshness
+      institutionId: string | null
+    }) => {
+      dispatch({ type: 'patch-metrics', ...payload })
+    },
+    [],
+  )
 
   const patchActivity = useCallback((activity: AdminDashboardActivity[]) => {
     dispatch({ type: 'patch-activity', activity })
@@ -207,6 +342,7 @@ export function useAdminDashboardLoader(
     ...state,
     load,
     patchStats,
+    patchMetrics,
     patchActivity,
     isInitialLoading: state.phase === 'initial-loading',
     isRefreshing: state.phase === 'refreshing',

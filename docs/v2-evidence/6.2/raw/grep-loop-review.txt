@@ -1,0 +1,37 @@
+# Grep-loop review — task 6.2 (STU-12 anti-patterns closed)
+# Commands run against the working tree; results transcribed from the review pass.
+
+## 1. No frontend caller sends draft_name through the generic update()
+#    (STU-12: "rename sends an unsupported field" that was silently dropped)
+$ grep -rn "update(.*draft_name\|draft_name.*update(" apps/admissions/src
+  -> none (clean)
+
+## 2. No empty-payload createDraft calls
+#    (STU-12: "Multi-draft create sends an empty payload despite required fields")
+$ grep -rn "createDraft({})\|createDraft()" apps/admissions/src
+  -> none (clean)
+
+## 3. Draft START enforces the minimum canonical selection on BOTH tiers
+$ grep -rn "MINIMUM_SELECTION_REQUIRED" backend/apps/applications/student_draft_views.py
+  backend/apps/applications/student_draft_views.py:380:  ...stable ``MINIMUM_SELECTION_REQUIRED`` code (finding
+  backend/apps/applications/student_draft_views.py:397:                    "code": "MINIMUM_SELECTION_REQUIRED",
+  # Frontend guard (useMultiDraft.createDraft):
+  #   if (!draftData?.program_id || !draftData?.intake_id) { setError(...); return null }
+
+## 4. Rename uses the dedicated, validated /rename/ command (draft_name only)
+$ grep -rn "startDraft\|renameDraft" apps/admissions/src/services/applications.ts
+  566:   * POST /applications/drafts/ — canonical multi-draft START (task 6.2).
+  574:  startDraft: async (data, idempotencyKey?) => ... '/applications/drafts/' (Idempotency-Key, retries:0)
+  590:   * PATCH /applications/drafts/{id}/rename/ — validated draft label (task 6.2, R10.9)
+  594:  renameDraft: async (id, draftName) => ... `/applications/drafts/${id}/rename/` (body: {draft_name})
+
+## 5. Errors surfaced (setError), not suppressed (STU-12: "errors are suppressed")
+#    useMultiDraft.ts calls setError(...) on every failed command path
+#    (createDraft / updateDraft / renameDraft / deleteDraft(non-404) / loadDraft).
+
+## 6. Cache-scoping (clearAllDraftData single-user/application) is OUT OF 6.2 SCOPE.
+#    STU-12 lists it, but R10.10 ("cache and outbox cleanup SHALL target one
+#    user/application identity") is owned by task 6.3 ("Scope all cache/outbox
+#    deletion to one user/application"). The three clearAllDraftData usages
+#    (Dashboard.tsx, useWizardController.ts, useWizardDraftLoader.ts) are left
+#    UNCHANGED by task 6.2 and are the explicit remit of task 6.3.

@@ -1,0 +1,43 @@
+]633;E;echo "=== query-budget suites: every backend test file that asserts a SQL query count ===";95553f1a-f922-47a9-8979-d0f9f6157dd8]633;C=== query-budget suites: every backend test file that asserts a SQL query count ===
+(assertNumQueries / CaptureQueriesContext / captured_queries)
+tests/property/test_perf_notification_cursor.py
+tests/property/test_perf_query_counts.py
+tests/unit/test_application_query_contract_9_1.py
+tests/unit/test_condition_evidence_amendment_history_10_2.py
+tests/unit/test_enrollment_readiness_10_3.py
+tests/unit/test_notification_preferences_10_1.py
+tests/unit/test_official_document_durability_10_4.py
+tests/unit/test_perf_canonical_offerings_query_count.py
+tests/unit/test_perf_capability_invalidation.py
+tests/unit/test_perf_catalog_cache.py
+tests/unit/test_perf_dashboard_cache.py
+tests/unit/test_perf_dashboard_query_count.py
+tests/unit/test_perf_grade_query_count.py
+tests/unit/test_settlement_fee_authority_8_4.py
+
+E   AssertionError: {'code': 'NOT_FOUND', 'error': 'Not found.', 'success': False}
+E   assert 404 == 200
+E    +  where 404 = <Response status_code=404, "text/html; charset=utf-8">.status_code
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_application_query_contract_9_1.py: 47 warnings
+tests/unit/test_condition_evidence_amendment_history_10_2.py: 35 warnings
+tests/unit/test_enrollment_readiness_10_3.py: 3 warnings
+tests/unit/test_notification_preferences_10_1.py: 30 warnings
+tests/unit/test_official_document_durability_10_4.py: 39 warnings
+tests/unit/test_settlement_fee_authority_8_4.py: 35 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_perf_capability_invalidation.py::test_role_change_forces_recompute
+FAILED tests/unit/test_perf_capability_invalidation.py::test_membership_lifecycle_forces_recompute
+FAILED tests/unit/test_perf_capability_invalidation.py::test_access_grant_lifecycle_forces_recompute
+FAILED tests/unit/test_perf_capability_invalidation.py::test_institution_active_change_forces_recompute
+FAILED tests/unit/test_perf_capability_invalidation.py::test_stale_super_admin_demotion
+5 failed, 377 passed, 190 warnings in 15.47s
+exit=1

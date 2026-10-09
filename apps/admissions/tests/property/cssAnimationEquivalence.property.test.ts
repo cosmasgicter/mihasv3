@@ -53,15 +53,11 @@ const FRAMER_MOTION_IMPORT = /from\s+['"]framer-motion['"]/;
  * one file keeps the property test enforceable everywhere else without
  * forcing a costly hand-rolled CSS reimplementation of every primitive.
  *
- * The landing-page hero ships a deliberately bespoke stagger reveal +
- * looping float that the shared primitives do not (yet) cover. It is
- * isolated to a single page, lives below the fold for crawlers, and
- * documents its motion design inline; it stays on framer-motion until
- * a CSS-only equivalent exists in the canonical seam.
+ * The landing-page hero now uses CSS-only `hero-enter` / `hero-float`
+ * animations, so it is deliberately not exempted from this guard.
  */
 const FRAMER_MOTION_ALLOWLIST = [
   'src/components/motion/index.tsx',
-  'src/components/smoothui/shape-landing-hero.tsx',
 ];
 
 // ============================================================================

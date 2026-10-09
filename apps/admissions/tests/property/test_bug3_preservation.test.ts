@@ -77,18 +77,24 @@ describe('Property 8: Preservation — Grade Validation Correct After Hydration 
    * **Validates: Requirements 3.5, 3.6, 3.7**
    */
   it('index.tsx contains education step grade count validation', () => {
+    // admissions-v2 task 11.2 (MAINT-01) lifted `collectStepValidationErrors` out of
+    // the 1,371-line `index.tsx` into `lib/wizardValidationErrors.ts` **verbatim**.
+    // The wizard is read as one surface so the claim survives the split without
+    // pinning which file holds it.
     const source = fs.readFileSync(INDEX_PATH, 'utf-8');
-
+    const validation = fs.readFileSync(
+      path.join(path.dirname(INDEX_PATH), 'lib/wizardValidationErrors.ts'),
+      'utf-8',
+    );
     // The validation must check for education step
-    expect(source).toContain("currentStepConfig.key === 'education'");
-
+    expect(validation).toContain("stepKey === 'education'");
     // The validation must filter grades by subject_id and grade range
-    expect(source).toContain('grade.subject_id');
-    expect(source).toContain('Number(grade.grade)');
-
+    expect(validation).toContain('grade.subject_id');
+    expect(validation).toContain('Number(grade.grade)');
     // The validation must enforce minimum 5 subjects
-    expect(source).toContain('gradeCount < 5');
+    expect(validation).toContain('gradeCount < 5');
     expect(source).toContain('useWizardController');
+    expect(source).toContain('collectWizardValidationErrors');
   });
 
   /**

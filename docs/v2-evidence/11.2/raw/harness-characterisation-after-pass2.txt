@@ -1,0 +1,13 @@
+
+Running 8 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (6.6s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (17.9s)
+  ✓  3 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (4.7s)
+  ✓  4 [chromium-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (4.3s)
+  ✓  5 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:201:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › walks its states in program-first order and back again (5.9s)
+  ✓  6 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:255:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › saves silently while a student types, and the value survives a refresh (18.2s)
+  ✓  7 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:335:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › asks which draft to continue on a bare visit, and honours explicit new intent (5.1s)
+  ✓  8 [mobile-required] › tests/harness-e2e/required/student-wizard-characterisation.spec.ts:386:3 › Wizard behaviour characterisation (R10.2, MAINT-01) › keeps payment behind the assignment checkpoint and submit behind readiness (4.9s)
+
+  8 passed (1.2m)

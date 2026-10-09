@@ -1,4 +1,3 @@
-import React from 'react'
 import { Button } from '@/components/ui/Button'
 import { XCircle, User, Clock, CheckCircle, Eye, AlertCircle } from 'lucide-react'
 import type { ApplicationWithDetails } from './applicationDetailTypes'

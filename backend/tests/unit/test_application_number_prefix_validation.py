@@ -77,32 +77,35 @@ class TestApplicationNumberPrefixIsInstitutionAgnostic:
 
     # -- End-to-end through the view ------------------------------------
 
-    @patch("apps.applications.public_views.Application.objects")
-    def test_non_brand_prefix_passes_format_gate(self, mock_qs):
-        """A BNL-prefixed number is a valid *format* (reaches DB lookup, not 400)."""
-        mock_qs.get.side_effect = Application.DoesNotExist
+    # admissions-v2 task 10.5 (R13.12, STU-22) removed the application number's
+    # public-tracking authority, so "passes the format gate" no longer means
+    # "reaches a database lookup". What these two cases protect is the part that
+    # still matters and that this file exists for: the gate is **institution-code
+    # agnostic** (R9.9) — a BNL-prefixed number and a legacy MIHAS-prefixed number
+    # are recognised identically, and neither is dismissed as malformed. The
+    # answer is now the stable TRACKING_SECRET_REQUIRED refusal, produced without
+    # any lookup, which is why the manager patch is gone.
 
+    def test_non_brand_prefix_is_recognised_not_dismissed(self):
+        """A BNL-prefixed number is recognised as an identifier, not malformed."""
         request = self.factory.get("/api/v1/applications/track/?code=BNL202500001")
         response = self.view(request)
 
-        # Valid format but no row -> descriptive 404, never a 400 INVALID_FORMAT.
-        assert response.status_code == 404, (
-            f"Expected 404 for valid-format unknown code, got {response.status_code}: {response.data}"
+        assert response.status_code == 400
+        assert response.data.get("code") == "TRACKING_SECRET_REQUIRED", (
+            f"Expected a recognised-identifier refusal, got {response.data}"
         )
-        assert response.data.get("code") == "NOT_FOUND"
 
-    @patch("apps.applications.public_views.Application.objects")
-    def test_legacy_brand_prefix_still_passes_format_gate(self, mock_qs):
-        """Backward compat through the view: MIHAS-prefixed number still valid format."""
-        mock_qs.get.side_effect = Application.DoesNotExist
+    def test_legacy_brand_prefix_is_recognised_identically(self):
+        """Backward compat: a MIHAS-prefixed number gets the same answer."""
+        legacy = self.factory.get("/api/v1/applications/track/?code=MIHAS202500001")
+        neutral = self.factory.get("/api/v1/applications/track/?code=BNL202500001")
 
-        request = self.factory.get("/api/v1/applications/track/?code=MIHAS202500001")
-        response = self.view(request)
+        legacy_response = self.view(legacy)
+        neutral_response = self.view(neutral)
 
-        assert response.status_code == 404, (
-            f"Expected 404 for valid-format unknown legacy code, got {response.status_code}: {response.data}"
-        )
-        assert response.data.get("code") == "NOT_FOUND"
+        assert legacy_response.status_code == neutral_response.status_code == 400
+        assert legacy_response.data == neutral_response.data
 
     def test_truly_invalid_format_returns_400(self):
         """A clearly malformed code still returns 400 INVALID_FORMAT."""

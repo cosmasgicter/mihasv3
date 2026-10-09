@@ -13,10 +13,19 @@ class DocumentUploadSerializer(serializers.Serializer):
     """Validates document upload requests."""
 
     file = serializers.FileField()
-    document_type = serializers.ChoiceField(choices=[
-        "nrc", "passport", "result_slip", "extra_kyc",
-        "application_slip", "transcript", "certificate", "other",
-    ])
+    # admissions-v2 task 7.2 (R11.6, STU-13): the accepted document types are the
+    # ones *configured for the application* — a tenant may require a custom type
+    # such as ``nursing_council_letter``, and a fixed choice list here made that
+    # requirement impossible to satisfy. This field only validates the *shape* of
+    # the identifier; authorisation of which type is acceptable for a given
+    # application is resolved in the view through
+    # ``apps.applications.required_documents.resolve_upload_target`` (the same
+    # contract the student's upload controls were rendered from), so an arbitrary
+    # type is still refused with the stable ``DOCUMENT_TYPE_NOT_REQUIRED``.
+    document_type = serializers.RegexField(
+        r"^[a-z][a-z0-9_]{0,79}$",
+        error_messages={"invalid": "Invalid document type."},
+    )
     application_id = serializers.UUIDField()
 
     def validate_application_id(self, value):
@@ -28,9 +37,20 @@ class DocumentUploadSerializer(serializers.Serializer):
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-    """Read-only serializer for listing documents."""
+    """Read-only serializer for listing documents.
+
+    Publishes the immutable-version identity added by admissions-v2 task 7.3
+    (``version``, ``is_current``, ``lifecycle_state``, ``content_hash``,
+    ``supersedes_id``) so a client can tell one stored version from another —
+    which is what makes "replace" verifiable on the server rather than a local UI
+    flag (R11.7-R11.8, STU-19). ``storage_key`` is deliberately NOT published: the
+    object key is an internal storage detail, and downloads go through the
+    short-lived signed-URL endpoints.
+    """
 
     application_id = serializers.UUIDField(read_only=True)
+    supersedes_id = serializers.UUIDField(read_only=True, allow_null=True)
+    lifecycle_state = serializers.SerializerMethodField()
 
     class Meta:
         model = ApplicationDocument
@@ -53,8 +73,23 @@ class DocumentSerializer(serializers.ModelSerializer):
             "ecz_exam_year",
             "created_at",
             "updated_at",
+            # Immutable evidence version (task 7.3).
+            "version",
+            "is_current",
+            "lifecycle_state",
+            "extraction_state",
+            "content_hash",
+            "supersedes_id",
+            "superseded_at",
+            "provenance",
         ]
         read_only_fields = fields
+
+    def get_lifecycle_state(self, obj) -> str:
+        """The canonical lifecycle state, derived for pre-7.3 rows."""
+        from apps.documents.document_evidence import lifecycle_of
+
+        return lifecycle_of(obj)
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -63,6 +98,13 @@ class PaymentSerializer(serializers.ModelSerializer):
     application_id = serializers.UUIDField(read_only=True)
     user_id = serializers.UUIDField(read_only=True)
     verified_by_id = serializers.UUIDField(read_only=True, allow_null=True)
+    # admissions-v2 task 8.2 (R12.4/R12.6, STU-09): ``status`` says whether the
+    # money arrived; ``phase`` says who is being waited on. A pending payment
+    # where the provider has issued the customer prompt needs an instruction and
+    # a short timeout; one still in the provider's hands needs neither. The
+    # server derives both so the UI cannot invent its own answer.
+    phase = serializers.SerializerMethodField()
+    phase_timeout_seconds = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
@@ -75,6 +117,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "payment_method",
             "transaction_reference",
             "status",
+            "phase",
+            "phase_timeout_seconds",
             "verified_by_id",
             "verified_at",
             "receipt_number",
@@ -85,6 +129,25 @@ class PaymentSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = fields
+
+    def get_phase(self, obj) -> str:
+        from apps.documents.payment_phase import derive_payment_phase
+
+        return derive_payment_phase(
+            obj.status, (obj.metadata or {}).get("provider_initiation")
+        )
+
+    def get_phase_timeout_seconds(self, obj) -> int | None:
+        from apps.documents.payment_phase import (
+            derive_payment_phase,
+            phase_ui_timeout_seconds,
+        )
+
+        return phase_ui_timeout_seconds(
+            derive_payment_phase(
+                obj.status, (obj.metadata or {}).get("provider_initiation")
+            )
+        )
 
 
 class PaymentVerifySerializer(serializers.Serializer):
@@ -183,6 +246,67 @@ class MobileMoneyInitiateResponseSerializer(serializers.Serializer):
 
     success = serializers.BooleanField()
     data = MobileMoneyInitiateDataSerializer()
+
+
+class FeeQuoteRequestSerializer(serializers.Serializer):
+    """Validates POST /api/v1/payments/quote/ request body (task 8.1).
+
+    The application id is the **only** client input. Amounts, currency, provider
+    fee, bearer, residency, expiry, and the configuration binding are all
+    server-authored (R12.1) — a client cannot propose, hint at, or override any
+    of them.
+    """
+
+    application_id = serializers.UUIDField(
+        help_text="Application to quote the fee for."
+    )
+
+
+class FeeQuoteDataSerializer(serializers.Serializer):
+    """Shape of the ``data`` field of a fee-quote response (design §10.1).
+
+    Amounts are strings so no client loses precision re-parsing them, and every
+    number the payment UI renders is present — the client never computes a
+    percentage, a total, or a fallback (finding STU-08).
+    """
+
+    quote_id = serializers.CharField()
+    application_id = serializers.CharField()
+    configuration_version = serializers.CharField(
+        allow_null=True, required=False,
+        help_text="Canonical assignment configuration version of the application.",
+    )
+    fee_configuration_version = serializers.CharField(
+        help_text=(
+            "Fingerprint of every fee-configuration input that decided the money. "
+            "Redemption refuses a quote whose fingerprint no longer matches."
+        ),
+    )
+    fee_type = serializers.CharField()
+    base_amount = serializers.CharField(help_text="Canonical fee after any waiver.")
+    provider_fee = serializers.CharField(
+        help_text="Customer-borne provider fee from the server-side policy.",
+    )
+    total_amount = serializers.CharField(
+        help_text="What the student is told they will be charged.",
+    )
+    currency = serializers.CharField()
+    bearer = serializers.CharField(help_text="'customer' or 'merchant'.")
+    residency_category = serializers.CharField()
+    waiver_applied = serializers.BooleanField()
+    status = serializers.CharField(
+        help_text="active | redeemed | expired | superseded | cancelled.",
+    )
+    expires_at = serializers.CharField(allow_null=True, required=False)
+    signature = serializers.CharField()
+    signature_version = serializers.IntegerField()
+
+
+class FeeQuoteResponseSerializer(serializers.Serializer):
+    """Envelope wrapper for a fee-quote success response."""
+
+    success = serializers.BooleanField()
+    data = FeeQuoteDataSerializer()
 
 
 class DeferPaymentRequestSerializer(serializers.Serializer):

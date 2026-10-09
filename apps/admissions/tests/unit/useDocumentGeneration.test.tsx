@@ -44,11 +44,32 @@ vi.mock('@/services/applications', () => ({
   },
 }));
 
-vi.mock('@/services/client', () => ({
-  apiClient: {
-    request: (...args: unknown[]) => apiRequestMock(...args),
-  },
-}));
+/**
+ * Only the transport is stubbed. `buildQueryString` is the **real** one, imported
+ * from the pure module that defines it (`@/services/apiHelpers`, zero imports), so
+ * the two endpoint assertions below are still built by the code that builds them in
+ * production rather than by a hand-written string in this file.
+ *
+ * Why it has to be exported at all, since task 13.6 remediation L12: the receipt path
+ * no longer reaches `apiClient` from the page hook — it goes through
+ * `listPayments` / `readPaymentReceipt` in `@/services/payments`, which is the domain
+ * service the R14.3 rule requires (`eslint.config.js`). That service is deliberately
+ * left un-mocked here, and it imports `{ apiClient, buildQueryString }` from
+ * `@/services/client`; a mock that supplied only `apiClient` made `buildQueryString`
+ * `undefined`, `listPayments` threw, and `fetchSuccessfulPayment`'s `catch` turned a
+ * broken mock into a silent "no payment found" fallback. The assertions are unchanged
+ * — they now additionally prove the hook reaches those two endpoints *through* the
+ * payments domain service.
+ */
+vi.mock('@/services/client', async () => {
+  const { buildQueryString } = await import('@/services/apiHelpers');
+  return {
+    apiClient: {
+      request: (...args: unknown[]) => apiRequestMock(...args),
+    },
+    buildQueryString,
+  };
+});
 
 type HookApi = ReturnType<typeof useDocumentGeneration>;
 

@@ -1,0 +1,25 @@
+]633;E;echo "=== L11 — the two stale docs/ai-data-flows.md references, and 7.2's own flag ===";7a7ea8b6-8e3c-4021-b704-cd8def3f7101]633;C=== L11 — the two stale docs/ai-data-flows.md references, and 7.2's own flag ===
+=== DATE: 2026-08-14T05:07:57Z ===
+
+--- docs/ai-data-flows.md references to v2-evidence/7.4 ---
+14:> `docs/audits/ai-and-ocr-final.md` and in `docs/v2-evidence/7.4/` – `7.5/`; this
+178:  `docs/v2-evidence/7.4/`, `docs/v2-evidence/7.5/`, `docs/v2-evidence/9.4/`.
+
+--- do the referenced paths now resolve? ---
+RESOLVES: docs/v2-evidence/7.4  (3 file(s))
+RESOLVES: docs/v2-evidence/7.5  (14 file(s))
+RESOLVES: docs/v2-evidence/9.4  (10 file(s))
+RESOLVES: docs/audits/ai-and-ocr-final.md  (1 file(s))
+RESOLVES: docs/v2-evidence/4.1  (2 file(s))
+
+--- non-empty file check, the exact rule scripts/validate_spec_governance.py::_dir_has_content applies ---
+docs/v2-evidence/4.1 : 2 non-empty file(s)
+    7251 bytes  docs/v2-evidence/4.1/raw/01-named-instruments.txt
+    7350 bytes  docs/v2-evidence/4.1/README.md
+docs/v2-evidence/7.4 : 3 non-empty file(s)
+    3551 bytes  docs/v2-evidence/7.4/raw/01-named-instrument.txt
+    1651 bytes  docs/v2-evidence/7.4/raw/02-grep-import-probe.txt
+    7207 bytes  docs/v2-evidence/7.4/README.md
+
+--- docs/v2-evidence/7.2/README.md:244 — the pre-existing flag L11 cites ---
+| Spec governance validator | `python3 scripts/validate_spec_governance.py` | 1 error — **pre-existing and unrelated**: task **4.1** is checked with no `docs/v2-evidence/4.1`. Nothing is reported against 7.2 | `raw/spec-governance.txt` |

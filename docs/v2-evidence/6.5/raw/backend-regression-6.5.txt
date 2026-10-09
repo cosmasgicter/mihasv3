@@ -1,0 +1,94 @@
+.......................................................F................ [ 44%]
+.....................................................................F.. [ 88%]
+.....FF...........                                                       [100%]
+=================================== FAILURES ===================================
+_ TestApplicationInterviewListView.test_admin_list_without_mine_is_scope_narrowed _
+tests/unit/test_application_student_flow_views.py:272: in test_admin_list_without_mine_is_scope_narrowed
+    mock_scope_service.return_value.filter_applications.assert_called_once()
+/usr/lib/python3.14/unittest/mock.py:965: in assert_called_once
+    raise AssertionError(msg)
+E   AssertionError: Expected 'filter_applications' to have been called once. Called 0 times.
+_ TestUnverifiedPaymentApprovalGuard.test_non_approval_status_skips_payment_check _
+tests/property/test_application_properties.py:465: in test_non_approval_status_skips_payment_check
+    @_default_settings
+               ^^^^^^^
+tests/property/test_application_properties.py:492: in test_non_approval_status_skips_payment_check
+    self.assertEqual(response.status_code, 200)
+E   AssertionError: 400 != 200
+E   Falsifying example: test_non_approval_status_skips_payment_check(
+E       self=<tests.property.test_application_properties.TestUnverifiedPaymentApprovalGuard testMethod=test_non_approval_status_skips_payment_check>,
+E       new_status='rejected',
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-07-26T04:09:52.160516+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='132962472989696'> from=<MagicMock name='objects.all().select_for_update().get().status' id='132962472989024'> to=rejected by=8900dc93-adcc-4e0a-b23d-974efab6a911"}
+{"time": "2026-07-26T04:09:52.179906+00:00", "level": "WARNING", "logger": "apps.applications.services", "message": "Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='132962468679696'> from=<MagicMock name='objects.all().select_for_update().get().status' id='132962468679024'> to=rejected by=3501dd5c-6984-49f0-8416-48b10e6d9a0f"}
+------------------------------ Captured log call -------------------------------
+WARNING  apps.applications.services:services.py:318 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='132962472989696'> from=<MagicMock name='objects.all().select_for_update().get().status' id='132962472989024'> to=rejected by=8900dc93-adcc-4e0a-b23d-974efab6a911
+WARNING  apps.applications.services:services.py:318 Invalid transition: app=<MagicMock name='objects.all().select_for_update().get().id' id='132962468679696'> from=<MagicMock name='objects.all().select_for_update().get().status' id='132962468679024'> to=rejected by=3501dd5c-6984-49f0-8416-48b10e6d9a0f
+_ TestForceBypassCreatesAuditTrail.test_force_bypass_approval_creates_audit_trail _
+tests/property/test_application_hardening.py:267: in test_force_bypass_approval_creates_audit_trail
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:321: in test_force_bypass_approval_creates_audit_trail
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:516: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_force_bypass_approval_creates_audit_trail(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_force_bypass_approval_creates_audit_trail>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       reason='',
+E   )
+_ TestForceBypassCreatesAuditTrail.test_non_force_bypass_does_not_add_force_marker _
+tests/property/test_application_hardening.py:341: in test_non_force_bypass_does_not_add_force_marker
+    application_id=application_ids,
+           ^^^^^^^
+tests/property/test_application_hardening.py:391: in test_non_force_bypass_does_not_add_force_marker
+    view.post(mock_request, application_id)
+apps/common/idempotency.py:49: in wrapper
+    return view_func(self, request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/admin_review_views.py:516: in post
+    app = resolve_scoped_application(
+apps/common/tenant_authorization.py:151: in resolve_scoped_application
+    require_application_capability(request, application, capability)
+apps/common/tenant_authorization.py:170: in require_application_capability
+    AdminCapabilityService().require_institution_capability(
+apps/catalog/services.py:1229: in require_institution_capability
+    raise PermissionDenied("You do not have permission to perform this action.")
+E   rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action.
+E   Falsifying example: test_non_force_bypass_does_not_add_force_marker(
+E       self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_non_force_bypass_does_not_add_force_marker>,
+E       application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),
+E       admin_user_id='f728b4fa-4248-5e3a-0a5d-2f346baa9455',
+E       target_status='approved',
+E   )
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestLegacyStringCreateMetric::test_legacy_create_emits_metric_and_still_creates
+tests/unit/test_assignment_required_docs_legacy_metric.py::TestLegacyStringCreateMetric::test_canonical_create_does_not_emit_legacy_metric
+tests/integration/test_assignment_config_failure.py::TestCreateEndpointFailsClosed::test_create_returns_503_configuration_unavailable_not_empty_requirements
+tests/integration/test_student_journey_e2e.py::TestStudentJourneyE2E::test_full_student_journey
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+FAILED tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker
+4 failed, 158 passed, 5 warnings in 10.44s

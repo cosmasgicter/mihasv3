@@ -49,7 +49,27 @@
   body {
     background: #f8fafc;
     @apply bg-background text-foreground;
-    font-family: Inter, system-ui, sans-serif;
+    /* GATE-13.3-14 (13.6 §8.1 item L6).
+     *
+     * This line used to be `font-family: Inter, system-ui, sans-serif` — three
+     * families, hardcoded, inside `@layer base`, shadowing the eleven-family stack
+     * `tailwind.config.js` declares and that PRODUCT.md and tech.md both forbid
+     * reducing. The config was already correct; the browser computed three.
+     * `"Noto Sans"`, the fallback that matters for non-Latin script, was
+     * unreachable at runtime.
+     *
+     * `@apply font-sans` emits `theme.fontFamily.sans` verbatim, so the rendered
+     * chain is now *by construction* whatever the config says and cannot drift
+     * from it again. The config was not touched — it was never the defect.
+     *
+     * Why a declaration-parsing guard could not see this: task 13.3 §8.14 records
+     * that `tests/property/auditProductionBugCondition.property.test.ts` ("Bug 5")
+     * reads `tailwind.config.js` as *text* and is green, while the value named in
+     * its own comment as the UNFIXED case is what Chrome resolved. The browser-side
+     * assertion that can see it is the converted `test.fail()` row in
+     * `tests/harness-e2e/required/long-content-tenant-strings.spec.ts`.
+     */
+    @apply font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 16px; /* Base for accessible text */

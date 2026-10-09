@@ -1,0 +1,335 @@
+# Task 6.3 M13 — diagnostic: does an offline edit survive a tab close and reach the server when the draft is reopened online?
+# captured: 2026-10-08T10:18:05Z
+# stack: the still-running M12 harness; served entry = built entry = assets/js/index-Cvyivuna.js; src unchanged since that build
+# spec: tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts (TEMPORARY; source reproduced at the end of this file)
+$ systemd-inhibit --what=sleep:idle --mode=block -- bunx playwright test -c playwright.harness.config.ts --project=chromium-required tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts
+
+Running 5 tests using 1 worker
+
+DIAG [normal speed #1] tab1 (offline) PATCH attempts while offline: 0
+DIAG [normal speed #1] reopened page PATCH responses: []
+DIAG [normal speed #1] server after reopen: town = "Lusaka" (offline edit LOST), version 1 -> 1
+DIAG [normal speed #1] field shown after reopen: "Lusaka" (not the offline edit)
+DIAG [normal speed #1] tab1 instrument log: ["195 deriveKey start","212 deriveKey end","482 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","541 write to the encrypted draft key: ciphertext","6710 write to the encrypted draft key: ciphertext","8301 write to the encrypted draft key: ciphertext","8698 write to the encrypted draft key: ciphertext"]
+DIAG [normal speed #1] reopened-page instrument log: ["167 deriveKey start","183 deriveKey end","466 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","544 write to the encrypted draft key: ciphertext"]
+  ✓  1 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:166:3 › offline edit, tab closed, reopened online — normal speed #1 (23.4s)
+DIAG [normal speed #2] tab1 (offline) PATCH attempts while offline: 0
+DIAG [normal speed #2] reopened page PATCH responses: []
+DIAG [normal speed #2] server after reopen: town = "Lusaka" (offline edit LOST), version 1 -> 1
+DIAG [normal speed #2] field shown after reopen: "Lusaka" (not the offline edit)
+DIAG [normal speed #2] tab1 instrument log: ["165 deriveKey start","177 deriveKey end","438 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","526 write to the encrypted draft key: ciphertext","6690 write to the encrypted draft key: ciphertext","8262 write to the encrypted draft key: ciphertext","8682 write to the encrypted draft key: ciphertext"]
+DIAG [normal speed #2] reopened-page instrument log: ["179 deriveKey start","193 deriveKey end","466 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","544 write to the encrypted draft key: ciphertext"]
+  ✓  2 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:166:3 › offline edit, tab closed, reopened online — normal speed #2 (23.2s)
+DIAG [normal speed #3] tab1 (offline) PATCH attempts while offline: 0
+DIAG [normal speed #3] reopened page PATCH responses: []
+DIAG [normal speed #3] server after reopen: town = "Lusaka" (offline edit LOST), version 1 -> 1
+DIAG [normal speed #3] field shown after reopen: "Lusaka" (not the offline edit)
+DIAG [normal speed #3] tab1 instrument log: ["163 deriveKey start","177 deriveKey end","471 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","552 write to the encrypted draft key: ciphertext","6648 write to the encrypted draft key: ciphertext","8279 write to the encrypted draft key: ciphertext","8639 write to the encrypted draft key: ciphertext"]
+DIAG [normal speed #3] reopened-page instrument log: ["142 deriveKey start","157 deriveKey end","454 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","480 write to the encrypted draft key: ciphertext"]
+  ✓  3 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:166:3 › offline edit, tab closed, reopened online — normal speed #3 (23.7s)
+DIAG [slow key derivation (+1500 ms) #1] tab1 (offline) PATCH attempts while offline: 0
+DIAG [slow key derivation (+1500 ms) #1] reopened page PATCH responses: []
+DIAG [slow key derivation (+1500 ms) #1] server after reopen: town = "Lusaka" (offline edit LOST), version 1 -> 1
+DIAG [slow key derivation (+1500 ms) #1] field shown after reopen: "Lusaka" (not the offline edit)
+DIAG [slow key derivation (+1500 ms) #1] tab1 instrument log: ["159 deriveKey start","450 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","476 write to the encrypted draft key: PLAINTEXT JSON (secureStorage fallback: no key yet)","1672 deriveKey end","6683 write to the encrypted draft key: ciphertext","8260 write to the encrypted draft key: ciphertext","8676 write to the encrypted draft key: ciphertext"]
+DIAG [slow key derivation (+1500 ms) #1] reopened-page instrument log: ["168 deriveKey start","456 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","543 write to the encrypted draft key: PLAINTEXT JSON (secureStorage fallback: no key yet)","1681 deriveKey end"]
+  ✓  4 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:166:3 › offline edit, tab closed, reopened online — slow key derivation (+1500 ms) #1 (23.3s)
+DIAG [slow key derivation (+1500 ms) #2] tab1 (offline) PATCH attempts while offline: 0
+DIAG [slow key derivation (+1500 ms) #2] reopened page PATCH responses: []
+DIAG [slow key derivation (+1500 ms) #2] server after reopen: town = "Lusaka" (offline edit LOST), version 1 -> 1
+DIAG [slow key derivation (+1500 ms) #2] field shown after reopen: "Lusaka" (not the offline edit)
+DIAG [slow key derivation (+1500 ms) #2] tab1 instrument log: ["175 deriveKey start","419 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","452 write to the encrypted draft key: PLAINTEXT JSON (secureStorage fallback: no key yet)","1689 deriveKey end","6748 write to the encrypted draft key: ciphertext","8254 write to the encrypted draft key: ciphertext","8731 write to the encrypted draft key: ciphertext"]
+DIAG [slow key derivation (+1500 ms) #2] reopened-page instrument log: ["140 deriveKey start","387 PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)","467 write to the encrypted draft key: PLAINTEXT JSON (secureStorage fallback: no key yet)","1653 deriveKey end"]
+  ✓  5 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:166:3 › offline edit, tab closed, reopened online — slow key derivation (+1500 ms) #2 (22.8s)
+
+  5 passed (2.0m)
+PLAYWRIGHT EXIT=0
+
+==================================================================
+# PROBE — what a plain reload does to the encrypted record and the salt (same spec, --grep PROBE)
+# captured: 2026-10-08T10:22:23Z
+
+Running 1 test using 1 worker
+
+PROBE before reload: salt present=true, encrypted draft record present=true
+PROBE after reload: salt REPLACED (a new key: records written before the reload can no longer be decrypted)
+PROBE reloaded page: 13 document start: secure keys = ["beanola_secure_salt","beanola_secure_applicationWizardDraft:380e4684-468d-4b79-81e5-3a22634991aa:89a60c4e-c6e1-4d29-a862-93c0996368b9"]
+PROBE reloaded page: 52 removeItem(beanola_secure_salt) from at Object.clearSession (http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:7645) <- at B (http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:8395) <- at http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:19458
+PROBE reloaded page: 52 removeItem(beanola_secure_applicationWizardDraft:<id>:<id>) from at Object.clearSession (http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:7645) <- at B (http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:8395) <- at http://localhost:8090/assets/js/AuthContext-DHDgvOb3.js:1:19458
+  ✓  1 [chromium-required] › tests/harness-e2e/required/zz-m13-diag-outbox-readiness.spec.ts:159:1 › PROBE: what a plain reload does to the encrypted draft record and the salt (10.6s)
+
+  1 passed (11.7s)
+PLAYWRIGHT EXIT=0
+
+==================================================================
+# Reading of the result (BEFORE any change)
+# 5/5 runs: an edit typed offline is written to the encrypted outbox record (tab1 log: ciphertext writes after the edit,
+#   0 PATCH attempts while offline — correct), the tab is closed, and the draft is reopened online. The reopened page
+#   sends NO PATCH, shows the server's old town, and the server stays at version 1: the offline edit is LOST, silently.
+# PROBE: on every page load, before the session is known, AuthContext's effect sees auth.user === null and runs
+#   clearSession() (AuthContext.tsx 'Synchronize secure storage' effect, else-branch): removeItem(beanola_secure_salt) and
+#   removeItem(beanola_secure_applicationWizardDraft:<user>:<app>) at ~52 ms. The salt is replaced, so even a surviving
+#   record could not be decrypted. Pre-existing at HEAD (git diff HEAD -- AuthContext.tsx is empty; the else-branch dates
+#   from d042665dc, 2026-05-22).
+# Slow key derivation (+1500 ms, timing only): the loader reads the record at ~400 ms, before deriveKey ends (~1650 ms) —
+#   a cache miss — and the first outbox write falls back to PII-stripped PLAINTEXT under the encrypted key. So even with
+#   the wipe removed, a slow device would lose the outbox and overwrite the encrypted record.
+
+==================================================================
+# Source of the temporary diagnostic spec at the time of this run
+/**
+ * TEMPORARY diagnostic for task 6.3 M13 (deleted after the run; output kept in
+ * docs/v2-evidence/6.3/raw/m13-04-*). Not a required journey.
+ *
+ * Question: the draft outbox record is AES-GCM encrypted under a `beanola_secure_`
+ * key, and only `preloadSecureStorage()` (run by AuthContext after PBKDF2 key
+ * derivation) decrypts it into the in-memory cache the wizard loader reads. Nothing
+ * orders the loader after that preload. Does an edit made offline survive closing
+ * the tab and get sent when the draft is reopened online — at normal speed, and
+ * when key derivation is slow (a slow phone)?
+ *
+ * Instrument (timing only, no behaviour change): an init script records when
+ * `crypto.subtle.deriveKey` starts/ends (optionally delaying it), every read of a
+ * PLAIN attached-draft key from localStorage (that read only happens when the
+ * in-memory cache did not hold the record, i.e. the loader ran before the preload),
+ * and whether each write to the encrypted draft key was ciphertext or plaintext JSON
+ * (secureStorage's no-key fallback).
+ */
+import { test, expect, type Page, type BrowserContext } from '@playwright/test';
+import {
+  assignOffering,
+  createDraftApplication,
+  createFee,
+  createInstitutionViaApi,
+  createIntake,
+  linkIntake,
+  listCanonicalPrograms,
+  registerAndLoginStudent,
+  superAdminContext,
+} from '../helpers/api';
+
+test.describe.configure({ mode: 'serial' });
+
+function unwrap(json: unknown): Record<string, unknown> {
+  const body = (json ?? {}) as { data?: unknown };
+  return ((body.data ?? body) as Record<string, unknown>) ?? {};
+}
+
+async function setup(page: Page) {
+  const admin = await superAdminContext();
+  const stamp = `${Date.now()}`.slice(-8);
+  const canonical = (await listCanonicalPrograms(admin))[0];
+  const { institutionId } = await createInstitutionViaApi(admin, {
+    name: `Outbox Diag ${stamp}`,
+    code: `OD${stamp}`,
+    hostname: `od-${stamp}.localhost`,
+  });
+  const { intakeId } = await createIntake(admin, { name: `Outbox Diag Intake ${stamp}`, year: 2027 });
+  const { offeringId } = await assignOffering(admin, institutionId, {
+    canonical_program_id: canonical.id,
+    name: canonical.name,
+    code: `ODP${stamp}`,
+  });
+  await linkIntake(admin, { program_id: offeringId, intake_id: intakeId, max_capacity: 25 });
+  await createFee(admin, offeringId, { amount: '153.00' });
+  await admin.ctx.dispose();
+  const { ctx, email, password } = await registerAndLoginStudent();
+  await ctx.dispose();
+  const login = await page.request.post('/api/v1/auth/login/', { data: { email, password } });
+  expect(login.ok()).toBeTruthy();
+  const csrf = login.headers()['x-csrf-token'] || '';
+  const { applicationId } = await createDraftApplication(page.request, csrf, {
+    canonicalProgramId: canonical.id as string,
+    intakeId,
+    email,
+  });
+  return { applicationId };
+}
+
+async function instrument(context: BrowserContext, deriveDelayMs: number) {
+  await context.addInitScript((delayMs: number) => {
+    const log: string[] = [];
+    (window as unknown as { __diagLog: string[] }).__diagLog = log;
+    const t = () => Math.round(performance.now());
+    const subtle = crypto.subtle as SubtleCrypto & { deriveKey: SubtleCrypto['deriveKey'] };
+    const derive = subtle.deriveKey.bind(subtle);
+    (subtle as unknown as { deriveKey: unknown }).deriveKey = async (...args: Parameters<SubtleCrypto['deriveKey']>) => {
+      log.push(`${t()} deriveKey start`);
+      if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+      const key = await derive(...args);
+      log.push(`${t()} deriveKey end`);
+      return key;
+    };
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key: string) {
+      if (/^applicationWizardDraft:[^:]+:/.test(key) && !key.endsWith(':new')) {
+        log.push(`${t()} PLAIN getItem of the attached draft key (cache miss: loader ran before the preload)`);
+      }
+      return getItem.call(this, key);
+    };
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (key.startsWith('beanola_secure_applicationWizardDraft:') && !key.endsWith(':new')) {
+        let kind = 'ciphertext';
+        try {
+          JSON.parse(value);
+          kind = 'PLAINTEXT JSON (secureStorage fallback: no key yet)';
+        } catch {
+          // ciphertext
+        }
+        log.push(`${t()} write to the encrypted draft key: ${kind}`);
+      }
+      return setItem.call(this, key, value);
+    };
+  }, deriveDelayMs);
+}
+
+async function openPersonalStep(page: Page): Promise<void> {
+  const summary = page.getByTestId('wizard-progress-summary');
+  const town = page.getByLabel(/town|city/i).first();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await expect(summary).toContainText(/Step [234] of 6/, { timeout: 60_000 });
+    const currentStep = await summary.locator('p').first().textContent();
+    if (currentStep?.includes('Step 2 of 6')) {
+      await page.getByRole('button', { name: /continue to personal/i }).click();
+    } else if (!currentStep?.includes('Step 3 of 6')) {
+      await page.getByRole('button', { name: /Step 3: Personal/i }).click();
+    }
+    try {
+      await expect(town).toBeVisible({ timeout: 10_000 });
+      await expect(summary).toContainText('Step 3 of 6');
+      return;
+    } catch {
+      // retry
+    }
+  }
+  await expect(town).toBeVisible({ timeout: 60_000 });
+}
+
+async function waitForNetworkQuiet(page: Page, quietMs = 2_500, timeoutMs = 60_000) {
+  let inFlight = 0;
+  let lastActivity = Date.now();
+  page.on('request', () => {
+    inFlight += 1;
+    lastActivity = Date.now();
+  });
+  const settle = () => {
+    inFlight = Math.max(0, inFlight - 1);
+    lastActivity = Date.now();
+  };
+  page.on('requestfinished', settle);
+  page.on('requestfailed', settle);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (inFlight === 0 && Date.now() - lastActivity >= quietMs) return;
+    await page.waitForTimeout(100);
+  }
+  throw new Error('network never went quiet');
+}
+
+const secureDraftValue = (page: Page, applicationId: string) =>
+  page.evaluate((id) => {
+    const key = Object.keys(localStorage).find(
+      (k) => k.startsWith('beanola_secure_applicationWizardDraft:') && k.endsWith(`:${id}`),
+    );
+    return key ? localStorage.getItem(key) : null;
+  }, applicationId);
+
+test('PROBE: what a plain reload does to the encrypted draft record and the salt', async ({ page }) => {
+  test.setTimeout(180_000);
+  const context = page.context();
+  const { applicationId } = await setup(page);
+  await context.addInitScript(() => {
+    const log: string[] = [];
+    (window as unknown as { __probe: string[] }).__probe = log;
+    const t = () => Math.round(performance.now());
+    log.push(
+      `${t()} document start: secure keys = ${JSON.stringify(Object.keys(localStorage).filter((k) => k.startsWith('beanola_secure_')))}`,
+    );
+    const removeItem = Storage.prototype.removeItem;
+    Storage.prototype.removeItem = function (key: string) {
+      if (key.startsWith('beanola_secure_') && this.getItem(key) !== null) {
+        const frames = (new Error().stack || '').split('\n').slice(2, 5).map((f) => f.trim()).join(' <- ');
+        log.push(`${t()} removeItem(${key.replace(/:[0-9a-f-]{36}/g, ':<id>')}) from ${frames}`);
+      }
+      return removeItem.call(this, key);
+    };
+  });
+  await page.goto(`/student/application-wizard?mode=resume&draftId=${applicationId}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(4_000);
+  const saltBefore = await page.evaluate(() => localStorage.getItem('beanola_secure_salt'));
+  const recordBefore = await secureDraftValue(page, applicationId);
+  console.log(`PROBE before reload: salt present=${Boolean(saltBefore)}, encrypted draft record present=${Boolean(recordBefore)}`);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(4_000);
+  const saltAfter = await page.evaluate(() => localStorage.getItem('beanola_secure_salt'));
+  const probe = await page.evaluate(() => (window as unknown as { __probe: string[] }).__probe);
+  console.log(`PROBE after reload: salt ${saltAfter === saltBefore ? 'UNCHANGED' : 'REPLACED (a new key: records written before the reload can no longer be decrypted)'}`);
+  for (const line of probe) console.log(`PROBE reloaded page: ${line}`);
+});
+
+for (const [label, delayMs] of [
+  ['normal speed #1', 0],
+  ['normal speed #2', 0],
+  ['normal speed #3', 0],
+  ['slow key derivation (+1500 ms) #1', 1500],
+  ['slow key derivation (+1500 ms) #2', 1500],
+] as const) {
+  test(`offline edit, tab closed, reopened online — ${label}`, async ({ page }) => {
+    test.setTimeout(180_000);
+    const context = page.context();
+    const { applicationId } = await setup(page);
+    await instrument(context, delayMs);
+    const draftPath = `/api/v1/applications/drafts/${applicationId}/`;
+    const before = unwrap(await (await page.request.get(draftPath)).json());
+    const initialVersion = Number(before.version);
+
+    // Tab 1 opens the draft, goes offline, and the student types.
+    const tab1 = await context.newPage();
+    const tab1Patches: string[] = [];
+    tab1.on('request', (r) => {
+      if (r.method() === 'PATCH' && new URL(r.url()).pathname === draftPath) tab1Patches.push(r.url());
+    });
+    await tab1.goto(`/student/application-wizard?mode=resume&draftId=${applicationId}`, { waitUntil: 'domcontentloaded' });
+    await expect(tab1.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
+    await openPersonalStep(tab1);
+    await waitForNetworkQuiet(tab1);
+    const recordBefore = await secureDraftValue(tab1, applicationId);
+    await context.setOffline(true);
+    await tab1.evaluate(() => window.dispatchEvent(new Event('offline')));
+    const offlineTown = `Offline close ${Date.now()}`;
+    await tab1.getByLabel(/town|city/i).first().fill(offlineTown);
+    await expect(tab1.getByTestId('wizard-offline-badge')).toBeVisible({ timeout: 30_000 });
+    await tab1.waitForTimeout(3_000);
+    await expect
+      .poll(async () => (await secureDraftValue(tab1, applicationId)) !== recordBefore, { timeout: 15_000 })
+      .toBe(true);
+    const tab1Log = await tab1.evaluate(() => (window as unknown as { __diagLog: string[] }).__diagLog);
+    await tab1.close();
+    console.log(`DIAG [${label}] tab1 (offline) PATCH attempts while offline: ${tab1Patches.length}`);
+
+    // Back online, the student reopens the draft in a fresh page.
+    await context.setOffline(false);
+    const reopenedPatches: number[] = [];
+    page.on('response', (r) => {
+      if (r.request().method() === 'PATCH' && new URL(r.url()).pathname === draftPath) reopenedPatches.push(r.status());
+    });
+    await page.goto(`/student/application-wizard?mode=resume&draftId=${applicationId}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
+    await page.waitForTimeout(8_000);
+    await openPersonalStep(page);
+    const shownTown = await page.getByLabel(/town|city/i).first().inputValue();
+    await page.waitForTimeout(3_000);
+    const after = unwrap(await (await page.request.get(draftPath)).json());
+    const reopenLog = await page.evaluate(() => (window as unknown as { __diagLog: string[] }).__diagLog);
+    console.log(`DIAG [${label}] reopened page PATCH responses: ${JSON.stringify(reopenedPatches)}`);
+    console.log(
+      `DIAG [${label}] server after reopen: town ${after.residence_town === offlineTown ? '= the offline edit' : `= "${String(after.residence_town)}" (offline edit LOST)`}, version ${initialVersion} -> ${Number(after.version)}`,
+    );
+    console.log(`DIAG [${label}] field shown after reopen: ${shownTown === offlineTown ? 'the offline edit' : `"${shownTown}" (not the offline edit)`}`);
+    console.log(`DIAG [${label}] tab1 instrument log: ${JSON.stringify(tab1Log)}`);
+    console.log(`DIAG [${label}] reopened-page instrument log: ${JSON.stringify(reopenLog)}`);
+  });
+}

@@ -135,69 +135,63 @@ describe('[PBT] Bug 3 — PaymentStep dev bypass button not wired', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Bug 4 — useAutoSave auth recovery does not trigger immediate saveData()
+// Bug 4 — auth recovery must trigger an immediate save
 // ---------------------------------------------------------------------------
-describe('[PBT] Bug 4 — useAutoSave auth recovery missing immediate saveData()', () => {
+// Originally pinned on `src/hooks/useAutoSave.ts`'s `handleAuthRecovered`.
+// Admissions-v2 task 6.3 retired that hook; the wizard's autosave is the draft
+// machine (`lib/wizardDraftController.ts`), so the property is asserted on it —
+// behaviourally rather than by reading source text.
+describe('[PBT] Bug 4 — auth recovery triggers an immediate save', () => {
   /**
    * **Validates: Requirements 1.10, 1.11, 1.12**
    *
-   * When auth-recovered fires, handleAuthRecovered only calls
-   * processSaveQueue() which operates on an empty queue. It does NOT
-   * call saveData() to immediately sync dirty data.
-   * On unfixed code, no saveData() call exists in the handler — test FAILS.
+   * When the session recovers, work held back while it was expired is sent at
+   * once — not on the next interval tick and not only if a queue happened to
+   * hold it.
    */
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
-  it('property: handleAuthRecovered calls saveData() on recovery', () => {
-    const hookPath = path.resolve(
-      __dirname,
-      '../../src/hooks/useAutoSave.ts'
-    )
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    // Find the handleAuthRecovered handler block
-    const authRecoveredMatch = source.match(
-      /handleAuthRecovered[\s\S]*?(?=const\s+handle|window\.addEventListener|return\s*\(\)|$)/
-    )
-
-    expect(authRecoveredMatch).not.toBeNull()
-    const handlerBlock = authRecoveredMatch![0]
-
-    fc.assert(
-      fc.property(
-        fc.constantFrom('saveData'),
-        (fnName) => {
-          // The handler must call saveData() directly (not just processSaveQueue)
-          // On unfixed code, only processSaveQueue() is called — test FAILS
-          const callsSaveData =
-            handlerBlock.includes(`${fnName}()`) ||
-            handlerBlock.includes(`void ${fnName}()`) ||
-            handlerBlock.includes(`await ${fnName}()`) ||
-            handlerBlock.includes(`void ${fnName}(`)
-
-          expect(callsSaveData).toBe(true)
-        }
-      ),
-      { numRuns: 1 }
+  it('property: recovering the session sends held work immediately', async () => {
+    const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
+    await fc.assert(
+      fc.asyncProperty(fc.string({ minLength: 2, maxLength: 20 }).filter((v) => v.trim().length >= 2), async (town) => {
+        const h = createDraftHarness()
+        h.machine.activate()
+        h.hydrate()
+        h.server.failures.push(Object.assign(new Error('expired'), { name: 'AuthenticationError' }))
+        h.edit('residence_town', town)
+        await vi.advanceTimersByTimeAsync(2_000)
+        await settle()
+        expect(h.machine.getSnapshot().authExpired).toBe(true)
+        const before = h.server.updateCalls.length
+        h.machine.authRecovered()
+        // No timer advance: the save is immediate.
+        await settle()
+        expect(h.server.updateCalls.length).toBe(before + 1)
+        h.machine.dispose()
+      }),
+      { numRuns: 25 },
     )
   })
 
-  it('handleAuthRecovered handler contains both saveData and processSaveQueue', () => {
-    const hookPath = path.resolve(
-      __dirname,
-      '../../src/hooks/useAutoSave.ts'
-    )
-    const source = fs.readFileSync(hookPath, 'utf-8')
-
-    // Extract the auth-recovered handler
-    const authRecoveredMatch = source.match(
-      /handleAuthRecovered[\s\S]*?(?=const\s+handle|window\.addEventListener|return\s*\(\)|$)/
-    )
-
-    expect(authRecoveredMatch).not.toBeNull()
-    const handlerBlock = authRecoveredMatch![0]
-
-    // On unfixed code, only processSaveQueue is present — no saveData call
-    expect(handlerBlock).toContain('processSaveQueue')
-    expect(handlerBlock).toMatch(/saveData\s*\(/)
+  it('recovery also sends work the session expiry held back without any failed request', async () => {
+    const { createDraftHarness, settle } = await import('../unit/__fixtures__/wizardDraftHarness')
+    const h = createDraftHarness()
+    h.machine.activate()
+    h.hydrate()
+    h.machine.authExpiredExternally()
+    h.edit('residence_town', 'Held while expired')
+    await vi.advanceTimersByTimeAsync(8_000)
+    await settle()
+    expect(h.server.updateCalls).toHaveLength(0)
+    h.machine.authRecovered()
+    await settle()
+    expect(h.server.updateCalls).toHaveLength(1)
+    expect(h.server.answers.residence_town).toBe('Held while expired')
   })
 })

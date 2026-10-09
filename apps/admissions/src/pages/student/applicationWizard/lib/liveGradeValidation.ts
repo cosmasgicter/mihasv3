@@ -16,6 +16,7 @@
  * an accurate aggregate hint that surfaces the real causes.
  */
 
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
 import type { SubjectGrade } from '../types'
 
 /**
@@ -29,15 +30,18 @@ export interface RowDiagnostic {
   rowId: string
   issue:
     | 'missing_subject' // grade entered (or partially) but no subject picked
+    | 'unresolved_subject' // a subject reference the server catalogue does not carry
     | 'missing_grade' // subject picked but grade is 0 / missing
     | 'invalid_grade_range' // grade is outside 1-9
     | 'duplicate' // same subject as an earlier row in the same submission
     | 'empty_row' // neither subject nor grade — benign, shown only as soft hint
     | null // valid
-  // NOTE: 'fallback_subject' was removed May 2026. Fallback-* IDs are
-  // legitimate client-side placeholders that resolve at sync time via
-  // resolveWizardSubjectId. Blocking them here was a regression that
-  // prevented valid selections from counting.
+  // History worth keeping: an earlier fix removed a `fallback_subject` diagnostic
+  // because the selector legitimately produced `fallback-*` placeholders, so
+  // flagging them blocked valid selections. Admissions-v2 task 7.1 removed the
+  // placeholders themselves — the selector now offers only canonical server IDs —
+  // so a non-canonical reference is once again a real problem, and
+  // `unresolved_subject` names it instead of silently counting it (STU-11).
 }
 
 export interface ValidateLiveGradesResult {
@@ -54,10 +58,9 @@ export interface ValidateLiveGradesResult {
   hintMessage: string | null
 }
 
-/** A subject_id is a "real" pick (not empty). Fallback-* IDs are valid
- *  client-side placeholders that resolve at sync time. */
+/** A subject_id is a "real" pick when the server issued it (R11.5). */
 function isRealSubjectId(subjectId: string): boolean {
-  return subjectId.length > 0
+  return isCanonicalSubjectId(subjectId)
 }
 
 /** Is the grade value one of the 9 canonical Zambian O-level grades? */
@@ -77,7 +80,11 @@ function classifyRow(row: SubjectGrade): Exclude<RowDiagnostic['issue'], 'duplic
   const hasSubject = isRealSubjectId(subjectId)
   const hasGrade = grade !== 0
 
-  if (!hasSubject && !hasGrade) return 'empty_row'
+  if (!hasSubject && !hasGrade && !subjectId) return 'empty_row'
+  // Something is in the subject slot but it is not an identity the server issued
+  // (a draft written before task 7.1, a stale local snapshot, a bad paste). The
+  // student must re-pick it from the list; counting it would repeat STU-11.
+  if (!hasSubject && subjectId) return 'unresolved_subject'
   if (!hasSubject) return 'missing_subject'
   if (!hasGrade) return 'missing_grade'
   if (!isValidGrade(grade)) return 'invalid_grade_range'
@@ -105,6 +112,13 @@ function buildHintMessage(diagnostics: RowDiagnostic[]): string | null {
   const missingSubject = counts.get('missing_subject') ?? 0
   if (missingSubject > 0) {
     parts.push(`${missingSubject} ${rowWord(missingSubject)} a subject`)
+  }
+
+  const unresolvedSubject = counts.get('unresolved_subject') ?? 0
+  if (unresolvedSubject > 0) {
+    parts.push(
+      `${unresolvedSubject} ${rowWord(unresolvedSubject)} a subject re-selected from the list`
+    )
   }
 
   const missingGrade = counts.get('missing_grade') ?? 0

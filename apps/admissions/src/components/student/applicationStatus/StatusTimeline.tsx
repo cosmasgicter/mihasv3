@@ -1,4 +1,3 @@
-import React from 'react'
 import { CheckCircle, Clock, XCircle, AlertCircle, Calendar } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { formatDate } from '@/lib/dateFormat'

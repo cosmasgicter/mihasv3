@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { preloadAuthRoutes } from '@/lib/routePreload';
 import { CheckCircle, GraduationCap, Building2 } from '@/components/icons';
-import { motion } from 'framer-motion';
-import { useReducedMotion } from '@/lib/animation-config';
 
 interface ShapeLandingHeroProps {
   headline: string;
@@ -34,119 +32,132 @@ export function ShapeLandingHero({
     ? () => { void preloadAuthRoutes('hero-cta') }
     : undefined;
   const visiblePrograms = rotatingPhrases.slice(0, 3);
-  const reduced = useReducedMotion();
 
-  const container = {
-    hidden: { opacity: 1 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
-  };
-  const item = {
-    hidden: { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
-  };
-  const M = reduced ? 'div' : motion.div;
-  const mProps = reduced ? {} : { variants: item };
-  const cProps = reduced ? {} : { variants: container, initial: 'hidden', animate: 'visible' };
+  // Keep the public entry CSS-first. These delays reproduce the previous
+  // framer-motion stagger while `motion-safe` lets the browser disable every
+  // transform for people who request reduced motion.
+  const revealStyle = (delay: number): React.CSSProperties => ({
+    animationDelay: `${delay}s`,
+    animationFillMode: 'both',
+  });
 
   return (
     <section id="hero" className="relative isolate overflow-hidden border-b border-border bg-muted">
       <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-18">
         <div className="grid min-h-[calc(100svh-8rem)] items-center gap-8 lg:grid-cols-[minmax(0,1fr)_29rem] xl:grid-cols-[minmax(0,1fr)_32rem]">
-          <M className="max-w-3xl" {...cProps as any}>
-            <M className="mb-5 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold uppercase text-muted-foreground shadow-sm" {...mProps as any}>
+          <div className="max-w-3xl">
+            <div
+              className="mb-5 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold uppercase text-muted-foreground shadow-sm motion-safe:animate-hero-enter"
+              style={revealStyle(0.1)}
+            >
               <CheckCircle className="h-4 w-4 text-primary" aria-hidden="true" />
               Government accredited admissions
-            </M>
+            </div>
 
-            <M {...mProps as any}>
+            <div className="motion-safe:animate-hero-enter" style={revealStyle(0.2)}>
               <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:leading-[1.02]">
                 {headline}
               </h1>
-            </M>
+            </div>
 
-            <M className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg" {...mProps as any}>
+            <div
+              className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg motion-safe:animate-hero-enter"
+              style={revealStyle(0.3)}
+            >
               {description}
-            </M>
+            </div>
 
             {visiblePrograms.length > 0 && (
-              <M className="mt-5 flex flex-wrap gap-2" aria-label="Available program areas" {...mProps as any}>
+              <div
+                className="mt-5 flex flex-wrap gap-2 motion-safe:animate-hero-enter"
+                aria-label="Available program areas"
+                style={revealStyle(0.4)}
+              >
                 {visiblePrograms.map((phrase, i) => (
-                  <motion.span
+                  <span
                     key={phrase}
-                    className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary"
-                    animate={reduced ? undefined : { y: [0, -3, 0] }}
-                    transition={reduced ? undefined : { repeat: Infinity, duration: 3, delay: i * 0.4, ease: 'easeInOut' }}
+                    className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary motion-safe:animate-hero-float"
+                    style={{ animationDelay: `${i * 0.4}s` }}
                   >
                     {phrase}
-                  </motion.span>
+                  </span>
                 ))}
-              </M>
+              </div>
             )}
 
-            <M className="mt-8 flex flex-col gap-3 sm:flex-row" {...mProps as any}>
-            <motion.div whileHover={reduced ? undefined : { scale: 1.03 }} whileTap={reduced ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
-            <Link
-              to={primaryCta.href}
-              onPointerEnter={warmPrimaryRoute}
-              onFocus={warmPrimaryRoute}
-              onTouchStart={warmPrimaryRoute}
-              className={cn(
-                'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
-                'bg-primary px-6 text-primary-foreground shadow-sm',
-                'hover:bg-primary/90 active:bg-primary/85 active:scale-[0.98]',
-                'transition-colors duration-150 touch-manipulation',
-                'text-base',
-              )}
+            <div
+              className="mt-8 flex flex-col gap-3 motion-safe:animate-hero-enter sm:flex-row"
+              style={revealStyle(0.5)}
             >
-              <span>{primaryCta.label}</span>
-              {primaryCta.icon && <span aria-hidden="true">{primaryCta.icon}</span>}
-            </Link>
-            </motion.div>
+              <div className="transition-transform duration-150 ease-smooth-out motion-safe:hover:scale-[1.03] motion-safe:active:scale-[0.97]">
+                <Link
+                  to={primaryCta.href}
+                  onPointerEnter={warmPrimaryRoute}
+                  onFocus={warmPrimaryRoute}
+                  onTouchStart={warmPrimaryRoute}
+                  className={cn(
+                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
+                    'bg-primary px-6 text-primary-foreground shadow-sm',
+                    'hover:bg-primary/90 active:bg-primary/85 active:scale-[0.98]',
+                    'transition-colors duration-150 touch-manipulation',
+                    'text-base',
+                  )}
+                >
+                  <span>{primaryCta.label}</span>
+                  {primaryCta.icon && <span aria-hidden="true">{primaryCta.icon}</span>}
+                </Link>
+              </div>
 
-            {secondaryCta.href.startsWith('#') ? (
-              <a
-                href={secondaryCta.href}
-                aria-label={secondaryCta.label}
-                className={cn(
-                  'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
-                  'border border-border bg-transparent px-6 text-foreground',
-                  'hover:bg-muted hover:border-foreground/40',
-                  'transition-colors duration-150 touch-manipulation',
-                  'text-base',
-                )}
-              >
-                <span>{secondaryCta.label}</span>
-                {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
-              </a>
-            ) : (
-              <Link
-                to={secondaryCta.href}
-                aria-label={secondaryCta.label}
-                className={cn(
-                  'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
-                  'border border-border bg-transparent px-6 text-foreground',
-                  'hover:bg-muted hover:border-foreground/40',
-                  'transition-colors duration-150 touch-manipulation',
-                  'text-base',
-                )}
-              >
-                <span>{secondaryCta.label}</span>
-                {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
-              </Link>
-            )}
-            </M>
+              {secondaryCta.href.startsWith('#') ? (
+                <a
+                  href={secondaryCta.href}
+                  aria-label={secondaryCta.label}
+                  className={cn(
+                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
+                    'border border-border bg-transparent px-6 text-foreground',
+                    'hover:bg-muted hover:border-foreground/40',
+                    'transition-colors duration-150 touch-manipulation',
+                    'text-base',
+                  )}
+                >
+                  <span>{secondaryCta.label}</span>
+                  {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
+                </a>
+              ) : (
+                <Link
+                  to={secondaryCta.href}
+                  aria-label={secondaryCta.label}
+                  className={cn(
+                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
+                    'border border-border bg-transparent px-6 text-foreground',
+                    'hover:bg-muted hover:border-foreground/40',
+                    'transition-colors duration-150 touch-manipulation',
+                    'text-base',
+                  )}
+                >
+                  <span>{secondaryCta.label}</span>
+                  {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
+                </Link>
+              )}
+            </div>
 
-            <M className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6" {...mProps as any}>
+            <div
+              className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6 motion-safe:animate-hero-enter"
+              style={revealStyle(0.6)}
+            >
               {proofPanel.highlights.map((stat) => (
                 <div key={stat.label}>
                   <p className="text-2xl font-semibold tracking-tight text-primary sm:text-3xl">{stat.value}</p>
                   <p className="mt-1 text-xs font-medium uppercase text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
-            </M>
-          </M>
+            </div>
+          </div>
 
-          <M className="rounded-lg border border-border bg-card p-3 shadow-md" {...(reduced ? {} : { variants: item, initial: 'hidden', animate: 'visible', transition: { duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] } }) as any}>
+          <div
+            className="rounded-lg border border-border bg-card p-3 shadow-md motion-safe:animate-hero-enter"
+            style={revealStyle(0.4)}
+          >
             <div className="relative overflow-hidden rounded-lg bg-primary/5">
               {/* Program-first, brand-neutral showcase (R3.6): the shared
                   portal must present canonical programs without favouring or
@@ -208,7 +219,7 @@ export function ShapeLandingHero({
                 </div>
               </div>
             </div>
-          </M>
+          </div>
         </div>
       </div>
     </section>

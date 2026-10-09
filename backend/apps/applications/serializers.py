@@ -6,6 +6,7 @@ Requirements: 4.1, 4.2, 10.1, 10.2, 10.3, 10.4, 11.1, 11.2, 11.3
 
 import logging
 from datetime import date
+from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from drf_spectacular.utils import extend_schema_field
@@ -64,11 +65,33 @@ DRAFT_SAFE_FIELDS = frozenset({
     "phone", "email", "residence_town", "nationality", "country",
     "address_line_1", "address_line_2", "postal_code",
     "next_of_kin_name", "next_of_kin_phone",
-    "program", "intake", "institution", "additional_subjects",
-    # Canonical IDs (program_id/intake_id/institution_id/program_offering_id)
-    # are backend-controlled (set by the assignment flow) and declared
-    # read_only on the serializer; they are intentionally NOT client-writable.
+    "additional_subjects",
+    # ASSIGNMENT FIELDS ARE NOT DRAFT-SAFE (admissions-v2 task 6.4, R7.2/R10.5,
+    # design §7.2 "Generic PATCH never accepts assignment identifiers or their
+    # display snapshots"; finding STU-01).
+    #
+    #  * The canonical IDs (program_id / intake_id / institution_id /
+    #    program_offering_id) are backend-controlled — declared read_only on the
+    #    serializer and derived by the canonical assignment resolution.
+    #  * The display snapshots (program / intake / institution) are ALSO not
+    #    writable here. Allowing them created the STU-01 split identity: the
+    #    display strings moved while the canonical routing IDs stayed behind.
+    #
+    # Reassignment is one transactional command:
+    # ``POST /api/v1/applications/drafts/{id}/change-selection/``
+    # (``apps.applications.change_selection_service``), which revalidates the
+    # canonical graph and updates every ID, snapshot, configuration version,
+    # requirement/eligibility snapshot, and dependent answer together.
     "result_slip_url", "extra_kyc_url",
+})
+
+# The assignment identity + display snapshots. Never writable through the
+# generic application PATCH; only the change-selection command may move them
+# (design §7.2). Kept as an explicit frozenset so tests and the grep-loop
+# review can assert the exclusion instead of inferring it.
+ASSIGNMENT_FIELDS = frozenset({
+    "program", "intake", "institution",
+    "program_id", "intake_id", "institution_id", "program_offering_id",
 })
 
 LIFECYCLE_FIELDS = frozenset({
@@ -393,7 +416,94 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
         return getattr(obj, "application_fee", None)
 
 
-class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):
+class ApplicationEnrollmentReadinessMixin(serializers.Serializer):
+    """Publish the server-authored enrollment readiness (admissions-v2 task 10.3).
+
+    Requirements: R13.2, R13.9. Finding: STU-15.
+
+    The enrollment deadline was absent from both application serializers while
+    the browser was already reading ``enrollment_confirmation_deadline`` off the
+    list row — so the field was permanently ``undefined``, the enrollment card in
+    ``ApplicationListItem`` never rendered, and the only surviving rule was a
+    client-side ``status === 'approved'`` test that contradicted the backend.
+    That is STU-15.
+
+    Both keys are additive:
+
+    * ``enrollment_confirmation_deadline`` — the stored deadline, so the field
+      the client already reads finally has a value.
+    * ``enrollment`` — the whole readiness payload from the **one** evaluator
+      ``confirm_enrollment`` re-runs under its locks
+      (:func:`~apps.applications.enrollment_service.evaluate_enrollment_readiness`):
+      state, its definition, the countdown, the condition tally, the capacity
+      position, existing enrollment, stable blocker codes, ``can_confirm``, and
+      the allowed actions. The browser renders the platform's answer instead of
+      deriving a second one.
+
+    Query cost: the readiness for a whole page is resolved once per serializer
+    instance through ``enrollment_readiness_map`` — a bounded number of queries
+    for the page, never one per row (R17.5). ``many=True`` and a single object
+    both take that path, so there is one code path and one cost model.
+    """
+
+    enrollment = serializers.SerializerMethodField()
+
+    def _enrollment_map(self) -> dict[str, dict]:
+        cache = getattr(self, "_enrollment_readiness_cache", None)
+        if cache is not None:
+            return cache
+
+        from apps.applications.enrollment_service import enrollment_readiness_map
+
+        instance = self.instance
+        if instance is None:
+            rows = []
+        elif isinstance(instance, Application):
+            rows = [instance]
+        else:
+            try:
+                rows = [row for row in instance if isinstance(row, Application)]
+            except TypeError:
+                rows = []
+
+        try:
+            cache = enrollment_readiness_map(rows)
+        except Exception:
+            # A read of the student's own application must not 500 because the
+            # canonical capacity/condition configuration could not be resolved
+            # (R11.6's fail-closed-but-honest rule, applied to a read): the
+            # readiness is reported as absent, never as "nothing to do".
+            logger.exception("Failed to evaluate enrollment readiness for a page")
+            cache = {}
+
+        self._enrollment_readiness_cache = cache
+        return cache
+
+    @extend_schema_field(serializers.JSONField(allow_null=True))
+    def get_enrollment(self, obj):
+        payload = self._enrollment_map().get(str(getattr(obj, "id", "") or ""))
+        if payload is not None:
+            return payload
+        # Not part of the page the serializer was constructed with (a nested or
+        # ad-hoc render). Evaluate this one application rather than publishing a
+        # misleading null.
+        from apps.applications.enrollment_service import evaluate_enrollment_readiness
+
+        try:
+            return evaluate_enrollment_readiness(obj).to_payload()
+        except Exception:
+            logger.exception(
+                "Failed to evaluate enrollment readiness for application %s",
+                getattr(obj, "id", None),
+            )
+            return None
+
+
+class ApplicationSerializer(
+    ApplicationPaymentSummaryMixin,
+    ApplicationEnrollmentReadinessMixin,
+    serializers.ModelSerializer,
+):
     """Full application serializer with all fields."""
 
     user_id = serializers.UUIDField(read_only=True)
@@ -417,7 +527,7 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "next_of_kin_name", "next_of_kin_phone",
             "institution_id", "program_id", "program_offering_id", "intake_id",
             "program", "intake", "institution", "status", "version",
-            "student_number",
+            "student_number", "draft_name",
             "result_slip_url", "extra_kyc_url", "application_fee",
             "payment_method", "paid_amount", "paid_at", "receipt_number",
             "payment_status", "payment_verified_at", "payment_verified_by",
@@ -429,13 +539,27 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "review_started_at", "decision_date", "reviewed_by",
             "additional_subjects", "submitted_at",
             "last_payment_audit_notes",
+            # Enrollment readiness (admissions-v2 task 10.3, R13.2/R13.9, STU-15).
+            "enrollment_confirmation_deadline", "enrollment",
             "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "application_number", "public_tracking_code", "tracking_code",
+            # Server-authored: the deadline is computed by EnrollmentService from
+            # the academic calendar when the offer is made, and readiness is
+            # derived. Neither is ever accepted from a request body.
+            "enrollment_confirmation_deadline", "enrollment",
             "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
             "version", "created_at", "updated_at", "student_number",
+            # Assignment display snapshots (admissions-v2 task 6.4, R7.2/R10.5,
+            # design §7.2; finding STU-01). Declared read-only here — not only
+            # through the request-scoped DRAFT_SAFE_FIELDS guard — so a generic
+            # update can never move the display snapshots away from the
+            # canonical IDs, regardless of who calls the serializer or whether a
+            # request is in context. Reassignment goes through the
+            # change-selection command (change_selection_service).
+            "program", "intake", "institution",
         ]
 
     def get_fields(self):
@@ -707,7 +831,11 @@ class ApplicationCreateSerializer(serializers.Serializer):
         return attrs
 
 
-class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):
+class ApplicationListSerializer(
+    ApplicationPaymentSummaryMixin,
+    ApplicationEnrollmentReadinessMixin,
+    serializers.ModelSerializer,
+):
     """Lightweight serializer for list views."""
 
     user_id = serializers.UUIDField(read_only=True)
@@ -731,6 +859,11 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
             "id", "user_id", "application_number", "public_tracking_code", "tracking_code",
             "full_name", "email", "phone", "program", "intake", "institution",
             "institution_id", "program_id", "program_offering_id", "intake_id",
+            "draft_name",
+            # Draft clients need both server-authored optimistic tokens on the
+            # lightweight list row. Without them, resuming from the draft picker
+            # forced the browser either to guess or to issue an unversioned write.
+            "version", "assignment_version",
             "status", "payment_status", "payment_method", "paid_amount", "paid_at",
             "receipt_number",
             "payment_verified_at", "payment_reference", "last_payment_reference",
@@ -738,6 +871,10 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
             "payment_currency",
             "submitted_at", "admin_feedback", "last_payment_audit_notes",
             "review_started_at", "decision_date", "application_fee",
+            # Enrollment readiness (admissions-v2 task 10.3, R13.2/R13.9, STU-15).
+            # ``ApplicationListItem`` has always read the deadline off this row;
+            # until now the server never sent it.
+            "enrollment_confirmation_deadline", "enrollment",
             "grades_summary", "total_subjects", "points", "age", "days_since_submission",
             "created_at", "updated_at",
         ]
@@ -800,19 +937,62 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
 
 
 class ApplicationTrackingSerializer(serializers.ModelSerializer):
-    """Public tracking serializer - no auth required.
+    """The public tracking contract — one shape, published under the names the
+    client actually reads (admissions-v2 task 10.5, R13.12 / R14, STU-22).
 
-    Keep this response intentionally small: it is exposed to anyone who knows
-    an application number or tracking code.
+    Two things changed here, both halves of STU-22's "frontend share/fields do
+    not match the backend response":
+
+    * **the names.** The tracker page reads ``program_name``, ``intake_name`` and
+      ``updated_at``; this serializer published ``program``, ``intake`` and
+      ``created_at``. The client papered over two of those with ``??`` fallbacks
+      and simply rendered ``updated_at`` as "Not available" forever. The names are
+      now the client's, so a future divergence is a failure rather than a blank.
+    * **the fields that were never here.** The page also read
+      ``feedback_summary``, ``admin_feedback`` and ``admin_feedback_date`` and
+      rendered a "Message from Admissions" panel from them. The backend has never
+      sent those — which is the only reason an unauthenticated page was not
+      publishing internal reviewer notes. The panel is gone from the client, and
+      this serializer states the whole contract so it cannot come back by
+      accident.
+
+    Still deliberately absent: every applicant identifier and contact field, the
+    payment status, the eligibility notes, and ``public_tracking_code`` — which
+    post-10.5 authorises nothing and therefore has no reason to be echoed to an
+    unauthenticated caller.
+
+    ``program_name`` / ``intake_name`` / ``institution`` prefer the canonical
+    record's name and fall back to the legacy display snapshot on the row, which
+    is what legacy applications have. They are display values, never authority.
     """
+
+    program_name = serializers.SerializerMethodField()
+    intake_name = serializers.SerializerMethodField()
+    institution = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
         fields = [
-            "application_number", "public_tracking_code", "status",
-            "program", "intake", "institution",
-            "created_at", "submitted_at",
+            "application_number", "status",
+            "program_name", "intake_name", "institution",
+            "submitted_at", "updated_at",
         ]
+
+    def get_program_name(self, obj) -> Optional[str]:
+        canonical = getattr(obj, "canonical_program", None)
+        return getattr(canonical, "name", None) or getattr(obj, "program", None)
+
+    def get_intake_name(self, obj) -> Optional[str]:
+        intake = getattr(obj, "intake_ref", None)
+        return getattr(intake, "name", None) or getattr(obj, "intake", None)
+
+    def get_institution(self, obj) -> Optional[str]:
+        institution = getattr(obj, "institution_ref", None)
+        return (
+            getattr(institution, "brand_name", None)
+            or getattr(institution, "name", None)
+            or getattr(obj, "institution", None)
+        )
 
 
 class ApplicationDraftSerializer(serializers.ModelSerializer):
@@ -838,8 +1018,19 @@ class ApplicationGradeSerializer(serializers.Serializer):
     grade = serializers.IntegerField(min_value=1, max_value=9)
 
     def validate_subject_id(self, value):
-        from apps.catalog.models import Subject
-        if not Subject.objects.filter(id=value).exists():
+        """Only an **active canonical** subject is a writable grade identity.
+
+        R11.5 / STU-11 (admissions-v2 task 7.1): server readiness counts a grade
+        only when its ``subject_id`` resolves to an active canonical ``Subject``.
+        Accepting a write against a missing or deactivated subject would persist a
+        row that can never count toward completeness and that the student has no
+        way to see, so the write boundary and the readiness evaluator share one
+        definition of "resolvable". The message is deliberately identical for both
+        cases so the error discloses nothing about catalogue state.
+        """
+        from apps.catalog.subject_catalog import active_subjects_queryset
+
+        if not active_subjects_queryset().filter(id=value).exists():
             raise serializers.ValidationError("Invalid subject reference.")
         return value
 
@@ -1024,23 +1215,3 @@ class ApplicationWaitlistPositionDataSerializer(serializers.Serializer):
 class ApplicationWaitlistPositionResponseSerializer(serializers.Serializer):
     success = serializers.BooleanField()
     data = ApplicationWaitlistPositionDataSerializer()
-
-
-class ApplicationAiSummaryDataSerializer(serializers.Serializer):
-    """Shape of `data` for preview-summary and admin-summary AI endpoints."""
-
-    summary = serializers.CharField()
-    cached = serializers.BooleanField(required=False)
-    generated_at = serializers.DateTimeField(required=False)
-
-
-class ApplicationAiSummaryResponseSerializer(serializers.Serializer):
-    """Envelope for the AI-generated summary endpoints.
-
-    Note: This is distinct from ``ApplicationSummaryResponseSerializer`` defined
-    in ``_view_helpers.py``, which wraps the full application review summary
-    (structured data, not freeform text).
-    """
-
-    success = serializers.BooleanField()
-    data = ApplicationAiSummaryDataSerializer()

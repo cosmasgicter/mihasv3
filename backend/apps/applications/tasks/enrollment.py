@@ -66,7 +66,13 @@ def enrollment_confirmation_expiry_task(self):
                     changed_by=SYSTEM_ACTOR_ID,
                     notes="Enrollment confirmation deadline passed.",
                 )
-                IntakeEnforcer.decrement_enrollment(app.intake, app.program)
+                # Release the seat keyed on the canonical Intake_Offering
+                # identity (admissions-v2 task 5.3, DATA-02); legacy rows fall
+                # back to the name-based decrement.
+                from apps.applications.capacity_service import CapacityService
+
+                if not CapacityService.release_seat(app):
+                    IntakeEnforcer.decrement_enrollment(app.intake, app.program)
 
                 try:
                     from apps.common.communication_service import CommunicationService
@@ -75,7 +81,7 @@ def enrollment_confirmation_expiry_task(self):
                     logger.exception("Failed to send enrollment expiry notification for app=%s", app.id)
 
                 try:
-                    WaitlistManager.promote_next(app.program, app.intake)
+                    WaitlistManager.promote_next_for_application(app)
                 except Exception:
                     logger.exception("Failed to trigger waitlist promotion after enrollment expiry for app=%s", app.id)
 

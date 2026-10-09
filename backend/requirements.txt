@@ -26,7 +26,12 @@ uvicorn[standard]>=0.29,<1.0
 bcrypt>=4.1,<5.0
 PyJWT>=2.8,<3.0
 
-# OCR
+# OCR — server-side Tesseract, deliberately retained.
+# admissions-v2 task 7.5 (R11.4, R11.9) kept this path as *optional deterministic
+# assistance*: `extract_document_text_task` proposes subject/grade candidates that
+# a student must explicitly confirm. What 7.5 removed was the unused **browser**
+# OCR (tesseract.js / tesseract.js-core) and its 29 MB asset step. Do not remove
+# these two — the bullet is about dead dependencies, and this one is alive.
 pytesseract>=0.3,<1.0
 Pillow>=10.0,<13.0
 
@@ -51,5 +56,23 @@ pytest-timeout>=2.3,<3.0
 factory-boy>=3.3,<4.0
 freezegun>=1.4,<2.0
 fakeredis>=2.21,<3.0
-openai>=1.40.0
 cryptography>=43.0.0
+
+# ---------------------------------------------------------------------------
+# jobs-ops only — NOT admissions
+# ---------------------------------------------------------------------------
+# admissions-v2 task 12.4 (R11.9: "Any AI retained for another product SHALL be
+# isolated outside the admissions boundary") moved this line out of the general
+# list and into its own section, because `openai` is **not** a platform
+# dependency: its single importer in the whole backend is
+# `apps/jobs/ai_service.py`, which reads the `JOBS_OPS_AI_*` settings and serves
+# the jobs-ops operator dashboard. Task 7.4 removed every admissions generative
+# call; leaving the SDK in an unmarked list is how the next reader concludes
+# admissions still has one, or deletes it and breaks a different product.
+#
+# The SDK is pointed at the Vercel AI Gateway, so the package name understates
+# what it talks to; `docs/ai-data-flows.md` is the data map.
+#
+# `tests/unit/test_no_admissions_generative_ai_guard.py` fails if an admissions
+# module imports it, or if its importer set grows beyond `apps/jobs/`.
+openai>=1.40.0

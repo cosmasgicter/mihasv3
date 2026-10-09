@@ -21,15 +21,14 @@ class Command(BaseCommand):
         failures = []
 
         # --- Hardening flags ---
+        # admissions-v2 task 8.2 removed PAYMENT_HARDENING_FORWARD_ONLY,
+        # PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT and
+        # PAYMENT_HARDENING_FORCE_APPROVED. Their behaviour is unconditional
+        # now, so there is nothing left for a deploy check to assert — a flag
+        # that cannot be turned off cannot be misconfigured.
         hardening_flags = [
-            "PAYMENT_HARDENING_FORWARD_ONLY",
-            "PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT",
             "PAYMENT_HARDENING_RATE_LIMITS",
-            "PAYMENT_HARDENING_FORCE_APPROVED",
-            "AI_HARDENING_CIRCUIT_BREAKER",
-            "AI_HARDENING_RATE_LIMITS",
-            "AI_HARDENING_CACHE",
-            "AI_HARDENING_REDACTION",
+            "DOCUMENT_EXTRACT_RATE_LIMITS",
         ]
         for flag in hardening_flags:
             if not getattr(settings, flag, False):

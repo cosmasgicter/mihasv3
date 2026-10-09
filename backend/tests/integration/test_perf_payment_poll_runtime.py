@@ -26,7 +26,7 @@ network call is made and the test stays fast:
   which is exactly why the soft cap exists and ends the run early). A run with
   tiny simulated per-call latency also completes well under that ceiling.
 
-The poll runs on the hardened path (``PAYMENT_HARDENING_FORWARD_ONLY=True``),
+The poll runs on the one reconciliation path,
 matching the sibling property test ``tests/property/test_perf_payment_poll.py``
 (task 9.3), so every verify outcome routes through ``PaymentService.verify`` →
 ``_call_lenco_collection_status``.
@@ -65,7 +65,6 @@ _PAYMENT_AMOUNT = Decimal("153.00")
 _PAYMENT_CURRENCY = "ZMW"
 
 _LENCO_SETTINGS = dict(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://api.lenco.example",
 )

@@ -13,13 +13,24 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
 
+/**
+ * A drop-zone refusal, passed alongside the human-readable message so a caller
+ * that owns its own copy (e.g. the required-document panel, which names the
+ * requirement and its published limit) can build the message itself instead of
+ * showing a second, differently-worded version of the same rejection.
+ */
+export interface FileUploadRejection {
+  code: 'file-too-large' | 'file-invalid-type' | 'unknown'
+  file?: File
+}
+
 interface FileUploadProps {
   accept?: string
   maxSize?: number // bytes
   multiple?: boolean
   value?: File | File[] | null
   onChange?: (files: File | File[] | null) => void
-  onError?: (error: string) => void
+  onError?: (error: string, rejection?: FileUploadRejection) => void
   disabled?: boolean
   uploading?: boolean
   progress?: number // 0-100
@@ -91,7 +102,11 @@ function FileUpload({
   onError,
   disabled = false,
   uploading = false,
-  progress = 0,
+  // No default: an unmeasured upload must stay *indeterminate*. Defaulting to 0
+  // made `hasUploadProgress` true for every caller that cannot measure transfer
+  // progress, so the determinate branch rendered a bar frozen at "0%" — which a
+  // student on a weak connection reads as a dead form (task 7.2, R11.7).
+  progress,
   error,
   preview,
   className,
@@ -119,13 +134,21 @@ function FileUpload({
   const onDropRejected = useCallback(
     (rejections: FileRejection[]) => {
       if (!onError || rejections.length === 0) return
-      const first = rejections[0]!.errors[0]
+      const rejection = rejections[0]!
+      const first = rejection.errors[0]
+      const rejectedFile = rejection.file as File | undefined
       if (first?.code === 'file-too-large') {
-        onError(`File exceeds maximum size of ${formatFileSize(maxSize)}`)
+        onError(`File exceeds maximum size of ${formatFileSize(maxSize)}`, {
+          code: 'file-too-large',
+          file: rejectedFile,
+        })
       } else if (first?.code === 'file-invalid-type') {
-        onError(`Invalid file type. Accepted: ${accept}`)
+        onError(`Invalid file type. Accepted: ${accept}`, {
+          code: 'file-invalid-type',
+          file: rejectedFile,
+        })
       } else {
-        onError(first?.message ?? 'Unknown error')
+        onError(first?.message ?? 'Unknown error', { code: 'unknown', file: rejectedFile })
       }
     },
     [onError, maxSize, accept]

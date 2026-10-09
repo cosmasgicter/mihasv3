@@ -1,0 +1,462 @@
+[36m[harness][0m building admissions SPA (bun) -> apps/admissions/dist
+$ tsc -p tsconfig.build.json --noEmit && ./node_modules/.bin/vite build && bun scripts/check-html-csp.ts
+vite v6.4.2 building for production...
+transforming...
+✓ 3422 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/logger.ts is dynamically imported by /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/LazyLoadErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/ErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/reloadControl.ts but also statically imported by /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/AdminErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/CommunicationModal.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/UserActivityLog.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/UserImport.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationsTable.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/BulkActionsBar.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/SendNotificationModal.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/auth/AuthErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/StudentErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/TrackingLinkAction.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/ActiveSessions.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/PageShell.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/data/applications.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationActions.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationBulkActions.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationDocuments.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationStatusHistory.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationStatusUpdate.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/auth/useSessionListener.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/student/useProfileSectionAutosave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useAdminDashboardPolling.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useAutoSave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useEligibilityChecker.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useLencoWidget.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useManualRefresh.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useProfileAutoPopulation.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useRequiredDocuments.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/accessibility-utils.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/apiErrorLogger.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/applicationSession.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/draftLocalCache.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/draftManager.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/loaderTelemetry.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/secureStorage.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/storage.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/admin/Dashboard.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/admin/Users.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/AuthCallbackPage.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/public/tracker/hooks/useApplicationTracker.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/public/tracker/index.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/Dashboard.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationSlip.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardGrades.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardSubmission.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/admin/audit.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/admin/dashboard.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/catalog.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/client.ts, dynamic import will not move module into another chunk.
+
+dist/index.html                                       11.66 kB
+dist/.vite/manifest.json                              85.17 kB
+dist/assets/AuthenticatedRouteShell-Cx5g3aDH.css       5.59 kB
+dist/assets/AppLayout-DG955KN1.css                     7.80 kB
+dist/assets/index-BxPeaxoh.css                       126.98 kB
+dist/assets/js/tenantBrandCopy-EPZi43_U.js             0.12 kB
+dist/assets/js/animations-CwETIcnz.js                  0.18 kB
+dist/assets/js/apiErrorLogger-Ee9zPkTh.js              0.21 kB
+dist/assets/js/queryCacheConfig-BrQPsHYg.js            0.23 kB
+dist/assets/js/useToast-DkO1b75Q.js                    0.28 kB
+dist/assets/js/studentReadiness-CIGaDQJg.js            0.29 kB
+dist/assets/js/urlSafety-BZLmgnRL.js                   0.31 kB
+dist/assets/js/loader-circle-B5D9mdMt.js               0.31 kB
+dist/assets/js/plus-DD7R7faH.js                        0.32 kB
+dist/assets/js/x-DvDJZEyU.js                           0.32 kB
+dist/assets/js/filter-DqdaUEXs.js                      0.33 kB
+dist/assets/js/arrow-right-Dp4Hovoc.js                 0.33 kB
+dist/assets/js/circle-check-CS4yiF8A.js                0.34 kB
+dist/assets/js/clock-ogruhU99.js                       0.35 kB
+dist/assets/js/DeferredGlobalFeedback-DfuNmWJG.js      0.35 kB
+dist/assets/js/FormErrorAnnouncer-DnxpKHYz.js          0.35 kB
+dist/assets/js/adminNavAccess-BmItaQtk.js              0.35 kB
+dist/assets/js/circle-check-big-olv42zZm.js            0.36 kB
+dist/assets/js/smartphone-DJAtz7Gx.js                  0.37 kB
+dist/assets/js/rotate-ccw-VzIkUCJk.js                  0.37 kB
+dist/assets/js/info-CCyp5bUb.js                        0.37 kB
+dist/assets/js/lock-DwxgJYfo.js                        0.38 kB
+dist/assets/js/security-23v4moyY.js                    0.38 kB
+dist/assets/js/officialDocumentGate-DgVojJCw.js        0.38 kB
+dist/assets/js/mail-EQVjvhvg.js                        0.39 kB
+dist/assets/js/Container-D1_M8_rz.js                   0.40 kB
+dist/assets/js/circle-help-CwupmP9N.js                 0.40 kB
+dist/assets/js/copy-CAuVErBQ.js                        0.41 kB
+dist/assets/js/history-BcGXBlh-.js                     0.41 kB
+dist/assets/js/globe-t28YnFtq.js                       0.41 kB
+dist/assets/js/database--XymxvOS.js                    0.41 kB
+dist/assets/js/video-BvabOj1i.js                       0.42 kB
+dist/assets/js/circle-alert-CwquHO0r.js                0.42 kB
+dist/assets/js/eye-7l8-Ej3X.js                         0.42 kB
+dist/assets/js/map-pin-CjG1FMUG.js                     0.42 kB
+dist/assets/js/log-out-DjHaNnY-.js                     0.43 kB
+dist/assets/js/useConfirmDialog-ZOA4ylcj.js            0.43 kB
+dist/assets/js/canonicalSubjectId-Br4CIsq9.js          0.43 kB
+dist/assets/js/zap-BY-KxC6-.js                         0.43 kB
+dist/assets/js/download-BwUX0_9s.js                    0.43 kB
+dist/assets/js/file-check-DhgceiGh.js                  0.44 kB
+dist/assets/js/serverAmount-F7GEiTKF.js                0.44 kB
+dist/assets/js/image-hqN8rq8e.js                       0.44 kB
+dist/assets/js/animation-config-D_lDxKL-.js            0.44 kB
+dist/assets/js/shield-8H7Eeu_W.js                      0.44 kB
+dist/assets/js/award-DW3D__-B.js                       0.44 kB
+dist/assets/js/pencil-BznYddEL.js                      0.45 kB
+dist/assets/js/book-open-BkZcKEmI.js                   0.45 kB
+dist/assets/js/file-plus-2-Bmi_aVlE.js                 0.45 kB
+dist/assets/js/inbox-CO3WgrDd.js                       0.46 kB
+dist/assets/js/wallet-BI4j-pKr.js                      0.46 kB
+dist/assets/js/send-D1VUh55K.js                        0.46 kB
+dist/assets/js/user-plus-VNkYIbhj.js                   0.48 kB
+dist/assets/js/SkipLink-CHD-Hhkh.js                    0.49 kB
+dist/assets/js/shield-check-D0OfQ0On.js                0.49 kB
+dist/assets/js/save-BTnmtiho.js                        0.50 kB
+dist/assets/js/scroll-text-m61eUWoh.js                 0.52 kB
+dist/assets/js/shield-alert-pgA6HzTr.js                0.52 kB
+dist/assets/js/trash-2-D15lsm27.js                     0.53 kB
+dist/assets/js/applicationStatus-DVMs9GFn.js           0.53 kB
+dist/assets/js/communications-D6LTK5JM.js              0.54 kB
+dist/assets/js/chevron-right-C9ds6Iku.js               0.54 kB
+dist/assets/js/phone-Caa822Fw.js                       0.56 kB
+dist/assets/js/bell-ring-VKnTqr9A.js                   0.57 kB
+dist/assets/js/clipboard-list-NrL5TQU5.js              0.58 kB
+dist/assets/js/building-2-arhVhsTA.js                  0.61 kB
+dist/assets/js/useDebounce--6Nt9QmK.js                 0.62 kB
+dist/assets/js/school-Cscz3g6d.js                      0.62 kB
+dist/assets/js/rocket-FihtLluD.js                      0.63 kB
+dist/assets/js/trophy-Djjb9Vrg.js                      0.64 kB
+dist/assets/js/react-BsIDZlcT.js                       0.65 kB
+dist/assets/js/useResponsive-DGAgGkto.js               0.66 kB
+dist/assets/js/index-bQlUfSA-.js                       0.70 kB
+dist/assets/js/chart-column-CkV5DKf6.js                0.77 kB
+dist/assets/js/stagger-CgkBydLo.js                     0.81 kB
+dist/assets/js/EmptyState-CYVgtkM9.js                  0.84 kB
+dist/assets/js/publicTracking-CMgD3U1T.js              0.87 kB
+dist/assets/js/badge-HN6-VMV0.js                       0.95 kB
+dist/assets/js/interviews-DOgsaaqm.js                  0.98 kB
+dist/assets/js/useEscapeKey-Bsf16kqe.js                0.98 kB
+dist/assets/js/tenantSupport-CveVTe-o.js               1.09 kB
+dist/assets/js/StatusBadge-DIpQ964F.js                 1.11 kB
+dist/assets/js/useProfileAutoPopulation-YgQlv7_v.js    1.16 kB
+dist/assets/js/useCatalogAdmin-BUiiPyZi.js             1.17 kB
+dist/assets/js/MaintenancePage-SqadOIY5.js             1.28 kB
+dist/assets/js/octagon-alert-C1RU85Mk.js               1.29 kB
+dist/assets/js/useManualRefresh--kbsbHjC.js            1.31 kB
+dist/assets/js/index-Bgcow7pn.js                       1.32 kB
+dist/assets/js/errorReporter-CWK6VYtb.js               1.41 kB
+dist/assets/js/SectionCard-Cc87Ahx3.js                 1.50 kB
+dist/assets/js/InstitutionScopeContext-CWwGjXjd.js     1.58 kB
+dist/assets/js/useProfileQuery-BJN-ev4a.js             1.63 kB
+dist/assets/js/usePortalBrand-BoChfTfj.js              1.75 kB
+dist/assets/js/input-lF4OS4qC.js                       1.88 kB
+dist/assets/js/SessionMonitor-BxM_3tSm.js              1.92 kB
+dist/assets/js/nationalityOptions-CZxpjGFj.js          1.96 kB
+dist/assets/js/documents-CHaNuwrP.js                   1.99 kB
+dist/assets/js/BuildVersionBadge-Bd00A5tC.js           2.00 kB
+dist/assets/js/notificationPreferences-7P6N8v1F.js     2.00 kB
+dist/assets/js/animated-input-BUVoBIjo.js              2.04 kB
+dist/assets/js/AuthCallbackPage-DT5cgi2q.js            2.04 kB
+dist/assets/js/AuthShell-DvWNp29P.js                   2.10 kB
+dist/assets/js/Banner-FLO9ZDDR.js                      2.23 kB
+dist/assets/js/useMutation-0l16TJNI.js                 2.25 kB
+dist/assets/js/PageShell-D8cwyM6p.js                   2.26 kB
+dist/assets/js/Dialog-DIp8Hoak.js                      2.28 kB
+dist/assets/js/connectionFix-CIUkqKox.js               2.38 kB
+dist/assets/js/TrackingLinkAction-GhT0dCri.js          2.54 kB
+dist/assets/js/AdminRecordActions-ClVSd0EL.js          2.60 kB
+dist/assets/js/PasswordInput-D8jqaOWm.js               2.62 kB
+dist/assets/js/dateFormat-1n5csOqs.js                  2.67 kB
+dist/assets/js/CapabilityContext-DH4CNWbL.js           2.67 kB
+dist/assets/js/zod-BBMFgGw1.js                         2.84 kB
+dist/assets/js/users-Bqfr6GRd.js                       2.85 kB
+dist/assets/js/MetricTile-BabTqUXi.js                  2.93 kB
+dist/assets/js/applications-BwkYAATL.js                2.98 kB
+dist/assets/js/PageHeader-CkCLksCo.js                  3.07 kB
+dist/assets/js/PaymentCallback-DCTB4Q38.js             3.10 kB
+dist/assets/js/useOfficialDocument-BJ3Va0Mh.js         3.14 kB
+dist/assets/js/useMoneyAdmin-BjNRvGM6.js               3.18 kB
+dist/assets/js/audit-cVX5nWNe.js                       3.20 kB
+dist/assets/js/useAdminDashboardPolling-CfMBIxfG.js    3.26 kB
+dist/assets/js/ForgotPasswordPage-BsOr2rvo.js          3.61 kB
+dist/assets/js/TermsPage-DqjXCFEV.js                   3.68 kB
+dist/assets/js/PrivacyPage-BxemYWa8.js                 3.74 kB
+dist/assets/js/profileFieldMapping-DErniBh_.js         4.19 kB
+dist/assets/js/storage-BAb98CWm.js                     4.45 kB
+dist/assets/js/NotFoundPage-Dd_n7Q2x.js                4.47 kB
+dist/assets/js/useApplicationFilters-Cc4ngPaa.js       5.00 kB
+dist/assets/js/Toast-CMN012VE.js                       5.03 kB
+dist/assets/js/History-DeASYhow.js                     5.05 kB
+dist/assets/js/SignInPage-CFa8fF6a.js                  5.11 kB
+dist/assets/js/catalog-Bd7yKKEg.js                     5.20 kB
+dist/assets/js/AcceptInvitationPage-DenrKvcF.js        5.82 kB
+dist/assets/js/SharedFooter-CNayvWaU.js                6.00 kB
+dist/assets/js/ResetPasswordPage-M_dN7Wdc.js           6.05 kB
+dist/assets/js/catalog-D1FyQ3dv.js                     6.18 kB
+dist/assets/js/notifications-BjdcGkQj.js               6.25 kB
+dist/assets/js/alert-dialog-2z_oKUYx.js                6.81 kB
+dist/assets/js/PublicLayout-DoW26-HL.js                6.97 kB
+dist/assets/js/SignUpPage-b00O3hAD.js                  7.24 kB
+dist/assets/js/Seo-DrX2CE7G.js                         7.75 kB
+dist/assets/js/NotificationSettings-D11tER1X.js        7.93 kB
+dist/assets/js/speculativePrefetch-B2ZMCXyQ.js         7.98 kB
+dist/assets/js/landing-CB-3g2L8.js                     8.00 kB
+dist/assets/js/tenants-BdKrhrwn.js                     8.18 kB
+dist/assets/js/useQuery-0cOW8Xwh.js                    8.76 kB
+dist/assets/js/Interview-DNZ17IFd.js                   9.72 kB
+dist/assets/js/ContactPage-B1m-YZ7C.js                10.10 kB
+dist/assets/js/Communications-DA2HkNTl.js             11.88 kB
+dist/assets/js/Intakes-CIq45yna.js                    11.90 kB
+dist/assets/js/studentDraftCleanup-CdirkF_l.js        12.01 kB
+dist/assets/js/officialDocuments-Cu7IIXIG.js          12.32 kB
+dist/assets/js/ProgramFees-DxS1kldv.js                12.39 kB
+dist/assets/js/dashboard-z-MS1J1j.js                  12.42 kB
+dist/assets/js/LandingPage-7tZ1I3it.js                12.94 kB
+dist/assets/js/client-DbDbNXhQ.js                     13.36 kB
+dist/assets/js/domainStatus-C6HrS1mG.js               15.00 kB
+dist/assets/js/Payment-008641IV.js                    15.08 kB
+dist/assets/js/useStudentNextAction-B4bpowAE.js       18.68 kB
+dist/assets/js/LandingPageSections-DsT33Wjy.js        20.25 kB
+dist/assets/js/AuthContext-9k5DqbJv.js                20.83 kB
+dist/assets/js/Dashboard-CB1BJUAi.js                  21.16 kB
+dist/assets/js/purify.es-CNQAeS4Z.js                  24.43 kB
+dist/assets/js/Programs-BSW-p6Gq.js                   27.57 kB
+dist/assets/js/index.esm-DGtpIxTe.js                  27.99 kB
+dist/assets/js/Dashboard-C_5cRffT.js                  28.11 kB
+dist/assets/js/vendor-radix-dialog-DuDC0KO1.js        28.20 kB
+dist/assets/js/index-DGb6CdYp.js                      28.69 kB
+dist/assets/js/Settings-lCAmQzK-.js                   30.05 kB
+dist/assets/js/Settings-jJSMjI6_.js                   31.82 kB
+dist/assets/js/AppLayout-BqkjRV6U.js                  33.03 kB
+dist/assets/js/AuthenticatedRouteShell-DxYpjUic.js    35.41 kB
+dist/assets/js/useFeeQuote-DuQvUD0R.js                41.81 kB
+dist/assets/js/ApplicationStatus-CduGGfKH.js          45.42 kB
+dist/assets/js/AuditTrail-YdU1Q7YJ.js                 46.32 kB
+dist/assets/js/TenantOnboardingWizard-CokKqBqv.js     46.83 kB
+dist/assets/js/schemas-BhuGwATM.js                    64.24 kB
+dist/assets/js/Users-BiEogbcI.js                      81.24 kB
+dist/assets/js/progress-DL5wCle4.js                   84.61 kB
+dist/assets/js/Tenants-DgJ0jAU0.js                    94.73 kB
+dist/assets/js/vendor-framer-motion-UG34w3ZA.js      113.99 kB
+dist/assets/js/index-BLvV74w5.js                     125.28 kB
+dist/assets/js/index.es-PPXrdQ8T.js                  156.66 kB
+dist/assets/js/vendor-react-BaipggmQ.js              170.79 kB
+dist/assets/js/Applications-B3clc-6o.js              178.74 kB
+dist/assets/js/html2canvas.esm-CyxsxQj2.js           199.44 kB
+dist/assets/js/index-B-6bYKU0.js                     321.19 kB
+dist/assets/js/vendor-pdf-YaCBe5SO.js                415.38 kB
+dist/assets/js/vendor-sentry-Dsc6J6uo.js             459.78 kB
+✓ built in 41.02s
+[32m✓[0m finalise-html: preload hint for LandingPage (assets/js/LandingPage-7tZ1I3it.js)
+[32m✓[0m finalise-html: critters inlined critical CSS (HTML 11508 → 21120 bytes)
+
+check-html-csp: scanned /home/cosmas/Downloads/mihasv3/apps/admissions/dist/index.html
+  CSP script-src 'unsafe-inline': NO
+  CSP style-src 'unsafe-inline':  YES
+  inline <style> total bytes:     15038
+  main <link rel=stylesheet>:     present
+
+✓ check-html-csp: HTML is compatible with the production CSP.
+[32m[harness] ✓ SPA build output ready[0m
+[36m[harness][0m starting the harness stack (fresh volumes)
+time="2026-08-12T06:04:10+02:00" level=warning msg="Docker Compose is configured to build using Bake, but buildx isn't installed"
+#0 building with "default" instance using docker driver
+
+#1 [adapters internal] load build definition from Dockerfile
+#1 transferring dockerfile: 668B done
+#1 DONE 0.0s
+
+#2 [adapters internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 0.0s
+
+#3 [adapters internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [adapters internal] load build context
+#4 transferring context: 39B done
+#4 DONE 0.0s
+
+#5 [adapters 1/3] FROM docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+#5 resolve docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203 0.0s done
+#5 DONE 0.0s
+
+#6 [adapters 2/3] WORKDIR /app
+#6 CACHED
+
+#7 [adapters 3/3] COPY adapter_server.py /app/adapter_server.py
+#7 CACHED
+
+#8 [adapters] exporting to image
+#8 exporting layers done
+#8 exporting manifest sha256:4c48c333fe9df278d264c6e3c685ff7e6637206fe36c896ba41f37c60b6a738b done
+#8 exporting config sha256:b701568cb978b80ef78bf16dd5bf4312cf640d8114f2755dd8c2d3486388e2bb done
+#8 exporting attestation manifest sha256:9758b26d7a0f9ab134a1ace2370f0b570085c5d7049a6d213150c34a49b5844f 0.0s done
+#8 exporting manifest list sha256:0f8d40f7c89d985553be38f578b0711ba4662ba7f30c12c43db6f52a2466037a
+#8 exporting manifest list sha256:0f8d40f7c89d985553be38f578b0711ba4662ba7f30c12c43db6f52a2466037a done
+#8 naming to docker.io/library/mihas-v2-harness-adapters:latest done
+#8 unpacking to docker.io/library/mihas-v2-harness-adapters:latest done
+#8 DONE 0.1s
+
+#9 [adapters] resolving provenance for metadata file
+#9 DONE 0.0s
+
+#10 [web internal] load build definition from Dockerfile
+#10 transferring dockerfile: 2.58kB done
+#10 DONE 0.0s
+
+#2 [web internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 0.0s
+
+#11 [web internal] load .dockerignore
+#11 transferring context: 250B done
+#11 DONE 0.0s
+
+#5 [web 1/9] FROM docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+#5 resolve docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203 0.0s done
+#5 DONE 0.1s
+
+#12 [web internal] load build context
+#12 transferring context: 59.09kB 0.1s done
+#12 DONE 0.1s
+
+#13 [web 2/9] RUN apt-get update && apt-get install -y --no-install-recommends     tesseract-ocr     tesseract-ocr-eng     libpq-dev     gcc     && rm -rf /var/lib/apt/lists/*
+#13 CACHED
+
+#14 [web 8/9] RUN addgroup --system app && adduser --system --ingroup app app     && chown -R app:app /app
+#14 CACHED
+
+#15 [web 4/9] COPY requirements.txt .
+#15 CACHED
+
+#16 [web 5/9] RUN pip install --no-cache-dir -r requirements.txt
+#16 CACHED
+
+#17 [web 3/9] WORKDIR /app
+#17 CACHED
+
+#18 [web 7/9] COPY . .
+#18 CACHED
+
+#19 [web 6/9] RUN apt-get purge -y --auto-remove gcc && rm -rf /var/lib/apt/lists/*
+#19 CACHED
+
+#20 [web 9/9] RUN SECRET_KEY=build-time-placeholder     DATABASE_URL=postgres://build:build@localhost/build     REDIS_URL=redis://localhost:6379/0     JWT_SIGNING_KEY=build-time-placeholder     ALLOWED_HOSTS=*     CORS_ALLOWED_ORIGINS=https://build-placeholder.example.com     RESEND_API_KEY=build-time-placeholder     S3_ENDPOINT_URL=https://build-placeholder.example.com     S3_BUCKET=build-placeholder     S3_ACCESS_KEY=build-placeholder     S3_SECRET_KEY=build-time-placeholder     LENCO_API_SECRET_KEY=build-time-placeholder     LENCO_PUBLIC_KEY=build-time-placeholder     AUDIT_LOG_ENCRYPTION_KEY=build-time-placeholder-key-0123456789ab     AI_GATEWAY_API_KEY=build-time-placeholder     python manage.py collectstatic --noinput
+#20 CACHED
+
+#21 [web] exporting to image
+#21 exporting layers done
+#21 exporting manifest sha256:2facb016dd092dbc9355720c14865c99083baed73a0fc0241f194d3ef6ccc159 done
+#21 exporting config sha256:361e69345734a664057c1dfbd4c349e02dbc52d6e860a0c0d963bc918f38def5 done
+#21 exporting attestation manifest sha256:3a87cc43dfd7d712c0800e914b97c0e00f7223cee7b70498bafb5d013f49f6f8 0.0s done
+#21 exporting manifest list sha256:cc97933f574c44307fe0b3df80a88a6f0c58bd6ab69df17b7f70e1aa826aa20f 0.0s done
+#21 naming to docker.io/library/mihas-v2-harness-web:latest done
+#21 unpacking to docker.io/library/mihas-v2-harness-web:latest 0.0s done
+#21 DONE 0.2s
+
+#22 [web] resolving provenance for metadata file
+#22 DONE 0.0s
+
+#23 [beat internal] load build definition from Dockerfile
+#23 transferring dockerfile: 2.58kB done
+#23 DONE 0.0s
+
+#24 [worker internal] load build definition from Dockerfile
+#24 transferring dockerfile: 2.58kB done
+#24 DONE 0.0s
+
+#2 [beat internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 0.1s
+
+#25 [beat internal] load .dockerignore
+#25 transferring context: 250B done
+#25 DONE 0.0s
+
+#26 [worker internal] load .dockerignore
+#26 transferring context: 250B done
+#26 DONE 0.0s
+
+#5 [beat 1/9] FROM docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+#5 resolve docker.io/library/python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203 0.0s done
+#5 DONE 0.1s
+
+#27 [worker internal] load build context
+#27 transferring context: 59.09kB 0.1s done
+#27 DONE 0.1s
+
+#28 [beat internal] load build context
+#28 transferring context: 59.09kB 0.1s done
+#28 DONE 0.1s
+
+#29 [worker 8/9] RUN addgroup --system app && adduser --system --ingroup app app     && chown -R app:app /app
+#29 CACHED
+
+#30 [worker 5/9] RUN pip install --no-cache-dir -r requirements.txt
+#30 CACHED
+
+#31 [worker 7/9] COPY . .
+#31 CACHED
+
+#17 [worker 3/9] WORKDIR /app
+#17 CACHED
+
+#32 [worker 6/9] RUN apt-get purge -y --auto-remove gcc && rm -rf /var/lib/apt/lists/*
+#32 CACHED
+
+#33 [worker 4/9] COPY requirements.txt .
+#33 CACHED
+
+#13 [worker 2/9] RUN apt-get update && apt-get install -y --no-install-recommends     tesseract-ocr     tesseract-ocr-eng     libpq-dev     gcc     && rm -rf /var/lib/apt/lists/*
+#13 CACHED
+
+#34 [worker 9/9] RUN SECRET_KEY=build-time-placeholder     DATABASE_URL=postgres://build:build@localhost/build     REDIS_URL=redis://localhost:6379/0     JWT_SIGNING_KEY=build-time-placeholder     ALLOWED_HOSTS=*     CORS_ALLOWED_ORIGINS=https://build-placeholder.example.com     RESEND_API_KEY=build-time-placeholder     S3_ENDPOINT_URL=https://build-placeholder.example.com     S3_BUCKET=build-placeholder     S3_ACCESS_KEY=build-placeholder     S3_SECRET_KEY=build-time-placeholder     LENCO_API_SECRET_KEY=build-time-placeholder     LENCO_PUBLIC_KEY=build-time-placeholder     AUDIT_LOG_ENCRYPTION_KEY=build-time-placeholder-key-0123456789ab     AI_GATEWAY_API_KEY=build-time-placeholder     python manage.py collectstatic --noinput
+#34 CACHED
+
+#35 [beat] exporting to image
+#35 exporting layers done
+#35 exporting manifest sha256:9b92326e9769c296f0a8cc2fa48a20712fa788d80a66601fc9fe0d1a21ec57a9 done
+#35 exporting config sha256:0c7889594d61ab9cc1ab1c1f0fbc1e8e157055caf7c7100d0bff7167c1f7b4de done
+#35 exporting attestation manifest sha256:146eee2f2ff45306e3f09b5d4cbcd201a5485bc089eb66c95d043b4a4bb55f4d 0.0s done
+#35 exporting manifest list sha256:b9061939083c5e3e295205cf1b6efe2972f2849452e3df03fd0f98efc68ab5bd 0.0s done
+#35 naming to docker.io/library/mihas-v2-harness-beat:latest done
+#35 unpacking to docker.io/library/mihas-v2-harness-beat:latest 0.0s done
+#35 DONE 0.1s
+
+#36 [worker] exporting to image
+#36 exporting layers done
+#36 exporting manifest sha256:d03e7c9cf51e221317a8a766f2ef5f3a0f9384552bb9946e2910e0d55e2c0ad4 done
+#36 exporting config sha256:89411f8500b41f8aac8650442fe124069b1b32db2b727867a92f5a55b371ae02 done
+#36 exporting attestation manifest sha256:75fdbd563fcc86f0d85b2df22a92a3709d6943e17f500e84fcdc5ed391dd4acd 0.0s done
+#36 exporting manifest list sha256:2c46dde34a486489236dcaf481a13da3e4e283f4e27b192ed4f6609664550e0c 0.0s done
+#36 naming to docker.io/library/mihas-v2-harness-worker:latest done
+#36 unpacking to docker.io/library/mihas-v2-harness-worker:latest 0.0s done
+#36 DONE 0.1s
+
+#37 [beat] resolving provenance for metadata file
+#37 DONE 0.0s
+
+#38 [worker] resolving provenance for metadata file
+#38 DONE 0.0s
+ adapters  Built
+ beat  Built
+ web  Built
+ worker  Built
+ Network mihas-v2-harness_default  Creating
+ Network mihas-v2-harness_default  Created
+ Container mihas-v2-harness-redis-1  Creating
+ Container mihas-v2-harness-postgres-1  Creating
+ Container mihas-v2-harness-mailpit-1  Creating
+ Container mihas-v2-harness-minio-1  Creating
+ Container mihas-v2-harness-minio-1  Created
+ Container mihas-v2-harness-minio-setup-1  Creating
+ Container mihas-v2-harness-mailpit-1  Created
+ Container mihas-v2-harness-postgres-1  Created
+ Container mihas-v2-harness-redis-1  Created
+ Container mihas-v2-harness-adapters-1  Creating
+ Container mihas-v2-harness-minio-setup-1  Created
+ Container mihas-v2-harness-adapters-1  Created
+ Container mihas-v2-harness-web-1  Creating
+ Container mihas-v2-harness-web-1  Created
+ Container mihas-v2-harness-caddy-1  Creating
+ Container mihas-v2-harness-worker-1  Creating
+ Container mihas-v2-harness-beat-1  Creating
+ Container mihas-v2-harness-beat-1  Created
+ Container mihas-v2-harness-worker-1  Created
+ Container mihas-v2-harness-caddy-1  Created
+ Container mihas-v2-harness-redis-1  Starting
+ Container mihas-v2-harness-postgres-1  Starting
+ Container mihas-v2-harness-minio-1  Starting
+ Container mihas-v2-harness-mailpit-1  Starting
+ Container mihas-v2-harness-mailpit-1  Started
+ Container mihas-v2-harness-minio-1  Started
+ Container mihas-v2-harness-minio-setup-1  Starting
+ Container mihas-v2-harness-redis-1  Started
+ Container mihas-v2-harness-redis-1  Waiting
+ Container mihas-v2-harness-postgres-1  Started
+ Container mihas-v2-harness-minio-setup-1  Started
+ Container mihas-v2-harness-redis-1  Healthy
+ Container mihas-v2-harness-adapters-1  Starting
+ Container mihas-v2-harness-adapters-1  Started
+ Container mihas-v2-harness-postgres-1  Waiting
+ Container mihas-v2-harness-redis-1  Waiting
+ Container mihas-v2-harness-redis-1  Healthy
+ Container mihas-v2-harness-postgres-1  Healthy
+ Container mihas-v2-harness-web-1  Starting
+ Container mihas-v2-harness-web-1  Started
+ Container mihas-v2-harness-redis-1  Waiting
+ Container mihas-v2-harness-web-1  Waiting
+ Container mihas-v2-harness-web-1  Waiting
+ Container mihas-v2-harness-redis-1  Waiting
+ Container mihas-v2-harness-web-1  Waiting
+ Container mihas-v2-harness-redis-1  Healthy
+ Container mihas-v2-harness-redis-1  Healthy
+ Container mihas-v2-harness-web-1  Healthy
+ Container mihas-v2-harness-worker-1  Starting
+ Container mihas-v2-harness-web-1  Healthy
+ Container mihas-v2-harness-beat-1  Starting
+ Container mihas-v2-harness-web-1  Healthy
+ Container mihas-v2-harness-caddy-1  Starting
+ Container mihas-v2-harness-beat-1  Started
+ Container mihas-v2-harness-caddy-1  Started
+ Container mihas-v2-harness-worker-1  Started
+[36m[harness][0m waiting for the backend to become healthy (schema + seed)…
+[32m[harness] ✓ backend healthy[0m
+[36m[harness][0m waiting for the edge (Caddy) to serve the SPA…
+[32m[harness] ✓ edge serving SPA at http://localhost:8090[0m
+[32m[harness] ✓ harness up. Edge: http://localhost:8090  Mailpit: http://localhost:58025[0m

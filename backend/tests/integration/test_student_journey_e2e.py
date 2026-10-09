@@ -19,13 +19,13 @@ read one file and see every R8.1 step hold against the real HTTP surface and the
 real backend services:
 
     1.  signup (POST /api/v1/auth/register/)                       R8.1
-    2.  verification dev-equivalent (email_verified := True)       R8.1
+    2.  account is immediately usable (no email-verification gate)  R8.1
     3.  application creation (POST /api/v1/applications/)          R8.1
     4.  canonical-program + intake selection (program-first)       R8.1
     5.  seeing the assigned institution (assigned_school)          R8.1
     6.  document upload (POST /api/v1/documents/upload/)           R8.1
     7.  save-draft and resume (POST/GET /api/v1/applications/draft/) R8.1
-    8.  pay-or-defer-where-allowed (PaymentService.initiate_payment) R8.1
+    8.  pay-or-defer-where-allowed (PaymentService.initiate) R8.1
     9.  submission (POST /api/v1/applications/{id}/submit/)        R8.1
     10. downloading the backend application slip                   R8.1
         (POST/GET official-documents/application_slip — backend-stored)
@@ -63,6 +63,7 @@ import json
 import random
 import string
 import uuid
+from decimal import Decimal
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -75,7 +76,12 @@ from apps.applications.interview_service import InterviewService
 from apps.applications.models import Application, ApplicationInterview
 from apps.catalog.models import Institution, InstitutionAsset
 from apps.common.models import Notification
-from apps.documents.models import ApplicationDocument, Payment
+from apps.documents.models import (
+    ApplicationDocument,
+    ApplicationGrade,
+    Payment,
+    ProgramFee,
+)
 from apps.documents.payment_service import PaymentService
 from tests.tenant_fixtures import (
     build_canonical_program,
@@ -83,6 +89,7 @@ from tests.tenant_fixtures import (
     build_offering,
     build_profile,
     build_program_intake,
+    build_subject,
 )
 
 pytestmark = pytest.mark.tenant
@@ -278,6 +285,20 @@ class TestStudentJourneyE2E:
         build_program_intake(
             offering=offering, intake=intake, is_active=True, max_capacity=50
         )
+        # Canonical application fee for the offering. Required since task 5.4
+        # removed the hardcoded fallback amount: fee resolution now fails closed
+        # with FEE_NOT_CONFIGURED rather than inventing an amount (R12.2, STU-08).
+        ProgramFee.objects.create(
+            id=uuid.uuid4(),
+            program=offering,
+            fee_type="application",
+            residency_category="local",
+            amount=Decimal("153.00"),
+            currency="ZMW",
+            is_active=True,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
 
         # ----------------------------------------------------------------- #
         # Step 1 — Signup (R8.1)                                             #
@@ -300,15 +321,17 @@ class TestStudentJourneyE2E:
         assert signup.json()["success"] is True
         student = Profile.objects.get(email=student_email)
         assert student.role == "student"
-        assert student.email_verified is False
 
         # ----------------------------------------------------------------- #
-        # Step 2 — Verification (dev equivalent) (R8.1)                      #
-        #   Staging uses an emailed token; the dev-equivalent flips the flag #
-        #   so the rest of the authenticated journey can proceed.            #
+        # Step 2 — No email-verification gate (R8.1; Task 1.6 / R9.7)        #
+        #   Email verification is deliberately NOT implemented: there is no  #
+        #   verify-email endpoint, frontend route, or login/submission       #
+        #   enforcement anywhere in the codebase. Registration marks the     #
+        #   retained legacy ``email_verified`` column True so a new account  #
+        #   is immediately usable and never left NULL/ambiguous. See         #
+        #   backend/apps/common/email_links.py and                           #
+        #   docs/v2-evidence/1.6/ for the documented removal decision.       #
         # ----------------------------------------------------------------- #
-        Profile.objects.filter(id=student.id).update(email_verified=True)
-        student.refresh_from_db()
         assert student.email_verified is True
 
         student_client = _client_for(student)
@@ -385,6 +408,27 @@ class TestStudentJourneyE2E:
         ).exclude(verification_status__in=["deleted", "rejected"]).exists()
 
         # ----------------------------------------------------------------- #
+        # Step 7 — Record Grade 12 results (R8.1)                            #
+        #   Five unique canonical subject grades saved through the real       #
+        #   endpoint. Server readiness and submission count only persisted    #
+        #   canonical grades (R11.5, STU-11), so the journey must actually     #
+        #   record them — a client-side count is never authority.             #
+        # ----------------------------------------------------------------- #
+        journey_subjects = [build_subject(suffix=f"{sfx}{index}") for index in range(5)]
+        grades_resp = student_client.post(
+            f"/api/v1/applications/{application_id}/grades/",
+            data={
+                "grades": [
+                    {"subject_id": str(subject.id), "grade": 2}
+                    for subject in journey_subjects
+                ]
+            },
+            format="json",
+        )
+        assert grades_resp.status_code == 200, grades_resp.content
+        assert ApplicationGrade.objects.filter(application_id=application_id).count() == 5
+
+        # ----------------------------------------------------------------- #
         # Step 8 — Pay (where allowed) (R8.1)                                #
         #   Initiation stamps the Beanola collector + tenant snapshot; mark  #
         #   the payment settled so submission's payment gate is satisfied    #
@@ -396,7 +440,7 @@ class TestStudentJourneyE2E:
         Application.objects.filter(id=application_id).update(program=offering.code)
         application.refresh_from_db()
 
-        result = PaymentService().initiate_payment(application.id, student.id)
+        result = PaymentService().initiate(application.id, student.id)
         assert result.payment_id is not None
         payment = Payment.objects.get(id=result.payment_id)
         meta = payment.metadata or {}
@@ -434,13 +478,29 @@ class TestStudentJourneyE2E:
         )
 
         # ----------------------------------------------------------------- #
-        # Step 11 — Public tracking (R8.1)                                   #
-        #   Anonymous tracker returns the minimal status payload (no PII —    #
-        #   the PII guarantee itself is asserted by the negative-flow drill). #
+        # Step 11 — Public tracking (R8.1, R13.12)                           #
+        #   The student issues their own tracking link, then the anonymous    #
+        #   tracker returns the minimal status payload for it (no PII — the   #
+        #   PII guarantee itself is asserted by the negative-flow drill).     #
+        #                                                                     #
+        #   admissions-v2 task 10.5 (STU-22): the application number is not a #
+        #   public credential, so the journey now walks the real acquisition   #
+        #   step — POST …/tracking-link/ as the owner — instead of pasting a   #
+        #   sequential number an anonymous stranger could have guessed.       #
         # ----------------------------------------------------------------- #
-        track = public.get(
+        issued = student_client.post(
+            f"/api/v1/applications/{application.id}/tracking-link/"
+        )
+        assert issued.status_code == 201, issued.content
+        tracking_code = issued.json()["data"]["code"]
+
+        rejected = public.get(
             f"/api/v1/applications/track/?code={application.application_number}"
         )
+        assert rejected.status_code == 400, rejected.content
+        assert rejected.json()["code"] == "TRACKING_SECRET_REQUIRED"
+
+        track = public.get(f"/api/v1/applications/track/?code={tracking_code}")
         assert track.status_code == 200, track.content
         track_data = track.json()["data"]
         assert track_data["application_number"] == application.application_number

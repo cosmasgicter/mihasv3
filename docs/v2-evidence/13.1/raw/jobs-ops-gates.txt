@@ -1,0 +1,18 @@
+]633;E;echo "=== jobs-ops: type-check ===";e51f75dd-53b1-4694-9555-eb55ad213e51]633;C=== jobs-ops: type-check ===
+$ tsc -p tsconfig.build.json --noEmit
+exit=0
+
+=== jobs-ops: lint ===
+$ bun x eslint . --ext ts,tsx --max-warnings 0
+exit=0
+
+=== jobs-ops: vite build ===
+transforming...
+✓ 1674 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.66 kB │ gzip:   0.39 kB
+dist/assets/index-RxVqyaXX.css   24.19 kB │ gzip:   5.26 kB
+dist/assets/index-CRNf4Qej.js   356.09 kB │ gzip: 102.33 kB
+✓ built in 1.53s
+exit=0

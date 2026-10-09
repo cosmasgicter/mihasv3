@@ -1,0 +1,30 @@
+=== attempt WITHOUT --skip-checks (records blocker) ===
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:118: Error [V2ApplicationDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:37: Error [V2SessionView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:70: Error [V2ProgramListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:229: Error [V2DocumentListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:164: Error [V2FeeResolveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+
+Schema generation summary:
+Warnings: 0 (0 unique)
+Errors:   20 (5 unique)
+
+EXIT_nocheck=0
+=== generate WITH --skip-checks ===
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:118: Error [V2ApplicationDetailView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:37: Error [V2SessionView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:70: Error [V2ProgramListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:229: Error [V2DocumentListView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+/home/cosmas/Downloads/mihasv3/backend/apps/common/v2/demo_views.py:164: Error [V2FeeResolveView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.
+
+Schema generation summary:
+Warnings: 0 (0 unique)
+Errors:   20 (5 unique)
+
+EXIT_skipchecks=0

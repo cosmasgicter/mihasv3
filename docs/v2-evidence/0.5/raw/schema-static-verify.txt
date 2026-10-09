@@ -1,0 +1,136 @@
+/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
+======================================================================
+STATIC SCHEMA VERIFICATION REPORT
+Django Models vs Expected Neon Database Schema
+======================================================================
+
+STEP 1: Table Existence (Django model db_table mapping)
+--------------------------------------------------
+  [OK]   profiles                                 -> accounts.Profile (managed=False)
+  [OK]   applications                             -> applications.Application (managed=False)
+  [OK]   application_documents                    -> documents.ApplicationDocument (managed=False)
+  [OK]   application_grades                       -> documents.ApplicationGrade (managed=False)
+  [OK]   application_status_history               -> applications.ApplicationStatusHistory (managed=False)
+  [OK]   application_drafts                       -> applications.ApplicationDraft (managed=False)
+  [OK]   application_interviews                   -> applications.ApplicationInterview (managed=False)
+  [OK]   programs                                 -> catalog.Program (managed=False)
+  [OK]   intakes                                  -> catalog.Intake (managed=False)
+  [OK]   program_intakes                          -> catalog.ProgramIntake (managed=False)
+  [OK]   course_requirements                      -> catalog.CourseRequirement (managed=False)
+  [OK]   subjects                                 -> catalog.Subject (managed=False)
+  [OK]   institutions                             -> catalog.Institution (managed=False)
+  [OK]   payments                                 -> documents.Payment (managed=False)
+  [OK]   notifications                            -> common.Notification (managed=False)
+  [OK]   user_notification_preferences            -> common.UserNotificationPreference (managed=False)
+  [OK]   email_queue                              -> common.EmailQueue (managed=False)
+  [OK]   outbox_events                            -> common.OutboxEvent (managed=False)
+  [OK]   device_sessions                          -> accounts.DeviceSession (managed=False)
+  [OK]   csrf_tokens                              -> accounts.CSRFToken (managed=False)
+  [OK]   password_reset_tokens                    -> accounts.PasswordResetToken (managed=False)
+  [OK]   login_attempts                           -> accounts.LoginAttempt (managed=False)
+  [OK]   audit_logs                               -> common.AuditLog (managed=False)
+  [OK]   idempotency_keys                         -> common.IdempotencyKey (managed=False)
+  [OK]   settings                                 -> common.Setting (managed=False)
+  [OK]   user_permission_overrides                -> accounts.UserPermissionOverride (managed=False)
+  [OK]   migration_history                        -> common.MigrationHistory (managed=False)
+  [OK]   program_fees                             -> documents.ProgramFee (managed=False)
+  [OK]   webhook_event_logs                       -> documents.WebhookEventLog (managed=False)
+  [OK]   error_logs                               -> common.ErrorLog (managed=False)
+  [OK]   application_conditions                   -> applications.ApplicationCondition (managed=False)
+  [OK]   application_amendments                   -> applications.ApplicationAmendment (managed=False)
+  [OK]   fee_waivers                              -> documents.FeeWaiver (managed=False)
+  [OK]   academic_calendar_events                 -> catalog.AcademicCalendarEvent (managed=False)
+  [OK]   communication_templates                  -> common.CommunicationTemplate (managed=False)
+  [OK]   canonical_programs                       -> catalog.CanonicalProgram (managed=False)
+  [OK]   institution_assets                       -> catalog.InstitutionAsset (managed=False)
+  [OK]   institution_document_templates           -> catalog.InstitutionDocumentTemplate (managed=False)
+  [OK]   institution_required_documents           -> catalog.InstitutionRequiredDocument (managed=False)
+  [OK]   institution_domains                      -> catalog.InstitutionDomain (managed=False)
+  [OK]   user_institution_memberships             -> catalog.UserInstitutionMembership (managed=False)
+  [OK]   access_grants                            -> catalog.AccessGrant (managed=False)
+  [OK]   institution_document_profiles            -> catalog.InstitutionDocumentProfile (managed=False)
+
+  Result: 43/43 tables have Django model definitions
+  ✓ All tables accounted for
+
+STEP 2: Foreign Key Relationships
+--------------------------------------------------
+  [OK]    applications.user_id -> profiles
+  [OK]    application_documents.application_id -> applications
+  [OK]    application_documents.verified_by -> profiles
+  [OK]    application_grades.application_id -> applications
+  [OK]    application_grades.subject_id -> subjects
+  [OK]    application_status_history.application_id -> applications
+  [OK]    application_status_history.changed_by -> profiles
+  [OK]    application_drafts.application_id -> applications
+  [OK]    application_drafts.user_id -> profiles
+  [OK]    application_interviews.application_id -> applications
+  [OK]    application_interviews.created_by -> profiles
+  [OK]    application_interviews.updated_by -> profiles
+  [OK]    applications.payment_verified_by -> profiles
+  [OK]    applications.admin_feedback_by -> profiles
+  [OK]    applications.reviewed_by -> profiles
+  [OK]    payments.application_id -> applications
+  [OK]    payments.user_id -> profiles
+  [OK]    payments.verified_by -> profiles
+  [OK]    programs.institution_id -> institutions
+  [OK]    program_intakes.program_id -> programs
+  [OK]    program_intakes.intake_id -> intakes
+  [OK]    course_requirements.program_id -> programs
+  [OK]    course_requirements.subject_id -> subjects
+  [OK]    device_sessions.user_id -> profiles
+  [OK]    csrf_tokens.user_id -> profiles
+  [OK]    password_reset_tokens.user_id -> profiles
+  [OK]    notifications.user_id -> profiles
+  [OK]    user_notification_preferences.user_id -> profiles
+  [OK]    user_permission_overrides.user_id -> profiles
+  [OK]    program_fees.program_id -> programs
+
+  Result: 30/30 FK relationships match
+  ✓ All FK relationships match Django model definitions
+
+STEP 3: Index Coverage for Commonly Filtered Columns
+--------------------------------------------------
+  NOTE: All models use managed=False. Django does not create or
+  manage indexes. Indexes must exist in the Neon schema (created
+  by SQL migrations). This check is informational only.
+
+  [INFO]  applications.user_id: ForeignKey field — index likely exists in Neon schema (created by SQL migration), but no Meta.indexes entry (managed=False). Verify with live DB.
+  [INFO]  applications.status: NOT a ForeignKey, no Meta.indexes entry. Index must be created by SQL migration. Verify with live DB.
+  [INFO]  applications.program: NOT a ForeignKey, no Meta.indexes entry. Index must be created by SQL migration. Verify with live DB.
+  [INFO]  applications.institution: NOT a ForeignKey, no Meta.indexes entry. Index must be created by SQL migration. Verify with live DB.
+  [INFO]  audit_logs.entity_type: NOT a ForeignKey, no Meta.indexes entry. Index must be created by SQL migration. Verify with live DB.
+  [INFO]  audit_logs.actor_id: NOT a ForeignKey, no Meta.indexes entry. Index must be created by SQL migration. Verify with live DB.
+  [INFO]  device_sessions.user_id: ForeignKey field — index likely exists in Neon schema (created by SQL migration), but no Meta.indexes entry (managed=False). Verify with live DB.
+  [INFO]  notifications.user_id: ForeignKey field — index likely exists in Neon schema (created by SQL migration), but no Meta.indexes entry (managed=False). Verify with live DB.
+
+  Result: 0 indexes confirmed via Meta.indexes, 8 require live DB verification
+
+======================================================================
+SUMMARY
+======================================================================
+  Tables:  43/43 defined
+  FKs:     30/30 match
+  Indexes: 0/8 confirmed (rest need live DB)
+  Errors:  0
+
+  ✓ Static verification PASSED — all tables and FK relationships
+    match Django model definitions.
+
+  NEXT STEPS:
+  - Run `python backend/scripts/verify_migration.py` against the
+    live Neon database to confirm tables exist, row counts, FK
+    integrity, and index presence.
+  - The expected indexes for commonly filtered columns are:
+      - applications.user_id
+      - applications.status
+      - applications.program
+      - applications.institution
+      - audit_logs.entity_type
+      - audit_logs.actor_id
+      - device_sessions.user_id
+      - notifications.user_id
+
+EXIT=0

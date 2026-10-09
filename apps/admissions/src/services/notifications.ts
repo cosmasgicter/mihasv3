@@ -2,20 +2,22 @@ import { apiClient } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import type { NotificationData, StudentNotification } from '@/types/notifications'
+import type {
+  NotificationPreferenceSchema,
+  PreferenceUpdate,
+} from '@/lib/notificationPreferences'
 
-type UpdatePreferencesPayload = {
-  email_enabled?: boolean
-  sms_enabled?: boolean
-  whatsapp_enabled?: boolean
-  in_app_enabled?: boolean
-  application_updates?: boolean
-  payment_reminders?: boolean
-  interview_reminders?: boolean
-  marketing_emails?: boolean
-  quiet_hours_start?: string | null
-  quiet_hours_end?: string | null
-  timezone?: string | null
-}
+/**
+ * A preference PUT body (task 10.1, R13.8).
+ *
+ * Writable field names only. This used to be a hand-written union that included
+ * `whatsapp_enabled` and `in_app_enabled` — neither of which the backend has —
+ * plus quiet hours and a timezone that **no delivery path reads**. The server now
+ * publishes `writable_fields` and the caller builds the body from it
+ * (`buildPreferenceUpdate`), so this app cannot offer a control the platform will
+ * not honour. Finding **STU-14**.
+ */
+type UpdatePreferencesPayload = PreferenceUpdate
 
 type SendNotificationPayload = {
   to: string
@@ -130,41 +132,39 @@ function normalizeNotificationArray(value: unknown): StudentNotification[] {
     .filter((notification): notification is StudentNotification => notification !== null)
 }
 
-function firstArrayValue(...values: unknown[]): StudentNotification[] {
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      return normalizeNotificationArray(value)
-    }
-  }
-
-  return []
-}
-
+/**
+ * Read the notification rows out of a notification list response.
+ *
+ * Task 12.2 (R14.5, finding API-02) reduced this from a five-shape sniff to the
+ * one shape the endpoint publishes. `NotificationListView` has **four** return
+ * paths — page-number mode, implicit-no-params mode, cursor mode, and cursor
+ * mode with an unknown anchor — and every one of them returns
+ * `{"success": true, "data": {…, "results": [...]}}`. The client unwraps exactly
+ * one envelope level, so `.results` is the whole contract.
+ *
+ * Deleted, with why each was unreachable:
+ *
+ * - the bare-array branch — no path returns `data` as an array.
+ * - `.data`, `.data.results`, `.data.notifications` — a **second** envelope.
+ * - `.notifications` — a domain-keyed list this endpoint has never had.
+ * - `firstArrayValue`, the helper that tried keys in order and returned the
+ *   first array it found. It is worth naming what that did on an empty page:
+ *   `nestedResults.length > 0` meant an empty `results` fell THROUGH to the
+ *   next candidate key, so "no notifications" and "unrecognised shape" produced
+ *   the same answer by different routes. A strict read distinguishes them.
+ *
+ * Three first-party callers, all in `hooks/useNotificationPolling.ts`, and all
+ * three hand this the unwrapped payload of a list or cursor read
+ * (`scripts/v1_surface_telemetry.py`, surface
+ * `normalizer.notifications.response_sniff`). None of them needs a shape other
+ * than `.results`.
+ */
 export function normalizeNotificationsResponse(response: unknown): StudentNotification[] {
-  if (Array.isArray(response)) {
-    return normalizeNotificationArray(response)
-  }
-
-  if (!response || typeof response !== 'object') {
+  if (!response || typeof response !== 'object' || Array.isArray(response)) {
     return []
   }
 
-  const envelope = response as Record<string, unknown>
-  const data = envelope.data
-
-  if (Array.isArray(data)) {
-    return normalizeNotificationArray(data)
-  }
-
-  if (data && typeof data === 'object') {
-    const nested = data as Record<string, unknown>
-    const nestedResults = firstArrayValue(nested.results, nested.notifications)
-    if (nestedResults.length > 0) {
-      return nestedResults
-    }
-  }
-
-  return firstArrayValue(envelope.results, envelope.notifications)
+  return normalizeNotificationArray((response as { results?: unknown }).results)
 }
 
 // ─── Template Constants (merged from NotificationService class) ───
@@ -234,30 +234,46 @@ export const notificationService = {
     return Boolean(response?.id)
   },
 
-  /** Get notification preferences. Maps to GET /notifications/preferences/ */
+  /**
+   * The published preference schema. Maps to GET /notifications/preferences/.
+   *
+   * Returns what the server published — channels, categories, which of them are
+   * configurable, each one's definition, the writable field names, the refusal
+   * table, and the delivery-state vocabulary. This app derives no part of it.
+   */
   getPreferences: () =>
-    apiClient.request('/notifications/preferences/', {
+    apiClient.request<NotificationPreferenceSchema>('/notifications/preferences/', {
       method: 'GET'
     }),
 
-  /** Update notification preferences. */
+  /**
+   * Persist a preference change. Maps to PUT /notifications/preferences/.
+   *
+   * The body is passed through unchanged: it is built by
+   * `buildPreferenceUpdate` from the server's own `writable_fields`, so there is
+   * no field allow-list here to drift from the backend's. A field the platform
+   * cannot honour comes back as a 400 carrying a per-field code and reason
+   * (`preferenceRejections`), never as a silent no-op.
+   */
   updatePreferences: (payload: UpdatePreferencesPayload) =>
-    apiClient.request('/notifications/preferences/', {
+    apiClient.request<NotificationPreferenceSchema>('/notifications/preferences/', {
       method: 'PUT',
-      body: JSON.stringify({
-        ...('email_enabled' in payload ? { email_enabled: payload.email_enabled } : {}),
-        ...('sms_enabled' in payload ? { sms_enabled: payload.sms_enabled } : {}),
-        ...('whatsapp_enabled' in payload ? { whatsapp_enabled: payload.whatsapp_enabled } : {}),
-        ...('in_app_enabled' in payload ? { in_app_enabled: payload.in_app_enabled } : {}),
-        ...('application_updates' in payload ? { application_updates: payload.application_updates } : {}),
-        ...('payment_reminders' in payload ? { payment_reminders: payload.payment_reminders } : {}),
-        ...('interview_reminders' in payload ? { interview_reminders: payload.interview_reminders } : {}),
-        ...('marketing_emails' in payload ? { marketing_emails: payload.marketing_emails } : {}),
-        ...('quiet_hours_start' in payload ? { quiet_hours_start: payload.quiet_hours_start } : {}),
-        ...('quiet_hours_end' in payload ? { quiet_hours_end: payload.quiet_hours_end } : {}),
-        ...('timezone' in payload ? { timezone: payload.timezone } : {}),
-      })
+      body: JSON.stringify(payload),
     }),
+
+  /**
+   * Ask the platform to try one message's failed email again.
+   * Maps to POST /notifications/{id}/retry/ (task 10.1, R13.4).
+   *
+   * Owner-scoped, state-guarded, bounded and audited on the server. The retry
+   * writes a new durable outbox row — it is never a direct provider call — so a
+   * success here means "queued again", not "delivered".
+   */
+  retryDelivery: (notificationId: string) =>
+    apiClient.request<{ message: string; channel: string; attempts: number }>(
+      `/notifications/${encodeURIComponent(notificationId)}/retry/`,
+      { method: 'POST' },
+    ),
 
   /** List notifications for the current user. Maps to GET /notifications/ */
   list: () =>

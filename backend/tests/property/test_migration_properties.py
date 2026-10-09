@@ -37,6 +37,13 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "application_interviews",
         "application_conditions",
         "application_amendments",
+        # admissions-v2 task 9.1 (R6.x, ADM-03): an admin's saved roster query,
+        # backed by backend/scripts/2026_08_06_01_admin_saved_filters.sql.
+        # Registered by 13.6 remediation M3 — the model shipped with 9.1 and
+        # this mapping did not move, so four cases in this class failed naming
+        # `applications.AdminSavedFilter` and the expected model count read 49
+        # against 50 real models.
+        "admin_saved_filters",
     },
     "documents": {
         "application_documents",
@@ -45,6 +52,19 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "program_fees",
         "webhook_event_logs",
         "fee_waivers",
+        # admissions-v2 task 7.3 (R11.7-R11.8, STU-19): immutable document
+        # evidence. Both tables are created by
+        # backend/scripts/2026_07_26_01_document_evidence_lifecycle.sql.
+        # `document_upload_stages` is the durable staged-write ledger committed
+        # before a byte reaches object storage (which is what makes an orphan
+        # discoverable and compensation possible); `document_verification_events`
+        # is the append-only lifecycle/verification history that survives
+        # replacement.
+        "document_upload_stages",
+        "document_verification_events",
+        # admissions-v2 task 8.1: the canonical fee quote, created by
+        # backend/scripts/2026_07_30_01_payment_fee_quotes.sql.
+        "payment_fee_quotes",
     },
     "catalog": {
         "institutions",
@@ -67,6 +87,14 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         # Phase 4 (institution document profiles — rich tenant document content),
         # backed by backend/scripts/2026_06_08_03_institution_document_profiles.sql.
         "institution_document_profiles",
+        # admissions-v2 tenant authority tasks: onboarding (4.x), staff
+        # invitations (4.x), and the durable change-request workflow (TEN-06),
+        # backed by 2026_07_20_01_tenant_onboarding.sql,
+        # 2026_07_21_01_tenant_staff_invitations.sql, and
+        # 2026_07_22_01_tenant_change_requests.sql.
+        "tenant_onboarding",
+        "tenant_staff_invitations",
+        "tenant_change_requests",
     },
     "common": {
         "audit_logs",

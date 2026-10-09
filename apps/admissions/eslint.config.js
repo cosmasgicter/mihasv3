@@ -147,6 +147,25 @@ export default [
       ],
     },
   },
+  // Architecture enforcement (R14.3): Pages and components MUST NOT import the raw
+  // transport client directly. Use domain service modules (e.g. @/services/auth,
+  // @/services/applications) which consume generated types and validate responses.
+  {
+    files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/services/client', '@/services/httpClient', '@/services/csrf', '@/services/csrfManager', '@/services/retry', '@/services/authInterceptor', '@/services/apiHelpers'],
+              message: 'Pages and components must not import the raw API client or transport internals directly. Import from domain service modules (e.g. @/services/auth, @/services/applications, @/services/payments) instead. (R14.3 architecture enforcement)',
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ['tests/**/*.{ts,tsx,js}'],
     languageOptions: {

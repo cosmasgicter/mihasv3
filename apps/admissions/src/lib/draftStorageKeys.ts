@@ -53,12 +53,10 @@ export function isDraftStorageKey(key: string): boolean {
   )
 }
 
-export function removeDraftStorageEntries(storage: Storage): void {
-  Object.keys(storage).forEach((key) => {
-    if (isDraftStorageKey(key)) {
-      storage.removeItem(key)
-    }
-  })
-}
+// `removeDraftStorageEntries(storage)` was REMOVED by task 6.3 (R10.4, R10.10).
+// It deleted every draft key in a storage area — every user's, every
+// application's — and its last production caller was the session manager's
+// bulk delete, which now clears one `(user, application)` identity at a time
+// through `draftLocalCache.clearWizardDraftCache`.
 
 export { KNOWN_DRAFT_STORAGE_KEYS, KNOWN_DRAFT_STORAGE_PREFIXES }

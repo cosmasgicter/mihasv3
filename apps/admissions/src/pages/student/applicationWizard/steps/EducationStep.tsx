@@ -1,84 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
-import { GraduationCap, X, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, GraduationCap, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
-import { FileUpload } from '@/components/ui/FileUpload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { ExtractedResultsCard } from '@/components/student/ExtractedResultsCard'
+import { RequiredDocumentsPanel } from '@/components/student/RequiredDocumentsPanel'
+import type { UseRequiredDocumentsResult } from '@/hooks/useRequiredDocuments'
 import { animateClasses, staggerChild } from '@/lib/animations'
 
-// eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'
-import { EDUCATION_UPLOAD_COPY } from '../lib/educationCatalog'
+import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
+import { cn } from '@/lib/utils'
 import { validateLiveGrades, type RowDiagnostic } from '../lib/liveGradeValidation'
-import type { ApplicationUploadState } from '../hooks/useApplicationFileUploads'
-
-function getUploadStatus(file: File | null, uploadState: ApplicationUploadState | undefined, isUploaded?: boolean) {
-  if (isUploaded) {
-    return {
-      label: 'Uploaded',
-      className: 'border-success/30 bg-success/5 text-success',
-    }
-  }
-
-  if (uploadState === 'uploading') {
-    return {
-      label: 'Uploading',
-      className: 'border-primary/30 bg-primary/5 text-primary',
-    }
-  }
-
-  if (uploadState === 'failed') {
-    return {
-      label: 'Needs retry',
-      className: 'border-destructive/30 bg-destructive/5 text-destructive',
-    }
-  }
-
-  if (file) {
-    return {
-      label: 'Selected',
-      className: 'border-blue-200 bg-blue-50 text-blue-700',
-    }
-  }
-
-  return {
-    label: 'Not added',
-    className: 'border-border bg-muted text-muted-foreground',
-  }
-}
-
-function getPreviewType(file: File): 'image' | 'pdf' | 'other' {
-  if (file.type.startsWith('image/')) return 'image'
-  if (file.type === 'application/pdf') return 'pdf'
-  return 'other'
-}
-
-function useFilePreview(file: File | null, enabled?: boolean) {
-  const [preview, setPreview] = useState<{ url: string; type: 'image' | 'pdf' | 'other' }>()
-
-  useEffect(() => {
-    if (!enabled || !file || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
-      setPreview(undefined)
-      return undefined
-    }
-
-    const url = URL.createObjectURL(file)
-    setPreview({ url, type: getPreviewType(file) })
-
-    return () => {
-      if (typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
-        URL.revokeObjectURL(url)
-      }
-    }
-  }, [enabled, file])
-
-  return preview
-}
 
 interface EducationStepProps {
   title: string
@@ -87,21 +24,30 @@ interface EducationStepProps {
   selectedGrades: SubjectGrade[]
   eligibilityCheck: EligibilityResult | null
   recommendedSubjects: string[]
-  resultSlipFile: File | null
-  extraKycFile: File | null
-  uploadProgress: Record<string, number>
-  uploadStates: Record<string, ApplicationUploadState>
-  uploadedFiles: Record<string, boolean>
+  /**
+   * The application's versioned required-document contract (task 7.2, R11.6).
+   * This step renders one upload control per server requirement — it holds no
+   * document-type list of its own (STU-13).
+   */
+  requiredDocuments: UseRequiredDocumentsResult
   addGrade: () => void
   removeGrade: (index: number) => void
   updateGrade: (index: number, field: keyof SubjectGrade, value: string | number) => void
   getUsedSubjects: () => string[]
-  handleResultSlipUpload: (file: File | null) => void
-  handleExtraKycUpload: (file: File | null) => void
-  ocrStatus?: 'idle' | 'polling' | 'done' | 'failed'
-  ocrExtractedCount?: number
+  /**
+   * Deterministic OCR assistance (task 7.5, R11.4). `suggested` means candidates
+   * are waiting for the student's explicit confirmation — it never means the grid
+   * has been populated. `applied` is only reachable through
+   * `onConfirmOcrCandidates`.
+   */
+  ocrStatus?: 'idle' | 'polling' | 'suggested' | 'applied' | 'dismissed' | 'failed'
+  ocrCandidates?: import('../hooks/useOcrGradeExtraction').OcrGradeCandidate[]
+  ocrWithheld?: import('../hooks/useOcrGradeExtraction').OcrWithheldCandidate[]
+  ocrAppliedCount?: number
   ocrFailureReason?: import('../hooks/useOcrGradeExtraction').OcrFailureReason
   ocrExtractionMeta?: import('../hooks/useOcrGradeExtraction').OcrExtractionMeta | null
+  onConfirmOcrCandidates?: (subjectIds: string[]) => void
+  onDismissOcrCandidates?: () => void
   onRetryOcr?: () => void
 }
 
@@ -112,21 +58,19 @@ const EducationStep = ({
   selectedGrades,
   eligibilityCheck,
   recommendedSubjects,
-  resultSlipFile,
-  extraKycFile,
-  uploadProgress,
-  uploadStates,
-  uploadedFiles,
+  requiredDocuments,
   addGrade,
   removeGrade,
   updateGrade,
   getUsedSubjects,
-  handleResultSlipUpload,
-  handleExtraKycUpload,
   ocrStatus,
-  ocrExtractedCount,
+  ocrCandidates,
+  ocrWithheld,
+  ocrAppliedCount,
   ocrFailureReason,
   ocrExtractionMeta,
+  onConfirmOcrCandidates,
+  onDismissOcrCandidates,
   onRetryOcr,
 }: EducationStepProps) => {
   const lastSubjectRef = useRef<HTMLDivElement>(null)
@@ -139,29 +83,43 @@ const EducationStep = ({
     prevGradeCountRef.current = selectedGrades.length
   }, [selectedGrades.length])
 
-  const resultSlipStatus = getUploadStatus(resultSlipFile, uploadStates.result_slip, uploadedFiles.result_slip)
-  const identityStatus = getUploadStatus(extraKycFile, uploadStates.extra_kyc, uploadedFiles.extra_kyc)
-  const resultSlipPreview = useFilePreview(resultSlipFile, uploadedFiles.result_slip)
-  const identityPreview = useFilePreview(extraKycFile, uploadedFiles.extra_kyc)
+  // Intro copy derived from the contract, so it can never promise a limit or a
+  // document count the server did not publish.
+  const uploadIntro = useMemo(() => {
+    const required = requiredDocuments.requirements.filter(requirement => requirement.required)
+    if (requiredDocuments.contractError) {
+      return 'We could not read the documents this application needs yet.'
+    }
+    if (required.length === 0) {
+      return 'Files upload automatically and save as you go.'
+    }
+    return `${required.length === 1 ? 'This document is' : `These ${required.length} documents are`} required before you continue. A clear phone photo works. Files upload automatically and save as you go.`
+  }, [requiredDocuments.contractError, requiredDocuments.requirements])
 
-  // Per-field upload feedback. `rejectError` captures react-dropzone
-  // rejections (wrong type / too large) that would otherwise fail silently;
-  // a `failed` upload state surfaces as an actionable inline error with a
-  // retry button instead of only the small status pill.
-  const [resultSlipRejectError, setResultSlipRejectError] = useState<string | null>(null)
-  const [identityRejectError, setIdentityRejectError] = useState<string | null>(null)
-  const UPLOAD_FAILED_MESSAGE = "Upload didn't finish. Check your connection and tap Retry."
-  const resultSlipError = resultSlipRejectError ?? (uploadStates.result_slip === 'failed' ? UPLOAD_FAILED_MESSAGE : undefined)
-  const identityError = identityRejectError ?? (uploadStates.extra_kyc === 'failed' ? UPLOAD_FAILED_MESSAGE : undefined)
+  const handleRequirementFile = useCallback(
+    (documentType: string, file: File | null) => {
+      void requiredDocuments.selectFile(documentType, file)
+    },
+    [requiredDocuments],
+  )
 
-  const onResultSlipChange = (files: File | File[] | null) => {
-    setResultSlipRejectError(null)
-    handleResultSlipUpload(files as File | null)
-  }
-  const onIdentityChange = (files: File | File[] | null) => {
-    setIdentityRejectError(null)
-    handleExtraKycUpload(files as File | null)
-  }
+  const handleRequirementRetry = useCallback(
+    (documentType: string) => {
+      void requiredDocuments.retry(documentType)
+    },
+    [requiredDocuments],
+  )
+
+  // Task 7.3 (R11.8, STU-19): removal is a server command over the immutable
+  // version, so the requirement only returns to "needs a file" after the server
+  // says the version is no longer current.
+  const handleRequirementRemove = useCallback(
+    (documentType: string) => {
+      void requiredDocuments.removeDocument(documentType)
+    },
+    [requiredDocuments],
+  )
+
   const subjectCounts = selectedGrades.reduce((counts, grade) => {
     if (grade.subject_id) {
       counts.set(grade.subject_id, (counts.get(grade.subject_id) ?? 0) + 1)
@@ -211,10 +169,21 @@ const EducationStep = ({
       }
 
       const options: Array<{ value: string; label: string; disabled?: boolean }> = []
-      for (const cat of categoryOrder) {
+      // R11.5: every server subject must be reachable. Known categories keep their
+      // curated order; anything else (a tenant category, a new ECZ grouping) lands
+      // in a trailing group rather than disappearing from the selector.
+      const orderedCategories = [
+        ...categoryOrder.filter(cat => grouped.has(cat)),
+        ...Array.from(grouped.keys()).filter(cat => !categoryOrder.includes(cat)).sort(),
+      ]
+      for (const cat of orderedCategories) {
         const items = grouped.get(cat)
         if (!items || items.length === 0) continue
-        options.push({ value: `__cat_${cat}`, label: categoryLabels[cat] || cat, disabled: true })
+        options.push({
+          value: `__cat_${cat}`,
+          label: categoryLabels[cat] || 'Other Subjects',
+          disabled: true,
+        })
         for (const subject of items.sort((a, b) => a.name.localeCompare(b.name))) {
           const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
           options.push({
@@ -270,22 +239,31 @@ const EducationStep = ({
             <span>Scanning your result slip for grades…</span>
           </div>
         )}
-        {ocrStatus === 'done' && ocrExtractedCount && ocrExtractedCount > 0 && !(ocrExtractionMeta && ocrExtractionMeta.subjects.length > 0) && (
-          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
-            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            <span>Auto-populated {ocrExtractedCount} subject{ocrExtractedCount > 1 ? 's' : ''} from your result slip. Review them below and correct any mistakes.</span>
-          </div>
-        )}
-        {ocrStatus === 'done' && ocrExtractionMeta && ocrExtractionMeta.subjects.length > 0 && (
+        {/*
+          R11.4: candidates are offered, never applied. The confirmation card is
+          the only path from a read to the grid, and it sits above a grid that is
+          editable in every state — including while the scan is still running.
+        */}
+        {ocrStatus === 'suggested' && ocrCandidates && ocrCandidates.length > 0 && (
           <ExtractedResultsCard
-            examNumber={ocrExtractionMeta.examNumber}
-            year={ocrExtractionMeta.year}
-            subjects={ocrExtractionMeta.subjects}
+            examNumber={ocrExtractionMeta?.examNumber ?? null}
+            year={ocrExtractionMeta?.year ?? null}
+            candidates={ocrCandidates}
+            withheld={ocrWithheld ?? []}
+            parserVersion={ocrExtractionMeta?.parserVersion ?? null}
+            onConfirm={subjectIds => onConfirmOcrCandidates?.(subjectIds)}
+            onDismiss={() => onDismissOcrCandidates?.()}
           />
         )}
-        {ocrStatus === 'done' && (!ocrExtractedCount || ocrExtractedCount === 0) && (
-          <div className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="status">
-            <span>Your result slip was scanned but we couldn't auto-detect any grades. Please add your subjects manually below — your upload is still saved.</span>
+        {ocrStatus === 'applied' && ocrAppliedCount && ocrAppliedCount > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
+            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <span>Added {ocrAppliedCount} confirmed subject{ocrAppliedCount > 1 ? 's' : ''}. Check each grade below and edit anything that is wrong.</span>
+          </div>
+        )}
+        {ocrStatus === 'dismissed' && (
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
+            <span>Suggestions dismissed. Add your subjects below — your upload is still saved.</span>
           </div>
         )}
         {ocrStatus === 'failed' && (
@@ -298,7 +276,7 @@ const EducationStep = ({
                   : ocrFailureReason === 'no_text'
                     ? 'We couldn\'t read any text from your result slip. Make sure the image is clear and well-lit, then try again.'
                     : ocrFailureReason === 'no_grades_matched'
-                      ? 'We found text in your result slip but couldn\'t match it to known subjects. Please add your subjects manually below.'
+                      ? 'We found text in your result slip but couldn\'t match it to the subject catalogue confidently enough to suggest anything. Please add your subjects manually below.'
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
             </span>
             {onRetryOcr && (
@@ -312,7 +290,52 @@ const EducationStep = ({
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Education Details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (<span className={uniqueValidSubjectCount < 5 ? 'text-red-500' : 'text-green-600'}>{uniqueValidSubjectCount}/5 unique minimum</span>)</h3>
+            {/*
+              Tokens, AA, and never colour alone (GATE-13.3-12, 13.6 §8.1 item L6).
+
+              This counter was `text-red-500` / `text-green-600` — raw Tailwind
+              palette steps on a *status* message, which `DESIGN.md` forbids
+              independently of contrast, and #ef4444 on white measures **3.76 : 1**,
+              under AA. axe reported it as a serious `color-contrast` row.
+              `text-destructive` (#dc2626, 5.25 : 1) and `text-success` (#047857,
+              5.6 : 1) are the semantic tokens, and the icon carries the same
+              meaning for anyone who cannot use the hue.
+            */}
+            <div className="min-w-0">
+              <h3 className="text-md font-medium text-foreground">Grade 12 Subjects</h3>
+              {/*
+                The counter is its own line, not a parenthetical (13.6 §8.1 item L6).
+
+                Reviewing this batch's own 320 px screenshot — the discipline
+                GATE-13.3-16 exists to enforce — showed the heading breaking as
+                `Grade 12 Subjects (` / `0/5 unique minimum` / `)`, with the closing
+                bracket orphaned on a line of its own: an `inline-flex` badge is an
+                atomic box, so the parentheses could not stay with it. A count of
+                progress is a status, not part of the section's name, so it reads as
+                one.
+              */}
+              <p
+                className={cn(
+                  'mt-1 inline-flex items-center gap-1.5 text-sm font-semibold',
+                  uniqueValidSubjectCount < 5 ? 'text-destructive' : 'text-success',
+                )}
+              >
+                {uniqueValidSubjectCount < 5 ? (
+                  <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                )}
+                {/*
+                  The wording is deliberately unchanged.
+                  `tests/harness-e2e/required/ocr-manual-fallback.spec.ts:217,252`
+                  locates this counter by its exact text (`3/5 unique minimum`,
+                  `5/5 unique minimum`) while walking the OCR-confirmation journey.
+                  That spec belongs to the wizard lane and is outside this batch, so
+                  L6 changed the token, the icon and the layout — not the string.
+                */}
+                <span>{uniqueValidSubjectCount}/5 unique minimum</span>
+              </p>
+            </div>
             {selectedGrades.length === 0 && (
               <span className="sr-only">No subjects added yet</span>
             )}
@@ -349,12 +372,26 @@ const EducationStep = ({
             <div
               className={`mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg ${animateClasses.slideUp}`}
             >
-              <h4 className="text-sm font-medium text-primary-foreground mb-2">
+              {/*
+                GATE-13.3-12, continued. Two rows on this one panel:
+
+                * the heading was `text-primary-foreground` — **white** (#ffffff) —
+                  on `bg-primary/5`, a near-white wash. That is ~1.1 : 1, not a
+                  marginal miss; and
+                * the five chips were `bg-primary/10 text-primary`, the same
+                  **4.49 : 1** pair as the bottom-nav label.
+
+                Both now use the token pair the design system already has for a
+                tinted surface: `accent` / `accent-foreground` (#dbeafe / #1e40af,
+                7.2 : 1). `h4` is unchanged — it follows the `h3` above it, so it
+                skips no level.
+              */}
+              <h4 className="text-sm font-medium text-accent-foreground mb-2">
                 Recommended subjects for {selectedProgram}:
               </h4>
               <div className="flex flex-wrap gap-1">
                 {recommendedSubjects.map((subject, index) => (
-                  <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                  <span key={index} className="px-2 py-1 bg-accent text-accent-foreground text-xs rounded">
                     {subject}
                   </span>
                 ))}
@@ -384,6 +421,8 @@ const EducationStep = ({
               const subjectHint =
                 diagnostic === 'missing_subject'
                   ? 'Pick a subject to match this grade.'
+                  : diagnostic === 'unresolved_subject'
+                  ? 'This subject is no longer in the list. Please pick it again.'
                   : null
               return (
               <div
@@ -398,13 +437,13 @@ const EducationStep = ({
                     Subject
                   </label>
                   <CanonicalSelect
-                    value={grade.subject_id}
+                    value={isCanonicalSubjectId(grade.subject_id) ? grade.subject_id : ''}
                     onChange={(value) => updateGrade(index, 'subject_id', value)}
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
                     placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
                     aria-label={`Subject ${index + 1}`}
-                    error={isDuplicate}
+                    error={isDuplicate || diagnostic === 'unresolved_subject'}
                   />
                   {isDuplicate && (
                     <p className="mt-1 text-xs font-medium text-destructive" role="alert">
@@ -495,83 +534,30 @@ const EducationStep = ({
           <div className="mb-4">
             <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add both documents to continue. A clear phone photo works — PDF, JPG or PNG up to 10MB. Files upload automatically and save as you go.
+              {uploadIntro}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Result slip</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">Grade 12 result slip. PDF, JPG or PNG. Max 10MB.</p>                </div>
-                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultSlipStatus.className}`}>
-                  {resultSlipStatus.label}
-                </span>
-              </div>
-              {uploadedFiles.result_slip && !resultSlipFile ? (
-                <div className="flex flex-1 items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
-                  <CheckCircle className="h-5 w-5 shrink-0" />
-                  <div>
-                    <p className="font-medium">Previously uploaded</p>
-                    <button type="button" className="mt-1 min-h-touch inline-flex items-center text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleResultSlipUpload(null)}>
-                      Replace file
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <FileUpload
-                  label={EDUCATION_UPLOAD_COPY.resultSlip.label}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  maxSize={10 * 1024 * 1024}
-                  onChange={onResultSlipChange}
-                  onError={setResultSlipRejectError}
-                  onRetry={resultSlipFile ? () => onResultSlipChange(resultSlipFile) : undefined}
-                  error={resultSlipError}
-                  value={resultSlipFile}
-                  uploading={uploadStates.result_slip === 'uploading'}
-                  progress={uploadProgress.result_slip}
-                  preview={resultSlipPreview}
-                />
-              )}
-            </div>
-
-            <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">NRC or passport</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">Photo or scan of your NRC or passport. PDF, JPG or PNG. Max 10MB.</p>
-                </div>
-                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${identityStatus.className}`}>
-                  {identityStatus.label}
-                </span>
-              </div>
-              {uploadedFiles.extra_kyc && !extraKycFile ? (
-                <div className="flex flex-1 items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
-                  <CheckCircle className="h-5 w-5 shrink-0" />
-                  <div>
-                    <p className="font-medium">Previously uploaded</p>
-                    <button type="button" className="mt-1 min-h-touch inline-flex items-center text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleExtraKycUpload(null)}>
-                      Replace file
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <FileUpload
-                  label={EDUCATION_UPLOAD_COPY.identityDocument.label}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  maxSize={10 * 1024 * 1024}
-                  onChange={onIdentityChange}
-                  onError={setIdentityRejectError}
-                  onRetry={extraKycFile ? () => onIdentityChange(extraKycFile) : undefined}
-                  error={identityError}
-                  value={extraKycFile}
-                  uploading={uploadStates.extra_kyc === 'uploading'}
-                  progress={uploadProgress.extra_kyc}
-                  preview={identityPreview}
-                />
-              )}
-            </div>
-          </div>
+          {/*
+            R11.6 / STU-13: every control below is generated from the application's
+            versioned requirement snapshot, so a tenant-configured document type —
+            including a custom one — is uploadable here instead of being an
+            invisible submission blocker. This step publishes no document-type
+            list, accept list, or size limit of its own.
+          */}
+          <RequiredDocumentsPanel
+            requirements={requiredDocuments.requirements}
+            uploadStates={requiredDocuments.uploadStates}
+            loading={requiredDocuments.loading}
+            contractError={requiredDocuments.contractError}
+            contractErrorRetryable={requiredDocuments.contractErrorRetryable}
+            onReload={requiredDocuments.reload}
+            onSelectFile={handleRequirementFile}
+            onRetry={handleRequirementRetry}
+            onLocalError={requiredDocuments.reportLocalError}
+            onBeginReplace={requiredDocuments.beginReplace}
+            onCancelReplace={requiredDocuments.cancelReplace}
+            onRemove={handleRequirementRemove}
+          />
         </fieldset>
       </div>
     </div>

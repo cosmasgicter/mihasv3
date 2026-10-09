@@ -67,7 +67,10 @@ def interview_reminder_task(self):
     try:
         from apps.applications.models import ApplicationInterview
         from apps.common.models import Notification
-        from apps.common.outbox import create_notification, queue_email
+        from apps.common.notification_preferences import (
+            DIRECT_PRODUCER_CATEGORIES,
+            deliver_message,
+        )
 
         logger.info("interview_reminder_task: starting")
         now = timezone.now()
@@ -101,16 +104,6 @@ def interview_reminder_task(self):
             )
 
             try:
-                create_notification(
-                    user_id=application.user_id,
-                    title=title,
-                    message=message,
-                    type="info",
-                    priority="normal",
-                    action_url=f"/student/application/{application.id}",
-                    idempotency_key=dedup_key,
-                )
-
                 location_display = interview.location or "See notes"
                 email_body = (
                     f"<p>Dear {application.full_name},</p>"
@@ -121,10 +114,27 @@ def interview_reminder_task(self):
                     f"<p>Best regards,<br>Beanola Admissions</p>"
                 )
 
-                queue_email(
+                # Task 10.1 (R13.3/R13.8): an interview reminder is an OPTIONAL
+                # category, so it goes through the one delivery gate — otherwise
+                # the `interview_reminders` switch would be decorative for the
+                # only message it governs. The in-app record is still always
+                # written; only the email follows the student's setting, and the
+                # decision is recorded for the communications history (R13.4).
+                deliver_message(
+                    user_id=application.user_id,
+                    category=DIRECT_PRODUCER_CATEGORIES["interview_reminder"],
+                    title=title,
+                    message=message,
+                    email_subject=(
+                        f"Reminder: Interview Tomorrow — {application.program}"
+                    ),
+                    email_body=email_body,
                     recipient_email=application.email,
-                    subject=f"Reminder: Interview Tomorrow — {application.program}",
-                    body=email_body,
+                    recipient_name=getattr(application, "full_name", "") or "",
+                    action_url=f"/student/application/{application.id}",
+                    idempotency_key=dedup_key,
+                    application_id=application.id,
+                    institution_id=getattr(application, "institution_ref_id", None),
                 )
                 sent += 1
             except Exception:

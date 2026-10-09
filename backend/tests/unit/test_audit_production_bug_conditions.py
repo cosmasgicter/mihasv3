@@ -156,15 +156,16 @@ class TestBug8TrackingFormatValidation:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.public_views.Application.objects")
-    def test_invalid_format_code_returns_400_with_guidance(self, mock_qs):
+    def test_invalid_format_code_returns_400_with_guidance(self):
         """Bug 8: Invalid format code must return 400 with format guidance.
 
         On UNFIXED code this FAILS because it returns 404 with generic message.
-        """
-        from apps.applications.models import Application
-        mock_qs.get.side_effect = Application.DoesNotExist
 
+        admissions-v2 task 10.5 removed the ``Application.objects`` patch: the
+        format gate never reaches the database now (that is the enumeration
+        property), so patching the manager asserted nothing. The 400 +
+        ``INVALID_FORMAT`` contract this pins is unchanged.
+        """
         request = self.factory.get("/api/v1/applications/track/?code=INVALID123")
         response = self.view(request)
 
@@ -191,17 +192,23 @@ class TestBug8bTrackingDescriptive404:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.public_views.Application.objects")
-    def test_valid_format_not_found_returns_descriptive_message(self, mock_qs):
-        """Bug 8b: Valid-format code that doesn't exist must return descriptive 404.
+    @patch("apps.applications.tracking_secret.resolve", return_value=None)
+    def test_valid_format_not_found_returns_descriptive_message(self, _resolve):
+        """Bug 8b: A well-formed code that resolves nothing returns a descriptive 404.
 
         On UNFIXED code this FAILS because message is just 'Application not found'.
-        """
-        from apps.applications.models import Application
-        mock_qs.get.side_effect = Application.DoesNotExist
 
-        # Use a valid-format tracking code that doesn't exist
-        request = self.factory.get("/api/v1/applications/track/?code=APP-20250101-ABCD1234")
+        admissions-v2 task 10.5 changed *which* code is well-formed: the credential
+        is now a tracking secret, and ``APP-20250101-ABCD1234`` is a legacy
+        application-number shape that authorises nothing (R13.12). The descriptive
+        404 contract this pins is unchanged — it is now asserted against the code
+        that can still reach a lookup.
+        """
+        from apps.applications.tracking_secret import build_code
+
+        request = self.factory.get(
+            f"/api/v1/applications/track/?code={build_code('4KP2M9XT', '9QW3RT7VZ2KDN8YH6JF4')}"
+        )
         response = self.view(request)
 
         assert response.status_code == 404

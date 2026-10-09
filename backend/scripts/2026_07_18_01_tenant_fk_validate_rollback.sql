@@ -1,0 +1,15 @@
+-- Rollback for 2026_07_18_01_tenant_fk_validate.sql (task 3.4 VALIDATE phase).
+--
+-- Operator-run only (excluded from the apply_sql_migrations sweep by the
+-- *_rollback.sql suffix filter).
+--
+-- VALIDATE CONSTRAINT is not independently reversible -- Postgres has no
+-- "un-validate", and a validated foreign key is simply a correct constraint.
+-- The 24 tenant foreign keys themselves are created by the June 2026 tenant
+-- scripts, NOT by this task, so reverting a constraint means dropping it via the
+-- matching June script's *_rollback.sql -- never here (that would double-drop).
+--
+-- Re-validating already-clean data is harmless; there is nothing to undo. This
+-- file exists only to keep the forward/rollback pairing complete and is a
+-- deliberate no-op.
+SELECT 1;

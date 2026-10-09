@@ -1,13 +1,41 @@
+# ---------------------------------------------------------------------------
+# Beanola Admissions backend — NON-PACKAGE Django application.
+#
+# This backend is intentionally NOT a pip-installable Python distribution. It is
+# a Django application deployed by copying the source tree and installing its
+# runtime dependencies from requirements.txt, then running it in place. This is
+# how it is actually built and run everywhere:
+#
+#   * backend/Dockerfile        → `pip install -r requirements.txt`, `COPY . .`,
+#                                  then `uvicorn config.asgi:application`
+#   * .github/workflows/ci.yml  → `pip install -r requirements.txt`
+#   * backend-governance.yml    → `pip install -r requirements.txt`
+#
+# The flat layout (apps/, config/, schema/, scripts/, tests/) is an application
+# source tree, not a set of library packages to distribute. There is therefore
+# NO [build-system] table: `pip install .`, `pip install -e .`, and `uv build`
+# are NOT supported release commands (finding REL-02). Removing the setuptools
+# build contract stops advertising a distribution that never built (setuptools
+# flat-layout auto-discovery found multiple top-level packages and aborted).
+#
+# The [project] table below is retained as authoritative RELEASE METADATA only.
+# `version = "2.0.0"` is a drift-guarded product-version source
+# (admissions-v2-canonical-rebuild task 1.2 —
+# backend/tests/unit/test_version_drift_guard.py and
+# backend/scripts/generate_version_manifest.py). The running service reports the
+# same 2.0.0 at runtime via settings.APP_VERSION, the X-Backend-Version response
+# header, and `python manage.py app_version`. Do NOT change this version by hand.
+#
+# See backend/DEPLOY.md → "Release model: non-package application" and
+# docs/v2-evidence/1.7/ for the recorded build/runtime evidence.
+# ---------------------------------------------------------------------------
+
 [project]
 name = "beanola-django-api"
-version = "0.1.0"
-description = "Beanola Admissions Platform — Django 5 + DRF backend"
+version = "2.0.0"
+description = "Beanola Admissions Platform — Django 5 + DRF backend. Non-package application: deployed via requirements.txt and run in place (uvicorn config.asgi:application); not a pip-installable distribution."
 requires-python = ">=3.12"
 license = {text = "Proprietary"}
-
-[build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.dev"
@@ -17,6 +45,7 @@ python_functions = ["test_*"]
 addopts = "--tb=short"
 markers = [
     "tenant: multi-tenant Beanola admissions exploration/correctness tests",
+    "real_tenant_scope: opt out of a file's AccessScopeService pass-through fixture — the case runs against a real database with real tenant rows so the scoped lookup, evidence ledger and committed official-document job all run for real (remediation L4)",
 ]
 
 [tool.ruff]

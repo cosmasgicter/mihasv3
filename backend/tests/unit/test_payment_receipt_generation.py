@@ -125,7 +125,6 @@ def _seed_pending_payment(application, profile):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_receipt_generated_once_on_successful():
     """Transition a Payment to ``successful`` → receipt allocated once.
 
@@ -187,7 +186,6 @@ def test_receipt_generated_once_on_successful():
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_receipt_generated_on_force_approved():
     """A ``force_approved`` Payment has a receipt plus override markers.
 
@@ -285,7 +283,6 @@ def test_receipt_generated_on_force_approved():
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 def test_receipt_generation_fails_for_pending():
     """A ``pending`` Payment MUST NOT be issued a receipt.
 
@@ -327,7 +324,6 @@ def test_receipt_generation_fails_for_pending():
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize("pay_status", ["failed", "expired", "deferred"])
 def test_receipt_generation_fails_for_failed_or_expired(pay_status):
     """Same eligibility gate applies to ``failed``, ``expired``,

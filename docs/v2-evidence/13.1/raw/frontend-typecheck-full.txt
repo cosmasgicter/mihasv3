@@ -1,0 +1,880 @@
+$ tsc --noEmit
+tests/admin/dashboard.regression.test.ts(20,12): error TS2532: Object is possibly 'undefined'.
+tests/harness-e2e/helpers/ops.ts(216,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/helpers/ops.ts(244,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/helpers/ops.ts(309,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/communications-preferences.spec.ts(301,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(270,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(276,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(282,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(304,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(305,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/harness-e2e/required/public-tracking-secret.spec.ts(308,3): error TS2322: Type 'SeededWorld | undefined' is not assignable to type 'SeededWorld'.
+  Type 'undefined' is not assignable to type 'SeededWorld'.
+tests/integration/paymentStepRecoveryRehydration.test.tsx(29,47): error TS2345: Argument of type '"paymentStepRecoveryRehydration.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/integration/paymentStepRecoveryRehydration.test.tsx(41,47): error TS2345: Argument of type '"paymentStepRecoveryRehydration.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/integration/whiteLabelHostResolution.integration.test.ts(122,20): error TS2532: Object is possibly 'undefined'.
+tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts(139,37): error TS2532: Object is possibly 'undefined'.
+tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts(140,41): error TS2532: Object is possibly 'undefined'.
+tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts(141,45): error TS2532: Object is possibly 'undefined'.
+tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts(206,22): error TS2532: Object is possibly 'undefined'.
+tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts(212,22): error TS2532: Object is possibly 'undefined'.
+tests/property/admissionsFlowBugCondition.property.test.ts(84,32): error TS18048: 'placeholder' is possibly 'undefined'.
+tests/property/altText.property.test.ts(46,3): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+tests/property/apiClient.property.test.ts(790,18): error TS2532: Object is possibly 'undefined'.
+tests/property/apiClient.property.test.ts(791,18): error TS2532: Object is possibly 'undefined'.
+tests/property/application-process-hardening.test.tsx(304,73): error TS18048: 'stepConfig' is possibly 'undefined'.
+tests/property/application-process-hardening.test.tsx(313,32): error TS18048: 'stepConfig' is possibly 'undefined'.
+tests/property/application-process-hardening.test.tsx(338,65): error TS18048: 'stepConfig' is possibly 'undefined'.
+tests/property/ariaAttributes.property.test.ts(58,11): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/property/ariaAttributes.property.test.ts(81,17): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/auditProductionBugCondition.property.test.ts(178,19): error TS18048: 'arrayContent' is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(178,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(178,43): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(179,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(179,48): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(180,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(180,48): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(181,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(181,45): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(219,31): error TS2345: Argument of type 'AuthBroadcastMessage | undefined' is not assignable to parameter of type 'AuthBroadcastMessage'.
+  Type 'undefined' is not assignable to type 'AuthBroadcastMessage'.
+tests/property/authBroadcast.property.test.ts(227,31): error TS2345: Argument of type 'AuthBroadcastMessage | undefined' is not assignable to parameter of type 'AuthBroadcastMessage'.
+  Type 'undefined' is not assignable to type 'AuthBroadcastMessage'.
+tests/property/authBroadcast.property.test.ts(238,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(238,48): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(239,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(239,53): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(275,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(275,43): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(276,20): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(276,48): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(412,16): error TS2532: Object is possibly 'undefined'.
+tests/property/authBroadcast.property.test.ts(413,16): error TS2532: Object is possibly 'undefined'.
+tests/property/authSessionProfileHardening.property.test.ts(27,35): error TS2550: Property 'replaceAll' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2021' or later.
+tests/property/authSessionProfileHardening.property.test.ts(110,13): error TS2353: Object literal may only specify known properties, and 'user_metadata' does not exist in type 'User'.
+tests/property/authSessionProfileHardening.property.test.ts(123,25): error TS2339: Property 'user_metadata' does not exist on type 'User'.
+tests/property/authenticated-pages-polish.test.tsx(438,9): error TS18048: 'current' is possibly 'undefined'.
+tests/property/authenticated-pages-polish.test.tsx(438,19): error TS18048: 'previous' is possibly 'undefined'.
+tests/property/authenticated-pages-polish.test.tsx(438,43): error TS18048: 'previous' is possibly 'undefined'.
+tests/property/authenticated-pages-polish.test.tsx(443,9): error TS18048: 'current' is possibly 'undefined'.
+tests/property/authenticated-pages-polish.test.tsx(443,19): error TS18048: 'previous' is possibly 'undefined'.
+tests/property/authenticated-pages-polish.test.tsx(447,20): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+tests/property/autoSaveDataRoundTrip.property.test.ts(152,18): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveDataRoundTrip.property.test.ts(152,55): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveDataRoundTrip.property.test.ts(153,18): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveDataRoundTrip.property.test.ts(153,53): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(100,17): error TS18048: 'incoming' is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(102,22): error TS18048: 'result' is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(103,22): error TS18048: 'result' is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(104,15): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+tests/property/autoSaveVersionOrdering.property.test.ts(107,22): error TS18048: 'result' is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(108,22): error TS18048: 'result' is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(178,17): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(179,15): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+tests/property/autoSaveVersionOrdering.property.test.ts(209,18): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(215,17): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(215,41): error TS2532: Object is possibly 'undefined'.
+tests/property/autoSaveVersionOrdering.property.test.ts(216,22): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(26,18): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(26,31): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(27,18): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(27,31): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(28,18): error TS2532: Object is possibly 'undefined'.
+tests/property/colorContrast.property.test.ts(28,31): error TS2532: Object is possibly 'undefined'.
+tests/property/communicationsHistory.property.test.ts(65,18): error TS2532: Object is possibly 'undefined'.
+tests/property/communicationsHistory.property.test.ts(65,42): error TS2532: Object is possibly 'undefined'.
+tests/property/communicationsHistory.property.test.ts(79,18): error TS2532: Object is possibly 'undefined'.
+tests/property/communicationsHistory.property.test.ts(79,42): error TS2532: Object is possibly 'undefined'.
+tests/property/communicationsHistory.property.test.ts(506,39): error TS2345: Argument of type 'null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/communicationsHistory.property.test.ts(520,39): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/cssAnimationEquivalence.property.test.ts(162,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/cssAnimationEquivalence.property.test.ts(163,47): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/cssAnimationEquivalence.property.test.ts(196,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/cssAnimationEquivalence.property.test.ts(197,47): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/cssAnimationEquivalence.property.test.ts(233,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/cssAnimationEquivalence.property.test.ts(234,47): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/dashboardNormalizer.property.test.ts(96,20): error TS2532: Object is possibly 'undefined'.
+tests/property/dashboardNormalizer.property.test.ts(96,46): error TS2532: Object is possibly 'undefined'.
+tests/property/dashboardPartialFailure.property.test.ts(63,24): error TS2532: Object is possibly 'undefined'.
+tests/property/dashboardPartialFailure.property.test.ts(65,9): error TS18048: 'result' is possibly 'undefined'.
+tests/property/dateFormatRoundTrip.property.test.ts(30,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/dateFormatRoundTrip.property.test.ts(31,34): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/property/dateFormatRoundTrip.property.test.ts(32,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/dateFormatRoundTrip.property.test.ts(94,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/dateFormatRoundTrip.property.test.ts(95,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/dateFormatRoundTrip.property.test.ts(96,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/emptystate-errordisplay.property.test.tsx(118,15): error TS2322: Type '{ heading: string; headingLevel: "h2" | "h3"; secondaryAction: { label: string; onClick: () => void; } | undefined; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'secondaryAction' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+tests/property/enrollmentReadiness.property.test.ts(184,36): error TS2532: Object is possibly 'undefined'.
+tests/property/enrollmentReadiness.property.test.ts(185,32): error TS2532: Object is possibly 'undefined'.
+tests/property/errorReporter.property.test.ts(87,27): error TS2532: Object is possibly 'undefined'.
+tests/property/errorReporter.property.test.ts(89,40): error TS2532: Object is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(94,9): error TS18048: 'fa' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(94,21): error TS18048: 'fb' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(95,17): error TS18048: 'fa' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(95,42): error TS18048: 'fb' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(96,17): error TS18048: 'fa' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(96,42): error TS18048: 'fb' is possibly 'undefined'.
+tests/property/launchVerificationContract.property.test.ts(227,19): error TS2339: Property 'count' does not exist on type '{ count: number; omitWhenEmpty: boolean; } | undefined'.
+tests/property/launchVerificationContract.property.test.ts(227,26): error TS2339: Property 'omitWhenEmpty' does not exist on type '{ count: number; omitWhenEmpty: boolean; } | undefined'.
+tests/property/launchVerificationContract.property.test.ts(242,70): error TS2532: Object is possibly 'undefined'.
+tests/property/officialDocumentPresentation.property.test.ts(136,59): error TS2345: Argument of type 'string' is not assignable to parameter of type '"application_slip" | "acceptance_letter" | "conditional_offer" | "payment_receipt" | "finance_receipt" | "some_future_document"'.
+tests/property/passwordReset.property.test.ts(249,46): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/paymentPageExtraction.property.test.ts(119,18): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(119,37): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(120,18): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(120,41): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(121,18): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(121,49): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(122,18): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(122,42): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(140,20): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentPageExtraction.property.test.ts(140,39): error TS2532: Object is possibly 'undefined'.
+tests/property/paymentRecoveryStore.property.test.ts(54,50): error TS2345: Argument of type '`prop-rt-${number}`' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/property/paymentRecoveryStore.property.test.ts(101,50): error TS2345: Argument of type '`prop-ttl-${number}`' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/property/paymentRecoveryStore.property.test.ts(140,50): error TS2345: Argument of type '`prop-prune-${number}`' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/property/paymentRecoveryStore.property.test.ts(151,29): error TS18048: 'entry' is possibly 'undefined'.
+tests/property/paymentRecoveryStore.property.test.ts(152,25): error TS18048: 'entry' is possibly 'undefined'.
+tests/property/paymentRecoveryStore.property.test.ts(153,24): error TS18048: 'entry' is possibly 'undefined'.
+tests/property/paymentRecoveryStore.property.test.ts(154,21): error TS18048: 'entry' is possibly 'undefined'.
+tests/property/perfPollingFingerprint.property.test.ts(71,3): error TS2345: Argument of type '"excellent"' is not assignable to parameter of type 'DashboardHealthState | null'.
+tests/property/perfPollingFingerprint.property.test.ts(105,7): error TS2322: Type 'Arbitrary<{ totalApplications?: number | undefined; pendingApplications?: number | undefined; approvedApplications?: number | undefined; conditionallyApprovedApplications?: number | undefined; ... 7 more ...; activeUsers?: number | undefined; }[]>' is not assignable to type 'Arbitrary<AdminDashboardStats[]>'.
+  Type '{ totalApplications?: number | undefined; pendingApplications?: number | undefined; approvedApplications?: number | undefined; conditionallyApprovedApplications?: number | undefined; ... 7 more ...; activeUsers?: number | undefined; }[]' is not assignable to type 'AdminDashboardStats[]'.
+    Type '{ totalApplications?: number | undefined; pendingApplications?: number | undefined; approvedApplications?: number | undefined; conditionallyApprovedApplications?: number | undefined; ... 7 more ...; activeUsers?: number | undefined; }' is not assignable to type 'AdminDashboardStats'.
+      Types of property 'totalApplications' are incompatible.
+        Type 'number | undefined' is not assignable to type 'number'.
+          Type 'undefined' is not assignable to type 'number'.
+tests/property/pollingDeduplication.property.test.ts(261,15): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(98,21): error TS18048: 'current' is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(99,18): error TS18048: 'current' is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(102,36): error TS18048: 'current' is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(107,23): error TS18048: 'current' is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(108,20): error TS18048: 'current' is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(200,18): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(202,18): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(223,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(225,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(226,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(250,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(250,53): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(272,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(273,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(274,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(275,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(289,17): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(290,22): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(290,50): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(313,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(314,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(326,18): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(327,18): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(346,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(347,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(368,18): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(383,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(383,45): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(403,17): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(405,22): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(405,44): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(425,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/debounceTiming.property.test.ts(425,45): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(98,7): error TS2322: Type 'Arbitrary<{ full_name: string; nrc_number: string; passport_number: string; date_of_birth: string | undefined; sex: "Male" | "Female"; phone: string; email: string; residence_town: string; country: "Zambia" | ... 3 more ... | "DRC"; ... 4 more ...; intake: string; }>' is not assignable to type 'Arbitrary<WizardFormData>'.
+  Type '{ full_name: string; nrc_number: string; passport_number: string; date_of_birth: string | undefined; sex: "Male" | "Female"; phone: string; email: string; residence_town: string; country: "Zambia" | ... 3 more ... | "DRC"; ... 4 more ...; intake: string; }' is not assignable to type 'WizardFormData'.
+    Types of property 'date_of_birth' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(160,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(160,49): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(161,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(161,44): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/draftRoundTrip.property.test.ts(162,27): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/interviewSlotUniqueness.property.test.ts(228,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/interviewSlotUniqueness.property.test.ts(229,20): error TS2532: Object is possibly 'undefined'.
+tests/property/production-readiness-audit/notificationPreferences.property.test.ts(56,10): error TS18048: 'h' is possibly 'undefined'.
+tests/property/production-readiness-audit/notificationPreferences.property.test.ts(56,19): error TS18048: 'm' is possibly 'undefined'.
+tests/property/production-readiness-audit/securityHeaders.property.test.ts(55,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/production-readiness-audit/securityHeaders.property.test.ts(258,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/profileCompletenessBugCondition.property.test.ts(194,41): error TS2352: Conversion of type 'Record<string, unknown>' to type 'Error' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Record<string, unknown>' is missing the following properties from type 'Error': name, message
+tests/property/pwaArtifactAbsence.property.test.ts(69,42): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/pwaArtifactAbsence.property.test.ts(94,43): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/pwaArtifactAbsence.property.test.ts(99,41): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(91,49): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(97,22): error TS18048: 'line' is possibly 'undefined'.
+tests/property/reducedMotion.property.test.ts(101,43): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(107,22): error TS18048: 'line' is possibly 'undefined'.
+tests/property/reducedMotion.property.test.ts(111,46): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(117,22): error TS18048: 'line' is possibly 'undefined'.
+tests/property/reducedMotion.property.test.ts(121,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(127,22): error TS18048: 'line' is possibly 'undefined'.
+tests/property/reducedMotion.property.test.ts(131,51): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/reducedMotion.property.test.ts(137,22): error TS18048: 'line' is possibly 'undefined'.
+tests/property/scoutqaAccessibilityFixValidation.property.test.ts(468,24): error TS2339: Property 'click' does not exist on type 'Element'.
+tests/property/services.property.test.ts(109,50): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/services.property.test.ts(645,48): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(216,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(220,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(224,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(228,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(232,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(370,52): error TS2345: Argument of type 'DeviceInfo | undefined' is not assignable to parameter of type 'DeviceInfo'.
+  Type 'undefined' is not assignable to type 'DeviceInfo'.
+tests/property/sessions.property.test.ts(578,65): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sessions.property.test.ts(585,53): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/singleSourceOfTruth.property.test.ts(72,35): error TS18048: 'lastSegment' is possibly 'undefined'.
+tests/property/singleSourceOfTruth.property.test.ts(99,17): error TS18048: 'pattern' is possibly 'undefined'.
+tests/property/singleSourceOfTruth.property.test.ts(99,42): error TS18048: 'relPattern' is possibly 'undefined'.
+tests/property/skeleton-mapping.property.test.tsx(100,15): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/skeleton-mapping.property.test.tsx(118,17): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/sseRemovalNotificationPolling.property.test.ts(136,15): error TS18048: 'original' is possibly 'undefined'.
+tests/property/sseRemovalNotificationPolling.property.test.ts(144,15): error TS18048: 'original' is possibly 'undefined'.
+tests/property/staleChunkRecoveryBugCondition.property.test.ts(170,35): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryBugCondition.property.test.ts(215,35): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryBugCondition.property.test.ts(261,35): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryPreservation.property.test.ts(163,35): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryPreservation.property.test.ts(280,37): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryPreservation.property.test.ts(336,37): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/staleChunkRecoveryPreservation.property.test.ts(394,37): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '({ error }: { error: Error; }) => void' is not assignable to parameter of type 'string | FunctionComponent<{ error: Error; }> | ComponentClass<{ error: Error; }, any>'.
+      Type '({ error }: { error: Error; }) => void' is not assignable to type 'FunctionComponent<{ error: Error; }>'.
+        Type 'void' is not assignable to type 'ReactNode'.
+tests/property/style-injection.property.test.tsx(88,16): error TS2532: Object is possibly 'undefined'.
+tests/property/supabase-exit-migration.property.test.ts(284,37): error TS18048: 'allowedTransitions' is possibly 'undefined'.
+tests/property/test_bug2_auth_error.test.ts(143,25): error TS18048: 'queryFnBody' is possibly 'undefined'.
+tests/property/test_bug2_auth_error.test.ts(143,56): error TS18048: 'queryFnBody' is possibly 'undefined'.
+tests/property/test_bug2_auth_error.test.ts(144,26): error TS18048: 'queryFnBody' is possibly 'undefined'.
+tests/property/tokenRotation.property.test.ts(67,44): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
+  Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
+tests/property/tokenRotation.property.test.ts(79,47): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
+  Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
+tests/property/tokenRotation.property.test.ts(82,48): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
+  Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
+tests/property/transaction.property.test.ts(46,20): error TS2532: Object is possibly 'undefined'.
+tests/property/ui-ux-accessibility.test.ts(145,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-accessibility.test.ts(147,30): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-accessibility.test.ts(344,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-accessibility.test.ts(346,30): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-accessibility.test.ts(349,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-accessibility.test.ts(565,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-accessibility.test.ts(567,30): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-accessibility.test.ts(714,24): error TS18048: 'arrayContent' is possibly 'undefined'.
+tests/property/ui-ux-accessibility.test.ts(739,40): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-accessibility.test.ts(741,32): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-design-tokens.test.ts(85,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-design-tokens.test.ts(89,30): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-design-tokens.test.ts(194,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(path: PathOrFileDescriptor, options?: { encoding?: null | undefined; flag?: string | undefined; } | null | undefined): NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 2 of 3, '(path: PathOrFileDescriptor, options: BufferEncoding | { encoding: BufferEncoding; flag?: string | undefined; }): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+  Overload 3 of 3, '(path: PathOrFileDescriptor, options?: BufferEncoding | (ObjectEncodingOptions & { flag?: string | undefined; }) | null | undefined): string | NonSharedBuffer', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'PathOrFileDescriptor'.
+      Type 'undefined' is not assignable to type 'PathOrFileDescriptor'.
+tests/property/ui-ux-design-tokens.test.ts(197,30): error TS18048: 'filePath' is possibly 'undefined'.
+tests/property/ui-ux-design-tokens.test.ts(326,39): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/property/ui-ux-design-tokens.test.ts(347,48): error TS2345: Argument of type 'Record<string, Record<string, string>> | undefined' is not assignable to parameter of type 'Record<string, Record<string, string>>'.
+  Type 'undefined' is not assignable to type 'Record<string, Record<string, string>>'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(48,34): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(52,33): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(67,21): error TS18048: 'block' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(69,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(69,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(110,21): error TS18048: 'block' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(115,70): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(120,29): error TS18048: 'value' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(122,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(123,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(124,9): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(158,38): error TS2532: Object is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(159,40): error TS2532: Object is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(376,25): error TS18048: 'block' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(377,26): error TS18048: 'block' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(431,7): error TS18048: 'section' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts(431,40): error TS18048: 'section' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/hooks.property.test.ts(50,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/hooks.property.test.ts(54,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(51,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(56,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(213,48): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(259,29): error TS18048: 'expectedTokens' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(277,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/notifications.property.test.ts(318,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts(128,11): error TS18048: 'current' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts(128,21): error TS18048: 'previous' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts(130,11): error TS18048: 'current' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts(130,21): error TS18048: 'previous' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(109,25): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(113,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(116,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(123,40): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(124,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(132,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(142,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(152,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(157,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(166,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(167,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(168,12): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(189,11): error TS18048: 'pageShell' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(189,43): error TS18048: 'pageShell' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(197,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(203,11): error TS18048: 'appLayout' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(216,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(245,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(256,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(257,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(258,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(271,44): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(284,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(284,40): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(295,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(295,35): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(299,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(312,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(317,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(327,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(327,39): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(332,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(342,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(352,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(357,7): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(372,11): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(372,48): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(380,34): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(395,23): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(396,22): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts(397,24): error TS18048: 'src' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/stateComponents.property.test.ts(51,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/stateComponents.property.test.ts(55,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts(91,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts(98,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts(402,11): error TS18048: 'classes' is possibly 'undefined'.
+tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts(403,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts(405,35): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-toast-aria.test.ts(48,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-toast-aria.test.ts(49,12): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/property/ui-ux-toast-aria.test.ts(67,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/ui-ux-toast-aria.test.ts(68,12): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/property/ui-ux-toast-aria.test.ts(84,21): error TS2532: Object is possibly 'undefined'.
+tests/property/ui-ux-toast-aria.test.ts(96,5): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+tests/property/wizardProperties.property.test.ts(69,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/property/wizardProperties.property.test.ts(78,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/ApplicationCard.test.tsx(18,3): error TS2353: Object literal may only specify known properties, and 'payment_verified_at' does not exist in type 'ApplicationSummary'.
+tests/unit/EducationStep.test.tsx(52,3): error TS2741: Property 'removeDocument' is missing in type '{ contract: RequiredDocumentsContract; requirements: RequiredDocumentRequirement[]; loading: false; contractError: null; ... 9 more ...; blocking: RequiredDocumentRequirement[]; }' but required in type 'UseRequiredDocumentsResult'.
+tests/unit/adminApplicationStatusMutation.test.ts(131,12): error TS18048: 'approveCall' is possibly 'undefined'.
+tests/unit/adminApplicationStatusMutation.test.ts(132,12): error TS18048: 'approveCall' is possibly 'undefined'.
+tests/unit/adminApplicationStatusMutation.test.ts(133,23): error TS18048: 'approveCall' is possibly 'undefined'.
+tests/unit/adminApplicationStatusMutation.test.ts(139,12): error TS18048: 'rejectCall' is possibly 'undefined'.
+tests/unit/adminApplicationStatusMutation.test.ts(140,12): error TS18048: 'rejectCall' is possibly 'undefined'.
+tests/unit/adminApplicationStatusMutation.test.ts(141,23): error TS18048: 'rejectCall' is possibly 'undefined'.
+tests/unit/adminApplicationsOverview.test.ts(91,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/apiClient401Retry.test.ts(196,7): error TS2353: Object literal may only specify known properties, and 'skipCache' does not exist in type 'ApiRequestOptions'.
+tests/unit/apiClientCsrf403Retry.test.ts(131,23): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationBulkStatusToken.test.ts(37,16): error TS18048: 'call' is possibly 'undefined'.
+tests/unit/applicationBulkStatusToken.test.ts(89,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationRecencySorting.test.ts(44,7): error TS2353: Object literal may only specify known properties, and 'count' does not exist in type 'Application[] | { results?: unknown; totalCount?: unknown; page?: unknown; pageSize?: unknown; stats?: Record<string, unknown> | undefined; next?: string | null | undefined; }'.
+tests/unit/applicationRosterDeepLinks.test.ts(64,3): error TS2322: Type 'Set<string | undefined>' is not assignable to type 'Set<string>'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+tests/unit/applicationRosterServerOwned.test.tsx(265,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(289,39): error TS2741: Property 'version' is missing in type '{ id: string; application_number: string; public_tracking_code: null; full_name: string; email: string; phone: null; status: string; payment_status: string; institution_id: string; institution_name: string; ... 11 more ...; activity_at: string; }' but required in type 'ApplicationRosterRow'.
+tests/unit/applicationRosterServerOwned.test.tsx(341,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(379,12): error TS18048: 'summary' is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(380,12): error TS18048: 'summary' is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(381,12): error TS18048: 'summary' is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(382,12): error TS18048: 'summary' is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(407,54): error TS2741: Property 'version' is missing in type '{ id: string; application_number: string; public_tracking_code: null; full_name: string; email: string; phone: null; status: string; payment_status: string; institution_id: string; institution_name: string; ... 11 more ...; activity_at: string; }' but required in type 'ApplicationRosterRow'.
+tests/unit/applicationRosterServerOwned.test.tsx(423,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationRosterServerOwned.test.tsx(424,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationServiceEncoding.test.ts(28,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationServiceEncoding.test.ts(35,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationServiceEncoding.test.ts(41,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationServiceEncoding.test.ts(51,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationServiceEncoding.test.ts(57,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationStatusDriftGuard.test.ts(15,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/applicationStatusDriftGuard.test.ts(16,26): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationStatusDriftGuard.test.ts(17,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/applicationStatusDriftGuard.test.ts(27,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationStatusDriftGuard.test.ts(28,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/applicationWorkspaceDecomposition.test.ts(76,78): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+tests/unit/applicationWorkspaceDecomposition.test.ts(77,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/applicationWorkspaceDecomposition.test.ts(224,53): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+tests/unit/applicationWorkspaceDecomposition.test.ts(236,53): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+tests/unit/authBroadcast.test.ts(119,5): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(126,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(135,5): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(142,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(143,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(152,5): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(159,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(160,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(167,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(168,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(169,19): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(176,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(177,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(178,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(185,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(186,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(187,12): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(240,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(321,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/authBroadcast.test.ts(345,5): error TS18048: 'instance' is possibly 'undefined'.
+tests/unit/canonicalRouteRegistry.test.ts(62,33): error TS2339: Property 'aliases' does not exist on type '{ readonly id: "public.home"; readonly path: "/"; readonly guard: "public"; readonly skeletonType: "none"; readonly nav: { readonly label: "Home"; readonly icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<...>>; readonly mobile: true; readonly order: 10; readonly section: "public"; }; } | ......'.
+  Property 'aliases' does not exist on type '{ readonly id: "public.home"; readonly path: "/"; readonly guard: "public"; readonly skeletonType: "none"; readonly nav: { readonly label: "Home"; readonly icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<...>>; readonly mobile: true; readonly order: 10; readonly section: "public"; }; }'.
+tests/unit/canonicalRouteRegistry.test.ts(94,81): error TS2339: Property 'aliases' does not exist on type '{ readonly id: "public.home"; readonly path: "/"; readonly guard: "public"; readonly skeletonType: "none"; readonly nav: { readonly label: "Home"; readonly icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<...>>; readonly mobile: true; readonly order: 10; readonly section: "public"; }; } | ......'.
+  Property 'aliases' does not exist on type '{ readonly id: "public.home"; readonly path: "/"; readonly guard: "public"; readonly skeletonType: "none"; readonly nav: { readonly label: "Home"; readonly icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<...>>; readonly mobile: true; readonly order: 10; readonly section: "public"; }; }'.
+tests/unit/changeSelectionService.test.ts(58,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/conditionEvidenceAmendmentHistory.test.tsx(284,11): error TS2488: Type '[endpoint: string, options?: ApiRequestOptions | undefined] | undefined' must have a '[Symbol.iterator]()' method that returns an iterator.
+tests/unit/conditionEvidenceAmendmentHistory.test.tsx(302,18): error TS2532: Object is possibly 'undefined'.
+tests/unit/documentUiStates.test.tsx(348,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Node | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Node | Element'.
+tests/unit/documentUiStates.test.tsx(365,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Node | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Node | Element'.
+tests/unit/documentUiStates.test.tsx(420,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Node | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Node | Element'.
+tests/unit/documentUiStates.test.tsx(438,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Window | Document | Node | Element'.
+  Type 'undefined' is not assignable to type 'Window | Document | Node | Element'.
+tests/unit/documentUploadPayload.test.ts(51,7): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ file: File; fileType: string; applicationId: string; }'.
+tests/unit/draftAutosave.test.ts(66,7): error TS2353: Object literal may only specify known properties, and 'applicationNumber' does not exist in type '{ formData: { full_name: string; date_of_birth: string; sex: "Male" | "Female"; phone: string; email: string; residence_town: string; program: string; intake: string; nrc_number?: string | undefined; ... 4 more ...; next_of_kin_phone?: string | undefined; }; ... 4 more ...; intakeId?: string | undefined; }'.
+tests/unit/educationStepRequiredDocuments.test.tsx(62,3): error TS2322: Type '{ contract: RequiredDocumentsContract | null; requirements: RequiredDocumentRequirement[]; loading: boolean; contractError: string | null; ... 10 more ...; blocking: RequiredDocumentRequirement[]; }' is not assignable to type 'UseRequiredDocumentsResult'.
+  Types of property 'cancelReplace' are incompatible.
+    Type '((documentType: string) => void) | undefined' is not assignable to type '(documentType: string) => void'.
+      Type 'undefined' is not assignable to type '(documentType: string) => void'.
+tests/unit/educationStepRequiredDocuments.test.tsx(154,15): error TS2741: Property 'failedCommand' is missing in type '{ status: "uploading"; progress: number; file: File; error: null; errorCode: null; retryable: false; }' but required in type 'RequiredDocumentUploadState'.
+tests/unit/errorCodesDriftGuard.test.ts(24,15): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/errorCodesDriftGuard.test.ts(32,15): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/errorMessages.test.ts(28,16): error TS2532: Object is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(313,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(319,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(320,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(329,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(330,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(336,22): error TS2532: Object is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(350,12): error TS18048: 'step' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(351,12): error TS18048: 'step' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(352,12): error TS18048: 'step' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(382,12): error TS18048: 'panel' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(383,12): error TS18048: 'panel' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(385,12): error TS18048: 'service' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(406,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(428,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(435,12): error TS18048: 'service' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(437,12): error TS18048: 'service' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(444,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(447,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(470,14): error TS18048: 'file' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(474,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/feeProviderSourceScan.test.ts(477,12): error TS18048: 'page' is possibly 'undefined'.
+tests/unit/intakeUtilization.test.ts(38,46): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+tests/unit/intakeUtilization.test.ts(60,46): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+tests/unit/mobileResponsiveness.test.ts(51,11): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/mobileResponsiveness.test.ts(52,20): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/mobileResponsiveness.test.ts(53,18): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/mobileResponsiveness.test.ts(53,43): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/mobileResponsiveness.test.ts(55,54): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/moneyAdminServerOwned.test.tsx(163,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/moneyAdminServerOwned.test.tsx(177,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/moneyAdminServerOwned.test.tsx(190,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/moneyAdminServerOwned.test.tsx(221,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/moneyAdminServerOwned.test.tsx(268,11): error TS2488: Type 'any[] | undefined' must have a '[Symbol.iterator]()' method that returns an iterator.
+tests/unit/multiDraftService.test.ts(78,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/multiDraftService.test.ts(109,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/multiDraftService.test.ts(110,17): error TS2532: Object is possibly 'undefined'.
+tests/unit/nationalityMigration.test.ts(136,14): error TS2532: Object is possibly 'undefined'.
+tests/unit/nationalityMigration.test.ts(136,50): error TS2532: Object is possibly 'undefined'.
+tests/unit/noScopeEmptyState.test.tsx(120,3): error TS2322: Type '"good"' is not assignable to type 'DashboardHealthState | null'.
+tests/unit/notificationSettingsControls.test.tsx(188,24): error TS2532: Object is possibly 'undefined'.
+tests/unit/optimized-auth-routes.test.tsx(66,10): error TS2305: Module '"@/hooks/auth/useSessionListener"' has no exported member 'normalizeSessionResult'.
+tests/unit/paymentFormIdempotencyHeader.test.tsx(130,14): error TS18048: 'header' is possibly 'undefined'.
+tests/unit/paymentOwnershipSplit.test.tsx(270,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/paymentOwnershipSplit.test.tsx(271,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/paymentOwnershipSplit.test.tsx(272,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(53,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(54,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(83,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(84,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(106,12): error TS18048: 'persistedEntry' is possibly 'undefined'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(107,12): error TS18048: 'persistedEntry' is possibly 'undefined'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(108,12): error TS18048: 'persistedEntry' is possibly 'undefined'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(112,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(113,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(135,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(148,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(158,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreConcurrentTabs.test.ts(162,45): error TS2345: Argument of type '"paymentRecoveryStoreConcurrentTabs.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreMigration.test.ts(18,46): error TS2345: Argument of type '"beanola-payment-recovery-migrate-test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreMigration.test.ts(24,46): error TS2345: Argument of type '"beanola-payment-recovery-fresh-test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStoreMigration.test.ts(43,46): error TS2345: Argument of type '"beanola-payment-recovery-persist-test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(22,46): error TS2322: Type '{}' is not assignable to type 'never'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(22,133): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(29,5): error TS2698: Spread types may only be created from object types.
+tests/unit/paymentRecoveryStorePersistence.test.ts(43,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(51,12): error TS18048: 'recorded' is possibly 'undefined'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(54,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(64,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(73,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(78,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(79,49): error TS2345: Argument of type '{ initiated_at: number; }' is not assignable to parameter of type 'undefined'.
+tests/unit/paymentRecoveryStorePersistence.test.ts(85,47): error TS2345: Argument of type '"paymentRecoveryStorePersistence.test"' is not assignable to parameter of type '"beanola-payment-recovery"'.
+tests/unit/paymentStatusMappingDriftGuard.test.ts(31,9): error TS2538: Type 'undefined' cannot be used as an index type.
+tests/unit/paymentStepLegacyPath.test.tsx(61,13): error TS2322: Type '{ applicationId: string; baseAmount: string; providerFee: string; totalAmount: string; currency: string; phone: string; fullName: string; email: string; polledStatus: "pending" | "failed" | "deferred" | "successful" | null; }' is not assignable to type 'PaymentFormProps'.
+  Types of property 'polledStatus' are incompatible.
+    Type '"pending" | "failed" | "deferred" | "successful" | null' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+      Type '"deferred"' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+tests/unit/paymentStepLegacyPath.test.tsx(70,14): error TS18048: 'firstTab' is possibly 'undefined'.
+tests/unit/paymentStepLegacyPath.test.tsx(81,13): error TS2322: Type '{ applicationId: string; baseAmount: string; providerFee: string; totalAmount: string; currency: string; phone: string; fullName: string; email: string; polledStatus: "pending" | "failed" | "deferred" | "successful" | null; }' is not assignable to type 'PaymentFormProps'.
+  Types of property 'polledStatus' are incompatible.
+    Type '"pending" | "failed" | "deferred" | "successful" | null' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+      Type '"deferred"' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+tests/unit/paymentStepLegacyPath.test.tsx(92,35): error TS2322: Type '{ applicationId: string; baseAmount: string; providerFee: string; totalAmount: string; currency: string; phone: string; fullName: string; email: string; polledStatus: "pending" | "failed" | "deferred" | "successful" | null; }' is not assignable to type 'PaymentFormProps'.
+  Types of property 'polledStatus' are incompatible.
+    Type '"pending" | "failed" | "deferred" | "successful" | null' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+      Type '"deferred"' is not assignable to type '"pending" | "failed" | "successful" | null | undefined'.
+tests/unit/pdf/theme.test.ts(154,22): error TS2532: Object is possibly 'undefined'.
+tests/unit/perfFrontendOptimizations.test.tsx(154,45): error TS2532: Object is possibly 'undefined'.
+tests/unit/profileCacheSynchronization.test.ts(281,9): error TS2353: Object literal may only specify known properties, and 'user_metadata' does not exist in type 'Partial<User>'.
+tests/unit/profileCacheSynchronization.test.ts(298,29): error TS2339: Property 'user_metadata' does not exist on type 'User'.
+tests/unit/profileCacheSynchronization.test.ts(299,29): error TS2339: Property 'app_metadata' does not exist on type 'User'.
+tests/unit/publicTrackingSecret.test.tsx(131,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/publicTrackingSecret.test.tsx(132,26): error TS18048: 'block' is possibly 'undefined'.
+tests/unit/publicTrackingSecret.test.tsx(141,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/publicTrackingSecret.test.tsx(180,18): error TS2532: Object is possibly 'undefined'.
+tests/unit/publicTrackingSecret.test.tsx(181,12): error TS18048: 'copy' is possibly 'undefined'.
+tests/unit/publicTrackingSecret.test.tsx(182,12): error TS18048: 'copy' is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(74,22): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(92,21): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(95,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(96,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(103,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(120,22): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(125,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(134,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentVersions.test.ts(135,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(98,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(99,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(100,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(101,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(102,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(168,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(180,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(222,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(236,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(237,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(238,12): error TS18048: 'row' is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(245,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsContract.test.ts(246,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/requiredDocumentsPanel.test.tsx(93,3): error TS2322: Type '{ status: RequiredDocumentUploadStatus; failedCommand?: "upload" | "remove" | null | undefined; progress: number; file: File | null; error: string | null; errorCode: string | null; retryable: boolean; }' is not assignable to type 'RequiredDocumentUploadState'.
+  Types of property 'failedCommand' are incompatible.
+    Type '"upload" | "remove" | null | undefined' is not assignable to type '"upload" | "remove" | null'.
+      Type 'undefined' is not assignable to type '"upload" | "remove" | null'.
+tests/unit/requiredDocumentsPanel.test.tsx(281,5): error TS2322: Type '{ status: RequiredDocumentUploadStatus; failedCommand?: "upload" | "remove" | null | undefined; progress: number; file: File | null; error: string | null; errorCode: string | null; retryable: boolean; }' is not assignable to type 'RequiredDocumentUploadState'.
+  Types of property 'failedCommand' are incompatible.
+    Type '"upload" | "remove" | null | undefined' is not assignable to type '"upload" | "remove" | null'.
+      Type 'undefined' is not assignable to type '"upload" | "remove" | null'.
+tests/unit/rolesBackendMirror.test.ts(33,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(128,11): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/routeMobileOverflowGuard.test.tsx(129,20): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/routeMobileOverflowGuard.test.tsx(130,18): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/routeMobileOverflowGuard.test.tsx(130,43): error TS18048: 'spec' is possibly 'undefined'.
+tests/unit/routeMobileOverflowGuard.test.tsx(132,54): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(163,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(179,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(245,57): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(246,54): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(264,37): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/routeMobileOverflowGuard.test.tsx(266,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+tests/unit/serviceNormalization.test.ts(184,14): error TS18048: 'program' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(186,14): error TS18048: 'program' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(188,14): error TS18048: 'program' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(272,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(274,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(276,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(277,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(287,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(297,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(323,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(356,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(358,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(359,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(360,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(374,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(421,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(465,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(466,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(468,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(469,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(518,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(519,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(520,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(632,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(633,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(634,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(649,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(687,12): error TS18048: 'entry' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(689,12): error TS18048: 'entry' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(690,12): error TS18048: 'entry' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(692,12): error TS18048: 'entry' is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(786,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(787,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/serviceNormalization.test.ts(847,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/sessionHardening.test.ts(140,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/submissionGatesDriftGuard.test.ts(29,20): error TS2532: Object is possibly 'undefined'.
+tests/unit/tenantAuditServerOwned.test.tsx(157,10): error TS2532: Object is possibly 'undefined'.
+tests/unit/tenantAuditServerOwned.test.tsx(186,7): error TS2561: Object literal may only specify known properties, but 'scopedInstitutionIds' does not exist in type 'Partial<CapabilityValue>'. Did you mean to write 'selectedInstitutionId'?
+tests/unit/tenantAuditServerOwned.test.tsx(342,19): error TS2532: Object is possibly 'undefined'.
+tests/unit/tenantConsoleSplit.test.tsx(127,3): error TS2741: Property 'institutions' is missing in type '{ isSuperAdmin: true; isTenantAdmin: false; capabilities: string[]; institutionCapabilities: {}; selectedInstitutionId: null; setSelectedInstitutionId: Mock<Procedure>; can: (capability: string) => boolean; canForInstitution: () => boolean; noAccess: false; isLoading: false; }' but required in type 'CapabilityValue'.
+tests/unit/tenantConsoleSplit.test.tsx(153,3): error TS2741: Property 'institutions' is missing in type '{ isSuperAdmin: false; isTenantAdmin: true; capabilities: never[]; institutionCapabilities: Record<string, string[]>; selectedInstitutionId: string; setSelectedInstitutionId: Mock<...>; can: (capability: string) => boolean; canForInstitution: (institutionId: string, capability: string) => boolean; noAccess: false; i...' but required in type 'CapabilityValue'.
+tests/unit/test_bug1_csp_config.test.ts(44,5): error TS2304: Cannot find name 'beforeAll'.
+tests/unit/test_bug1_preservation.test.ts(27,3): error TS2304: Cannot find name 'beforeAll'.
+tests/unit/test_bug1_preservation.test.ts(115,3): error TS2304: Cannot find name 'beforeAll'.
+tests/unit/toast.test.ts(20,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(21,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(28,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(29,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(36,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(37,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(44,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(45,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(53,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(54,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(55,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(56,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(57,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(60,5): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(68,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(69,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(80,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(81,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(82,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(93,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(94,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(95,5): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(104,21): error TS2532: Object is possibly 'undefined'.
+tests/unit/toast.test.ts(107,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/useMultiDraft.test.tsx(104,12): error TS2532: Object is possibly 'undefined'.
+tests/unit/wizardDraftResume.test.ts(213,19): error TS2339: Property 'residence_town' does not exist on type '{ id: string; full_name: string; email: string; phone: string; }'.
+tests/unit/wizardDraftResume.test.ts(214,19): error TS2339: Property 'nrc_number' does not exist on type '{ id: string; full_name: string; email: string; phone: string; }'.
+tests/unit/wizardDraftResume.test.ts(215,19): error TS2339: Property 'date_of_birth' does not exist on type '{ id: string; full_name: string; email: string; phone: string; }'.
+tests/unit/wizardDraftResume.test.ts(216,19): error TS2339: Property 'next_of_kin_phone' does not exist on type '{ id: string; full_name: string; email: string; phone: string; }'.
+tests/unit/wizardMobileRecomposition.test.tsx(129,30): error TS2322: Type '"submit"' is not assignable to type '"personal"'.
+tests/unit/wizardRefreshDedupe.test.ts(244,73): error TS2353: Object literal may only specify known properties, and 'skipCache' does not exist in type 'ApiRequestOptions'.
+vite.config.ts(5,22): error TS7016: Could not find a declaration file for module 'critters'. '/home/cosmas/Downloads/mihasv3/node_modules/.bun/critters@0.0.23/node_modules/critters/dist/critters.mjs' implicitly has an 'any' type.
+  There are types at '/home/cosmas/Downloads/mihasv3/apps/admissions/node_modules/critters/src/index.d.ts', but this result could not be resolved when respecting package.json "exports". The 'critters' library may need to update its package.json or typings.
+TYPECHECK_FULL_EXIT=2

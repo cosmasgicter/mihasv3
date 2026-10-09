@@ -2,9 +2,11 @@
  * Centralized capability-gated tenant navigation decision
  * (enterprise-tenant-authority, R13.1–R13.4).
  *
- * Desktop (`DesktopSidebar`), mobile (`MobileBottomNav`), and the canonical
- * bottom navigation built in `AppLayout` all derive the tenant nav entry from
- * this single source so the three surfaces stay in parity (R13.4). The rule is:
+ * Desktop (`DesktopSidebar`) and the canonical bottom navigation built in
+ * `AppLayout` — which is also the mobile surface — both derive the tenant nav
+ * entry from this single source so the surfaces stay in parity (R13.4). (Task
+ * 12.4 removed a third consumer, `MobileBottomNav`, which had zero importers and
+ * was never rendered.) The rule is:
  *
  *   - Super_Admin                         → platform "Tenants" management item.
  *   - Tenant_Admin holding `tenant.profile.read` → school-specific "My School" item.

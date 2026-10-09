@@ -1,0 +1,22 @@
+]633;E;echo "# OpenAPI regeneration after the 6.4 API change";4206362b-cc1d-44c0-9b40-d1c930bbfd63]633;C# OpenAPI regeneration after the 6.4 API change
+
+$ ./scripts/generate-api-types.sh   (manage.py spectacular -> openapi.v2.candidate.yaml -> src/generated/api.d.ts)
+
+-- summary --
+Warnings: 3 (3 unique)
+Errors:   116 (26 unique)
+
+-- errors attributable to task 6.4 (grep 'change.selection|DraftChangeSelection' in the spectacular stderr) --
+matches: 0
+(0 matches = the new view/serializer produced no schema error; all 26 unique errors are other in-flight V2 APIView serializer-guess fallbacks)
+
+-- new path present in the generated candidate schema --
+7750:  /api/v1/applications/drafts/{application_id}/change-selection/:
+17012:        Request body for the change-selection (reroute) command (task 6.4).
+
+-- new path present in the generated TypeScript client --
+2197:    readonly "/api/v1/applications/drafts/{application_id}/change-selection/": {
+5569:        /** @description Request body for the change-selection (reroute) command (task 6.4).
+
+-- candidate schema path count --
+175

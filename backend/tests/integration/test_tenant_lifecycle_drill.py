@@ -328,6 +328,39 @@ class TestTenantLifecycleDrill:
         )
 
         # ----------------------------------------------------------------- #
+        # Step 5b — Configure the offering's application fee (R7.3-R7.5)      #
+        #   A real onboarding must do this, and Step 11's pre-payment          #
+        #   checkpoint is where the platform says so: admissions-v2 task 5.4   #
+        #   made the assignment preview FAIL CLOSED on an unconfigured fee —   #
+        #   it names the readiness blocker (``FEE_NOT_CONFIGURED``) and leaves  #
+        #   ``fee`` null rather than substituting an amount                     #
+        #   (``catalog/program_views.py``: "Fail closed AND name the readiness  #
+        #   blocker so onboarding/operators see exactly what to configure —     #
+        #   never substitute a default amount"). This drill walked the whole    #
+        #   lifecycle without ever configuring one, so Step 11's                #
+        #   ``pdata["fee"] is not None`` was asserted against a tenant the      #
+        #   platform correctly reports as not yet launchable, and the log line  #
+        #   "Assignment preview fee blocker for offering …: FEE_NOT_CONFIGURED" #
+        #   said exactly that. Configured through the canonical fee surface —   #
+        #   ``POST /api/v1/programs/{offering}/fees/``, write authority         #
+        #   ``platform.program_assignment.manage`` (task 8.4, AUTH-02) — so the  #
+        #   drill exercises the endpoint an operator actually uses rather than   #
+        #   inserting the row behind the API.                                   #
+        # ----------------------------------------------------------------- #
+        resp = admin.post(
+            f"/api/v1/programs/{offering.id}/fees/",
+            data={
+                "fee_type": "application",
+                "residency_category": "local",
+                "amount": "153.00",
+                "currency": "ZMW",
+                "is_active": True,
+            },
+            format="json",
+        )
+        assert resp.status_code == 201, resp.content
+
+        # ----------------------------------------------------------------- #
         # Step 6 — Configure a required document (R5.1)                      #
         # ----------------------------------------------------------------- #
         resp = admin.post(
@@ -475,7 +508,8 @@ class TestTenantLifecycleDrill:
         Application.objects.filter(id=shared_app_id).update(program=offering.code)
         shared_app.refresh_from_db()
 
-        result = PaymentService().initiate_payment(shared_app.id, shared_student.id)
+        # ``initiate`` is the only initialisation path since task 8.2.
+        result = PaymentService().initiate(shared_app.id, shared_student.id)
         assert result.payment_id is not None
         payment = Payment.objects.get(id=result.payment_id)
         meta = payment.metadata or {}

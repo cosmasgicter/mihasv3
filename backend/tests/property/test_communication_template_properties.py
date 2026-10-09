@@ -264,6 +264,22 @@ class TestCommunicationTemplateProperty22:
                     institution_id=None,
                     version=1,
                 )
+                # Only the TOP version is active. `uq_comm_templates_one_active`
+                # (backend/scripts/2026_07_17_01_integrity_constraints_expand.sql
+                # §6, task 3.3, R5.6/R15.5, TEN-08) is a partial unique index on
+                # `(template_key, institution_id) WHERE is_active`, so the
+                # platform permits exactly **one active version per key and
+                # institution**. This fixture was creating every version active
+                # and the database refused the second one — the property never
+                # got as far as resolving anything, and the aborted transaction
+                # then produced a `TransactionManagementError` follow-on.
+                #
+                # Superseding a template in the real system deactivates the row it
+                # replaces, so versions below the top are written inactive here.
+                # That is a legal state, and it makes the property *stronger*: the
+                # resolver must now pick the one active row out of several
+                # versions rather than out of a set where every row qualifies
+                # (13.6 remediation M3).
                 top_subject = None
                 for version in range(1, num_versions + 1):
                     top_subject = f"INST v{version} {uuid.uuid4().hex[:8]}"
@@ -273,6 +289,7 @@ class TestCommunicationTemplateProperty22:
                         "<p>institution body</p>",
                         institution_id=institution_id,
                         version=version,
+                        is_active=version == num_versions,
                     )
                 # A higher-version but INACTIVE row must never displace the
                 # active winner (R14.1 "active ... highest version").

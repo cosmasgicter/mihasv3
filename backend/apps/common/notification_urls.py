@@ -10,6 +10,7 @@ Routes:
   PUT    /api/v1/notifications/preferences/  → update notification preferences
   PUT    /api/v1/notifications/read-all/     → mark all notifications as read
   PUT    /api/v1/notifications/<id>/read/    → mark single notification as read
+  POST   /api/v1/notifications/<id>/retry/   → retry this message's failed email
   DELETE /api/v1/notifications/<id>/         → delete a notification
   GET    /api/v1/notifications/user/<id>/    → admin view user notification history
 """
@@ -18,6 +19,7 @@ from django.urls import path
 
 from apps.common.notification_views import (
     AdminNotificationHistoryView,
+    CommunicationRetryView,
     NotificationDeleteView,
     NotificationListView,
     NotificationMarkAllReadAliasView,
@@ -35,6 +37,8 @@ urlpatterns = [
     path("mark-all-read/", NotificationMarkAllReadAliasView.as_view(), name="notification-mark-all-read-alias"),
     path("mark-read/", NotificationMarkReadBatchAliasView.as_view(), name="notification-mark-read-batch"),
     path("<uuid:pk>/read/", NotificationMarkReadView.as_view(), name="notification-mark-read"),
+    # Task 10.1 (R13.4): the authorized, audited, durable redelivery command.
+    path("<uuid:pk>/retry/", CommunicationRetryView.as_view(), name="communication-retry"),
     path("<uuid:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
     path("user/<uuid:user_id>/", AdminNotificationHistoryView.as_view(), name="notification-user-history"),
     path("", NotificationListView.as_view(), name="notification-list"),

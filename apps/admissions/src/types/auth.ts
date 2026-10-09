@@ -10,13 +10,12 @@
 /**
  * User roles in the system
  */
+// Canonical four-role model (task 2.4, R3.4). Mirrors backend ROLE_HIERARCHY.
+// Retired non-canonical staff roles are removed; scoped tenant authority comes
+// from institution memberships and access grants, not extra role strings.
 export type UserRole =
   | 'student'
   | 'reviewer'
-  | 'admissions_officer'
-  | 'registrar'
-  | 'finance_officer'
-  | 'academic_head'
   | 'admin'
   | 'super_admin';
 

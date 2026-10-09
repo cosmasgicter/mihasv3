@@ -2,9 +2,15 @@
 
 Feature: pre-launch-audit, Property 15: Payment status transitions are forward-only
 
-PaymentService.verify_payment() should only allow forward transitions:
-pending→successful or pending→failed. Transitions from successful or failed
-to any other status should be rejected (no-op).
+``PaymentService.verify()`` only moves a payment forward: ``pending`` →
+``successful`` / ``failed``. A payment that already reached a terminal status is
+returned as-is, without a provider call, so a stale provider answer cannot walk
+it backwards.
+
+admissions-v2 task 8.2 retargeted this module from the retired
+``verify_payment`` / ``_update_payment_status`` / ``_ALLOWED_TRANSITIONS`` trio
+onto the surviving path (``verify`` / ``_transition`` / ``ALLOWED_TRANSITIONS``).
+The property is unchanged; only the subject that has to satisfy it survives.
 
 **Validates: Requirements 4.4, 6.2**
 """
@@ -26,8 +32,8 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 from apps.documents.payment_service import (  # noqa: E402
+    ALLOWED_TRANSITIONS,
     PaymentService,
-    _ALLOWED_TRANSITIONS,
 )
 
 # ---------------------------------------------------------------------------
@@ -44,9 +50,13 @@ amounts = st.decimals(
     allow_infinity=False,
 )
 
-terminal_statuses = st.sampled_from(["successful", "failed"])
+terminal_statuses = st.sampled_from(["successful", "expired", "force_approved"])
 all_statuses = st.sampled_from(["pending", "successful", "failed"])
 target_statuses = st.sampled_from(["successful", "failed", "pending"])
+
+# Sources that carry provider truth. ``super_admin_correction`` is deliberately
+# excluded: it is the audited human override that may bypass the matrix.
+_PROVIDER_SOURCES = frozenset({"verify", "webhook", "reconciliation", "initiate", "admin_override"})
 
 
 # ---------------------------------------------------------------------------
@@ -55,8 +65,7 @@ target_statuses = st.sampled_from(["successful", "failed", "pending"])
 
 
 class TestPaymentForwardOnlyTransitions(SimpleTestCase):
-    """Property 15: PaymentService.verify_payment() should only allow
-    forward transitions: pending→successful or pending→failed.
+    """Property 15: ``PaymentService.verify()`` only allows forward transitions.
 
     **Validates: Requirements 4.4, 6.2**
     """
@@ -69,7 +78,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
     def test_already_successful_payment_returns_current_state(
         self, payment_id, amount
     ):
-        """When a payment is already 'successful', verify_payment() returns
+        """When a payment is already 'successful', verify() returns
         the current state without calling Lenco — no backward transition."""
         mock_payment = MagicMock()
         mock_payment.id = payment_id
@@ -83,7 +92,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
             mock_qs.get.return_value = mock_payment
 
             service = PaymentService()
-            result = service.verify_payment(payment_id)
+            result = service.verify(payment_id)
 
         self.assertEqual(result.status, "successful")
         self.assertIsNone(result.error)
@@ -96,7 +105,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
     def test_already_failed_payment_returns_current_state(
         self, payment_id, amount
     ):
-        """When a payment is already 'failed', verify_payment() returns
+        """When a payment is already 'failed', verify() returns
         the current state without calling Lenco — no backward transition."""
         mock_payment = MagicMock()
         mock_payment.id = payment_id
@@ -110,21 +119,42 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
             mock_qs.get.return_value = mock_payment
 
             service = PaymentService()
-            result = service.verify_payment(payment_id)
+            result = service.verify(payment_id)
 
         self.assertEqual(result.status, "failed")
         self.assertIsNone(result.error)
 
-    def test_allowed_transitions_map_is_forward_only(self):
-        """The _ALLOWED_TRANSITIONS map only permits pending→successful
-        and pending→failed. No other source status has transitions."""
-        self.assertIn("pending", _ALLOWED_TRANSITIONS)
+    def test_allowed_transitions_matrix_is_forward_only(self):
+        """The canonical matrix never walks a collected payment backwards.
+
+        ``pending`` may still move (that is the whole point of a pending row).
+        ``successful`` / ``force_approved`` / ``expired`` may not — no provider
+        source can move money that already landed, or un-expire a dead attempt.
+        The one apparent exception, ``failed → successful``, is out-of-order
+        provider truth (R9.1) and is forward, not backward: it recognises money
+        that did arrive after a provisional decline.
+        """
+        pending_targets = {
+            target
+            for (source_status, target), sources in ALLOWED_TRANSITIONS.items()
+            if source_status == "pending" and sources & _PROVIDER_SOURCES
+        }
         self.assertEqual(
-            _ALLOWED_TRANSITIONS["pending"], {"successful", "failed", "expired"}
+            pending_targets,
+            {"successful", "failed", "expired", "deferred", "force_approved"},
         )
-        # No transitions from terminal states
-        self.assertNotIn("successful", _ALLOWED_TRANSITIONS)
-        self.assertNotIn("failed", _ALLOWED_TRANSITIONS)
+
+        for terminal in ("successful", "force_approved", "expired"):
+            outbound = {
+                target
+                for (source_status, target), sources in ALLOWED_TRANSITIONS.items()
+                if source_status == terminal and sources & _PROVIDER_SOURCES
+            }
+            self.assertEqual(
+                outbound,
+                set(),
+                f"{terminal} must have no provider-driven outbound transition; got {outbound}.",
+            )
 
     @given(
         terminal_status=terminal_statuses,
@@ -134,10 +164,9 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
     def test_terminal_status_has_no_allowed_transitions(
         self, terminal_status, target
     ):
-        """For any terminal status (successful, failed), the allowed
-        transitions set is empty — no forward or backward moves."""
-        allowed = _ALLOWED_TRANSITIONS.get(terminal_status, set())
-        self.assertEqual(allowed, set())
+        """A terminal status has no provider-driven transition to any target."""
+        sources = ALLOWED_TRANSITIONS.get((terminal_status, target), set())
+        self.assertEqual(sources & _PROVIDER_SOURCES, set())
 
     @given(
         payment_id=uuids,
@@ -149,10 +178,12 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
     def test_pending_payment_transitions_to_lenco_status(
         self, payment_id, application_id, amount, lenco_status
     ):
-        """When a payment is 'pending' and Lenco returns a valid status,
-        verify_payment() transitions the payment forward."""
-        import requests as http_requests
+        """A pending payment with a valid provider answer moves forward.
 
+        The move is made by ``_transition`` — the sole writer (ADR-007) — with
+        the provider's own payload attached, so the integrity gate and the audit
+        trail see exactly what the provider said.
+        """
         mock_payment = MagicMock()
         mock_payment.id = payment_id
         mock_payment.status = "pending"
@@ -163,41 +194,31 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         mock_payment.payment_method = None
         mock_payment.application_id = application_id
 
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "data": {
-                "status": lenco_status,
-                "amount": str(amount),
-                "lencoReference": "LENCO-REF",
-                "type": "card",
-            }
+        provider_payload = {
+            "status": lenco_status,
+            "amount": str(amount),
+            "lencoReference": "LENCO-REF",
+            "type": "card",
         }
 
         with (
             patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs,
             patch("apps.documents.payment_service_mixins._verification._call_lenco_collection_status") as mock_lenco,
             patch("apps.documents.payment_service_mixins._verification.settings") as mock_settings,
-            patch.object(PaymentService, "_update_payment_status") as mock_update,
+            patch.object(PaymentService, "_transition") as mock_transition,
         ):
             mock_settings.LENCO_API_SECRET_KEY = "test-secret"
             mock_settings.LENCO_API_BASE_URL = "https://api.lenco.co"
             mock_qs.get.return_value = mock_payment
-            mock_lenco.return_value = (
-                {
-                    "status": lenco_status,
-                    "amount": str(amount),
-                    "lencoReference": "LENCO-REF",
-                    "type": "card",
-                },
-                None,
-            )
+            mock_lenco.return_value = (provider_payload, None)
+            mock_transition.return_value = MagicMock(risk_flag=None)
             mock_payment.refresh_from_db = MagicMock()
 
             service = PaymentService()
-            service.verify_payment(payment_id)
+            service.verify(payment_id)
 
-            # _update_payment_status should be called with the mapped status
-            mock_update.assert_called_once()
-            call_args = mock_update.call_args
-            self.assertEqual(call_args[0][1], lenco_status)
+            mock_transition.assert_called_once()
+            args, kwargs = mock_transition.call_args
+            self.assertEqual(args[1], lenco_status)
+            self.assertEqual(kwargs["source"], "verify")
+            self.assertEqual(kwargs["provider_data"], provider_payload)

@@ -1,0 +1,29 @@
+=== 13.6: running the NAMED instruments of the two tasks with no evidence directory ===
+=== DATE: 2026-08-12T21:52:17Z ===
+
+--- task 7.4 _Evidence_: 'grep/import/runtime network guard proving zero admissions AI calls' ---
+--- instrument: backend/tests/unit/test_no_admissions_generative_ai_guard.py ---
+..................                                                       [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+18 passed, 1 warning in 0.67s
+
+--- task 4.1 _Evidence_: 'service/integration tests for every state, retry, and compensation' ---
+--- instruments: test_tenant_onboarding_service.py + test_tenant_onboarding_workflow.py + test_scenario_super_admin_onboarding.py ---
+..............................................                           [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_tenant_onboarding_workflow.py: 22 warnings
+tests/unit/test_scenario_super_admin_onboarding.py: 1 warning
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+46 passed, 24 warnings in 2.29s

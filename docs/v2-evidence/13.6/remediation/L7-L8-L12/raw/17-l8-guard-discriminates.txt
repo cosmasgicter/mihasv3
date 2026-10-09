@@ -1,0 +1,27 @@
+### 2026-08-14T16:15:07Z L8 - does the drift guard discriminate?
+# probe file : apps/admissions/tests/harness-e2e/required/student-dashboard-task-first.spec.ts
+# guard      : backend/tests/unit/test_evidence_dir_convention_l8.py
+
+sha256[0:16] before : 01eeef4a8dd944dd
+
+--- 0. the guard on the tree as it stands (must PASS) ---
+.................................                                        [100%]
+33 passed in 0.37s
+
+--- 1. restore the literal L8 removed, at the real write site ---
+write site reverted to the pre-L8 literal
+
+--- 2. the guard on the reverted tree (must FAIL, and name the task) ---
+E   AssertionError: student-dashboard-task-first.spec.ts carries a hard-coded evidence path again — an ordinary required profile run would rewrite task 11.1's screenshots (GATE-13.1-07): ["'../../../../../docs/v2-evidence/11.1/screenshots',"]
+E   AssertionError: a required spec computes a docs/v2-evidence path as a string literal. Resolve it through helpers/evidence-dir.ts instead, or an ordinary run overwrites a recorded artifact (GATE-13.1-07):
+2 failed, 31 passed in 0.36s
+
+--- 3. restore, and verify byte-identical ---
+sha256[0:16] after  : 01eeef4a8dd944dd
+RESTORED: byte-identical
+
+--- 4. the guard again (must PASS), and the prose blind spot check ---
+.................................                                        [100%]
+33 passed in 0.39s
+docblock lines still quoting the old literal (must be > 0 - the guard ignores prose):
+2

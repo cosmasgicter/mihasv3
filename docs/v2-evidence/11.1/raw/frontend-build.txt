@@ -1,0 +1,229 @@
+$ tsc -p tsconfig.build.json --noEmit && ./node_modules/.bin/vite build && bun scripts/check-html-csp.ts
+vite v6.4.2 building for production...
+transforming...
+✓ 3626 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/logger.ts is dynamically imported by /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/LazyLoadErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/ErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/reloadControl.ts but also statically imported by /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/AdminErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/CommunicationModal.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/UserActivityLog.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/UserImport.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/ApplicationsTable.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/BulkActionsBar.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/admin/applications/SendNotificationModal.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/auth/AuthErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/StudentErrorBoundary.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/TrackingLinkAction.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/ActiveSessions.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/components/ui/PageShell.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/data/applications.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationActions.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationBulkActions.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationDocuments.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationStatusHistory.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/admin/useApplicationStatusUpdate.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/auth/useSessionListener.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/student/useProfileSectionAutosave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useAdminDashboardPolling.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useAutoSave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useEligibilityChecker.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useLencoWidget.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useManualRefresh.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useProfileAutoPopulation.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useRequiredDocuments.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/accessibility-utils.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/apiErrorLogger.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/applicationSession.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/draftLocalCache.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/draftManager.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/loaderTelemetry.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/secureStorage.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/storage.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/admin/Dashboard.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/admin/Users.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/auth/AuthCallbackPage.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/public/tracker/hooks/useApplicationTracker.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/public/tracker/index.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/Dashboard.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/AnalyticsDashboard.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/components/DraftManager.tsx, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationSlip.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardDraftPersistence.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardGrades.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/admin/audit.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/admin/dashboard.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/catalog.ts, /home/cosmas/Downloads/mihasv3/apps/admissions/src/services/client.ts, dynamic import will not move module into another chunk.
+
+dist/index.html                                              11.66 kB
+dist/assets/source-sans-3-v19-latin-regular-CtjKePIN.ttf     37.35 kB
+dist/assets/source-sans-3-v19-latin-600-BkkHUWwg.ttf         37.40 kB
+dist/assets/playfair-display-v40-latin-700-sQ0q13Aj.ttf      53.70 kB
+dist/assets/playfair-display-v40-latin-600-VbkUR90C.ttf      53.77 kB
+dist/assets/jetbrains-mono-v24-latin-500-CfRRbYOL.ttf        57.40 kB
+dist/assets/images/director-signature-B8AFvgP6.png           86.17 kB
+dist/.vite/manifest.json                                     88.72 kB
+dist/assets/pinyon-script-v24-latin-regular-vKhyY2YE.ttf     89.34 kB
+dist/assets/AuthenticatedRouteShell-Cx5g3aDH.css              5.59 kB
+dist/assets/AppLayout-DG955KN1.css                            7.80 kB
+dist/assets/index-DF6ZEgHb.css                              132.69 kB
+dist/assets/js/animations-CwETIcnz.js                         0.18 kB
+dist/assets/js/apiErrorLogger-mnIVx5tJ.js                     0.21 kB
+dist/assets/js/useToast-jkTBN898.js                           0.28 kB
+dist/assets/js/urlSafety-BZLmgnRL.js                          0.31 kB
+dist/assets/js/loader-circle-B2wCSZd5.js                      0.31 kB
+dist/assets/js/plus-CC-dV9EJ.js                               0.32 kB
+dist/assets/js/x-Dsg5PzbA.js                                  0.32 kB
+dist/assets/js/filter-8rGLoO2X.js                             0.33 kB
+dist/assets/js/arrow-right-D2b-q8rJ.js                        0.33 kB
+dist/assets/js/circle-check-DwgPgmaz.js                       0.34 kB
+dist/assets/js/clock-C2M_ShJZ.js                              0.35 kB
+dist/assets/js/DeferredGlobalFeedback-5IixVyk2.js             0.35 kB
+dist/assets/js/FormErrorAnnouncer-DU3q4iwT.js                 0.35 kB
+dist/assets/js/adminNavAccess-CXPxRW3Y.js                     0.35 kB
+dist/assets/js/circle-check-big-0NRxb0UP.js                   0.36 kB
+dist/assets/js/smartphone-Cpk8my47.js                         0.37 kB
+dist/assets/js/rotate-ccw-EXkwnXw7.js                         0.37 kB
+dist/assets/js/info-CiS593ng.js                               0.37 kB
+dist/assets/js/lock-Bs8YsQJD.js                               0.38 kB
+dist/assets/js/security-23v4moyY.js                           0.38 kB
+dist/assets/js/officialDocumentGate-BbIwGt-t.js               0.38 kB
+dist/assets/js/mail-DCY76ukJ.js                               0.39 kB
+dist/assets/js/Container-DW1Nb0SO.js                          0.40 kB
+dist/assets/js/circle-help-Bse1dRcu.js                        0.40 kB
+dist/assets/js/activity-BFGMYcV_.js                           0.40 kB
+dist/assets/js/pen-CLpRhspL.js                                0.41 kB
+dist/assets/js/copy-HVbcN78O.js                               0.41 kB
+dist/assets/js/history-B_Ez0ESs.js                            0.41 kB
+dist/assets/js/globe-NQBRDP9R.js                              0.41 kB
+dist/assets/js/database-BZgHNhqZ.js                           0.41 kB
+dist/assets/js/video-B4qEWJNI.js                              0.42 kB
+dist/assets/js/circle-alert-cNslBoip.js                       0.42 kB
+dist/assets/js/chart-column-CdZKsFA5.js                       0.42 kB
+dist/assets/js/eye-Dsa4_ub9.js                                0.42 kB
+dist/assets/js/map-pin-Bd5HcSO-.js                            0.42 kB
+dist/assets/js/useConfirmDialog-BYvs8ppR.js                   0.43 kB
+dist/assets/js/log-out-DeNC3Bt0.js                            0.43 kB
+dist/assets/js/canonicalSubjectId-Br4CIsq9.js                 0.43 kB
+dist/assets/js/zap-BobBJMSo.js                                0.43 kB
+dist/assets/js/download-s6rifHID.js                           0.43 kB
+dist/assets/js/file-check-Zd7G0qIX.js                         0.44 kB
+dist/assets/js/serverAmount-F7GEiTKF.js                       0.44 kB
+dist/assets/js/image-Kt9oqGEe.js                              0.44 kB
+dist/assets/js/animation-config-BDFps23v.js                   0.44 kB
+dist/assets/js/shield-DMXiGK_h.js                             0.44 kB
+dist/assets/js/award-CW0KTWmj.js                              0.44 kB
+dist/assets/js/book-open-CNB6EVdb.js                          0.45 kB
+dist/assets/js/file-plus-2-Cn-dkyYh.js                        0.45 kB
+dist/assets/js/inbox-D5gtJ_NQ.js                              0.46 kB
+dist/assets/js/wallet-BmGEnfRO.js                             0.46 kB
+dist/assets/js/send-CDRCJGR5.js                               0.46 kB
+dist/assets/js/user-plus-Bi6tNGa3.js                          0.48 kB
+dist/assets/js/apiConfig-CiWg0Y7D.js                          0.48 kB
+dist/assets/js/SkipLink-B1T8UQxW.js                           0.49 kB
+dist/assets/js/shield-check-DAl8eIOa.js                       0.49 kB
+dist/assets/js/scroll-text-DZQ1XcDu.js                        0.52 kB
+dist/assets/js/shield-alert-ByHoQLGu.js                       0.52 kB
+dist/assets/js/trash-2-CfvWTwV7.js                            0.53 kB
+dist/assets/js/applicationStatus-DVMs9GFn.js                  0.53 kB
+dist/assets/js/communications-C5j71kO-.js                     0.54 kB
+dist/assets/js/chevron-right-uwlYMUck.js                      0.54 kB
+dist/assets/js/phone-D3ekjksh.js                              0.56 kB
+dist/assets/js/bell-ring-CvIXI5rK.js                          0.57 kB
+dist/assets/js/building-2-CtVZubl1.js                         0.61 kB
+dist/assets/js/useDebounce-WEr0ODkS.js                        0.62 kB
+dist/assets/js/school-DFJ3-AXg.js                             0.62 kB
+dist/assets/js/rocket-BflLjyeY.js                             0.63 kB
+dist/assets/js/trophy-BzIfbFUh.js                             0.64 kB
+dist/assets/js/react-i8UvCvCE.js                              0.65 kB
+dist/assets/js/sparkles-yPMLO47V.js                           0.68 kB
+dist/assets/js/index-bQlUfSA-.js                              0.70 kB
+dist/assets/js/stagger-x9a4CZ-C.js                            0.81 kB
+dist/assets/js/EmptyState-ssowjufP.js                         0.84 kB
+dist/assets/js/publicTracking-BCrULLxV.js                     0.87 kB
+dist/assets/js/badge-Ct1q0Ypl.js                              0.95 kB
+dist/assets/js/interviews-BH8kQ9Kh.js                         0.98 kB
+dist/assets/js/useEscapeKey-Dxlnn17-.js                       0.98 kB
+dist/assets/js/tenantSupport-CveVTe-o.js                      1.09 kB
+dist/assets/js/StatusBadge-41MpQu2y.js                        1.09 kB
+dist/assets/js/useCatalogAdmin-B0LyUuBH.js                    1.14 kB
+dist/assets/js/useProfileAutoPopulation-ADpojCBv.js           1.16 kB
+dist/assets/js/MaintenancePage-CnWIlNeY.js                    1.28 kB
+dist/assets/js/octagon-alert-D2hcZQwo.js                      1.29 kB
+dist/assets/js/index-BLN0K2K6.js                              1.32 kB
+dist/assets/js/useManualRefresh-9HPE9tLY.js                   1.34 kB
+dist/assets/js/errorReporter-HwRlEuS9.js                      1.42 kB
+dist/assets/js/SectionCard-ClEJMfps.js                        1.50 kB
+dist/assets/js/InstitutionScopeContext-C8wj46TE.js            1.58 kB
+dist/assets/js/useProfileQuery-A2CgQ4vf.js                    1.59 kB
+dist/assets/js/usePortalBrand-C5vYGX1e.js                     1.75 kB
+dist/assets/js/input-CLRjdtRp.js                              1.88 kB
+dist/assets/js/nationalityOptions-B1fyjsyM.js                 1.96 kB
+dist/assets/js/notificationPreferences-DCabkftp.js            1.97 kB
+dist/assets/js/SessionMonitor-CUZTD5zm.js                     1.98 kB
+dist/assets/js/documents-DgMnSHw2.js                          1.99 kB
+dist/assets/js/BuildVersionBadge-DEbrK3Qd.js                  2.01 kB
+dist/assets/js/animated-input-Cc1Pu1l3.js                     2.04 kB
+dist/assets/js/AuthCallbackPage-DawqV58F.js                   2.04 kB
+dist/assets/js/AuthShell-CFEy5GV6.js                          2.10 kB
+dist/assets/js/Banner-Bou8gIua.js                             2.22 kB
+dist/assets/js/AcceptanceLetterPreview-COwvyQCq.js            2.24 kB
+dist/assets/js/PageShell-cwmHRe8m.js                          2.26 kB
+dist/assets/js/Dialog-DKZcGhjr.js                             2.27 kB
+dist/assets/js/useMutation-B4ZrPrZu.js                        2.31 kB
+dist/assets/js/connectionFix-CN81N0Yb.js                      2.42 kB
+dist/assets/js/paymentStatus-DKQfKxi5.js                      2.50 kB
+dist/assets/js/TrackingLinkAction-Dg2QR76D.js                 2.54 kB
+dist/assets/js/PasswordInput-DcgqmlOO.js                      2.62 kB
+dist/assets/js/dateFormat-1n5csOqs.js                         2.67 kB
+dist/assets/js/CapabilityContext-BlNxLrR9.js                  2.67 kB
+dist/assets/js/zod-CKASVB2J.js                                2.84 kB
+dist/assets/js/users-BGWBqZ3z.js                              2.88 kB
+dist/assets/js/MetricTile-D_ZdAHuP.js                         2.93 kB
+dist/assets/js/PageHeader-Cw78-Ctp.js                         3.07 kB
+dist/assets/js/useOfficialDocument-1CzqLhdH.js                3.14 kB
+dist/assets/js/PaymentCallback-2Sf_A_64.js                    3.14 kB
+dist/assets/js/useMoneyAdmin-cRFS9KmX.js                      3.18 kB
+dist/assets/js/audit-M7_G8lr3.js                              3.22 kB
+dist/assets/js/useAdminDashboardPolling-BZ1CmR8H.js           3.26 kB
+dist/assets/js/mutation-CD6BUio8.js                           3.51 kB
+dist/assets/js/ForgotPasswordPage-DwbSV91d.js                 3.66 kB
+dist/assets/js/TermsPage-CwoLK_qr.js                          3.68 kB
+dist/assets/js/PrivacyPage-B1lTHgOy.js                        3.74 kB
+dist/assets/js/notifications-BzKi88xr.js                      4.10 kB
+dist/assets/js/profileFieldMapping-DErniBh_.js                4.19 kB
+dist/assets/js/NotFoundPage-CAOLzZnp.js                       4.47 kB
+dist/assets/js/storage-Bdb2gVRM.js                            4.48 kB
+dist/assets/js/Toast-jJ4oGmia.js                              5.03 kB
+dist/assets/js/SignInPage-DLGCrXdZ.js                         5.17 kB
+dist/assets/js/History-C3XO6zMO.js                            5.50 kB
+dist/assets/js/useApplicationFilters-DkI-L7lx.js              5.59 kB
+dist/assets/js/SharedFooter-Bafat9Qd.js                       5.65 kB
+dist/assets/js/catalog-CE5trJj6.js                            5.82 kB
+dist/assets/js/AcceptInvitationPage-heCzwJRj.js               5.87 kB
+dist/assets/js/ResetPasswordPage-Cl8zraP7.js                  6.10 kB
+dist/assets/js/catalog-arhOuprL.js                            6.72 kB
+dist/assets/js/PublicLayout-B182WOM_.js                       6.79 kB
+dist/assets/js/alert-dialog-IRhoeTYD.js                       6.81 kB
+dist/assets/js/SignUpPage-Dc9EvCw2.js                         7.29 kB
+dist/assets/js/Seo-CyH6dPzc.js                                7.77 kB
+dist/assets/js/NotificationSettings-JjT_hbD3.js               7.96 kB
+dist/assets/js/landing-DLksKU6J.js                            8.04 kB
+dist/assets/js/tenants-BmrRvRyF.js                            8.30 kB
+dist/assets/js/useQuery-CitiXufs.js                           9.02 kB
+dist/assets/js/Interview-DYTyom2i.js                         10.04 kB
+dist/assets/js/ContactPage-Di9Z0dBd.js                       10.10 kB
+dist/assets/js/enrollmentReadiness-DUag9GdV.js               11.40 kB
+dist/assets/js/studentDraftCleanup-Dei8FJjO.js               12.00 kB
+dist/assets/js/Intakes-CsMSoQpw.js                           12.23 kB
+dist/assets/js/Communications-BMe8s0ft.js                    12.41 kB
+dist/assets/js/officialDocuments-BPyTNKCs.js                 12.41 kB
+dist/assets/js/dashboard-WLuALqLf.js                         12.42 kB
+dist/assets/js/ProgramFees-BkXheJv8.js                       12.73 kB
+dist/assets/js/client-lXZHMJGc.js                            12.93 kB
+dist/assets/js/LandingPage-BBSkYqC_.js                       13.00 kB
+dist/assets/js/DocumentPreview-DWsiS0qP.js                   14.39 kB
+dist/assets/js/speculativePrefetch-MHTYyhza.js               14.77 kB
+dist/assets/js/query-CfMEpsgH.js                             14.85 kB
+dist/assets/js/domainStatus-C5vUNBUJ.js                      15.00 kB
+dist/assets/js/Payment-BLOcQrU2.js                           15.16 kB
+dist/assets/js/LandingPageSections--ONYUazj.js               20.26 kB
+dist/assets/js/AuthContext-CogXCogO.js                       21.00 kB
+dist/assets/js/Dashboard-CUmDxjom.js                         21.21 kB
+dist/assets/js/purify.es-CNQAeS4Z.js                         24.43 kB
+dist/assets/js/Programs-DBwRfLgn.js                          27.98 kB
+dist/assets/js/index.esm-BC7GITsZ.js                         27.99 kB
+dist/assets/js/vendor-radix-dialog-Dmc2jAnK.js               28.53 kB
+dist/assets/js/index-BpHkjy1K.js                             29.36 kB
+dist/assets/js/Settings-BXr6VLi7.js                          30.05 kB
+dist/assets/js/Settings-IBXZL1Oq.js                          32.35 kB
+dist/assets/js/AppLayout-G5ijgRDd.js                         33.16 kB
+dist/assets/js/AuthenticatedRouteShell-aEdgYL2A.js           35.45 kB
+dist/assets/js/Dashboard-nd-b6Gzv.js                         35.54 kB
+dist/assets/js/useFeeQuote-Delu5Pzy.js                       42.34 kB
+dist/assets/js/TenantOnboardingWizard-BkUI1afP.js            44.17 kB
+dist/assets/js/ApplicationStatus-CEb5bsGg.js                 46.02 kB
+dist/assets/js/AuditTrail-C1oQJ2pv.js                        46.36 kB
+dist/assets/js/AcceptanceLetter-olAXqenA.js                  56.49 kB
+dist/assets/js/schemas-BhuGwATM.js                           64.24 kB
+dist/assets/js/Users-CUNxMwLx.js                             79.93 kB
+dist/assets/js/progress-BXfxphHu.js                          84.65 kB
+dist/assets/js/Tenants-7PtODjMZ.js                           92.93 kB
+dist/assets/js/index-LfSs9rc0.js                             99.96 kB
+dist/assets/js/vendor-framer-motion-DoXASSUi.js             113.99 kB
+dist/assets/js/index.es-BrIIM6Py.js                         156.74 kB
+dist/assets/js/vendor-react-DXgsMsgo.js                     174.92 kB
+dist/assets/js/Applications-TojpvYxh.js                     179.24 kB
+dist/assets/js/html2canvas.esm-CyxsxQj2.js                  199.44 kB
+dist/assets/js/index-AhmZLzQO.js                            320.76 kB
+dist/assets/js/vendor-pdf-BHJHD9Bc.js                       409.05 kB
+dist/assets/js/vendor-sentry-CidXNIPv.js                    459.78 kB
+dist/assets/js/vendor-react-pdf-Bvss8VQU.js               1,433.87 kB
+
+(!) Some chunks are larger than 650 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 48.71s
+[32m✓[0m finalise-html: preload hint for LandingPage (assets/js/LandingPage-BBSkYqC_.js)
+[32m✓[0m finalise-html: critters inlined critical CSS (HTML 11508 → 21120 bytes)
+
+check-html-csp: scanned /home/cosmas/Downloads/mihasv3/apps/admissions/dist/index.html
+  CSP script-src 'unsafe-inline': NO
+  CSP style-src 'unsafe-inline':  YES
+  inline <style> total bytes:     15038
+  main <link rel=stylesheet>:     present
+
+✓ check-html-csp: HTML is compatible with the production CSP.
+EXIT=0

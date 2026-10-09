@@ -121,6 +121,7 @@ def envelope_exception_handler(exc, context):
         403: "INSUFFICIENT_PERMISSIONS",
         404: "NOT_FOUND",
         405: "METHOD_NOT_ALLOWED",
+        409: "CONFLICT",
         429: "RATE_LIMITED",
     }
 
@@ -142,6 +143,16 @@ def envelope_exception_handler(exc, context):
             code_val = exc.get_codes()
             if isinstance(code_val, str) and code_val and code_val.upper().startswith("CSRF_"):
                 code = code_val.upper()
+        # A 409 is always about *what* conflicted, so the exception's own stable
+        # code travels rather than the generic bucket (admissions-v2 task 9.4).
+        # Before this, `ReviewVersionConflict` — the only DRF APIException in the
+        # codebase that carries a 409 — declared `VERSION_CONFLICT` and the client
+        # received `INTERNAL_ERROR`, so the code it advertised was unreachable and
+        # a caller could only branch on the bare status.
+        if response.status_code == 409 and hasattr(exc, "get_codes"):
+            code_val = exc.get_codes()
+            if isinstance(code_val, str) and code_val:
+                code = code_val.upper()
 
     # Handle validation errors with field details
     if response.status_code == 400 and isinstance(response.data, dict):
@@ -158,6 +169,13 @@ def envelope_exception_handler(exc, context):
     envelope = {"success": False, "error": error_msg, "code": code}
     if details and response.status_code == 400:
         envelope["details"] = details
+
+    # A version conflict is only actionable if the client learns which version is
+    # current, so it travels with the refusal instead of forcing a second read
+    # (admissions-v2 task 9.4, R8.4).
+    current_version = getattr(exc, "current_version", None)
+    if response.status_code == 409 and isinstance(current_version, int):
+        envelope["current_version"] = current_version
 
     # -----------------------------------------------------------------
     # Payment-scope throttle enrichment (Task 44.3, R19.1, R19.3)

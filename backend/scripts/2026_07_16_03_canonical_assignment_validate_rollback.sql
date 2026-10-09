@@ -1,0 +1,13 @@
+-- Rollback for 2026_07_16_03_canonical_assignment_validate.sql (task 3.2 VALIDATE).
+--
+-- Operator-run only (excluded from the apply_sql_migrations sweep).
+--
+-- VALIDATE CONSTRAINT is not independently reversible — Postgres has no
+-- "un-validate". A constraint is removed by dropping it, which is the job of the
+-- 01_ expand rollback (chk_applications_canonical_assignment) and is intentionally
+-- NOT duplicated here to avoid a double-drop. The four canonical FKs are part of
+-- the June tenant schema, not created by task 3.2, so this phase never drops them.
+--
+-- This file exists to keep the forward/rollback pairing complete and is a
+-- deliberate no-op.
+SELECT 1;

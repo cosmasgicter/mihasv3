@@ -1,7 +1,7 @@
 """Unit tests for enrollment confirmation (Requirement 10). Requirements: 10.1-10.10"""
 import uuid
 from datetime import date, datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -78,14 +78,17 @@ class TestEnrollmentOwnerOnly:
         self.f = APIRequestFactory()
         self.v = ApplicationConfirmEnrollmentView.as_view()
 
-    def test_non_owner_403(self):
+    def test_non_owner_404_mask(self):
+        # AUTH-07: an owner-only endpoint masks a valid-but-non-owned id as an
+        # indistinguishable canonical 404 (never a distinguishable 403 that
+        # leaks existence).
         a = _app(uuid.uuid4())
         with patch(_AO) as mq:
             mq.select_related.return_value.get.return_value = a
             other = _user(uuid.uuid4())
             resp = self.v(_req(self.f, other, a.id), application_id=a.id)
-        assert resp.status_code == 403
-        assert resp.data["code"] == "INSUFFICIENT_PERMISSIONS"
+        assert resp.status_code == 404
+        assert resp.data["code"] == "NOT_FOUND"
 
 
 class TestEnrollmentDeadlineComputation:
@@ -98,6 +101,14 @@ class TestEnrollmentDeadlineComputation:
 
         mock_intake = MagicMock()
         mock_intake.id = uuid.uuid4()
+        # The application must carry a CANONICAL intake id, because that is what
+        # ``compute_deadline`` resolves on (remediation L1: ``resolve_intake``
+        # keys on ``intake_ref_id`` and fails closed to the 14-day default when
+        # it is absent, rather than falling back to the ``intake`` display
+        # snapshot — a same-name other tenant's deadline must never decide when
+        # this student loses their seat). Without it this case would exercise
+        # the fallback, not the calendar event it is named for.
+        app.intake_ref_id = mock_intake.id
 
         mock_event = MagicMock()
         mock_event.event_date = date(2025, 7, 15)
@@ -107,7 +118,9 @@ class TestEnrollmentDeadlineComputation:
             patch("apps.catalog.models.AcademicCalendarEvent.objects") as mce,
             patch("apps.applications.enrollment_service.timezone") as mtz,
         ):
-            mi.filter.return_value.first.return_value = mock_intake
+            # ``resolve_intake(require_active=True)`` filters twice:
+            # ``.filter(id=...)`` then ``.filter(is_active=True)``.
+            mi.filter.return_value.filter.return_value.first.return_value = mock_intake
             mce.filter.return_value.first.return_value = mock_event
             mtz.is_naive.return_value = True
             mtz.make_aware.return_value = datetime(2025, 7, 15, 23, 59, 59)
@@ -153,6 +166,15 @@ class TestEnrollmentServiceValidation:
     """5. EnrollmentService validates conditionally_approved conditions."""
 
     def test_conditions_not_met_raises_error(self):
+        # Admissions-v2 task 10.3 reads the condition set **once**, as rows, and
+        # classifies each state against task 10.2's CONDITION_TERMINAL_STATES
+        # instead of asking two `.exists()` questions about `pending` and
+        # `expired`. That is the whole point of the change: `evidence_submitted`
+        # and `changes_required` were invisible to the old pair of queries and so
+        # counted as satisfied. This mock therefore supplies the row shape rather
+        # than the old call shape; the behavioural claim is unchanged, and the
+        # real-row version of it lives in
+        # tests/unit/test_enrollment_readiness_10_3.py.
         app = _app(uuid.uuid4(), status="conditionally_approved")
 
         with (
@@ -160,8 +182,9 @@ class TestEnrollmentServiceValidation:
             patch("apps.applications.enrollment_service.ApplicationCondition.objects") as mcq,
         ):
             mq.get.return_value = app
-            # pending conditions exist
-            mcq.filter.return_value.exists.side_effect = [True, False]
+            mcq.filter.return_value.values.return_value = [
+                {"id": uuid.uuid4(), "status": "pending", "description": "Transcript"},
+            ]
 
             try:
                 EnrollmentService.confirm_enrollment(str(app.id), str(uuid.uuid4()))

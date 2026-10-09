@@ -1,0 +1,320 @@
+{
+  "available": true,
+  "note": "Direct apiClient use in pages/components violates the target architecture (R14.3, API-02); service-layer use is expected.",
+  "pages_components_direct_call_file_count": 17,
+  "pages_components_direct_calls": [
+    {
+      "file": "apps/admissions/src/pages/admin/ProgramFees.tsx",
+      "hit_count": 5,
+      "hits": [
+        {
+          "line": 17,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 129,
+          "snippet": "const result = await apiClient.request<ProgramFeeListResponse>("
+        },
+        {
+          "line": 136,
+          "snippet": "return apiClient.request<ProgramFee>("
+        },
+        {
+          "line": 155,
+          "snippet": "return apiClient.request<ProgramFee>("
+        },
+        {
+          "line": 170,
+          "snippet": "await apiClient.request<void>("
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 6,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 196,
+          "snippet": "const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>("
+        },
+        {
+          "line": 293,
+          "snippet": "await apiClient.request(`/applications/${application.id}/fee-waiver/`, {"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 20,
+          "snippet": "import { apiClient } from '@/services/client';"
+        },
+        {
+          "line": 144,
+          "snippet": "const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>("
+        },
+        {
+          "line": 187,
+          "snippet": "return await apiClient.request<BackendReceiptData>(`/payments/${encodeURIComponent(paymentId)}/receipt/`)"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 10,
+          "snippet": "import { apiClient } from '@/services/client';"
+        },
+        {
+          "line": 35,
+          "snippet": "const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>("
+        },
+        {
+          "line": 58,
+          "snippet": "const receipt = await apiClient.request<BackendReceiptData>("
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/PaymentCallback.tsx",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 4,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 28,
+          "snippet": "await apiClient.request(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })"
+        },
+        {
+          "line": 49,
+          "snippet": "const result = await apiClient.request<{ status: string }>(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 8,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 83,
+          "snippet": "const result = await apiClient.request<unknown>('/auth/session/')"
+        },
+        {
+          "line": 89,
+          "snippet": "const retryResult = await apiClient.request<unknown>('/auth/session/')"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 19,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 840,
+          "snippet": "apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch((err) => logger.warn('OCR retry requ"
+        },
+        {
+          "line": 1332,
+          "snippet": "const result = await apiClient.request<{ institutions?: Array<{ id: string; slug?: string; name: string }> } | Array<{ id: string; slug?: string; name: string }>>("
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 6,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 88,
+          "snippet": "const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>("
+        },
+        {
+          "line": 97,
+          "snippet": "apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch((err) => logger.warn('OCR extraction request failed', toError(err)))"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx",
+      "hit_count": 3,
+      "hits": [
+        {
+          "line": 8,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 84,
+          "snippet": "await apiClient.request('/payments/defer/', {"
+        },
+        {
+          "line": 102,
+          "snippet": "await apiClient.request('/payments/dev-bypass/', {"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/components/admin/UserImport.tsx",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 4,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 279,
+          "snippet": "const response = await apiClient.request<{"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/components/admin/applications/AISummaryPanel.tsx",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 5,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 26,
+          "snippet": "const data = await apiClient.request<{ summary?: string }>(url)"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/public/tracker/hooks/useApplicationTracker.ts",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 3,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 72,
+          "snippet": "const result = await apiClient.request<TrackApplicationResponse>(`/applications/track/?code=${encodeURIComponent(normalizedTerm)}`)"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/Payment.tsx",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 33,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 317,
+          "snippet": "const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>('/payments/')"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 16,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 147,
+          "snippet": "const info = await apiClient.request<DocumentInfo>(`/documents/${currentDocId}/info/`)"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx",
+      "hit_count": 2,
+      "hits": [
+        {
+          "line": 10,
+          "snippet": "import { apiClient } from '@/services/client'"
+        },
+        {
+          "line": 149,
+          "snippet": "const data = await apiClient.request<{ summary: string | null; source?: string }>(`/applications/${applicationId}/preview-summary/`)"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/admin/tenants/errors.ts",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 4,
+          "snippet": "* The apiClient enhances 4xx errors with a human-readable `message` plus an"
+        }
+      ]
+    },
+    {
+      "file": "apps/admissions/src/pages/student/applicationWizard/lib/assignmentRecovery.ts",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 51,
+          "snippet": "* `apiClient` attaches the raw response body to `error.data` (which carries"
+        }
+      ]
+    }
+  ],
+  "service_layer_client_file_count": 23,
+  "service_layer_client_files": [
+    "apps/admissions/src/lib/api/adminApi.ts",
+    "apps/admissions/src/lib/applicationSlipStorage.ts",
+    "apps/admissions/src/lib/connectionFix.ts",
+    "apps/admissions/src/lib/slipService.ts",
+    "apps/admissions/src/lib/speculativePrefetch.ts",
+    "apps/admissions/src/lib/storage.ts",
+    "apps/admissions/src/services/admin/audit.ts",
+    "apps/admissions/src/services/admin/capabilities.ts",
+    "apps/admissions/src/services/admin/dashboard.ts",
+    "apps/admissions/src/services/admin/scope.ts",
+    "apps/admissions/src/services/admin/tenants.ts",
+    "apps/admissions/src/services/admin/users.ts",
+    "apps/admissions/src/services/applications.ts",
+    "apps/admissions/src/services/auth.ts",
+    "apps/admissions/src/services/catalog.ts",
+    "apps/admissions/src/services/client.ts",
+    "apps/admissions/src/services/communications.ts",
+    "apps/admissions/src/services/documents.ts",
+    "apps/admissions/src/services/interviews.ts",
+    "apps/admissions/src/services/notifications.ts",
+    "apps/admissions/src/services/officialDocuments.ts",
+    "apps/admissions/src/services/payments.ts",
+    "apps/admissions/src/services/sessionService.ts"
+  ],
+  "raw_fetch_in_pages_components_count": 1,
+  "raw_fetch_in_pages_components": [
+    {
+      "file": "apps/admissions/src/components/ui/skeletons/MarketingRouteSkeleton.tsx",
+      "hit_count": 1,
+      "hits": [
+        {
+          "line": 8,
+          "snippet": "* for the full duration of the LandingPage chunk fetch (~474 KB"
+        }
+      ]
+    }
+  ]
+}

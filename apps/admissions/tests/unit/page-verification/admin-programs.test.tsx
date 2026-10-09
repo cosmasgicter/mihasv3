@@ -80,24 +80,39 @@ vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
-// ── Mock catalog services ─────────────────────────────────────────────
+// ── Mock catalog services (task 5.1) ──────────────────────────────────
+// Programs.tsx reads offerings/institutions via the public catalog read
+// facade (`catalogService`) and writes through the canonical catalog admin
+// service (`catalogAdminService`) — offerings are created against a canonical
+// program, institutions via /admin/institutions/. The legacy
+// programService/institutionService write path is retired (TEN-03/R7.3).
 const mockProgramList = vi.fn()
 const mockInstitutionList = vi.fn()
+const mockCanonicalList = vi.fn()
 
 vi.mock('@/services/catalog', () => ({
-  programService: {
-    list: (...args: unknown[]) => mockProgramList(...args),
-    create: vi.fn().mockResolvedValue({ program: null }),
-    update: vi.fn().mockResolvedValue({ program: null }),
-    delete: vi.fn().mockResolvedValue({}),
-  },
-  institutionService: {
-    list: (...args: unknown[]) => mockInstitutionList(...args),
-    create: vi.fn().mockResolvedValue({ institution: null }),
-    update: vi.fn().mockResolvedValue({ institution: null }),
-    delete: vi.fn().mockResolvedValue({}),
+  catalogService: {
+    getPrograms: (...args: unknown[]) => mockProgramList(...args),
+    getInstitutions: (...args: unknown[]) => mockInstitutionList(...args),
   },
 }))
+
+vi.mock('@/services/admin/catalog', () => ({
+  catalogAdminService: {
+    listCanonicalPrograms: (...args: unknown[]) => mockCanonicalList(...args),
+    createOffering: vi.fn().mockResolvedValue({ id: 'offering-new' }),
+    updateOffering: vi.fn().mockResolvedValue({ id: 'offering-edit' }),
+    deactivateOffering: vi.fn().mockResolvedValue({ id: 'offering-del' }),
+    createInstitution: vi.fn().mockResolvedValue({ id: 'inst-new' }),
+    updateInstitution: vi.fn().mockResolvedValue({ id: 'inst-edit' }),
+    deactivateInstitution: vi.fn().mockResolvedValue({ id: 'inst-del' }),
+  },
+}))
+
+const MOCK_CANONICAL_PROGRAMS = [
+  { id: 'canon-001', name: 'Clinical Medicine', code: 'CANON-CM' },
+  { id: 'canon-002', name: 'Registered Nursing', code: 'CANON-DRN' },
+]
 
 // ── Django API response shapes for catalog programs ───────────────────
 const MOCK_DJANGO_PROGRAMS_RESPONSE = {
@@ -167,10 +182,12 @@ describe('Admin programs page verification', () => {
   beforeEach(() => {
     mockProgramList.mockClear()
     mockInstitutionList.mockClear()
+    mockCanonicalList.mockClear()
 
     // Default: return valid catalog data
     mockProgramList.mockResolvedValue(MOCK_DJANGO_PROGRAMS_RESPONSE)
     mockInstitutionList.mockResolvedValue(MOCK_DJANGO_INSTITUTIONS_RESPONSE)
+    mockCanonicalList.mockResolvedValue(MOCK_CANONICAL_PROGRAMS)
 
     queryClient = new QueryClient({
       defaultOptions: {

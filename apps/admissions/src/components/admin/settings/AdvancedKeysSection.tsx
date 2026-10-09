@@ -1,10 +1,9 @@
-import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import { ChevronDown, ChevronUp, Database, Edit2, Globe, Lock, Plus, Save, Trash2, X } from 'lucide-react'
 import type { SystemSetting } from '@/lib/api/adminApi'
-import type { NewSetting, SettingValueType } from '@/pages/admin/lib/settingsValidation'
+import type { NewSetting } from '@/pages/admin/lib/settingsValidation'
 import { formatValue, getValueTypeClass, inferValueType } from '@/pages/admin/lib/settingsValidation'
 
 interface AdvancedKeysSectionProps {

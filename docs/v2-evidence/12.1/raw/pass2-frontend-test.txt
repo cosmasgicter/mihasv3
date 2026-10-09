@@ -1,0 +1,30 @@
+$ cd apps/admissions && bun run test
+# Second pass (task 12.1 backend half). The frontend was NOT touched by this pass;
+# this is a regression check against the pass-1 candidate.
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/authPageFormMarkup.test.tsx[2m > [22mauth page form markup[2m > [22muses honest helper copy instead of fake email availability states
+[31m[1mAssertionError[22m: expected '<div class="min-h-dvh bg-muted"><div …' to contain 'We&#x27;ll verify this address.'[39m
+
+Expected: [32m"We&#x27;ll verify this address."[39m
+Received: [31m"<div class="min-h-dvh bg-muted"><div class="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-10 sm:px-6 sm:py-16"><a class="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted" aria-label="Beanola home" href="/"><img sr   … [received markup truncated for evidence]
+
+[36m [2m❯[22m tests/unit/authPageFormMarkup.test.tsx:[2m106:20[22m[39m
+    [90m104| [39m
+    [90m105| [39m    [90m// The redesigned helper text is more direct and honest.[39m
+    [90m106| [39m    [34mexpect[39m(markup)[33m.[39m[34mtoContain[39m([32m"We&#x27;ll verify this address."[39m)
+    [90m   | [39m                   [31m^[39m
+    [90m107| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'Checking...'[39m)
+    [90m108| [39m    [34mexpect[39m(markup)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'>Available<'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m491 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (493)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4584 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (4586)[39m
+[2m   Start at [22m 05:30:19
+[2m   Duration [22m 100.63s[2m (transform 40.06s, setup 9.49s, import 226.88s, tests 311.16s, environment 527.40s)[22m
+
+error: script "test" exited with code 1
+

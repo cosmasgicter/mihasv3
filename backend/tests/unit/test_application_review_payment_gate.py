@@ -39,8 +39,18 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+        # Only patch the module-level name if it is still there. Task 9.4 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point this
+        # fixture began raising ``AttributeError`` **at setup** and every case in this
+        # file errored rather than ran. Guarding the patch target (rather than only
+        # the import) is what makes the fixture describe the code that exists. The
+        # remaining ``apps.catalog.services.AccessScopeService`` target below is the
+        # real seam: ``resolve_scoped_application`` imports it lazily from there.
+        # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -153,7 +163,6 @@ class TestAdminReviewCannotReverseSuccessfulPayment:
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
 
-    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
     @patch("apps.documents.payment_service.PaymentService")
     @patch("apps.applications.admin_views.Application.objects")
     def test_review_refuses_to_reverse_successful_payment_to_failed(
@@ -215,7 +224,6 @@ class TestAdminReviewCannotReverseSuccessfulPayment:
         # have mutated it.
         assert app.payment_status == "successful"
 
-    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
     @patch("apps.documents.payment_service.PaymentService")
     @patch("apps.applications.admin_views.Application.objects")
     def test_review_refuses_to_reverse_successful_payment_to_pending(

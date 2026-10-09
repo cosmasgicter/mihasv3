@@ -1,0 +1,42 @@
+
+Running 4 tests using 1 worker
+
+  ✘  1 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (34.4s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (305ms)
+  ✓  3 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR (14.0s)
+  ✓  4 [mobile-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:256:3 › Deterministic OCR is optional: manual entry always works (R11.4) › the served bundle ships no browser OCR asset (R11.9, STU-07) (265ms)
+
+
+  1) [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('education-step')
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 30000ms[22m
+    [2m  - waiting for getByTestId('education-step')[22m
+
+
+      182 |     // --- Step 4: education — the actual claim ------------------------------
+      183 |     const education = page.getByTestId('education-step');
+    > 184 |     await expect(education).toBeVisible({ timeout: 30_000 });
+          |                             ^
+      185 |
+      186 |     // OCR UNAVAILABLE: nothing was read, so nothing is suggested, and the step is
+      187 |     // usable anyway. A student is never waiting on a scan to be able to continue.
+        at /home/cosmas/Downloads/mihasv3/apps/admissions/tests/harness-e2e/required/ocr-manual-fallback.spec.ts:184:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/required-ocr-manual-fallba-c28a0--grades-by-hand-with-no-OCR-chromium-required/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/required-ocr-manual-fallba-c28a0--grades-by-hand-with-no-OCR-chromium-required/error-context.md
+
+  1 failed
+    [chromium-required] › tests/harness-e2e/required/ocr-manual-fallback.spec.ts:146:3 › Deterministic OCR is optional: manual entry always works (R11.4) › a student reaches the education step and enters grades by hand, with no OCR 
+  3 passed (51.8s)
+EXIT=1

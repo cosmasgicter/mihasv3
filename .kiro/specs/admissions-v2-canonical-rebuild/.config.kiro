@@ -1,0 +1,22 @@
+{
+  "specId": "d1300058-e07d-433d-8aac-87e9986794a6",
+  "name": "admissions-v2-canonical-rebuild",
+  "workflowType": "requirements-first",
+  "specType": "platform-remediation",
+  "status": "planned",
+  "createdAt": "2026-07-12",
+  "release": "2.0.0",
+  "deferredOn": {
+    "reason": "production-canary-and-apply (host offline, hosting being switched)",
+    "openItem": "deploy prepared canary to new *.beanola.com host; apply rehearsed additive migrations L2/L3/L7 (TEN-09, STU-13, GATE-13.5-01/-13.4-02); close GATE-13.5-02/-04; two human sign-offs in docs/v2-evidence/13.5/sign-off.md",
+    "owner": "operator",
+    "trigger": "new hosting provider is live",
+    "tasksBlocked": [
+      "13.5",
+      "13.6"
+    ],
+    "everythingElse": "complete and verified; validators green; 71/73 required tasks checked and evidenced",
+    "recordedAt": "2026-10-09",
+    "evidence": "docs/v2-evidence/13.6/README.md Part III; docs/v2-evidence/13.5/README.md section 11"
+  }
+}

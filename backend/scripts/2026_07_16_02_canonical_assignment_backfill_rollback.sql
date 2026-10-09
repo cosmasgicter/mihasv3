@@ -1,0 +1,44 @@
+-- Rollback for 2026_07_16_02_canonical_assignment_backfill.sql (task 3.2 BACKFILL).
+--
+-- Operator-run only (excluded from the apply_sql_migrations sweep). Reverses the
+-- backfill BOOKKEEPING: it empties the exception ledger this migration populated.
+--
+-- The canonical-id backfill itself is FORWARD-ONLY by design (design.md §15.2:
+-- expand/backfill/verify/switch/contract — application rollback runs while the
+-- expanded schema remains). The Step 3 UPDATE only ever filled columns that were
+-- NULL, so it is idempotent, but it is intentionally NOT reverted here because we
+-- cannot distinguish an id we filled from one that pre-existed. To fully revert
+-- the DATA, discard the Neon rehearsal branch or restore from the pre-change
+-- backup (deploy/backup-db.sh). The Step 1 canonical-linkage bootstrap is also
+-- forward-only and owned onward by task 5.1, so it is left intact.
+--
+-- Why the quarantine flag is NOT reset here (task 13.4, GATE-13.1-06)
+-- ------------------------------------------------------------------
+-- This file used to carry
+--     UPDATE applications SET assignment_quarantined = false
+--      WHERE assignment_quarantined = true;
+-- and that statement could not run. chk_applications_canonical_assignment (added
+-- by the 01_ expand) exempts a non-draft row from the four-canonical-id
+-- requirement ONLY while assignment_quarantined = true, and Postgres enforces a
+-- CHECK on UPDATE even when the constraint is NOT VALID — NOT VALID only skips
+-- the initial scan of pre-existing rows. So clearing the flag on precisely the
+-- rows the backfill quarantined raises SQLSTATE 23514 and aborts the rollback,
+-- leaving the operator worse off than before they ran it. Measured on the Neon
+-- rehearsal branch: docs/v2-evidence/13.4/raw/c5-rollback-defect-proof.txt.
+--
+-- Nothing needs to replace it. assignment_quarantined lives in an ADDITIVE column
+-- that the 01_ expand rollback drops wholesale
+-- (ALTER TABLE applications DROP COLUMN IF EXISTS assignment_quarantined), so
+-- dropping the column reverts the data. Run order is 03_ -> 02_ -> 01_, and the
+-- 03_ rollback runs first, so no constraint depends on the flag by the time the
+-- column goes. This is the same reading task 3.5 wrote into its own sibling,
+-- 2026_07_19_02_payments_documents_backfill_rollback.sql, for the identical
+-- payments quarantine flag — that lane got it right and this one did not.
+--
+-- Run this BEFORE the 01_ expand rollback (the ledger table must still exist) and
+-- AFTER the 03_ validate rollback.
+
+-- Remove exactly the quarantine ledger rows this migration inserted
+-- (scoped DELETE ... WHERE — inverse-additive-safe per Requirement 9.2).
+DELETE FROM canonical_assignment_exceptions
+WHERE owner = 'admissions-data-remediation';

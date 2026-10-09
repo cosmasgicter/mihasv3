@@ -21,7 +21,7 @@ from apps.documents.payment_constants import CanonicalStatus
 
 @dataclass(frozen=True)
 class PaymentInitiationResult:
-    """Returned by ``PaymentService.initiate_payment()``."""
+    """Returned by ``PaymentService.initiate()`` / ``defer_payment()``."""
 
     payment_id: UUID | None
     reference: str
@@ -31,7 +31,7 @@ class PaymentInitiationResult:
 
 @dataclass(frozen=True)
 class PaymentVerificationResult:
-    """Returned by ``PaymentService.verify_payment()``."""
+    """Returned by ``PaymentService.verify()``."""
 
     status: str
     amount: Decimal | None

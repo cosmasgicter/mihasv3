@@ -1,0 +1,440 @@
+]633;E;echo '$ cd backend && python3 -m pytest $(ls tests/unit/*.py tests/property/*.py | grep -iE "payment|fee|document|webhook")   # DATABASE_URL=<localtest 5433> TESTING=1';7b199fe5-479c-455f-9bde-95836a1c0a08]633;C$ cd backend && python3 -m pytest $(ls tests/unit/*.py tests/property/*.py | grep -iE "payment|fee|document|webhook")   # DATABASE_URL=<localtest 5433> TESTING=1
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0
+django: version: 5.2.14, settings: config.settings.dev (from ini)
+rootdir: /home/cosmas/Downloads/mihasv3/backend
+configfile: pyproject.toml
+plugins: hypothesis-6.152.7, django-4.12.0, Faker-40.18.0, xdist-3.8.0, anyio-4.13.0
+collected 1047 items
+
+tests/property/test_document_profile_resolution_properties.py .          [  0%]
+tests/property/test_document_requirement_resolution.py .....             [  0%]
+tests/property/test_official_document_deletion_properties.py .           [  0%]
+tests/property/test_official_document_failure_degradation.py .           [  0%]
+tests/property/test_official_document_gating_properties.py .             [  0%]
+tests/property/test_official_document_lifecycle_properties.py F          [  0%]
+tests/property/test_official_document_provenance_properties.py .         [  1%]
+tests/property/test_payment_fee_resolver_properties.py ..s               [  1%]
+tests/property/test_payment_receipt_properties.py ..                     [  1%]
+tests/property/test_payment_state_machine_properties.py ................ [  3%]
+........................................................................ [  9%]
+............................................................             [ 15%]
+tests/property/test_payment_webhook_properties.py ...                    [ 15%]
+tests/property/test_perf_payment_poll.py ....                            [ 16%]
+tests/property/test_perf_payment_summary.py ...........                  [ 17%]
+tests/unit/test_document_evidence_versions_7_3.py ...                    [ 17%]
+tests/unit/test_document_extract_scope.py .......                        [ 18%]
+tests/unit/test_document_profile_versioning.py ...........               [ 19%]
+tests/unit/test_fee_quote_contract_8_1.py ..........................     [ 21%]
+tests/unit/test_fee_quote_endpoint_8_1.py ...............                [ 23%]
+tests/unit/test_fee_resolver_canonical_isolation.py ......               [ 23%]
+tests/unit/test_official_document_dedup_guard.py ....                    [ 24%]
+tests/unit/test_official_document_deletion.py ......                     [ 24%]
+tests/unit/test_official_document_lifecycle_audit.py ...                 [ 25%]
+tests/unit/test_official_document_signed_download.py ..                  [ 25%]
+tests/unit/test_official_documents.py ........                           [ 26%]
+tests/unit/test_payment_api_contract_preservation.py .                   [ 26%]
+tests/unit/test_payment_backward_compatibility.py ..                     [ 26%]
+tests/unit/test_payment_dev_bypass_404.py .ssssssssssssssssssss          [ 28%]
+tests/unit/test_payment_dev_bypass_404_phase5.py ...................s    [ 30%]
+tests/unit/test_payment_dev_bypass_audit.py ..............s              [ 31%]
+tests/unit/test_payment_dev_bypass_dev_passthrough_phase5.py ......      [ 32%]
+tests/unit/test_payment_document_reconciliation_3_5.py ....FF.           [ 32%]
+tests/unit/test_payment_migration_indexes.py ...........                 [ 34%]
+tests/unit/test_payment_phase_8_2.py ......                              [ 34%]
+tests/unit/test_payment_rate_limiting.py ......                          [ 35%]
+tests/unit/test_payment_rate_limiting_envelope.py .                      [ 35%]
+tests/unit/test_payment_rate_limiting_flag_default.py ..                 [ 35%]
+tests/unit/test_payment_rate_limiting_webhook_exempt.py .                [ 35%]
+tests/unit/test_payment_retry_reference_refresh.py ..                    [ 35%]
+tests/unit/test_payment_review_reopen.py EEE                             [ 36%]
+tests/unit/test_payment_risk_flags_endpoint.py ............              [ 37%]
+tests/unit/test_payment_sensitive_fields_lock.py sssssssssssssssssssssss [ 39%]
+ssssssssssssss                                                           [ 40%]
+tests/unit/test_payment_service_force_approve.py ....                    [ 41%]
+tests/unit/test_payment_service_transitions.py ......................... [ 43%]
+..............                                                           [ 44%]
+tests/unit/test_payment_settlement_tenant.py ........                    [ 45%]
+tests/unit/test_payment_snapshot_backfill.py .                           [ 45%]
+tests/unit/test_payment_snapshot_backfill_ambiguous.py .                 [ 45%]
+tests/unit/test_payment_snapshot_backfill_verify.py ...                  [ 46%]
+tests/unit/test_payment_webhook_returns_200.py ..X..                     [ 46%]
+tests/unit/test_super_admin_payment_correction.py ......                 [ 47%]
+tests/unit/test_synthesized_legacy_documents.py ....                     [ 47%]
+tests/unit/test_webhook_processor_dedup.py ....                          [ 47%]
+tests/property/test_payment_initiation.py .                              [ 47%]
+tests/property/test_payment_receipt_properties.py ...                    [ 48%]
+tests/property/test_payment_state_machine_properties.py .                [ 48%]
+tests/property/test_payment_status_update.py ..                          [ 48%]
+tests/property/test_webhook_idempotency.py ...                           [ 48%]
+tests/unit/test_document_evidence_versions_7_3.py ...................... [ 50%]
+....                                                                     [ 51%]
+tests/unit/test_payment_idempotence_8_2.py .................             [ 52%]
+tests/unit/test_payment_receipt_generation.py ..ssss                     [ 53%]
+tests/unit/test_payment_reconciliation_task.py .........                 [ 54%]
+tests/unit/test_payment_single_path_8_2.py ......................        [ 56%]
+tests/unit/test_payment_structured_logging.py xx                         [ 56%]
+tests/unit/test_payment_webhook_out_of_order.py .                        [ 56%]
+tests/unit/test_webhook_processor_canonical_json.py .                    [ 56%]
+tests/unit/test_webhook_processor_dedup.py ...                           [ 57%]
+tests/unit/test_webhook_processor_unknown_event.py .                     [ 57%]
+tests/property/test_admin_fee_auth.py .....                              [ 57%]
+tests/property/test_document_fingerprint_properties.py .                 [ 57%]
+tests/property/test_documents_error_handling.py .....                    [ 58%]
+tests/property/test_fee_resolution.py .........                          [ 59%]
+tests/property/test_fee_resolver.py ........                             [ 59%]
+tests/property/test_fee_resolver_correctness.py ....                     [ 60%]
+tests/property/test_payment_fee_matching.py .......                      [ 60%]
+tests/property/test_payment_fee_resolver_properties.py ...               [ 61%]
+tests/property/test_payment_forward_transitions.py .....                 [ 61%]
+tests/property/test_payment_receipt_properties.py ......                 [ 62%]
+tests/property/test_payment_reference.py ....                            [ 62%]
+tests/property/test_payment_status_normalization.py .............        [ 63%]
+tests/property/test_payment_transitions.py .                             [ 63%]
+tests/property/test_payment_webhook_properties.py ...                    [ 64%]
+tests/property/test_program_fee_coverage.py ........                     [ 65%]
+tests/property/test_program_fee_uniqueness.py ...                        [ 65%]
+tests/property/test_program_fee_validation.py .....                      [ 65%]
+tests/property/test_webhook_logging.py .                                 [ 65%]
+tests/property/test_webhook_signature.py ...                             [ 66%]
+tests/unit/test_application_review_payment_gate.py EEE                   [ 66%]
+tests/unit/test_document_evidence_versions_7_3.py ...................... [ 68%]
+......                                                                   [ 69%]
+tests/unit/test_document_payment_envelopes.py ..                         [ 69%]
+tests/unit/test_document_sla.py ....                                     [ 69%]
+tests/unit/test_draft_delete_payment_protection.py ......                [ 70%]
+tests/unit/test_fee_resolver_international.py .......                    [ 70%]
+tests/unit/test_fee_waivers.py ..............                            [ 72%]
+tests/unit/test_lenco_webhook_allowlist.py ....                          [ 72%]
+tests/unit/test_official_document_signed_download.py ...........         [ 73%]
+tests/unit/test_official_documents.py .................................. [ 76%]
+.....                                                                    [ 77%]
+tests/unit/test_payment_api_contract_preservation.py .........           [ 78%]
+tests/unit/test_payment_audit_service.py ......................          [ 80%]
+tests/unit/test_payment_dev_bypass_dev_passthrough.py ...                [ 80%]
+tests/unit/test_payment_document_reconciliation_3_5.py ...........       [ 81%]
+tests/unit/test_payment_envelope_contract.py .....................       [ 83%]
+tests/unit/test_payment_error_codes_snapshot.py ........................ [ 86%]
+....                                                                     [ 86%]
+tests/unit/test_payment_expiry.py .........                              [ 87%]
+tests/unit/test_payment_force_approved_propagation.py .....              [ 87%]
+tests/unit/test_payment_idempotence_8_2.py .                             [ 87%]
+tests/unit/test_payment_initiate_contract.py .                           [ 87%]
+tests/unit/test_payment_metrics_registry.py ...........                  [ 89%]
+tests/unit/test_payment_next_action_canonical.py ....                    [ 89%]
+tests/unit/test_payment_phase_8_2.py ...................                 [ 91%]
+tests/unit/test_payment_resilience.py ...                                [ 91%]
+tests/unit/test_payment_service_sole_authority.py .                      [ 91%]
+tests/unit/test_payment_single_path_8_2.py ..                            [ 91%]
+tests/unit/test_payment_status_canonical.py ....                         [ 92%]
+tests/unit/test_payment_throttle_classes.py ......................       [ 94%]
+tests/unit/test_payment_throttling.py ..                                 [ 94%]
+tests/unit/test_payments_serializers.py ...........                      [ 95%]
+tests/unit/test_required_documents_contract.py ......................... [ 97%]
+..............                                                           [ 99%]
+tests/unit/test_super_admin_payment_correction_routing.py ...            [ 99%]
+tests/unit/test_webhook_processor_signature.py .....                     [100%]
+
+==================================== ERRORS ====================================
+_______ ERROR at setup of test_reopen_failed_payment_to_pending_succeeds _______
+tests/unit/test_payment_review_reopen.py:54: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+______ ERROR at setup of test_reopen_deferred_payment_to_pending_succeeds ______
+tests/unit/test_payment_review_reopen.py:54: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_________ ERROR at setup of test_reopen_successful_payment_blocked_409 _________
+tests/unit/test_payment_review_reopen.py:54: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestApplicationReviewPaymentGate.test_approval_accepts_legacy_paid_payment_row _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAdminReviewCannotReverseSuccessfulPayment.test_review_refuses_to_reverse_successful_payment_to_failed _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+_ ERROR at setup of TestAdminReviewCannotReverseSuccessfulPayment.test_review_refuses_to_reverse_successful_payment_to_pending _
+tests/unit/test_application_review_payment_gate.py:51: in _passthrough_access_scope_autouse
+    m = stack.enter_context(_patch(t))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1510: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1480: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'
+=================================== FAILURES ===================================
+_ TestOfficialDocumentLifecycleProperty.test_repeated_generation_reuses_single_current_version _
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(a06ab2d7-12d9-4499-8ed0-09f409a9e992, acceptance_letter) already exists.
+
+The above exception was the direct cause of the following exception:
+apps/documents/document_evidence.py:697: in commit_version
+    document = ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(a06ab2d7-12d9-4499-8ed0-09f409a9e992, acceptance_letter) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/property/test_official_document_lifecycle_properties.py:226: in test_repeated_generation_reuses_single_current_version
+    @given(
+            
+tests/property/test_official_document_lifecycle_properties.py:266: in test_repeated_generation_reuses_single_current_version
+    _generate(document_type, application)
+tests/property/test_official_document_lifecycle_properties.py:141: in _generate
+    task(str(application.id))
+.venv/lib/python3.14/site-packages/celery/local.py:182: in __call__
+    return self._get_current_object()(*a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:430: in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:67: in generate_acceptance_letter_task
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+apps/applications/tasks/pdf_generation.py:265: in _generate_official_document_task
+    raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/celery/app/task.py:753: in retry
+    raise_with_context(exc or Retry('Task can be retried', None))
+apps/applications/tasks/pdf_generation.py:198: in _generate_official_document_task
+    evidence.commit_version(
+apps/documents/document_evidence.py:719: in commit_version
+    raise DocumentCommandError(
+E   apps.documents.document_evidence.DocumentCommandError: Another upload for this document finished first. Please reload and try again.
+E   Falsifying example: test_repeated_generation_reuses_single_current_version(
+E       self=<tests.property.test_official_document_lifecycle_properties.TestOfficialDocumentLifecycleProperty object at 0x7214128d9310>,
+E       document_type='acceptance_letter',
+E       repeat=2,
+E       change_kind=None,
+E       with_preexisting_deleted=True,
+E   )
+----------------------------- Captured stderr call -----------------------------
+{"time": "2026-07-30T19:50:27.646262+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-07-30T19:50:27.646533+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-07-30T19:50:27.646675+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application fbfb99e8-a3f1-46e5-861e-ef31e34ab4cb (attempt 1/4): Another upload for this document finished first. Please reload and try again."}
+{"time": "2026-07-30T19:50:28.088618+00:00", "level": "INFO", "logger": "apps.common.metrics", "message": "document.stage.compensation_pending", "type": "app_metric", "metric": "document.stage.compensation_pending"}
+{"time": "2026-07-30T19:50:28.088996+00:00", "level": "WARNING", "logger": "apps.documents.document_evidence", "message": "document staged-object compensation deferred to the sweeper"}
+{"time": "2026-07-30T19:50:28.089192+00:00", "level": "WARNING", "logger": "apps.applications.tasks.pdf_generation", "message": "acceptance_letter generation failed for application a06ab2d7-12d9-4499-8ed0-09f409a9e992 (attempt 1/4): Another upload for this document finished first. Please reload and try again."}
+------------------------------ Captured log call -------------------------------
+INFO     apps.common.metrics:metrics.py:7 document.stage.compensation_pending
+WARNING  apps.documents.document_evidence:document_evidence.py:609 document staged-object compensation deferred to the sweeper
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application fbfb99e8-a3f1-46e5-861e-ef31e34ab4cb (attempt 1/4): Another upload for this document finished first. Please reload and try again.
+INFO     apps.common.metrics:metrics.py:7 document.stage.compensation_pending
+WARNING  apps.documents.document_evidence:document_evidence.py:609 document staged-object compensation deferred to the sweeper
+WARNING  apps.applications.tasks.pdf_generation:pdf_generation.py:249 acceptance_letter generation failed for application a06ab2d7-12d9-4499-8ed0-09f409a9e992 (attempt 1/4): Another upload for this document finished first. Please reload and try again.
+___________ test_document_versions_assigned_and_one_current_enforced ___________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(82b83468-768a-4b0a-b38f-0d68998cd350, result_slip) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/unit/test_payment_document_reconciliation_3_5.py:407: in test_document_versions_assigned_and_one_current_enforced
+    doc = ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(82b83468-768a-4b0a-b38f-0d68998cd350, result_slip) already exists.
+_______________________ test_full_sequence_is_idempotent _______________________
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(4fc73216-a865-44d5-ab8e-72307c641d0f, extra_kyc) already exists.
+
+The above exception was the direct cause of the following exception:
+tests/unit/test_payment_document_reconciliation_3_5.py:456: in test_full_sequence_is_idempotent
+    ApplicationDocument.objects.create(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:665: in create
+    obj.save(force_insert=True, using=self.db)
+.venv/lib/python3.14/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.14/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.14/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/models/sql/compiler.py:1882: in execute_sql
+    cursor.execute(sql, params)
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:79: in execute
+    return self._execute_with_wrappers(
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:92: in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:100: in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/django/db/utils.py:91: in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+.venv/lib/python3.14/site-packages/django/db/backends/utils.py:105: in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   django.db.utils.IntegrityError: duplicate key value violates unique constraint "uq_application_documents_one_current"
+E   DETAIL:  Key (application_id, document_type)=(4fc73216-a865-44d5-ab8e-72307c641d0f, extra_kyc) already exists.
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/property/test_official_document_deletion_properties.py: 1 warning
+tests/property/test_official_document_gating_properties.py: 1 warning
+tests/property/test_official_document_provenance_properties.py: 1 warning
+tests/unit/test_document_extract_scope.py: 7 warnings
+tests/unit/test_official_document_deletion.py: 6 warnings
+tests/unit/test_official_document_lifecycle_audit.py: 3 warnings
+tests/unit/test_official_document_signed_download.py: 2 warnings
+tests/unit/test_payment_api_contract_preservation.py: 1 warning
+tests/unit/test_payment_dev_bypass_404.py: 1 warning
+tests/unit/test_payment_dev_bypass_404_phase5.py: 19 warnings
+tests/unit/test_payment_rate_limiting.py: 6 warnings
+tests/unit/test_payment_rate_limiting_envelope.py: 1 warning
+tests/unit/test_payment_rate_limiting_flag_default.py: 2 warnings
+tests/unit/test_payment_rate_limiting_webhook_exempt.py: 1 warning
+tests/unit/test_payment_settlement_tenant.py: 3 warnings
+tests/unit/test_payment_webhook_returns_200.py: 5 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/property/test_official_document_lifecycle_properties.py::TestOfficialDocumentLifecycleProperty::test_repeated_generation_reuses_single_current_version
+FAILED tests/unit/test_payment_document_reconciliation_3_5.py::test_document_versions_assigned_and_one_current_enforced
+FAILED tests/unit/test_payment_document_reconciliation_3_5.py::test_full_sequence_is_idempotent
+ERROR tests/unit/test_payment_review_reopen.py::test_reopen_failed_payment_to_pending_succeeds
+ERROR tests/unit/test_payment_review_reopen.py::test_reopen_deferred_payment_to_pending_succeeds
+ERROR tests/unit/test_payment_review_reopen.py::test_reopen_successful_payment_blocked_409
+ERROR tests/unit/test_application_review_payment_gate.py::TestApplicationReviewPaymentGate::test_approval_accepts_legacy_paid_payment_row
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_failed
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_pending
+= 3 failed, 971 passed, 64 skipped, 2 xfailed, 1 xpassed, 61 warnings, 6 errors in 154.46s (0:02:34) =

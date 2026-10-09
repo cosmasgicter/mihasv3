@@ -1,0 +1,41 @@
+SCHEMA DIFF MATRIX — baseline = fresh-from-empty (repo SQL applied to an empty PG 16)
+tool: backend/apps/common/management/commands/schema_manifest.py (task 3.1)
+
+==============================================================================
+fresh-from-empty  ->  migrated-snapshot    ok=False  failures=230  warnings=60
+  sample diff record keys: ['category', 'detail', 'object', 'severity']
+        60  warning  extra_index
+        56  failure  column_changed
+        38  failure  missing_migration
+        28  failure  foreign_key_changed
+        28  failure  unvalidated_foreign_key
+        21  failure  extra_foreign_key
+        21  failure  missing_index
+        17  failure  missing_foreign_key
+        13  failure  missing_check_constraint
+         3  failure  extra_column
+         2  failure  missing_table
+         1  failure  missing_column
+         1  failure  check_constraint_changed
+         1  failure  migration_checksum_changed
+==============================================================================
+fresh-from-empty  ->  neon-authoring    ok=False  failures=628  warnings=186
+  sample diff record keys: ['category', 'detail', 'object', 'severity']
+       257  failure  column_changed
+       140  warning  extra_index
+       120  failure  missing_index
+        80  failure  extra_foreign_key
+        78  failure  missing_foreign_key
+        29  warning  extra_migration
+        28  failure  missing_migration
+        20  failure  missing_check_constraint
+        14  warning  extra_trigger
+        11  failure  missing_table
+         9  failure  unvalidated_foreign_key
+         8  failure  extra_column
+         7  failure  check_constraint_changed
+         5  failure  unique_constraint_changed
+         3  warning  extra_extension
+         2  failure  missing_unique_constraint
+         2  failure  migration_checksum_changed
+         1  failure  missing_column

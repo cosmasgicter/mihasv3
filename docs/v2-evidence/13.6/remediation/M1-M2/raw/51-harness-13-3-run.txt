@@ -1,0 +1,57 @@
+### 2026-08-15T08:17:17Z the 13.3 long-content spec, both required projects, after M1
+# HARNESS_PW_CHANNEL=chrome (bundled Chromium is unsupported on ubuntu26.04-x64)
+# V2_EVIDENCE_DIR=docs/v2-evidence/13.6/remediation/M1-M2/raw/harness  (L8's default; this run
+#   writes into ITS OWN directory, never 0.4 or 13.3)
+# --timeout=180000: 13.6 §18.1 item M5 records that the base profile's timeout is too low on
+#   this box and that raising it turns 7 failures into 12 passes. M5 is not this batch's, so the
+#   base config was NOT edited - the value is passed on the command line for this run only.
+# harness up was run first, which rebuilt the web image, so the model change is in the container.
+
+$ bunx playwright test -c playwright.harness.config.ts --project=chromium-required --project=mobile-required \
+    tests/harness-e2e/required/long-content-tenant-strings.spec.ts --timeout=180000
+
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:431:1 › a 180-character program name and 120-character intake name hold at all six widths (2.8m)
+  ✓   2 [chromium-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:501:1 › localized program names (RTL, CJK, Devanagari) hold at the narrowest and widest widths (29.2s)
+  ✓   3 [chromium-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:573:1 › a 150-character tenant name resolves through context without breaking a layout (43.2s)
+  ✓   4 [chromium-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:724:1 › GATE-13.3-13 (closed): an application can be created for a legally-named long intake (1.7s)
+  ✓   5 [chromium-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:872:1 › GATE-13.3-14 (closed): the rendered font stack is the full declared chain (740ms)
+  ✓   6 [mobile-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:431:1 › a 180-character program name and 120-character intake name hold at all six widths (2.9m)
+  ✓   7 [mobile-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:501:1 › localized program names (RTL, CJK, Devanagari) hold at the narrowest and widest widths (30.4s)
+  ✓   8 [mobile-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:573:1 › a 150-character tenant name resolves through context without breaking a layout (43.9s)
+  ✓   9 [mobile-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:724:1 › GATE-13.3-13 (closed): an application can be created for a legally-named long intake (1.7s)
+  ✓  10 [mobile-required] › tests/harness-e2e/required/long-content-tenant-strings.spec.ts:872:1 › GATE-13.3-14 (closed): the rendered font stack is the full declared chain (839ms)
+
+  10 passed (8.4m)
+
+--- the GATE-13.3-13 row's own recording, from this run's measurements file ---
+docs/v2-evidence/13.6/remediation/M1-M2/raw/harness/raw/measurements-chromium-required.jsonl
+docs/v2-evidence/13.6/remediation/M1-M2/raw/harness/raw/measurements-mobile-required.jsonl
+### 2026-08-15T08:17:18Z done
+{
+  "applicationCreateBody": "{\"success\":true,\"data\":{\"id\":\"dcfd2176-b9f6-4864-87e5-d525c27aec59\",\"user_id\":\"36d230fe-c0c8-4db8-8355-cedd03b2aeba\",\"application_number\":\"MIHAS202600003\",\"public_tracking_code\":\"TRK-MIHAS20261C2B89\",\"tracking_code\":\"TRK-MIHAS20261C2B89\",\"full_name\":\"Harness Overlong Intake\",\"nrc_number\":\"411690/11/1\",\"passport_number\":\"\",\"date_of_birth\":\"2004-05-04\",\"sex\":\"male\",\"phone\":\"+260971000001\",\"email\":\"h",
+  "applicationCreateStatus": 201,
+  "catalogueAcceptedTheName": true,
+  "expectedToFail": false,
+  "finding": "GATE-13.3-13",
+  "intakeNameLength": 113,
+  "kind": "long intake overflow",
+  "owner": "closed by task 13.6 remediation M1 \u2014 applications.intake varchar(255) matches intakes.name varchar(255)",
+  "project": "chromium-required"
+}
+
+{
+  "applicationCreateBody": "{\"success\":true,\"data\":{\"id\":\"b69c5fd2-413f-4636-a607-541cd90fde79\",\"user_id\":\"873b91a0-4f76-408f-9c5c-0de1aa6d6408\",\"application_number\":\"MIHAS202600006\",\"public_tracking_code\":\"TRK-MIHAS20266F8015\",\"tracking_code\":\"TRK-MIHAS20266F8015\",\"full_name\":\"Harness Overlong Intake\",\"nrc_number\":\"667503/11/1\",\"passport_number\":\"\",\"date_of_birth\":\"2004-05-04\",\"sex\":\"male\",\"phone\":\"+260971000001\",\"email\":\"h",
+  "applicationCreateStatus": 201,
+  "catalogueAcceptedTheName": true,
+  "expectedToFail": false,
+  "finding": "GATE-13.3-13",
+  "intakeNameLength": 113,
+  "kind": "long intake overflow",
+  "owner": "closed by task 13.6 remediation M1 \u2014 applications.intake varchar(255) matches intakes.name varchar(255)",
+  "project": "mobile-required"
+}
+
+### 2026-08-15T08:18:07Z done

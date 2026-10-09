@@ -1,0 +1,91 @@
+]633;E;printf '=== COMMAND: bun x vitest run <the 6 suites that own L12s seams> ===\\n';350e47f2-b26f-4d84-a4fe-32a7327b0941]633;C=== COMMAND: bun x vitest run <the 6 suites that own L12s seams> ===
+=== DATE: 2026-08-14T15:28:07Z ===
+=== WHY: the whole-suite run (raw/05) is the gate; this is the targeted read of the
+===      six suites that assert on what L12 moved:
+===        architectureEnforcement    — the grep twin of the R14.3 rule, allowlist now empty
+===        documentFlowDriftGuard     — the other dated frontend register
+===        useDocumentGeneration      — the dev receipt path L12 re-seamed (repaired here)
+===        usePaymentStatus           — the payments-service list reader
+===        fileUpload*.property x2    — the session probe that moved to services/sessionProbe
+=== ===
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [32m✓[39m tests/unit/usePaymentStatus.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/unit/documentFlowDriftGuard.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 215[2mms[22m[39m
+ [32m✓[39m tests/property/fileUploadProceedOnNetworkError.property.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/property/fileUploadRetryOnAuthError.property.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+ [32m✓[39m tests/unit/architectureEnforcement.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 276[2mms[22m[39m
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates slip using nested application envelope
+[22m[39m[useDocumentGeneration] Starting generation for type: slip
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates slip using nested application envelope
+[22m[39m[useDocumentGeneration] Application data: {
+  application_number: [32m'APP-001'[39m,
+  public_tracking_code: [32m'TRK-001'[39m,
+  status: [32m'approved'[39m,
+  payment_status: [32m'verified'[39m,
+  submitted_at: [32m'2026-01-01T00:00:00.000Z'[39m,
+  updated_at: [32m'2026-01-02T00:00:00.000Z'[39m,
+  program: [32m'Computer Science'[39m,
+  intake: [32m'Fall'[39m,
+  institution: [32m'MIHAS'[39m,
+  full_name: [32m'Jane Doe'[39m,
+  email: [32m'jane@example.com'[39m,
+  phone: [32m'+260000000000'[39m
+}
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates slip using nested application envelope
+[22m[39m[useDocumentGeneration] Generating slip PDF... [90mundefined[39m
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates slip using nested application envelope
+[22m[39m[useDocumentGeneration] Slip PDF generated successfully [90mundefined[39m
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates acceptance letter using legacy payload envelope
+[22m[39m[useDocumentGeneration] Starting generation for type: acceptance
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates acceptance letter using legacy payload envelope
+[22m[39m[useDocumentGeneration] Application data: {
+  application_number: [32m'APP-001'[39m,
+  public_tracking_code: [32m'TRK-001'[39m,
+  status: [32m'approved'[39m,
+  payment_status: [32m'verified'[39m,
+  submitted_at: [32m'2026-01-01T00:00:00.000Z'[39m,
+  updated_at: [32m'2026-01-02T00:00:00.000Z'[39m,
+  program: [32m'Computer Science'[39m,
+  intake: [32m'Fall'[39m,
+  institution: [32m'MIHAS'[39m,
+  full_name: [32m'Jane Doe'[39m,
+  email: [32m'jane@example.com'[39m,
+  phone: [32m'+260000000000'[39m
+}
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates receipt data from the backend receipt endpoint when available
+[22m[39m[useDocumentGeneration] Starting generation for type: receipt
+
+[90mstdout[2m | tests/unit/useDocumentGeneration.test.tsx[2m > [22m[2museDocumentGeneration payload handling[2m > [22m[2mvalidates and generates receipt data from the backend receipt endpoint when available
+[22m[39m[useDocumentGeneration] Application data: {
+  application_number: [32m'APP-001'[39m,
+  public_tracking_code: [32m'TRK-001'[39m,
+  status: [32m'approved'[39m,
+  payment_status: [32m'verified'[39m,
+  submitted_at: [32m'2026-01-01T00:00:00.000Z'[39m,
+  updated_at: [32m'2026-01-02T00:00:00.000Z'[39m,
+  program: [32m'Computer Science'[39m,
+  intake: [32m'Fall'[39m,
+  institution: [32m'MIHAS'[39m,
+  full_name: [32m'Jane Doe'[39m,
+  email: [32m'jane@example.com'[39m,
+  phone: [32m'+260000000000'[39m,
+  id: [32m'app-3'[39m
+}
+
+ [32m✓[39m tests/unit/useDocumentGeneration.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 17:27:45
+[2m   Duration [22m 1.79s[2m (transform 780ms, setup 124ms, import 1.38s, tests 706ms, environment 6.16s)[22m
+
+EXIT=0

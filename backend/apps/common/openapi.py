@@ -6,6 +6,12 @@ from drf_spectacular.extensions import OpenApiAuthenticationExtension
 # --- URL-prefix → domain tag mapping used by the `auto_tag_by_url_prefix`
 # postprocessing hook. More specific prefixes first.
 _URL_PREFIX_TAG_MAP = (
+    ("/api/v2/admin/", "admin"),
+    ("/api/v2/applications/", "applications"),
+    ("/api/v2/auth/", "auth"),
+    ("/api/v2/catalog/", "catalog"),
+    ("/api/v2/documents/", "documents"),
+    ("/api/v2/payments/", "payments"),
     ("/api/v1/admin/", "admin"),
     ("/api/v1/applications/", "applications"),
     ("/api/v1/auth/", "auth"),
@@ -152,7 +158,6 @@ _PUBLIC_PATH_PREFIXES = (
     "/api/v1/auth/refresh/",
     "/api/v1/auth/forgot-password/",
     "/api/v1/auth/reset-password/",
-    "/api/v1/auth/verify-email/",
 )
 
 

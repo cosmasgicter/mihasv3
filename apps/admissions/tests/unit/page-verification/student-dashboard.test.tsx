@@ -203,12 +203,19 @@ vi.mock('@/lib/applicationSession', () => ({
   },
 }))
 
-// ── Mock draftManager ─────────────────────────────────────────────────
-vi.mock('@/lib/draftManager', () => ({
-  draftManager: {
-    clearAllDrafts: vi.fn().mockResolvedValue(undefined),
-  },
-  clearAllDraftData: vi.fn(),
+// ── Mock the scoped draft-deletion command (task 11.1) ────────────────
+// The dashboard no longer has a clear-all: deletion addresses one
+// (user, application) through `deleteStudentDraft`.
+vi.mock('@/lib/studentDraftCleanup', () => ({
+  deleteStudentDraft: vi.fn().mockResolvedValue({ success: true, code: 'DELETED', applicationId: 'app-001' }),
+  PROTECTED_DRAFT_MESSAGE: 'protected',
+}))
+
+// ── Mock draftLocalCache (task 6.3 single-application-addressed cleanup) ──
+vi.mock('@/lib/draftLocalCache', () => ({
+  clearWizardDraftCache: vi.fn(),
+  clearNewWizardDraftCache: vi.fn(),
+  writeWizardDraftSnapshot: vi.fn(),
 }))
 
 // ── Mock heavy child components ───────────────────────────────────────
@@ -216,22 +223,13 @@ vi.mock('@/components/seo/Seo', () => ({
   Seo: () => null,
 }))
 
-vi.mock('@/components/application/ContinueApplication', () => ({
-  ContinueApplication: () => <div data-testid="continue-application" />,
-}))
-
-vi.mock('@/components/student/ApplicationTimeline', () => ({
-  ApplicationTimeline: ({ applications }: { applications: unknown[] }) => (
-    <div data-testid="application-timeline">Timeline ({applications?.length ?? 0})</div>
-  ),
-}))
-
-vi.mock('@/components/student/DashboardStatusOverview', () => ({
-  DashboardStatusOverview: () => <div data-testid="status-overview" />,
-}))
-
-vi.mock('@/components/ui/ProfileAutoPopulationIndicator', () => ({
-  ProfileCompletionBadge: () => <div data-testid="profile-badge" />,
+// ── Mock the server readiness read (task 6.5's contract, task 11.1's use) ──
+// The dashboard's next action is the platform's answer, so this page-verification
+// test states what the platform answered rather than letting the component guess.
+const mockReadinessGet = vi.fn()
+vi.mock('@/services/studentReadiness', () => ({
+  studentReadinessService: { get: (...args: unknown[]) => mockReadinessGet(...args) },
+  studentReadinessPath: (id: string) => `/api/v2/student/applications/${id}/readiness/`,
 }))
 
 // ── Mock tanstack react-query ─────────────────────────────────────────
@@ -276,6 +274,8 @@ describe('Student Dashboard page verification', () => {
     mockApplicationServiceList.mockResolvedValue(mockApplicationsResponse)
     mockCatalogServiceGetIntakes.mockResolvedValue(mockIntakesResponse)
     mockInterviewsServiceList.mockResolvedValue(mockInterviewsResponse)
+    // No draft in the fixture, so no readiness read is expected.
+    mockReadinessGet.mockResolvedValue(null)
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -352,7 +352,7 @@ describe('Student Dashboard page verification', () => {
     expect(text).toContain('September 2025 Intake')
   })
 
-  it('displays profile summary with user data', async () => {
+  it('displays the student\u2019s own details', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''

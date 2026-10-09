@@ -1,8 +1,41 @@
-import React, { useState, useRef } from 'react'
+/**
+ * Previewed, tenant-bound user import (Admissions V2, task 9.3).
+ *
+ * Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` task 9.3.
+ * Requirement: **R6.4** · Finding: **ADM-04**.
+ *
+ * What this replaces. The dialog used to parse the CSV, validate it *in the
+ * browser* against its own hardcoded list of acceptable roles, show the first
+ * five rows as a courtesy, and then post a bare array. So:
+ *
+ * - the "preview" was a display of five rows, not a statement about the file;
+ * - the role list was a third copy of a vocabulary the backend owns;
+ * - nothing bound the accounts to a school, so an imported `admin` had a role
+ *   string and zero tenant access;
+ * - a failure was a row of prose in a dialog the operator then closed.
+ *
+ * Now: this component parses the file into rows and does nothing else. The
+ * **server** splits names, normalises roles, applies the actor's ceiling per row,
+ * finds duplicates within the batch and against existing accounts, and answers
+ * with `would_commit` plus a row-addressed error list. Commit sends the same
+ * rows, declares its atomicity mode, and carries an idempotency key.
+ */
+import React, { useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
-import { apiClient } from '@/services/client'
-import { Upload, FileText, AlertTriangle, CheckCircle, XCircle, Users, Download } from 'lucide-react'
+import {
+  useUserImportCommit,
+  useUserImportPreview,
+} from '@/hooks/admin/useUserDirectory'
+import {
+  downloadImportErrors,
+  type UserImportMode,
+  type UserImportPreview,
+  type UserImportResult,
+  type UserImportRowInput,
+} from '@/services/admin/userDirectory'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { AlertTriangle, CheckCircle, Download, FileText, Upload, XCircle } from 'lucide-react'
 import { sanitizeForLog, sanitizeText, sanitizeEmail } from '@/lib/sanitize'
 import { toast } from '@/hooks/useToast'
 import { logger } from '@/lib/logger'
@@ -13,27 +46,8 @@ interface UserImportProps {
   onImportComplete: () => void
 }
 
-interface ImportResult {
-  success: number
-  failed: number
-  errors: Array<{ row: number; error: string; data?: Partial<UserData> }>
-  duplicates: number
-}
-
-interface UserData {
-  full_name: string
-  email: string
-  phone?: string
-  role: string
-  password?: string
-}
-
-function isCompleteUserData(userData: Partial<UserData>): userData is UserData {
-  return Boolean(userData.full_name && userData.email && userData.role)
-}
-
-const REQUIRED_FIELDS = ['full_name', 'email', 'role']
-const VALID_ROLES = ['student', 'reviewer', 'admin', 'super_admin']
+/** The columns the import understands. Mirrors `IMPORT_ROW_FIELDS`. */
+const REQUIRED_HEADERS = ['email', 'role'] as const
 
 /**
  * RFC-4180-correct CSV row parser. Handles:
@@ -102,221 +116,150 @@ export function splitCSVRows(text: string): string[] {
   return rows
 }
 
-function splitFullName(fullName: string): { first_name: string; last_name: string } {
-  const normalized = fullName.trim().replace(/\s+/g, ' ')
-  if (!normalized) {
-    return { first_name: '', last_name: '' }
-  }
+/**
+ * Turn CSV text into import rows, verbatim.
+ *
+ * Deliberately *not* validation. Every judgement — is this role allowed, may
+ * this actor assign it, is this address already taken, is this a duplicate of
+ * row 12 — belongs to the server, because those are the only judgements that can
+ * be true at commit time. This maps columns to fields and stops.
+ */
+export function csvToImportRows(text: string): {
+  rows: UserImportRowInput[]
+  missingHeaders: string[]
+} {
+  const lines = splitCSVRows(text)
+  if (lines.length < 2) return { rows: [], missingHeaders: [...REQUIRED_HEADERS] }
 
-  const [first_name, ...rest] = normalized.split(' ')
-  return {
-    first_name: first_name ?? '',
-    last_name: rest.join(' ') || (first_name ?? ''),
+  const headers = parseCSVRow(lines[0]!).map((header) => header.trim().toLowerCase())
+  const missingHeaders = REQUIRED_HEADERS.filter(
+    (required) => !headers.some((header) => header.includes(required)),
+  )
+  if (missingHeaders.length > 0) return { rows: [], missingHeaders }
+
+  const rows: UserImportRowInput[] = []
+  for (let index = 1; index < lines.length; index++) {
+    const values = parseCSVRow(lines[index]!).map((value) => value.trim())
+    const row: Partial<UserImportRowInput> = {}
+    headers.forEach((header, column) => {
+      const raw = values[column] ?? ''
+      if (header.includes('email')) row.email = sanitizeEmail(raw)
+      else if (header.includes('first')) row.first_name = sanitizeText(raw)
+      else if (header.includes('last')) row.last_name = sanitizeText(raw)
+      else if (header.includes('name')) row.full_name = sanitizeText(raw)
+      else if (header.includes('phone')) row.phone = sanitizeText(raw)
+      else if (header.includes('role')) row.role = sanitizeText(raw)
+      else if (header.includes('password')) row.password = raw
+    })
+    rows.push({
+      email: row.email ?? '',
+      role: row.role ?? '',
+      ...(row.full_name ? { full_name: row.full_name } : {}),
+      ...(row.first_name ? { first_name: row.first_name } : {}),
+      ...(row.last_name ? { last_name: row.last_name } : {}),
+      ...(row.phone ? { phone: row.phone } : {}),
+      ...(row.password ? { password: row.password } : {}),
+    })
   }
+  return { rows, missingHeaders: [] }
 }
 
 export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProps) {
+  const { institutions } = useCapabilities()
   const [file, setFile] = useState<File | null>(null)
-  const [importing, setImporting] = useState(false)
-  const [importResult, setImportResult] = useState<ImportResult | null>(null)
-  const [previewData, setPreviewData] = useState<UserData[]>([])
-  const [showPreview, setShowPreview] = useState(false)
+  const [rows, setRows] = useState<UserImportRowInput[]>([])
+  const [institutionId, setInstitutionId] = useState('')
+  const [mode, setMode] = useState<UserImportMode>('all_or_nothing')
+  const [preview, setPreview] = useState<UserImportPreview | null>(null)
+  const [result, setResult] = useState<UserImportResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const previewMutation = useUserImportPreview()
+  const commitMutation = useUserImportCommit()
+
+  const scopedInstitutions = useMemo(() => institutions ?? [], [institutions])
+
+  const reset = () => {
+    setFile(null)
+    setRows([])
+    setPreview(null)
+    setResult(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setImportResult(null)
-      setPreviewData([])
-      setShowPreview(false)
-      
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
-        parseCSVFile(selectedFile)
-      } else {
-        toast.error('Error', 'Please select a CSV file')
-        setFile(null)
-      }
+    const selected = event.target.files?.[0]
+    if (!selected) return
+    if (!(selected.type === 'text/csv' || selected.name.endsWith('.csv'))) {
+      toast.error('Not a CSV', 'Choose a .csv file to import.')
+      return
     }
-  }
+    setFile(selected)
+    setPreview(null)
+    setResult(null)
 
-  const parseCSVFile = (file: File) => {
     const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
-      const lines = splitCSVRows(text)
-      
-      if (lines.length < 2) {
-        toast.error('Error', 'CSV file must have at least a header row and one data row')
-        setFile(null)
+    reader.onload = (loaded) => {
+      const text = (loaded.target?.result as string) || ''
+      const parsed = csvToImportRows(text)
+      if (parsed.missingHeaders.length > 0) {
+        toast.error('Missing columns', parsed.missingHeaders.join(', '))
+        reset()
         return
       }
-
-      const headers = parseCSVRow(lines[0]!).map(h => h.trim().toLowerCase())
-      const data: UserData[] = []
-      
-      // Check if required fields are present
-      const missingFields = REQUIRED_FIELDS.filter(field => 
-        !headers.some(h => h.includes(field.toLowerCase()) || field.toLowerCase().includes(h))
-      )
-      
-      if (missingFields.length > 0) {
-        toast.error('Missing Fields', missingFields.join(', '))
-        setFile(null)
+      if (parsed.rows.length === 0) {
+        toast.error('Nothing to import', 'The file has a header row and no data rows.')
+        reset()
         return
       }
-
-      for (let i = 1; i < lines.length && i <= 6; i++) { // Preview first 5 rows
-        const values = parseCSVRow(lines[i]!).map(v => v.trim())
-        const userData: Partial<UserData> = {}
-        
-        headers.forEach((header, index) => {
-          if (header.includes('name') || header.includes('full_name')) {
-            userData.full_name = sanitizeText(values[index] ?? '')
-          } else if (header.includes('email')) {
-            userData.email = sanitizeEmail(values[index] ?? '')
-          } else if (header.includes('phone')) {
-            userData.phone = sanitizeText(values[index] ?? '')
-          } else if (header.includes('role')) {
-            userData.role = sanitizeText(values[index] ?? '')
-          } else if (header.includes('password')) {
-            userData.password = sanitizeText(values[index] ?? '')
-          }
-        })
-        
-        if (isCompleteUserData(userData)) {
-          data.push(userData)
-        }
-      }
-      
-      setPreviewData(data)
-      setShowPreview(true)
+      setRows(parsed.rows)
     }
-    reader.readAsText(file)
+    reader.readAsText(selected)
   }
 
-  const validateUserData = (userData: Partial<UserData>, rowIndex: number): string | null => {
-    if (!userData.full_name?.trim()) {
-      return `Row ${rowIndex}: Full name is required`
-    }
-    
-    if (!userData.email?.trim()) {
-      return `Row ${rowIndex}: Email is required`
-    }
-    
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-      return `Row ${rowIndex}: Invalid email format`
-    }
-    
-    if (!userData.role?.trim()) {
-      return `Row ${rowIndex}: Role is required`
-    }
-    
-    if (!VALID_ROLES.includes(userData.role.toLowerCase())) {
-      return `Row ${rowIndex}: Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`
-    }
-    
-    return null
-  }
-
-  const handleImport = async () => {
-    if (!file) return
-
+  const runPreview = async () => {
+    if (!institutionId || rows.length === 0) return
     try {
-      setImporting(true)
-      const text = await file.text()
-      const lines = splitCSVRows(text)
-      const headers = parseCSVRow(lines[0]!).map(h => h.trim().toLowerCase())
-
-      const clientErrors: ImportResult['errors'] = []
-      const batchPayload: Array<{ email: string; first_name: string; last_name: string; phone?: string; role: string; password?: string }> = []
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVRow(lines[i]!).map(v => v.trim())
-        const userData: Partial<UserData> = {}
-
-        headers.forEach((header, index) => {
-          if (header.includes('name') || header.includes('full_name')) {
-            userData.full_name = sanitizeText(values[index] ?? '')
-          } else if (header.includes('email')) {
-            userData.email = sanitizeEmail(values[index] ?? '')
-          } else if (header.includes('phone')) {
-            userData.phone = sanitizeText(values[index] ?? '')
-          } else if (header.includes('role')) {
-            userData.role = sanitizeText(values[index] ?? '')?.toLowerCase()
-          } else if (header.includes('password')) {
-            userData.password = sanitizeText(values[index] ?? '')
-          }
-        })
-
-        const validationError = validateUserData(userData, i + 1)
-        if (validationError) {
-          clientErrors.push({ row: i + 1, error: validationError, data: userData })
-          continue
-        }
-
-        if (!isCompleteUserData(userData)) {
-          clientErrors.push({ row: i + 1, error: `Row ${i + 1}: Missing required user fields`, data: userData })
-          continue
-        }
-
-        const { first_name, last_name } = splitFullName(userData.full_name)
-        batchPayload.push({
-          email: userData.email,
-          first_name,
-          last_name,
-          phone: userData.phone || undefined,
-          role: userData.role,
-          password: userData.password || undefined,
-        })
-      }
-
-      if (batchPayload.length === 0) {
-        setImportResult({ success: 0, failed: clientErrors.length, errors: clientErrors, duplicates: 0 })
-        return
-      }
-
-      const response = await apiClient.request<{
-        created: number
-        skipped: number
-        errors: Array<{ index: number; email: string; errors: Record<string, string[]> }>
-      }>('/admin/users/batch-import/', {
-        method: 'POST',
-        body: JSON.stringify(batchPayload),
+      const answer = await previewMutation.mutateAsync({
+        institution_id: institutionId,
+        mode,
+        rows,
       })
+      setPreview(answer)
+    } catch (error) {
+      logger.error('Import preview failed:', sanitizeForLog(error))
+      toast.error(
+        'Preview failed',
+        error instanceof Error ? error.message : 'Please try again.',
+      )
+    }
+  }
 
-      const serverErrors = (response?.errors ?? []).map(e => ({
-        row: e.index + 2, // +2 for header row + 0-index
-        error: Object.values(e.errors).flat().join(', '),
-        data: { email: e.email },
-      }))
-
-      const result: ImportResult = {
-        success: response?.created ?? 0,
-        failed: clientErrors.length + (response?.skipped ?? 0),
-        errors: [...clientErrors, ...serverErrors],
-        duplicates: serverErrors.filter(e => e.error.includes('Already exists')).length,
-      }
-
-      setImportResult(result)
-      if (result.success > 0) {
-        onImportComplete()
-      }
+  const runCommit = async () => {
+    if (!preview || rows.length === 0) return
+    try {
+      const answer = await commitMutation.mutateAsync({
+        institution_id: institutionId,
+        mode,
+        rows,
+      })
+      setResult(answer)
+      if (answer.committed) onImportComplete()
     } catch (error) {
       logger.error('Import failed:', sanitizeForLog(error))
-      toast.error('Import Failed', 'Please try again')
-    } finally {
-      setImporting(false)
+      toast.error(
+        'Import failed',
+        error instanceof Error ? error.message : 'Please try again.',
+      )
     }
   }
 
   const downloadTemplate = () => {
     const template = [
       'full_name,email,phone,role,password',
-      'John Doe,john.doe@example.com,+1234567890,student,password123',
-      'Jane Smith,jane.smith@example.com,+0987654321,admissions_officer,password456'
+      'John Doe,john.doe@example.com,+260970000001,student,',
+      'Jane Smith,jane.smith@example.com,+260970000002,reviewer,',
     ].join('\n')
-
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
@@ -326,194 +269,271 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
-  const resetImport = () => {
-    setFile(null)
-    setImportResult(null)
-    setPreviewData([])
-    setShowPreview(false)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
+  const errors = result?.errors ?? preview?.errors ?? []
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Upload className="h-5 w-5 text-primary" />
-            <span>Import Users</span>
+            <Upload className="h-5 w-5 text-primary" aria-hidden="true" />
+            <span>Import users</span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {!importResult ? (
+          {!result && (
             <>
-              {/* Instructions */}
-              <div className="bg-primary/5 border border-primary/30 rounded-lg p-4">
-                <h3 className="font-medium text-primary-foreground mb-2">Import Instructions</h3>
-                <ul className="text-sm text-primary space-y-1">
-                  <li>• Upload a CSV file with user data</li>
-                  <li>• Required fields: full_name, email, role</li>
-                  <li>• Optional fields: phone, password</li>
-                  <li>• Valid roles: {VALID_ROLES.join(', ')}</li>
-                  <li>• If password is not provided, a temporary password will be generated</li>
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                <h3 className="mb-2 font-medium text-foreground">How this import works</h3>
+                <ul className="space-y-1 text-sm text-foreground">
+                  <li>Required columns: email, role. Optional: full_name (or first/last), phone, password.</li>
+                  <li>Every imported account is created into the school you choose, with an active membership, so it has access on first sign-in.</li>
+                  <li>The server validates the whole file before anything is created, and tells you which rows would fail.</li>
+                  <li>A row with no password gets a generated one; the platform never shows it here.</li>
                 </ul>
               </div>
 
-              {/* Template Download */}
               <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={downloadTemplate}
-                  className="text-primary border-blue-300 hover:bg-primary/5"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Template
+                <Button variant="outline" onClick={downloadTemplate}>
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Download template
                 </Button>
               </div>
 
-              {/* File Upload */}
-              <div className="border-2 border-dashed border-input rounded-lg p-8 text-center hover:border-input transition-colors">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="import-institution" className="mb-1.5 block text-sm font-medium text-foreground">
+                    School
+                  </label>
+                  <select
+                    id="import-institution"
+                    value={institutionId}
+                    onChange={(event) => { setInstitutionId(event.target.value); setPreview(null) }}
+                    className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">Choose a school…</option>
+                    {scopedInstitutions.map((institution) => (
+                      <option key={institution.id} value={institution.id}>
+                        {institution.name || institution.code}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1.5 text-sm text-foreground">
+                    Required. Imported accounts belong to a school.
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="import-mode" className="mb-1.5 block text-sm font-medium text-foreground">
+                    If a row fails
+                  </label>
+                  <select
+                    id="import-mode"
+                    value={mode}
+                    onChange={(event) => { setMode(event.target.value as UserImportMode); setPreview(null) }}
+                    className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="all_or_nothing">Import nothing (recommended)</option>
+                    <option value="per_row">Import the rows that worked</option>
+                  </select>
+                  <p className="mt-1.5 text-sm text-foreground">
+                    A partly-imported intake is harder to reconcile than a rejected one.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border-2 border-dashed border-input p-8 text-center transition-colors">
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".csv"
                   onChange={handleFileSelect}
                   className="hidden"
+                  aria-label="Choose a CSV file to import"
                 />
-                <FileText className="h-12 w-12 text-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  {file ? file.name : 'Select CSV File'}
+                <FileText className="mx-auto mb-4 h-12 w-12 text-foreground" aria-hidden="true" />
+                <h3 className="mb-2 text-lg font-medium text-foreground">
+                  {file ? file.name : 'Select a CSV file'}
                 </h3>
-                <p className="text-foreground mb-4">
-                  {file ? 'File selected. Click Import to proceed.' : 'Choose a CSV file to import users'}
+                <p className="mb-4 text-foreground">
+                  {rows.length > 0
+                    ? `${rows.length} row${rows.length === 1 ? '' : 's'} read from the file.`
+                    : 'Choose a CSV file to import users.'}
                 </p>
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="outline"
-                  className="mr-2"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {file ? 'Change File' : 'Select File'}
+                <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="mr-2">
+                  <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {file ? 'Change file' : 'Select file'}
                 </Button>
                 {file && (
-                  <Button onClick={resetImport} variant="outline">
-                    Clear
-                  </Button>
+                  <Button onClick={reset} variant="outline">Clear</Button>
                 )}
               </div>
 
-              {/* Preview */}
-              {showPreview && previewData.length > 0 && (
-                <div className="bg-muted border border-border rounded-lg p-4">
-                  <h3 className="font-medium text-foreground mb-3">Preview (First 5 rows)</h3>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead className="bg-accent">
-                        <tr>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Name</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Email</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Phone</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase">Role</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-card divide-y divide-border">
-                        {previewData.map((user, index) => (
-                          <tr key={index}>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.full_name)}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.email)}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.phone ?? '') || '-'}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">
-                              <span className="px-2 py-1 bg-primary/10 text-primary-foreground rounded text-xs">
-                                {sanitizeText(user.role ?? '')}
-                              </span>
-                            </td>
+              {preview && (
+                <div
+                  className={`rounded-lg border p-4 ${
+                    preview.would_commit
+                      ? 'border-accent/40 bg-accent/5'
+                      : 'border-destructive/30 bg-destructive/5'
+                  }`}
+                  role="status"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    {preview.would_commit
+                      ? `Ready to import ${preview.valid_count} of ${preview.submitted_count} rows.`
+                      : mode === 'all_or_nothing'
+                        ? `${preview.error_count} row${preview.error_count === 1 ? '' : 's'} would fail, so nothing would be imported.`
+                        : 'No row in this file can be imported.'}
+                  </p>
+                  {preview.rows.length > 0 && (
+                    <div className="mt-3 overflow-x-auto">
+                      <table className="min-w-full divide-y divide-border" aria-label="Rows that would be created">
+                        <thead className="bg-accent">
+                          <tr>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium uppercase text-foreground">Row</th>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium uppercase text-foreground">Name</th>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium uppercase text-foreground">Email</th>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium uppercase text-foreground">Role</th>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium uppercase text-foreground">Password</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            /* Import Results */
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="flex justify-center space-x-8 mb-4">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-full mb-2">
-                      <CheckCircle className="h-6 w-6 text-accent" />
-                    </div>
-                    <p className="text-2xl font-bold text-warning-strong">{importResult.success}</p>
-                    <p className="text-sm text-foreground">Successful</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-destructive/10 rounded-full mb-2">
-                      <XCircle className="h-6 w-6 text-destructive" />
-                    </div>
-                    <p className="text-2xl font-bold text-destructive">{importResult.failed}</p>
-                    <p className="text-sm text-foreground">Failed</p>
-                  </div>
-                  {importResult.duplicates > 0 && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-full mb-2">
-                        <AlertTriangle className="h-6 w-6 text-accent" />
-                      </div>
-                      <p className="text-2xl font-bold text-warning-strong">{importResult.duplicates}</p>
-                      <p className="text-sm text-foreground">Duplicates</p>
+                        </thead>
+                        <tbody className="divide-y divide-border bg-card">
+                          {preview.rows.slice(0, 10).map((row) => (
+                            <tr key={row.index}>
+                              <td className="px-3 py-2 text-sm text-foreground">{row.index}</td>
+                              <td className="px-3 py-2 text-sm text-foreground">{row.full_name}</td>
+                              <td className="px-3 py-2 text-sm text-foreground">{row.email}</td>
+                              <td className="px-3 py-2 text-sm text-foreground">{row.role}</td>
+                              <td className="px-3 py-2 text-sm text-foreground">
+                                {row.will_receive_generated_password ? 'Generated' : 'From file'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {preview.rows.length > 10 && (
+                        <p className="mt-2 text-sm text-foreground">
+                          …and {preview.rows.length - 10} more valid row{preview.rows.length - 10 === 1 ? '' : 's'}.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
+              )}
+            </>
+          )}
 
-              {importResult.errors.length > 0 && (
-                <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <h3 className="font-medium text-red-900 mb-3">Import Errors</h3>
-                  <div className="space-y-2">
-                    {importResult.errors.map((error, index) => (
-                      <div key={index} className="text-sm text-error bg-card p-2 rounded border">
-                        <p className="font-medium">Row {error.row}: {error.error}</p>
-                        {error.data && (
-                          <p className="text-xs text-destructive mt-1">
-                            Data: {sanitizeForLog(JSON.stringify(error.data))}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+          {result && (
+            <div className="space-y-4">
+              <div className="flex justify-center gap-8">
+                <div className="text-center">
+                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                    <CheckCircle className="h-6 w-6 text-accent" aria-hidden="true" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground" data-testid="import-created-count">
+                    {result.created}
+                  </p>
+                  <p className="text-sm text-foreground">Created</p>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                    <XCircle className="h-6 w-6 text-destructive" aria-hidden="true" />
+                  </div>
+                  <p className="text-2xl font-bold text-destructive" data-testid="import-failed-count">
+                    {result.failed}
+                  </p>
+                  <p className="text-sm text-foreground">Failed</p>
+                </div>
+              </div>
+              {!result.committed && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4" role="status">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-destructive" aria-hidden="true" />
+                    <div className="text-sm text-foreground">
+                      <p className="font-medium">Nothing was imported.</p>
+                      <p>
+                        Fix the rows below and upload the file again. No account was created,
+                        so re-uploading the corrected file is safe.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           )}
+
+          {errors.length > 0 && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="font-medium text-foreground">
+                  {errors.length} row{errors.length === 1 ? '' : 's'} need attention
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadImportErrors(errors)}
+                >
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Download failures
+                </Button>
+              </div>
+              <div className="max-h-60 space-y-2 overflow-y-auto">
+                {errors.map((error, index) => (
+                  <div
+                    key={`${error.index ?? 'row'}-${index}`}
+                    className="rounded border bg-card p-2 text-sm text-foreground"
+                  >
+                    <p className="font-medium">
+                      Row {error.index ?? '—'}: {error.message}
+                    </p>
+                    <p className="mt-1 text-xs text-foreground">
+                      {error.code}
+                      {error.field ? ` · ${error.field}` : ''}
+                      {error.email ? ` · ${error.email}` : ''}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
-          {!importResult ? (
+          {result ? (
             <>
-              <Button variant="outline" onClick={onClose} disabled={importing}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleImport}
-                loading={importing}
-                disabled={!file || !showPreview}
-                className="bg-primary hover:bg-primary text-white"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Import Users
-              </Button>
+              <Button variant="outline" onClick={reset}>Import another file</Button>
+              <Button onClick={onClose}>Close</Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={resetImport}>
-                Import More
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={previewMutation.isPending || commitMutation.isPending}
+              >
+                Cancel
               </Button>
-              <Button onClick={onClose} className="bg-primary hover:bg-primary text-white">
-                Close
+              <Button
+                variant="outline"
+                onClick={runPreview}
+                loading={previewMutation.isPending}
+                disabled={!institutionId || rows.length === 0}
+              >
+                Check the file
+              </Button>
+              <Button
+                onClick={runCommit}
+                loading={commitMutation.isPending}
+                // A commit is offered only once the server has said the batch
+                // would commit. Offering it before that is what made the old
+                // "preview" decorative.
+                disabled={!preview?.would_commit}
+              >
+                <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+                Import {preview?.valid_count ?? 0} users
               </Button>
             </>
           )}

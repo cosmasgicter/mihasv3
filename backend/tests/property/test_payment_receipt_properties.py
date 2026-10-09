@@ -484,15 +484,12 @@ def seed_applicant(db):
         updated_at=now,
     )
 
-    # Seed a pending Payment once upfront via the hardened initiate(). The
-    # forward-only flag is honoured here because the outer test has
-    # ``@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)`` applied
-    # when the fixture is consumed.
-    with override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True):
-        PaymentService().initiate(
-            application_id=application.id,
-            user_id=profile.id,
-        )
+    # Seed a pending Payment once upfront through ``initiate()`` — the only
+    # initiation path.
+    PaymentService().initiate(
+        application_id=application.id,
+        user_id=profile.id,
+    )
 
     return {
         "profile": profile,
@@ -542,7 +539,6 @@ def _p12_build_side_effect(behavior):
     ],
 )
 @override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
     LENCO_API_SECRET_KEY="test-secret",
     LENCO_API_BASE_URL="https://payments.example.test/access/v2/",
 )
@@ -751,7 +747,6 @@ def _p6_seed_applicant_row(suffix_prefix: str):
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db
 def test_property_6_receipt_idempotence(repeat_count):
     """P6: ``_generate_receipt_idempotent`` allocates exactly one receipt.
@@ -859,7 +854,6 @@ def test_property_6_receipt_idempotence(repeat_count):
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db(transaction=True)
 def test_property_7_single_active_db_invariant(attempt):
     """P7: A second active Payment insert raises IntegrityError.
@@ -961,7 +955,6 @@ def test_property_7_single_active_db_invariant(attempt):
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db(transaction=True)
 def test_property_8_transaction_reference_uniqueness(reference):
     """P8: Duplicate non-empty ``transaction_reference`` inserts are rejected.
@@ -1098,7 +1091,6 @@ def test_property_8_transaction_reference_uniqueness(reference):
         HealthCheck.too_slow,
     ],
 )
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.django_db(transaction=True)
 def test_property_9_receipt_number_uniqueness(receipt):
     """P9: Duplicate non-NULL ``receipt_number`` inserts are rejected.

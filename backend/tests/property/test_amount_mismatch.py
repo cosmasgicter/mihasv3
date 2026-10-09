@@ -139,7 +139,7 @@ class TestAmountMismatchDetection(SimpleTestCase):
         ):
             mock_payment_qs.select_for_update.return_value.get.return_value = payment
 
-            service.process_webhook_event(
+            service.apply_webhook_event(
                 event_type="collection.successful",
                 reference=reference,
                 payload=payload,
@@ -188,7 +188,7 @@ class TestAmountMismatchDetection(SimpleTestCase):
             mock_payment_qs.select_for_update.return_value.get.return_value = payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
-            service.process_webhook_event(
+            service.apply_webhook_event(
                 event_type="collection.successful",
                 reference=reference,
                 payload=payload,

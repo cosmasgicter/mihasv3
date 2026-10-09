@@ -144,12 +144,81 @@ def _client_for(profile) -> APIClient:
 
 
 def _capture(response):
-    """Return ``(status_code, parsed_body)`` for a DRF response."""
+    """Return ``(status_code, parsed_body)`` for a DRF response.
+
+    ``request_id`` is dropped, for the reason the Task 11.2 HTTP matrix
+    (``tests/unit/test_scoped_access_matrix.py::_capture``) already records: it
+    is a per-request correlation id the envelope exception handler stamps on
+    every error body, so it differs between *any* two requests and carries
+    nothing about the target. Comparing two masked responses for byte-identity
+    is the R5.4 claim; comparing their correlation ids is noise.
+
+    The platform states its own indistinguishability contract this way —
+    ``docs/canonical-truth-map.md`` line 462 ("byte-identical, ``request_id``
+    aside") and ``docs/v2-evidence/9.4/README.md`` §"Reviewer, denied work"
+    ("byte-identical to an unknown id's 404 (``request_id`` stripped)"), whose
+    guard ``test_review_workspace_9_4.py::_without_request_id`` is the same
+    exclusion. It became load-bearing *here* with admissions-v2 task 9.4, which
+    moved the application routes off hand-built ``Response({...})`` bodies onto
+    ``resolve_scoped_application`` — one disclosure decision, raised as
+    ``NotFound`` and rendered by the canonical handler. That is the stronger
+    shape, and it is what put the correlation id into these bodies:
+    ``interviews-crud (GAP-6)`` is the one endpoint of the six that raises
+    rather than hand-building its 404.
+
+    Dropping it is not a weakening, and ``_assert_correlation_id_is_per_request``
+    below is what makes that measurable rather than asserted.
+    """
     try:
         body = response.json()
     except Exception:  # pragma: no cover - non-JSON body
         body = getattr(response, "data", None)
+    if isinstance(body, dict):
+        body = {key: value for key, value in body.items() if key != "request_id"}
     return response.status_code, body
+
+
+class _Captured(tuple):
+    """``(status_code, body)`` that also keeps the raw response.
+
+    A plain tuple everywhere it is compared (``out_of_scope == missing`` still
+    compares status and body), but it carries ``.response`` so the stripped
+    correlation id remains checkable rather than becoming invisible.
+    """
+
+    def __new__(cls, response):
+        captured = super().__new__(cls, _capture(response))
+        captured.response = response
+        return captured
+
+
+def _correlation_id(response):
+    """The raw ``request_id`` ``_capture`` strips, or ``None`` when absent."""
+    try:
+        body = response.json()
+    except Exception:  # pragma: no cover - non-JSON body
+        body = getattr(response, "data", None)
+    return body.get("request_id") if isinstance(body, dict) else None
+
+
+def _assert_correlation_id_is_per_request(label, responses):
+    """The stripped field is a correlation id, not a disclosure channel.
+
+    Excluding a field from an indistinguishability comparison is only sound if
+    the field cannot carry the answer. Two things are asserted over the same
+    responses the property compares:
+
+    * every body that carries a ``request_id`` carries a **non-empty** one, so
+      the field is not silently dropped from the envelope by a later change; and
+    * the ids of two responses are **different**, which is what "per request"
+      means — a value that varies between two identical probes cannot encode a
+      property of the target.
+    """
+    ids = [_correlation_id(response) for response in responses]
+    present = [value for value in ids if value is not None]
+    assert all(str(value).strip() for value in present), (label, ids)
+    if len(present) >= 2:
+        assert len(set(present)) == len(present), (label, ids)
 
 
 def _is_not_found_mask(status_code, body) -> bool:
@@ -194,13 +263,13 @@ def _attach(actor, world, kind):
 
 
 def _read(client, family, template, resource_id):
-    """Issue the read for an endpoint ``family`` and return ``_capture(...)``."""
+    """Issue the read for an endpoint ``family`` and return ``_Captured(...)``."""
     if family == "app":
-        return _capture(client.get(template.format(aid=resource_id)))
+        return _Captured(client.get(template.format(aid=resource_id)))
     # Document family: ``extract`` is a POST, the rest are GET.
     url = template.format(did=resource_id)
     method = client.post if url.endswith("/extract/") else client.get
-    return _capture(method(url))
+    return _Captured(method(url))
 
 
 @pytest.fixture()
@@ -268,6 +337,9 @@ class TestProperty26TenantIsolation:
             "out_of_scope": out_of_scope,
             "missing": missing,
         }
+        _assert_correlation_id_is_per_request(
+            endpoint_key, [missing.response, out_of_scope.response]
+        )
         assert world_b.institution.name not in str(out_of_scope[1]), endpoint_key
         assert world_b.application.full_name not in str(out_of_scope[1]), endpoint_key
 
@@ -353,6 +425,9 @@ class TestProperty26TenantIsolation:
             "expired": expired,
             "missing": missing,
         }
+        _assert_correlation_id_is_per_request(
+            endpoint_key, [missing.response, expired.response]
+        )
 
     # -- R5.6: a scoped grant permits only its target, never a sibling --
 
@@ -407,6 +482,9 @@ class TestProperty26TenantIsolation:
             "sibling": sibling_resp,
             "missing": missing,
         }
+        _assert_correlation_id_is_per_request(
+            endpoint_key, [missing.response, sibling_resp.response]
+        )
 
     # -- R5.7: a Super_Admin is permitted every read --
 

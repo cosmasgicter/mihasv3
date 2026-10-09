@@ -45,7 +45,10 @@ vi.mock('@/hooks/useLencoWidget', () => ({
 
 const defaultProps = {
   applicationId: '11111111-1111-1111-1111-111111111111',
-  amount: 153,
+  // Task 8.1: amounts are server-authored decimal strings from the fee quote.
+  baseAmount: '153.00',
+  providerFee: '1.53',
+  totalAmount: '154.53',
   currency: 'ZMW',
   phone: '+260977000000',
   fullName: 'Regression Student',

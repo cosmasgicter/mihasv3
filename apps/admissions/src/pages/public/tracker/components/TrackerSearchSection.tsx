@@ -37,7 +37,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
   return (
     <SectionCard
       title="Find Your Application"
-      description="Enter your application number or tracking code to check status."
+      description="Paste the tracking link issued for your application to check its status."
       icon={<Search className="h-5 w-5" />}
       headerVariant="default"
     >
@@ -46,7 +46,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
               <label htmlFor="tracker-search" className="sr-only">
-                Application number or tracking code
+                Tracking link or code
               </label>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               <Input
@@ -55,7 +55,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
-                placeholder="BNL123456 or TRK-XXXXXXXXXXXX"
+                placeholder="TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX"
                 autoComplete="off"
                 inputMode="text"
                 aria-describedby={error ? 'tracker-search-error' : 'tracker-search-hint'}
@@ -75,8 +75,14 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
+          {/*
+            admissions-v2 task 10.5 (R13.12, STU-22): this hint used to name the
+            application number as the thing to enter. It is not a credential any
+            more — a tracking link is — so the hint names the link, and the cards
+            below say where to get one instead of where to find the number.
+          */}
           <p id="tracker-search-hint" className="mt-2 text-sm text-muted-foreground">
-            Format: your school code followed by 6 digits (e.g. <span className="font-mono">BNL123456</span>) or <span className="font-mono">TRK-XXXXXXXXXXXX</span>
+            Your tracking link looks like <span className="font-mono">TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX</span>. An application number will not open tracking.
           </p>
           
           {error && (
@@ -101,8 +107,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Check Your Email</h3>
-              <p className="mt-0.5 text-sm text-muted-foreground">Application number sent after submission</p>
+              <h3 className="text-sm font-semibold text-foreground">Get Your Link</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">Sign in and choose &ldquo;Get tracking link&rdquo; on your application</p>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
@@ -111,16 +117,24 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
-              <p className="mt-0.5 text-sm font-mono text-muted-foreground">BNL123456</p>
+              <p className="mt-0.5 break-all text-sm font-mono text-muted-foreground">TRK-4KP2M9XT-9QW3RT7VZ2KDN8YH6JF4</p>
             </div>
           </div>
+          {/*
+            No "Instant Results" (admissions-v2 task 11.5, R16.4/R16.5). A tracking
+            link resolves the application's **stored** state when the page is
+            opened; there is no live transport behind it, so "instant" was a
+            promotional claim about latency rather than a statement of what the
+            student gets. What they get is the current recorded status without
+            signing in, which is worth saying plainly.
+          */}
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Instant Results</h3>
-              <p className="mt-0.5 text-sm text-muted-foreground">Real-time updates without login</p>
+              <h3 className="text-sm font-semibold text-foreground">What you see</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">The current recorded status, without signing in</p>
             </div>
           </div>
         </div>

@@ -551,14 +551,19 @@ describe('Property 1: No source imports of removed dead code', () => {
 
 describe('Property 4: Frontend service URL construction', () => {
   /**
-   * For any application ID string, the verifyDocument, generateAcceptanceLetter,
-   * and generateFinanceReceipt methods in applicationService shall construct
-   * URLs matching /applications/{id}/verify-document/,
-   * /applications/{id}/acceptance-letter/, and
-   * /applications/{id}/finance-receipt/ respectively.
+   * For any application ID string, the sub-resource methods in
+   * applicationService shall construct URLs matching
+   * /applications/{id}/{sub-resource}/.
    *
    * We replicate the exact URL construction pattern from applications.ts
    * and verify it produces the correct path for any generated ID.
+   *
+   * The two representatives were `generateAcceptanceLetter` and
+   * `generateFinanceReceipt` until admissions-v2 task 10.6 removed the five
+   * legacy document generators (R13.5, API-04) — every official document is
+   * requested through `services/officialDocuments.ts` now. The property is about
+   * the *construction*, not those methods, so it is carried by two surviving
+   * sub-resource commands instead.
    *
    * **Validates: Requirements 3.6, 4.7, 5.7**
    */
@@ -566,8 +571,8 @@ describe('Property 4: Frontend service URL construction', () => {
   /** Endpoint definitions matching the three service methods */
   const endpointMap = {
     verifyDocument: 'verify-document',
-    generateAcceptanceLetter: 'acceptance-letter',
-    generateFinanceReceipt: 'finance-receipt',
+    withdraw: 'withdraw',
+    confirmEnrollment: 'confirm-enrollment',
   } as const;
 
   type MethodName = keyof typeof endpointMap;
@@ -589,8 +594,8 @@ describe('Property 4: Frontend service URL construction', () => {
   /** Arbitrary for the three method names */
   const methodNameArb: fc.Arbitrary<MethodName> = fc.constantFrom(
     'verifyDocument' as MethodName,
-    'generateAcceptanceLetter' as MethodName,
-    'generateFinanceReceipt' as MethodName,
+    'withdraw' as MethodName,
+    'confirmEnrollment' as MethodName,
   );
 
   it('constructs URLs matching /applications/{id}/{sub-resource}/ for all three methods', () => {

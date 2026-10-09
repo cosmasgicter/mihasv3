@@ -13,7 +13,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
 import logging  # noqa: E402
-from unittest.mock import MagicMock  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 import django  # noqa: E402
 
@@ -79,9 +79,38 @@ def _get_metric_records(handler: _LogCapture) -> list[logging.LogRecord]:
 
 
 def _run_middleware(method, path, status_code):
-    """Run MetricsMiddleware and return (response, metric_records)."""
+    """Run MetricsMiddleware and return (response, metric_records).
+
+    The sample rate is pinned to ``1.0`` for the construction, and that is
+    load-bearing rather than tidy.
+
+    Properties 2, 3 and 4 are statements about *what an emitted metric log
+    contains* and *which paths are skipped*. They say nothing about sampling,
+    which is a later, separately-owned volume control
+    (``MetricsMiddleware.resolve_sample_rate``, exercised on its own in
+    ``tests/unit/test_metrics_middleware_sampling.py``). Left unpinned, this
+    helper inherits whatever ``REQUEST_METRIC_SAMPLE_RATE`` happens to be in the
+    process environment — so "every non-health request emits exactly one log"
+    silently becomes a coin flip, and the property measures the sampler instead
+    of the claim it states.
+
+    That is not hypothetical: until task 13.6 remediation M2,
+    ``config/settings/prod.py`` set that variable with
+    ``os.environ.setdefault`` at *import* time, and one test in this same
+    directory imports prod settings to inspect a cookie flag
+    (``test_production_cors_pagination_fix_exploration.py:78``, behind an
+    environment-conditional skip). On the run where that skip stopped firing,
+    both properties below started failing with ``0 != 1`` on the first healthy
+    200 the generator produced — with nothing in either traceback pointing at
+    the cause. See docs/v2-evidence/13.6/remediation/M1-M2/README.md §3.
+
+    Pinning it strengthens these rows: they now fail only when the emission
+    itself is wrong, and the pin is the condition the claim is true under rather
+    than an allowance carved out of it.
+    """
     response = _make_response(status_code)
-    middleware = MetricsMiddleware(lambda req: response)
+    with patch.dict(os.environ, {"REQUEST_METRIC_SAMPLE_RATE": "1.0"}):
+        middleware = MetricsMiddleware(lambda req: response)
     request = _make_request(method, path)
 
     # Simulate RequestIDMiddleware binding the request context
@@ -265,13 +294,13 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
 
         # Capture logs from the payment_service logger
         handler = _LogCapture()
-        ps_logger = logging.getLogger("apps.documents.payment_service_mixins._verification")
+        ps_logger = logging.getLogger("apps.documents.payment_service_mixins._core")
         ps_logger.addHandler(handler)
         ps_logger.setLevel(logging.DEBUG)
 
         try:
             # Mock the DB layer and run _update_payment_status
-            with patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs, \
+            with patch("apps.documents.payment_service_mixins._core.Payment.objects") as mock_qs, \
                  patch("apps.applications.models.Application.objects") as mock_app_qs, \
                  patch("django.db.transaction.atomic") as mock_atomic:
                 # Make atomic() work as a simple context manager
@@ -286,10 +315,18 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
 
                 from apps.documents.payment_service import PaymentService
                 service = PaymentService()
-                service._update_payment_status(
+                # Task 8.2: the business metric moved with the mutation
+                # into ``_transition``, the sole writer.
+                service._transition(
                     locked_payment,
                     "successful",
-                    {"amount": str(amount)},
+                    source="webhook",
+                    actor=None,
+                    provider_data={
+                        "amount": str(amount),
+                        "currency": currency,
+                        "lencoReference": "LR-METRIC",
+                    },
                 )
         finally:
             ps_logger.removeHandler(handler)

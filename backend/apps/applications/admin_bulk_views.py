@@ -26,7 +26,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
-from apps.common.throttling import AIUserScopedRateThrottle
 from apps.catalog.services import AccessScopeService
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -49,7 +48,6 @@ from apps.applications.serializers import (
     ApplicationAutoAssignRequestSerializer,
     ApplicationEnvelopeResponseSerializer,
     ApplicationFeeWaiverRequestSerializer,
-    ApplicationAiSummaryResponseSerializer,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -124,7 +122,9 @@ class ApplicationBulkStatusView(APIView):
     Requirements: 13.1–13.9
     """
 
-    permission_classes = [IsAdmin]
+    # R3.1/R3.2: derived tenant.application.review capability + scope, not a raw
+    # role gate. Per-id scope-before-lookup below masks out-of-scope ids.
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationBulkStatusSerializer
 
     MAX_BATCH_SIZE = 25
@@ -132,7 +132,21 @@ class ApplicationBulkStatusView(APIView):
     def post(self, request):
         import hashlib as _hashlib
 
+        from apps.applications.review_workspace_service import (
+            ApplicationReviewWorkspaceService,
+        )
         from apps.applications.services import ALLOWED_TRANSITIONS, transition_application_status
+        from apps.common.tenant_authorization import (
+            apply_reviewer_assignment_scope,
+            authorize_tenant_surface,
+        )
+
+        # Authorize the bulk review surface: a Student (no tenant scope) is
+        # masked as 404; a reviewer in scope without tenant.application.review is
+        # a non-revealing 403; a Tenant_Admin with the capability (or a
+        # Super_Admin) proceeds. Per-application cross-tenant isolation is still
+        # enforced by the scope-before-lookup narrowing further down.
+        authorize_tenant_surface(request, capability="tenant.application.review")
 
         serializer = ApplicationBulkStatusSerializer(data=request.data)
         if not serializer.is_valid():
@@ -168,26 +182,41 @@ class ApplicationBulkStatusView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Versioned command (task 9.4). A bulk decision is the *most* dangerous
+        # place for a stale write, so the caller may state the version it read for
+        # each application it selected; any that has moved since fails the batch
+        # rather than being quietly overwritten. Opt-in and per-id, because a
+        # bulk command is a set of decisions, not one.
+        expected_versions = (request.data or {}).get("expected_versions") or {}
+        if not isinstance(expected_versions, dict):
+            return Response(
+                {
+                    "success": False,
+                    "error": "expected_versions must be an object of application id → version.",
+                    "code": "VALIDATION_ERROR",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         failures = []
+        applications: list[Application] = []
         try:
             with transaction.atomic():
-                applications = list(Application.objects.filter(id__in=app_ids).select_for_update())
-
-                # R5.2/R5.9: narrow the batch through AccessScopeService so a
-                # scoped admin can never transition another school's
-                # applications. Out-of-scope ids are reported as NOT_FOUND —
-                # byte-identical to a genuinely missing id — so existence
-                # cannot be inferred (R5.4, R16.4). Super-admins keep all ids.
-                in_scope_ids = set(
-                    str(pk)
-                    for pk in AccessScopeService()
-                    .filter_applications(
-                        Application.objects.filter(id__in=[a.id for a in applications]),
-                        request.user,
-                    )
-                    .values_list("id", flat=True)
+                # Scope **before** the lookup (task 9.4). This used to fetch every
+                # requested row and then intersect the result with the actor's
+                # scope; the mask was right, but the rows were read first. The
+                # scoped queryset is now what the lock is taken on, composed with
+                # ``apply_reviewer_assignment_scope`` so an assignment-scoped
+                # Reviewer cannot bulk-decide work that was never assigned to
+                # them (R8.2 / AUTH-01 — the single-application command has
+                # enforced this since task 2.2; the bulk command did not).
+                scoped = apply_reviewer_assignment_scope(
+                    AccessScopeService().filter_applications(
+                        Application.objects.filter(id__in=app_ids), request.user
+                    ),
+                    request.user,
                 )
-                applications = [a for a in applications if str(a.id) in in_scope_ids]
+                applications = list(scoped.select_for_update().order_by("id"))
 
                 found_ids = {str(a.id) for a in applications}
                 for aid in app_ids:
@@ -202,6 +231,21 @@ class ApplicationBulkStatusView(APIView):
                             "code": "INVALID_STATUS_TRANSITION",
                             "current_status": app.status,
                         })
+                        continue
+                    supplied = expected_versions.get(str(app.id))
+                    if supplied in (None, ""):
+                        continue
+                    current = int(getattr(app, "version", 1) or 1)
+                    try:
+                        stated = int(supplied)
+                    except (TypeError, ValueError):
+                        stated = -1
+                    if stated != current:
+                        failures.append({
+                            "application_id": str(app.id),
+                            "code": "VERSION_CONFLICT",
+                            "current_version": current,
+                        })
 
                 if failures:
                     raise ValueError("Validation failed")
@@ -213,6 +257,7 @@ class ApplicationBulkStatusView(APIView):
                         changed_by=str(request.user.id),
                         notes=notes,
                     )
+                    ApplicationReviewWorkspaceService.bump_version(app)
 
         except ValueError:
             return Response(
@@ -238,5 +283,40 @@ class ApplicationBulkStatusView(APIView):
             except Exception:
                 logger.exception("Failed to trigger waitlist promotion after bulk rejection")
 
-        return Response({"success": True, "data": {"updated_count": len(app_ids)}})
+        # R8.3/R8.4/R10.5: one Audit_Event for the command that was authorised,
+        # carrying the actor, the institution scope it touched, the target status
+        # and the affected ids — never an applicant field. Never blocks the
+        # response.
+        try:
+            from apps.catalog.tenant_audit_service import TenantAuditService
+
+            TenantAuditService.record_bulk_review_decision(
+                new_status=new_status,
+                application_ids=[a.id for a in applications],
+                institution_ids=sorted(
+                    {
+                        str(a.institution_ref_id)
+                        for a in applications
+                        if a.institution_ref_id
+                    }
+                ),
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                reason=notes,
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a write
+            pass
+
+        return Response({"success": True, "data": {
+            # The count of applications this command actually transitioned. It
+            # equals ``len(app_ids)`` on success because the batch is
+            # all-or-nothing, but reporting the applied set rather than the
+            # requested one is what makes that a fact instead of an assumption.
+            "updated_count": len(applications),
+            "versions": {
+                str(app.id): ApplicationReviewWorkspaceService.current_version(app)
+                for app in applications
+            },
+        }})
 

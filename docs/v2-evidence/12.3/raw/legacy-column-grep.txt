@@ -1,0 +1,142 @@
+================================================================================
+task 12.3 — legacy-column grep: EVERY hit, with its classification
+================================================================================
+Instrument : scripts/v1_surface_telemetry.py --columns  (half 4)
+Roots      : backend/apps, backend/scripts, apps/admissions/src,
+             apps/admissions/tests, apps/jobs-ops/src
+Pattern    : \b<column>\b per column — deliberately the BAREST possible
+             pattern. Narrowing it would hide the hits that need
+             classifying, and 12.2 §18 #9 is that a match is classified,
+             never filtered. Every hit below is printed with its class so a
+             reader can dispute a classification instead of trusting a count.
+Captured   : 2026-08-11 (UTC)
+Sunset declared: 2026-08-15   today: 2026-08-11   days remaining: 4
+
+Classes: production | generated_contract | schema_ddl | other_model | test
+         | comment | self | dev-preview       (see half 4's legend)
+
+--------------------------------------------------------------------------------
+applications.amount   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=7 (blocking=0) schema_ddl=11 other_model=305 test=116 comment=66 self=14 dev-preview=8
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:125: CREATE TABLE "payments" ("id" uuid NOT NULL PRIMARY KEY, "application_id" uuid NULL, "user_id" uuid NOT NULL, 
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:129: CREATE TABLE "program_fees" ("id" uuid NOT NULL PRIMARY KEY, "program_id" uuid NOT NULL, "fee_type" varchar(20
+    [schema_ddl        ] backend/scripts/2026_07_19_02_payments_documents_backfill.sql:50: 'amount', p.amount,
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes.sql:7: --               performs NO amount arithmetic), R12.2 (no unique active fee ->
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes.sql:27: -- half: a durable, signed, expiring QUOTE record so the amount a student is shown
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes.sql:28: -- is the same amount the server later accepts, and so a stale or tampered quote
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes.sql:66: -- offering + fee row + amount + currency + residency + fee type + provider-fee
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes.sql:132: -- of "the server is the sole amount authority" (R12.1).
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes_rollback.sql:6: -- amount a student agreed to pay. Run only in a rehearsal/branch context, with an
+    [schema_ddl        ] backend/scripts/2026_07_30_01_payment_fee_quotes_rollback.sql:13: -- lose a payment or change a payment amount.
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6117: readonly amount: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6468: readonly amount: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7127: readonly amount?: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7150: readonly amount: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7179: readonly amount: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7185: readonly amount: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7281: readonly amount: string;
+  + 305 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/common/logging.py:68: "metric", "amount", "currency", "application_id", "program",
+    [other_model        ] backend/apps/common/v2/demo_views.py:220: base_amount = Decimal(str(resolved.amount))
+    [other_model        ] backend/apps/common/v2/demo_views.py:225: "amount": str(resolved.amount),
+    [other_model        ] backend/apps/common/openapi_helpers.py:57: amount = serializers.CharField()
+    ... and 301 more
+--------------------------------------------------------------------------------
+applications.momo_ref   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=0 (blocking=0) schema_ddl=1 other_model=1 test=4 comment=0 self=10 dev-preview=0
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+  + 1 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+--------------------------------------------------------------------------------
+applications.paid_at   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=3 (blocking=0) schema_ddl=1 other_model=9 test=4 comment=0 self=13 dev-preview=0
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5378: readonly paid_at: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5706: readonly paid_at: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6946: readonly paid_at?: string | null;
+  + 9 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+    [other_model        ] backend/apps/applications/serializers.py:244: paid_at = serializers.SerializerMethodField()
+    [other_model        ] backend/apps/applications/serializers.py:264: "paid_at": getattr(obj, "payment_summary_paid_at", None),
+    [other_model        ] backend/apps/applications/serializers.py:277: "paid_at": getattr(obj, "paid_at", None),
+    ... and 5 more
+--------------------------------------------------------------------------------
+applications.payer_name   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=0 (blocking=0) schema_ddl=1 other_model=1 test=4 comment=0 self=8 dev-preview=0
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+  + 1 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/applications/models.py:14: mapped in this Django model: ``payment_method``, ``payer_name``,
+--------------------------------------------------------------------------------
+applications.payer_phone   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=0 (blocking=0) schema_ddl=1 other_model=1 test=4 comment=0 self=8 dev-preview=0
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+  + 1 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+--------------------------------------------------------------------------------
+applications.payment_method   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=4 (blocking=0) schema_ddl=2 other_model=38 test=5 comment=0 self=10 dev-preview=3
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:125: CREATE TABLE "payments" ("id" uuid NOT NULL PRIMARY KEY, "application_id" uuid NULL, "user_id" uuid NOT NULL, 
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:18: -- 02_/03_ scripts. The deprecated application payment columns (payment_method,
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5376: readonly payment_method: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5704: readonly payment_method: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6944: readonly payment_method?: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:7152: readonly payment_method: string | null;
+  + 38 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/common/email/messages/payment_received.py:51: payment_method, portal_url
+    [other_model        ] backend/apps/common/email/messages/payment_received.py:58: method = context.get("payment_method") or "—"
+    [other_model        ] backend/apps/applications/models.py:14: mapped in this Django model: ``payment_method``, ``payer_name``,
+    [other_model        ] backend/apps/applications/tasks/pdf_generation.py:1022: ("Payment Method", payment.payment_method or "N/A"),
+    ... and 34 more
+--------------------------------------------------------------------------------
+applications.payment_verified_at   orm_mapped=True   -> BLOCKED — published surface / live reference
+  counts: production=8 generated_contract=3 (blocking=3) schema_ddl=2 other_model=0 test=1 comment=0 self=6 dev-preview=3
+    [production        ] backend/apps/applications/models.py:83: payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED - use payments table
+    [production        ] backend/apps/applications/serializers.py:533: "payment_status", "payment_verified_at", "payment_verified_by",
+    [production        ] backend/apps/applications/serializers.py:865: "payment_verified_at", "payment_reference", "last_payment_reference",
+    [production        ] backend/apps/documents/payment_widget_views.py:488: application.payment_verified_at = now
+    [production        ] backend/apps/documents/payment_widget_views.py:493: "payment_verified_at",
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:27: CREATE TABLE "applications" ("id" uuid NOT NULL PRIMARY KEY, "application_number" varchar(50) NOT NULL UNIQUE,
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+    [production        ] apps/admissions/src/components/admin/applications/applicationDetailTypes.ts:45: payment_verified_at?: string | null
+    [production        ] apps/admissions/src/components/student/applicationStatus/ApplicationDetailsSection.tsx:68: paymentVerifiedAt={application.payment_verified_at}
+    [production        ] apps/admissions/src/types/database.ts:201: payment_verified_at?: string;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5382: readonly payment_verified_at?: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5709: readonly payment_verified_at?: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6950: readonly payment_verified_at?: string | null;
+--------------------------------------------------------------------------------
+applications.payment_verified_by   orm_mapped=True   -> BLOCKED — published surface / live reference
+  counts: production=14 generated_contract=2 (blocking=2) schema_ddl=5 other_model=0 test=1 comment=0 self=6 dev-preview=0
+    [production        ] backend/apps/applications/models.py:84: payment_verified_by = models.ForeignKey(  # DEPRECATED - use payments table
+    [production        ] backend/apps/applications/models.py:90: db_column='payment_verified_by',
+    [production        ] backend/apps/applications/student_draft_views.py:353: Application.objects.select_related("payment_verified_by")
+    [production        ] backend/apps/applications/serializers.py:533: "payment_status", "payment_verified_at", "payment_verified_by",
+    [production        ] backend/apps/applications/serializers.py:609: verifier = getattr(obj, "payment_verified_by", None)
+    [production        ] backend/apps/applications/serializers.py:620: verifier = getattr(obj, "payment_verified_by", None)
+    [production        ] backend/apps/applications/serializers.py:879: verifier = getattr(obj, "payment_verified_by", None)
+    [production        ] backend/apps/applications/serializers.py:890: verifier = getattr(obj, "payment_verified_by", None)
+    [production        ] backend/apps/applications/admin_review_views.py:162: 'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by',
+    [production        ] backend/apps/applications/admin_review_views.py:189: 'payment_verified_by'
+    [production        ] backend/apps/documents/payment_widget_views.py:492: "payment_verified_by",
+    [production        ] backend/scripts/verify_schema_static.py:103: ("applications.payment_verified_by", "profiles"),
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:27: CREATE TABLE "applications" ("id" uuid NOT NULL PRIMARY KEY, "application_number" varchar(50) NOT NULL UNIQUE,
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:217: ALTER TABLE "applications" ADD CONSTRAINT "applications_payment_verified_by_11277426_fk_profiles_id" FOREIGN K
+    [schema_ddl        ] backend/scripts/00_full_schema.sql:233: CREATE INDEX "applications_payment_verified_by_11277426" ON "applications" ("payment_verified_by");
+    [production        ] backend/scripts/verify_migration.py:170: ("applications.payment_verified_by", "profiles.id"),
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:20: -- payment_verified_by) are DELIBERATELY LEFT INTACT — they are output-only
+    [schema_ddl        ] backend/scripts/2026_05_22_fk_index_backfill.sql:30: ON applications(payment_verified_by);
+    [production        ] apps/admissions/src/types/database.ts:202: payment_verified_by?: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:5384: readonly payment_verified_by?: string | null;
+    [generated_contract] apps/admissions/src/generated/api.d.ts:6952: readonly payment_verified_by?: string | null;
+--------------------------------------------------------------------------------
+applications.pop_url   orm_mapped=False   -> source-clean (db gates still apply)
+  counts: production=0 generated_contract=0 (blocking=0) schema_ddl=1 other_model=1 test=4 comment=0 self=8 dev-preview=0
+    [schema_ddl        ] backend/scripts/2026_07_19_01_payments_documents_expand.sql:19: -- payer_name, payer_phone, amount, paid_at, momo_ref, pop_url, payment_verified_at,
+  + 1 other_model hit(s) suppressed from this listing — the owning model declares no such field, so none can reach the column. Full list in legacy-column-telemetry.json.
+    [other_model        ] backend/apps/applications/models.py:15: ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+--------------------------------------------------------------------------------
+
+contractable by source : ['applications.amount', 'applications.momo_ref', 'applications.paid_at', 'applications.payer_name', 'applications.payer_phone', 'applications.payment_method', 'applications.pop_url']
+blocked by source      : ['applications.payment_verified_at', 'applications.payment_verified_by']
+already / out of scope  : ['profiles (registry empty — already contracted)', 'error_logs (entire table — not a column; out of scope)']
+HALF 4 PASS = False

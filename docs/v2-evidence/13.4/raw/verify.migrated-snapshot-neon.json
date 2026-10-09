@@ -1,0 +1,21 @@
+{
+  "baseline_label": "migrated-snapshot-neon",
+  "candidate_label": "migrated-snapshot-neon",
+  "ok": false,
+  "failure_count": 2,
+  "warning_count": 0,
+  "differences": [
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_onboarding.tenant_onboarding_created_by_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (created_by_id) REFERENCES profiles(id) NOT VALID",
+      "severity": "failure"
+    },
+    {
+      "category": "unvalidated_foreign_key",
+      "object": "tenant_onboarding.tenant_onboarding_institution_id_fk",
+      "detail": "FK is NOT VALID: FOREIGN KEY (institution_id) REFERENCES institutions(id) NOT VALID",
+      "severity": "failure"
+    }
+  ]
+}

@@ -25,10 +25,9 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 from apps.documents.fee_resolver import (  # noqa: E402
+    FeeConfigurationError,
     FeeResolver,
     ResolvedFee,
-    _DEFAULT_APPLICATION_FEE,
-    _DEFAULT_CURRENCY,
 )
 
 # ---------------------------------------------------------------------------
@@ -147,6 +146,7 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
+            mock_fee_qs.filter.return_value.count.return_value = 1
             mock_fee_qs.filter.return_value.first.return_value = mock_program_fee
 
             result = resolver.resolve_fee(program_code, nationality, country)
@@ -160,34 +160,33 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
         program_code=program_codes,
         nationality=nullable_text,
         country=nullable_text,
-        fallback_fee=fee_amounts,
     )
     @settings(max_examples=5)
-    def test_falls_back_to_program_application_fee(
-        self, program_code, nationality, country, fallback_fee
+    def test_fails_closed_when_no_active_fee(
+        self, program_code, nationality, country
     ):
-        """When no ProgramFee exists, falls back to program.application_fee
-        with currency ZMW."""
+        """When no active ProgramFee exists, the resolver FAILS CLOSED with
+        FEE_NOT_CONFIGURED and never substitutes program.application_fee or a
+        K153 default (admissions-v2 task 5.4, DATA-05, STU-08)."""
         resolver = FeeResolver()
-        residency = FeeResolver._classify_residency(nationality, country)
 
         mock_program = MagicMock()
         mock_program.id = uuid.uuid4()
-        mock_program.application_fee = fallback_fee
+        mock_program.application_fee = Decimal("153.00")  # must be ignored
 
         with (
             patch("apps.documents.fee_resolver.Program.objects") as mock_prog_qs,
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
+            mock_fee_qs.filter.return_value.count.return_value = 0
             mock_fee_qs.filter.return_value.first.return_value = None
 
-            result = resolver.resolve_fee(program_code, nationality, country)
+            with self.assertRaises(FeeConfigurationError) as ctx:
+                resolver.resolve_fee(program_code, nationality, country)
 
-        self.assertEqual(result.amount, fallback_fee)
-        self.assertEqual(result.currency, _DEFAULT_CURRENCY)
-        self.assertEqual(result.residency_category, residency)
-        self.assertEqual(result.source, "program_default")
+        self.assertEqual(ctx.exception.code, "FEE_NOT_CONFIGURED")
+        self.assertEqual(ctx.exception.status_code, 422)
 
     @given(
         program_code=program_codes,
@@ -195,31 +194,27 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
         country=nullable_text,
     )
     @settings(max_examples=5)
-    def test_falls_back_to_k153_default(
+    def test_ambiguous_fee_fails_closed(
         self, program_code, nationality, country
     ):
-        """When no ProgramFee and program.application_fee is None, falls back
-        to K153.00 ZMW."""
-        resolver = FeeResolver()
-        residency = FeeResolver._classify_residency(nationality, country)
+        """More than one active ProgramFee → FEE_AMBIGUOUS (never a guess)."""
+        from apps.documents.fee_resolver import AmbiguousFeeError
 
+        resolver = FeeResolver()
         mock_program = MagicMock()
         mock_program.id = uuid.uuid4()
-        mock_program.application_fee = None
 
         with (
             patch("apps.documents.fee_resolver.Program.objects") as mock_prog_qs,
             patch("apps.documents.fee_resolver.ProgramFee.objects") as mock_fee_qs,
         ):
             mock_prog_qs.get.return_value = mock_program
-            mock_fee_qs.filter.return_value.first.return_value = None
+            mock_fee_qs.filter.return_value.count.return_value = 2
 
-            result = resolver.resolve_fee(program_code, nationality, country)
+            with self.assertRaises(AmbiguousFeeError) as ctx:
+                resolver.resolve_fee(program_code, nationality, country)
 
-        self.assertEqual(result.amount, _DEFAULT_APPLICATION_FEE)
-        self.assertEqual(result.currency, _DEFAULT_CURRENCY)
-        self.assertEqual(result.residency_category, residency)
-        self.assertEqual(result.source, "program_default")
+        self.assertEqual(ctx.exception.code, "FEE_AMBIGUOUS")
 
 
 # ---------------------------------------------------------------------------

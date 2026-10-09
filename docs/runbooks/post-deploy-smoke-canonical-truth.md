@@ -65,13 +65,13 @@ program release. Reference: `docs/release-notes-canonical-truth-2026-05.md`.
   WHERE created_at < now() - interval '7 days';
   ```
   Should be a small bounded number (cleanup runs daily at 03:00 UTC).
-- [ ] Confirm AI hardening flags effective: query GlitchTip for `*.degraded` metrics from `apps.common.ai_circuit_breaker`. Their presence means the circuit breaker is wrapping AI calls correctly.
+- [ ] ~~Confirm AI hardening flags effective: query GlitchTip for `*.degraded` metrics from `apps.common.ai_circuit_breaker`.~~ **Removed.** Admissions-v2 task 7.4 deleted `apps/common/ai_circuit_breaker.py` together with the admissions AI it wrapped (R11.1), so this check can only ever come back empty and an operator reading an empty result as "flags not effective" would chase nothing. Admissions makes no generative call; the only generative path left is jobs-ops' `apps/jobs/ai_service.py`, whose failures already log through its own `logger.exception`.
 
 ## Rollback procedures
 
 | Symptom | Rollback |
 |---------|----------|
-| AI Gateway PII leak detected | This SHOULD NOT happen because `AI_HARDENING_REDACTION=True`. If it does, immediately set `AI_HARDENING_REDACTION=true` env var (it should already be hardcoded in `prod.py`); investigate whether `prod.py` override is being read. |
+| Admissions applicant data seen leaving toward an AI gateway | **This is now an incident, not a flag flip.** `AI_HARDENING_REDACTION` no longer exists (task 7.4 deleted it with the prompts it redacted), so setting it does nothing — the old instruction here would have burned the first minutes of a real leak. Admissions must make no generative call at all (R11.1): treat any such traffic as unauthorised code, find the caller, revert it, and run `backend/tests/unit/test_no_admissions_generative_ai_guard.py`, which names the offending module. The only sanctioned outbound AI path is jobs-ops' (`apps/jobs/ai_service.py`, `JOBS_OPS_AI_*`); if the traffic is jobs-ops', rotate `AI_GATEWAY_API_KEY` per `docs/runbooks/secrets-rotation.md`. Data map: `docs/ai-data-flows.md`. |
 | Submission flow broken on deferred payments | Revert the identity-document gate change in `services.py:_application_has_identity_document` to exclude only `deleted` (Phase 2.C of plan). |
 | `check_production_state` blocking deploy due to false positive | Add a `--allow-warnings` flag and document which flag triggered it. |
 | System-actor seed not applied → Celery tasks fail | Apply seed manually: `psql $DATABASE_URL -f backend/scripts/system_actor_seed.sql`. Restart Celery workers. Tasks resume with the next beat tick. |

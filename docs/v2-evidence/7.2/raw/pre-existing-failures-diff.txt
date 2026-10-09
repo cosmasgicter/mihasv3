@@ -1,0 +1,40 @@
+# Pre-existing failures (not introduced by 7.2)
+
+## Backend — full tests/unit + tests/integration + tests/contract
+Result: 43 failed, 2900 passed, 73 skipped, 2 xfailed, 1 xpassed, 79 errors
+
+Diff vs the task 7.1 baseline (docs/v2-evidence/7.1/raw/backend-unit-suite.txt +
+backend-integration-suite.txt), which did NOT run tests/contract:
+
+### Entries present at 7.2 but absent from the 7.1 baseline
+(all six are tests/contract/test_v2_endpoint_contract.py, a suite 7.1 never ran)
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2ApplicationDetailEndpoint::test_success_owner_read
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2DocumentListEndpoint::test_success_with_documents
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2FeeResolveEndpoint::test_success_fee_resolved
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2ProgramListEndpoint::test_success_with_programs
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_anonymous_user
+FAILED tests/contract/test_v2_endpoint_contract.py::TestV2SessionEndpoint::test_success_authenticated_user
+
+Already documented at task 5.4 (docs/v2-evidence/5.4/README.md):
+  "tests/contract/test_v2_endpoint_contract.py has 6 failures
+  (session/programs/application-detail/document/fee-resolve demo harness) that
+  reproduce identically on the base commit bae29a28d ... a v2 demo-harness
+  envelope issue". The file itself does not exist at bae29a28d (it is untracked
+  task-1.3 spec work), so it cannot regress from 7.2.
+
+### Entries in the 7.1 baseline that no longer fail
+(none)
+
+### Named pre-existing failures inside the 7.2 targeted regression set
+- tests/unit/test_unscoped_endpoint_guard.py::test_gap_register_endpoints_are_scoped
+  (GAP-6/GAP-7 interview + waitlist/conditions endpoints; owned by task 11.2)
+  -> also FAILED in docs/v2-evidence/7.1/raw/backend-unit-suite.txt:137
+- tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+  -> also FAILED in docs/v2-evidence/7.1/raw/backend-contract-and-regression.txt:27
+
+## Frontend — bun x vitest run
+Result: 3721 passed, 1 failed, 1 skipped (3723); 10 failed files
+- 9 x tests/harness-e2e/** : Playwright specs vitest cannot collect. Run by the
+  Playwright projects (.github/workflows/v2-harness-smoke.yml). Identical set at 7.1.
+- tests/unit/authPageFormMarkup.test.tsx : also failed at 7.1 (frontend-suite.txt).
+Zero new frontend failures; +73 passing tests vs the 7.1 baseline (3648).

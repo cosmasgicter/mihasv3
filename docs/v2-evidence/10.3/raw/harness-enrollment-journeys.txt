@@ -1,0 +1,13 @@
+
+Running 8 tests using 1 worker
+
+  ✓  1 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (3.2s)
+  ✓  2 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (3.2s)
+  ✓  3 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (2.0s)
+  ✓  4 [chromium-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.2s)
+  ✓  5 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:309:1 › an approved student sees a server-authored deadline and confirms their place (3.2s)
+  ✓  6 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:377:1 › a conditional offer is blocked until its condition is accepted, then enrolls (3.2s)
+  ✓  7 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:455:1 › an offer past its deadline publishes the refusal and will not confirm (2.3s)
+  ✓  8 [mobile-required] › tests/harness-e2e/required/enrollment-readiness-confirmation.spec.ts:501:1 › six simultaneous confirmations produce exactly one enrollment (1.2s)
+
+  8 passed (29.2s)

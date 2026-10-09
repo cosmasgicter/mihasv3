@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { CheckCircle, ChevronDown, ChevronUp, User } from 'lucide-react'
 
 interface ProfileAutoPopulationIndicatorProps {

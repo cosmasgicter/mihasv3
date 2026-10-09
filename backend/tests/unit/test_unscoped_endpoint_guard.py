@@ -107,6 +107,31 @@ _SCOPE_SEAM_TOKENS: tuple[str, ...] = (
     "filters_for_user",
     "_scope_institution_ids",
     "_scoped_user_ids",
+    # The user directory's scope seam after admissions-v2 task 9.3 (R6.1,
+    # findings ADM-03/ADM-04). It is no longer an id set compared *after* the
+    # fetch (``_scoped_user_ids``) — it is a service that composes
+    # ``AccessScopeService`` + ``visible_institution_queryset`` into the queryset
+    # **before** any lookup. Naming the services is what keeps this guard honest
+    # for those endpoints: each is the scope authority for its own command.
+    "UserDirectoryQueryService",
+    "UserBulkService",
+    "UserImportService",
+    "scoped_users",
+    "resolve_user",
+    # The canonical application scope seams from task 2.2's
+    # ``apps/common/tenant_authorization.py``. Each one narrows the queryset
+    # through ``AccessScopeService.filter_applications`` **before** issuing the
+    # ``.get()`` and then enforces the per-institution ``tenant.*`` capability, so
+    # naming them is exactly the "shared scoped loader that funnels through it"
+    # this token list was written for. Registered here by admissions-v2 task 9.4,
+    # which moved the amendment and condition commands off the fetch-then-check
+    # ``_staff_can_access_application`` shape onto ``resolve_scoped_application``:
+    # without these names the guard would report a *stronger* implementation as a
+    # regression.
+    "resolve_scoped_application",
+    "resolve_owner_or_scoped_application",
+    "authorize_owned_application",
+    "authorize_tenant_surface",
 )
 
 # Base-class name suffixes that mark a class as a DRF view/endpoint.
@@ -306,14 +331,43 @@ _GAP_REGISTER_ENDPOINTS: dict[str, dict[str, str]] = {
         "ApplicationWaitlistPositionView": "GAP-7",
         "ApplicationConditionsView": "GAP-7",
     },
+    # GAP-5 was ``ApplicationAdminSummaryView`` — the generative admin review
+    # summary. Task 7.4 deleted the class and its route (R11.1: no generative AI
+    # in admissions), and admissions-v2 task 9.4 removed the last caller, so the
+    # pin is retired rather than left pointing at a class that cannot exist. Its
+    # replacement is the deterministic ``readiness`` section of
+    # ``AdminApplicationReviewWorkspaceView``, pinned below.
     "apps/applications/admin_amendment_views.py": {
-        "ApplicationAdminSummaryView": "GAP-5",
         "ApplicationConditionVerifyView": "GAP-8",
         "ApplicationAmendmentReviewView": "GAP-8",
     },
-    "apps/accounts/admin_user_views.py": {
+    # The one review-workspace detail query (admissions-v2 task 9.4, R8.5). It
+    # replaced six per-application reads, so it is exactly the surface this guard
+    # exists for: one route now returns identity, answers, evidence, payment,
+    # interviews, conditions, amendments, communication and history for one
+    # application, and every one of those sections must be behind the same scope
+    # decision.
+    "apps/applications/admin_review_workspace_views.py": {
+        "AdminApplicationReviewWorkspaceView": "GAP-13",
+    },
+    # Rebuilt by admissions-v2 task 9.3 (R6.1-R6.5, findings ADM-03/ADM-04):
+    # the user directory's views moved out of ``admin_user_views`` into
+    # ``user_directory_views``, alongside the query service that owns their scope.
+    # The scope seam is no longer an id set compared *after* the fetch — it is
+    # ``UserDirectoryQueryService.scoped_users`` / ``resolve_user``, which compose
+    # ``AccessScopeService`` + ``visible_institution_queryset`` **before** the
+    # lookup. ``AdminUserBulkView`` and the two import views are pinned too,
+    # because a bulk write and a bulk create are exactly the surfaces this guard
+    # exists for.
+    "apps/accounts/user_directory_views.py": {
+        "AdminUserListView": "GAP-9",
         "AdminUserExportView": "GAP-9",
         "AdminUserDetailView": "GAP-10",
+        "AdminUserBulkView": "GAP-10",
+        # The import pair shares its scope resolution, so the base class is what
+        # holds the seam. Pinning the subclasses instead would pass only by
+        # accident of where the call happens to be written.
+        "_ImportBase": "GAP-10",
     },
     "apps/accounts/admin_audit_views.py": {
         "AdminAuditLogView": "GAP-11",

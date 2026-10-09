@@ -39,6 +39,16 @@ Design notes
 * Atomicity: each migration runs inside its own transaction. If one
   file fails, earlier successes are kept; the command exits non-zero
   so the container crashloops visibly.
+* Deferred-constraint handling: that per-file transaction opens with
+  ``SET CONSTRAINTS ALL IMMEDIATE``. Without it, a file that backfills
+  rows and then builds an index on the same table fails on any database
+  carrying ``DEFERRABLE INITIALLY DEFERRED`` foreign keys - the queued
+  referential check is still pending at the index build and Postgres
+  answers ``cannot CREATE INDEX "x" because it has pending trigger
+  events``. Every check still runs inside the same transaction, just at
+  end-of-statement instead of at COMMIT, so this is stricter rather than
+  weaker. Rationale, measurement and rejected alternatives:
+  ``_set_constraints_immediate``.
 * ``CREATE INDEX CONCURRENTLY`` split-phase handling: files whose body
   references ``CREATE INDEX CONCURRENTLY`` (case-insensitive, after
   stripping ``--`` line comments) cannot run inside a transaction.
@@ -446,6 +456,77 @@ def _drop_invalid_indexes(index_names: list[str]) -> list[str]:
     return invalid
 
 
+def _set_constraints_immediate() -> None:
+    """Make deferred constraint checks fire per statement, not at COMMIT.
+
+    Task 13.6 remediation L3, SECOND LAYER of GATE-13.4-02. Measured in
+    ``docs/v2-evidence/13.6/remediation/L2-L3/raw/07-pending-trigger-diagnosis.txt``.
+
+    THE DEFECT
+    ----------
+    ``_apply_transactional`` sends a whole migration file as ONE statement
+    string inside ONE transaction. On a database that carries Django-created
+    ``DEFERRABLE INITIALLY DEFERRED`` foreign keys - which every
+    production-lineage database here does, alongside the hand-written
+    non-deferrable duplicates - a row write queues its referential-integrity
+    check to COMMIT rather than to end-of-statement. Postgres then refuses
+    later DDL on that same relation inside the same transaction::
+
+        cannot CREATE INDEX "programs" because it has pending trigger events
+        cannot ALTER TABLE "applications" because it has pending trigger events
+
+    (``CheckTableNotInUse`` -> ``AfterTriggerPendingOnRel``.) Any
+    backfill-then-index script therefore fails on the restored-backup lineage
+    while passing on a from-empty build, because a from-empty build has only the
+    non-deferrable hand-written constraints and queues nothing.
+
+    Measured on ``2026_06_08_01_multi_tenant_beanola_admissions.sql`` against a
+    restored production-lineage snapshot: 4 of its 40 statements are refused -
+    two ``CREATE INDEX`` on ``programs``, one on ``applications``, and the
+    terminal ``DO`` block's ``ALTER TABLE applications ADD CONSTRAINT``.
+
+    WHY THIS IS THE FIX AND NOT THE SQL
+    -----------------------------------
+    ``SET CONSTRAINTS`` is scoped to the current transaction, and each migration
+    gets its own transaction - so no other migration file can issue it on a
+    given file's behalf. The choice is therefore between editing an
+    already-applied script (which changes a checksum recorded in the
+    ``migration_history`` of every database that applied it cleanly) and issuing
+    the statement here, once, for every file. Two alternatives were measured and
+    rejected: an additive FOLLOW-ON script never runs, because the sweep aborts
+    inside the failing file; and PRE-CREATING the indexes does not help either,
+    because Postgres performs the pending-events check BEFORE the
+    ``IF NOT EXISTS`` short-circuit (the index already existed and
+    ``CREATE INDEX IF NOT EXISTS`` still raised).
+
+    THIS MAKES CHECKING STRICTER, NOT WEAKER
+    ----------------------------------------
+    Every deferred check still runs, inside the same transaction, just sooner -
+    at the end of each statement instead of at COMMIT. A violation still aborts
+    the migration and still rolls it back, and ``migration_history`` still goes
+    unwritten. The only script this would newly reject is one that depends on
+    holding a foreign key violated across statement boundaries, which the
+    additive-only contract does not permit in the first place.
+
+    Postgres-only (the statement is a no-op concept on SQLite, whose test
+    fixtures have no deferrable constraints) and best-effort: a database with no
+    deferrable constraints is unaffected, so a failure here must not be allowed
+    to block a migration that would otherwise apply.
+    """
+    if connection.vendor != "postgresql":
+        return
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+    except Exception:  # pragma: no cover - defensive
+        logger.warning(
+            "apply_sql_migrations could not SET CONSTRAINTS ALL IMMEDIATE; "
+            "a backfill-then-index migration may fail with 'pending trigger "
+            "events' on a database carrying deferred foreign keys",
+            exc_info=True,
+        )
+
+
 def _has_extended_migration_history() -> bool:
     """Return True when ``migration_history.checksum`` exists.
 
@@ -629,6 +710,22 @@ class Command(BaseCommand):
                 raise CommandError(f"Migration {label} failed: {exc}")
             self.stdout.write(self.style.SUCCESS("OK"))
 
+        # A dry run applies NOTHING, so it must not end on a line that reads
+        # like it did. Measured in docs/v2-evidence/13.4/README.md §8.3: the
+        # dry run printed "Applied 23 migration(s) successfully." having applied
+        # none, and an operator reading that during an incident could reasonably
+        # believe the work was done. The 13.5 post-deploy proof runs this exact
+        # command, so a misleading summary is a defect in the proof instrument.
+        if dry_run:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"[dry-run] NOTHING WAS APPLIED. "
+                    f"{len(pending)} migration(s) would be applied. "
+                    f"Re-run without --dry-run to apply them."
+                )
+            )
+            return
+
         self.stdout.write(
             self.style.SUCCESS(f"Applied {len(pending)} migration(s) successfully.")
         )
@@ -642,9 +739,17 @@ class Command(BaseCommand):
         DDL/DML. On any error the wrapping transaction aborts, rolling
         back partial changes; the ``migration_history`` row is not
         written and the command exits non-zero.
+
+        The transaction opens with ``SET CONSTRAINTS ALL IMMEDIATE`` so a
+        backfill earlier in the file cannot leave a deferred referential
+        check queued to COMMIT and thereby block a ``CREATE INDEX`` or
+        ``ALTER TABLE`` later in the same file. See
+        ``_set_constraints_immediate`` for the measurement and the rejected
+        alternatives (task 13.6, GATE-13.4-02 second layer).
         """
         try:
             with transaction.atomic():
+                _set_constraints_immediate()
                 with connection.cursor() as cursor:
                     cursor.execute(sql)
                 _record_applied(path.name, checksum)

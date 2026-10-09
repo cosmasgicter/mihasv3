@@ -74,26 +74,29 @@ def test_institution_name_for_program_derives_from_program():
 
 def test_update_serializer_accepts_unresolvable_institution_when_program_valid():
     """A cosmetic 'Beanola Admissions' label no longer blocks a draft save:
-    the institution is derived from the program's owning school."""
+    the institution is derived from the program's owning school.
+
+    Admissions-v2 task 6.4 note: ``program`` / ``intake`` / ``institution`` are
+    now ``read_only`` on ``ApplicationSerializer`` (design §7.2 — the generic
+    PATCH never accepts assignment identifiers or their display snapshots;
+    finding STU-01), so this regression is pinned at the validator level, where
+    the derivation behaviour actually lives. The legacy string create path
+    (``ApplicationCreateSerializer``) runs the same derivation.
+    """
     inst = _make_institution(code="DRV", name="Derived School")
     _make_program(inst, name="Derived Program", code="DRVP")
 
-    serializer = ApplicationSerializer(
-        instance=None,
-        data={"institution": "Beanola Admissions", "program": "Derived Program"},
-        partial=True,
+    attrs = ApplicationSerializer().validate(
+        {"institution": "Beanola Admissions", "program": "Derived Program"}
     )
-    assert serializer.is_valid(), serializer.errors
-    assert serializer.validated_data["institution"] == "Derived School"
+    assert attrs["institution"] == "Derived School"
 
 
 def test_update_serializer_rejects_unresolvable_institution_with_no_program():
     """With neither a resolvable institution nor a program to derive from, the
     serializer still rejects an invalid institution reference."""
-    serializer = ApplicationSerializer(
-        instance=None,
-        data={"institution": "Nonexistent School XYZ"},
-        partial=True,
-    )
-    assert not serializer.is_valid()
-    assert "institution" in serializer.errors
+    from rest_framework.exceptions import ValidationError
+
+    with pytest.raises(ValidationError) as excinfo:
+        ApplicationSerializer().validate({"institution": "Nonexistent School XYZ"})
+    assert "institution" in excinfo.value.detail

@@ -214,7 +214,6 @@ _BLOCKED_CASES = [
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize(
     ("from_status", "target_status", "source"),
     _ALLOWED_CASES,
@@ -280,7 +279,6 @@ def test_allowed_transition_persists_status_and_writes_audit(
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize(
     ("from_status", "target_status", "source"),
     _BLOCKED_CASES,
@@ -362,7 +360,6 @@ _PAYMENT_TO_APP_MAP = {
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize(
     ("from_status", "target_status", "source"),
     [
@@ -484,7 +481,6 @@ _INTEGRITY_CASES = [
 
 
 @pytest.mark.django_db
-@override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @pytest.mark.parametrize(
     ("risk_type", "provider_data"),
     _INTEGRITY_CASES,

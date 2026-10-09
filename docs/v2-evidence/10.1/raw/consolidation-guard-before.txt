@@ -1,0 +1,90 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/cosmas/Downloads/mihasv3/apps/admissions[39m
+
+ [31m❯[39m tests/property/consolidation-dead-files.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 9[2mms[22m[39m
+[31m     [31m×[31m each file in the deletion list does not exist on disk[39m[32m 8[2mms[22m[39m
+ [31m❯[39m tests/property/consolidation-imports.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 102[2mms[22m[39m
+[31m     [31m×[31m no source file imports from any deprecated path[39m[32m 101[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/property/consolidation-dead-files.test.ts[2m > [22mProperty 4: Deprecated and Dead Files Deleted[2m > [22meach file in the deletion list does not exist on disk
+[31m[1mError[22m: Property failed after 55 tests
+{ seed: -363077661, path: "54", endOnFailure: true }
+Counterexample: ["src/hooks/useNotificationPreferences.ts"]
+Shrunk 0 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run[39m
+[90m [2m❯[22m buildError ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m156:19[22m[39m
+[90m [2m❯[22m throwIfFailed ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m165:11[22m[39m
+[90m [2m❯[22m reportRunDetails ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m178:16[22m[39m
+[90m [2m❯[22m Proxy.assert ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m61:9[22m[39m
+[36m [2m❯[22m tests/property/consolidation-dead-files.test.ts:[2m79:8[22m[39m
+    [90m 77| [39m[34mdescribe[39m([32m'Property 4: Deprecated and Dead Files Deleted'[39m[33m,[39m () [33m=>[39m {
+    [90m 78| [39m  [34mit[39m([32m'each file in the deletion list does not exist on disk'[39m[33m,[39m () [33m=>[39m {
+    [90m 79| [39m    fc[33m.[39m[34massert[39m(
+    [90m   | [39m       [31m^[39m
+    [90m 80| [39m      fc[33m.[39m[34mproperty[39m(deletedFileArb[33m,[39m (filePath) [33m=>[39m {
+    [90m 81| [39m        [35mconst[39m fullPath [33m=[39m path[33m.[39m[34mresolve[39m([33mROOT[39m[33m,[39m filePath)[33m;[39m
+
+[31m[1mCaused by: AssertionError[22m: File src/hooks/useNotificationPreferences.ts should have been deleted but still exists: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/property/consolidation-dead-files.test.ts:[2m85:11[22m[39m
+[90m [2m❯[22m Property.predicate ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/property/Property.js:[2m14:54[22m[39m
+[90m [2m❯[22m Property.run ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/property/Property.generic.js:[2m43:33[22m[39m
+[90m [2m❯[22m runIt ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m14:30[22m[39m
+[90m [2m❯[22m check ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m54:11[22m[39m
+[90m [2m❯[22m Proxy.assert ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m57:17[22m[39m
+[90m [2m❯[22m tests/property/consolidation-dead-files.test.ts:[2m79:8[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/property/consolidation-imports.test.ts[2m > [22mProperty 3: No Imports From Deprecated Paths[2m > [22mno source file imports from any deprecated path
+[31m[1mError[22m: Property failed after 13 tests
+{ seed: -200089057, path: "12", endOnFailure: true }
+Counterexample: [["/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/Communications.tsx","/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/ContactPage.tsx"]]
+Shrunk 0 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run[39m
+[90m [2m❯[22m buildError ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m156:19[22m[39m
+[90m [2m❯[22m throwIfFailed ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m165:11[22m[39m
+[90m [2m❯[22m reportRunDetails ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m178:16[22m[39m
+[90m [2m❯[22m Proxy.assert ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m61:9[22m[39m
+[36m [2m❯[22m tests/property/consolidation-imports.test.ts:[2m57:8[22m[39m
+    [90m 55| [39m[34mdescribe[39m([32m'Property 3: No Imports From Deprecated Paths'[39m[33m,[39m () [33m=>[39m {
+    [90m 56| [39m  [34mit[39m([32m'no source file imports from any deprecated path'[39m[33m,[39m () [33m=>[39m {
+    [90m 57| [39m    fc[33m.[39m[34massert[39m(
+    [90m   | [39m       [31m^[39m
+    [90m 58| [39m      fc[33m.[39m[34mproperty[39m(sourceFileSubsetArb[33m,[39m (files) [33m=>[39m {
+    [90m 59| [39m        [35mfor[39m ([35mconst[39m filePath [35mof[39m files) {
+
+[31m[1mCaused by: AssertionError[22m: File src/pages/student/Communications.tsx imports from deprecated path: @/hooks/useNotificationPreferences: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/property/consolidation-imports.test.ts:[2m67:15[22m[39m
+[90m [2m❯[22m Property.predicate ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/property/Property.js:[2m14:54[22m[39m
+[90m [2m❯[22m Property.run ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/property/Property.generic.js:[2m43:33[22m[39m
+[90m [2m❯[22m runIt ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m14:30[22m[39m
+[90m [2m❯[22m check ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m54:11[22m[39m
+[90m [2m❯[22m Proxy.assert ../../node_modules/.bun/fast-check@4.5.3/node_modules/fast-check/lib/check/runner/Runner.js:[2m57:17[22m[39m
+[90m [2m❯[22m tests/property/consolidation-imports.test.ts:[2m57:8[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 21:15:17
+[2m   Duration [22m 419ms[2m (transform 74ms, setup 66ms, import 187ms, tests 112ms, environment 0ms)[22m
+

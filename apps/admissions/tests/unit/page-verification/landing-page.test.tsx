@@ -144,7 +144,7 @@ vi.mock('@/components/landing/LandingPageSections', () => ({
         Three diplomas. Three career paths. Program-first admissions Shared Beanola portal Diploma in Clinical Medicine Diploma in Registered Nursing
       </div>
       <div data-testid="how-it-works-mock">
-        How the application works Create your account Pay the application fee K150 USD 20
+        How the application works Create your account Pay the application fee shown for your programme
       </div>
       <div data-testid="eligibility-mock">
         What you need to apply ECZ Grade 12 certificate Cambridge certificate accepted NRC or passport
@@ -274,8 +274,11 @@ describe('Landing page verification', () => {
     expect(text).toContain('How the application works')
     expect(text).toContain('Create your account')
     expect(text).toContain('Pay the application fee')
-    expect(text).toContain('K150')
-    expect(text).toContain('USD 20')
+    // Task 8.1 (STU-08): the landing page no longer asserts a K150 / USD 20 fee.
+    // The amount is quoted by the server per offering and residency, so hardcoding
+    // it here would be wrong for any differently-priced offering or tenant.
+    expect(text).not.toContain('K150')
+    expect(text).not.toContain('USD 20')
   })
 
   // ── Eligibility section ─────────────────────────────────────────────

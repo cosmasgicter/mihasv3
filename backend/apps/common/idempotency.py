@@ -14,6 +14,7 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework.response import Response as DRFResponse
+from rest_framework.utils.encoders import JSONEncoder
 
 from apps.common.models import IdempotencyKey
 
@@ -28,7 +29,13 @@ def _body_hash(request) -> str:
 def _serialize_response_body(response) -> dict | list | None:
     """Extract a replay-safe JSON-ish body from a Django/DRF response."""
     if isinstance(response, DRFResponse):
-        return response.data
+        # `Response.data` may still contain renderer-supported Python values
+        # such as Decimal, UUID, dates, lazy strings, or ReturnDict objects.
+        # JSONField uses the stdlib encoder, so assigning that object directly
+        # can turn an otherwise successful idempotent command into a 500 while
+        # caching its response. Round-trip through DRF's own encoder so the
+        # cached body is exactly the JSON-compatible shape a client receives.
+        return json.loads(json.dumps(response.data, cls=JSONEncoder))
 
     if hasattr(response, "content"):
         try:

@@ -15,12 +15,10 @@ Invariants (R9.1, R9.2, R9.3, R9.4):
   ``successful`` MUST be ignored, leaving the row ``successful`` and
   emitting a ``payment.late_failed_webhook_ignored`` audit event (R9.1).
 
-Settings applied:
-* ``PAYMENT_HARDENING_FORWARD_ONLY=True`` — route every mutation through
-  ``PaymentService._transition``.
-* ``PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True`` — use the strict dedup
-  path when a webhook is replayed through the HTTP surface (harmless
-  here because we call ``apply_webhook_event`` directly).
+Both invariants hold unconditionally: every mutation routes through
+``PaymentService._transition`` and dedup uses the canonical
+``WebhookEventIdentity`` contract. The flags that used to select alternatives
+were deleted in admissions-v2 task 8.2.
 
 Validates: Requirements R9.1, R9.2, R9.3, R9.4
 """
@@ -122,10 +120,6 @@ def seed_pending_payment(db):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(
-    PAYMENT_HARDENING_FORWARD_ONLY=True,
-    PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT=True,
-)
 def test_out_of_order_webhook_sequence_keeps_successful(seed_pending_payment):
     """settled → successful → failed replay ends with ``successful``.
 

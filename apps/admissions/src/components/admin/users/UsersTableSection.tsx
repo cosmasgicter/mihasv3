@@ -2,6 +2,7 @@ import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { UserMobileCard, UserTableRow } from '@/components/admin/UserRowCard'
 import {
+  ArrowDownUp,
   ArrowUpDown,
   Calendar,
   CheckSquare,
@@ -13,8 +14,13 @@ import {
   Square,
   Trophy,
 } from 'lucide-react'
-import type { FiltersSlice } from '@/pages/admin/lib/usersReducer'
+import { SORTABLE_COLUMNS, type FiltersSlice } from '@/pages/admin/lib/usersReducer'
 
+/**
+ * The column keys are the **registered backend sort keys** (task 9.3, R6.1), not
+ * UI-invented names: the header an operator clicks and the `sort=` a request
+ * carries are the same string, so a sorted view is reproducible from a URL.
+ */
 type SortField = FiltersSlice['sortField']
 
 interface UsersTableSectionProps {
@@ -64,6 +70,65 @@ export function UsersTableSection({
   return (
     <>
       <div className="block space-y-4 lg:hidden">
+        {/*
+          Sort is server state, and until admissions-v2 task 11.4 it was reachable
+          **only** through the desktop table's column headers — so a phone-width
+          operator could read the directory but could not order it, and a sorted
+          view was not reproducible from the surface that rendered it. R16.1 lets
+          a table become a record list "without losing commands, filters, state,
+          or pagination"; a sort key is state.
+
+          The control drives the same `TOGGLE_SORT` action and therefore the same
+          **registered backend sort keys** as the headers (`SORTABLE_COLUMNS`), so
+          the two surfaces cannot drift into two vocabularies.
+        */}
+        {/*
+          Stacked at phone width, inline from `sm`. A single wrapping row put the
+          label, the field selector and the direction control side by side at
+          390 px and the selector's own text was **clipped** — the "Contact" key
+          rendered as "Cont", which R16.7 forbids for the same reason it forbids a
+          hidden command: the operator cannot read what the surface is doing.
+        */}
+        <div
+          className="flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:flex-row sm:items-center"
+          data-testid="users-mobile-sort"
+        >
+          <label
+            htmlFor="users-mobile-sort-field"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"
+          >
+            <ArrowDownUp className="h-3.5 w-3.5" aria-hidden="true" />
+            Sort by
+          </label>
+          <select
+            id="users-mobile-sort-field"
+            value={sortField}
+            onChange={(event) => onToggleSort(event.target.value as SortField)}
+            className="min-h-touch w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:flex-1"
+          >
+            {SORTABLE_COLUMNS.map((column) => (
+              <option key={column.field} value={column.field}>
+                {column.label}
+              </option>
+            ))}
+          </select>
+          {/* Direction is a word, never an arrow alone. */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="min-h-touch min-w-touch w-full sm:w-auto"
+            onClick={() => onToggleSort(sortField)}
+            aria-label={`Sort direction: ${sortDirection === 'asc' ? 'ascending' : 'descending'}. Activate to reverse.`}
+          >
+            {sortDirection === 'asc' ? (
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span>{sortDirection === 'asc' ? 'Ascending' : 'Descending'}</span>
+          </Button>
+        </div>
+
         {paginatedUsers.map((user) => {
           const userId = user.user_id || user.id
           return (
@@ -98,8 +163,8 @@ export function UsersTableSection({
                       <Square className="h-4 w-4" />
                     )}
                   </button>
-                  <button onClick={() => onToggleSort('name')} className="flex items-center gap-1 hover:text-foreground">
-                    User <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
+                  <button onClick={() => onToggleSort('display_name')} className="flex items-center gap-1 hover:text-foreground">
+                    User <SortIcon field="display_name" sortField={sortField} sortDirection={sortDirection} />
                   </button>
                 </div>
               </th>
@@ -116,9 +181,9 @@ export function UsersTableSection({
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <button onClick={() => onToggleSort('created')} className="flex items-center gap-1 hover:text-foreground">
+                <button onClick={() => onToggleSort('created_at')} className="flex items-center gap-1 hover:text-foreground">
                   <Calendar className="h-4 w-4" />
-                  Joined <SortIcon field="created" sortField={sortField} sortDirection={sortDirection} />
+                  Joined <SortIcon field="created_at" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
@@ -149,13 +214,19 @@ export function UsersTableSection({
           <p className="text-sm text-muted-foreground">
             Showing {(currentPage - 1) * pageSize + 1}&ndash;{Math.min(currentPage * pageSize, totalSorted)} of {totalSorted}
           </p>
-          <div className="flex items-center gap-1">
+          {/*
+            `flex-wrap`, because at 320 px a 44 px previous/next pair plus up to
+            five page buttons is wider than the viewport and used to push the
+            directory into a horizontal scroll. Each control is a 44 px target
+            (they were 36 px until task 11.4, below R16.2's floor).
+          */}
+          <div className="flex flex-wrap items-center gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="min-h-[36px] min-w-[36px]"
+              className="min-h-touch min-w-touch"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -176,7 +247,7 @@ export function UsersTableSection({
                     variant={currentPage === item ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => onPageChange(item as number)}
-                    className="min-h-[36px] min-w-[36px]"
+                    className="min-h-touch min-w-touch"
                   >
                     {item}
                   </Button>
@@ -187,7 +258,7 @@ export function UsersTableSection({
               size="sm"
               onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="min-h-[36px] min-w-[36px]"
+              className="min-h-touch min-w-touch"
               aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />

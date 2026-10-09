@@ -40,7 +40,7 @@ Where the Beanola multi-tenant authority code lives. Model and rules:
 | Capability-gated legacy catalog writes | `backend/apps/catalog/views.py` (institution/program/intake write methods) |
 | Domain context endpoint | `backend/apps/catalog/views.py` — `CatalogContextView` → `GET /api/v1/catalog/context/` |
 | Frontend capability hooks | `apps/admissions/src/contexts/CapabilityContext.tsx` (`useCapabilities`), `apps/admissions/src/services/admin/capabilities.ts` (`adminCapabilityService`) |
-| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar`, `MobileBottomNav`, `AppLayout` |
+| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar` and `AppLayout`, which owns the mobile surface by injecting capability-filtered items into `components/ui/BottomNavigation.tsx`. (Task 12.4 removed a third consumer, `MobileBottomNav.tsx`: it had zero importers and was never rendered, so it was a second copy of the mobile bar that no user could reach.) |
 | Super-admin route guard | `apps/admissions/src/components/AdminRoute.tsx` (`RequireSuperAdmin`); route config `apps/admissions/src/routes/config.tsx` |
 | Tenant console + panels | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher) → `apps/admissions/src/pages/admin/tenants/` (`SuperAdminTenantConsole`, `TenantAdminSchoolConsole`, panels) |
 | Tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` (super-admin-only stepper) |
@@ -83,7 +83,8 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 |------|---------|
 | `apps/admissions/src/pages/student/applicationWizard/` | Core student application and payment flow |
 | `apps/admissions/src/pages/student/Dashboard.tsx` | Student overview and recovery entry point |
-| `apps/admissions/src/pages/student/Payment.tsx` | Read-only payment history and payment guidance |
+| `apps/admissions/src/pages/student/Payment.tsx` | Post-submission payment ownership: deferred/failed/expired/pending recovery plus history (task 8.3, R12.3) |
+| `apps/admissions/src/components/student/payment/PaymentApplicationCard.tsx` | One submitted application's payment state, its single recovery action, and its ledger history |
 | `apps/admissions/src/pages/student/Interview.tsx` | Student interview schedule and join actions |
 | `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
 | `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
@@ -376,10 +377,12 @@ Spec: `.kiro/specs/payment-hardening/` (Phases 1–5, feature-flag-gated additiv
 
 ### Files Added During Payment Hardening Phases 4–5
 
-Spec: `.kiro/specs/payment-hardening/` (Phases 4–5 complete). Phase 4 is
-frontend-only and gated on `VITE_PAYMENT_HARDENING_UI`; Phase 5 is
-backend-only and gated on `PAYMENT_HARDENING_RATE_LIMITS` +
-`PAYMENT_HARDENING_FORCE_APPROVED`.
+Spec: `.kiro/specs/payment-hardening/` (Phases 4–5 complete). Phase 4 shipped
+frontend-only behind `VITE_PAYMENT_HARDENING_UI` and Phase 5 backend-only behind
+`PAYMENT_HARDENING_RATE_LIMITS` + `PAYMENT_HARDENING_FORCE_APPROVED`;
+admissions-v2 task 8.2 deleted all but the rate-limit flag along with the
+duplicate implementations they selected, so everything below except the
+throttle is now unconditional.
 
 | Path | Purpose |
 |------|---------|
@@ -418,8 +421,87 @@ backend-only and gated on `PAYMENT_HARDENING_RATE_LIMITS` +
 | `backend/tests/unit/test_payment_risk_flags_endpoint.py` | Phase 5: risk-flags permission matrix + filtering |
 | `backend/tests/unit/test_phase5_endpoints_dev_bypass_404.py` | Phase 5: correction + risk-flags endpoints return 404 on any dev-bypass vector |
 
-Payment hardening status: **Phases 1–5 complete**. Rollout matrix and
-rollback order live in `docs/runbooks/payment-hardening-rollout.md`.
+Payment hardening status: **Phases 1–5 complete**, converged onto a single
+payment path by admissions-v2 task 8.2. Current state and real rollback
+semantics live in `docs/runbooks/payment-hardening-rollout.md`.
+
+### Files Removed During Admissions-V2 Task 8.2 (single payment path)
+
+| Path / symbol | Reason |
+|------|--------|
+| `PaymentService._update_payment_status` | Second writer of `payments.status`; contradicted ADR-007 |
+| `PaymentService.verify_payment` | Pre-hardening verification path; superseded by `verify` |
+| `PaymentService.initiate_payment` | Pre-hardening initiation path; superseded by `initiate` |
+| `PaymentService.process_webhook_event` + `_process_webhook_event_impl` | Pre-hardening callback path; superseded by `apply_webhook_event` |
+| `WebhookProcessor._process_legacy`, `_payload_hash`, `_event_identity` | Second dedup contract; `WebhookEventIdentity` is canonical (ADR-004) |
+| `payment_constants._ALLOWED_TRANSITIONS` | Second, narrower transition matrix |
+| `payment_helpers._forward_only_enabled`, `_LEGACY_PAYMENT_TO_APP_STATUS` | Flag plumbing and legacy projection map |
+| `payment_state_machine.check_legacy_mismatch` | Legacy-path integrity check; the 4-check gate is canonical |
+| `poll_pending_payments_task` inline expiry loop | Expiry belongs to `PaymentService.expire_stale` |
+| `apps/admissions/src/lib/paymentStatus.ts::isPaymentHardeningUiEnabled` | Build-time recovery switch |
+| `backend/tests/unit/test_application_review_force_approved_legacy.py` | Existed only to pin the deleted synthetic-`successful` path |
+
+### Files Added During Admissions-V2 Task 8.2 (single payment path)
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/documents/payment_phase.py` | `derive_payment_phase` + `PHASE_UI_TIMEOUT_SECONDS` — separates *student must act* from *waiting on the provider* (STU-09). Pure, derived, never stored |
+| `backend/tests/unit/test_payment_single_path_8_2.py` | The promoted outcome table + the flag/symbol drift guard |
+| `backend/tests/unit/test_payment_phase_8_2.py` | Phase derivation, serializer contract, no-PII, and the two guards that parse `paymentStatus.ts` so the phase mirror cannot drift from either side |
+| `backend/tests/unit/test_payment_idempotence_8_2.py` | Replay convergence for initialization, callback (service + ingress), reconciliation (verify + expiry), and the `applications.payment_status` projection |
+| `apps/admissions/tests/unit/paymentPhaseUiStates.test.ts` | The two waiting states carry different affordances, and the student is chased sooner than the provider |
+
+### Files Added During Admissions-V2 Task 8.3 (student payment ownership split)
+
+Evidence: `docs/v2-evidence/8.3/README.md`.
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/components/student/payment/PaymentApplicationCard.tsx` | One submitted application's payment state, the single action for it, and its history. Reads the server's `phase`; never offers a second collection while one is open |
+| `apps/admissions/src/lib/paymentRecovery.ts` | `PAYMENT_RECOVERY_PRESENTATION` — a **total** `Record<PaymentUiState, …>` plus the `deferred` override and the resend rule. `allowsInitiate` is the double-charge guard as data. Adds no state vocabulary: the keys are task 8.2's `PaymentUiState`, and the 120 s / 600 s budgets are read from `PAYMENT_WAITING_STATES`, never restated |
+| `apps/admissions/src/lib/tenantSupport.ts` | `resolveTenantSupportContact` — the support affordance from resolved tenant context, with the neutral in-app `/contact` route as the only fallback (STU-24). Never a hardcoded address, never MIHAS/KATC |
+| `apps/admissions/tests/unit/paymentOwnershipSplit.test.tsx` | Every post-submission state renders; no indefinite disabled control; support comes from context |
+| `apps/admissions/tests/unit/paymentRecoveryPresentation.test.ts` | The pure mapper, including totality over `PaymentUiState` and the resend asymmetry |
+| `apps/admissions/tests/unit/tenantSupportContact.test.ts` | Both resolver outcomes; no platform or legacy-school address is ever emitted |
+| `apps/admissions/tests/property/paymentRecovery.property.test.ts` | 6 fast-check invariants over the mapper's whole input space: the double-charge guard, the resend implication, no spent budget rendered as a failure, and purity. Task invariants, not numbered spec properties |
+| `apps/admissions/tests/harness-e2e/required/payment-ownership-split.spec.ts` | The 7 required browser journeys (golden + one per recovery state + STU-24), desktop and mobile |
+
+### Files Added During Admissions-V2 Task 8.4 (server-scoped settlement + fee administration)
+
+Evidence: `docs/v2-evidence/8.4/README.md`. Findings **ADM-06** (broad fetch plus
+client-side institution filtering and browser-side totals) and **AUTH-02**
+(role-based fee/settlement authority).
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/documents/settlement_service.py` | **new** — `SettlementQueryService`: the one settlement/fee query authority. Scope before lookup, SQL filters + grouping, whole-filtered-set aggregates, derived reconciliation state, capability-driven `RedactionPolicy`, page-independent export with `EXPORT_ROW_LIMIT` |
+| `backend/apps/documents/fee_admin_views.py` | **new** — `AdminFeeListView` (`GET /api/v1/admin/fees/`) + `FeeAdminQueryService`: the scoped fee report that replaces the admin page's per-offering fetch |
+| `backend/apps/catalog/tenant_audit_service.py` | `record_export` + `ACTION_SETTLEMENT_EXPORTED` / `ACTION_FEE_EXPORTED` — a bulk export is a recorded command (actor, scope, filters, row count, redaction; never the rows) |
+| `backend/apps/documents/payment_query_views.py` | `PaymentSettlementSummaryView` rewritten (capability-gated, paginated, aggregated, reconciliation-aware, audited export); `ProgramFeeViewSet` re-gated on capabilities and every write audited |
+| `backend/tests/unit/test_settlement_fee_authority_8_4.py` | **new** — 35 cases: tenant A/B authority across list/detail/search/aggregate/export, reconciliation state, redaction, export capability + audit, and "the server owns the numbers" |
+| `apps/admissions/src/services/admin/settlement.ts` | **new** — settlement + fee report reads, export paths, and the server-CSV download; sends filters, derives nothing |
+| `apps/admissions/src/hooks/admin/useMoneyAdmin.ts` | **new** — React Query hooks whose key is the whole server query |
+| `apps/admissions/src/pages/admin/tenants/SettlementPanel.tsx` | rewritten: institution is a server filter, totals are the server's aggregates, reconciliation state is rendered as a label, export follows `can_export` |
+| `apps/admissions/src/pages/admin/ProgramFees.tsx` | reads the one scoped fee report; `formatFeeAmount` no longer re-quantises money (`formatServerAmount`), and the headline numbers are server aggregates |
+| `apps/admissions/tests/unit/moneyAdminServerOwned.test.tsx` | **new** — 12 cases proving the wiring: institution reaches the server, aggregates survive paging, export authority comes from the backend |
+
+Two documented contract strengthenings shipped with it (both recorded in the
+evidence README): a no-scope actor is **masked 404** on the settlement report and
+the fee list instead of receiving a confirming empty page, and an **export
+requires the explicit `tenant.application.export` capability** rather than being
+implied by read access.
+
+Two harness-level changes shipped with 8.3, both documented in
+`docs/v2-evidence/8.3/README.md` §4:
+
+- `tests/harness-e2e/harness-fixtures.ts` — a `net::ERR_ABORTED` is recorded as a
+  **cancellation** (`gate.cancelledRequests`), not a failed request: the browser
+  withdrew the call, so the platform never answered. Every other transport failure
+  and every HTTP >= 400 still fails a run, and all four gatecheck probes still fire.
+- `tests/harness-e2e/helpers/ops.ts` — `runReconciliationExpirySweep` (the platform's
+  own `expire_stale`, 24 h cutoff compressed to zero) and
+  `closeAbandonedAdapterCollection` (tell the simulator a collection was abandoned on
+  purpose, which is what `expired` means, so the drain gate stops waiting for it).
 
 ## Testing Layout
 

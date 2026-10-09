@@ -1,0 +1,1259 @@
+{
+ "inside_selection": [
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_changed_endpoint_matches_pre_feature_golden[admin_dashboard]",
+   "message": "AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 15 divergence(s) between baseline and candidate:   - [extra_key] data.activity_state: baseline=None candidate='ok'   - [extra_key] data.freshness: baseline=None candidate={'generated_at': '2026-08-12T02:45:42.376984+00:00', 'stale_after_seconds': 120}   - [extra_key] data.health: baseline=None candidate={'state':"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_changed_endpoint_matches_pre_feature_golden[notifications]",
+   "message": "AssertionError: notifications: post-feature output vs committed pre-feature golden: 20 divergence(s) between baseline and candidate:   - [extra_key] data.results[0].audience: baseline=None candidate='student'   - [extra_key] data.results[0].can_retry: baseline=None candidate=False   - [extra_key] data.results[0].category: baseline=None candidate='application_updates'   - [extra_key] data.results[0"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_changed_endpoint_matches_pre_feature_golden[notifications_cursor]",
+   "message": "AssertionError: notifications_cursor: post-feature output vs committed pre-feature golden: 15 divergence(s) between baseline and candidate:   - [extra_key] data.results[0].audience: baseline=None candidate='student'   - [extra_key] data.results[0].can_retry: baseline=None candidate=False   - [extra_key] data.results[0].category: baseline=None candidate='application_updates'   - [extra_key] data.re"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_consolidated_no_divergence_across_all_endpoints",
+   "message": "AssertionError: divergence detected on one or more changed endpoints:      admin_dashboard: 15 divergence(s) between baseline and candidate:     - [extra_key] data.activity_state: baseline=None candidate='ok'     - [extra_key] data.freshness: baseline=None candidate={'generated_at': '2026-08-12T02:45:42.784903+00:00', 'stale_after_seconds': 120}     - [extra_key] data.health: baseline=None candida"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_endpoint_output_is_stable_run_to_run[application_list]",
+   "message": "django.db.utils.IntegrityError: duplicate key value violates unique constraint \"uq_payments_transaction_reference_present\" DETAIL:  Key (transaction_reference)=(REF-PAID) already exists."
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_endpoint_output_is_stable_run_to_run[notifications]",
+   "message": "AssertionError: notifications: run-to-run stability: 4 divergence(s) between baseline and candidate:   - [value_mismatch] data.results[0].channels[0].last_attempt_at: baseline='2026-08-11T22:48:43.416722+00:00' candidate='2026-08-11T22:48:43.430309+00:00'   - [value_mismatch] data.results[1].channels[0].last_attempt_at: baseline='2026-08-11T22:47:43.416722+00:00' candidate='2026-08-11T22:47:43.430"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_endpoint_output_is_stable_run_to_run[notifications_cursor]",
+   "message": "AssertionError: notifications_cursor: run-to-run stability: 3 divergence(s) between baseline and candidate:   - [value_mismatch] data.results[0].channels[0].last_attempt_at: baseline='2026-08-11T22:47:43.467825+00:00' candidate='2026-08-11T22:47:43.486155+00:00'   - [value_mismatch] data.results[1].channels[0].last_attempt_at: baseline='2026-08-11T22:46:43.467825+00:00' candidate='2026-08-11T22:46"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_divergence_regression.py",
+   "classname": "tests.integration.test_perf_divergence_regression",
+   "name": "test_admin_dashboard_cached_path_no_divergence",
+   "message": "AssertionError: admin_dashboard: post-feature output vs committed pre-feature golden: 15 divergence(s) between baseline and candidate:   - [extra_key] data.activity_state: baseline=None candidate='ok'   - [extra_key] data.freshness: baseline=None candidate={'generated_at': '2026-08-12T02:45:43.580384+00:00', 'stale_after_seconds': 120}   - [extra_key] data.health: baseline=None candidate={'state':"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_golden_snapshots.py",
+   "classname": "tests.integration.test_perf_golden_snapshots",
+   "name": "test_admin_dashboard_golden",
+   "message": "AssertionError: golden snapshot 'admin_dashboard': 15 divergence(s) vs the committed baseline:   - [extra_key] data.activity_state: baseline=None candidate='ok'   - [extra_key] data.freshness: baseline=None candidate={'generated_at': '2026-08-12T02:45:44.247446+00:00', 'stale_after_seconds': 120}   - [extra_key] data.health: baseline=None candidate={'state': 'operational', 'definition': 'Every met"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_perf_golden_snapshots.py",
+   "classname": "tests.integration.test_perf_golden_snapshots",
+   "name": "test_notifications_page_and_cursor_golden",
+   "message": "AssertionError: golden snapshot 'notifications': 20 divergence(s) vs the committed baseline:   - [extra_key] data.results[0].audience: baseline=None candidate='student'   - [extra_key] data.results[0].can_retry: baseline=None candidate=False   - [extra_key] data.results[0].category: baseline=None candidate='application_updates'   - [extra_key] data.results[0].channels: baseline=None candidate=[{'c"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_capability_endpoint_shape.py",
+   "classname": "tests.property.test_capability_endpoint_shape.TestCapabilityEndpointShape",
+   "name": "test_payload_shape_holds_for_every_actor",
+   "message": "AssertionError: ('/api/v1/admin/capabilities/', b'{\"success\":false,\"error\":\"Not found.\",\"code\":\"NOT_FOUND\",\"request_id\":\"b9950957-7c11-4052-845a-084626f578cb\"}') assert 404 == 200  +  where 404 = <Response status_code=404, \"application/json\">.status_code Falsifying example: test_payload_shape_holds_for_every_actor(     self=<tests.property.test_capability_endpoint_shape.TestCapabilityEndpointShape"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_capability_gated_writes.py",
+   "classname": "tests.property.test_capability_gated_writes.TestProperty7CapabilityGatedWrites",
+   "name": "test_super_admin_or_global_admin_creation_requires_super_admin",
+   "message": "AssertionError: {'code': 'INSUFFICIENT_PRIVILEGES', 'error': 'You cannot assign a role higher than your own.', 'success': False} assert 'INSUFFICIENT_PRIVILEGES' == 'PRIVILEGE_ESCALATION'      - PRIVILEGE_ESCALATION   + INSUFFICIENT_PRIVILEGES Falsifying example: test_super_admin_or_global_admin_creation_requires_super_admin(     self=<tests.property.test_capability_gated_writes.TestProperty7Capab"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_cross_tenant_invisibility.py",
+   "classname": "tests.property.test_cross_tenant_invisibility.TestProperty4CrossTenantInvisibility",
+   "name": "test_no_tenant_b_token_on_any_scoped_surface",
+   "message": "AssertionError: {'blob': '{\"success\": false, \"error\": \"You do not have permission to perform this action.\", \"code\": \"INSUFFICIENT_PERM...89-9bc2-5f442a8fcbe3\"}', 'missing_a_witness': 'APP-20260812-6F2C4051', 'status': 403, 'surface': 'applications_export'} assert 'APP-20260812-6F2C4051' in '{\"success\": false, \"error\": \"You do not have permission to perform this action.\", \"code\": \"INSUFFICIENT_PERM"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_perf_output_equivalence.py",
+   "classname": "tests.property.test_perf_output_equivalence",
+   "name": "test_property_6_admin_dashboard_shape_equivalent",
+   "message": "AssertionError: admin_dashboard vs pre-feature golden: field-name mismatch at data: missing=[] extra=['activity_state', 'freshness', 'health', 'metrics', 'scope', 'sources', 'windows'] assert {'application...ity', 'users'} == {'activity_st...tention', ...}      Extra items in the right set:   'windows'   'scope'   'health'   'metrics'   'sources'...      ...Full output truncated (3 lines hidden), "
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_perf_output_equivalence.py",
+   "classname": "tests.property.test_perf_output_equivalence",
+   "name": "test_property_6_notifications_page_mode_shape_equivalent",
+   "message": "AssertionError: notifications page-mode vs pre-feature golden: field-name mismatch at data.results[0]: missing=[] extra=['audience', 'can_retry', 'category', 'channels', 'kind'] assert {'action_url'...read_at', ...} == {'action_url'...ated_at', ...}      Extra items in the right set:   'can_retry'   'kind'   'channels'   'category'   'audience'   Use -v to get more diff Falsifying example: test_pr"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_perf_output_equivalence.py",
+   "classname": "tests.property.test_perf_output_equivalence",
+   "name": "test_property_6_notifications_cursor_mode_shape_equivalent",
+   "message": "AssertionError: notifications cursor-mode vs pre-feature golden: field-name mismatch at data.results[0]: missing=[] extra=['audience', 'can_retry', 'category', 'channels', 'kind'] assert {'action_url'...read_at', ...} == {'action_url'...ated_at', ...}      Extra items in the right set:   'can_retry'   'kind'   'channels'   'category'   'audience'   Use -v to get more diff Falsifying example: test_"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_perf_output_equivalence.py",
+   "classname": "tests.property.test_perf_output_equivalence",
+   "name": "test_property_6_dashboard_cache_hit_equals_recomputation",
+   "message": "AssertionError: dashboard cache-on vs flag-off: 1 divergence(s) between baseline and candidate:   - [value_mismatch] data.freshness.generated_at: baseline='2026-08-12T02:47:55.250530+00:00' candidate='2026-08-12T02:47:55.289241+00:00'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_production_scope_masking_properties.py",
+   "classname": "tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation",
+   "name": "test_app_endpoint_in_scope_permitted_out_of_scope_masked",
+   "message": "AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'missing': (404, {'code': 'NOT_FOUND', 'error': 'Application not found', 'requ...NOT_FOUND', 'error': 'Application not found', 'request_id': '15cc46a9-4a26-4a8c-9513-72db6cf6342d', 'success': False})} assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})      At index 1 diff: {'success': False, 'error': 'Application not foun"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_production_scope_masking_properties.py",
+   "classname": "tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation",
+   "name": "test_expired_grant_masks_previously_granted_resource",
+   "message": "AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'expired': (404, {'code': 'NOT_FOUND', 'error': 'Application not found', 'requ...NOT_FOUND', 'error': 'Application not found', 'request_id': '942282bf-8260-4c13-92fd-2559127e96e6', 'success': False})} assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})      At index 1 diff: {'success': False, 'error': 'Application not foun"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_production_scope_masking_properties.py",
+   "classname": "tests.property.test_production_scope_masking_properties.TestProperty26TenantIsolation",
+   "name": "test_scoped_grant_does_not_widen_to_sibling",
+   "message": "AssertionError: {'endpoint': 'interviews-crud (GAP-6)', 'grant_scope': 'offering', 'missing': (404, {'code': 'NOT_FOUND', 'error': 'Ap...NOT_FOUND', 'error': 'Application not found', 'request_id': 'bd45673b-a852-4870-b320-ac44558853bc', 'success': False})} assert (404, {'code'...cess': False}) == (404, {'code'...cess': False})      At index 1 diff: {'success': False, 'error': 'Application not foun"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_admin_scope_endpoint.py",
+   "classname": "tests.unit.test_admin_scope_endpoint",
+   "name": "test_scoped_admin_with_no_membership_gets_empty_list",
+   "message": "assert 404 == 200  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_admissions_v2_authority_policies.py",
+   "classname": "tests.unit.test_admissions_v2_authority_policies.TestCapabilityDerivedEndpointAuthority",
+   "name": "test_tenant_admin_cannot_reach_platform_tenant_directory",
+   "message": "AssertionError: b'{\"success\":true,\"data\":{\"page\":1,\"pageSize\":20,\"totalCount\":1,\"results\":[{\"id\":\"226ac670-28ee-4560-9bb6-201d0cea80ce...ive\":true,\"description\":null,\"created_at\":\"2026-08-12T02:49:14.895873Z\",\"updated_at\":\"2026-08-12T02:49:14.895873Z\"}]}}' assert 200 == 403  +  where 200 = <Response status_code=200, \"application/json\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_admissions_v2_authority_policies.py",
+   "classname": "tests.unit.test_admissions_v2_authority_policies.TestCapabilityDerivedEndpointAuthority",
+   "name": "test_student_staff_mutation_is_masked_as_not_found",
+   "message": "AssertionError: assert {'code': 'NOT...ccess': False} == {'code': 'NOT...ccess': False}      Omitting 3 identical items, use -vv to show   Differing items:   {'request_id': '6f2a1042-63b1-4f55-817d-03a4fc617d0d'} != {'request_id': '9fb1c2a5-afea-4d7b-920b-a407df39c852'}   Use -v to get more diff"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_cross_tenant_isolation.py",
+   "classname": "tests.unit.test_cross_tenant_isolation.TestEndpointExportIsolation",
+   "name": "test_export_excludes_other_school_application_number",
+   "message": "assert 403 == 200  +  where 403 = <Response status_code=403, \"application/json\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_cross_tenant_isolation.py",
+   "classname": "tests.unit.test_cross_tenant_isolation.TestEndpointGrantScopeFidelityHttp",
+   "name": "test_application_grant_does_not_widen_to_sibling",
+   "message": "AssertionError: assert 'ab9ce59d-eab3-4742-b348-0997051b0204' in set()  +  where 'ab9ce59d-eab3-4742-b348-0997051b0204' = TenantWorld(institution=<Institution: Test School 93dd88e8 (SCH-93DD88E8)>, canonical_program=<CanonicalProgram: Diplo...8-1725-4b01-ae72-058f188a318c)>, access_grant=<AccessGrant: AccessGrant object (e12db6b6-f4a6-48c9-9848-e20d5437f903)>).application_id"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_perf_capability_invalidation.py",
+   "classname": "tests.unit.test_perf_capability_invalidation",
+   "name": "test_role_change_forces_recompute",
+   "message": "AssertionError: primed entry must be served from cache (R5.1) assert 4 == 0"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_perf_capability_invalidation.py",
+   "classname": "tests.unit.test_perf_capability_invalidation",
+   "name": "test_membership_lifecycle_forces_recompute",
+   "message": "AssertionError: {'code': 'NOT_FOUND', 'error': 'Not found.', 'success': False} assert 404 == 200  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_perf_capability_invalidation.py",
+   "classname": "tests.unit.test_perf_capability_invalidation",
+   "name": "test_access_grant_lifecycle_forces_recompute",
+   "message": "AssertionError: {'code': 'NOT_FOUND', 'error': 'Not found.', 'success': False} assert 404 == 200  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_perf_capability_invalidation.py",
+   "classname": "tests.unit.test_perf_capability_invalidation",
+   "name": "test_institution_active_change_forces_recompute",
+   "message": "AssertionError: primed entry must be served from cache (R5.1) assert 4 == 0"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_perf_capability_invalidation.py",
+   "classname": "tests.unit.test_perf_capability_invalidation",
+   "name": "test_stale_super_admin_demotion",
+   "message": "AssertionError: {'code': 'NOT_FOUND', 'error': 'Not found.', 'success': False} assert 404 == 200  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_scoped_access_matrix.py",
+   "classname": "tests.unit.test_scoped_access_matrix.TestOutOfScopeReturnsNotFound",
+   "name": "test_bulk_status_out_of_scope_reported_not_found",
+   "message": "AssertionError: (403, {'code': 'INSUFFICIENT_PERMISSIONS', 'error': 'You do not have permission to perform this action.', 'success': False}) assert 403 == 400"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_public_endpoint_policy.py",
+   "classname": "tests.unit.test_public_endpoint_policy",
+   "name": "test_every_allow_any_view_has_public_endpoint_classification",
+   "message": "AssertionError: assert {'apps.catalo...2SessionView'} == set()      Extra items in the left set:   'apps.catalog.staff_invitation_views.StaffInvitationAcceptView'   'apps.common.v2.demo_views.V2ProgramListView'   'apps.common.v2.demo_views.V2SessionView'   Use -v to get more diff"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_view_auth_classification.py",
+   "classname": "tests.unit.test_view_auth_classification",
+   "name": "test_all_api_views_are_classified",
+   "message": "AssertionError: Found 38 APIView subclass(es) not in any classification list. Add them to the appropriate parametrize list in this file:     - apps.accounts.user_directory_views._ImportBase     - apps.applications.admin_query_views.AdminApplicationQueryView     - apps.applications.admin_query_views.AdminApplicationSavedFilterDetailView     - apps.applications.admin_query_views.AdminApplicationSave"
+  }
+ ],
+ "outside_selection": [
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_serializer_response_contract.py",
+   "classname": "tests.contract.test_serializer_response_contract.TestAdminDashboardContract",
+   "name": "test_admin_dashboard_envelope_and_keys",
+   "message": "AssertionError: {'label': 'dashboard.users', 'missing': ['active'], 'record': {'enabled': 3, 'total': 3}} assert not {'active'}"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_admin_journey_drill.py",
+   "classname": "tests.integration.test_admin_journey_drill.TestAdminJourneyDrill",
+   "name": "test_full_admin_journey",
+   "message": "AssertionError: assert '74a7cff7-fda6-4719-8e2a-48be9aef7911' in set()"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_tenant_lifecycle_drill.py",
+   "classname": "tests.integration.test_tenant_lifecycle_drill.TestTenantLifecycleDrill",
+   "name": "test_full_tenant_lifecycle",
+   "message": "assert (None is not None)"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_communication_template_properties.py",
+   "classname": "tests.property.test_communication_template_properties.TestCommunicationTemplateProperty22",
+   "name": "test_resolution_priority",
+   "message": "django.db.transaction.TransactionManagementError: An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block. Falsifying example: test_resolution_priority(     self=<tests.property.test_communication_template_properties.TestCommunicationTemplateProperty22 object at 0x7e99ac6ae210>,     scenario='institution_specific',     num_versions=2,     add_ina"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_perf_csrf_preservation.py",
+   "classname": "tests.property.test_perf_csrf_preservation.TestProperty17AuthAndCsrfPreservation",
+   "name": "test_changed_read_endpoints_resolve_authenticated_user",
+   "message": "AssertionError: ('capabilities', 'admin', 404, {'code': 'NOT_FOUND', 'error': 'Not found.', 'request_id': 'f597b70d-fd17-49f1-ba78-d1c11035a33c', 'success': False}) assert 404 == 200  +  where 404 = <Response status_code=404, \"application/json\">.status_code Falsifying example: test_changed_read_endpoints_resolve_authenticated_user(     self=<tests.property.test_perf_csrf_preservation.TestProperty1"
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_review_force_approved.py",
+   "classname": "tests.unit.test_application_review_force_approved",
+   "name": "test_force_approved_path_creates_canonical_ledger_row",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_review_force_approved.py",
+   "classname": "tests.unit.test_application_review_force_approved",
+   "name": "test_force_approved_rejects_short_reason",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_payment_review_reopen.py",
+   "classname": "tests.unit.test_payment_review_reopen",
+   "name": "test_reopen_failed_payment_to_pending_succeeds",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_payment_review_reopen.py",
+   "classname": "tests.unit.test_payment_review_reopen",
+   "name": "test_reopen_deferred_payment_to_pending_succeeds",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_payment_review_reopen.py",
+   "classname": "tests.unit.test_payment_review_reopen",
+   "name": "test_reopen_successful_payment_blocked_409",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "failure",
+   "module": "tests/integration/test_communication_template_coverage.py",
+   "classname": "tests.integration.test_communication_template_coverage.TestCommunicationTemplateCoverage",
+   "name": "test_all_keys_seeded",
+   "message": "django.db.utils.ProgrammingError: there is no unique or exclusion constraint matching the ON CONFLICT specification"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_schema_reconciliation_invariants.py",
+   "classname": "tests.property.test_schema_reconciliation_invariants",
+   "name": "test_snapshot_invariant_holds_after_simulated_backfill",
+   "message": "django.db.utils.IntegrityError: null value in column \"application_quarantined\" of relation \"payments\" violates not-null constraint DETAIL:  Failing row contains (e1cc085f-ddae-4ae9-9951-8bc99405cc65, 178274ad-34ed-4971-8641-f41449c55258, null, 2449cb5b-c28b-452f-9f2a-754bbc043bc9, 0.00, ZMW, null, null, pending, null, null, null, null, {}, 2026-08-12 02:50:44.944897+00, null, null, null, null, nul"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_reviewer_assignment_concurrency.py",
+   "classname": "tests.unit.test_reviewer_assignment_concurrency",
+   "name": "test_concurrent_auto_assign_never_exceeds_max_workload",
+   "message": "assert 8 == 3  +  where 8 = sum(<generator object test_concurrent_auto_assign_never_exceeds_max_workload.<locals>.<genexpr> at 0x7e99a8f846c0>)"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2SessionEndpoint",
+   "name": "test_success_anonymous_user",
+   "message": "KeyError: 'success'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2SessionEndpoint",
+   "name": "test_success_authenticated_user",
+   "message": "KeyError: 'success'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2ProgramListEndpoint",
+   "name": "test_success_with_programs",
+   "message": "AssertionError: Expected a `Response`, `HttpResponse` or `StreamingHttpResponse` to be returned from the view, but received a `<class 'unittest.mock.MagicMock'>`"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2ApplicationDetailEndpoint",
+   "name": "test_success_owner_read",
+   "message": "KeyError: 'success'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2FeeResolveEndpoint",
+   "name": "test_success_fee_resolved",
+   "message": "KeyError: 'success'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/contract/test_v2_endpoint_contract.py",
+   "classname": "tests.contract.test_v2_endpoint_contract.TestV2DocumentListEndpoint",
+   "name": "test_success_with_documents",
+   "message": "AttributeError: <module 'apps.documents.models' from '/home/cosmas/Downloads/mihasv3/backend/apps/documents/models.py'> does not have the attribute 'Document'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_accounts_error_handling.py",
+   "classname": "tests.property.test_accounts_error_handling.TestNoBarExceptPassInAccountsViews",
+   "name": "test_all_except_handlers_contain_logger_call",
+   "message": "AssertionError: Lists differ: [1214] != []  First list contains 1 additional elements. First extra element 0: 1214  - [1214] + [] : except Exception handler(s) at line(s) [1214] in accounts view modules do not contain a logger call"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_accounts_error_handling.py",
+   "classname": "tests.property.test_accounts_error_handling.TestNoBarExceptPassInAccountsViews",
+   "name": "test_every_handler_index_has_logger_call",
+   "message": "AssertionError: True is not false : Handler at line 1214 is a bare except:pass Falsifying example: test_every_handler_index_has_logger_call(     self=<tests.property.test_accounts_error_handling.TestNoBarExceptPassInAccountsViews testMethod=test_every_handler_index_has_logger_call>,     handler_index=36, )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_accounts_error_handling.py",
+   "classname": "tests.property.test_accounts_error_handling.TestNoBarExceptPassInAccountsViews",
+   "name": "test_no_bare_except_pass_blocks",
+   "message": "AssertionError: Lists differ: [1214] != []  First list contains 1 additional elements. First extra element 0: 1214  - [1214] + [] : Found bare except:pass at line(s) [1214] in accounts view modules"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_acceptance_letter_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_admin_audit_log_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_admin_dashboard_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_admin_user_detail_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_admin_user_export_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_admin_user_list_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_application_bulk_status_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_application_export_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>, <class 'apps.catalog.permissions.HasTenantCapability'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_application_review_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_finance_receipt_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_admin_endpoint_auth.py",
+   "classname": "tests.property.test_admin_endpoint_auth.TestAdminEndpointAuth",
+   "name": "test_verify_document_view_has_is_admin",
+   "message": "AssertionError: <class 'apps.accounts.permissions.IsAdmin'> not found in [<class 'rest_framework.permissions.IsAuthenticated'>]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestDocumentVerificationStatusUpdate",
+   "name": "test_verification_status_matches_request",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_verification_status_matches_request(     self=<tests.property.test_application_endpoints.TestDocumentVerificationStatusUpdate object at 0x7e99ad38e850>,     verification_status='verifi"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAdminPermissionEnforcement",
+   "name": "test_non_admin_rejected_on_verify_document",
+   "message": "assert 500 == 403  +  where 500 = <Response status_code=500, \"text/html; charset=utf-8\">.status_code Falsifying example: test_non_admin_rejected_on_verify_document(     self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x7e99ad38e210>,     role='student', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAdminPermissionEnforcement",
+   "name": "test_non_admin_rejected_on_acceptance_letter",
+   "message": "assert 500 == 403  +  where 500 = <Response status_code=500, \"text/html; charset=utf-8\">.status_code Falsifying example: test_non_admin_rejected_on_acceptance_letter(     self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x7e99ad38e350>,     role='student', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAdminPermissionEnforcement",
+   "name": "test_non_admin_rejected_on_finance_receipt",
+   "message": "assert 500 == 403  +  where 500 = <Response status_code=500, \"text/html; charset=utf-8\">.status_code Falsifying example: test_non_admin_rejected_on_finance_receipt(     self=<tests.property.test_application_endpoints.TestAdminPermissionEnforcement object at 0x7e99ad170770>,     role='student', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAuditLogCreation",
+   "name": "test_audit_log_on_verify_document",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_audit_log_on_verify_document(     self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x7e99ad38e490>,     verification_status='verified', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAuditLogCreation",
+   "name": "test_audit_log_on_acceptance_letter",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_audit_log_on_acceptance_letter(     self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x7e99ad38e5d0>,     admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c0"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAuditLogCreation",
+   "name": "test_audit_log_on_finance_receipt",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_audit_log_on_finance_receipt(     self=<tests.property.test_application_endpoints.TestAuditLogCreation object at 0x7e99ad1708a0>,     admin_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07c"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAcceptanceLetter202Response",
+   "name": "test_approved_application_returns_202_with_correct_shape",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_approved_application_returns_202_with_correct_shape(     self=<tests.property.test_application_endpoints.TestAcceptanceLetter202Response object at 0x7e99ad38e710>,     admin_id=UUID('e"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestFinanceReceipt202Response",
+   "name": "test_verified_payment_returns_202_with_correct_shape",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_verified_payment_returns_202_with_correct_shape(     self=<tests.property.test_application_endpoints.TestFinanceReceipt202Response object at 0x7e99ad328f50>,     admin_id=UUID('e3e7068"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestAcceptanceLetterRejectsNonApproved",
+   "name": "test_non_approved_status_returns_400",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_non_approved_status_returns_400(     self=<tests.property.test_application_endpoints.TestAcceptanceLetterRejectsNonApproved object at 0x7e99ad329090>,     app_status='draft', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestFinanceReceiptRejectsNoPayment",
+   "name": "test_no_verified_payment_returns_400",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_no_verified_payment_returns_400(     self=<tests.property.test_application_endpoints.TestFinanceReceiptRejectsNoPayment object at 0x7e99ad3291d0>,     app_status='draft', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestIdempotentGenerationRequests",
+   "name": "test_acceptance_letter_idempotency",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_acceptance_letter_idempotency(     self=<tests.property.test_application_endpoints.TestIdempotentGenerationRequests object at 0x7e99ad329310>,     admin_id=UUID('e3e70682-c209-4cac-629"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_endpoints.py",
+   "classname": "tests.property.test_application_endpoints.TestIdempotentGenerationRequests",
+   "name": "test_finance_receipt_idempotency",
+   "message": "AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService' Falsifying example: test_finance_receipt_idempotency(     self=<tests.property.test_application_endpoints.TestIdempotentGenerationRequests object at 0x7e99ad329450>,     admin_id=UUID('e3e70682-c209-4cac-629f-"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_hardening.py",
+   "classname": "tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail",
+   "name": "test_force_bypass_approval_creates_audit_trail",
+   "message": "rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action. Falsifying example: test_force_bypass_approval_creates_audit_trail(     self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_force_bypass_approval_creates_audit_trail>,     application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),     admin_user_id='f728b4fa"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_hardening.py",
+   "classname": "tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail",
+   "name": "test_non_force_bypass_does_not_add_force_marker",
+   "message": "rest_framework.exceptions.PermissionDenied: You do not have permission to perform this action. Falsifying example: test_non_force_bypass_does_not_add_force_marker(     self=<tests.property.test_application_hardening.TestForceBypassCreatesAuditTrail testMethod=test_non_force_bypass_does_not_add_force_marker>,     application_id=UUID('e3e70682-c209-4cac-629f-6fbed82c07cd'),     admin_user_id='f728b4"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_application_properties.py",
+   "classname": "tests.property.test_application_properties.TestUnverifiedPaymentApprovalGuard",
+   "name": "test_non_approval_status_skips_payment_check",
+   "message": "AssertionError: 400 != 200 Falsifying example: test_non_approval_status_skips_payment_check(     self=<tests.property.test_application_properties.TestUnverifiedPaymentApprovalGuard testMethod=test_non_approval_status_skips_payment_check>,     new_status='rejected', )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_bulk_status_atomic.py",
+   "classname": "tests.property.test_bulk_status_atomic.TestBulkStatusAtomicRollback",
+   "name": "test_failure_mid_batch_rolls_back_all_changes",
+   "message": "rest_framework.exceptions.NotFound: Not found. Falsifying example: test_failure_mid_batch_rolls_back_all_changes(     self=<tests.property.test_bulk_status_atomic.TestBulkStatusAtomicRollback testMethod=test_failure_mid_batch_rolls_back_all_changes>,     new_status='submitted',     batch_size=2,     failure_index=0, )"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug3_preservation.py",
+   "classname": "tests.property.test_drift_bug3_preservation.TestUploadEndpointPreservation",
+   "name": "test_upload_persists_application_document_url_fields",
+   "message": "AssertionError: <MagicMock name='objects.get().result_slip_url' id='139198391677152'> != 'https://r2.example.com/result_slip.pdf'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[admin_saved_filters]",
+   "message": "AssertionError: Model applications.AdminSavedFilter has db_table='admin_saved_filters' with managed=False, but 'admin_saved_filters' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'admin_saved_filters' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history', 'application_drafts', ...]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[document_upload_stages]",
+   "message": "AssertionError: Model documents.DocumentUploadStage has db_table='document_upload_stages' with managed=False, but 'document_upload_stages' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'document_upload_stages' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history', 'application_drafts',"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[document_verification_events]",
+   "message": "AssertionError: Model documents.DocumentVerificationEvent has db_table='document_verification_events' with managed=False, but 'document_verification_events' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'document_verification_events' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[tenant_onboarding]",
+   "message": "AssertionError: Model catalog.TenantOnboarding has db_table='tenant_onboarding' with managed=False, but 'tenant_onboarding' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'tenant_onboarding' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history', 'application_drafts', ...]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[tenant_change_requests]",
+   "message": "AssertionError: Model catalog.TenantChangeRequest has db_table='tenant_change_requests' with managed=False, but 'tenant_change_requests' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'tenant_change_requests' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history', 'application_drafts', ."
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_drift_bug6_fix.py",
+   "classname": "tests.property.test_drift_bug6_fix",
+   "name": "test_admissions_unmanaged_model_table_in_expected_tables[tenant_staff_invitations]",
+   "message": "AssertionError: Model catalog.TenantStaffInvitation has db_table='tenant_staff_invitations' with managed=False, but 'tenant_staff_invitations' is NOT in EXPECTED_TABLES in verify_schema_static.py. Add it to keep schema verification complete. assert 'tenant_staff_invitations' in ['profiles', 'applications', 'application_documents', 'application_grades', 'application_status_history', 'application_dr"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_interview_status_validation.py",
+   "classname": "tests.property.test_interview_status_validation",
+   "name": "test_generated_invalid_interview_statuses_are_rejected",
+   "message": "AttributeError: <module 'apps.applications.interview_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/interview_views.py'> does not have the attribute '_staff_can_access_application' Falsifying example: test_generated_invalid_interview_statuses_are_rejected(     status_value='0', )"
+  },
+  {
+   "kind": "error",
+   "module": "tests/property/test_ip_address_column.py",
+   "classname": "tests.property.test_ip_address_column.TestIPAddressColumnWidth",
+   "name": "test_ip_address_accepts_up_to_64_chars_without_truncation",
+   "message": "failed on setup with \"psycopg2.errors.NotNullViolation: null value in column \"assignment_version\" of relation \"applications\" violates not-null constraint DETAIL:  Failing row contains (6f243e87-711a-4549-8fac-397bb46ed272, TP5-26BC0B00, c708f540-2ca9-47c4-9d0e-08a466ed388a, Test, null, null, 2000-01-01, M, 0000000000, t@t.local, Test, null, null, null, null, null, null, null, null, null, null, tes"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_migration_properties.py",
+   "classname": "tests.property.test_migration_properties.TestSchemaCompatibility",
+   "name": "test_db_table_values_match_expected",
+   "message": "AssertionError: Lists differ: [\"applications.AdminSavedFilter: db_table=[181 chars]s']\"] != []  First list contains 1 additional elements. First extra element 0: \"applications.AdminSavedFilter: db_table='admin_saved_filters' not in expected ['application_amendments', 'application_conditions', 'application_drafts', 'application_interviews', 'application_status_history', 'applications']\"  + [] - [\"a"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_migration_properties.py",
+   "classname": "tests.property.test_migration_properties.TestSchemaCompatibility",
+   "name": "test_no_extra_models_outside_expected_tables",
+   "message": "AssertionError: Lists differ: [\"applications.AdminSavedFilter \u2192 'admin_saved_filters'\"] != []  First list contains 1 additional elements. First extra element 0: \"applications.AdminSavedFilter \u2192 'admin_saved_filters'\"  - [\"applications.AdminSavedFilter \u2192 'admin_saved_filters'\"] + [] : Unexpected models found: [\"applications.AdminSavedFilter \u2192 'admin_saved_filters'\"]"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_migration_properties.py",
+   "classname": "tests.property.test_migration_properties.TestSchemaCompatibility",
+   "name": "test_total_model_count_matches_expected_schema",
+   "message": "AssertionError: 50 != 49 : Expected 49 models, found 50: ['Profile', 'DeviceSession', 'LoginAttempt', 'PasswordResetToken', 'CSRFToken', 'UserPermissionOverride', 'Application', 'ApplicationStatusHistory', 'ApplicationDraft', 'ApplicationInterview', 'ApplicationCondition', 'ApplicationAmendment', 'AdminSavedFilter', 'ApplicationDocument', 'DocumentUploadStage', 'DocumentVerificationEvent', 'Applic"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_rollback_safe_operations.py",
+   "classname": "tests.property.test_rollback_safe_operations",
+   "name": "test_every_rollback_statement_is_inverse_additive",
+   "message": "AssertionError: Rollback file(s) contain non-inverse-additive operations. Per Requirement 9.2, every rollback statement must be one of: DROP INDEX, DROP COLUMN, DROP TABLE, DROP SEQUENCE, DELETE FROM migration_history (any form), or scoped DELETE FROM <table> WHERE ... .      Violations:     - 2026_07_16_02_canonical_assignment_backfill_rollback.sql: statement does not match any allowed inverse-ad"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_rollback_safe_operations.py",
+   "classname": "tests.property.test_rollback_safe_operations",
+   "name": "test_every_discovered_rollback_file_is_individually_safe",
+   "message": "AssertionError: Rollback file(s) contain non-inverse-additive operations.   Violations:     - 2026_07_16_02_canonical_assignment_backfill_rollback.sql: statement does not match any allowed inverse-additive prefix (expected DROP INDEX/COLUMN/TABLE/SEQUENCE, DELETE FROM migration_history, scoped DELETE FROM <table> WHERE ..., or ALTER TABLE ... DROP COLUMN ...): UPDATE applications SET assignment_qu"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_system_alignment_institution_passthrough.py",
+   "classname": "tests.property.test_system_alignment_institution_passthrough.TestInstitutionPassThroughIdentity",
+   "name": "test_institution_value_passes_through_unchanged",
+   "message": "AssertionError: Institution value changed: stored='0', serialized=<MagicMock name='mock.institution_ref.brand_name' id='139198306317856'> assert <MagicMock name='mock.institution_ref.brand_name' id='139198306317856'> == '0' Falsifying example: test_institution_value_passes_through_unchanged(     self=<tests.property.test_system_alignment_institution_passthrough.TestInstitutionPassThroughIdentity o"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/property/test_unique_constraints.py",
+   "classname": "tests.property.test_unique_constraints.TestUniqueConstraintsRejectDuplicates",
+   "name": "test_applications_public_tracking_code_rejects_duplicates",
+   "message": "psycopg2.errors.NotNullViolation: null value in column \"assignment_version\" of relation \"applications\" violates not-null constraint DETAIL:  Failing row contains (7b87c63a-be66-494a-ab8e-ccb4fc6f9803, UC1-93D9360C, 49925ee6-a50f-4ba3-89a9-f7c306dbaf5f, Test, null, null, 2000-01-01, M, 0000000000, t@t.local, Test, null, null, null, null, null, null, null, null, null, null, test-prog, test-int, MIH,"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_amendments.py",
+   "classname": "tests.unit.test_amendments.TestAmendmentReviewEndpoint",
+   "name": "test_approve_succeeds",
+   "message": "assert 500 == 200  +  where 500 = <Response status_code=500, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_unauthenticated_returns_401_or_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_successful_verification",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_missing_application_returns_404",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_document_not_belonging_to_application_returns_404",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_unauthorized_student_returns_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_invalid_request_body_returns_400",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_response_envelope_format",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestApplicationVerifyDocument",
+   "name": "test_audit_log_created_on_success",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_unauthenticated_returns_401_or_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_successful_202_response",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_missing_application_returns_404",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_non_approved_application_returns_400",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_unauthorized_student_returns_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_idempotency_returns_cached_response",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestAcceptanceLetter",
+   "name": "test_audit_log_created_on_success",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_unauthenticated_returns_401_or_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_successful_202_response",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_missing_application_returns_404",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_no_verified_payment_returns_400",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_unauthorized_student_returns_403",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_idempotency_returns_cached_response",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_endpoints.py",
+   "classname": "tests.unit.test_application_endpoints.TestFinanceReceipt",
+   "name": "test_audit_log_created_on_success",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_number_generator.py",
+   "classname": "tests.unit.test_application_number_generator.TestApplicationNumberGenerator",
+   "name": "test_format_invariant_via_sql_function",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_number_generator.py",
+   "classname": "tests.unit.test_application_number_generator.TestApplicationNumberGenerator",
+   "name": "test_format_invariant_for_KATC",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_number_generator.py",
+   "classname": "tests.unit.test_application_number_generator.TestApplicationNumberGenerator",
+   "name": "test_legacy_fallback_path_preserves_format",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_review_payment_gate.py",
+   "classname": "tests.unit.test_application_review_payment_gate.TestApplicationReviewPaymentGate",
+   "name": "test_approval_accepts_legacy_paid_payment_row",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_review_payment_gate.py",
+   "classname": "tests.unit.test_application_review_payment_gate.TestAdminReviewCannotReverseSuccessfulPayment",
+   "name": "test_review_refuses_to_reverse_successful_payment_to_failed",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_application_review_payment_gate.py",
+   "classname": "tests.unit.test_application_review_payment_gate.TestAdminReviewCannotReverseSuccessfulPayment",
+   "name": "test_review_refuses_to_reverse_successful_payment_to_pending",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_application_student_flow_views.py",
+   "classname": "tests.unit.test_application_student_flow_views.TestApplicationInterviewListView",
+   "name": "test_admin_list_without_mine_is_scope_narrowed",
+   "message": "AssertionError: Expected 'filter_applications' to have been called once. Called 0 times."
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_applications_serializers.py",
+   "classname": "tests.unit.test_applications_serializers",
+   "name": "test_student_views_declare_serializer_class",
+   "message": "ImportError: cannot import name 'ApplicationPreviewSummaryView' from 'apps.applications.student_views' (/home/cosmas/Downloads/mihasv3/backend/apps/applications/student_views.py)"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_applications_serializers.py",
+   "classname": "tests.unit.test_applications_serializers",
+   "name": "test_admin_views_declare_serializer_class",
+   "message": "ImportError: cannot import name 'ApplicationAdminSummaryView' from 'apps.applications.admin_views' (/home/cosmas/Downloads/mihasv3/backend/apps/applications/admin_views.py)"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_batch_operations.py",
+   "classname": "tests.unit.test_batch_operations.TestBatchSizeLimit",
+   "name": "test_exceeds_25_rejected",
+   "message": "assert 404 == 400  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_batch_operations.py",
+   "classname": "tests.unit.test_batch_operations.TestConfirmationToken",
+   "name": "test_invalid_token_rejected",
+   "message": "assert 404 == 400  +  where 404 = <Response status_code=404, \"text/html; charset=utf-8\">.status_code"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_drift_bug3_endpoints.py",
+   "classname": "tests.unit.test_drift_bug3_endpoints.TestDocumentDeleteEndpoint",
+   "name": "test_delete_soft_deletes_valid_document",
+   "message": "AssertionError: 500 != 200"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_error_codes_canonical.py",
+   "classname": "tests.unit.test_error_codes_canonical.TestErrorCodesCanonical",
+   "name": "test_all_emitted_codes_are_in_catalog",
+   "message": "Failed: Error codes used in views but missing from ERROR_CODES catalog:   DOCUMENT_NOT_READY (used in: apps/applications/official_document_views.py)   EXPORT_TOO_LARGE (used in: apps/applications/admin_query_views.py, apps/documents/fee_admin_views.py, apps/documents/payment_query_views.py, apps/accounts/user_directory_views.py)   NO_RECIPIENT (used in: apps/applications/official_document_views.py"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_launch_verification_spectacular.py",
+   "classname": "tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests",
+   "name": "test_schema_generation_emits_zero_errors",
+   "message": "AssertionError: 116 != 0 : Expected zero drf-spectacular errors, got 116: /home/cosmas/Downloads/mihasv3/backend/apps/catalog/staff_invitation_views.py: Error [AdminStaffCandidateSearchView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class "
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_launch_verification_spectacular.py",
+   "classname": "tests.unit.test_launch_verification_spectacular.LaunchVerificationSpectacularTests",
+   "name": "test_schema_generation_emits_zero_warnings",
+   "message": "AssertionError: 3 != 0 : Expected zero drf-spectacular warnings, got 3: Warning: operationId \"api_v1_admin_intakes_retrieve\" has collisions [('/api/v1/admin/intakes/', 'get'), ('/api/v1/admin/intakes/{intake_id}/', 'get')]. resolving with numeral suffixes. Warning: operationId \"api_v2_admin_change_requests_retrieve\" has collisions [('/api/v2/admin/change-requests/', 'get'), ('/api/v2/admin/change-"
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_live_500_fixes.py",
+   "classname": "tests.unit.test_live_500_fixes.TestReviewViewNoDebugWrapper",
+   "name": "test_no_format_exc_import_in_module",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_live_500_fixes.py",
+   "classname": "tests.unit.test_live_500_fixes.TestReviewViewNoDebugWrapper",
+   "name": "test_no_generic_exception_with_traceback",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_live_500_fixes.py",
+   "classname": "tests.unit.test_live_500_fixes.TestReviewViewNoDebugWrapper",
+   "name": "test_no_traceback_format_exc_in_source",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_live_500_fixes.py",
+   "classname": "tests.unit.test_live_500_fixes.TestAdminDashboardResponseShape",
+   "name": "test_applications_contains_expected_subkeys",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_live_500_fixes.py",
+   "classname": "tests.unit.test_live_500_fixes.TestAdminDashboardResponseShape",
+   "name": "test_response_contains_expected_keys",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_migration_history_report_freshness.py",
+   "classname": "tests.unit.test_migration_history_report_freshness",
+   "name": "test_committed_release_report_is_fresh_and_complete",
+   "message": "AssertionError: stale/incomplete release report: june_migration_missing_from_report:2026_08_06_01_admin_saved_filters.sql; june_migration_missing_from_report:2026_08_09_01_application_tracking_secret.sql assert [Finding(cate...the report)')] == []      Left contains 2 more items, first extra item: Finding(category='june_migration_missing_from_report', object='2026_08_06_01_admin_saved_filters.sql'"
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_migration_history_report_freshness.py",
+   "classname": "tests.unit.test_migration_history_report_freshness",
+   "name": "test_committed_release_report_covers_every_june_plus_script_on_disk",
+   "message": "AssertionError: release report omits June 2026+ scripts: ['2026_08_06_01_admin_saved_filters.sql', '2026_08_09_01_application_tracking_secret.sql'] assert ['2026_08_06_...g_secret.sql'] == []      Left contains 2 more items, first extra item: '2026_08_06_01_admin_saved_filters.sql'   Use -v to get more diff"
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestApprovalCreatesNotificationAndEmail",
+   "name": "test_approval_creates_notification",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestApprovalCreatesNotificationAndEmail",
+   "name": "test_approval_creates_email_queue_record",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestApprovalCreatesNotificationAndEmail",
+   "name": "test_approval_calls_send_email_task_delay",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestRejectionCreatesNotificationAndEmail",
+   "name": "test_rejection_creates_notification",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestRejectionCreatesNotificationAndEmail",
+   "name": "test_rejection_creates_email_queue_record",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_review_notifications.py",
+   "classname": "tests.unit.test_review_notifications.TestRejectionCreatesNotificationAndEmail",
+   "name": "test_rejection_calls_send_email_task_delay",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "failure",
+   "module": "tests/unit/test_schema_tags.py",
+   "classname": "tests.unit.test_schema_tags",
+   "name": "test_no_operation_is_tagged_only_api",
+   "message": "AssertionError: Operations still only tagged 'api': 23   GET /api/v2/admin/change-requests/   POST /api/v2/admin/change-requests/   GET /api/v2/admin/change-requests/{change_request_id}/   POST /api/v2/admin/change-requests/{change_request_id}/approve/   POST /api/v2/admin/change-requests/{change_request_id}/cancel/   POST /api/v2/admin/change-requests/{change_request_id}/reject/   POST /api/v2/ad"
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestGenerateStudentNumber",
+   "name": "test_format_via_fallback",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestGenerateStudentNumber",
+   "name": "test_uses_sql_helper_when_available",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestAssignIdempotence",
+   "name": "test_returns_existing_number_unchanged",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestAssignIdempotence",
+   "name": "test_assigns_and_persists_when_missing",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestTransitionAssignsOnEnrolledOnly",
+   "name": "test_assigns_on_enrolled",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestTransitionAssignsOnEnrolledOnly",
+   "name": "test_not_assigned_on_approved",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestTransitionAssignsOnEnrolledOnly",
+   "name": "test_not_reassigned_when_already_present",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_student_number_generation.py",
+   "classname": "tests.unit.test_student_number_generation.TestSerializerExposesStudentNumber",
+   "name": "test_field_present_and_read_only",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestAssignPosition",
+   "name": "test_first_waitlisted_gets_position_1",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestAssignPosition",
+   "name": "test_subsequent_gets_next_position",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestAssignPosition",
+   "name": "test_position_scoped_to_program_and_intake",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromoteNext",
+   "name": "test_promotes_lowest_position",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromoteNext",
+   "name": "test_returns_none_when_no_waitlisted",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromoteNext",
+   "name": "test_sends_notification_on_promotion",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromoteNext",
+   "name": "test_reindexes_after_promotion",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestReindexPositions",
+   "name": "test_reindex_assigns_sequential_positions",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestReindexPositions",
+   "name": "test_reindex_no_change_when_already_sequential",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestLogOverride",
+   "name": "test_creates_history_entry",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestGetPosition",
+   "name": "test_returns_position_and_total",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestGetPosition",
+   "name": "test_raises_when_not_waitlisted",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestGetPosition",
+   "name": "test_falls_back_to_total_when_position_is_none",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestWaitlistPositionEndpoint",
+   "name": "test_owner_can_view",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestWaitlistPositionEndpoint",
+   "name": "test_admin_can_view",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestWaitlistPositionEndpoint",
+   "name": "test_non_owner_non_admin_404_mask",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestWaitlistPositionEndpoint",
+   "name": "test_not_found_404",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestWaitlistPositionEndpoint",
+   "name": "test_not_waitlisted_400",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromotionTriggeredByWithdrawal",
+   "name": "test_withdrawal_calls_promote_next",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  },
+  {
+   "kind": "error",
+   "module": "tests/unit/test_waitlist.py",
+   "classname": "tests.unit.test_waitlist.TestPromotionTriggeredByRejection",
+   "name": "test_rejection_calls_promote_next",
+   "message": "failed on setup with \"AttributeError: <module 'apps.applications.document_views' from '/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py'> does not have the attribute 'AccessScopeService'\""
+  }
+ ]
+}

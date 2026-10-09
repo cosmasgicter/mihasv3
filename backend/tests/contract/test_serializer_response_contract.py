@@ -357,14 +357,34 @@ class TestAdminDashboardContract:
     **Validates: Requirements 4.3, 4.4, 4.5**
     """
 
+    # ------------------------------------------------------------------
+    # Realigned with the shipped payload by 13.6 remediation M3
+    # ------------------------------------------------------------------
+    #
+    # These sets used to be hand-transcribed, which is how they came to describe
+    # a payload task 9.2 had replaced: `users.active` became `users.enabled`
+    # (MAINT-02 -- the old key claimed to count users currently online and never
+    # did) and `needs_attention.pending_payments` became `payment_review`.
+    #
+    # The must-be-present sets below are now the shipped names, and they are
+    # cross-checked against `AdminDashboardSerializer` itself, so the same drift
+    # cannot recur in silence: a name that is asserted here but not declared by
+    # the API is a broken test, and a key the API returns but does not declare is
+    # a broken contract. Both directions are checked, which is the half that was
+    # missing -- the response was right and the *declaration* was wrong, and no
+    # test compared them.
+    #
+    # Task 9.2 made omission meaningful (a key whose source failed is left out
+    # rather than written as a reassuring 0), so "present" is asserted for a read
+    # where every source answered -- which is this test's fixture.
     DASHBOARD_TOP_KEYS = {
         "no_school_access", "applications", "users", "needs_attention",
         "recent_activity",
     }
     APPLICATIONS_KEYS = {"by_status", "total", "today", "this_week", "this_month"}
-    USERS_KEYS = {"total", "active"}
+    USERS_KEYS = {"total", "enabled"}
     NEEDS_ATTENTION_KEYS = {
-        "pending_payments", "pending_documents", "upcoming_interviews",
+        "payment_review", "pending_documents", "upcoming_interviews",
     }
 
     def test_admin_dashboard_envelope_and_keys(self, tenant_world):
@@ -381,6 +401,51 @@ class TestAdminDashboardContract:
             data["needs_attention"], self.NEEDS_ATTENTION_KEYS, "dashboard.needs_attention"
         )
         assert isinstance(data["recent_activity"], list), data
+
+    def test_legacy_blocks_agree_with_the_declared_serializer(self, tenant_world):
+        """The response's legacy blocks carry no key the API does not declare.
+
+        This is the drift guard task 9.2's rewrite slipped through: the view kept
+        returning the right numbers under new names while
+        ``AdminDashboardSerializer`` -- its own ``serializer_class``, and what
+        drf-spectacular publishes -- still declared the old ones. Comparing the
+        two in both directions is what makes the published schema and the wire
+        payload one statement instead of two (13.6 remediation M3).
+        """
+        from apps.accounts.admin_serializers import (
+            AdminDashboardApplicationStatsSerializer,
+            AdminDashboardNeedsAttentionSerializer,
+            AdminDashboardSerializer,
+            AdminDashboardUserStatsSerializer,
+        )
+
+        super_admin = build_profile(role="super_admin")
+        data = _body(_client_for(super_admin).get("/api/v1/admin/dashboard/"))["data"]
+
+        blocks = (
+            ("applications", AdminDashboardApplicationStatsSerializer, self.APPLICATIONS_KEYS),
+            ("users", AdminDashboardUserStatsSerializer, self.USERS_KEYS),
+            ("needs_attention", AdminDashboardNeedsAttentionSerializer, self.NEEDS_ATTENTION_KEYS),
+        )
+        for name, serializer_class, asserted in blocks:
+            declared = set(serializer_class().fields)
+            returned = set(data[name])
+            assert not (returned - declared), {
+                "block": name,
+                "returned_but_not_declared": sorted(returned - declared),
+                "declared": sorted(declared),
+            }
+            assert asserted <= declared, {
+                "block": name,
+                "asserted_but_not_declared": sorted(asserted - declared),
+            }
+
+        # The 9.2 payload's own authority is `metrics`; the blocks above are
+        # compatibility. Declaring one and not the other is the drift this pins.
+        declared_top = set(AdminDashboardSerializer().fields)
+        assert self.DASHBOARD_TOP_KEYS <= declared_top, sorted(
+            self.DASHBOARD_TOP_KEYS - declared_top
+        )
 
 
 # ---------------------------------------------------------------------------

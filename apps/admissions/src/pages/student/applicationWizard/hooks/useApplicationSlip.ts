@@ -5,6 +5,13 @@ import { toError } from '@/lib/toError'
 import { officialDocumentService, type OfficialDocumentStatus } from '@/services/officialDocuments'
 
 export interface SubmittedApplicationSummary {
+  /**
+   * The application's own id. Added by admissions-v2 task 10.5 so the submission
+   * screen can offer the owner's "Get tracking link" command: public tracking
+   * authority is an issued secret, and `trackingCode` (the legacy
+   * `public_tracking_code`) authorises nothing.
+   */
+  applicationId?: string | null
   applicationNumber: string | null
   trackingCode: string | null
   program: string | null

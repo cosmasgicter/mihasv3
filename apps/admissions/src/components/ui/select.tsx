@@ -72,8 +72,9 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
-      // Touch target for scroll button
-      "min-h-[32px]",
+      // 44 px touch target for the scroll affordance
+      // (admissions-v2 task 11.5, R16.2 — it was 32).
+      "min-h-touch",
       className
     )}
     {...props}
@@ -91,8 +92,9 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
-      // Touch target for scroll button
-      "min-h-[32px]",
+      // 44 px touch target for the scroll affordance
+      // (admissions-v2 task 11.5, R16.2 — it was 32).
+      "min-h-touch",
       className
     )}
     {...props}

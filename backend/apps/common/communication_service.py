@@ -161,13 +161,26 @@ class CommunicationService:
 
     @staticmethod
     def send(template_key: str, application, extra_context: dict | None = None) -> None:
-        """Render template and dispatch notification + email based on channel.
+        """Render the template and deliver it through the one delivery gate.
 
-        Creates a Notification row if channel is 'notification' or 'both'.
-        Creates an EmailQueue row and dispatches via send_email_task if
-        channel is 'email' or 'both'.
+        The template's own ``channel`` column still decides which channels this
+        *message type* uses at all. What changed in task 10.1 (R13.3/R13.8) is
+        that the student's own preferences are now consulted for the channels the
+        template allows: `deliver_message` resolves
+        :func:`apps.common.notification_preferences.resolve_delivery` for the
+        message's category, always writes the in-app notification, queues the
+        email only when the student's settings permit it, and records the
+        decision — including a suppression reason — on the notification so the
+        communications history can state delivery state and channel (R13.4).
+
+        Before this task, ``CommunicationService`` never read a preference at
+        all, which is why the settings screen could only ever be decorative.
         """
-        from apps.common.outbox import create_notification, queue_email
+        from apps.common.notification_preferences import (
+            category_for_template,
+            deliver_message,
+        )
+        from apps.common.outbox import create_notification
 
         context = _build_context(application, extra_context)
 
@@ -176,55 +189,107 @@ class CommunicationService:
         template = _resolve_template(template_key, institution_id)
 
         channel = template.channel if template else "both"
+        category = category_for_template(template_key)
 
-        # Create Notification if channel includes notification
+        notif_text = None
+        notif_subject = None
         if channel in ("notification", "both"):
             notif_subject, notif_body = CommunicationService.render_template(
                 template_key, context, for_notification=True, application=application
             )
-            notif_text = _html_to_notification_text(_strip_email_chrome_for_notification(notif_body))
-            try:
-                create_notification(
-                    user_id=application.user_id,
-                    title=notif_subject,
-                    message=notif_text,
-                    type="info",
-                    priority="normal",
-                    action_url=f"/student/application/{application.id}",
-                )
-            except Exception as exc:
-                _log_best_effort_failure(
-                    "notification create",
-                    template_key,
-                    application_id=getattr(application, "id", None),
-                    exc=exc,
-                )
-
-        # Create EmailQueue and dispatch if channel includes email
-        if channel in ("email", "both"):
-            subject, body = CommunicationService.render_template(
-                template_key, context, application=application
+            notif_text = _html_to_notification_text(
+                _strip_email_chrome_for_notification(notif_body)
             )
+
+        email_subject = None
+        wrapped_body = None
+        if channel in ("email", "both"):
             try:
+                subject, body = CommunicationService.render_template(
+                    template_key, context, application=application
+                )
                 from apps.common.email_templates import get_base_email_html
 
+                email_subject = subject
                 wrapped_body = (
                     body if "<!DOCTYPE" in body
                     else get_base_email_html(body, title=subject)
                 )
-                queue_email(
-                    recipient_email=application.email,
-                    recipient_name=getattr(application, "full_name", ""),
-                    subject=subject,
-                    body=wrapped_body,
-                )
             except Exception as exc:
                 _log_best_effort_failure(
-                    "email dispatch",
+                    "email render",
                     template_key,
                     application_id=getattr(application, "id", None),
                     exc=exc,
                 )
+
+        try:
+            if notif_text is not None:
+                deliver_message(
+                    user_id=application.user_id,
+                    category=category,
+                    title=notif_subject,
+                    message=notif_text,
+                    email_subject=email_subject,
+                    email_body=wrapped_body,
+                    recipient_email=getattr(application, "email", None),
+                    recipient_name=getattr(application, "full_name", ""),
+                    action_url=f"/student/application/{application.id}",
+                    template_key=template_key,
+                    application_id=getattr(application, "id", None),
+                    institution_id=institution_id,
+                )
+                return
+
+            # An email-only template: there is no in-app message to record the
+            # decision on, so the gate is consulted directly and the email is
+            # queued through the same durable helper.
+            if email_subject and wrapped_body:
+                from apps.common.notification_preferences import (
+                    CHANNEL_EMAIL,
+                    resolve_delivery,
+                )
+                from apps.common.outbox import queue_email
+
+                decision = resolve_delivery(
+                    application.user_id,
+                    category,
+                    has_recipient_email=bool(getattr(application, "email", None)),
+                )
+                if decision.used(CHANNEL_EMAIL.key):
+                    queue_email(
+                        recipient_email=application.email,
+                        recipient_name=getattr(application, "full_name", ""),
+                        subject=email_subject,
+                        body=wrapped_body,
+                    )
+        except Exception as exc:
+            _log_best_effort_failure(
+                "message delivery",
+                template_key,
+                application_id=getattr(application, "id", None),
+                exc=exc,
+            )
+            # The in-app message is the platform's record of what the student was
+            # told, so a delivery-gate failure falls back to writing it directly
+            # rather than losing it.
+            if notif_text is not None:
+                try:
+                    create_notification(
+                        user_id=application.user_id,
+                        title=notif_subject,
+                        message=notif_text,
+                        type="info",
+                        priority="normal",
+                        action_url=f"/student/application/{application.id}",
+                    )
+                except Exception as inner:
+                    _log_best_effort_failure(
+                        "notification create",
+                        template_key,
+                        application_id=getattr(application, "id", None),
+                        exc=inner,
+                    )
 
 
 def _resolve_institution_id(application):
@@ -341,14 +406,14 @@ def _html_to_notification_text(value: str) -> str:
 def _default_portal_url() -> str:
     """Return the Beanola platform portal URL for communication templates.
 
-    Sourced from the env-driven ``FRONTEND_URL`` setting (Beanola platform
-    default ``https://apply.beanola.com``) so the portal host can move without a
-    code change and never hard-codes a single school's host. Used whenever the
-    resolved institution has no usable portal/website setting (R14.8).
+    Delegates to the centralized :func:`apps.common.email_links.platform_base_url`
+    so the neutral platform host has a single source of truth (env-driven
+    ``FRONTEND_URL``) and is never hard-coded here. Used whenever the resolved
+    institution has no usable portal/website setting (R14.8, R9.7).
     """
-    from django.conf import settings
+    from apps.common.email_links import platform_base_url
 
-    return getattr(settings, "FRONTEND_URL", "") or "https://apply.beanola.com"
+    return platform_base_url()
 
 
 def _first_non_empty(*candidates, default: str) -> str:
@@ -404,19 +469,17 @@ def _derive_contact_email(institution) -> str:
 
 
 def _derive_portal_url(institution) -> str:
-    """Portal URL from institution settings, else the Beanola platform default.
+    """Portal URL for the resolved tenant, else the Beanola platform default.
 
-    Prefers the institution's ``website``; substitutes the env-driven Beanola
-    platform portal when missing, so a hard-coded single-school host is never
-    emitted (R14.3, R14.8).
+    Delegates to the centralized :func:`apps.common.email_links.tenant_base_url`
+    (R9.7): active verified tenant domain → institution website → neutral
+    Beanola platform URL. A hard-coded single-school host is never emitted
+    (R14.3, R14.8), and email base-URL resolution now has one source of truth
+    shared with password-reset, duplicate-registration, and tracker links.
     """
-    platform_default = _default_portal_url()
-    if institution is None:
-        return platform_default
-    return _first_non_empty(
-        getattr(institution, "website", None),
-        default=platform_default,
-    )
+    from apps.common.email_links import tenant_base_url
+
+    return tenant_base_url(institution)
 
 
 def _build_context(application, extra_context: dict | None = None) -> dict:

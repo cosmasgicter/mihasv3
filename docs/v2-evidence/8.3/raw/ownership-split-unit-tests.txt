@@ -1,0 +1,22 @@
+]633;E;echo '$ cd apps/admissions && bun run test --run tests/unit/paymentOwnershipSplit.test.tsx tests/unit/paymentRecoveryPresentation.test.ts tests/unit/tenantSupportContact.test.ts tests/unit/feeProviderSourceScan.test.ts tests/unit/paymentPhaseUiStates.test.ts tests/property/paymentRecovery.property.test.ts';f9f47594-8e45-4ec9-92f9-d3bbedf37075]633;C$ cd apps/admissions && bun run test --run tests/unit/paymentOwnershipSplit.test.tsx tests/unit/paymentRecoveryPresentation.test.ts tests/unit/tenantSupportContact.test.ts tests/unit/feeProviderSourceScan.test.ts tests/unit/paymentPhaseUiStates.test.ts tests/property/paymentRecovery.property.test.ts
+$ bun x vitest run --run tests/unit/paymentOwnershipSplit.test.tsx tests/unit/paymentRecoveryPresentation.test.ts tests/unit/tenantSupportContact.test.ts tests/unit/feeProviderSourceScan.test.ts tests/unit/paymentPhaseUiStates.test.ts tests/property/paymentRecovery.property.test.ts
+
+ RUN  v4.0.18 /home/cosmas/Downloads/mihasv3/apps/admissions
+
+ ✓ tests/unit/paymentRecoveryPresentation.test.ts (37 tests) 22ms
+ ✓ tests/unit/paymentPhaseUiStates.test.ts (20 tests) 13ms
+ ✓ tests/unit/tenantSupportContact.test.ts (11 tests) 12ms
+ ✓ tests/property/paymentRecovery.property.test.ts (6 tests) 167ms
+ ✓ tests/unit/feeProviderSourceScan.test.ts (25 tests) 230ms
+stderr | tests/unit/paymentOwnershipSplit.test.tsx > the payment page renders every post-submission state (R12.3) > deferred → names the choice and offers payment
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ tests/unit/paymentOwnershipSplit.test.tsx (14 tests) 537ms
+
+ Test Files  6 passed (6)
+      Tests  113 passed (113)
+   Start at  05:50:40
+   Duration  2.91s (transform 1.06s, setup 211ms, import 1.93s, tests 982ms, environment 5.90s)
+
+TEST_EXIT=0

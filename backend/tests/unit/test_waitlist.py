@@ -25,8 +25,18 @@ def _passthrough_access_scope_autouse():
     from unittest.mock import patch as _patch
     targets = []
     try:
-        import apps.applications.document_views  # noqa: F401
-        targets.append("apps.applications.document_views.AccessScopeService")
+        import apps.applications.document_views as _document_views
+        # Only patch the module-level name if it is still there. Task 9.4 moved
+        # ``document_views`` onto the shared ``resolve_scoped_application`` seam and
+        # dropped its module-level ``AccessScopeService`` import, at which point this
+        # fixture began raising ``AttributeError`` **at setup** and every case in this
+        # file errored rather than ran. Guarding the patch target (rather than only
+        # the import) is what makes the fixture describe the code that exists. The
+        # remaining ``apps.catalog.services.AccessScopeService`` target below is the
+        # real seam: ``resolve_scoped_application`` imports it lazily from there.
+        # (admissions-v2 GATE-13.1-02, closed by task 13.6.)
+        if hasattr(_document_views, "AccessScopeService"):
+            targets.append("apps.applications.document_views.AccessScopeService")
     except Exception:
         pass
     targets.append("apps.catalog.services.AccessScopeService")
@@ -80,7 +90,17 @@ def _req(factory, user, aid):
 # 1. Position assignment (sequential, per program+intake) — Req 3.1
 # ---------------------------------------------------------------------------
 class TestAssignPosition:
-    """Position assignment is sequential per program+intake (Req 3.1)."""
+    """Position assignment is sequential per program+intake (Req 3.1).
+
+    Post-5.3 shape: ``_scoped_waitlist_queryset`` builds the queryset **first**
+    and locks it second, so the chain is
+    ``objects.filter(...).select_for_update().exclude(...).count()`` — not
+    ``objects.select_for_update().filter(...)``. These fixtures assert that
+    ordering. The ``_app()`` fixture is a ``MagicMock`` whose canonical FK ids
+    are not real UUIDs, so ``CapacityService.offering_ids`` yields
+    ``(None, None)`` and the legacy display-string branch is what runs here —
+    which is exactly the branch these Requirement-3.1 cases pin.
+    """
 
     @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
@@ -89,7 +109,7 @@ class TestAssignPosition:
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.filter.return_value.select_for_update.return_value.exclude.return_value.count.return_value = 0
         mock_qs.filter.return_value.update.return_value = 1
 
         pos = WaitlistManager.assign_position(app, "CS", "Jan 2026")
@@ -104,7 +124,7 @@ class TestAssignPosition:
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 3
+        mock_qs.filter.return_value.select_for_update.return_value.exclude.return_value.count.return_value = 3
         mock_qs.filter.return_value.update.return_value = 1
 
         pos = WaitlistManager.assign_position(app, "CS", "Jan 2026")
@@ -115,19 +135,24 @@ class TestAssignPosition:
     @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
     def test_position_scoped_to_program_and_intake(self, mock_qs, mock_tx):
-        """Position count filters by program AND intake."""
+        """Position count filters by program AND intake, then locks the peers."""
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.filter.return_value.select_for_update.return_value.exclude.return_value.count.return_value = 0
         mock_qs.filter.return_value.update.return_value = 1
 
         WaitlistManager.assign_position(app, "BBA", "Jul 2026")
 
-        mock_qs.select_for_update.return_value.filter.assert_called_once_with(
+        # The scoping filter is the first ``filter`` call; the second is the
+        # ``filter(id=...).update(...)`` that writes the position.
+        assert mock_qs.filter.call_args_list[0] == call(
             program="BBA", intake="Jul 2026", status="waitlisted",
         )
-        mock_qs.select_for_update.return_value.filter.return_value.exclude.assert_called_once_with(id=app.id)
+        assert mock_qs.filter.call_args_list[1] == call(id=app.id)
+        mock_qs.filter.return_value.select_for_update.return_value.exclude.assert_called_once_with(
+            id=app.id
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +170,7 @@ class TestPromoteNext:
         app = _app(waitlist_position=1)
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value.first.return_value = app
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value.first.return_value = app
 
         result = WaitlistManager.promote_next("CS", "Jan 2026")
 
@@ -167,7 +192,7 @@ class TestPromoteNext:
     def test_returns_none_when_no_waitlisted(self, mock_tx, mock_qs, mock_trans, mock_reindex, mock_notif):
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value.first.return_value = None
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value.first.return_value = None
 
         result = WaitlistManager.promote_next("CS", "Jan 2026")
 
@@ -183,7 +208,7 @@ class TestPromoteNext:
         app = _app(waitlist_position=1)
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value.first.return_value = app
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value.first.return_value = app
 
         WaitlistManager.promote_next("CS", "Jan 2026")
 
@@ -198,11 +223,16 @@ class TestPromoteNext:
         app = _app(waitlist_position=1)
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value.first.return_value = app
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value.first.return_value = app
 
         WaitlistManager.promote_next("CS", "Jan 2026")
 
-        mock_reindex.assert_called_once_with("CS", "Jan 2026")
+        # Post-5.3: the reindex is forwarded the canonical Intake_Offering
+        # identity so it reindexes the *same* queue that was just promoted from.
+        # ``None, None`` here is the legacy display-string queue (R7.6).
+        mock_reindex.assert_called_once_with(
+            "CS", "Jan 2026", offering_id=None, intake_id=None
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +249,7 @@ class TestReindexPositions:
         a1 = MagicMock(id=uuid.uuid4(), waitlist_position=3)
         a2 = MagicMock(id=uuid.uuid4(), waitlist_position=5)
         a3 = MagicMock(id=uuid.uuid4(), waitlist_position=7)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value = [a1, a2, a3]
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value = [a1, a2, a3]
 
         WaitlistManager.reindex_positions("CS", "Jan 2026")
 
@@ -238,7 +268,7 @@ class TestReindexPositions:
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         a1 = MagicMock(id=uuid.uuid4(), waitlist_position=1)
         a2 = MagicMock(id=uuid.uuid4(), waitlist_position=2)
-        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value = [a1, a2]
+        mock_qs.filter.return_value.select_for_update.return_value.order_by.return_value = [a1, a2]
 
         WaitlistManager.reindex_positions("CS", "Jan 2026")
 
@@ -350,16 +380,24 @@ class TestWaitlistPositionEndpoint:
         assert resp.data["success"] is True
 
     @patch(_VIEW_APP_OBJECTS)
-    def test_non_owner_non_admin_403(self, mock_qs):
+    def test_non_owner_non_admin_404_mask(self, mock_qs):
+        # AUTH-07: a non-owner with no capability scope is masked as an
+        # indistinguishable canonical 404 (never a distinguishable 403 that
+        # leaks existence). The out-of-scope AccessScopeService lookup yields no
+        # row, so the owner-or-scoped-staff policy denies with a not-found mask.
         uid = uuid.uuid4()
         app = _app(uid=uid, aid=uuid.uuid4())
         mock_qs.select_related.return_value.get.return_value = app
+        # The capability scope check (AccessScopeService.filter_applications ->
+        # .filter(...).exists()) must report the caller as out of scope.
+        mock_qs.filter.return_value.filter.return_value.exists.return_value = False
+        mock_qs.filter.return_value.exists.return_value = False
         other = _user(uuid.uuid4())
 
         resp = self.v(_req(self.f, other, app.id), application_id=app.id)
 
-        assert resp.status_code == 403
-        assert resp.data["code"] == "INSUFFICIENT_PERMISSIONS"
+        assert resp.status_code == 404
+        assert resp.data["code"] == "NOT_FOUND"
 
     @patch(_VIEW_APP_OBJECTS)
     def test_not_found_404(self, mock_qs):
@@ -455,6 +493,14 @@ class TestPromotionTriggeredByRejection:
         app = _app(uid=uid, status="under_review", aid=uuid.uuid4())
         app.reviewed_by = None
         mock_qs.get.return_value = app
+        # Post-9.4 shape: the review command resolves its subject through
+        # ``resolve_scoped_application(..., select_for_update=True)``, whose base
+        # queryset is ``Application.objects.all()`` and which locks it before the
+        # scoped ``.get()``. The chain is therefore
+        # ``objects.all().select_for_update().get()``. The autouse
+        # ``AccessScopeService`` fixture makes ``filter_applications`` a
+        # pass-through so the locked base queryset reaches ``.get()`` unchanged.
+        mock_qs.all.return_value.select_for_update.return_value.get.return_value = app
         mock_qs.select_for_update.return_value.get.return_value = app
         mock_ser.return_value.data = {"id": str(app.id), "status": "rejected"}
         mock_email_qs.create.return_value = MagicMock(id=uuid.uuid4())

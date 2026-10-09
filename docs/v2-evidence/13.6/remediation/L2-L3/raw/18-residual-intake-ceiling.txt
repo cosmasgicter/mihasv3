@@ -1,0 +1,35 @@
+### 2026-08-13T23:36:42Z residual - gate 20 still WARNs on applications.intake, measured
+# L2 converged all three snapshot columns on the widths the MODEL declares
+#   (apps/applications/models.py:76-78 -> program 255, intake 100, institution 255).
+# gate 20's verdict expression compares the snapshot column against its SOURCE
+# column instead, and intakes.name is varchar(255) while Application.intake is
+# max_length=100 - so one WARN survives. This is a MODEL-vs-SOURCE mismatch, not
+# schema drift: the column now matches the model exactly, and the width probe
+# reports 0 narrower AND 0 wider columns.
+
+--- the arithmetic, from the catalogue ---
+SET
+         col         | column_width | model_max_length 
+---------------------+--------------+------------------
+ applications.intake |          100 |              100
+ intakes.name        |          255 |              255
+(2 rows)
+
+
+--- the residual 500, reproduced at the write layer (rolled back) ---
+# a 150-char intake name is legal in intakes.name (255) and in the Intake model
+# (max_length=255). Django does not validate max_length on .save(), so it reaches
+# Postgres whole.
+BEGIN
+ERROR:  value too long for type character varying(100)
+ROLLBACK
+
+--- and 100 chars still fits (the widen did land) ---
+BEGIN
+UPDATE 1
+ROLLBACK
+
+# NOT claimed as fixed by L2. Closing it means changing Application.intake's
+# max_length to 255 AND widening the column to match - a model change outside
+# L2's scope, named for 13.6's next pass.
+### 2026-08-13T23:36:57Z done

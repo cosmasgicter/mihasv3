@@ -1,0 +1,196 @@
+Task 10.5 — Neon branch rehearsal for
+backend/scripts/2026_08_09_01_application_tracking_secret.sql
+and its rollback sibling.
+
+Project : mihasApplication  (wild-bar-37055823, aws-us-east-1, Postgres 17)
+Branch  : br-jolly-pine-ahybtg2e  ("v2-task-3.2-rehearsal")
+Database: neondb
+Tool    : Neon MCP (run_sql / run_sql_transaction / explain_sql_statement),
+          branchId passed explicitly on EVERY call.
+
+NOT touched: the Neon default branch, and production
+(mihas-postgres-1 on the af-south-1 EC2 host). Verified below.
+
+================================================================
+0. The default branch was never touched
+================================================================
+SELECT count(*) AS tracking_cols_on_default
+  FROM information_schema.columns
+ WHERE table_name='applications' AND column_name LIKE 'tracking_%';
+
+  tracking_cols_on_default = 0
+
+================================================================
+1. Pre-state on the rehearsal branch (real legacy admissions data)
+================================================================
+SELECT count(*) rows_total,
+       count(application_number) with_app_number,
+       count(public_tracking_code) with_legacy_trk,
+       count(tracking_selector) with_selector,
+       count(tracking_secret_hash) with_hash,
+       count(tracking_secret_issued_at) with_issued,
+       count(tracking_secret_revoked_at) with_revoked,
+       count(*) FILTER (WHERE status <> '') readable_status
+  FROM applications;
+
+  rows_total       = 33
+  with_app_number  = 33
+  with_legacy_trk  = 33
+  with_selector    = 0
+  with_hash        = 0
+  with_issued      = 0
+  with_revoked     = 0
+  readable_status  = 33
+
+33 pre-existing applications. All four new columns NULL on every row:
+no backfill, no default, nothing migrated out. Both legacy identifiers
+(application_number, public_tracking_code) are intact and populated on
+all 33 rows — they keep every non-authority use they had.
+
+================================================================
+2. Forward script re-run (idempotence)
+================================================================
+The five guarded statements from
+2026_08_09_01_application_tracking_secret.sql, re-run against a branch
+where they had already been applied:
+
+  ALTER TABLE applications ADD COLUMN IF NOT EXISTS tracking_selector varchar(16) NULL;
+  ALTER TABLE applications ADD COLUMN IF NOT EXISTS tracking_secret_hash varchar(64) NULL;
+  ALTER TABLE applications ADD COLUMN IF NOT EXISTS tracking_secret_issued_at timestamptz NULL;
+  ALTER TABLE applications ADD COLUMN IF NOT EXISTS tracking_secret_revoked_at timestamptz NULL;
+  CREATE UNIQUE INDEX IF NOT EXISTS uq_applications_tracking_selector
+      ON applications (tracking_selector) WHERE tracking_selector IS NOT NULL;
+
+  -> no error, tracking_cols = 4  (converged, no duplicate object)
+
+================================================================
+3. The partial unique index actually constrains (and only issued rows)
+================================================================
+Run as one DO block whose final RAISE aborts the block, so NOTHING
+persists — the assertion is which exception fires.
+
+  DO $$
+  DECLARE a uuid; b uuid;
+  BEGIN
+    SELECT id INTO a FROM applications ORDER BY created_at LIMIT 1;
+    SELECT id INTO b FROM applications WHERE id <> a ORDER BY created_at LIMIT 1;
+    UPDATE applications SET tracking_selector='TESTSEL1' WHERE id = a;
+    BEGIN
+      UPDATE applications SET tracking_selector='TESTSEL1' WHERE id = b;
+      RAISE EXCEPTION 'FAIL_DUPLICATE_SELECTOR_WAS_ACCEPTED';
+    EXCEPTION WHEN unique_violation THEN
+      RAISE EXCEPTION 'OK_DUPLICATE_REJECTED_AND_NOTHING_PERSISTED (31 NULL selectors coexisted)';
+    END;
+  END $$;
+
+  NeonDbError: OK_DUPLICATE_REJECTED_AND_NOTHING_PERSISTED
+               (31 NULL selectors coexisted)
+
+i.e. a second live selector with the same value is rejected, while the
+other 31 rows hold NULL selectors simultaneously — which a plain
+column-level UNIQUE could not express as cheaply and which is why the
+model field is deliberately NOT declared unique=True.
+
+Confirming nothing persisted:
+  SELECT count(*) rows_total, count(tracking_selector) selectors_persisted
+    FROM applications;
+  -> rows_total = 33, selectors_persisted = 0
+
+================================================================
+4. The unauthenticated lookup cannot fall back to a sequential scan
+================================================================
+EXPLAIN ANALYZE
+SELECT id FROM applications
+ WHERE tracking_selector = 'ABCD2345' AND tracking_secret_revoked_at IS NULL;
+
+  Node Type : Index Scan
+  Index Name: uq_applications_tracking_selector
+  Index Cond: ((applications.tracking_selector)::text = 'ABCD2345'::text)
+  Filter    : (applications.tracking_secret_revoked_at IS NULL)
+  Total Cost: 8.14   Actual Rows: 0   Execution Time: 0.017 ms
+
+================================================================
+5. Rollback rehearsal
+================================================================
+2026_08_09_01_application_tracking_secret_rollback.sql, verbatim:
+
+  DROP INDEX IF EXISTS uq_applications_tracking_selector;
+  ALTER TABLE applications DROP COLUMN IF EXISTS tracking_secret_revoked_at;
+  ALTER TABLE applications DROP COLUMN IF EXISTS tracking_secret_issued_at;
+  ALTER TABLE applications DROP COLUMN IF EXISTS tracking_secret_hash;
+  ALTER TABLE applications DROP COLUMN IF EXISTS tracking_selector;
+
+  -> tracking_cols = 0
+  -> rows_total = 33, with_app_number = 33, with_legacy_trk = 33
+
+Every one of the 33 rows survives the rollback with both legacy
+identifiers intact. The only content the rollback destroys is a set of
+SHA-256 digests whose plaintexts the platform never held, i.e. it
+revokes every issued tracking link — the intended meaning.
+
+================================================================
+6. Rollback re-run (idempotence)
+================================================================
+The same five DROP statements again, against the rolled-back branch:
+
+  -> no error, 'rollback re-run converged'
+
+================================================================
+7. Forward re-apply from the rolled-back state
+================================================================
+The forward script applied from scratch onto the 33 legacy rows:
+
+SELECT column_name, data_type, is_nullable, column_default
+  FROM information_schema.columns
+ WHERE table_name='applications' AND column_name LIKE 'tracking_%'
+ ORDER BY column_name;
+
+  tracking_secret_hash        character varying            YES   NULL
+  tracking_secret_issued_at   timestamp with time zone     YES   NULL
+  tracking_secret_revoked_at  timestamp with time zone     YES   NULL
+  tracking_selector           character varying            YES   NULL
+
+SELECT indexdef FROM pg_indexes
+ WHERE indexname='uq_applications_tracking_selector';
+
+  CREATE UNIQUE INDEX uq_applications_tracking_selector
+      ON public.applications USING btree (tracking_selector)
+   WHERE (tracking_selector IS NOT NULL)
+
+SELECT count(*) rows_total, count(application_number) with_app_number,
+       count(tracking_selector) with_selector FROM applications;
+
+  rows_total = 33, with_app_number = 33, with_selector = 0
+
+Four nullable columns, no default on any of them, the partial unique
+index rebuilt, and the 33 legacy rows still readable with all four
+columns NULL. Old rows were readable at every step of 1-7.
+
+================================================================
+8. The boot sweep picks up the forward script and not the rollback
+================================================================
+Against apps/common/management/commands/apply_sql_migrations.py
+(the container-startup runner), evaluated directly:
+
+  _iter_migration_files('scripts') contains
+    2026_08_09_01_application_tracking_secret.sql          -> True
+    2026_08_09_01_application_tracking_secret_rollback.sql -> False
+      (excluded by the `_rollback.sql` suffix filter)
+
+  _find_non_additive_violations(forward)  -> []
+  _find_non_additive_violations(rollback) -> ['DROP COLUMN']
+  _CONCURRENTLY_RE.search(forward)        -> False
+      (the partial unique index builds against an entirely-NULL,
+       brand-new column, so it needs no CONCURRENTLY split phase)
+
+The forward script is additive by the runner's own lint; the rollback is
+correctly never swept.
+
+================================================================
+Not done here
+================================================================
+* The Neon default branch was not migrated. Promoting the script there,
+  and to the production Postgres, is an operator step per
+  .kiro/steering/infrastructure.md (backup first, Neon default second,
+  production last).
+* No production database was contacted from this task.

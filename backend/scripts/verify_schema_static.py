@@ -64,6 +64,9 @@ EXPECTED_TABLES = [
     "user_permission_overrides",
     "migration_history",
     "program_fees",
+    # Admissions V2 task 8.1: expiring server-authored fee quotes
+    # (backend/scripts/2026_07_30_01_payment_fee_quotes.sql).
+    "payment_fee_quotes",
     "webhook_event_logs",
     "error_logs",
     "application_conditions",
@@ -81,6 +84,32 @@ EXPECTED_TABLES = [
     "user_institution_memberships",
     "access_grants",
     "institution_document_profiles",
+    # ------------------------------------------------------------------
+    # Admissions V2 tables this list had drifted behind (13.6 remediation
+    # M3). Every one is a real `managed = False` model backed by a real
+    # additive script in this directory; the code moved and this static
+    # list did not, so `tests/property/test_drift_bug6_fix.py` failed with
+    # six parametrised cases naming exactly these tables.
+    #
+    # Registering them is what makes the static verifier able to see them
+    # at all: an unlisted table is not checked for a model, a FK, or an
+    # index, so the drift guard was blind to six tables rather than
+    # tolerant of them.
+    # ------------------------------------------------------------------
+    # Task 9.1's saved admin queries (2026_08_06_01_admin_saved_filters.sql).
+    "admin_saved_filters",
+    # Task 7.3 immutable document evidence, R11.7-R11.8 / STU-19
+    # (2026_07_26_01_document_evidence_lifecycle.sql): the durable staged-write
+    # ledger and the append-only verification history.
+    "document_upload_stages",
+    "document_verification_events",
+    # Tenant authority tasks 4.x and the TEN-06 change-request workflow
+    # (2026_07_20_01_tenant_onboarding.sql,
+    #  2026_07_21_01_tenant_staff_invitations.sql,
+    #  2026_07_22_01_tenant_change_requests.sql).
+    "tenant_onboarding",
+    "tenant_staff_invitations",
+    "tenant_change_requests",
 ]
 
 # Expected foreign key relationships: (child_table.column -> parent_table)
@@ -115,6 +144,10 @@ EXPECTED_FK_RELATIONSHIPS = [
     ("user_notification_preferences.user_id", "profiles"),
     ("user_permission_overrides.user_id", "profiles"),
     ("program_fees.program_id", "programs"),
+    ("payment_fee_quotes.application_id", "applications"),
+    ("payment_fee_quotes.program_offering_id", "programs"),
+    ("payment_fee_quotes.fee_schedule_id", "program_fees"),
+    ("payment_fee_quotes.payment_id", "payments"),
 ]
 
 # Expected indexes for commonly filtered columns

@@ -337,23 +337,54 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
 
     @given(code=_tracking_codes)
     @_default_settings
-    def test_track_view_returns_404_for_nonexistent_code(self, code):
-        """Track view returns 404 for non-existent tracking code."""
+    def test_track_view_refuses_a_legacy_identifier_without_a_lookup(self, code):
+        """A legacy identifier is refused from the string alone.
+
+        Pre-10.5 this case asserted 404 for these shapes, because an application
+        number and a legacy ``TRK-`` code *were* public credentials and the view
+        looked them up. admissions-v2 task 10.5 (R13.12: "Sequential application
+        numbers alone SHALL NOT authorize public disclosure") removed that
+        authority: the shapes are recognised and refused with the stable
+        ``TRACKING_SECRET_REQUIRED`` code and — the security point — **no query
+        runs**, so the refusal cannot confirm that an application exists. A 404
+        here would now mean the lookup still happened.
+        """
         assume(code.strip() != "")
 
         from apps.applications.views import ApplicationTrackView
-        from apps.applications.models import Application
 
         request = MagicMock()
         request.query_params = {"code": code}
 
-        with patch("apps.applications.public_views.Application.objects") as mock_qs:
-            mock_qs.get.side_effect = Application.DoesNotExist()
+        view = ApplicationTrackView()
+        with patch("apps.applications.tracking_secret.resolve") as resolver:
+            response = view.get(request)
 
-            view = ApplicationTrackView()
+        resolver.assert_not_called()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["code"], "TRACKING_SECRET_REQUIRED")
+
+    @given(
+        selector=st.from_regex(r"[0-9A-HJKMNP-TV-Z]{8}", fullmatch=True),
+        verifier=st.from_regex(r"[0-9A-HJKMNP-TV-Z]{20}", fullmatch=True),
+    )
+    @_default_settings
+    def test_track_view_returns_404_for_a_nonexistent_tracking_secret(
+        self, selector, verifier
+    ):
+        """A well-formed tracking secret that resolves nothing is a masked 404."""
+        from apps.applications.tracking_secret import build_code
+        from apps.applications.views import ApplicationTrackView
+
+        request = MagicMock()
+        request.query_params = {"code": build_code(selector, verifier)}
+
+        view = ApplicationTrackView()
+        with patch("apps.applications.tracking_secret.resolve", return_value=None):
             response = view.get(request)
 
         self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data["code"], "NOT_FOUND")
 
     def test_track_view_returns_400_for_empty_code(self):
         """Track view returns 400 when no code is provided."""
@@ -367,14 +398,19 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_tracking_serializer_exposes_limited_fields(self):
-        """ApplicationTrackingSerializer only exposes status, program, intake, created_at."""
+        """The public contract is minimal, under the names the client reads.
+
+        admissions-v2 task 10.5 renamed ``program``/``intake`` to
+        ``program_name``/``intake_name`` and dropped ``created_at`` — the
+        frontend/backend field-drift half of STU-22.
+        """
         from apps.applications.serializers import ApplicationTrackingSerializer
 
         fields = ApplicationTrackingSerializer.Meta.fields
         self.assertIn("status", fields)
-        self.assertIn("program", fields)
-        self.assertIn("intake", fields)
-        self.assertIn("created_at", fields)
+        self.assertIn("program_name", fields)
+        self.assertIn("intake_name", fields)
+        self.assertIn("submitted_at", fields)
         # Should NOT expose PII
         self.assertNotIn("email", fields)
         self.assertNotIn("phone", fields)
@@ -481,6 +517,20 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
             mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.get.return_value = app
             mock_qs.select_for_update.return_value.get.return_value = app
+            # The chain the shipped seam actually walks. Admissions-v2 task 9.4
+            # routed this command through ``resolve_scoped_application``, which takes
+            # ``Application.objects.all()``, applies
+            # ``AccessScopeService.filter_applications`` to it, and only then
+            # ``.select_for_update().get()``. The two lines above configure the two
+            # *older* chains, so the new one returned a fresh auto-MagicMock whose
+            # ``status`` is itself a MagicMock — and the real transition service
+            # correctly refused that as an invalid transition, a 400 rather than the
+            # 200 this property is about ("Invalid transition: from=<MagicMock ...>
+            # to=rejected" in the captured log). Pointing the third chain at the same
+            # mock application is what lets the property observe the payment gate it
+            # asserts; the two older chains are left in place for the callers that
+            # still use them.
+            mock_qs.all.return_value.select_for_update.return_value.get.return_value = app
 
             with patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()

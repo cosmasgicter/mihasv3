@@ -1,0 +1,25 @@
+]633;E;echo "=== DISCRIMINATION PROBE — does the new date-parity guard actually fail on drift? ===";677873d0-a027-464c-810a-33148a2efd0a]633;C=== DISCRIMINATION PROBE — does the new date-parity guard actually fail on drift? ===
+=== DATE: 2026-08-14T06:40:07Z ===
+=== METHOD: flip LEGACY_EXCEPTION_REMOVE_BY to a different date, run the guard, restore, verify sha256 ===
+sha256 before: 17649b53689bdd6d04143163529e435dbbfbcfd50178dc42cec6aec47a47906d
+
+94:const LEGACY_EXCEPTION_REMOVE_BY = '2027-08-07'
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_frontend_register_windows_match_the_canonical_register[apps/admissions/tests/unit/architectureEnforcement.test.ts-LEGACY_EXCEPTION_REMOVE_BY] _
+tests/unit/test_compatibility_surfaces_12_2.py:406: in test_frontend_register_windows_match_the_canonical_register
+    assert match.group(1) == expected, (
+E   AssertionError: apps/admissions/tests/unit/architectureEnforcement.test.ts: LEGACY_EXCEPTION_REMOVE_BY announces 2027-08-07, but compatibility_register.COMPATIBILITY_SURFACES['catalog.legacy_institution_write'].end_date announces 2027-02-07. One decision, one window: change the register and let this guard carry the change to the frontend copies.
+E   assert '2027-08-07' == '2027-02-07'
+E     
+E     - 2027-02-07
+E     ?       ^
+E     + 2027-08-07
+E     ?       ^
+=========================== short test summary info ============================
+FAILED tests/unit/test_compatibility_surfaces_12_2.py::test_frontend_register_windows_match_the_canonical_register[apps/admissions/tests/unit/architectureEnforcement.test.ts-LEGACY_EXCEPTION_REMOVE_BY]
+1 failed, 1 passed in 0.94s
+(non-zero exit — expected)
+]633;E;echo;677873d0-a027-464c-810a-33148a2efd0a]633;C
+sha256 after restore: 17649b53689bdd6d04143163529e435dbbfbcfd50178dc42cec6aec47a47906d
+RESTORED: identical

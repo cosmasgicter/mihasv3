@@ -1,0 +1,57 @@
+===========================================================================
+Task 13.6 clause (v) - required job/outbox ledger, run on TWO databases
+===========================================================================
+Where            : Neon rehearsal branch br-jolly-pine-ahybtg2e
+                   (endpoint ep-proud-cherry-ah8n4q0f, project wild-bar-37055823)
+                   REUSED, not created - the project is at its branch cap.
+Databases        : v2_snap_13_4  = 13.4's restored PRODUCTION-LINEAGE snapshot
+                   v2_fresh_13_4 = 13.4's expanded RELEASE schema
+Session          : SET default_transaction_read_only = on (in the .sql file)
+Production       : NOT CONTACTED. No SSH, no query, no write.
+Instrument       : docs/v2-evidence/13.6/raw/outbox-clause.sql
+                   (13.5 canary-dashboard.sql S6 + its s6_* export columns)
+psql client      : psql (PostgreSQL) 18.4 (Ubuntu 18.4-0ubuntu0.26.04.1)
+===========================================================================
+
+############### v2_snap_13_4 ###########################################
+SET
+== 13.6 clause (v): required job/outbox ledger ==
+   database   |          sampled_at          
+--------------+------------------------------
+ v2_snap_13_4 | 2026-08-12 21:50:02.35812+00
+(1 row)
+
+-- S6 jobs: the durable outbox ledger --
+ signal  | outbox_pending | s6_outbox_failed | s6_outbox_stale | outbox_total | worst_retry_count |            verdict             
+---------+----------------+------------------+-----------------+--------------+-------------------+--------------------------------
+ S6 jobs |              0 |                0 |               0 |          347 |                 0 | PASS - no hanging outbox event
+(1 row)
+
+-- S6 beat-sweep liveness proxies (the beat container log is authoritative) --
+     signal      | domain_sweep_last_checked | domain_backlog_over_1h | payment_sweep_overdue | email_sweep_wedged | email_failed |              verdict              
+-----------------+---------------------------+------------------------+-----------------------+--------------------+--------------+-----------------------------------
+ S6 beat proxies |                           |                      0 |                     0 |                  0 |            0 | PASS - no sweep is visibly behind
+(1 row)
+-- psql exit: 0
+
+############### v2_fresh_13_4 ##########################################
+SET
+== 13.6 clause (v): required job/outbox ledger ==
+   database    |          sampled_at           
+---------------+-------------------------------
+ v2_fresh_13_4 | 2026-08-12 21:50:06.141418+00
+(1 row)
+
+-- S6 jobs: the durable outbox ledger --
+ signal  | outbox_pending | s6_outbox_failed | s6_outbox_stale | outbox_total | worst_retry_count |            verdict             
+---------+----------------+------------------+-----------------+--------------+-------------------+--------------------------------
+ S6 jobs |              0 |                0 |               0 |            0 |                 0 | PASS - no hanging outbox event
+(1 row)
+
+-- S6 beat-sweep liveness proxies (the beat container log is authoritative) --
+     signal      | domain_sweep_last_checked | domain_backlog_over_1h | payment_sweep_overdue | email_sweep_wedged | email_failed |              verdict              
+-----------------+---------------------------+------------------------+-----------------------+--------------------+--------------+-----------------------------------
+ S6 beat proxies |                           |                      0 |                     0 |                  0 |            0 | PASS - no sweep is visibly behind
+(1 row)
+-- psql exit: 0
+

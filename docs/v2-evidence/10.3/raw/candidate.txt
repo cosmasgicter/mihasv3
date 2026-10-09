@@ -1,0 +1,96 @@
+........................................................................ [ 12%]
+..........................................EE............................ [ 24%]
+........................................................................ [ 36%]
+...............FFFFFFFFFFFFF..FF.......................F................ [ 48%]
+.......sssss....................sssssssssssss..............EEEEEEEEEEEEE [ 60%]
+EEEEEEEEEEEE........EEE.....F........................................... [ 72%]
+.....FF................................................................. [ 84%]
+...............................................................EEEEEEEEE [ 96%]
+EEEEEEEEEEE............                                                  [100%]
+=============================== warnings summary ===============================
+config/settings/base.py:29
+  /home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
+    warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+
+tests/integration/test_submission_readiness_6_5.py: 22 warnings
+tests/property/test_application_binding.py: 1 warning
+tests/unit/test_admin_program_intake_create.py: 12 warnings
+tests/unit/test_application_canonical_ids.py: 2 warnings
+tests/unit/test_application_query_contract_9_1.py: 47 warnings
+tests/unit/test_condition_evidence_amendment_history_10_2.py: 35 warnings
+tests/unit/test_enrollment_readiness_10_3.py: 3 warnings
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/property/test_application_endpoints.py::TestDocumentVerificationStatusUpdate::test_verification_status_matches_request
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAdminPermissionEnforcement::test_non_admin_rejected_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_verify_document
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_acceptance_letter
+FAILED tests/property/test_application_endpoints.py::TestAuditLogCreation::test_audit_log_on_finance_receipt
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetter202Response::test_approved_application_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceipt202Response::test_verified_payment_returns_202_with_correct_shape
+FAILED tests/property/test_application_endpoints.py::TestAcceptanceLetterRejectsNonApproved::test_non_approved_status_returns_400
+FAILED tests/property/test_application_endpoints.py::TestFinanceReceiptRejectsNoPayment::test_no_verified_payment_returns_400
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_acceptance_letter_idempotency
+FAILED tests/property/test_application_endpoints.py::TestIdempotentGenerationRequests::test_finance_receipt_idempotency
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_force_bypass_approval_creates_audit_trail
+FAILED tests/property/test_application_hardening.py::TestForceBypassCreatesAuditTrail::test_non_force_bypass_does_not_add_force_marker
+FAILED tests/property/test_application_properties.py::TestUnverifiedPaymentApprovalGuard::test_non_approval_status_skips_payment_check
+FAILED tests/unit/test_application_student_flow_views.py::TestApplicationInterviewListView::test_admin_list_without_mine_is_scope_narrowed
+FAILED tests/unit/test_applications_serializers.py::test_student_views_declare_serializer_class
+FAILED tests/unit/test_applications_serializers.py::test_admin_views_declare_serializer_class
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_path_creates_canonical_ledger_row
+ERROR tests/unit/test_application_review_force_approved.py::test_force_approved_rejects_short_reason
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_successful_verification
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_document_not_belonging_to_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_invalid_request_body_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_response_envelope_format
+ERROR tests/unit/test_application_endpoints.py::TestApplicationVerifyDocument::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_non_approved_application_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestAcceptanceLetter::test_audit_log_created_on_success
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthenticated_returns_401_or_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_successful_202_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_missing_application_returns_404
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_no_verified_payment_returns_400
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_unauthorized_student_returns_403
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_idempotency_returns_cached_response
+ERROR tests/unit/test_application_endpoints.py::TestFinanceReceipt::test_audit_log_created_on_success
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_via_sql_function
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_format_invariant_for_KATC
+ERROR tests/unit/test_application_number_generator.py::TestApplicationNumberGenerator::test_legacy_fallback_path_preserves_format
+ERROR tests/unit/test_application_review_payment_gate.py::TestApplicationReviewPaymentGate::test_approval_accepts_legacy_paid_payment_row
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_failed
+ERROR tests/unit/test_application_review_payment_gate.py::TestAdminReviewCannotReverseSuccessfulPayment::test_review_refuses_to_reverse_successful_payment_to_pending
+ERROR tests/unit/test_waitlist.py::TestAssignPosition::test_first_waitlisted_gets_position_1
+ERROR tests/unit/test_waitlist.py::TestAssignPosition::test_subsequent_gets_next_position
+ERROR tests/unit/test_waitlist.py::TestAssignPosition::test_position_scoped_to_program_and_intake
+ERROR tests/unit/test_waitlist.py::TestPromoteNext::test_promotes_lowest_position
+ERROR tests/unit/test_waitlist.py::TestPromoteNext::test_returns_none_when_no_waitlisted
+ERROR tests/unit/test_waitlist.py::TestPromoteNext::test_sends_notification_on_promotion
+ERROR tests/unit/test_waitlist.py::TestPromoteNext::test_reindexes_after_promotion
+ERROR tests/unit/test_waitlist.py::TestReindexPositions::test_reindex_assigns_sequential_positions
+ERROR tests/unit/test_waitlist.py::TestReindexPositions::test_reindex_no_change_when_already_sequential
+ERROR tests/unit/test_waitlist.py::TestLogOverride::test_creates_history_entry
+ERROR tests/unit/test_waitlist.py::TestGetPosition::test_returns_position_and_total
+ERROR tests/unit/test_waitlist.py::TestGetPosition::test_raises_when_not_waitlisted
+ERROR tests/unit/test_waitlist.py::TestGetPosition::test_falls_back_to_total_when_position_is_none
+ERROR tests/unit/test_waitlist.py::TestWaitlistPositionEndpoint::test_owner_can_view
+ERROR tests/unit/test_waitlist.py::TestWaitlistPositionEndpoint::test_admin_can_view
+ERROR tests/unit/test_waitlist.py::TestWaitlistPositionEndpoint::test_non_owner_non_admin_404_mask
+ERROR tests/unit/test_waitlist.py::TestWaitlistPositionEndpoint::test_not_found_404
+ERROR tests/unit/test_waitlist.py::TestWaitlistPositionEndpoint::test_not_waitlisted_400
+ERROR tests/unit/test_waitlist.py::TestPromotionTriggeredByWithdrawal::test_withdrawal_calls_promote_next
+ERROR tests/unit/test_waitlist.py::TestPromotionTriggeredByRejection::test_rejection_calls_promote_next
+19 failed, 512 passed, 18 skipped, 123 warnings, 50 errors in 23.75s

@@ -1,0 +1,22 @@
+{
+  "available": true,
+  "machine_count": 2,
+  "machines": [
+    {
+      "name": "INVALID_STATUS_TRANSITION",
+      "scope": "module",
+      "line": 52,
+      "literal_resolved": false,
+      "mapping": null,
+      "file": "backend/apps/applications/services.py"
+    },
+    {
+      "name": "_STATUS_TRANSITION_UPDATE_FIELDS",
+      "scope": "module",
+      "line": 56,
+      "literal_resolved": false,
+      "mapping": null,
+      "file": "backend/apps/applications/services.py"
+    }
+  ]
+}

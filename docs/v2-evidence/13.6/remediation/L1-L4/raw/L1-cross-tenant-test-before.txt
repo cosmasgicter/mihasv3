@@ -1,0 +1,52 @@
+]633;E;echo "=== L1 — cross-tenant capacity test on UNFIXED code (the reproduction) ===";b1f84e6e-41bf-4d60-a941-5fa8f694728f]633;C=== L1 — cross-tenant capacity test on UNFIXED code (the reproduction) ===
+=== DATE: 2026-08-13T04:38:55Z ===
+=== command ===
+source .localtest-host-env.sh   # localtest pg 127.0.0.1:5433, redis 127.0.0.1:6380
+TESTING=1 .venv/bin/python3 -m pytest tests/unit/test_cross_tenant_capacity_canonical_id.py -q -p no:cacheprovider -p no:randomly -rf
+=== output (stderr log noise trimmed to the assertion bodies) ===
+F.F.FFF                                                                  [100%]
+=================================== FAILURES ===================================
+_ TestStaffApplicationReadCapacity.test_read_publishes_own_tenant_capacity_never_the_other _
+tests/unit/test_cross_tenant_capacity_canonical_id.py:148: in test_read_publishes_own_tenant_capacity_never_the_other
+    assert data["intake_capacity"] == A_CAPACITY, (
+E   AssertionError: tenant A's application must report tenant A's own intake capacity
+E   assert 97 == 41
+----------------------------- Captured stderr call -----------------------------
+_ TestStaffApplicationReadCapacity.test_legacy_row_without_canonical_intake_publishes_no_capacity _
+tests/unit/test_cross_tenant_capacity_canonical_id.py:175: in test_legacy_row_without_canonical_intake_publishes_no_capacity
+    assert "intake_capacity" not in data, (
+E   AssertionError: an application with no canonical intake id must publish no capacity rather than falling back to a name lookup
+E   assert 'intake_capacity' not in {'additional_subjects': None, 'address_line_1': None, 'address_line_2': None, 'admin_feedback': None, ...}
+----------------------------- Captured stderr call -----------------------------
+_____ TestReviewQueueDeadlineUrgency.test_urgency_uses_own_intake_deadline _____
+tests/unit/test_cross_tenant_capacity_canonical_id.py:222: in test_urgency_uses_own_intake_deadline
+    assert urgency_a == 50, "A's own deadline is 60 days out — not urgent"
+E   AssertionError: A's own deadline is 60 days out — not urgent
+E   assert 80 == 50
+_ TestEnrollmentDeadlineCalendar.test_deadline_comes_from_own_tenant_calendar_event _
+tests/unit/test_cross_tenant_capacity_canonical_id.py:254: in test_deadline_comes_from_own_tenant_calendar_event
+    assert deadline_b.date() == event_date_b
+E   AssertionError: assert datetime.date(2026, 9, 12) == datetime.date(2027, 3, 1)
+E    +  where datetime.date(2026, 9, 12) = <built-in method date of datetime.datetime object at 0x73c2b10169a0>()
+E    +    where <built-in method date of datetime.datetime object at 0x73c2b10169a0> = datetime.datetime(2026, 9, 12, 23, 59, 59, tzinfo=zoneinfo.ZoneInfo(key='UTC')).date
+_________ TestLateFeeOffering.test_late_fee_resolves_own_offering_fee __________
+tests/unit/test_cross_tenant_capacity_canonical_id.py:286: in test_late_fee_resolves_own_offering_fee
+    from apps.applications.services import _resolve_offering_for_fees
+E   ImportError: cannot import name '_resolve_offering_for_fees' from 'apps.applications.services' (/home/cosmas/Downloads/mihasv3/backend/apps/applications/services.py)
+=============================== warnings summary ===============================
+tests/unit/test_cross_tenant_capacity_canonical_id.py::TestStaffApplicationReadCapacity::test_read_publishes_own_tenant_capacity_never_the_other
+tests/unit/test_cross_tenant_capacity_canonical_id.py::TestStaffApplicationReadCapacity::test_read_of_other_tenant_application_is_still_not_found
+tests/unit/test_cross_tenant_capacity_canonical_id.py::TestStaffApplicationReadCapacity::test_legacy_row_without_canonical_intake_publishes_no_capacity
+tests/unit/test_cross_tenant_capacity_canonical_id.py::TestReviewCommandCapacity::test_review_response_echoes_own_tenant_capacity
+  /home/cosmas/Downloads/mihasv3/backend/.venv/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/cosmas/Downloads/mihasv3/backend/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_cross_tenant_capacity_canonical_id.py::TestStaffApplicationReadCapacity::test_read_publishes_own_tenant_capacity_never_the_other
+FAILED tests/unit/test_cross_tenant_capacity_canonical_id.py::TestStaffApplicationReadCapacity::test_legacy_row_without_canonical_intake_publishes_no_capacity
+FAILED tests/unit/test_cross_tenant_capacity_canonical_id.py::TestReviewQueueDeadlineUrgency::test_urgency_uses_own_intake_deadline
+FAILED tests/unit/test_cross_tenant_capacity_canonical_id.py::TestEnrollmentDeadlineCalendar::test_deadline_comes_from_own_tenant_calendar_event
+FAILED tests/unit/test_cross_tenant_capacity_canonical_id.py::TestLateFeeOffering::test_late_fee_resolves_own_offering_fee
+5 failed, 2 passed, 4 warnings in 3.31s
+EXIT=0

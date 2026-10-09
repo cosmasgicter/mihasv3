@@ -4,7 +4,13 @@ import type { ApplicationInterview } from '@/types/database'
 export interface PaymentRecord {
   id: string
   status: string
-  amount: number | null
+  /**
+   * The server's amount. DRF serialises `DecimalField` as an already-quantised
+   * **string** (`COERCE_DECIMAL_TO_STRING` defaults to true), which is why this
+   * is widened from `number | null` — matching `services/payments.ts` — by task
+   * 8.4. Render it through `formatServerAmount`; never parse or re-round it.
+   */
+  amount: number | string | null
   currency: string | null
   payment_method?: string | null
   transaction_reference?: string | null

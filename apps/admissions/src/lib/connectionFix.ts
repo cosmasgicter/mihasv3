@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/services/client'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { syncableGrades } from '@/lib/canonicalSubjectId'
 import { toError } from '@/lib/toError'
 
 /** Simple connectivity check — replaces networkDiagnostics dependency */
@@ -148,23 +149,18 @@ export async function syncGradesWithRecovery(
   grades: Array<{ subject_id: string; grade: number }>
 ): Promise<unknown> {
   const connectionManager = ConnectionManager.getInstance()
-  const syncableGrades = grades.filter(
-    grade =>
-      typeof grade.subject_id === 'string' &&
-      grade.subject_id.length > 0 &&
-      !grade.subject_id.startsWith('fallback-') &&
-      Number.isInteger(grade.grade) &&
-      grade.grade >= 1 &&
-      grade.grade <= 9
-  ).map(grade => ({ subject_id: grade.subject_id, grade: grade.grade }))
+  // R11.5 / STU-11: one shared allowlist decides what is syncable, so the rows
+  // the wizard counts and the rows this recovery path sends cannot diverge. The
+  // previous `fallback-` denylist only caught the fabricated IDs it knew by name.
+  const rows = syncableGrades(grades)
 
-  if (syncableGrades.length === 0) {
+  if (rows.length === 0) {
     return { grades: [] }
   }
-  
+
   return connectionManager.makeRequest(`/applications/${applicationId}/grades/`, {
     method: 'POST',
-    body: JSON.stringify({ grades: syncableGrades }),
+    body: JSON.stringify({ grades: rows }),
     retryKey: `sync_grades_${applicationId}`
   })
 }
