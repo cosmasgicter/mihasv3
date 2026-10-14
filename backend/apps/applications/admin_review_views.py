@@ -202,7 +202,9 @@ class ApplicationListCreateView(APIView):
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = ApplicationListSerializer(page, many=True)
+            serializer = ApplicationListSerializer(
+                page, many=True, context={"staff_fields_visible": staff_can_read}
+            )
             data = serializer.data
 
             if is_priority_sort:
@@ -210,7 +212,9 @@ class ApplicationListCreateView(APIView):
 
             return paginator.get_paginated_response(data)
 
-        serializer = ApplicationListSerializer(queryset, many=True)
+        serializer = ApplicationListSerializer(
+            queryset, many=True, context={"staff_fields_visible": staff_can_read}
+        )
         data = serializer.data
 
         if is_priority_sort:

@@ -767,7 +767,7 @@
   - _Findings: DATA-03, DATA-07, DATA-08, DATA-09, DATA-10, DATA-11_
   - _Evidence: timed rehearsal log, manifests, rollback and reconciliation output_
 
-- [~] 13.5 Deploy canary and run production read-only/post-deploy proof
+- [ ] 13.5 Deploy canary and run production read-only/post-deploy proof
   - Deploy expanded compatible schema and V2 code to a canary tenant.
   - Monitor authority denials, schema drift, assignment mismatches, autosave,
     payment, jobs, tenant cache/domain, documents, and communications.
@@ -790,7 +790,7 @@
     `[~]` (deferred). Trigger to complete: the new host goes live; then §6
     Block A → deploy → Block B → `sign-off.md` with `*.beanola.com`.
 
-- [-] 13.6 Close the spec truthfully
+- [ ] 13.6 Close the spec truthfully
   - Re-run the spec validator and finding traceability report.
   - Require every P0/P1 finding closed, every required task evidenced, no required
     skips, no unregistered Legacy_Exception, and no hanging required job/outbox.

@@ -1,4 +1,4 @@
-const { adminColors } = require('./src/design-system/tokens.colors.cjs')
+const { adminColors } = require('./src/design-system/tokens.colors.json')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {

@@ -281,6 +281,36 @@ def _find_non_additive_violations(sql: str) -> list[str]:
     return violations
 
 
+# A migration author may pre-authorise a reviewed non-additive migration with a
+# magic comment, so the standard runner can apply that one file WITHOUT dropping
+# the additive-only guard for every other file in the same run (finding F3). The
+# annotation must name a reason, which is echoed to the operator and recorded in
+# migration_history.notes.
+#
+#     -- migration:allow-non-additive: drop 3 sunset legacy profile columns
+#
+# This is deliberately read from the RAW SQL (comments intact) because the lint
+# itself strips comments before scanning.
+_ALLOW_NON_ADDITIVE_ANNOTATION_RE = re.compile(
+    r"--\s*migration:allow-non-additive\s*:\s*(?P<reason>.+)",
+    re.IGNORECASE,
+)
+
+
+def _non_additive_waiver_reason(sql: str) -> str | None:
+    """Return the reviewed-waiver reason if the file opts in, else ``None``.
+
+    Reads the raw SQL (not the comment-stripped body) so the ``--`` annotation
+    survives. A blank reason does not count as a waiver — the author must say
+    why the exception is safe.
+    """
+    match = _ALLOW_NON_ADDITIVE_ANNOTATION_RE.search(sql or "")
+    if not match:
+        return None
+    reason = match.group("reason").strip()
+    return reason or None
+
+
 def _has_concurrently(sql: str) -> bool:
     """Return True when ``sql`` contains an executable
     ``CREATE INDEX CONCURRENTLY`` statement.
@@ -670,21 +700,36 @@ class Command(BaseCommand):
             if not allow_non_additive:
                 violations = _find_non_additive_violations(sql)
                 if violations:
-                    # Emit one rejection line per detected pattern so
-                    # the operator sees the full list rather than a
-                    # single "first one wins" message.
-                    for pattern in violations:
-                        self.stderr.write(
-                            self.style.ERROR(
-                                f"REJECTED_NON_ADDITIVE_OPERATION: "
-                                f"{pattern} in {path.name}"
+                    # A per-file reviewed waiver (magic comment) authorises THIS
+                    # file only; the guard stays active for every other file in
+                    # the run (finding F3). The blanket CLI flag is still honoured
+                    # above. Either way the reason is surfaced, not silent.
+                    waiver_reason = _non_additive_waiver_reason(sql)
+                    if waiver_reason:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"  non-additive waiver ({', '.join(violations)}) "
+                                f"for {path.name}: {waiver_reason}"
                             )
                         )
-                    raise CommandError(
-                        f"Migration {label} contains non-additive operations "
-                        f"({', '.join(violations)}). Pass --allow-non-additive "
-                        f"to bypass this lint after manual review."
-                    )
+                    else:
+                        # Emit one rejection line per detected pattern so
+                        # the operator sees the full list rather than a
+                        # single "first one wins" message.
+                        for pattern in violations:
+                            self.stderr.write(
+                                self.style.ERROR(
+                                    f"REJECTED_NON_ADDITIVE_OPERATION: "
+                                    f"{pattern} in {path.name}"
+                                )
+                            )
+                        raise CommandError(
+                            f"Migration {label} contains non-additive operations "
+                            f"({', '.join(violations)}). Add a reviewed "
+                            f"'-- migration:allow-non-additive: <reason>' annotation "
+                            f"to the file, or pass --allow-non-additive to bypass "
+                            f"the lint for the whole run."
+                        )
 
             if dry_run:
                 self.stdout.write(
