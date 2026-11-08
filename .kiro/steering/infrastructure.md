@@ -64,6 +64,11 @@ production container's database as the first step.
   `5432`) — reach it only via `docker compose exec postgres ...` on the box.
 - Production is **not Neon, not Koyeb, not Vercel** — the platform migrated to
   this self-hosted stack. The backend image runs `apply_sql_migrations` on boot.
+- Both jobs of `.github/workflows/deploy.yml` (`build-and-push` and `deploy`) run
+  in the GitHub `production` environment. With required reviewers configured on
+  that environment, each job waits for approval, so a green `main` no longer
+  rolls production on its own (student-journey-repair DEC-10, task 2.7). The
+  environment's protection rules are set in repository Settings, not in code.
 
 ### Logging in to the production EC2 box
 
