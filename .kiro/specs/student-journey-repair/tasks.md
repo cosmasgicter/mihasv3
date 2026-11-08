@@ -2,7 +2,7 @@
 
 Order is fixed: exploration tests, preservation tests and the pause on automatic production deploys, P0a fixes one R-group at a time with a checkpoint after each group, the CI journey gate, P0b, and last the production verification task. From task 2.6 until task 6.2 a merge to `main` is not a deploy (DEC-10). Clause numbers refer to `bugfix.md`; section names refer to `design.md`. Backend tests run against local Postgres only, never the Neon default branch or production.
 
-- [ ] 1. Write bug condition exploration tests (BEFORE implementing fixes)
+- [x] 1. Write bug condition exploration tests (BEFORE implementing fixes)
   - **Property 1–10: Bug Condition** - Student Journey Repair Bug Conditions
   - **CRITICAL**: These tests MUST FAIL on unfixed code — failure confirms the bugs exist
   - **DO NOT attempt to fix the tests or the code when they fail**
@@ -12,7 +12,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - **MARKERS**: Give every exploration test a strict expected-failure marker as it is written: `@pytest.mark.xfail(strict=True, reason="SJR R<n>: fixed in task <m>")` on each pytest test function, and `it.fails(…)` in Vitest (design "Marker scheme"). CI's blocking suites then stay green while the bug exists, and a test that passes before its fix turns red. Mark only an assertion that fails at HEAD: one that already holds belongs in task 2 (the known ones are 2.2 (h)–(j) and 2.3 (g)), and one fixed in another R-group goes in that group's file with that group's task number. Each test function holds only assertions that fail at HEAD and are fixed in one group. Record the counterexample from a run without the marker (`pytest --runxfail`; in Vitest, before adding `it.fails`)
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.20, 1.21, 1.22, 1.23, 1.24, 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31, 1.32, 1.33, 1.34, 1.35, 1.36, 1.37, 1.38, 1.39, 1.43_
 
-  - [ ] 1.1 R1 — storage and environment exploration tests
+  - [x] 1.1 R1 — storage and environment exploration tests
     - **Property 1: Bug Condition** - Storage and Environment Truth
     - `backend/tests/unit/test_startup_env_validation.py`: subprocess start of `config.settings.prod` and `config.settings.staging` with each `S3_*` emptied in turn, other required variables set to placeholders, `PYTEST_CURRENT_TEST` and `TESTING` removed; assert non-zero exit, the variable name in stderr, no placeholder value in stderr
     - `backend/tests/unit/test_documented_env_vars_are_read.py`: the scanner described in design R1-c (sources, readers, allowlist with reasons)
@@ -22,7 +22,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (the process starts with empty `S3_*`; no template; unread names; no MinIO; no fee)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 1.2 R2 — upload exploration tests
+  - [x] 1.2 R2 — upload exploration tests
     - **Property 2: Bug Condition** - Upload Transport and Server Acceptance
     - `backend/tests/integration/test_sjr_upload_bug_conditions.py`: upload with key K while storage fails (stage compensated), then retry with K and working storage → expect 201; a valid PDF declared `application/octet-stream` and a JPEG declared `image/jpg` → expect 201 with the detected MIME type recorded; a malformed `Idempotency-Key` → expect 400 with no echo
     - `apps/admissions/tests/unit/sjrUploadTransport.test.ts`: fake timers and a fake XHR; a transfer reporting progress for 90 s is not aborted; one failure gives at most two POSTs with the same `Idempotency-Key`; progress is determinate; the final message uses the first error's code; `requiredDocumentsService.upload` calls `apiClient.upload`
@@ -30,7 +30,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (409 forever; "Unsupported file type"; abort at 30 s; up to 8 POSTs; no key; no progress)
     - _Requirements: 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11_
 
-  - [ ] 1.3 R3 — rate-limit and OCR polling exploration tests
+  - [x] 1.3 R3 — rate-limit and OCR polling exploration tests
     - **Property 3: Bug Condition** - Client Identity, Budgets and Polling
     - `backend/tests/unit/test_sjr_rate_limit_bug_conditions.py`: with a Docker-network `REMOTE_ADDR` and two distinct `X-Forwarded-For` clients, exhausting client A in each of login, register, document upload, document read and catch-all leaves client B unlimited; with a public `REMOTE_ADDR`, `get_client_ip` returns that address, not the forwarded value (the middleware's main path already ignores it at HEAD, so that half is task 2.2 (j)); an authenticated user's document reads and writes have separate per-user budgets
     - `backend/tests/unit/test_sjr_ocr_pending_bug_condition.py`: extract sets `extraction_state='pending'` and `/info/` reports `ocr_pending`; a broker failure returns 503 `OCR_QUEUE_UNAVAILABLE` and restores the state; the task's no-file path records `ocr_failed`
@@ -39,7 +39,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (shared bucket; `get_client_ip` returns the forged value; no per-user budget; 30 polls with 3 retries each; empty-state copy)
     - _Requirements: 1.12, 1.13, 1.14, 1.15_
 
-  - [ ] 1.4 R4 — keys-not-links exploration tests
+  - [x] 1.4 R4 — keys-not-links exploration tests
     - **Property 4: Bug Condition** - Keys, Not Links
     - `backend/tests/integration/test_sjr_document_keys_bug_conditions.py`: after an upload, neither `file_url` nor the snapshot contains `X-Amz-`; the snapshot equals the document id; a 255-character name with spaces and non-ASCII characters returns 201 on the first attempt with the snapshot set; new object keys contain no filename (marker reason `"SJR R4: fixed in task 3.14"`, moved from task 1.5); a legacy-provider `https` URL is returned unchanged; condition evidence and a generated official document persist a key; the document list's `file_url` is freshly signed
     - Same file, with a tenant contract whose identity row is `document_type="nrc"`: an application whose `extra_kyc_url` holds the id of its current `nrc` document lists that document once and no `is_legacy_synthetic` row (the state R4-b and R4-d produce); after the newest of two current identity documents of different types is removed, the list has no synthetic row; a bare-UUID value never reaches signing
@@ -48,7 +48,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (presigned URLs persisted; 500 then a NULL snapshot after replay; legacy URL re-signed as a key; the filename in every key; a phantom "Identity Support Document" row)
     - _Requirements: 1.16, 1.17, 1.18, 1.20, 1.28_
 
-  - [ ] 1.5 R5 — viewing exploration tests
+  - [x] 1.5 R5 — viewing exploration tests
     - **Property 5: Bug Condition** - Students Open Their Own Documents
     - `backend/tests/unit/test_sjr_document_access_bug_conditions.py`: a non-owner student gets, from the document list and from the required-documents contract, a 404 whose body is byte-identical to that endpoint's answer for an application id that does not exist; an in-scope assigned reviewer gets 200 from signed-url; an official-document signing failure logs at ERROR and returns `error_code: DOCUMENT_LINK_UNAVAILABLE`; after a status change a student's slip GET returns `ready` with `historical: true`; presign parameters include `ResponseContentDisposition`. An unassigned reviewer already gets the masked 404 at HEAD, so that case is task 2.2 (i); filename-free keys moved to task 1.4, because R4 fixes them
     - `apps/admissions/tests/unit/sjrDocumentViewing.test.tsx`: `DocumentChecklist` lists a custom type and condition evidence from the documents endpoint with View anchors to the opener; the wizard panel shows View for an uploaded requirement; `studentStatus.nav.desktop` is true; the summary says "ready" only for an issued type; the official hook never opens a tab after an await; `DOCUMENT_LINK_UNAVAILABLE` maps to "can't be opened right now"
@@ -56,7 +56,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (403; reviewer 404; WARNING and no code; `not_requested`; no route; raw links; "ready" for issuable)
     - _Requirements: 1.19, 1.20, 1.21, 1.22, 1.23, 1.24, 1.25, 1.26, 1.27, 1.28_
 
-  - [ ] 1.6 R6 — submit, grades and deferral exploration tests
+  - [x] 1.6 R6 — submit, grades and deferral exploration tests
     - **Property 6: Bug Condition** - Submit, Grades and Deferral
     - `apps/admissions/tests/unit/sjrSubmitReadiness.test.ts`: with the assignment resolved and a tenant contract loaded, the Submit handler's readiness equals the button's and the handler calls the submit mutation
     - `apps/admissions/tests/unit/sjrGradesAutosave.test.ts`: with fake adapters, a grade edit schedules a save within the debounce and calls `syncGrades` with partial rows; "Saved" is never derived while grades are pending; the outbox holds pending grades
@@ -65,7 +65,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL ("Assigned school" reported missing; grades ignored by the machine; Next disabled; entry kept; 400 `MINIMUM_SUBJECTS_REQUIRED`)
     - _Requirements: 1.29, 1.30, 1.31, 1.32, 1.33_
 
-  - [ ] 1.7 R7 — decision exploration tests (written now, fixed in task 5)
+  - [x] 1.7 R7 — decision exploration tests (written now, fixed in task 5)
     - **Property 7: Bug Condition** - Decisions and Decision Documents
     - `backend/tests/unit/test_sjr_decision_bug_conditions.py`: `seed_school_admins` grants `review` by default and the seeded admin's review call is not 403; re-running it on a membership the old command created with `[]` adds `review` and emits one event with `permissions_before: []`; `conditionally_approved` without conditions returns 400 `NO_CONDITIONS_PROVIDED`; a letter GET for a tenant with no profile returns `setup_required` with `DOCUMENT_PROFILE_NOT_CONFIGURED`
     - `backend/tests/unit/test_approval_payment_gate_drift_sjr.py`: parses `APPROVAL_PAYMENT_STATUSES` from `apps/admissions/src/lib/paymentStatus.ts` and compares it with `RESOLVED_PAYMENT_STATUSES`
@@ -74,7 +74,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (403; zero conditions accepted; `not_requested`; constant missing; Approve disabled; "ready" copy)
     - _Requirements: 1.34, 1.35, 1.36, 1.37_
 
-  - [ ] 1.8 R8 — session and phone exploration tests
+  - [x] 1.8 R8 — session and phone exploration tests
     - **Property 8: Bug Condition** - Session Continuity and Registration Phone
     - `apps/admissions/tests/unit/sjrSessionRestore.test.tsx`: `StudentRoute` and `AdminRoute` (the guards every non-public route uses), each with an unauthenticated session, call `refreshAuthSession` once, show "Restoring your session" meanwhile, render children after success and redirect after failure. A public route already sends no refresh at HEAD, so that case is task 2.3 (g)
     - `apps/admissions/tests/unit/sjrSignUpPhoneErrors.test.tsx`: a server `details.phone` error marks the phone input `aria-invalid` with `aria-describedby`; the banner contains no `phone:` key and no submitted value
@@ -82,7 +82,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests FAIL (immediate redirect; raw key and value in the banner; 400 with the number echoed)
     - _Requirements: 1.38, 1.39_
 
-  - [ ] 1.9 R10 — badge exploration test
+  - [x] 1.9 R10 — badge exploration test
     - **Property 10: Bug Condition** - Diagnostics Badge
     - `apps/admissions/tests/unit/sjrBuildBadge.test.tsx`: with `import.meta.env.DEV` stubbed false, `BuildVersionBadge` renders nothing, `getBackendBuildVersion` is not called, and neither `AppLayout` nor `SharedFooter` renders the badge's padded wrapper
     - **EXPECTED OUTCOME**: Test FAILS (the badge and its wrappers render, and it probes `/health/live/`)
@@ -95,13 +95,13 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - **NOTE**: Tasks 2.6 and 2.7 are not tests. They pause automatic production deploys before any fix merges, which is how 3.16 holds while `deploy.yml` deploys every green `main` (DEC-10)
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15, 3.16, 3.17, 3.18, 3.19, 3.20, 3.21, 3.22, 3.23, 3.24_
 
-  - [ ] 2.1 Guard the test database host
+  - [x] 2.1 Guard the test database host
     - Add a session-scoped autouse fixture in `backend/tests/conftest.py` that aborts before the test database is created when the database host is not loopback, RFC 1918 or a dot-free Docker service name, or contains `neon.tech`, `amazonaws.com` or `beanola.com`
     - Add `backend/tests/unit/test_test_database_host_guard.py` covering each refused and accepted host shape with the fixture's pure helper
     - Confirm CI's database host is accepted by running the unit suite locally with CI's `DATABASE_URL` shape
     - _Requirements: 3.16_
 
-  - [ ] 2.2 Backend preservation properties
+  - [x] 2.2 Backend preservation properties
     - **Property 11: Preservation** - Authority, Payments and Auth
     - **Property 12: Preservation** - Documents and Drafts
     - `backend/tests/property/test_sjr_preservation_properties.py` (hypothesis):
@@ -119,7 +119,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Run on unfixed code: `cd backend && python3 -m pytest tests/property/test_sjr_preservation_properties.py tests/property/test_seed_admins_preservation_sjr.py -q`
     - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.6, 3.14, 3.17, 3.18, 3.20, 3.24_
 
-  - [ ] 2.3 Frontend preservation properties
+  - [x] 2.3 Frontend preservation properties
     - **Property 12: Preservation** - Documents and Drafts
     - **Property 13: Preservation** - Contracts and Conventions
     - `apps/admissions/tests/property/sjrPreservation.property.test.ts` (fast-check):
@@ -133,7 +133,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Run on unfixed code: `cd apps/admissions && bun run test -- tests/property/sjrPreservation.property.test.ts`
     - _Requirements: 3.3, 3.7, 3.8, 3.11, 3.19, 3.23_
 
-  - [ ] 2.4 Record the existing preservation baselines on unfixed code
+  - [x] 2.4 Record the existing preservation baselines on unfixed code
     - Run and record pass counts: the tenant-isolation, payment, auth, upload, draft, submission, AI and official-document suites listed in design "Preservation Checking"
     - Commands: `cd backend && python3 -m pytest tests/property/test_scope_before_lookup.py tests/property/test_cross_tenant_invisibility.py tests/property/test_production_scope_masking_properties.py tests/property/test_access_scope_properties.py tests/unit/test_scope_drift_guard.py tests/unit/test_unscoped_endpoint_guard.py tests/unit/test_payment_single_path_8_2.py tests/unit/test_prod_settings_required_flags.py tests/unit/test_payment_phase_8_2.py tests/unit/test_payment_idempotence_8_2.py tests/unit/test_no_admissions_generative_ai_guard.py tests/integration/test_document_evidence_compensation_7_3.py -q` and `cd apps/admissions && bun run test -- --exclude '**/sjr*'`
     - The frontend baseline excludes the `sjr` files, so it counts only the suites that existed before this spec; with their strict markers, the task 1 files would otherwise count as passes
