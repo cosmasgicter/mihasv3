@@ -1142,11 +1142,23 @@ Invariants clients may rely on:
 - **Authority** mirrors `ApplicationDocumentsView`: owner always; a
   non-super-admin admin only inside `AccessScopeService.filter_applications`,
   and an out-of-scope read is masked as a non-revealing **404**.
-- **Progress is honest**: the unified fetch-based `ApiClient` cannot observe
-  request-body progress, so an in-flight upload renders an ARIA-indeterminate
-  indicator (`aria-valuetext="Uploading"`, no `aria-valuenow`) rather than a bar
-  frozen at a fabricated percentage.
-
+- **Progress is honest** (SJR task 3.6): the one upload transport,
+  `requiredDocumentsService.upload` -> `apiClient.upload` ->
+  `services/uploadTransport.ts` (`XMLHttpRequest`), reports byte progress, so an
+  in-flight upload renders a determinate `role="progressbar"`
+  (`aria-valuenow` 0-100). The indeterminate state remains only before the first
+  progress event. There is no total timeout: a 30 s inactivity timer is re-armed by
+  every progress event, then a 60 s response timer. No fabricated percentage is ever shown.
+- **One upload transport** (SJR task 3.7): `requiredDocumentsService.upload` ->
+  `apiClient.upload` is the only upload path; `uploadPathSingleSource.test.ts`
+  freezes the dead stacks (deletion owned by Spec B S2). Phone photos over 2 MiB
+  (JPEG/PNG) are downscaled to a 2400 px long edge before sending
+  (`lib/imageDownscale.ts`, the original is sent when that is not smaller or on any
+  error); server validation, not the client, decides acceptance.
+- **Client-only upload codes** (frontend-only, no backend mirror): `UPLOAD_STALLED`,
+  `NETWORK_ERROR`, `ABORTED` (`UploadTransportError`); copy in
+  `lib/requiredDocuments.ts` (`CLIENT_UPLOAD_ERROR_COPY`). The user sees the first
+  failure's code after the one automatic retry (same `Idempotency-Key`, never for `RATE_LIMITED`).
 Drift guard: `apps/admissions/tests/unit/requiredDocumentsDrift.test.ts` against
 the pinned fixture `apps/admissions/tests/unit/__fixtures__/requiredDocumentsBackendMirror.ts`
 (regeneration command in `docs/v2-evidence/7.2/README.md`).
@@ -1354,6 +1366,7 @@ critical-path nature.
 CI-blocking tests that fail when canonical truth diverges:
 
 - `apps/admissions/tests/unit/applicationStatusDriftGuard.test.ts`
+- `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` (one upload transport, SJR task 3.7)
 - `apps/admissions/tests/unit/paymentStatusMappingDriftGuard.test.ts`
 - `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts`
 - `apps/admissions/tests/unit/rolesBackendMirror.test.ts`
