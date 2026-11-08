@@ -9,7 +9,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - **NOTE**: These tests encode the expected behavior — they will validate the fixes when they pass after implementation
   - **GOAL**: Surface counterexamples that demonstrate each defect at HEAD `4a6c4ef`
   - Record each counterexample in the subtask when it is first run (for example "retry with a released key returned 409 `DOCUMENT_UPLOAD_IN_PROGRESS`")
-  - **MARKERS**: Give every exploration test a strict expected-failure marker as it is written: `@pytest.mark.xfail(strict=True, reason="SJR R<n>: fixed in task <m>")` on each pytest test function, and `it.fails(…)` in Vitest (design "Marker scheme"). CI's blocking suites then stay green while the bug exists, and a test that passes before its fix turns red. Record the counterexample from a run without the marker (`pytest --runxfail`; in Vitest, before adding `it.fails`)
+  - **MARKERS**: Give every exploration test a strict expected-failure marker as it is written: `@pytest.mark.xfail(strict=True, reason="SJR R<n>: fixed in task <m>")` on each pytest test function, and `it.fails(…)` in Vitest (design "Marker scheme"). CI's blocking suites then stay green while the bug exists, and a test that passes before its fix turns red. Mark only an assertion that fails at HEAD: one that already holds belongs in task 2 (the known ones are 2.2 (h)–(j) and 2.3 (g)), and one fixed in another R-group goes in that group's file with that group's task number. Each test function holds only assertions that fail at HEAD and are fixed in one group. Record the counterexample from a run without the marker (`pytest --runxfail`; in Vitest, before adding `it.fails`)
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.20, 1.21, 1.22, 1.23, 1.24, 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31, 1.32, 1.33, 1.34, 1.35, 1.36, 1.37, 1.38, 1.39, 1.43_
 
   - [ ] 1.1 R1 — storage and environment exploration tests
@@ -32,24 +32,25 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 
   - [ ] 1.3 R3 — rate-limit and OCR polling exploration tests
     - **Property 3: Bug Condition** - Client Identity, Budgets and Polling
-    - `backend/tests/unit/test_sjr_rate_limit_bug_conditions.py`: with a Docker-network `REMOTE_ADDR` and two distinct `X-Forwarded-For` clients, exhausting client A in each of login, register, document upload, document read and catch-all leaves client B unlimited; with a public `REMOTE_ADDR`, a forged forwarded value is not used; an authenticated user's document reads and writes have separate per-user budgets
+    - `backend/tests/unit/test_sjr_rate_limit_bug_conditions.py`: with a Docker-network `REMOTE_ADDR` and two distinct `X-Forwarded-For` clients, exhausting client A in each of login, register, document upload, document read and catch-all leaves client B unlimited; with a public `REMOTE_ADDR`, `get_client_ip` returns that address, not the forwarded value (the middleware's main path already ignores it at HEAD, so that half is task 2.2 (j)); an authenticated user's document reads and writes have separate per-user budgets
     - `backend/tests/unit/test_sjr_ocr_pending_bug_condition.py`: extract sets `extraction_state='pending'` and `/info/` reports `ocr_pending`; a broker failure returns 503 `OCR_QUEUE_UNAVAILABLE` and restores the state; the task's no-file path records `ocr_failed`
     - `apps/admissions/tests/unit/sjrOcrPolling.test.ts`: no polling after a rejected extract; stop after one poll when `ocr_state` is null; at most 10 polls on the backoff schedule; `getInfo` called with `retries: 0`; stop on 429
     - `apps/admissions/tests/unit/sjrRateLimitCopy.test.tsx`: `ProgramStep` with a 429 on the programmes query or on the intakes query shows the retry copy, not its empty helper; the dashboard's error string for a rate-limited applications request is the retry copy; client errors expose `retryAfterSeconds`
-    - **EXPECTED OUTCOME**: Tests FAIL (shared bucket; forged header honoured; no per-user budget; 30 polls with 3 retries each; empty-state copy)
+    - **EXPECTED OUTCOME**: Tests FAIL (shared bucket; `get_client_ip` returns the forged value; no per-user budget; 30 polls with 3 retries each; empty-state copy)
     - _Requirements: 1.12, 1.13, 1.14, 1.15_
 
   - [ ] 1.4 R4 — keys-not-links exploration tests
     - **Property 4: Bug Condition** - Keys, Not Links
-    - `backend/tests/integration/test_sjr_document_keys_bug_conditions.py`: after an upload, neither `file_url` nor the snapshot contains `X-Amz-`; the snapshot equals the document id; a 255-character name with spaces and non-ASCII characters returns 201 on the first attempt with the snapshot set; a row with only a presigned `file_url` and no `storage_key` opens through the signed-URL endpoint; a legacy-provider `https` URL is returned unchanged; condition evidence and a generated official document persist a key; the document list's `file_url` is freshly signed
+    - `backend/tests/integration/test_sjr_document_keys_bug_conditions.py`: after an upload, neither `file_url` nor the snapshot contains `X-Amz-`; the snapshot equals the document id; a 255-character name with spaces and non-ASCII characters returns 201 on the first attempt with the snapshot set; new object keys contain no filename (marker reason `"SJR R4: fixed in task 3.14"`, moved from task 1.5); a legacy-provider `https` URL is returned unchanged; condition evidence and a generated official document persist a key; the document list's `file_url` is freshly signed
     - Same file, with a tenant contract whose identity row is `document_type="nrc"`: an application whose `extra_kyc_url` holds the id of its current `nrc` document lists that document once and no `is_legacy_synthetic` row (the state R4-b and R4-d produce); after the newest of two current identity documents of different types is removed, the list has no synthetic row; a bare-UUID value never reaches signing
     - Run with a short `AWS_QUERYSTRING_EXPIRE` override where expiry matters; storage is mocked at the boto3 boundary
-    - **EXPECTED OUTCOME**: Tests FAIL (presigned URLs persisted; 500 then a NULL snapshot after replay; legacy URL re-signed as a key; a phantom "Identity Support Document" row)
-    - _Requirements: 1.16, 1.17, 1.18, 1.20_
+    - A row with only a presigned `file_url` and no `storage_key` already opens through the signed-URL endpoint at HEAD, so it is task 2.2 (h), not an exploration test
+    - **EXPECTED OUTCOME**: Tests FAIL (presigned URLs persisted; 500 then a NULL snapshot after replay; legacy URL re-signed as a key; the filename in every key; a phantom "Identity Support Document" row)
+    - _Requirements: 1.16, 1.17, 1.18, 1.20, 1.28_
 
   - [ ] 1.5 R5 — viewing exploration tests
     - **Property 5: Bug Condition** - Students Open Their Own Documents
-    - `backend/tests/unit/test_sjr_document_access_bug_conditions.py`: a non-owner student gets, from the document list and from the required-documents contract, a 404 whose body is byte-identical to that endpoint's answer for an application id that does not exist; an in-scope assigned reviewer gets 200 from signed-url and an unassigned one gets the masked 404; an official-document signing failure logs at ERROR and returns `error_code: DOCUMENT_LINK_UNAVAILABLE`; after a status change a student's slip GET returns `ready` with `historical: true`; presign parameters include `ResponseContentDisposition`; new object keys contain no filename
+    - `backend/tests/unit/test_sjr_document_access_bug_conditions.py`: a non-owner student gets, from the document list and from the required-documents contract, a 404 whose body is byte-identical to that endpoint's answer for an application id that does not exist; an in-scope assigned reviewer gets 200 from signed-url; an official-document signing failure logs at ERROR and returns `error_code: DOCUMENT_LINK_UNAVAILABLE`; after a status change a student's slip GET returns `ready` with `historical: true`; presign parameters include `ResponseContentDisposition`. An unassigned reviewer already gets the masked 404 at HEAD, so that case is task 2.2 (i); filename-free keys moved to task 1.4, because R4 fixes them
     - `apps/admissions/tests/unit/sjrDocumentViewing.test.tsx`: `DocumentChecklist` lists a custom type and condition evidence from the documents endpoint with View anchors to the opener; the wizard panel shows View for an uploaded requirement; `studentStatus.nav.desktop` is true; the summary says "ready" only for an issued type; the official hook never opens a tab after an await; `DOCUMENT_LINK_UNAVAILABLE` maps to "can't be opened right now"
     - `apps/admissions/tests/unit/sjrDocumentOpen.test.tsx`: the opener validates its query grammar, signs at mount, replaces the location, and renders each error state
     - **EXPECTED OUTCOME**: Tests FAIL (403; reviewer 404; WARNING and no code; `not_requested`; no route; raw links; "ready" for issuable)
@@ -75,7 +76,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 
   - [ ] 1.8 R8 — session and phone exploration tests
     - **Property 8: Bug Condition** - Session Continuity and Registration Phone
-    - `apps/admissions/tests/unit/sjrSessionRestore.test.tsx`: `StudentRoute` and `AdminRoute` (the guards every non-public route uses), each with an unauthenticated session, call `refreshAuthSession` once, show "Restoring your session" meanwhile, render children after success and redirect after failure; a public route never calls it
+    - `apps/admissions/tests/unit/sjrSessionRestore.test.tsx`: `StudentRoute` and `AdminRoute` (the guards every non-public route uses), each with an unauthenticated session, call `refreshAuthSession` once, show "Restoring your session" meanwhile, render children after success and redirect after failure. A public route already sends no refresh at HEAD, so that case is task 2.3 (g)
     - `apps/admissions/tests/unit/sjrSignUpPhoneErrors.test.tsx`: a server `details.phone` error marks the phone input `aria-invalid` with `aria-describedby`; the banner contains no `phone:` key and no submitted value
     - `backend/tests/unit/test_sjr_phone_bug_conditions.py`: `09…` and `07…` register and are stored as `+260…`; no message for an invalid phone or NRC contains the input
     - **EXPECTED OUTCOME**: Tests FAIL (immediate redirect; raw key and value in the banner; 400 with the number echoed)
@@ -110,9 +111,13 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
       - (d) `approved` and `rejected` review transitions behave as before for every value of `RESOLVED_PAYMENT_STATUSES`;
       - (e) `+260XXXXXXXXX` inputs normalise to themselves;
       - (f) with a tenant contract whose identity row is `document_type="nrc"`, an upload followed by `GET /applications/{id}/documents/` lists exactly one identity row and no synthetic row, and a legacy application with a snapshot and no document row keeps its one synthetic row
+    - Same file, design (h)–(j): assertions that hold at HEAD, moved out of tasks 1.3–1.5 under the marker rule:
+      - (h) a row with only a presigned `file_url` and no `storage_key` opens through `signed-url/`;
+      - (i) a reviewer in scope who is not assigned to the application gets the byte-identical masked 404 from `signed-url/`, `download/` and `info/`;
+      - (j) with a public `REMOTE_ADDR` and any forged `X-Forwarded-For` list, `RateLimitMiddleware` counts the request in `REMOTE_ADDR`'s bucket
     - `backend/tests/property/test_seed_admins_preservation_sjr.py` (hypothesis, `max_examples=10`, no deadline; design "New preservation tests" (g)): after the documented production command shape (`seed_school_admins --admin <CODE>=<email> --password …`, fictional code and email) creates a membership, a super-admin sets its permissions to a generated set G through `PATCH /api/v1/admin/memberships/{id}/` and adds one access grant; two more runs of the same command each leave the permissions a superset of G and the access grant unchanged, and the second writes no `tenant.membership.permissions_seeded` row
     - Run on unfixed code: `cd backend && python3 -m pytest tests/property/test_sjr_preservation_properties.py tests/property/test_seed_admins_preservation_sjr.py -q`
-    - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.6, 3.17, 3.18, 3.20, 3.24_
+    - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.6, 3.14, 3.17, 3.18, 3.20, 3.24_
 
   - [ ] 2.3 Frontend preservation properties
     - **Property 12: Preservation** - Documents and Drafts
@@ -123,7 +128,8 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
       - (c) answer-only edit sequences produce the same save count and statuses in the draft machine;
       - (d) an upload that succeeds first time issues exactly one request;
       - (e) the MSISDN normaliser is idempotent;
-      - (f) after `signOut`, or a cross-tab logout message, no route guard sends a refresh request
+      - (f) after `signOut`, or a cross-tab logout message, no route guard sends a refresh request;
+      - (g) rendering any public route with an unauthenticated session never calls `refreshAuthSession` (holds at HEAD; moved out of task 1.8 under the marker rule)
     - Run on unfixed code: `cd apps/admissions && bun run test -- tests/property/sjrPreservation.property.test.ts`
     - _Requirements: 3.3, 3.7, 3.8, 3.11, 3.19, 3.23_
 
@@ -131,6 +137,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Run and record pass counts: the tenant-isolation, payment, auth, upload, draft, submission, AI and official-document suites listed in design "Preservation Checking"
     - Commands: `cd backend && python3 -m pytest tests/property/test_scope_before_lookup.py tests/property/test_cross_tenant_invisibility.py tests/property/test_production_scope_masking_properties.py tests/property/test_access_scope_properties.py tests/unit/test_scope_drift_guard.py tests/unit/test_unscoped_endpoint_guard.py tests/unit/test_payment_single_path_8_2.py tests/unit/test_prod_settings_required_flags.py tests/unit/test_payment_phase_8_2.py tests/unit/test_payment_idempotence_8_2.py tests/unit/test_no_admissions_generative_ai_guard.py tests/integration/test_document_evidence_compensation_7_3.py -q` and `cd apps/admissions && bun run test -- --exclude '**/sjr*'`
     - The frontend baseline excludes the `sjr` files, so it counts only the suites that existed before this spec; with their strict markers, the task 1 files would otherwise count as passes
+    - Some existing tests pin behaviour this spec changes on purpose. Each is named in its fix task with its new assertion (3.6, 3.9, 3.13, 3.14, 3.17, 3.19, 3.20, 3.27, 5.3, 5.4), and the checkpoints count it with that new assertion. Among the design's baselines that is `test_document_evidence_compensation_7_3.py` `:180`, `:341`, `:431` and `:490` (task 3.14) and `test_official_document_durability_10_4.py` `:632-643` and `:645-658` (task 3.19). A fix may change an existing test only when the old assertion encodes the defect it fixes, and the test records why; any other test that turns red is a regression (design "Preservation Checking")
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.12, 3.13, 3.14, 3.15, 3.21_
 
   - [ ] 2.5 Record the broad harness matrix baseline
@@ -145,6 +152,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Fallback: in the Actions tab, disable the Deploy workflow. It needs no code change; skip task 2.7
     - Until task 6.2, approve no Deploy run, and reject or leave any pending one. An urgent production fix during the pause is the user's call: an approved run deploys everything merged on `main`, including this spec's unreleased changes, so task 6.1's checks and backup come first
     - Confirm the pause: after the next green CI run on `main`, the Deploy run waits for review (preferred path) or no Deploy run starts (fallback). Record which path is in force, because task 6.2 undoes it
+    - The preferred path holds only while the repository is public: on the GitHub Free, Pro and Team plans, required reviewers on an environment apply only to public repositories ([GitHub: Managing environments for deployment](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment)). If the repository's visibility or plan changes before task 6.2 (D11), repeat the confirmation step; if a Deploy run no longer waits for review, switch to the fallback at once. Repeat this check before the task 3.2 and task 3.15 merges
     - Ask the user to confirm that the pause is in place before task 3.2 starts
     - _Requirements: 3.16_
 
@@ -174,7 +182,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Requirements: 2.1, 3.16_
 
   - [ ] 3.2 R1 — startup validation after the final settings load (design R1-b)
-    - Precondition: task 2.6 is done and the user has confirmed the pause, so merging this change does not deploy it; it reaches production only through task 6.2's approved deploy
+    - Precondition: task 2.6 is done and the user has confirmed the pause, so merging this change does not deploy it; it reaches production only through task 6.2's approved deploy. Before merging, repeat task 2.6's visibility-and-plan check
     - `base.py`: remove the import-time `validate_required_env_vars()` call; add `STARTUP_ENV_VALIDATION = False` and `IS_TEST_PROCESS`
     - `prod.py` and `staging.py`: `STARTUP_ENV_VALIDATION = True`; `local_real.py`: `False`
     - `backend/apps/common/env_validator.py`: `required` parameter
@@ -224,6 +232,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `RequiredDocumentsPanel.tsx` / `FileUpload`: determinate progressbar and polite live-region announcements
     - Client-only codes and copy in `apps/admissions/src/lib/requiredDocuments.ts`
     - Docs: CTM "Progress is honest" rewritten (CTM 1140-1143); client-only codes in CTM 980-997; `tech.md` "Conventions For New Code"
+    - Existing tests that pin the fetch transport (1.5–1.8), updated in this change: `apps/admissions/tests/integration/requiredDocumentsUploadFlow.test.tsx` (mock `:28-32`, uploads `:159-266`) and `requiredDocumentsVersionCommands.test.tsx` (mock `:27-31`, upload `:154`) mock `apiClient` with `request` only and match uploads on `request('/documents/upload/')`; their mocks gain `upload`, and the upload assertions move to it
     - _Bug_Condition: isBugCondition_R2 where the transfer outlasts 30 s or any attempt fails_
     - _Expected_Behavior: no abort while bytes flow; at most two POSTs with one key; determinate progress; first-error message_
     - _Preservation: CSRF recovery through `?refresh_csrf=1`; refresh-and-replay only for keyed requests; one request when nothing fails_
@@ -255,6 +264,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `throttle_classes` on the seven document views listed in design R3-b
     - Docs: CTM "Client IP and proxy trust" row; `infrastructure.md` proxy trust; `deploy/RUNBOOK.md` env list; `harness.py:68-90` comment; `tech.md` throttle scopes
     - Update any existing `get_client_ip` test that encodes the spoofable rule (public peer plus forwarded header), recording the reason in the test
+    - `backend/tests/property/test_middleware_properties.py:271-297` pins the exact `SCOPE_LIMITS` list. Its `("/api/v1/documents/", "20/10m")` entry (`:279`) becomes the upload scope followed by the document scope above, because the old entry encoded the shared budget (1.13)
     - _Bug_Condition: isBugCondition_R3 where distinct real clients arrive through a trusted proxy, or authenticated document traffic_
     - _Expected_Behavior: separate buckets per real client in every scope; per-user read and write budgets_
     - _Preservation: one client meets the same ceilings; webhook stays exempt; payment and extract throttles unchanged for authenticated users_
@@ -293,7 +303,8 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `backend/apps/common/storage.py`: `resolve_document_object_key`, `resolve_document_open_url`, `_key_from_persisted_value` (a bare UUID resolves to no key)
     - Switch the signed-url, download, official-document, legacy-synthesis and OCR-task callers to the helpers
     - `DocumentSerializer.file_url` signed on read; regenerate the schema (`cd backend && python3 manage.py spectacular --file /tmp/schema.yaml`) and the types (`bun run generate:api-types`)
-    - Correct the comment at `official_document_views.py:320` and the `_RAW_URL` fixture in `test_official_document_signed_download.py`
+    - Correct the comment at `official_document_views.py:320` and the `_RAW_URL` fixture in `test_official_document_signed_download.py`; that file's `_Doc` stand-in (`:30-37`) gains `storage_key` and `document_name`, and its signer tests (`:118-139`) follow the new helpers
+    - Existing tests that pin persisted URLs (1.16), updated in this change: `backend/tests/unit/test_application_tasks.py:206-221` and its receipt twin `:330-346` (`test_file_url_set_from_storage`) assert that `commit_version` receives the stored key as both `file_url` and `storage_key` and that `storage.url()` is not called; `backend/tests/unit/test_synthesized_legacy_documents.py:71-82` expects `file_url: null` when signing fails, because a list never publishes a raw key (2.17)
     - New guard `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (the tenant-asset sites `backend/apps/catalog/admin_asset_views.py:93` and `:294` listed as known Spec B exceptions)
     - Docs: CTM "Immutable document evidence" (CTM 1149-1196) and the legacy-fallback allowlist entry; `docs/schema-ownership.md`
     - _Bug_Condition: isBugCondition_R4 where a presigned URL is persisted or a legacy value is opened_
@@ -307,13 +318,17 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `ApplicationDocumentsView.get` (`backend/apps/applications/student_document_views.py:130-166`): id-aware legacy synthesis, comparing the snapshot with listed ids and stored `file_url` / `storage_key` values and skipping a pair when any covering type is listed (design R4-b); ship it in the same deploy as the snapshot writer, or before it
     - `build_object_key(..., mime_type=...)` without the filename; both callers pass the effective type
     - Register the snapshot columns in `backend/apps/common/legacy_columns.py` as legacy presence snapshots
+    - Existing tests that pin the old snapshot and key shape (1.16, 1.28), updated in this change:
+      - `backend/tests/integration/test_document_evidence_compensation_7_3.py:180` asserts that the snapshot equals the current document's id (`second["id"]`), and `:431` and `:490` that it still equals the first version's id after the failed replacement;
+      - `:341` in that file and `backend/tests/unit/test_document_evidence_versions_7_3.py:281-282`, `:337`, `:616`, `:655` and `:684` pass `mime_type=` to `build_object_key` instead of a filename, which would now be a `TypeError`;
+      - `backend/tests/property/test_drift_bug3_preservation.py:326-332` asserts that the snapshot equals the upload response's `id`. It is red from task 3.13 on, which signs `file_url` on read; both tasks land in the R4 merge
     - _Bug_Condition: isBugCondition_R4 where the encoded name exceeds about 45 characters, or a write fails after the commit_
     - _Expected_Behavior: 201 for names up to 255 characters; snapshot and version in one transaction; no 5xx for a committed document_
     - _Preservation: one current version per requirement; versioning and replay identity (3.6); presence semantics for every frontend snapshot reader; a truly legacy application keeps its synthetic row (3.14)_
     - _Requirements: 2.18, 2.19, 2.22, 2.30, 3.6, 3.14_
 
   - [ ] 3.15 R4 — snapshot repair script, proven on a Neon branch (design R4-d)
-    - Precondition: the deploy pause from task 2.6 holds, so the boot sweep first applies this script in production during task 6.2, after task 6.1's backup
+    - Precondition: the deploy pause from task 2.6 holds, so the boot sweep first applies this script in production during task 6.2, after task 6.1's backup. Before merging, repeat task 2.6's visibility-and-plan check
     - New `backend/scripts/2026_11_02_01_repair_document_snapshot_presence.sql` (the `DISTINCT ON` version in design R4-d)
     - Prove on a Neon branch through the Neon MCP tools, never on the default branch first: list user triggers on `applications` (`SELECT tgname FROM pg_trigger WHERE tgrelid = 'applications'::regclass AND NOT tgisinternal`; if one writes `updated_at`, stop and ask the user); record `id, updated_at` for the rows the script will fill; count NULL snapshots with a current document; apply; re-count (expect 0); confirm every recorded `updated_at` is unchanged; apply again (expect 0 rows changed); record the counts and the branch id
     - Operator-gated, after the branch proof: ask the user to confirm, then apply the proven script to the Neon default branch (the authoring database) through the Neon MCP tools and record the counts (`infrastructure.md`: a Neon branch first, then the default branch)
@@ -331,13 +346,17 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Tests PASS
     - Re-run tasks 2.2–2.4: PASS; regenerated schema and types are clean in the contract-sync gate (`python3 scripts/launch-verification/check-contract-sync.py --python python3`)
     - Ask the user if questions arise
-    - _Requirements: 2.17, 2.18, 2.19, 2.20_
+    - _Requirements: 2.17, 2.18, 2.19, 2.20, 2.30_
 
   - [ ] 3.17 R5 — opener route and explicit controls (design R5-a)
     - New route `studentDocumentOpen` in `routeRegistry.ts` and page `apps/admissions/src/pages/student/DocumentOpen.tsx` with the query grammar and states
     - Every student View and Open control becomes an anchor to the opener
     - `useOfficialDocument.ts`: `{ state, prepare(), openHref }`; no programmatic tab after an await. Its callers are the student `DocumentButtons` and `DownloadReceiptButton`; the constants and helpers `useAdminOfficialDocuments` imports from it keep their names and behaviour, and no admin control gets an `openHref` (OS-15)
     - Docs: CTM canonical routes (CTM 770); CTM read-existing surface (CTM 623-676); `structure.md` high-risk paths
+    - Existing tests that drive the old controls (1.23: a tab opened in code after awaits), updated in this change:
+      - `apps/admissions/tests/unit/documentUiStates.test.tsx`: the tests at `:221`, `:281`, `:315` and `:341` click the student slip, receipt and letter controls and expect `downloadOfficialDocument`. They now expect the Prepare request, then an Open anchor to `/student/documents/open?app=<id>&type=<type>`, and no `downloadOfficialDocument` call;
+      - the `useOfficialDocument` mock in `paymentOwnershipSplit.test.tsx:100-115` returns the hook's new shape;
+      - harness: `official-document-durability.spec.ts:529-531`, `:625` and `:659`, `student-document-density.spec.ts:672` and `student-lifecycle-golden.spec.ts:593` press a "Download Slip" button. They now press the slip's Prepare control where they ask for a document (`student-document-density.spec.ts:672`, `student-lifecycle-golden.spec.ts:593`) and its Open link where they open one or check that it is offered (`official-document-durability.spec.ts`), and keep their assertions on the popup's storage host
     - _Bug_Condition: isBugCondition_R5 where the click comes after the URL lifetime, or an official document becomes ready after awaits_
     - _Expected_Behavior: the current version opens at click time; explicit Open control in the student UI_
     - _Preservation: admin uploaded-document viewing and admin official-document downloads unchanged (3.14, 3.15)_
@@ -359,6 +378,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `_generation_status`: the student-only issued-copy step
     - `generate_signed_url` with `ResponseContentDisposition` from `content_disposition_for`
     - Register the three surfaces in `scripts/authority_matrix_registry.py`
+    - Existing tests that pin the old read precedence and the silent signing failure (1.22, 1.24), updated in this change: `backend/tests/unit/test_official_document_durability_10_4.py:632-643` (a live application with a stale issued slip reads `not_requested`) and `:645-658` (a failure is reported before the issued copy) read as the student. The student now gets the issued slip as `ready` with `historical: true`, and each test adds the staff read, which keeps today's answer (D-A13). `backend/tests/unit/test_official_document_signed_download.py:130-134` expects the signing-failure sentinel, not `None`
     - Docs: CTM "Stable document command codes" (CTM 1166), "Student failure copy vs staff failure copy" (CTM 660), "Read-existing eligibility" (CTM 654), required-documents authority line (CTM 1136-1139)
     - _Bug_Condition: isBugCondition_R5 where a reviewer is in scope and assigned, a non-owner student asks, signing fails, or the status changed after issue_
     - _Expected_Behavior: reviewer served; masked 404 for non-owners; ERROR log and honest code; issued slip readable_
@@ -367,6 +387,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 
   - [ ] 3.20 R5 — truthful summary copy (design R5-f)
     - `officialDocumentPresentation.ts` and `DocumentButtons.tsx`: "ready" only for issued types; "Prepare" for issuable ones; per-status copy
+    - Existing tests that pin the old copy (1.25), updated in this change: `apps/admissions/tests/unit/documentActionDensity.test.tsx:176` and `:387` expect the R5-f summary for their mocked status instead of "ready to download", and `:205` and `:364` the slip's Prepare or Open label instead of "Download Slip"; `student-document-density.spec.ts:318` expects the R5-f summary
     - _Bug_Condition: isBugCondition_R5 where a document is issuable but not issued_
     - _Expected_Behavior: no "ready" claim before issue_
     - _Preservation: terminal-application reads stay offered (3.15)_
@@ -384,7 +405,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - [ ] 3.22 R6 — one readiness computation (design R6-a)
     - `wizardReadiness.ts`: every `BuildWizardReadinessInput` field required
     - `useWizardController.ts`: `computeReadiness`; `useWizardSubmission.ts` calls it
-    - `useOverallProgress.ts:41`: pass `assignmentResolved: false` and `requiredDocumentItems: undefined` explicitly (today's defaults), with a comment naming Spec B V3 task 26.1 as the owner of the percentage, so the displayed percentage does not change
+    - `useOverallProgress.ts:41`: pass `assignmentResolved: false` and `requiredDocumentItems: undefined` explicitly (today's defaults), with a comment naming Spec B V3 task 26.1 as the owner of the percentage, so the displayed percentage does not change. Its five optional options at `:44-48` are `T | undefined` and would fail `tsc` under `"strict": true`, so it also passes today's defaults for them: `uploadedFiles ?? {}`, `hasResultSlipFile ?? false`, `hasIdentityFile ?? false`, `paymentStatus ?? null`, `confirmSubmission ?? false`
     - New test helper `apps/admissions/tests/unit/__fixtures__/readinessInput.ts` (`readinessInput(overrides)` fills every field); move the 9 existing test calls of `buildWizardReadiness` to it
     - Add `apps/admissions/tests/property/sjrSubmitReadiness.property.test.ts` (button readiness equals handler readiness for generated inputs)
     - Docs: CTM "Submission Gates" (CTM 1009-1046)
@@ -442,6 +463,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Move the normaliser to `backend/apps/common/validators.py` as `normalize_zambian_msisdn`; keep the `payment_helpers` alias; new `validate_zambian_phone` and `validate_nrc` messages
     - `SignUpPage.tsx` uses `zambianMsisdnSchema`; `SignUpResult.fieldErrors`; `useSessionListener.signUp` returns it; generic banner when field errors exist
     - New `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json`, `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` and `backend/tests/unit/test_zambian_msisdn_vectors.py`
+    - `backend/tests/property/test_validation_properties.py` encodes the `+260`-only rule (1.39) in its invalid-phone strategies (`:36-49`), updated in this change: `260\d{9}` (`:48`) moves to the valid set, and the invalid set drops every shape the shared normaliser accepts. That includes `\+260\d{6}` from the too-few-digits strategy (`:44`), which the bare nine-digit rule (`backend/apps/documents/payment_helpers.py:135-137`) reads as a subscriber number
     - Docs: CTM "Zambian MSISDN normalisation" mirrored concept with the shared-vector drift guard
     - _Bug_Condition: isBugCondition_R8 where the phone is in local format, or invalid_
     - _Expected_Behavior: normalised to `+260…`; inline error with `aria-invalid`; no raw keys or values_
@@ -535,7 +557,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **Property 9: Expected Behavior** - Journey Gate
     - Run `bash harness/bin/harness journey-gate` locally, then three consecutive green runs of the workflow in CI with no retries; keep each run's `rate-limit-headroom.json`, and treat any 429 as a budget finding inside one spec's window (EC-13), not as harness noise
     - Open one pull request that touches only `docs/` and confirm both required checks report success without running the journey
-    - Re-run the broad matrix (`bash harness/bin/harness smoke`) and compare with task 2.5's baseline: no new failure
+    - Re-run the broad matrix (`bash harness/bin/harness smoke`) and compare with task 2.5's baseline, counting the three specs that tasks 3.17 and 3.20 updated with their updated steps: no new failure
     - Ask the user if questions arise
     - _Requirements: 2.43, 2.44, 2.45, 2.46, 2.47, 3.22_
 
@@ -547,7 +569,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 
   - [ ] 5.1 Seeded admins can decide, additively (design R7-a; DEC-11)
     - New `backend/apps/catalog/management/commands/_seed_memberships.py`: the pure `seed_membership_permissions(existing, requested, mode)` (`add` is the union, `replace` is the requested list, `read_only` is `[]`) and the write-and-audit helper both seed commands use
-    - `seed_school_admins.py`: `--permissions` (default `review`), `--replace` and `--read-only`, validated before any write; additive by default, so existing permissions are kept and `review` is added; a membership is saved only when it is created, reactivated or its permissions change, and each such change emits one `tenant.membership.permissions_seeded` event with `permissions_before` and `permissions_after` (ids and permission names only); an unchanged re-run writes nothing and emits nothing; the run's audit rows are counted inside its transaction, and a missing row rolls the run back; `--dry-run` prints the same lines and writes nothing; `AccessGrant` rows are never touched
+    - `seed_school_admins.py`: `--permissions` (default `review`), `--replace` and `--read-only`, validated before any write; additive by default, so existing permissions are kept and `review` is added; a membership is saved only when it is created, reactivated or its permissions change, and each such change emits one `tenant.membership.permissions_seeded` event with `permissions_before` and `permissions_after` (ids and permission names only); a membership the run does not change is not written and gets no event, while the existing Profile update (role, active, verified, password) still runs as today; the run's audit rows are counted inside its transaction, and a missing row rolls the run back; `--dry-run` prints the same lines and writes nothing; `AccessGrant` rows are never touched
     - `harness_seed_tenants.py`: `decider@<slug>.localhost` per tenant through the same helper with `["review"]`; existing `admin@` accounts unchanged
     - New `backend/tests/unit/test_seed_school_admins_permissions_sjr.py` with the cases in design "Unit Tests"; add the `seed_membership_permissions` property to the hypothesis suite
     - Docs: `.kiro/steering/infrastructure.md:115-120` states that the command adds `review` and removes nothing, and documents `--replace` and `--read-only`; the command's module docstring; `docs/runbooks/multi-tenant-operations.md`; CTM "Admin review workspace contract" (CTM 373-421)
@@ -582,6 +604,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `officialDocumentPresentation.ts`: "isn't available yet" copy with `resolveTenantSupportContact`; no Prepare, no neutral fallback
     - `harness_seed_tenants.py`: fictional, validated letter profiles for the seeded offerings
     - Docs: CTM "Document profiles…" (CTM 1306-1328); `docs/audits/document-type-audit.md:314-317`; `docs/runbooks/multi-tenant-operations.md`; each marked pending D9
+    - Existing harness steps that pin the old letter state (1.37), updated in this change. Journey 4 of `official-document-durability.spec.ts` (`:777-800`) clicks the letter's first button and expects the "admissions office has been notified" recovery; it now expects the "isn't available yet" copy and one support link without a click, no Prepare or Try again control, still no mention of a document profile, template or signature, and the same support-link address checks. `student-document-density.spec.ts` approves its application in a school it creates with no letter profile (`:160-226`), so its summary and prominent-control assertions (`:318-331`) follow the letter's new state
     - _Bug_Condition: isBugCondition_R7 where a letter type has no profile_
     - _Expected_Behavior: truthful "not available yet" state; no render without a profile_
     - _Preservation: slip and receipt rendering unchanged (2.40); letters still hard-fail without a profile (3.13)_
@@ -605,8 +628,9 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - [ ] 5.7 Checkpoint — P0b green
     - Three consecutive green runs of the extended gate in CI
     - Full backend unit suite, admissions tests, build and lint: PASS
+    - Re-run the broad matrix (`bash harness/bin/harness smoke`) and compare with task 2.5's baseline, counting the specs that tasks 3.17, 3.20 and 5.4 updated with their updated steps: no new failure
     - Ask the user if questions arise
-    - _Requirements: 2.36, 2.37, 2.38, 2.39, 2.40, 2.43_
+    - _Requirements: 2.36, 2.37, 2.38, 2.39, 2.40, 2.43, 3.22_
 
 - [ ] 6. Production verification — **Blocked until a live production host exists (D14)**
   - Do not start this task until the user names the production host (D14: restore the EC2 stack or wait for the new host)
