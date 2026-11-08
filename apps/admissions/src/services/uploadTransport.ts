@@ -17,12 +17,12 @@
  *
  * @module uploadTransport
  */
-import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
+import { getCsrfToken } from '@/lib/csrfToken';
 import { shouldDispatchAuthFailure } from '@/lib/sessionHardening';
 
 import { API_BASE, unwrapApiResponse } from './httpClient';
 import { AuthenticationError, attemptRefresh, getOnAuthFailure, isAuthExcludedEndpoint } from './authInterceptor';
-import { refreshCsrfToken } from './csrf';
+import { captureCsrfToken, refreshCsrfToken } from './csrf';
 
 /** No bytes left the device for this long: the connection is stalled. */
 export const UPLOAD_INACTIVITY_TIMEOUT_MS = 30_000;
@@ -150,8 +150,7 @@ function sendOnce(options: SendMultipartOptions): Promise<RawResponse> {
         } catch {
           body = null;
         }
-        const responseCsrf = xhr.getResponseHeader('X-CSRF-Token');
-        if (responseCsrf) setCsrfToken(responseCsrf);
+        captureCsrfToken(xhr.getResponseHeader('X-CSRF-Token'));
         resolve({ status: xhr.status, body, retryAfterHeader: xhr.getResponseHeader('Retry-After') });
       });
     });

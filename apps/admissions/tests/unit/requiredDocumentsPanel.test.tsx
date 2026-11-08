@@ -16,7 +16,7 @@
  *
  * Validates: Requirements R11.6, R11.7
  */
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { RequiredDocumentsPanel } from '@/components/student/RequiredDocumentsPanel'
@@ -316,5 +316,60 @@ describe('RequiredDocumentsPanel — in-flight progress (R11.7)', () => {
     const bar = screen.getByRole('progressbar')
     expect(bar.getAttribute('aria-valuenow')).toBe('40')
     expect(screen.getByText('40%')).toBeTruthy()
+  })
+})
+
+describe('upload outcome announcer', () => {
+  const requirements = (() => {
+    const contract = contractFrom([PLATFORM_ROW])
+    return contract.requirements
+  })()
+  function renderWith(status: RequiredDocumentUploadState['status'], error = '') {
+    const states = {
+      result_slip: {
+        status,
+        failedCommand: status === 'failed' ? 'upload' : null,
+        file: null,
+        error: error || null,
+        errorCode: status === 'failed' ? 'STORAGE_ERROR' : null,
+        retryable: true,
+      } as RequiredDocumentUploadState,
+    }
+    return (
+      <RequiredDocumentsPanel
+        requirements={requirements}
+        uploadStates={states}
+        loading={false}
+        contractError={null}
+        contractErrorRetryable={false}
+        onSelectFile={vi.fn()}
+        onRetry={vi.fn()}
+        onLocalError={vi.fn()}
+        onBeginReplace={vi.fn()}
+        onCancelReplace={vi.fn()}
+        onRemove={vi.fn()}
+      />
+    )
+  }
+
+  it('announces an upload, a failure, and the same outcome again', async () => {
+    const { rerender } = render(renderWith('uploading'))
+    const announcer = () => screen.getByTestId('upload-announcer')
+    expect(announcer().textContent).toBe('')
+
+    rerender(renderWith('uploaded'))
+    await waitFor(() => expect(announcer().textContent).toBe('Grade 12 result slip uploaded'))
+
+    rerender(renderWith('uploading'))
+    rerender(renderWith('uploaded'))
+    // Cleared first so the identical text is a fresh change for assistive tech.
+    expect(announcer().textContent).toBe('')
+    await waitFor(() => expect(announcer().textContent).toBe('Grade 12 result slip uploaded'))
+
+    rerender(renderWith('uploading'))
+    rerender(renderWith('failed', 'Storage is down'))
+    await waitFor(() =>
+      expect(announcer().textContent).toBe('Grade 12 result slip did not upload: Storage is down'),
+    )
   })
 })

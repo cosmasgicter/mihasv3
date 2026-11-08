@@ -13,6 +13,11 @@ import { toApiV1Path } from './apiHelpers';
 
 const API_BASE = getApiBaseUrl();
 
+/** Store a rotated token from a response header; the one writer the upload transport uses. */
+export function captureCsrfToken(value: string | null): void {
+  if (value) setCsrfToken(value);
+}
+
 /**
  * Re-fetch the CSRF token from the session endpoint and store it.
  *

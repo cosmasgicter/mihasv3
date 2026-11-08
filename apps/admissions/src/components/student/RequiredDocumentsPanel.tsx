@@ -367,6 +367,7 @@ export function RequiredDocumentsPanel({
   // repeats a message.
   const previousStatuses = useRef<Record<string, string | undefined>>({})
   const [announcement, setAnnouncement] = useState('')
+  const announceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     let next: string | null = null
     for (const requirement of requirements) {
@@ -382,8 +383,24 @@ export function RequiredDocumentsPanel({
         previousStatuses.current[requirement.documentType] = status
       }
     }
-    if (next) setAnnouncement(next)
+    if (next) {
+      // Clear first, then set on a later tick: an identical repeat outcome would
+      // otherwise leave the node unchanged and assistive tech would stay silent.
+      if (announceTimer.current) clearTimeout(announceTimer.current)
+      setAnnouncement('')
+      const message = next
+      announceTimer.current = setTimeout(() => {
+        announceTimer.current = null
+        setAnnouncement(message)
+      }, 50)
+    }
   }, [requirements, uploadStates])
+  useEffect(
+    () => () => {
+      if (announceTimer.current) clearTimeout(announceTimer.current)
+    },
+    [],
+  )
 
   if (loading) {
     return (

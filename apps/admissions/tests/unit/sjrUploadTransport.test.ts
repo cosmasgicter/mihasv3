@@ -316,3 +316,153 @@ describe('transport against a fake XMLHttpRequest (R2-a)', () => {
     expect(await caught).toMatchObject({ code: 'UPLOAD_STALLED', retryable: true })
   })
 })
+
+describe('hook retry rules (R2-a, review follow-up)', () => {
+  it('a 429 is posted once, is not auto-retried and stays manually retryable', async () => {
+    upload.mockRejectedValue(
+      Object.assign(new Error('Too many uploads'), { code: 'RATE_LIMITED', status: 429, retryable: false }),
+    )
+    const { result } = await loadedHook()
+    vi.useFakeTimers()
+    await act(async () => {
+      const pending = result.current.selectFile('result_slip', pdf())
+      await vi.advanceTimersByTimeAsync(10_000)
+      await pending
+    })
+    expect(upload).toHaveBeenCalledTimes(1)
+    expect(result.current.uploadStates.result_slip?.status).toBe('failed')
+    expect(result.current.uploadStates.result_slip?.errorCode).toBe('RATE_LIMITED')
+    expect(result.current.uploadStates.result_slip?.retryable).toBe(true)
+  })
+
+  it('DOCUMENT_UPLOAD_IN_PROGRESS is retried once with the same key and shows client copy', async () => {
+    upload.mockRejectedValue(
+      Object.assign(new Error('server wording'), {
+        code: 'DOCUMENT_UPLOAD_IN_PROGRESS',
+        status: 409,
+        retryable: true,
+      }),
+    )
+    const { result } = await loadedHook()
+    vi.useFakeTimers()
+    await act(async () => {
+      const pending = result.current.selectFile('result_slip', pdf())
+      await vi.advanceTimersByTimeAsync(10_000)
+      await pending
+    })
+    expect(upload).toHaveBeenCalledTimes(2)
+    const keys = upload.mock.calls.map(([, , options]) => options?.idempotencyKey)
+    expect(keys[1]).toBe(keys[0])
+    expect(result.current.uploadStates.result_slip?.error).toBe(
+      'This upload is still being processed. Try again in a minute.',
+    )
+  })
+})
+
+describe('transport recovery contracts (preservation 3.4)', () => {
+  const realXhr = globalThis.XMLHttpRequest
+  const realFetch = globalThis.fetch
+  const fetchMock = vi.fn()
+  beforeEach(() => {
+    FakeXhr.instances = []
+    fetchMock.mockReset()
+    ;(globalThis as { XMLHttpRequest: unknown }).XMLHttpRequest = FakeXhr
+    globalThis.fetch = fetchMock as unknown as typeof fetch
+  })
+  afterEach(() => {
+    ;(globalThis as { XMLHttpRequest: unknown }).XMLHttpRequest = realXhr
+    globalThis.fetch = realFetch
+  })
+  async function transport() {
+    const actual = await vi.importActual<typeof import('@/services/uploadTransport')>(
+      '@/services/uploadTransport',
+    )
+    const auth = await vi.importActual<typeof import('@/services/authInterceptor')>(
+      '@/services/authInterceptor',
+    )
+    return { ...actual, auth }
+  }
+  function start(sendMultipart: (o: never) => Promise<unknown>) {
+    return sendMultipart({
+      endpoint: '/api/v1/documents/upload/',
+      formData: new FormData(),
+      idempotencyKey: 'sjr-key-0100',
+    } as never)
+  }
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
+  async function until(count: number) {
+    for (let i = 0; i < 50 && FakeXhr.instances.length < count; i += 1) await tick()
+    expect(FakeXhr.instances).toHaveLength(count)
+  }
+
+  it('makes exactly one request when nothing fails', async () => {
+    const { sendMultipart } = await transport()
+    const pending = start(sendMultipart)
+    await until(1)
+    FakeXhr.instances[0].respond(201, { success: true, data: { id: 'doc-1' } })
+    await expect(pending).resolves.toMatchObject({ id: 'doc-1' })
+    expect(FakeXhr.instances).toHaveLength(1)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('a 401 is refreshed and the same request is replayed once with the same key', async () => {
+    const { sendMultipart } = await transport()
+    fetchMock.mockResolvedValue(new Response(null, { status: 200 }))
+    const pending = start(sendMultipart)
+    await until(1)
+    FakeXhr.instances[0].respond(401, { success: false, code: 'TOKEN_EXPIRED' })
+    await until(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/auth/refresh/')
+    expect(FakeXhr.instances[1].headers['idempotency-key']).toBe('sjr-key-0100')
+    FakeXhr.instances[1].respond(201, { success: true, data: { id: 'doc-2' } })
+    await expect(pending).resolves.toMatchObject({ id: 'doc-2' })
+  })
+
+  it('a 401 whose refresh fails raises AuthenticationError and fires auth failure', async () => {
+    const { sendMultipart, auth } = await transport()
+    const onFailure = vi.fn()
+    auth.configureApiClientAuthFailure(onFailure)
+    fetchMock.mockResolvedValue(new Response(null, { status: 401 }))
+    const pending = start(sendMultipart)
+    const caught = pending.catch((error: unknown) => error)
+    await until(1)
+    FakeXhr.instances[0].respond(401, { success: false, code: 'TOKEN_EXPIRED' })
+    const error = await caught
+    expect((error as Error).name).toBe('AuthenticationError')
+    expect(FakeXhr.instances).toHaveLength(1)
+    expect(onFailure).toHaveBeenCalled()
+  })
+
+  it('a CSRF 403 re-reads the token with ?refresh_csrf=1 (no custom header) and resends once', async () => {
+    const { sendMultipart } = await transport()
+    fetchMock.mockResolvedValue(
+      new Response(null, { status: 200, headers: { 'X-CSRF-Token': 'fresh-token' } }),
+    )
+    const pending = start(sendMultipart)
+    await until(1)
+    FakeXhr.instances[0].respond(403, { success: false, code: 'CSRF_INVALID' })
+    await until(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(String(url)).toContain('/auth/session/?refresh_csrf=1')
+    expect(Object.keys((init as { headers?: object }).headers ?? {})).toHaveLength(0)
+    expect(FakeXhr.instances[1].headers['x-csrf-token']).toBe('fresh-token')
+    FakeXhr.instances[1].respond(201, { success: true, data: { id: 'doc-3' } })
+    await expect(pending).resolves.toMatchObject({ id: 'doc-3' })
+  })
+
+  it('a second CSRF 403 is surfaced, not looped', async () => {
+    const { sendMultipart } = await transport()
+    fetchMock.mockResolvedValue(new Response(null, { status: 200 }))
+    const pending = start(sendMultipart)
+    const caught = pending.catch((error: unknown) => error)
+    await until(1)
+    FakeXhr.instances[0].respond(403, { success: false, code: 'CSRF_INVALID' })
+    await until(2)
+    FakeXhr.instances[1].respond(403, { success: false, code: 'CSRF_INVALID' })
+    expect(await caught).toMatchObject({ status: 403, code: 'CSRF_INVALID' })
+    expect(FakeXhr.instances).toHaveLength(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
