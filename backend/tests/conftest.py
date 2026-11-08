@@ -17,6 +17,22 @@ from django.core.cache import cache  # noqa: E402
 from django.db import connection  # noqa: E402
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _guard_test_database_host():
+    """Abort before the test database is created when the host is not local.
+
+    Student-journey-repair task 2.1 (clause 3.16). Autouse session fixtures are
+    instantiated ahead of pytest-django's ``django_db_setup``, so a refused host
+    never reaches ``CREATE DATABASE``.
+    """
+    from django.conf import settings
+
+    from tests.db_host_guard import assert_test_database_host_is_local
+
+    assert_test_database_host_is_local(settings.DATABASES)
+    yield
+
+
 @pytest.fixture(autouse=True)
 def _reset_rate_limit_cache():
     """Clear the shared cache before every test.
