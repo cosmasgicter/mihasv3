@@ -10,7 +10,7 @@ This is Spec B of the two specs the stack critique recommended (critique run `mi
 
 Sources: the critique's §4 (over-engineering inventory), §5 (design critique), §6 (docs and steering drift), §8.3–§8.5 (outline, phasing, non-goals) and §9 (decisions), its third review (`review.json`), and the research dossier for this run (`.agents/tasks/spec-authoring-2026-10-31/research.md`), which re-verified 86 citations at HEAD `4a6c4ef` and found none refuted. Claims the reviews refuted are not reused (research §3). Labels follow the critique: **Confirmed** means read in code or reproduced, **Likely** means strong evidence not observed where the claim applies, **Unverified** means open.
 
-Most simplification work removes or freezes something, and the user has not decided D1–D10 or D12–D14. So this spec records every open decision in the **Decision Register** below, with the critique's lean marked "Proposed, awaiting user confirmation". Every task that removes, freezes, prunes or untracks something is marked `[Blocked until Dn is confirmed]` in `tasks.md` and must not start before that decision is confirmed. Work that is required under every option (for example, removing invented numbers, correcting false steering, the rendered design gate and accessibility fixes) proceeds without a decision.
+Most simplification work removes or freezes something. The user confirmed D1–D10 and D12–D16 on 2026-11-08 ("Proceed with best recommendations, you have full authority"), each with the option recorded in the **Decision Register** below, and kept the critique's lean text there for history. D17 is still open, and D11 is an operator track outside this spec. Every task that removes, freezes, prunes or untracks something carries a decision marker in `tasks.md`: `[Decision Dn confirmed 2026-11-08 (option …)]`, followed on the same line by any further prerequisite (a Spec A gate, a live production host, the P0_Ops_Check, an operator step). A task whose marker still starts `[Blocked until …]` must not start before what follows it is met. Work that is required under every option (for example, removing invented numbers, correcting false steering, the rendered design gate and accessibility fixes) proceeds without a decision.
 
 Two placement changes from the critique outline, both from the research dossier:
 
@@ -25,7 +25,7 @@ The screenshots captured by the critique's design workstream were opened and rea
 - **Journey_Gate**: Spec A's blocking browser journey in CI at 390×844 against real object storage (critique §8.2 R9). It registers a student, uploads an identity document and a result slip through the wizard, submits through the wizard, opens each upload after its first signed URL expires, and downloads the slip.
 - **Decision_Register**: the section of this document that records decisions D1–D17, their options, the lean and their status.
 - **Confirmed**: a decision whose status line in the Decision_Register names the option the user chose and the date.
-- **Gated_Task**: a task in `tasks.md` whose title starts with `[Blocked until Dn is confirmed]`.
+- **Gated_Task**: a task in `tasks.md` whose title starts with a decision marker, either `[Decision Dn confirmed <date> (option …)]` (the decision is Confirmed; a further prerequisite, if any, follows on the same line) or `[Blocked until …]` (the task waits for what follows, for example D17 or a live production host).
 - **Documented_Local_Stack**: the one local stack that `LOCAL-TESTING.md` tells a developer to run.
 - **Local_Database**: a database whose `DATABASE_URL` host is `localhost`, `127.0.0.1`, `::1` or `postgres` (the Postgres service name in every compose file), used under settings that are not production (`DJANGO_SETTINGS_MODULE` does not end in `.prod`, and `ENVIRONMENT` is not `production`). The settings test matters because the production web container also reaches its database as `postgres`.
 - **Routes_Report**: the CI report that pairs every mounted backend route with its first-party callers, its external consumer or its gating setting (Requirement 2).
@@ -33,7 +33,7 @@ The screenshots captured by the critique's design workstream were opened and rea
 - **Check_Baseline**: a committed list of known offenders for a new check. The check fails on any offender not in the list and on any list entry that no longer matches an offender.
 - **Readiness**: the single wizard readiness that Spec A makes the source for both the Submit button and the Submit handler (critique §8.2 R6.2).
 - **Audited_Page_Set**: the pages and states the Rendered_Design_Gate scans (Requirement 19.2).
-- **Student_Route**: a route whose path starts with `/student`, the test the app itself uses (`apps/admissions/src/components/navigation/AppLayout.tsx:160`). "Student route" in this spec means a Student_Route. The authentication pages (`/auth/…`) are not Student_Routes, so Requirement 16.1's type floors and the font-size rule of Requirements 19.7 and 19.9 do not cover them; the hit-area rule does (Requirements 16.10 and 19.7).
+- **Student_Route**: a route whose path starts with `/student`, the test the app itself uses (`apps/admissions/src/components/navigation/AppLayout.tsx:160`). "Student route" in this spec means a Student_Route. The authentication pages (`/auth/…`) are not Student_Routes, so Requirement 16.1's type floors and the font-size rule of Requirements 19.7 and 19.9 do not cover them; the hit-area rule does (Requirements 16.10 and 19.7). The wizard also renders at the alias `/apply` (`apps/admissions/src/routes/config.tsx:114`, `apps/admissions/src/routes/routeRegistry.ts:196`), which is not a Student_Route; the Rendered_Design_Gate audits the wizard at `/student/application-wizard` only, so the type floors and their exit ban are measured on the one URL that is a Student_Route.
 - **Rendered_Design_Gate**: the CI job that runs impeccable's browser detector and axe inside Playwright against built pages (Requirement 19).
 - **Existing_Tokens**: the colour and typography tokens in `apps/admissions/src/styles/design-tokens.css` and `apps/admissions/src/design-system/tokens.colors.json`. The steering and this spec's brief name the second file `tokens.colors.cjs`; at HEAD it is `tokens.colors.json` (critique §6 row 9).
 - **P0_Ops_Check**: the operator's read-only production checks in critique §8.4, which record counts and names, never values.
@@ -60,7 +60,7 @@ Criteria 1–4 and 6–10 depend on decision D2 (which stack becomes the documen
 8. WHERE decision D2 is confirmed as option D, THE Documented_Local_Stack SHALL be the local-test stack (`backend/docker-compose.local-test.yml`) extended until criteria 1–3 hold.
 9. THE Documented_Local_Stack's admissions build SHALL load the card-payment widget from the payment stand-in, and its `index.html` SHALL contain no `preconnect`, `dns-prefetch`, preload, stylesheet or script reference to a host outside the stack. Today the harness build points the widget at the live Lenco host (`apps/admissions/src/hooks/useLencoWidget.ts:49-53`; `harness/bin/harness:70-76` sets no `VITE_LENCO_WIDGET_URL`), whose script the harness CSP then blocks (`harness/Caddyfile`, `default-src 'self'`), so the card option cannot work there; on a dev server the widget loads from the Lenco sandbox host (C-08). Every page also preconnects to the production API host and to both Lenco hosts (`apps/admissions/index.html:26-28`).
 10. IF a tool that criterion 1 names is missing, THEN THE local setup script SHALL exit non-zero before starting anything and SHALL name the missing tool.
-11. WHILE a browser run uses the isolated harness under `harness/`, THE run SHALL make no request to a host outside the stack and SHALL fail, naming the host, on any attempt; THE harness's admissions build SHALL load the card-payment widget from the payment stand-in; and its built `index.html` SHALL contain no `preconnect`, `dns-prefetch`, preload, stylesheet or script reference to a host outside the stack. This holds under every D2 option, because the Journey_Gate and the Rendered_Design_Gate run on the harness; under an option that makes the harness the Documented_Local_Stack, it also meets criteria 3 and 9.
+11. WHILE a browser run uses the isolated harness under `harness/`, THE browser SHALL be launched so that a host name outside the stack does not resolve, so a subresource request, a navigation, a popup and a form post to such a host all fail before any packet leaves the machine; THE run SHALL fail, naming the host, on any attempt to reach a host outside the stack, a literal IP address outside loopback included. Name resolution cannot stop a literal IP address, so for that case the gate detects the attempt and fails the run, and this requirement does not claim the request is prevented. THE harness's admissions build SHALL load the card-payment widget from the payment stand-in; and its built `index.html` SHALL contain no `preconnect`, `dns-prefetch`, preload, stylesheet or script reference to a host outside the stack. This holds under every D2 option, because the Journey_Gate and the Rendered_Design_Gate run on the harness; under an option that makes the harness the Documented_Local_Stack, it also meets criteria 3 and 9.
 12. THE harness's frontend error reporter SHALL be configured with a DSN that the Sentry SDK accepts and that names a host inside the stack. Today the default in `harness/bin/harness:76` is a corrupted string in which the words "email protected" in square brackets stand where a key and a host were, so the SDK rejects it and logs "Invalid Sentry Dsn" to the console when the reporter loads, on a page's first pointer, key or scroll event or after 15 s (`apps/admissions/src/main.tsx:36-62`), and the harness console gate records that as a failure (`apps/admissions/tests/harness-e2e/harness-fixtures.ts:110`).
 
 ### Requirement 2: S2. No unreachable surface
@@ -152,7 +152,7 @@ All criteria need no decision, except that the final wording of a decision-depen
 2. IF a steering file, `.agents/AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `LOCAL-TESTING.md` or `README.md` names a repository path that does not exist, and the path is not in the doc-paths allowlist with a reason (for historical names and names absent on purpose), THEN THE CI job SHALL fail and name the file and the path. THE check SHALL run on every pull request and every push to `main`, whatever paths the change touches, so that a change that deletes or renames a file a doc names fails in that same change (the rule of Requirement 2.9), not in the next change to a doc. The same check covers Requirement 4.7.
 3. IF a live spec's `.config.kiro` says `"status": "completed"` while its `tasks.md` has an unchecked required task, or every required task of a live spec is checked while its `.config.kiro` has no completed status, THEN THE CI job SHALL fail, unless the spec is listed with a reason in the committed exceptions file. A required task is a checkbox task not marked optional with `*`, the rule `scripts/validate_spec_governance.py` already applies; `[-]` and `[~]` count as unchecked.
 4. THE structure steering SHALL hold current placement rules only; its history tables ("Files Added During …", "Files Removed During …", about 409 of its 618 lines; critique §4 row 21) SHALL move to an archive document under `docs/archive/` that the steering links to but does not load.
-5. WHILE a decision is not Confirmed, THE steering SHALL state the current behaviour and name the pending decision instead of stating the outcome, for example "Email verification is not implemented; decision D8 pending".
+5. WHILE a decision is not Confirmed, or is Confirmed but its outcome is not yet implemented, THE steering SHALL state the current behaviour and name the decision instead of stating an outcome that is not yet true, for example "Email verification is not implemented; decision D8 confirmed 2026-11-08, not part of the flow".
 6. THE steering and docs changed by this spec SHALL add no infrastructure identifier (host name, IP address or key path). Removing the existing ones belongs to the D11 operator track.
 7. `DESIGN.md` §4 and §5 SHALL list only components that exist and are rendered by product code (research R-19), and SHALL name the colour token file that exists, `apps/admissions/src/design-system/tokens.colors.json`.
 
@@ -368,7 +368,7 @@ All criteria need no decision.
 #### Acceptance Criteria
 
 1. THE CI pipeline SHALL build the admissions app with `vite build`, serve it through the harness edge, and run impeccable 2.1.9's browser detector (`cli/engine/detect-antipatterns-browser.js`, the rule set the CLI's URL mode injects into a page) in each page of the Audited_Page_Set at both viewports, inside the Playwright session that holds the page's sign-in and viewport. THE gate SHALL NOT use the CLI for these scans: its URL mode always renders at 1280×800 and its JSON output names no element.
-2. THE Audited_Page_Set SHALL include, each at 1440×900 and 390×844: the landing, sign-in, sign-up, track application, the student dashboard empty and with a draft, each of the six wizard steps, the application workspace, the payment page, settings, the admin applications queue, the admin review, and the tenant console for a super admin and for a tenant admin. THE gate's own setup SHALL create each state through the harness API helpers rather than assume that seed data holds it.
+2. THE Audited_Page_Set SHALL include, each at 1440×900 and 390×844: the landing, sign-in, sign-up, track application, the student dashboard empty and with a draft, each of the six wizard steps (at `/student/application-wizard`, not at its `/apply` alias), the application workspace, the payment page, settings, the admin applications queue, the admin review, and the tenant console for a super admin and for a tenant admin. THE gate's own setup SHALL create each state through the harness API helpers rather than assume that seed data holds it.
 3. THE gate SHALL run axe-core (`@axe-core/playwright` 4.11.1, tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) on the same pages and states.
 4. THE gate SHALL compare findings with a committed baseline of rule, page, viewport and selector with a reason for each, and SHALL fail on any finding not in the baseline, on any baseline entry without a reason, and on any baseline entry that no longer matches a finding. Every finding, whichever tool reports it, SHALL be keyed by the same element selector, built from the element's `data-testid`, else a stable `id`, else a structural path.
 5. THE gate SHALL run as a blocking job, without `continue-on-error`, on every pull request that touches `apps/admissions/` and on every push to main.
@@ -423,25 +423,27 @@ These criteria apply to every task in this spec.
 #### Acceptance Criteria
 
 1. THE changes SHALL keep tenant isolation: scope-before-lookup through `visible_institution_queryset`, masked 404s for out-of-scope objects, capability resolution through `AdminCapabilityService`, fail-closed on `CapabilityResolutionError`, and no raw role-string comparison in new endpoint code. `backend/tests/property/test_scope_before_lookup.py`, `test_cross_tenant_invisibility.py`, `test_production_scope_masking_properties.py`, `test_access_scope_properties.py`, `backend/tests/unit/test_scope_drift_guard.py` and `test_unscoped_endpoint_guard.py` SHALL pass unchanged.
-2. THE changes SHALL keep the single payment path, webhook deduplication, the double-charge guard, `normalizePaymentStatus` for student reads, deferral at submit, and `PAYMENT_HARDENING_RATE_LIMITS` as the only payment flag; retired payment flags SHALL stay retired.
+2. THE changes SHALL keep the single payment path, webhook deduplication, the double-charge guard, `normalizePaymentStatus` for student reads, deferral at submit, and `PAYMENT_HARDENING_RATE_LIMITS` as the only payment flag; retired payment flags SHALL stay retired. THE changes SHALL also keep the payment ownership split: the wizard owns pay-or-defer before submission and renders no history or recovery, and `/student/payment` owns deferred, failed, expired and pending recovery plus history after submission, and never shows a draft. `apps/admissions/tests/harness-e2e/required/payment-ownership-split.spec.ts`, `apps/admissions/tests/unit/paymentOwnershipSplit.test.tsx` and `apps/admissions/tests/unit/paymentRecoveryPresentation.test.ts` SHALL pass unchanged.
 3. THE changes SHALL keep cookie authentication, CSRF enforcement and the `?refresh_csrf=1` recovery, and every new state-changing request SHALL go through the app's API client.
 4. THE changes SHALL keep the `{"success": true, "data": ...}` envelope on every authenticated endpoint they touch, and paginated lists SHALL keep `{page, pageSize, totalCount, results}`.
 5. THE changes SHALL keep silent autosave on every student form, the multi-draft intents (`mode=new`, `mode=resume&draftId`) and the rule that payment-linked drafts cannot be deleted.
 6. THE changes SHALL write no PII, secret, document body or raw phone number to a log, an evidence file or a CI artefact.
-7. Schema changes SHALL ship as additive SQL scripts under `backend/scripts/`, proven on a Neon branch first. No task in this spec SHALL write to the production database, run a deploy or edit `.github/workflows/deploy.yml`. A merge of this spec's work SHALL reach production only through that workflow under Spec A's deploy gate (Spec A DEC-10): WHILE Spec A's pause on automatic deploys holds (from Spec A task 2.6, before Spec A task 3.2, until Spec A task 6.2), only in a Deploy run that an operator approves; after Spec A task 6.2 has re-enabled automatic deploys, through the normal automatic deploy that follows a green CI run on `main`. EVERY task that changes what production serves SHALL say which of these paths its merge takes, and SHALL record in the evidence summary the path in force when it merged, its production effect and its rollback.
+7. Schema changes SHALL ship as additive SQL scripts under `backend/scripts/`, proven on a Neon branch first, and production SHALL apply such a script only after a fresh `deploy/backup-db.sh` backup. No task in this spec SHALL write to the production database, run a deploy or edit `.github/workflows/deploy.yml`. A merge of this spec's work SHALL reach production only through that workflow under Spec A's deploy gate (Spec A DEC-10): WHILE Spec A's pause on automatic deploys holds (from Spec A task 2.6, before Spec A task 3.2, until Spec A task 6.2), only in a Deploy run that an operator approves; after Spec A task 6.2 has re-enabled automatic deploys, through the normal automatic deploy that follows a green CI run on `main`. EVERY task that changes what production serves SHALL say which of these paths its merge takes, and SHALL record in the evidence summary the path in force when it merged, its production effect and its rollback.
 8. THE visual changes SHALL use only Existing_Tokens and SHALL add no colour token, font family or palette. They SHALL NOT introduce purple gradients, gradient text, glassmorphism on product surfaces, nested cards or emoji icons; they SHALL keep WCAG AA contrast, 44 × 44 px touch targets, the global reduced-motion rule, status colour paired with a label or icon, and the full Inter fallback chain.
 9. Admissions SHALL make no generative AI call; `backend/tests/unit/test_no_admissions_generative_ai_guard.py` SHALL pass, and any option that removes the jobs-ops AI service or the server OCR dependencies SHALL update that guard in the same change, because the guard also asserts that both exist.
 10. EVERY new frontend mirror of a backend concept SHALL register in `docs/canonical-truth-map.md` with a drift-guard test, and this spec SHALL register itself in that map's spec section once D12 is confirmed.
 11. THE changes SHALL NOT edit the specs named in D12 (`student-ui-ux-mobile-remediation`, `admin-dashboard-overhaul`, `profile-updates`, `admissions-v2-canonical-rebuild`).
+12. THE changes SHALL keep upload validation and its staged write order: the 10 MiB ceiling (`FILE_TOO_LARGE`), `EMPTY_FILE`, `DOCUMENT_TYPE_NOT_REQUIRED` and `INVALID_FILE_TYPE` from the required-documents resolution, a retryable `CONFIGURATION_UNAVAILABLE` (503), the magic-byte check (`INVALID_FILE`) and the active-content screen (`UNSAFE_FILE_CONTENT`), then the staged write (`open_stage`, save, `verify_stored_object`, `commit_version`, compensate). `backend/tests/unit/test_required_documents_contract.py`, `backend/tests/integration/test_required_documents_contract_7_2.py`, `backend/tests/integration/test_document_evidence_compensation_7_3.py` and `apps/admissions/tests/unit/requiredDocumentsDrift.test.ts` SHALL pass unchanged.
+13. THE changes SHALL keep student submission idempotent: `POST /api/v1/applications/{id}/submit/` stays behind `@idempotent` and `SubmitRateThrottle` (`backend/apps/applications/student_submission_views.py:89,112-114`), and the wizard keeps sending the `submit-<applicationId>` key (`apps/admissions/src/lib/submitIdempotency.ts`). `apps/admissions/tests/unit/submitIdempotency.test.ts` and `apps/admissions/tests/unit/applicationSubmitIdempotencyHeaders.test.ts` SHALL pass unchanged.
 
 ## Decision Register
 
-The user has not decided D1–D10 or D12–D14. D15, D16 and D17 are added by this spec: D15 and D16 cover removals the critique did not number but which still need a decision under this spec's rule, and D17 is a guardrail question that the rendered gate's hit-area rule raises. For each decision: the question, the options, the critique's lean, what depends on it, and what changes under another option.
+The user confirmed D1–D10 and D12–D16 on 2026-11-08 ("Proceed with best recommendations, you have full authority"); the option chosen is in each Status line, and the critique's lean text is kept for history. D17 is open on purpose (it has no lean, and one option amends a hard guardrail), and D11 is an operator track outside this spec. D15, D16 and D17 are added by this spec: D15 and D16 cover removals the critique did not number but which still need a decision under this spec's rule, and D17 is a guardrail question that the rendered gate's hit-area rule raises. For each decision: the question, the options, the critique's lean, what depends on it, and what changes under another option.
 
 How this register is used:
 
-- A decision is Confirmed when its **Status** line names the option, the date and who chose it. Until then the status reads "Awaiting confirmation".
-- A Gated_Task starts only after every decision in its marker is Confirmed. If the user chooses an option other than the lean, the tasks for that decision are rewritten to match before they start, and the change is noted in this register.
+- A decision is Confirmed when its **Status** line reads `Confirmed <date> (option …)`. Until then the status reads "Awaiting confirmation". Confirmed on 2026-11-08 by the user: D1–D10, D12–D16; open: D17; outside this spec: D11.
+- A Gated_Task starts only after every decision in its marker is Confirmed and every further prerequisite on the same line is met. Where the confirmed option is not the lean (D5's workflow, which stays dormant, is the one case), the tasks for that decision are rewritten to match before they start, and the change is noted in this register.
 - The rule for gating: a task is gated when it removes, freezes, prunes or untracks a route, capability, file set, dependency or navigation entry, or when its outcome depends on an open decision. Three kinds of change are not removals under this rule, and their tasks are ungated:
   - replacing an implementation with one that keeps every capability, for example the admin review modal becoming a split pane (Requirement 17);
   - moving text out of always-loaded steering into an archive document that keeps it (Requirement 6.4);
@@ -456,11 +458,11 @@ How this register is used:
   - B: freeze it. Put every jobs-ops route behind the flag, including the ones mounted today whatever the flag says; show "not enabled"; drop the "production_ready" claims; keep the code.
   - C: cut it from this repository and this deployment, into its own repository or an archive branch.
 - **Sub-question D1.b (no lean in the critique):** what happens to the unauthenticated `POST /api/v1/email/webhooks/delivery/`? Its handler returns a scaffold payload (`backend/apps/integrations/email_views.py:72-90`), and nothing in the repository registers it with an email provider. Options: (i) gate it with the jobs-ops flag; (ii) keep it mounted as an admissions provider webhook and require its secret in production; (iii) remove it.
-- **Lean:** B now; choose A or C later. **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** B now; choose A or C later. Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option B: freeze it now; whether to finish or cut jobs-ops is decided later, in a new decision). Sub-question D1.b was not part of that confirmation and stays open. Recommendation (not a confirmation): option (i), gate `webhooks/delivery/` with the jobs-ops flag, because its handler returns a scaffold payload and nothing registers it with a provider. Task 12.1 changes that one route only after D1.b is answered and does everything else now.
 - **Depends on it:** Requirements 3.3, 3.5, 3.6, 3.7, 13.3; tasks 12.1, 12.2, 12.3.
 - **Decision-independent (proceeds now):** Requirements 3.1, 3.2, 3.4, 3.8; tasks 7.1–7.4. A hardcoded readiness claim is false under every option.
-- **Under another option:** A: tasks 12.1–12.3 are replaced by a new spec to finish jobs-ops, and task 12.2 instead removes the developer rail (Requirement 13.3). C: move `apps/jobs-ops/`, the five backend apps, `jobs_ops_seed.py`, the 28 jobs-ops models and the jobs-ops-only `openai` requirement out; keep `GET /api/v1/meta/platform/` in this backend with the attribution and the API version only, and move the product steering's attribution rule from its jobs-ops section to the platform section (Requirement 3.8); and rewrite `test_no_admissions_generative_ai_guard.py`, which asserts that the jobs-ops AI service exists (Requirement 22.9).
+- **Under another option:** A: tasks 12.1–12.3 are replaced by a new spec to finish jobs-ops, and task 12.2 instead removes the developer rail (Requirement 13.3). C: move `apps/jobs-ops/`, the five backend apps, `jobs_ops_seed.py`, the 28 jobs-ops models and the jobs-ops-only `openai` requirement out, together with every line that builds and serves jobs-ops: the frontend image's copy and build steps (`apps/admissions/Dockerfile:22,30,53-55,61`), the edge site that serves it (`apps/admissions/Caddyfile:64-69`) and production's required `JOBS_HOST` (`deploy/docker-compose.prod.yml:36`), in the same change, so the next Deploy run's image build does not break (the gap task 14.5 closes for the placeholder apps); keep `GET /api/v1/meta/platform/` in this backend with the attribution and the API version only, and move the product steering's attribution rule from its jobs-ops section to the platform section (Requirement 3.8); and rewrite `test_no_admissions_generative_ai_guard.py`, which asserts that the jobs-ops AI service exists (Requirement 22.9).
 
 ### D2. Harness and evidence infrastructure
 
@@ -470,12 +472,13 @@ How this register is used:
   - B: A, plus untrack the raw `docs/v2-evidence` artefacts; keep the READMEs and other Markdown.
   - C: B, plus a history purge (destructive; needs a force-push).
   - D: keep everything as it is.
-- **Lean:** A + B; C only together with D11. **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** A + B; C only together with D11. Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option A + B: the harness becomes the default local stack and the CI journey gate; the launch-verdict rollup is cut and contract sync is kept; the raw `docs/v2-evidence` artefacts are untracked and the READMEs are kept). No history purge: option C stays tied to D11 and is an operator decision.
 - **Depends on it:** Requirements 1.1–1.4, 1.6–1.10, 4.1–4.3, 4.5; tasks 11.1, 11.2, 11.3, 11.4.
 - **Also confirmed with option A, B or C:** task 11.1 makes `harness/bin/local-setup.sh` the one bring-up path, and changes Spec A's `harness journey-gate` command (Spec A design R9-a) so that, after exporting its four gate values, it calls that script instead of its own build and start-up. Every gate run then follows the documented steps. Confirming A, B or C confirms that change to Spec A's command; Spec A's workflow (R9-e) still calls `bash harness/bin/harness journey-gate` and is unchanged.
+- **Also confirmed with option A, B or C (retires Spec A R1 deliverables):** task 11.2 deletes `backend/docker-compose.local-test.yml`, which Spec A's R1 extends. So it also retires what depends on that file: Spec A's `local-stack-storage` CI job (Spec A task 4.4) and its required-check step (Spec A task 4.5), the compose assertions in `backend/tests/unit/test_storage_settings_contract.py` (Spec A task 1.1), and `backend/.env.local.test.example` with its `.gitignore` exception, its `test_tracked_env_files.py` allowlist entry and its entry in the env-template test (Spec A task 3.3). The harness's `journey-gate` already runs `storage_roundtrip_check --expect-private` (Spec A task 4.4), so Spec A's clause 2.1 (a storage round-trip on the documented stack) is then met on the harness, the documented stack. Task 11.2 does this in the right order (design §1, "Retiring the local-test stack"): the operator drops `local-stack-storage` from the required checks first, then one change removes the job, the assertions and the template together with the file. Spec A is not edited; it keeps meeting its own clause on the local-test stack until that change lands.
 - **Decision-independent:** Requirements 1.5, 1.11, 1.12, 4.4, 4.7, 4.9; tasks 1.3, 3.3, 3.6, 3.7, 6.6. The harness's own isolation (the card-widget stub, the resource-hint plugin, both outside-host checks and the error-reporter DSN) is the same under every option, because Spec A's Journey_Gate and the Rendered_Design_Gate run on the harness whatever is chosen.
-- **Under another option:** A alone: task 11.3 is dropped. C: the purge stays outside this spec (D11); tasks are as for B. D: task 11.1 extends the local-test stack with the harness's MinIO, Mailpit, payment adapter and beat services instead of adopting the harness, and Spec A's `harness journey-gate` keeps its own bring-up; task 11.2 retires nothing; task 11.3 is dropped; task 11.4 keeps the rollup and adds a dated note to `docs/launch-evidence/launch-readiness.md` that its "production-launch-ready, 11/11" verdict covers neither document upload nor the student journey (critique §6 row 12); and Requirement 4.5 is recorded as not met.
+- **Under another option:** A alone: task 11.3 is dropped. C: the purge stays outside this spec (D11); tasks are as for B. D: task 11.1 adds Mailpit, the payment adapter and beat to the local-test stack instead of adopting the harness (its MinIO comes from Spec A's R1, task 3.1, which adds it to that file), and Spec A's `harness journey-gate` keeps its own bring-up; task 11.2 retires nothing; task 11.3 is dropped; task 11.4 keeps the rollup and adds a dated note to `docs/launch-evidence/launch-readiness.md` that its "production-launch-ready, 11/11" verdict covers neither document upload nor the student journey (critique §6 row 12); and Requirement 4.5 is recorded as not met.
 
 ### D3. Capability depth
 
@@ -484,9 +487,9 @@ How this register is used:
   - A: keep the 34-capability matrix.
   - B: collapse to what the UI distinguishes; drop `*.request_change` and `platform.user.create_global`; keep scope-before-lookup and the cross-tenant tests.
   - C: per-institution roles (admin or reviewer) on memberships.
-- **Lean:** B, after P0, with the property tests unchanged. **Proposed, awaiting user confirmation.** The merge table for any merge beyond the named removals needs its own approval (Requirement 8.4); task 8.1 prepares it.
-- **Status:** Awaiting confirmation.
-- **Interaction:** dropping the three `*.request_change` capabilities is consistent only if D5 removes the change-request workflow (D5 option B). Otherwise they stay.
+- **Lean:** B, after P0, with the property tests unchanged. Proposed in the critique; confirmed 2026-11-08 (see Status). The merge table for any merge beyond the named removals needs its own approval (Requirement 8.4); task 8.1 prepares it.
+- **Status:** Confirmed 2026-11-08 (option B, after P0: collapse to what the UI actually distinguishes; drop `*.request_change` and `platform.user.create_global`; scope-before-lookup and the cross-tenant property tests are unchanged). Prerequisites that stay: (1) the work starts only after Spec A's P0 (its tasks 3 to 5) is merged; (2) any merge beyond the two named removals needs the user-approved merge table (Requirement 8.4, task 8.1); (3) the `*.request_change` drop conflicts with the D5 outcome, see Interaction.
+- **Interaction (open conflict, recorded 2026-11-08):** dropping the three `*.request_change` capabilities is consistent only if D5 removes the change-request workflow (D5 option B). D5 was confirmed as "leave the workflow dormant, do not remove it" (option C), and the dormant workflow's submit authority still uses those three capabilities (Requirement 8.3). So `platform.user.create_global` goes (task 17.1) and the three `*.request_change` capabilities stay, and task 17.2 does not start. It needs one more answer from the user: remove the workflow (then D5 changes to option B), or keep the three capabilities. Nothing in this spec guesses it.
 - **Depends on it:** Requirements 8.2–8.5; tasks 17.1, 17.2, 17.3 (17.2 also needs D5).
 - **Decision-independent:** Requirements 8.1, 8.6; task 8.1 (inventory and proposed merge table, no catalogue change).
 - **Under another option:** A: tasks 17.1–17.3 are dropped. C: out of scope for this spec; it changes the security model and needs its own spec.
@@ -498,9 +501,9 @@ How this register is used:
   - A: keep it; add PDF support (poppler, pdf2image); back off the polling.
   - B: freeze it: manual entry first, OCR opt-in per tenant, no polling unless the tenant opted in.
   - C: cut the task, Tesseract and the hook.
-- **Lean:** B now, per-tenant opt-in; revisit PDF later. Spec A already fixes the polling drain. **Proposed, awaiting user confirmation.**
+- **Lean:** B now, per-tenant opt-in; revisit PDF later. Spec A already fixes the polling drain. Proposed in the critique; confirmed 2026-11-08 (see Status).
 - **Spec A's default until then (Spec A DEC-2):** OCR stays on for every school, with bounded polling that backs off and stops at a terminal state, and no PDF OCR. Nothing in this spec changes OCR before D4 is confirmed.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (option B: manual entry first, per-tenant OCR opt-in, no OCR polling unless the tenant opted in; PDF OCR is revisited after uploads are reliable). Until tasks 18.1 and 18.2 merge, Spec A's default (DEC-2) is what runs.
 - **Depends on it:** Requirements 11.1–11.4; tasks 18.1, 18.2, 18.3.
 - **Decision-independent:** Requirements 11.5, 11.6.
 - **What option B does not change:** the generic admin settings endpoints let any `admin` role read every setting (`IsAdmin`), and gate writes on the super-admin role string (`is_super_admin` in `_settings_write_forbidden`), not on `platform.settings.manage` through `AdminCapabilityService`. The admissions route registry opens the settings page to super admins only (`apps/admissions/src/routes/routeRegistry.ts:375-381`), and `scripts/authority_matrix_registry.py:454-457` registers all four settings routes as `platform.settings.manage`. Option B adds a dedicated command for the opt-in and keeps that one key out of the generic endpoints. Re-gating the generic reads would take access away from tenant admins, which is a capability change, so this spec records it as a known issue (task 1.1) and does not make it.
@@ -513,8 +516,8 @@ How this register is used:
   - A: build the missing change-request UI.
   - B: cut the change requests and the demo views; keep the v1 onboarding the wizard uses. The steering calls change requests the closure of TEN-06, so this formally reopens it.
   - C: leave them dormant.
-- **Lean:** cut the demo views under every option. For the change requests themselves the critique gives **no lean**; it is your call. **Proposed (demo views only), awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** cut the demo views under every option. For the change requests themselves the critique gives **no lean**; it is your call. Proposed in the critique for the demo views only; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (the v2 demo views: cut; the change-request workflow: option C, left dormant, not removed). Because the workflow stays, TEN-06 stays closed in the steering but is described as a backend workflow with no frontend caller, dormant by this decision (Requirements 2.7, 6.5), and Requirement 8.3 keeps the three `*.request_change` capabilities (see D3, Interaction).
 - **Depends on it:** Requirements 2.6, 2.7, 6.5 (TEN-06 wording), 8.3; tasks 13.1, 13.2, 17.2.
 - **Under each option:** A: task 13.2 records follow-up work; building the UI needs a spec amendment or a new spec. B: task 13.2 removes the workflow and the v2 onboarding views, and records TEN-06 as open. C: task 13.2 adds the six routes to the External_Consumer_List as dormant. The v2 readiness path stays under every option because Spec A depends on it.
 
@@ -529,8 +532,8 @@ How this register is used:
   - B: prune to the skills the steering references, plus the design skills.
   - C: move everything to a user-level install or a separate repository.
 - **Caution:** the steering and these workflows load skills from `.kiro/skills/…`. Pruning removes a skill from every agent session in this workspace. The steering names seven skills, but this spec's own authoring workflow also used spec-driven-workflow, senior-architect, tech-debt-tracker, copywriting, content-humanizer, copy-editing and a11y-audit. Task 8.2 builds the keep-list for you to confirm with the decision, and records for each kept skill the path that holds its one real copy, because a skill reached through a symlink lives only in `.agents/skills/`. Under C, agent sessions break unless the skills are installed elsewhere first.
-- **Lean:** B. **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** B. Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option B: prune to the skills the steering references plus the design skills). Two cautions are part of the decision: some `.kiro/skills/` entries are symlinks, so the pruning task never deletes a directory that a kept entry still resolves to; and the two dangling symlinks are deleted only as the two entries themselves.
 - **Depends on it:** Requirement 4.6; tasks 15.1, 15.2.
 - **Decision-independent:** Requirement 4.7 (a referenced skill path must exist, every tracked skill symlink must resolve, and every `.agents/skills.json` path must exist); tasks 3.3, 8.2. The two dangling symlinks sit in that check's baseline until task 15.1.
 - **Under another option:** A: task 15.2 is dropped, and task 15.1 only deletes the two dangling symlinks, which point at nothing, so no skill is lost; if you refuse that too, they stay in the baseline. C: task 15.1 moves every skill out and updates every steering path, after the user confirms the new install location.
@@ -542,9 +545,9 @@ How this register is used:
   - A: cut the capabilities and dashboard caches; keep the catalogue cache only if production has it on and it has been measured.
   - B: turn them on and measure.
   - C: keep everything as it is.
-- **Lean:** A, after the production environment check in P0_Ops_Check. **Proposed, awaiting user confirmation.**
+- **Lean:** A, after the production environment check in P0_Ops_Check. Proposed in the critique; confirmed 2026-11-08 (see Status).
 - **Prerequisite:** the P0_Ops_Check needs a reachable production host, which depends on D14.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (option A: cut the capabilities and dashboard caches; keep the catalogue cache only if production has it enabled and it has been measured). The prerequisite stays: the P0_Ops_Check, which needs a live production host (D14); tasks 16.1 and 16.2 stay blocked until it has run.
 - **Depends on it:** Requirements 5.1–5.3; tasks 16.1, 16.2.
 - **Decision-independent:** Requirements 5.4, 5.5; task 1.2.
 - **Under another option:** B: tasks 16.1 and 16.2 become "enable on staging, measure with `backend/tests/perf_baseline`, then decide per cache". C: tasks 16.1 and 16.2 are dropped and Requirement 5.1 is recorded as not met.
@@ -555,9 +558,9 @@ How this register is used:
 - **Options:**
   - A: implement it.
   - B: drop it officially and fix the docs.
-- **Lean:** B now; revisit when there is data. **Proposed, awaiting user confirmation.**
+- **Lean:** B now; revisit when there is data. Proposed in the critique; confirmed 2026-11-08 (see Status).
 - **Spec A's default (Spec A DEC-3):** email verification is out of scope.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (option B: drop email verification officially and fix the docs).
 - **Depends on it:** Requirement 6.5 (final wording); task 19.1.
 - **Decision-independent:** task 1.1 states the current fact ("not implemented; decision D8 pending").
 - **Under another option:** A: email verification is a new feature and a non-goal of this spec; it needs its own spec, and task 19.1 only records that.
@@ -570,9 +573,9 @@ How this register is used:
   - B: block letters with truthful copy, and make profile setup part of tenant onboarding and the seeds.
   - C: use the fallback for the slip and the receipt; block offer and acceptance letters.
   - Separately: add a rejection-letter type, or keep rejections email-only.
-- **Lean:** C; ask the schools about the rejection letter. **Proposed, awaiting user confirmation.** The backend already behaves like C (research §6); Spec A owns the student copy (critique §8.2 R7.4).
+- **Lean:** C; ask the schools about the rejection letter. Proposed in the critique; confirmed 2026-11-08 (see Status). The backend already behaves like C (research §6); Spec A owns the student copy (critique §8.2 R7.4).
 - **Spec A's default until then (Spec A DEC-5, DEC-6):** when a tenant has no document profile, the acceptance letter and the conditional offer show a truthful "not available yet" state with no neutral-fallback branding; the slip and the receipt keep their current branding; a rejection letter is out of scope and rejections stay email-only. Spec A marks all of it as pending your sign-off under D9.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (option C: slips and receipts render with neutral fallbacks; offer and acceptance letters show "not available yet" with the school's support contact and no fallback branding; rejections stay email-only). Task 27.4 still waits for Spec A's `[R7.4]` to merge.
 - **Depends on it:** Requirement 20.6; task 27.4, which also waits until Spec A's letter-copy clause `[R7.4]` is merged.
 - **Under another option:** A: Spec A changes `PROFILE_REQUIRED_DOCUMENT_TYPES`, and task 27.4 writes copy that promises letters for every school. B: profile setup in tenant onboarding is new work this spec does not contain; it needs an amendment. A rejection-letter type, if chosen, is new work for Spec A or a new spec.
 
@@ -583,8 +586,8 @@ How this register is used:
   - A: students only; school-buyer content moves to a separate page; numbers appear only when sourced.
   - B: keep both audiences and fix the claims.
   - C: a minimal landing page that links straight to the programme catalogue.
-- **Lean:** A. **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** A. Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option A: the landing page is for students only; school-buyer content moves to a separate page; only sourced numbers appear).
 - **Depends on it:** Requirements 12.3–12.5; tasks 33.1, 33.2.
 - **Decision-independent:** Requirements 12.1, 12.2, 12.6–12.8; tasks 29.1–29.3. Invented claims are a truthfulness risk under every option.
 - **Under another option:** B: task 33.1 keeps the school-buyer sections on the landing with sourced claims only, and task 33.2 is dropped. C: task 33.1 reduces the landing to a hero and the catalogue list, and task 33.2 applies as written.
@@ -593,16 +596,16 @@ How this register is used:
 
 - **Scope:** key rotation, deleting the remote branches and pull-request refs that still carry the leaked key, repository visibility, removing the signature PNG and letter templates from `apps/admissions/public/`, removing infrastructure identifiers from tracked docs, and moving `besa/` and `open-design/` out of the working tree. All of it is operator-gated and outside both specs (critique §9 D11). This spec writes **no** task for a history rewrite, branch deletion or key rotation.
 - **Critique's lean:** rotate the key and remove the public signature and templates now; then delete the remote branches that carry the old commits, ask GitHub about the pull-request refs, and decide on visibility. **Proposed, awaiting user confirmation.**
-- **Status:** Outside this spec; an operator track. One item is done in the working tree: the signature PNG and the three letter templates are staged for deletion, not yet committed or deployed. `current application structure.pdf`, MIHAS's paper application form, is kept; removing it is a separate, unconfirmed decision. Every other item is open. This spec does not touch any of them.
+- **Status:** Outside this spec; an operator track. State on 2026-11-08: the signature PNG and the three letter templates are removed in commit `8f01c30cb` on branch `specs/journey-repair-and-simplification`, pull request #207, and are NOT on `main` and NOT deployed; 7 remote branches were deleted on 2026-11-07; Resend key rotation: in progress per the user (2026-11-07/08), completion not recorded, and updating the production env value afterwards is an operator step; the GitHub Support request about pull-request refs is drafted but not confirmed sent; repository visibility, infrastructure identifiers in tracked docs, and moving `besa/` and `open-design/` out of the working tree are still open. `current application structure.pdf`, MIHAS's paper application form, is kept; removing it is a separate, unconfirmed decision. This spec does not touch any of it.
 - **Dependency:** D2 option C (history purge) happens only with this track. Requirement 6.1 records critique §6 row 16 (the runbook's school hosts) as owned by this track.
 
 ### D12. Spec structure and overlapping specs
 
 - **Question:** How do the two specs relate to the specs already in flight (critique §9 D12)?
 - **Options:** two specs (recommended), one phased spec, or three specs. For the overlaps: absorb, supersede, or keep separate and coordinate.
-- **Lean:** two specs. Spec B absorbs and supersedes `student-ui-ux-mobile-remediation` (0 of 65 tasks done). The overlaps with `admin-dashboard-overhaul` (30 open, mostly tests; overlaps Requirement 17), `profile-updates` (12 of 12 required tasks checked, 5 optional open) and `admissions-v2-canonical-rebuild` (2 deferred; overlaps P0_Ops_Check) are recorded only. None of those specs is edited. **Proposed, awaiting user confirmation.**
+- **Lean:** two specs. Spec B absorbs and supersedes `student-ui-ux-mobile-remediation` (0 of 65 tasks done). The overlaps with `admin-dashboard-overhaul` (30 open, mostly tests; overlaps Requirement 17), `profile-updates` (12 of 12 required tasks checked, 5 optional open) and `admissions-v2-canonical-rebuild` (2 deferred; overlaps P0_Ops_Check) are recorded only. None of those specs is edited. Proposed in the critique; confirmed 2026-11-08 (see Status).
 - **`profile-updates` and finding C-15.** That spec's Settings fix did not hold: C-15 (the Settings "Sex" field never shows the saved value, and "Unsaved changes" never clears) is Confirmed at HEAD (critique §3 S05, §6 row 21). Spec A leaves C-15 to `profile-updates` (Spec A OS-9), and this spec does not fix it, so the defect has no owner (Non-goals). Task 1.1 makes the steering state that fact.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (two specs; Spec B absorbs and supersedes `student-ui-ux-mobile-remediation`; the overlaps with `admin-dashboard-overhaul`, `profile-updates` and `admissions-v2-canonical-rebuild` are recorded only, and none of those specs is edited).
 - **Depends on it:** Requirements 6.3 (exceptions file), 22.10, 22.11; task 20.1.
 - **Under another option:** if `student-ui-ux-mobile-remediation` stays live, tasks for Requirements 14–16 and 21 still run, but each first checks that plan's open tasks for the same files, and task 20.1 records coordination instead of supersession. If `admin-dashboard-overhaul` is absorbed, its open tasks become an amendment to this spec.
 - **Not in the critique's list:** `student-payment-interview-pages` (17 tasks done; its 6 open tasks are all optional tests of navigation and payment detection, `tasks.md:61-75`; no `.config.kiro`) touches the interview page that Requirement 20.2 changes, but none of its open tasks touches `Interview.tsx`. It is not a D12 spec, so task 3.4 gives it a `.config.kiro` marked completed, because every required task is checked.
@@ -613,18 +616,18 @@ How this register is used:
 
 - **Question:** Do uploads stay server-proxied, or move to direct-to-R2 presigned uploads or resumable uploads (critique §9 D13)?
 - **Options:** A: keep server-proxied uploads and fix them (Spec A R2). B: direct-to-R2 presigned PUT with server verification. C: resumable or chunked uploads.
-- **Lean:** A for P0; move to B or C only if field data after P0 demands it. **Proposed, awaiting user confirmation** for the period after P0.
-- **Status:** For P0, fixed by Spec A as DEC-4 in its "Decisions already made" table. After P0: Awaiting confirmation.
+- **Lean:** A for P0; move to B or C only if field data after P0 demands it. Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option A: server-proxied uploads; revisit only with field data). For P0 it was already fixed by Spec A as DEC-4 in its "Decisions already made" table.
 - **Effect on this spec:** none. This spec has no task for it, and Non-goals exclude direct-to-R2 and resumable uploads.
 
 ### D14. Which production host P0 verifies against
 
 - **Options:** A: bring the EC2 stack back for verification. B: wait for the new host.
 - **Lean:** none in the critique; it is your call.
-- **Status:** Awaiting confirmation.
+- **Status:** Confirmed 2026-11-08 (option B: wait for the new production host; do not restore the EC2 stack). P0 is gated in CI meanwhile. Spec A task 6 and Spec B task 6.8 stay blocked until a live production host exists, and so do tasks 16.1 and 16.2 (D7's P0_Ops_Check needs the same host). Nothing in either spec restores the EC2 stack.
 - **Depends on it:** Requirement 7.2's comparison with the production manifest; task 6.8. Also D7's prerequisite: the P0_Ops_Check needs a reachable production host, and Requirement 5.5 keeps production values "Unverified" until it runs.
 - **Effect on this spec:** Spec B starts on the Journey_Gate in CI, not on a production run. Task 6.1 lands the Neon baseline with "production parity: Unverified" in its header, and Requirement 7.2 stays open until task 6.8 runs. Critique §6 row 17 (which host production is) is recorded as owned by this decision (Requirement 6.1).
-- **Spec A's default (Spec A DEC-7, task 6):** production verification is Spec A's last task, "Blocked until a live production host exists (D14)". Its task 6.2 also ends Spec A's pause on automatic deploys, so until D14 is decided and that task runs, a merge of this spec reaches production only in a Deploy run an operator approves (Requirement 22.7; Dependencies item 7).
+- **Spec A's default (Spec A DEC-7, task 6):** production verification is Spec A's last task, "Blocked until a live production host exists (D14)". Its task 6.2 also ends Spec A's pause on automatic deploys, so until a live production host exists and that task runs, a merge of this spec reaches production only in a Deploy run an operator approves (Requirement 22.7; Dependencies item 7).
 
 ### D15 (added by this spec). Removals the critique did not number
 
@@ -639,8 +642,8 @@ How this register is used:
   - (h) `keep_alive_task`, which pings production every 4 minutes "to prevent Koyeb cold starts" although production is not on Koyeb;
   - (i) the unused frontend upload paths that Spec A freezes in its single-path guard and leaves to this spec (Spec A DEC-1, OS-5): `documentService.upload`, `useWizardFileUploads`, the `startUpload` branch of `useApplicationFileUploads` with `uploadApplicationFile` and `downloadFile` in `lib/storage.ts`, and `lib/applicationSlipStorage.ts` with `lib/slipService.ts` (sites in Requirement 2.8 (i)). Spec A's guard stays; its frozen list shrinks as each path goes.
 - **Options per item:** remove, or keep and add it to the relevant allowlist with a reason.
-- **Lean:** remove each item (critique §4 verdicts; for (i), Spec A DEC-1). **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** remove each item (critique §4 verdicts; for (i), Spec A DEC-1). Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (remove items (a) to (i), the lean). Each item keeps its own task, and a removal that finds a live caller stops and reports it.
 - **Depends on it:** Requirements 2.8, 2.9, 4.8, 9.3; tasks 14.1–14.9.
 - **Under "keep":** the item gets an allowlist entry with a reason in the relevant check (task 3.1, 3.2 or 3.3), or stays in Spec A's frozen list for (i), and its task is dropped.
 
@@ -651,8 +654,8 @@ How this register is used:
   - A: three, "My application", "Messages" and "Account" (the critique's proposal).
   - B: five, "Home", "Application", "Payment", "Messages" and "Account".
   - C: keep nine; fix desktop and mobile parity and the truncated labels only.
-- **Lean:** A (critique §8.3 V10). **Proposed, awaiting user confirmation.**
-- **Status:** Awaiting confirmation.
+- **Lean:** A (critique §8.3 V10). Proposed in the critique; confirmed 2026-11-08 (see Status).
+- **Status:** Confirmed 2026-11-08 (option A: three destinations, "My application", "Messages" and "Account").
 - **Depends on it:** Requirement 21.3; task 34.1.
 - **Decision-independent:** Requirements 21.1, 21.2, 21.4–21.6; tasks 31.1–31.3.
 - **Under another option:** B: task 34.1 builds the five-item version. C: task 34.1 is dropped.
@@ -664,11 +667,12 @@ How this register is used:
   - A: pad each such link to a 44 px hit area, accepting taller lines or hit areas that overlap the lines around it;
   - B: move each such link out of running text into a standalone link or button that meets the rule, for example a row of links below the sentence;
   - C: amend the steering's 44 px rule to exempt links inside running text, as WCAG does; the classifier then skips them.
+- **Recommendation (added 2026-11-08; not a confirmation):** keep the guardrail and fix the link instead, that is option A or B, not C. Option C amends four places that state the 44 px rule (`.kiro/steering/design-skills.md`, `.agents/AGENTS.md` §2, `PRODUCT.md:97` and `DESIGN.md:198`; `design-skills.md` says its guardrails duplicate `PRODUCT.md`), so it is the costliest way to settle a link in a sentence.
 - **Lean:** none. The critique does not raise this, and each option changes either a sentence students read (A, B) or a hard guardrail (C), so it is your call.
 - **Status:** Awaiting confirmation.
 - **Depends on it:** task 24.8 (Requirements 16.10, 19.7 and 19.9, for links inside running text).
 - **Decision-independent:** task 24.6 fixes every other hit-area finding on the Audited_Page_Set. Until D17 is confirmed, the entries for links inside running text stay in the rendered-design baseline with decision D17.
-- **Under each option:** A or B: task 24.8 changes the links and deletes their entries. C: task 24.8 first amends `design-skills.md` and `.agents/AGENTS.md` §2, then makes the classifier and Property 11 skip a link inside running text (design §12.7), and deletes those entries. Spec A is not edited under any option.
+- **Under each option:** A or B: task 24.8 changes the links and deletes their entries. C: task 24.8 first amends all four places that state the rule (`design-skills.md`, `.agents/AGENTS.md` §2, `PRODUCT.md:97`, `DESIGN.md:198`), then makes the classifier and Property 11 skip a link inside running text (design §12.7), and deletes those entries. Spec A is not edited under any option.
 
 ## Dependencies and sequencing
 
@@ -679,11 +683,11 @@ How this register is used:
    - The steering they correct is loaded into every agent task, including Spec A's, so false claims there misdirect P0 work while it runs.
 
    Task 1.3 may also start at once, for a different reason. It changes one default in `harness/bin/harness` and adds a unit test, and changes no product code. Without it, the harness's error reporter logs a console error on a page's first interaction, which fails every harness run that clicks, scrolls or waits 15 s, Spec A's smoke baseline and Journey_Gate included (Requirement 1.12; Likely from code, not run).
-3. **Phase order.** P1's decision-independent tasks (3–9, except task 6.8) come before its gated tasks (6.8 and 11–20). Task 6.8 sits with the other test-database tasks but waits for D14. P2's decision-independent tasks (22–31, except tasks 24.8 and 27.4) start once P1's checkpoint at task 10 is green; they do not wait for P1's gated tasks, because no V requirement depends on a P1 decision except D1 (Requirement 13.3, handled in task 12.2) and D9, D10, D16 and D17 (handled in P2's own gated tasks 27.4, 33, 34 and 24.8). Gated tasks of either phase start when their decision is Confirmed, in phase order.
+3. **Phase order.** P1's decision-independent tasks (3–9, except task 6.8) come before its gated tasks (6.8 and 11–20). Task 6.8 sits with the other test-database tasks but waits for a live production host (D14, option B). P2's decision-independent tasks (22–31, except tasks 24.8 and 27.4) start once P1's checkpoint at task 10 is green; they do not wait for P1's gated tasks, because no V requirement depends on a P1 decision except D1 (Requirement 13.3, handled in task 12.2) and D9, D10, D16 and D17 (handled in P2's own gated tasks 27.4, 33, 34 and 24.8). Gated tasks of either phase start when their decision is Confirmed and their further prerequisites are met, in phase order.
 4. **Exit criteria** (critique §8.4).
-   - P1 exits when the Documented_Local_Stack passes the Journey_Gate, the routes-versus-callers and steering-path checks are green, the test database is built from the SQL scripts, and `-n 6` is green (task 21). Requirement 7.2's production comparison stays open until D14 allows task 6.8, and the P1 checkpoint lists it.
+   - P1 exits when the Documented_Local_Stack passes the Journey_Gate, the routes-versus-callers and steering-path checks are green, the test database is built from the SQL scripts, and `-n 6` is green (task 21). Requirement 7.2's production comparison stays open until a live production host allows task 6.8, and the P1 checkpoint lists it.
    - P2 exits when the Rendered_Design_Gate and axe are green on built pages, the baseline holds no hard-guardrail entry (Requirement 19.9), and a named person has signed off the visual review (tasks 35 and 36).
-   - A gated task whose decision is still open when its phase otherwise exits stays open and is listed in the phase's checkpoint.
+   - A gated task whose decision or further prerequisite is still open when its phase otherwise exits stays open and is listed in the phase's checkpoint.
 5. **Dependencies on Spec A.** Spec A tags its clauses with the critique's numbers, for example `[R7.2]`.
    - Requirement 14.1–14.2 need Spec A's single Readiness (critique §8.2 R6.2).
    - Requirement 20.3 needs Spec A's session fix (R8.1).
@@ -693,15 +697,16 @@ How this register is used:
    - Requirement 1.4 needs Spec A's seed (R1.4).
    - Requirement 13.2 needs Spec A's badge fix.
    - Requirement 2.8 (i) needs Spec A's single-path upload guard (R2.6).
-   - Spec A runs into the corrupted DSN of Requirement 1.12 before this spec starts: its smoke baseline (Spec A `tasks.md:137`) and its Journey_Gate use the same harness fixtures and console gate, and Spec A does not mention the value. That is why task 1.3 may start at once. If Spec A's harness work restores a parseable DSN first, task 1.3 adds only the unit test.
-   - Task 11.1 changes the bring-up inside Spec A's `harness journey-gate` command (Spec A design R9-a, `tasks.md:488`). It starts only after Spec A's R9 tasks are merged, and confirming D2 confirms the change (Decision Register D2).
+   - Spec A runs into the corrupted DSN of Requirement 1.12 before this spec starts: its smoke baseline (Spec A task 2.5) and its Journey_Gate use the same harness fixtures and console gate, and Spec A does not mention the value. That is why task 1.3 may start at once. If Spec A's harness work restores a parseable DSN first, task 1.3 adds only the unit test.
+   - Task 11.1 changes the bring-up inside Spec A's `harness journey-gate` command (Spec A design R9-a; Spec A task 4.1). It starts only after Spec A's R9 tasks are merged, and confirming D2 confirms the change (Decision Register D2).
 6. **Operator dependencies.** The P0_Ops_Check (critique §8.4) comes before D7's tasks. The Neon branch and the production read-only manifest for Requirement 7.2 are operator-assisted steps. D11 stays with the operator.
 7. **Deploys (Spec A DEC-10).** `.github/workflows/deploy.yml` builds the backend and frontend images and rolls production after every green CI run on `main` (`:6-11`, `:24`), and the frontend image carries both the admissions and the jobs-ops builds (`apps/admissions/Dockerfile:50-61`). So a merge is a deploy unless something stops it. Spec A's deploy gate is the only thing that does, and this spec adds no second one and does not edit the workflow (Requirement 22.7).
-   - Spec A pauses automatic deploys in its task 2.6, before its task 3.2, and the pause covers all of this spec's work (Spec A `bugfix.md:28`). Its preferred form is a GitHub `production` environment with required reviewers on both Deploy jobs; its fallback is the workflow disabled.
+   - Spec A pauses automatic deploys in its task 2.6, before its task 3.2, and the pause covers all of this spec's work (Spec A DEC-10, decided with the user on 2026-11-07/08). Its preferred form is a GitHub `production` environment with required reviewers on both Deploy jobs; its fallback is the workflow disabled. The preferred form holds only while the repository is public on the GitHub Free, Pro and Team plans (Spec A task 2.6), so the pause can lapse if the D11 track changes visibility.
    - This spec starts after Spec A's Journey_Gate is green (item 1), which Spec A builds after its pause, so the pause is in force when this spec's first production-affecting change merges. While it holds, such a change reaches production only in a Deploy run an operator approves. Spec A approves no run before its task 6.1's checks and backup, and an approved run ships everything merged on `main` (Spec A task 2.6, EC-22), so this spec's merged work usually first reaches production in Spec A's approved deploy in its task 6.2.
-   - Spec A's task 6, which holds 6.2, is blocked until a live production host exists (D14), so the pause lasts at least until D14 is decided.
+   - Spec A's task 6, which holds 6.2, is blocked until a live production host exists (D14), so the pause lasts at least until that host exists.
    - Once Spec A's task 6.2 has re-enabled automatic deploys, a merge of this spec's work deploys through the normal automatic path, so a task with a production precondition confirms it before it merges.
    - Every task that changes what production serves carries a Deploy path line in `tasks.md`, and records in the evidence summary the path in force when it merged, its production effect and its rollback. The operator reads those entries before approving a Deploy run during the pause.
+   - A production-affecting merge during the pause first repeats Spec A task 2.6's confirmation that the pause still holds, and the task's evidence summary records that it did. The operator who approves Spec A task 6.2 reads this spec's Deploy path entries first, because Spec A task 6.1's checklist does not mention them (task 2 records the pointer).
    - Tasks 1.1–1.3 may merge before Spec A's pause starts. They change nothing production serves (steering, a runbook, a harness default and a unit test), so a Deploy run that includes them serves what production serves today.
 
 ## Non-goals

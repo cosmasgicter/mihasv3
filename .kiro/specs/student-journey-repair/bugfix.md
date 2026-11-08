@@ -14,19 +14,21 @@ Sources: the research dossier `.agents/tasks/spec-authoring-2026-10-31/research.
 
 ### Decisions already made (fixed for this spec)
 
+D4, D8, D9, D13 and D14 were confirmed on 2026-11-08 (the user: "Proceed with best recommendations, you have full authority"); the rows below show each status and keep the lean text for history. Review findings F3 and F14 were decided with the user on 2026-11-07/08.
+
 | Id | Decision |
 |---|---|
 | DEC-1 | Nothing is removed or frozen by this spec. The §9 decision items (jobs-ops, change requests, caches, skills, harness evidence) stay as they are. R2.6 is met by a reachability guard over the upload path. Deleting the three unused upload stacks is left to Spec B S2 (A-11 is also in S2). |
-| DEC-2 | OCR stays on. Its polling is fixed: bounded, backing off, stopping at a terminal state or a missing job, and never spending the upload or write rate budget. PDF OCR (D4, missing `pdf2image` and poppler) is not in this spec. |
-| DEC-3 | Email verification is out of scope (D8). |
-| DEC-4 | Uploads stay server-proxied (D13 option A). The fixes are inactivity timeout, determinate progress, one keyed retry and photo downscaling. No direct-to-R2 or resumable protocol. |
-| DEC-5 | When a tenant has no document profile, the acceptance letter and conditional offer show a truthful "not available yet" state, with no neutral-fallback branding. The slip and receipt keep their current behaviour, which the dossier §6 confirms: they render from the institution row's name, colour and contact details, with neutral Beanola fallbacks, and draw a logo or signature only when the tenant uploaded one. **All letter behaviour is pending user sign-off (D9).** |
-| DEC-6 | A rejection letter is out of scope. Rejections stay email-only, pending user sign-off (D9). |
-| DEC-7 | "The journey passes once against production after deploy" is a separate deferred task, blocked until a live production host exists (D14). |
+| DEC-2 | OCR stays on. Its polling is fixed: bounded, backing off, stopping at a terminal state or a missing job, and never spending the upload or write rate budget. PDF OCR (D4, missing `pdf2image` and poppler) is not in this spec. Status: Confirmed 2026-11-08 (D4: per-tenant OCR opt-in, delivered by Spec B's D4 tasks; this spec keeps OCR on for every school and changes only its polling; PDF OCR is revisited after uploads are reliable). |
+| DEC-3 | Email verification is out of scope (D8). Status: Confirmed 2026-11-08 (D8: drop email verification officially; the documentation correction belongs to Spec B). |
+| DEC-4 | Uploads stay server-proxied (D13 option A). The fixes are inactivity timeout, determinate progress, one keyed retry and photo downscaling. No direct-to-R2 or resumable protocol. Status: Confirmed 2026-11-08 (D13 option A: server-proxied uploads; revisit only with field data). |
+| DEC-5 | When a tenant has no document profile, the acceptance letter and conditional offer show a truthful "not available yet" state, with no neutral-fallback branding. The slip and receipt keep their current behaviour, which the dossier §6 confirms: they render from the institution row's name, colour and contact details, with neutral Beanola fallbacks, and draw a logo or signature only when the tenant uploaded one. All letter behaviour was pending user sign-off (D9). **Status: Confirmed 2026-11-08 (D9 option C).** |
+| DEC-6 | A rejection letter is out of scope. Rejections stay email-only. Status: Confirmed 2026-11-08 (D9 option C). |
+| DEC-7 | "The journey passes once against production after deploy" is a separate deferred task, blocked until a live production host exists (D14). Status: Confirmed 2026-11-08 (D14: wait for the new production host; the EC2 stack is not restored; P0 is gated in CI meanwhile). The task stays blocked until a live host exists. |
 | DEC-8 | The Runtime badge is fixed here (R10). Dossier §5: it renders in production builds (Confirmed for a production build of HEAD by C-18; Likely for the deployed site). |
 | DEC-9 | This spec adds no feature flags. New settings are environment configuration only. |
-| DEC-10 | Automatic production deploys are paused from before task 3.2 until task 6.2 (review F3, user decision). Today `.github/workflows/deploy.yml` rolls production after every green CI run on `main` (`:6-11`, `:24`), with no backup step and no approval, so without the pause a merge would be a deploy. Preferred: a GitHub `production` environment with required reviewers on both Deploy jobs, which keeps the workflow and its rollback trap and leaves an approval trail; `deploy.yml` references no environment at HEAD, so referencing it is a separate code task. Fallback: the Deploy workflow disabled in the Actions UI, with no code change. The pause covers everything that workflow ships: the backend, which serves admissions and jobs-ops, the frontend image, which carries both the admissions and the jobs-ops builds (`apps/admissions/Dockerfile:53-61`), and all Spec B work. Production is unreachable today (D14), so nobody sees an effect yet. Task 6.2 approves the first deploy after task 6.1's name checks and backup, and re-enables automatic deploys once it succeeds. |
-| DEC-11 | `seed_school_admins` is additive by default (review F14, user decision). It adds the requested permissions (default `review`) to those an existing membership holds, and removes a permission only when `--read-only` or `--replace` is passed. Only a membership it actually changes is written, and each such change emits one `TenantAuditService` event with the permissions before and after; a run that changes nothing emits no event. |
+| DEC-10 | Automatic production deploys are paused from before task 3.2 until task 6.2 (review F3, decided with the user on 2026-11-07/08). Today `.github/workflows/deploy.yml` rolls production after every green CI run on `main` (`:6-11`, `:24`), with no backup step and no approval, so without the pause a merge would be a deploy. Preferred: a GitHub `production` environment with required reviewers on both Deploy jobs, which keeps the workflow and its rollback trap and leaves an approval trail; `deploy.yml` references no environment at HEAD, so referencing it is a separate code task. Fallback: the Deploy workflow disabled in the Actions UI, with no code change. The pause covers everything that workflow ships: the backend, which serves admissions and jobs-ops, the frontend image, which carries both the admissions and the jobs-ops builds (`apps/admissions/Dockerfile:53-61`), and all Spec B work. Production is unreachable today (D14), so nobody sees an effect yet. Task 6.2 approves the first deploy after task 6.1's name checks and backup, and re-enables automatic deploys once it succeeds. |
+| DEC-11 | `seed_school_admins` is additive by default (review F14, decided with the user on 2026-11-07/08). It adds the requested permissions (default `review`) to those an existing membership holds, and removes a permission only when `--read-only` or `--replace` is passed. Only a membership it actually changes is written, and each such change emits one `TenantAuditService` event with the permissions before and after; a run that changes nothing emits no event. |
 
 ---
 
@@ -234,15 +236,15 @@ The tag in brackets names the critique §8.2 criterion each clause implements. T
 
 2.38 [R7.3] WHEN an admin chooses Conditional approval THEN the UI SHALL require at least one condition with a description and a deadline that is not in the past before sending `conditionally_approved`, and the review endpoint SHALL refuse `conditionally_approved` without conditions with `NO_CONDITIONS_PROVIDED`
 
-2.39 [R7.4, pending user sign-off D9] IF an institution has no document profile for the acceptance letter or the conditional offer THEN the student UI SHALL show that the letter is not available yet, with the tenant support contact, SHALL NOT claim it is ready, and the system SHALL NOT render it with neutral fallback branding; the harness and local seed SHALL create letter profiles for their seeded offerings
+2.39 [R7.4, D9 confirmed 2026-11-08] IF an institution has no document profile for the acceptance letter or the conditional offer THEN the student UI SHALL show that the letter is not available yet, with the tenant support contact, SHALL NOT claim it is ready, and the system SHALL NOT render it with neutral fallback branding; the harness and local seed SHALL create letter profiles for their seeded offerings
 
-2.40 [DEC-5, pending user sign-off D9] WHEN the application slip or a payment receipt is generated for a tenant without a document profile THEN the system SHALL CONTINUE TO render it from the institution row with neutral Beanola fallbacks, drawing a logo or signature only when the tenant uploaded one
+2.40 [DEC-5, D9 confirmed 2026-11-08] WHEN the application slip or a payment receipt is generated for a tenant without a document profile THEN the system SHALL CONTINUE TO render it from the institution row with neutral Beanola fallbacks, drawing a logo or signature only when the tenant uploaded one
 
 **R8 — Session continuity and first-step friction**
 
 2.41 [R8.1] WHEN a student whose access token has expired, but whose refresh token is still valid, loads or navigates an authenticated page THEN the app SHALL restore the session with one refresh attempt made by that page's route guard, without showing the sign-in page; public pages SHALL NOT send refresh requests, and no route guard SHALL send one after the user signs out
 
-2.42 [R8.2] WHEN a student registers with a Zambian mobile number in local format (`09…` or `07…`) THEN the system SHALL accept it and normalise it to `+260…` with the one shared normaliser; IF the number is invalid THEN the field SHALL show an inline error linked by `aria-describedby` and set `aria-invalid`, the banner SHALL NOT show raw field keys, and no validation message SHALL echo the submitted value
+2.42 [R8.2] WHEN a student registers with a Zambian mobile number in local format (`09…` or `07…`) THEN the system SHALL accept it and normalise it to `+260…` with the one shared normaliser; IF the number is invalid THEN the field SHALL show an inline error linked by `aria-describedby` and set `aria-invalid`, the banner SHALL NOT show raw field keys, and no validation message SHALL echo the submitted value; an input that starts with `+` SHALL be accepted only as `+260` followed by exactly nine digits, so `+260` followed by exactly six digits, which the shared normaliser would read as a bare nine-digit subscriber number, SHALL be refused with that inline error and never reinterpreted as `+260260…` (a registration-only pre-check; the payment normaliser's behaviour does not change)
 
 **R9 — A journey gate that can see these failures**
 
@@ -254,7 +256,7 @@ The tag in brackets names the critique §8.2 criterion each clause implements. T
 
 2.46 [R9.4] THE configuration tests from R1 SHALL run in CI as blocking steps
 
-2.47 [DEC-7] THE gate SHALL NOT depend on production; a separate task SHALL run the same journey once against production after deploy, and that task SHALL stay blocked until a live production host exists (D14)
+2.47 [DEC-7] THE gate SHALL NOT depend on production; a separate task SHALL run the same journey once against production after deploy, and that task SHALL stay blocked until a live production host exists (D14, confirmed 2026-11-08: wait for the new host)
 
 **R10 — Diagnostics badge**
 
@@ -504,6 +506,7 @@ FOR ALL X WHERE isBugCondition_R8(X) DO
   ASSERT (X.routeKind = authenticated) IMPLIES NOT showsSignIn(r) AND refreshRequests(r) = 1
   ASSERT matchesLocalZambianFormat(X.phoneInput) IMPLIES storedPhone(r) = "+260" ++ last9(X.phoneInput)
   ASSERT NOT contains(anyMessage(r), X.phoneInput) AND fieldHasAriaInvalid(r) WHEN invalid
+  ASSERT startsWithPlus(X.phoneInput) AND NOT matches(X.phoneInput, "+260" ++ 9 digits) IMPLIES refused(r) AND storedPhone(r) = none   // includes +260 ++ 6 digits
 END FOR
 
 FOR ALL X WHERE NOT isBugCondition_R8(X) DO
@@ -582,6 +585,7 @@ Each external dependency has at least one failure case. Design.md gives the hand
 - **EC-20 Refresh cookie present but revoked.** The guard's single refresh fails, and the user is sent to sign-in once, with no retry loop (2.41, 3.19).
 - **EC-21 The audit write fails during a seed run.** `TenantAuditService.record_event` swallows its own failures, so the command counts the run's audit rows before it commits, and a missing row rolls back every membership change of the run; the operator re-runs (2.36).
 - **EC-22 A Deploy run starts during the deploy pause.** On the preferred path it waits for an approval that nobody gives before task 6.2; on the fallback path no run starts. An approved run deploys everything merged on `main`, so an urgent production fix during the pause still waits for task 6.1's checks and backup (DEC-10, 3.16).
+- **EC-23 A mistyped `+260` number with six digits.** The shared normaliser reads `+260` followed by six digits as a bare nine-digit subscriber number, which would store `+260260…`. Registration refuses it with the inline phone error (2.42) and stores nothing; the mobile-money normaliser is unchanged, so a payment is unaffected.
 
 ---
 
@@ -593,7 +597,7 @@ Each external dependency has at least one failure case. Design.md gives the hand
 - **OS-4** Direct-to-R2, presigned PUT, or resumable uploads (DEC-4, D13).
 - **OS-5** Removing or freezing anything (DEC-1): jobs-ops, change requests, v2 demo views, caches, vendored skills, harness evidence, and physical deletion of the unused upload stacks (Spec B S2).
 - **OS-6** Visual and copy quality beyond the defects named here (Spec B P2), including the landing page, stepper honesty, typography and admin queue layout.
-- **OS-7** Production deploys or production database writes made by an agent, and git history rewrites, inside a spec task (pausing automatic deploys and approving the first deploy are operator steps, tasks 2.6 and 6.2, and task 2.7's workflow edit deploys nothing without an approval, DEC-10), and the operator track of D11 (P0-ops): Resend key rotation, public branches and pull-request refs, repository visibility, infrastructure identifiers, `besa/` and `open-design/`. The signature PNG and the three letter templates are removed from `apps/admissions/public/` by commit `8f01c30cb` on `specs/journey-repair-and-simplification`, which has not reached `main` or been deployed; `current application structure.pdf`, MIHAS's paper application form, is kept.
+- **OS-7** Production deploys or production database writes made by an agent, and git history rewrites, inside a spec task (pausing automatic deploys and approving the first deploy are operator steps, tasks 2.6 and 6.2, and task 2.7's workflow edit deploys nothing without an approval, DEC-10), and the operator track of D11 (P0-ops), which stays outside both specs: Resend key rotation, public branches and pull-request refs, repository visibility, infrastructure identifiers, `besa/` and `open-design/`. D11 status as of 2026-11-08: the signature PNG and the three letter templates are removed from `apps/admissions/public/` by commit `8f01c30cb` on branch `specs/journey-repair-and-simplification`, pull request #207, and are not on `main` and not deployed; `current application structure.pdf`, MIHAS's paper application form, is kept. Seven remote branches were deleted on 2026-11-07. The Resend key rotation is in progress per the user (2026-11-07/08); completion is not recorded, and updating the production env value afterwards is an operator step. The GitHub Support request about pull-request refs is drafted, not confirmed sent. Repository visibility, infrastructure identifiers, and moving `besa/` and `open-design/` out of the working tree are still open.
 - **OS-8** Any change to the payment state machine, webhook deduplication, payment providers or payment flags beyond the UI fixes in 2.35 and 2.37.
 - **OS-9** C-08 (the card widget loads the live `pay.lenco.co` host on localhost), C-15 (Settings "Sex" field; overlaps the `profile-updates` spec), C-17 (jobs-ops), C-18's duplicate React keys and heading order (Spec B), C-21 (local build API base).
 - **OS-10** A beat service for the local-test stack (A-08; Spec B S1), and consolidating local stacks (Spec B S1).

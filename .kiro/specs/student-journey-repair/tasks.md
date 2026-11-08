@@ -137,7 +137,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Run and record pass counts: the tenant-isolation, payment, auth, upload, draft, submission, AI and official-document suites listed in design "Preservation Checking"
     - Commands: `cd backend && python3 -m pytest tests/property/test_scope_before_lookup.py tests/property/test_cross_tenant_invisibility.py tests/property/test_production_scope_masking_properties.py tests/property/test_access_scope_properties.py tests/unit/test_scope_drift_guard.py tests/unit/test_unscoped_endpoint_guard.py tests/unit/test_payment_single_path_8_2.py tests/unit/test_prod_settings_required_flags.py tests/unit/test_payment_phase_8_2.py tests/unit/test_payment_idempotence_8_2.py tests/unit/test_no_admissions_generative_ai_guard.py tests/integration/test_document_evidence_compensation_7_3.py -q` and `cd apps/admissions && bun run test -- --exclude '**/sjr*'`
     - The frontend baseline excludes the `sjr` files, so it counts only the suites that existed before this spec; with their strict markers, the task 1 files would otherwise count as passes
-    - Some existing tests pin behaviour this spec changes on purpose. Each is named in its fix task with its new assertion (3.6, 3.9, 3.13, 3.14, 3.17, 3.19, 3.20, 3.27, 5.3, 5.4), and the checkpoints count it with that new assertion. Among the design's baselines that is `test_document_evidence_compensation_7_3.py` `:180`, `:341`, `:431` and `:490` (task 3.14) and `test_official_document_durability_10_4.py` `:632-643` and `:645-658` (task 3.19). A fix may change an existing test only when the old assertion encodes the defect it fixes, and the test records why; any other test that turns red is a regression (design "Preservation Checking")
+    - Some existing tests pin behaviour this spec changes on purpose. Each is named in its fix task with its new assertion or mock (3.1, 3.6, 3.9, 3.13, 3.14, 3.17, 3.18, 3.19, 3.20, 3.22, 3.23, 3.27, 5.3, 5.4), and the checkpoints count it with that new assertion or mock. Among the design's baselines that is `test_document_evidence_compensation_7_3.py` `:180`, `:341`, `:431` and `:490` (task 3.14) and `test_official_document_durability_10_4.py` `:632-643` and `:645-658` (task 3.19); `draftOutboxMinimisation.property.test.ts` gains the pending-grades case in task 3.23 with its existing assertions unchanged. A fix may change an existing test's assertion only when the old assertion encodes the defect it fixes. It may change a test's mocks, fixtures or patch targets, keeping every assertion, when the code under test changes shape (a new client, loader or transport), as tasks 3.1, 3.6, 3.19 and 3.22 do. Either way the task names the test and the test records why; any other test that turns red is a regression (design "Preservation Checking")
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.12, 3.13, 3.14, 3.15, 3.21_
 
   - [ ] 2.5 Record the broad harness matrix baseline
@@ -175,6 +175,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `backend/config/settings/base.py`: `AWS_S3_PUBLIC_ENDPOINT_URL`, `AWS_QUERYSTRING_EXPIRE` from `S3_SIGNED_URL_TTL_SECONDS` (10–3600, default 900)
     - `backend/apps/common/storage.py`: `get_presign_client()`; `generate_signed_url` uses it
     - New `backend/apps/common/management/commands/storage_roundtrip_check.py` with `--expect-private`
+    - Existing tests that patch the old client, updated in this change (mock target only): `backend/tests/property/test_response_properties.py:236-299` (three tests) patch `apps.common.storage.get_s3_client` and assert on that mock's `generate_presigned_url`; `generate_signed_url` now builds its client with `get_presign_client()`, so they patch `get_presign_client` instead, assertions unchanged
     - Docs: CTM "Object storage" row (CTM 60-73); `tech.md` Storage row and Commands; `LOCAL-TESTING.md` Parts 1–2 and the isolation table; `docs/runbooks/local-parity.md`; `deploy/.env.prod.example` comments
     - _Bug_Condition: isBugCondition_R1 where the local-test stack has an empty storage endpoint_
     - _Expected_Behavior: write, read, sign, fetch and delete succeed against a private bucket_
@@ -305,6 +306,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `DocumentSerializer.file_url` signed on read; regenerate the schema (`cd backend && python3 manage.py spectacular --file /tmp/schema.yaml`) and the types (`bun run generate:api-types`)
     - Correct the comment at `official_document_views.py:320` and the `_RAW_URL` fixture in `test_official_document_signed_download.py`; that file's `_Doc` stand-in (`:30-37`) gains `storage_key` and `document_name`, and its signer tests (`:118-139`) follow the new helpers
     - Existing tests that pin persisted URLs (1.16), updated in this change: `backend/tests/unit/test_application_tasks.py:206-221` and its receipt twin `:330-346` (`test_file_url_set_from_storage`) assert that `commit_version` receives the stored key as both `file_url` and `storage_key` and that `storage.url()` is not called; `backend/tests/unit/test_synthesized_legacy_documents.py:71-82` expects `file_url: null` when signing fails, because a list never publishes a raw key (2.17)
+    - `backend/tests/unit/test_drift_bug3_endpoints.py:137-157` (`test_signed_url_passes_object_key_not_full_url`) signs a `cdn.example.com` URL as the key `documents/app123/abc_transcript.pdf`, which is defect 1.18. It now expects that legacy-provider URL to be returned unchanged (2.20), while an endpoint-host or `X-Amz-` URL is still signed by its path; `_make_mock_document` (`:45-67`) sets `storage_key=None` so the helper falls back to `file_url`. The old assertion encoded 1.18
     - New guard `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (the tenant-asset sites `backend/apps/catalog/admin_asset_views.py:93` and `:294` listed as known Spec B exceptions)
     - Docs: CTM "Immutable document evidence" (CTM 1149-1196) and the legacy-fallback allowlist entry; `docs/schema-ownership.md`
     - _Bug_Condition: isBugCondition_R4 where a presigned URL is persisted or a legacy value is opened_
@@ -355,6 +357,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Docs: CTM canonical routes (CTM 770); CTM read-existing surface (CTM 623-676); `structure.md` high-risk paths
     - Existing tests that drive the old controls (1.23: a tab opened in code after awaits), updated in this change:
       - `apps/admissions/tests/unit/documentUiStates.test.tsx`: the tests at `:221`, `:281`, `:315` and `:341` click the student slip, receipt and letter controls and expect `downloadOfficialDocument`. They now expect the Prepare request, then an Open anchor to `/student/documents/open?app=<id>&type=<type>`, and no `downloadOfficialDocument` call;
+      - the receipt tests in the same file look up the retired label "Download Receipt" (R5-f): `:273` (absent until verified), `:276-278` (offered once verified), and the clicks at `:287`, `:305` and `:322`. They use "Prepare receipt" and then the "Open receipt" anchor; their Retry and no-download assertions stay;
       - the `useOfficialDocument` mock in `paymentOwnershipSplit.test.tsx:100-115` returns the hook's new shape;
       - harness: `official-document-durability.spec.ts:529-531`, `:625` and `:659`, `student-document-density.spec.ts:672` and `student-lifecycle-golden.spec.ts:593` press a "Download Slip" button. They now press the slip's Prepare control where they ask for a document (`student-document-density.spec.ts:672`, `student-lifecycle-golden.spec.ts:593`) and its Open link where they open one or check that it is offered (`official-document-durability.spec.ts`), and keep their assertions on the popup's storage host
     - _Bug_Condition: isBugCondition_R5 where the click comes after the URL lifetime, or an official document becomes ready after awaits_
@@ -379,6 +382,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - `generate_signed_url` with `ResponseContentDisposition` from `content_disposition_for`
     - Register the three surfaces in `scripts/authority_matrix_registry.py`
     - Existing tests that pin the old read precedence and the silent signing failure (1.22, 1.24), updated in this change: `backend/tests/unit/test_official_document_durability_10_4.py:632-643` (a live application with a stale issued slip reads `not_requested`) and `:645-658` (a failure is reported before the issued copy) read as the student. The student now gets the issued slip as `ready` with `historical: true`, and each test adds the staff read, which keeps today's answer (D-A13). `backend/tests/unit/test_official_document_signed_download.py:130-134` expects the signing-failure sentinel, not `None`
+    - Mocks that follow the loader (assertions unchanged): `_mock_document_lookup` (`backend/tests/unit/test_drift_bug3_endpoints.py:70-75`) and the extract mocks in `backend/tests/property/test_drift_bug3_preservation.py:169-197` and `backend/tests/unit/test_document_payment_envelopes.py:19-26` configure `ApplicationDocument.objects.select_related(...).get`; they follow `resolve_owner_or_scoped_document`'s owner and scoped lookups (`backend/apps/common/tenant_authorization.py:436`), and their 404, owner and envelope assertions are unchanged. The affected cases are signed-url `:103-117` and `:119-135`, download `:195-209`, info `:251-265`, and delete `:323-337` and `:339-356` in the first file
     - Docs: CTM "Stable document command codes" (CTM 1166), "Student failure copy vs staff failure copy" (CTM 660), "Read-existing eligibility" (CTM 654), required-documents authority line (CTM 1136-1139)
     - _Bug_Condition: isBugCondition_R5 where a reviewer is in scope and assigned, a non-owner student asks, signing fails, or the status changed after issue_
     - _Expected_Behavior: reviewer served; masked 404 for non-owners; ERROR log and honest code; issued slip readable_
@@ -461,12 +465,13 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 
   - [ ] 3.27 R8 — one MSISDN normaliser, echo-free messages, field errors kept (design R8-b)
     - Move the normaliser to `backend/apps/common/validators.py` as `normalize_zambian_msisdn`; keep the `payment_helpers` alias; new `validate_zambian_phone` and `validate_nrc` messages
-    - `SignUpPage.tsx` uses `zambianMsisdnSchema`; `SignUpResult.fieldErrors`; `useSessionListener.signUp` returns it; generic banner when field errors exist
-    - New `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json`, `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` and `backend/tests/unit/test_zambian_msisdn_vectors.py`
-    - `backend/tests/property/test_validation_properties.py` encodes the `+260`-only rule (1.39) in its invalid-phone strategies (`:36-49`), updated in this change: `260\d{9}` (`:48`) moves to the valid set, and the invalid set drops every shape the shared normaliser accepts. That includes `\+260\d{6}` from the too-few-digits strategy (`:44`), which the bare nine-digit rule (`backend/apps/documents/payment_helpers.py:135-137`) reads as a subscriber number
+    - `SignUpPage.tsx` uses `registrationPhoneSchema` (the registration pre-check, then `zambianMsisdnSchema`); `SignUpResult.fieldErrors`; `useSessionListener.signUp` returns it; generic banner when field errors exist
+    - Registration-only pre-check (design R8-b, decided): `validate_zambian_phone` and `registrationPhoneSchema` accept a `+` input only as `+260` plus exactly nine digits, so `+260` plus six digits is refused with the inline error and never stored as `+260260…`; `normalize_zambian_msisdn`, the `payment_helpers` alias and `normalizeZambianMsisdn` are unchanged
+    - New `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json` (with a `registrationRefused` list that includes `+260977123`), `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` and `backend/tests/unit/test_zambian_msisdn_vectors.py`; both tests run the refused list through the registration entry points
+    - `backend/tests/property/test_validation_properties.py` encodes the `+260`-only rule (1.39) in its invalid-phone strategies (`:36-49`), updated in this change: `260\d{9}` (`:48`) moves to the valid set, and the invalid set drops only the shapes registration now accepts. `\+260\d{1,8}` (`:44`) stays invalid, including `\+260\d{6}`: the registration pre-check refuses it even though the shared normaliser reads it as a bare nine-digit subscriber number (`backend/apps/documents/payment_helpers.py:135-137`), which would store `+260260…` (decided; 2.42, EC-23)
     - Docs: CTM "Zambian MSISDN normalisation" mirrored concept with the shared-vector drift guard
-    - _Bug_Condition: isBugCondition_R8 where the phone is in local format, or invalid_
-    - _Expected_Behavior: normalised to `+260…`; inline error with `aria-invalid`; no raw keys or values_
+    - _Bug_Condition: isBugCondition_R8 where the phone is in local format, or invalid (including an ambiguous `+` input)_
+    - _Expected_Behavior: normalised to `+260…`; inline error with `aria-invalid`; no raw keys or values; `+260` plus six digits refused, never read as `+260260…`_
     - _Preservation: `+260` numbers stored unchanged; mobile-money normalisation byte-for-byte the same (3.18, 3.2)_
     - _Requirements: 2.42, 3.2, 3.10, 3.18_
 
@@ -564,7 +569,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
 - [ ] 5. P0b — decisions and decision documents (R7)
   - **Property 7: Expected Behavior** - Decisions and Decision Documents
   - Starts only after task 4.6 is green
-  - Letter behaviour (5.4) is pending user sign-off (D9); confirm with the user before merging it
+  - Letter behaviour (5.4): decision D9 confirmed 2026-11-08 (option C); like all of task 5 it still starts only after task 4.6 is green
   - _Requirements: 2.36, 2.37, 2.38, 2.39, 2.40_
 
   - [ ] 5.1 Seeded admins can decide, additively (design R7-a; DEC-11)
@@ -598,12 +603,12 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: valid conditions still assign through `ConditionManager` (3.20); bulk status out of scope (OS-11)_
     - _Requirements: 2.38, 3.20_
 
-  - [ ] 5.4 Letters without a profile say so (design R7-d; pending user sign-off, D9)
+  - [ ] 5.4 Letters without a profile say so (design R7-d; decision D9 confirmed 2026-11-08, option C; starts only after task 4.6 is green)
     - `render_context.py`: `has_active_document_profile` using the renderer's own resolution
     - `_generation_status`: `setup_required` with `DOCUMENT_PROFILE_NOT_CONFIGURED` for profile-required types with no profile
     - `officialDocumentPresentation.ts`: "isn't available yet" copy with `resolveTenantSupportContact`; no Prepare, no neutral fallback
     - `harness_seed_tenants.py`: fictional, validated letter profiles for the seeded offerings
-    - Docs: CTM "Document profiles…" (CTM 1306-1328); `docs/audits/document-type-audit.md:314-317`; `docs/runbooks/multi-tenant-operations.md`; each marked pending D9
+    - Docs: CTM "Document profiles…" (CTM 1306-1328); `docs/audits/document-type-audit.md:314-317`; `docs/runbooks/multi-tenant-operations.md`; each marked "D9 confirmed 2026-11-08 (option C)"
     - Existing harness steps that pin the old letter state (1.37), updated in this change. Journey 4 of `official-document-durability.spec.ts` (`:777-800`) clicks the letter's first button and expects the "admissions office has been notified" recovery; it now expects the "isn't available yet" copy and one support link without a click, no Prepare or Try again control, still no mention of a document profile, template or signature, and the same support-link address checks. `student-document-density.spec.ts` approves its application in a school it creates with no letter profile (`:160-226`), so its summary and prominent-control assertions (`:318-331`) follow the letter's new state
     - _Bug_Condition: isBugCondition_R7 where a letter type has no profile_
     - _Expected_Behavior: truthful "not available yet" state; no render without a profile_
@@ -632,8 +637,8 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.36, 2.37, 2.38, 2.39, 2.40, 2.43, 3.22_
 
-- [ ] 6. Production verification — **Blocked until a live production host exists (D14)**
-  - Do not start this task until the user names the production host (D14: restore the EC2 stack or wait for the new host)
+- [ ] 6. Production verification — decision D14 confirmed 2026-11-08 (wait for the new production host; do not restore the EC2 stack; P0 is gated in CI meanwhile). **Blocked until a live production host exists**
+  - Do not start this task until a live production host exists and the user names it (D14 confirmed 2026-11-08: wait for the new host; the EC2 stack is not restored)
   - Every step is an operator action; no agent writes to the production database
   - _Requirements: 2.47_
 

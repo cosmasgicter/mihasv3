@@ -4,10 +4,10 @@
 
 P1 (simplification) comes first, then P2 (visual quality), following critique §8.4. Within each phase, decision-independent tasks come before gated tasks.
 
-- **Gated tasks.** A task whose title starts with `[Blocked until Dn is confirmed]` must not start until that decision's **Status** line in `requirements.md` (Decision Register) records the option, the date and who chose it. If the chosen option is not the lean, rewrite the task to the option's delta (listed in the register) before starting it.
+- **Gated tasks.** A task whose title starts with `[Decision Dn confirmed 2026-11-08 (option …)]` follows a decision that the user confirmed on 2026-11-08; its **Status** line in `requirements.md` (Decision Register) records the option. Any further prerequisite is stated on the same marker line (a Spec A gate, a live production host, the P0_Ops_Check, an operator step) and must be met before the task starts. A task whose marker still starts `[Blocked until …]` waits for an open decision (D17). Where the confirmed option is not the lean (D5's workflow, which stays dormant), the task is written to that option.
 - **Start condition.** Tasks 1.1 and 1.2 are doc-only truthfulness fixes, and task 1.3 restores a harness default that Spec A's own gates need; all three may start at once (see "Dependencies and sequencing" in `requirements.md` for why). Everything else starts after task 2, once Spec A's Journey_Gate is green.
 - **Evidence.** Each task records what it ran and what it saw, in Markdown, in `docs/evidence/platform-simplification-and-polish/README.md`, one section per task id. Raw logs, traces and screenshots stay in CI artefacts and are never committed.
-- **Deploy path (Spec A DEC-10).** No task deploys or edits `.github/workflows/deploy.yml`, but that workflow builds both images and rolls production after every green CI run on `main` (`:6-11`, `:24`), so a merge can reach production. Spec A pauses this in its task 2.6, before its task 3.2, and re-enables it in its task 6.2, which is blocked until a live production host exists (D14); the pause covers this spec's work (Spec A `bugfix.md:28`). A task whose change ships in the backend or frontend image carries a **Deploy path** line:
+- **Deploy path (Spec A DEC-10).** No task deploys or edits `.github/workflows/deploy.yml`, but that workflow builds both images and rolls production after every green CI run on `main` (`:6-11`, `:24`), so a merge can reach production. Spec A pauses this in its task 2.6, before its task 3.2, and re-enables it in its task 6.2, which is blocked until a live production host exists (D14); the pause covers this spec's work (Spec A DEC-10, decided with the user on 2026-11-07/08). The environment form of the pause holds only while the repository is public on the GitHub Free, Pro and Team plans (Spec A task 2.6), so it can lapse if the D11 track changes visibility; a production-affecting merge during the pause first repeats Spec A task 2.6's confirmation that the pause still holds, and the operator who approves Spec A task 6.2 reads this spec's Deploy path entries first (task 2 records the pointer). A task whose change ships in the backend or frontend image carries a **Deploy path** line:
   - while Spec A's pause holds, its merge reaches production only in a Deploy run an operator approves. Spec A approves none before its task 6.1's checks and backup, and an approved run ships everything merged on `main` (Spec A EC-22);
   - once Spec A's task 6.2 has re-enabled automatic deploys, its merge deploys through the normal automatic path.
 
@@ -19,13 +19,13 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 - [ ] 1. Early fixes (may start before Spec A's Journey_Gate is green)
   - [ ] 1.1 Correct steering and agent-instruction claims that are false under every option and that Spec A does not change
     - `.kiro/steering/tech.md`:
-      - Replace "a real operator dashboard, not a placeholder shell" and the "Current Jobs Ops State" bullets with current facts: routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` and serve seed data when on; decision D1 is pending.
+      - Replace "a real operator dashboard, not a placeholder shell" and the "Current Jobs Ops State" bullets with current facts: routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` and serve seed data when on; decision D1 is confirmed as a freeze (2026-11-08) and not yet implemented (task 12.1).
       - Re-verify each "Known Open Issues" item at HEAD, and mark each fixed one with the file or commit that fixed it.
       - Add one known issue: the generic admin settings endpoints let any `admin` role read every setting (`IsAdmin`) and gate writes on the super-admin role string (`_settings_write_forbidden`), while the route registry and `scripts/authority_matrix_registry.py:454-457` describe them as super-admin and `platform.settings.manage` surfaces; re-gating them is a capability change that needs its own decision.
       - Replace "17 tasks … dedicated Koyeb worker" with the 21 entries of `CELERY_BEAT_SCHEDULE` and a reference to `infrastructure.md` for the production host, without naming the host.
-    - `.kiro/steering/product.md`: change the flow's "Email Verification" step to "email verification is not implemented (decision D8 pending)"; replace the jobs-ops wording as above; remove the `apps/librarymanagement/` statement; and, after the "Current Admissions Flow Contract" bullet on profile and settings forms, state the current fact: the Settings page does not meet it today, because the "Sex" field never shows the saved value and "Unsaved changes" never clears after a save (finding C-15, open, no spec owns the fix). Spec A does not change that bullet.
+    - `.kiro/steering/product.md`: change the flow's "Email Verification" step to "email verification is not implemented (decision D8 confirmed 2026-11-08: not part of the flow)"; replace the jobs-ops wording as above; remove the `apps/librarymanagement/` statement; and, after the "Current Admissions Flow Contract" bullet on profile and settings forms, state the current fact: the Settings page does not meet it today, because the "Sex" field never shows the saved value and "Unsaved changes" never clears after a save (finding C-15, open, no spec owns the fix). Spec A does not change that bullet.
     - `.kiro/steering/structure.md`: remove the `apps/librarymanagement/` row, and point every "spec of record" path at `.kiro/specs/_archived/…`.
-    - `.kiro/steering/enterprise-tenancy.md`: replace "a real submit/review/apply workflow, not explanatory text" with "a backend workflow with six routes and no frontend caller (decision D5 pending)", and fix the spec-of-record path.
+    - `.kiro/steering/enterprise-tenancy.md`: replace "a real submit/review/apply workflow, not explanatory text" with "a backend workflow with six routes and no frontend caller, dormant by decision D5 (confirmed 2026-11-08)", and fix the spec-of-record path.
     - `.kiro/steering/design-skills.md:32`: change `tokens.colors.cjs` to `tokens.colors.json`.
     - `.agents/AGENTS.md:13`: describe `product.md` as "Identity: Beanola owns the platform; MIHAS and KATC are example tenants".
     - `REDESIGN.md`: replace the "MIHAS-KATC" wordmark (lines 3 and 175) with Beanola, and add a dated note that the file is a historical design direction, not current rules.
@@ -50,6 +50,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 - [ ] 2. Checkpoint: start condition for the rest of this spec
   - Confirm that Spec A's Journey_Gate is green and blocking in CI on main, and record the commit id and run link in the evidence summary.
   - Record whether Spec A's pause on automatic deploys (DEC-10) is in force, and on which path (environment approval or disabled workflow), or whether Spec A's task 6.2 has already re-enabled automatic deploys. This decides how this spec's merges reach production (Overview, "Deploy path").
+  - Record the pointer for the operator who will approve Spec A task 6.2: read this spec's Deploy path entries before approving, because Spec A task 6.1's checklist does not mention them. Record too whether the pause is still in the form Spec A task 2.6 chose (an environment with required reviewers holds only while the repository is public on the Free, Pro and Team plans).
   - Ask the user if questions arise.
   - _Requirements: 1.1, 22.5, 22.7_
 
@@ -110,10 +111,11 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Move the three preconnects out of `apps/admissions/index.html:26-28` into the `beanola-resource-hints` plugin in `vite.config.ts`, and confirm that a build with `VITE_API_BASE_URL` set to the API origin and an empty widget variable emits the same API and `pay.lenco.co` hints as today.
     - State the plugin's assumption in a comment in the plugin and next to the `VITE_API_BASE_URL` entry of the deploy runbook's variable list (`deploy/RUNBOOK.md:41`), without adding a host name (Requirement 6.6): production sets `VITE_API_BASE_URL` to the API origin, as `backend/DEPLOY.md:274` already says. A build that sets it to the production app origin, the harness's same-origin sentinel (`harness/bin/harness:67-70`), gets no API preconnect, although `getApiBaseUrl` maps that value to the API origin at runtime (`src/lib/apiConfig.ts:44-52`; design §1).
     - Add `scripts/check-local-build-hosts.ts`, run by `harness/bin/harness` after `build_spa`, with unit tests on `index.html` fixtures, including Open Graph `<meta>` tags that must not count.
+    - Make a host name outside the stack unresolvable in the browser (design §1, "Name resolution"): launch Chromium with `--host-resolver-rules="MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE *.localhost, EXCLUDE 127.0.0.1, EXCLUDE [::1]"` in `apps/admissions/playwright.harness.config.ts`, its three variants (`playwright.harness.13-2.config.ts`, `playwright.harness.13-3.config.ts`, `playwright.harness.13-6-L5-L6.config.ts`), Spec A's journey-gate configuration and, when it exists, task 22.1's rendered-gate configuration, and extend `apps/admissions/tests/unit/playwrightConfig.test.ts` to assert the argument in each. A navigation, a popup, a form post and a subresource to an outside host name then fail before any packet leaves the machine, and no route is registered, so the HTTP cache stays on. A literal IP address outside loopback is not resolved, so it is detected by the listeners below, not prevented (Requirement 1.11). That the `EXCLUDE` patterns keep every harness host reachable on a CI runner is Unverified: the first gate run proves it, and a host it cannot reach is added to the pattern and recorded.
     - Add the outside-host gate without any Playwright route, because a route turns on interception for every request and turns the HTTP cache off in every harness run (`crNetworkManager.js:150-162`; design §1):
       - narrow the harness CSP's `connect-src`, `img-src`, `font-src` and `frame-src` from `*` to `'self'` plus the stack hosts (`harness/Caddyfile:24`);
-      - in `apps/admissions/tests/harness-e2e/harness-fixtures.ts`, record the host of every request to an outside host from a `request` listener and the existing `requestfailed` listener, and of every `securitypolicyviolation` event through an init script and `page.exposeFunction`, whatever `allowRequest` or `allowConsole` says;
-      - add a gatecheck probe in `tests/harness-e2e/gatecheck/` that proves the gate fires for a request the CSP refuses and for a top-level navigation to a host under the reserved `.invalid` domain.
+      - in `apps/admissions/tests/harness-e2e/harness-fixtures.ts`, move the request listeners from the page to the browser context, so popups are covered: record the host of every request to an outside host from `context.on('request')` and the existing `requestfailed` handling (a name-resolution failure, `net::ERR_NAME_NOT_RESOLVED`, counts; only `net::ERR_ABORTED` is a cancellation), and of every `securitypolicyviolation` event through `context.addInitScript` and `context.exposeFunction`, whatever `allowRequest` or `allowConsole` says. Harness specs open popups today (`official-document-durability.spec.ts:533,658`);
+      - add gatecheck probes in `tests/harness-e2e/gatecheck/` that prove the gate fires, and names the host, for a request the CSP refuses, for a top-level navigation to a host under the reserved `.invalid` domain and for a popup to one. Unit-test the host classifier on IPv4 and IPv6 literals; give a literal IP address outside loopback no browser probe, because a probe would send a packet.
     - Run `bash harness/bin/harness smoke` with the gate on, and record in the evidence summary each outside host it finds and how it was resolved. The task is done when the run shows no outside-host violation and no failure that Spec A's recorded smoke baseline does not already list.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: only the frontend image's `index.html` hints change. Precondition: production's `VITE_API_BASE_URL` Actions variable names the API origin; if it does not, the only effect is a missing API preconnect.
     - _Requirements: 1.11_
@@ -179,26 +181,29 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 - [ ] 6. Test database built from SQL
   - [ ] 6.1 Capture a verified baseline schema from Neon (operator-assisted)
     - With the user's go-ahead, create a Neon branch from the authoring default branch and tell the user its id.
-    - Dump it with `pg_dump` 17, `--schema-only --schema=public --no-owner --no-privileges`, plus the `migration_history` and `django_migrations` rows as INSERTs (design §7), and strip psql meta-command lines.
+    - Dump it with `pg_dump` 17, `--schema-only --schema=public --no-owner --no-privileges`, plus the `migration_history` and `django_migrations` rows as INSERTs (design §7), and strip the psql meta-command lines and each dump's trailing comment block (`-- PostgreSQL database dump complete` with the `--` lines around it), so the file ends with a statement (design §7 point 3).
     - In an empty `postgres:17` container, run the whole session sequence: load the result with `psql -v ON_ERROR_STOP=1`, then `python manage.py migrate --noinput`, then `python manage.py apply_sql_migrations`. Accept the capture only if all three succeed. If `migrate` fails because the branch's Django tables and its `django_migrations` rows disagree, capture again without Django's own tables (`--exclude-table='auth_*' --exclude-table='django_*'`), so `migrate` creates them, and record why in `backend/scripts/BASELINE.md` (design §7 point 1).
     - Run `python manage.py schema_manifest` against the branch. Record every difference from the repository's scripts, and its explanation, in `backend/scripts/BASELINE.md`, or stop.
     - Replace `backend/scripts/00_full_schema.sql` with the dump and a header that ends "production parity: Unverified (task 6.8)". Change `backend/scripts/generate_full_schema.py` to print model DDL to standard output.
+    - In the same change keep the documented local database steps working (design §7 point 2, "Who loads the baseline"). `LOCAL-TESTING.md` Part 2 steps 2a–2c and the local-real block load the file with `psql` and then run `apply_sql_migrations`, with no `migrate`, into `postgres:16-alpine`; after this task that would load a `pg_dump` 17 file into Postgres 16. So: rewrite those two blocks to the session's order (`psql -v ON_ERROR_STOP=1`, then `python3 manage.py migrate --noinput`, then `python3 manage.py apply_sql_migrations`); move the three backend compose files to `postgres:17-alpine` (`backend/docker-compose.yml:16`, `backend/docker-compose.local-test.yml:19`, `backend/docker-compose.local-real.yml:21`) and say in the document that an existing Postgres 16 volume needs `docker compose … down -v` once (these volumes hold no applicant data); correct the truth map's "Canonical schema" row (`docs/canonical-truth-map.md:1202`) and `backend/scripts/MIGRATION_HISTORY.md:99,147`; and run the rewritten steps once on an empty stack and record the result. Spec A's ownership of `LOCAL-TESTING.md` ended with its P0a, before this task.
+    - Add unit tests: no line of `00_full_schema.sql` starts with a backslash, and its last non-blank line ends with `;`.
     - Ask the user before deleting the Neon branch.
-    - _Requirements: 7.2, 22.7_
+    - _Requirements: 7.1, 7.2, 22.7_
 
   - [ ] 6.2 Build the test database from the baseline and the scripts
     - In `backend/tests/conftest.py`, override pytest-django's `django_db_setup` (design §7, point 4), in this order:
-      - stop with "backend tests require Postgres 17" if the connection is not PostgreSQL or `SHOW server_version_num` is below 170000, before anything is created, printing only the URL scheme or the major version;
+      - stop with "backend tests require Postgres 17" if the connection is not PostgreSQL or `SHOW server_version_num` is below 170000, before anything is created, printing only the URL scheme or the major version; query through `connection.creation._nodb_cursor()` (the maintenance connection `_create_test_db` itself uses), so a missing configured database gives this message and not a connection error;
       - create each test database empty with `_create_test_db`, keeping the xdist suffix through `django_db_modify_db_settings`, and switch the connection to it;
-      - load the baseline with `_split_sql_statements` from `apps/common/management/commands/apply_sql_migrations.py` (`:337`), which keeps dollar-quoted bodies, quotes and comments whole, one statement per execute;
+      - load the baseline with `_split_sql_statements` from `apps/common/management/commands/apply_sql_migrations.py` (`:337`), which keeps dollar-quoted bodies, quotes and comments whole, one statement per execute, and skip any fragment that is empty once `--` and `/* */` comments and whitespace are removed (the dump's trailer would otherwise make psycopg2 raise "can't execute an empty query");
       - close the connection, because the dump's preamble runs `set_config('search_path', '', false)` on the loading session;
-      - run `migrate --noinput` and `apply_sql_migrations` on the fresh session, then stop the session, naming the check, if `SHOW search_path` names no schema;
+      - on the fresh session, before `migrate`, stop the session, naming the check, if `SHOW search_path` names no schema (with an empty `search_path` `migrate` fails first with Django's own error, so a check placed only after it would never fire);
+      - run `migrate --noinput` and `apply_sql_migrations` on that session, and check `search_path` once more;
       - destroy the database at session end.
     - Make the override request Spec A's database-host guard fixture.
     - In the same change, move the four CI services that run backend tests from `postgres:16` to `postgres:17`: `.github/workflows/ci.yml:20` (`backend`), `:242` (`backend-property`), `:504` (`backend-drift-guards`) and `.github/workflows/backend-governance.yml:40` (`schema-and-outbox-checks`). Postgres 16 cannot load the `pg_dump` 17 baseline.
     - Remove `unmanaged_schema` and the hand-copied index block (`conftest.py:119-413`).
-    - Add unit tests: no line of `00_full_schema.sql` starts with a backslash; the version check refuses 160000 and a non-Postgres connection; the `search_path` check refuses an empty value; none of them prints a URL.
-    - Record in the evidence summary that local backend test runs now need a Postgres 17 server, such as the harness's, until D2's tasks settle the backend compose files (design §7, edge cases).
+    - Add unit tests: the loader skips a comment-only fragment, on a fixture that ends in `pg_dump`'s trailer; the version check refuses 160000 and a non-Postgres connection, and answers through the maintenance connection when the configured database does not exist; the `search_path` check refuses an empty value on the fresh session before `migrate`; none of them prints a URL. (The tests that no line starts with a backslash and that the file ends with a statement belong to task 6.1.)
+    - Record in the evidence summary that local backend test runs now need a Postgres 17 server, which the three backend compose files provide since task 6.1 (design §7, edge cases).
     - _Requirements: 7.1, 7.6_
 
   - [ ] 6.3 Isolate workers and clean up after transactional tests
@@ -228,10 +233,11 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 
   - [ ] 6.7 Run the whole backend tree in CI on Postgres 17
     - Confirm that the four backend-test services still run `postgres:17` after task 6.2.
-    - Add a job with a `postgres:17` service that runs `pytest -n 6 backend/tests` with a 30-minute timeout, and record two consecutive green runs.
+    - Add a job named `backend-full-tree` with a `postgres:17` service that runs `pytest -n 6 backend/tests` with a 30-minute timeout, and record two consecutive green runs.
+    - Operator step (repository settings): after those runs, make `backend-full-tree` a required check on `main`, as Spec A does for its own jobs (Spec A task 4.5). A failing job that branch protection does not require still lets a pull request merge. The job runs on every pull request (`ci.yml` has no `paths:` filter), so requiring it cannot leave a check pending.
     - _Requirements: 7.5, 7.6_
 
-  - [ ] 6.8 [Blocked until D14 is confirmed] Check the baseline against production
+  - [ ] 6.8 [Decision D14 confirmed 2026-11-08 (option B: wait for the new production host; do not restore the EC2 stack); blocked until a live production host exists] Check the baseline against production
     - Once D14 names a reachable production host, ask the operator for the read-only `schema_manifest` of production.
     - Explain every difference from the baseline in `backend/scripts/BASELINE.md`, or fix it with an additive script proven on a Neon branch first.
     - Replace the header's "production parity: Unverified" with the result and the date.
@@ -299,14 +305,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - The routes report, the unreachable-module check, the doc-path check and the spec status check are blocking and green.
   - The harness keeps browser runs inside the stack (task 3.7), and its error-reporter DSN parses (task 1.3), so P2's rendered gate can start.
   - The backend suite is green with `-n 6` on the SQL-built database, the lock files and the image check are green, and the outbound defaults are tested.
-  - Present the inputs from task 8, and ask the user to confirm D1–D8, D12 and D15, D14 for task 6.8 and D7's prerequisite, and D17: how links inside running text meet the 44 px rule (pad them, move them out of the sentence, or amend the steering to an inline exception that the classifier then follows), which task 24.8 applies.
-  - Confirm that Requirement 22's guardrail tests still pass.
+  - Present the inputs from task 8. D1–D10 and D12–D16 were confirmed on 2026-11-08, so ask only what is still open: D17 (how links inside running text meet the 44 px rule: pad them, move them out of the sentence, or amend the steering in four places to an inline exception that the classifier then follows; the recommendation is to keep the guardrail and fix the link), which task 24.8 applies; D1.b (what happens to `webhooks/delivery/`), which task 12.1 applies; the D3 and D5 conflict over the three `*.request_change` capabilities (task 17.2); and, from task 8.1, the merge table that task 17.3 needs. Also record that tasks 6.8, 16.1 and 16.2 wait for a live production host (D14).
+  - Confirm that Requirement 22's guardrail tests still pass, including the payment ownership split, upload validation with its staged write order, and idempotent submission (22.2, 22.12, 22.13).
   - Ask the user whether to add finding C-15 (the Settings defect no spec owns, Non-goals) to Spec A or leave it open.
   - Ask the user if questions arise.
-  - _Requirements: 1.11, 1.12, 22.1, 22.2, 22.3, 22.4, 22.5, 22.6_
+  - _Requirements: 1.11, 1.12, 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.12, 22.13_
 
 - [ ] 11. Local stack and evidence (D2)
-  - [ ] 11.1 [Blocked until D2 is confirmed] Make one stack the documented local stack
+  - [ ] 11.1 [Decision D2 confirmed 2026-11-08 (option A + B); the change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks (Spec A tasks 4.1 to 4.5) to merge] Make one stack the documented local stack
     - The harness's own isolation (the widget stub, the resource hints and both outside-host checks) is task 3.7's and the DSN is task 1.3's; both are done before this task, under every option.
     - Options A, B or C:
       - Write `harness/bin/local-setup.sh` as the one bring-up path (design §1): the prerequisite check (Docker with Compose v2, Bun, Git, curl, python3 3.8 or later; exit 3 naming the missing tool), then `bun install --frozen-lockfile` at the repository root, then `bash harness/bin/harness up`, passing the caller's environment through.
@@ -314,16 +320,19 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
       - Add `scripts/tests/test_local_setup_doc.py` and `scripts/tests/test_local_setup_prereqs.py` as standard-library `unittest` files; the prerequisite test builds a `PATH` of stub executables that lacks one tool at a time, so it does not depend on the runner's tools. Run both as one blocking step in `.github/workflows/ci.yml`'s `backend-drift-guards` job, beside task 3.3's doc-path check, as `python3 scripts/tests/test_local_setup_doc.py` and `python3 scripts/tests/test_local_setup_prereqs.py` from the repository root. `spec-governance.yml` runs its self-tests by name (`:52-55`) and would not run them.
       - After Spec A's R9 tasks are merged, change Spec A's `harness journey-gate` command so that it exports its four gate values and then calls `local-setup.sh` in place of its own `build_spa`, `compose_up` and `wait_healthy`, continuing with `ensure_browser`, the storage check, the edge check, `run_journey_gate` and `drain_check`. Confirming D2 confirms this change to Spec A's command; record the confirmation and the merge commit of Spec A's R9 tasks in the evidence summary. Spec A's workflow is not edited.
       - Show from the gate's run log that the four values reached the stack, and that the stack was brought up once.
-    - Option D: add MinIO, Mailpit, the payment adapter and beat to `backend/docker-compose.local-test.yml` instead, move its Postgres from `postgres:16-alpine` to `postgres:17-alpine` (`:19`), because the backend suite needs Postgres 17 from task 6.2 on, write `local-setup.sh` for that stack with the same two tests and the same `ci.yml` step, point `VITE_LENCO_WIDGET_URL` at the adapter's published port, and run task 3.7's plugin and host checks against it. Leave Spec A's `harness journey-gate` unchanged. Add a CI run of the Journey_Gate specs against the local-test stack for Requirement 1.1, or record Requirement 1.1 as not met if that stack cannot host them.
+    - Option D: add Mailpit, the payment adapter and beat to `backend/docker-compose.local-test.yml` instead (its MinIO comes from Spec A's R1, Spec A task 3.1, and its Postgres is already `postgres:17-alpine` from task 6.1), write `local-setup.sh` for that stack with the same two tests and the same `ci.yml` step, point `VITE_LENCO_WIDGET_URL` at the adapter's published port, and run task 3.7's plugin and host checks against it. Leave Spec A's `harness journey-gate` unchanged. Add a CI run of the Journey_Gate specs against the local-test stack for Requirement 1.1, or record Requirement 1.1 as not met if that stack cannot host them.
     - Write the decided wording into `tech.md` Commands.
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 1.8, 1.9, 1.10_
 
-  - [ ] 11.2 [Blocked until D2 is confirmed] Retire the other local stacks
-    - Options A, B or C: delete `backend/docker-compose.local-test.yml`, `backend/docker-compose.local-real.yml` and `backend/docker-compose.yml`, and every doc or steering sentence that presents them as supported. The doc-path check must stay green.
+  - [ ] 11.2 [Decision D2 confirmed 2026-11-08 (option A + B); blocked until the operator has removed `local-stack-storage` from the required checks on `main`] Retire the other local stacks
+    - Spec A's R1 builds on `backend/docker-compose.local-test.yml` (design §1, "Retiring the local-test stack"), so deleting it alone would fail a required check and the blocking unit suite. Do this in order:
+      1. Ask the operator to remove `local-stack-storage` from the required checks on `main` (Spec A task 4.5 made it required), and wait for the answer.
+      2. In one change: remove the `local-stack-storage` job from Spec A's `.github/workflows/student-journey-gate.yml` (the harness `journey-gate` already runs `storage_roundtrip_check --expect-private`, Spec A task 4.4); remove the compose assertions in `backend/tests/unit/test_storage_settings_contract.py` (Spec A task 1.1) and keep its settings assertions; remove `backend/.env.local.test.example`, its `.gitignore` exception, its `test_tracked_env_files.py` allowlist entry and its entry in the env-template test (Spec A task 3.3); then delete `backend/docker-compose.local-test.yml`, `backend/docker-compose.local-real.yml` and `backend/docker-compose.yml`, and every doc or steering sentence that presents them as supported, including the `LOCAL-TESTING.md` blocks that task 6.1 rewrote. The doc-path check must stay green.
+      3. Record in the evidence summary that Spec A's clause 2.1 (a storage round-trip on the documented stack) is now met on the harness, and the merge commit of step 2. Do not edit Spec A.
     - Option D: retire nothing.
     - _Requirements: 1.7_
 
-  - [ ] 11.3 [Blocked until D2 is confirmed] Untrack raw evidence artefacts (option B or C)
+  - [ ] 11.3 [Decision D2 confirmed 2026-11-08 (option A + B)] Untrack raw evidence artefacts (option B or C)
     - Run both spec validators first.
     - `git rm --cached` every raw artefact type of Requirement 4.1 under `docs/v2-evidence/` (design §4) and add the `.gitignore` rules.
     - Add the dated note and commit permalinks to every tracked Markdown file that references an untracked file, links and backticked paths alike: the READMEs under `docs/v2-evidence/` and every Markdown file outside it (at HEAD, `docs/runbooks/legacy-column-deprecation.md:233,291`). List, and do not edit, any reference in a D12 spec (Requirement 22.11).
@@ -332,7 +341,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Make no history rewrite (D2 option C waits for D11).
     - _Requirements: 4.1, 4.2, 4.3, 4.9_
 
-  - [ ] 11.4 [Blocked until D2 is confirmed] Cut the launch-verdict rollup (option A, B or C), or annotate it (option D)
+  - [ ] 11.4 [Decision D2 confirmed 2026-11-08 (option A + B)] Cut the launch-verdict rollup (option A, B or C), or annotate it (option D)
     - Remove the Gate 12 job and its verdict step, the `collect-suite-results.py` steps, `rollup.py`, the verdict documents, and each operator-gate script that only feeds the verdict. Prove with `git grep` that no kept gate imports a removed script.
     - Keep the contract-sync, brand-scan, scope and `version_eval.py` gates blocking.
     - Rewrite `docs/runbooks/launch-verification.md` to describe only the kept gates.
@@ -340,93 +349,93 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - _Requirements: 4.5, 6.1_
 
 - [ ] 12. Jobs-ops freeze (D1)
-  - [ ] 12.1 [Blocked until D1 is confirmed] Put every jobs-ops route behind the flag (option B)
+  - [ ] 12.1 [Decision D1 confirmed 2026-11-08 (option B); the `webhooks/delivery/` step waits for the D1.b answer, which is still open] Put every jobs-ops route behind the flag (option B)
     - Mount the email seed routes and the four document seed routes only when `ENABLE_JOBS_OPS_ROUTES` is on (design §3).
-    - Apply the D1.b answer to `webhooks/delivery/` and record it in `scripts/route-consumers.json`.
+    - The D1.b answer is still open (recommendation: gate the webhook with the flag). Until the user answers, leave `webhooks/delivery/` mounted exactly as today, with its External_Consumer_List entry marked "pending D1.b". Then apply the answer (gate it, keep it with its secret required in production, or remove it) and record it in `scripts/route-consumers.json` (Requirement 3.5). The task is complete only when that step is done; every other step proceeds now.
     - Add the seven routes to the stub list in `check-launch-scope.py`.
     - Add tests for both flag values, and regenerate the OpenAPI baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: while the flag is off, the seven seed and scaffold routes answer 404.
     - _Requirements: 3.3, 3.5, 3.7_
 
-  - [ ] 12.2 [Blocked until D1 is confirmed] Show the decided jobs-ops UI state
+  - [ ] 12.2 [Decision D1 confirmed 2026-11-08 (option B)] Show the decided jobs-ops UI state
     - Option B: add `FeatureGate` and `JobsOpsNotEnabled` at the router root (design §3), including the metadata error state with Retry. Assert in a test that no feature request fires while jobs-ops is disabled.
     - Option A: remove the right rail from `JobsOpsShell.tsx` instead (API base, creator, pinned references).
     - Option C: replaced by the move-out described in D1's register entry.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 3.6, 13.3_
 
-  - [ ] 12.3 [Blocked until D1 is confirmed] Write the decided jobs-ops wording into the steering
+  - [ ] 12.3 [Decision D1 confirmed 2026-11-08 (option B)] Write the decided jobs-ops wording into the steering
     - Update `tech.md`, `product.md`, `structure.md` and the canonical truth map's attribution row to the decided state.
     - _Requirements: 6.1, 6.5_
 
 - [ ] 13. Demo views and change requests (D5)
-  - [ ] 13.1 [Blocked until D5 is confirmed] Remove the v2 demo views
+  - [ ] 13.1 [Decision D5 confirmed 2026-11-08 (demo views cut)] Remove the v2 demo views
     - Remove their routes from `backend/apps/common/v2/urls.py`, then `demo_views.py` and its tests.
     - Regenerate the schema baselines and `apps/admissions/src/generated/api.d.ts`, and update the truth-map rows.
     - Delete their entries from the routes-report baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the v2 demo routes answer 404.
     - _Requirements: 2.6, 2.9_
 
-  - [ ] 13.2 [Blocked until D5 is confirmed] Apply the decided change-request outcome
+  - [ ] 13.2 [Decision D5 confirmed 2026-11-08 (change-request workflow left dormant, option C)] Apply the decided change-request outcome
     - Option B:
       - Remove the six routes, the service, the state machine, the outbox emitters, their tests, the v2 onboarding views and the tenant console's request-change affordances.
       - Keep the table and `canonical_config_commands.py`.
       - Record TEN-06 as open in the truth map and in `enterprise-tenancy.md`.
-    - Option C: add the six routes to `scripts/route-consumers.json` with the reason "dormant by decision D5", and remove them from the baseline.
+    - Option C (confirmed): add the six routes to `scripts/route-consumers.json` with the reason "dormant by decision D5", and remove them from the baseline. Do not remove the workflow, the service, the state machine or the three `*.request_change` capabilities (Requirement 8.3).
     - Option A: record the follow-up work and build nothing.
     - Deploy path, under option B: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Options A and C change nothing production serves.
     - _Requirements: 2.7, 2.9, 6.5_
 
 - [ ] 14. Removals the critique did not number (D15)
-  - [ ] 14.1 [Blocked until D15 is confirmed] Remove the dev-only `@react-pdf` stack (item a)
+  - [ ] 14.1 [Decision D15 confirmed 2026-11-08 (remove)] Remove the dev-only `@react-pdf` stack (item a)
     - Delete `apps/admissions/src/lib/pdf/`, the dev preview pages that import it, its fonts, PNGs and 12 test files, the `@react-pdf/renderer` dependency, and the PDF chunk smoke step with `scripts/check-pdf-chunk-load.mjs`.
     - Rewrite `DESIGN.md` §2 "Print / PDF" to describe the backend renderers, and update `documentFlowDriftGuard.test.ts`'s file list while keeping its rule.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.2 [Blocked until D15 is confirmed] Remove the draft compatibility endpoint and `saveDraft` (item b)
+  - [ ] 14.2 [Decision D15 confirmed 2026-11-08 (remove)] Remove the draft compatibility endpoint and `saveDraft` (item b)
     - Remove `ApplicationDraftView` (`backend/apps/applications/urls.py:86`) and `applicationService.saveDraft`.
     - Update the truth map's "Compatibility draft payload" row. Keep the model and table.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: `/api/v1/applications/draft/` answers 404.
     - _Requirements: 2.8, 2.9, 2.10_
 
-  - [ ] 14.3 [Blocked until D15 is confirmed] Remove the `applications/views.py` shim (item c)
+  - [ ] 14.3 [Decision D15 confirmed 2026-11-08 (remove)] Remove the `applications/views.py` shim (item c)
     - Repoint the test imports and `patch()` targets listed in task 8.3 to the split modules, run the backend suite, then delete `backend/apps/applications/views.py`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: none expected; at HEAD only tests import the shim.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.4 [Blocked until D15 is confirmed] Remove modules with no product importer (item d)
+  - [ ] 14.4 [Decision D15 confirmed 2026-11-08 (remove)] Remove modules with no product importer (item d)
     - Delete the confirmed modules from task 8.3's list, with their tests, and delete their entries from the unreachable-module baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.5 [Blocked until D15 is confirmed] Remove the placeholder apps (item e)
+  - [ ] 14.5 [Decision D15 confirmed 2026-11-08 (remove)] Remove the placeholder apps (item e)
     - Delete `apps/website/` and `apps/student-portal/`, refresh `bun.lock`, and remove their rows from `structure.md` and `product.md`.
     - In the same change, remove the two lines that copy their `package.json` into the frontend image's build stage (`apps/admissions/Dockerfile:23-24`).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: none on what is served, but without the Dockerfile change the image build of the next Deploy run fails.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.6 [Blocked until D15 is confirmed] Remove the agent hub (item f)
+  - [ ] 14.6 [Decision D15 confirmed 2026-11-08 (remove)] Remove the agent hub (item f)
     - Delete `scripts/agenthub/`, `.agenthub/`, their five unit-test files and the integration smoke test.
     - _Requirements: 4.8_
 
-  - [ ] 14.7 [Blocked until D15 is confirmed] Remove the stray root entries (item g)
+  - [ ] 14.7 [Decision D15 confirmed 2026-11-08 (remove)] Remove the stray root entries (item g)
     - `git rm` the files `=== schema hash (sha256 of regenerated OpenAPI) ===` and `⚠️`, and `rmdir` the empty untracked directories `=== candidate commit ===/` and `echo/`.
     - _Requirements: 4.8_
 
-  - [ ] 14.8 [Blocked until D15 is confirmed] Remove `keep_alive_task` (item h)
+  - [ ] 14.8 [Decision D15 confirmed 2026-11-08 (remove)] Remove `keep_alive_task` (item h)
     - Remove the beat entry (`base.py:185-188`), the task function, `KEEP_ALIVE_URL`, their tests and the steering row. Task 4.4's drift guard must stay green.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: production's beat stops pinging its own health endpoint every 4 minutes.
     - _Requirements: 9.3_
 
-  - [ ] 14.9 [Blocked until D15 is confirmed] Remove the unused upload paths (item i)
-    - Delete the dead upload paths that task 8.3 took from Spec A's frozen list (design §2): `documentService.upload`, `useWizardFileUploads` and its barrel export, the `startUpload` callback of `useApplicationFileUploads` with `uploadApplicationFile` and `downloadFile` in `lib/storage.ts`, and `lib/applicationSlipStorage.ts` with `lib/slipService.ts`. Keep every other export that has a caller, checked with `git grep` for each name.
+  - [ ] 14.9 [Decision D15 confirmed 2026-11-08 (remove)] Remove the unused upload paths (item i)
+    - Delete the dead upload paths that task 8.3 took from Spec A's frozen list (design §2): `documentService.upload`, `useWizardFileUploads` and its barrel export, the `startUpload` callback of `useApplicationFileUploads` with `uploadApplicationFile` and `downloadFile` in `lib/storage.ts`, and `lib/applicationSlipStorage.ts` with `lib/slipService.ts`. Keep every other export that has a caller, checked with `git grep` for each name. Requirement 22.12's guard tests (`test_required_documents_contract.py`, `test_required_documents_contract_7_2.py`, `test_document_evidence_compensation_7_3.py`, `requiredDocumentsDrift.test.ts`) pass unchanged.
     - Remove the deleted entries from the frozen list in `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` in the same change, and keep the guard.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
-    - _Requirements: 2.8, 2.9_
+    - _Requirements: 2.8, 2.9, 22.12_
 
 - [ ] 15. Vendored skills (D6)
-  - [ ] 15.1 [Blocked until D6 is confirmed] Prune the skills to the confirmed keep-list
+  - [ ] 15.1 [Decision D6 confirmed 2026-11-08 (option B)] Prune the skills to the confirmed keep-list
     - Option B, skill by skill (design §4):
       - keep exactly one real copy of each kept skill. If `.kiro/skills/<name>` is a symlink, its content stays in `.agents/skills/<name>`, or moves into `.kiro/skills/<name>` with the symlink removed in the same commit. Never delete a directory that a kept entry resolves to;
       - delete `ui-ux-pro-max`'s second real copy in `.agents/skills/`;
@@ -437,12 +446,12 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Option C: move every skill to the confirmed location first, then update every steering path.
     - _Requirements: 4.6, 4.7_
 
-  - [ ] 15.2 [Blocked until D6 is confirmed] Record the skill set in the steering
+  - [ ] 15.2 [Decision D6 confirmed 2026-11-08 (option B)] Record the skill set in the steering
     - Update `design-skills.md`, `engineering-skills.md` and `.agents/AGENTS.md` §3 to the kept set and its location.
     - _Requirements: 4.6, 6.1_
 
 - [ ] 16. Performance caches (D7)
-  - [ ] 16.1 [Blocked until D7 is confirmed] Remove the capabilities and dashboard caches (option A, after the P0_Ops_Check)
+  - [ ] 16.1 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Remove the capabilities and dashboard caches (option A, after the P0_Ops_Check)
     - Read the P0_Ops_Check record. If a cache is on in production, stop and re-ask D7 with that data.
     - Remove the cache branches (`services.py:1048`, `admin_user_views.py:279-292,532-533`), their signal handlers, their flags and `scoped_cache.py` once it has no importer.
     - Triage each perf test file as design §5 describes, and record each file's disposition before deleting.
@@ -450,66 +459,66 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the endpoints serve uncached bodies, the same as with the flags off (Requirement 5.4).
     - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
-  - [ ] 16.2 [Blocked until D7 is confirmed] Decide the catalogue cache from production data
+  - [ ] 16.2 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Decide the catalogue cache from production data
     - Keep `catalog_cache.py` only if the P0_Ops_Check shows it on in production and a recorded measurement shows its effect. Otherwise remove it, its helper branches and its tests the same way.
     - Deploy path, if the cache is removed: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 5.1, 5.3, 5.4_
 
 - [ ] 17. Capability catalogue (D3)
-  - [ ] 17.1 [Blocked until D3 is confirmed] Remove `platform.user.create_global` (option B)
+  - [ ] 17.1 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 (its tasks 3 to 5) is merged] Remove `platform.user.create_global` (option B)
     - Remove it from `PLATFORM_CAPABILITIES`, and update every file in its update set from task 8.1 in the same commit: at HEAD `scripts/authority_matrix_registry.py`, `scripts/authority_matrix_v2.py`, `backend/tests/perf_baseline/fixtures/admin_scope.json`, the truth map and `docs/tenant-admin-super-admin-permissions-plan.md`, plus `enterprise-tenancy.md`'s capability list. Then run `test_capability_endpoint_shape.py`, `test_capability_self_description_m3.py` and the derivation property tests.
     - Add the regression test that a grant naming a removed capability grants nothing and raises nothing (design §8).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.2, 8.5, 8.6, 22.1_
 
-  - [ ] 17.2 [Blocked until D3 and D5 are confirmed] Remove the three `*.request_change` capabilities (only with D3 option B and D5 option B)
+  - [ ] 17.2 [Decision D3 confirmed 2026-11-08 (option B) and D5 confirmed 2026-11-08 (workflow dormant, option C); blocked: the two conflict, because the dormant workflow's submit authority uses these three capabilities (Requirement 8.3). It does not start until the user answers (D3, Interaction)] Remove the three `*.request_change` capabilities (only with D3 option B and D5 option B)
     - Remove `tenant.profile.request_change`, `tenant.program.request_change` and `tenant.domain.request_change`, with their frontend gates, and update every file in their update set from task 8.1 (20 at HEAD, including the OpenAPI baselines and the generated API types), as in task 17.1.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.3, 8.5, 22.1_
 
-  - [ ] 17.3 [Blocked until D3 is confirmed] Apply the approved merge table
+  - [ ] 17.3 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 is merged and the user approves task 8.1's merge table] Apply the approved merge table
     - Apply only the merges you approved from task 8.1's table, one capability pair per commit, with the cross-tenant property tests unchanged and green after each.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.4, 8.5, 8.6, 22.1_
 
 - [ ] 18. OCR opt-in (D4)
-  - [ ] 18.1 [Blocked until D4 is confirmed] Add the OCR policy and the backend gate (option B)
+  - [ ] 18.1 [Decision D4 confirmed 2026-11-08 (option B)] Add the OCR policy and the backend gate (option B)
     - Create `backend/apps/documents/ocr_policy.py`.
-    - Add the 409 `OCR_NOT_ENABLED` branch to `DocumentExtractView.post`, after the scoped authorization, and the run-time re-check in `extract_document_text_task`.
+    - Add the 409 `OCR_NOT_ENABLED` branch to `DocumentExtractView.post`, after the scoped authorization, and the run-time re-check in `extract_document_text_task`. Upload validation and its staged write order are untouched (Requirement 22.12); the extract endpoint changes nothing before the staged write.
     - Add the opt-in command (design §11): `GET` and `PUT /api/v1/admin/documents/ocr-opt-in/` in a new `ocr_opt_in_views.py`, gated by `HasPlatformCapability` with `required_capability = "platform.settings.manage"`, validating the body, and writing the row and a `TenantAuditService.record_event` in one transaction. The event uses `action="settings.change"` (a new `ACTION_SETTINGS_CHANGED` constant), `entity_type="setting"`, `entity_id` set to the setting row's UUID (never the key, which `_coerce_uuid` would store as `NULL`), `actor_id=getattr(request.user, "id", None)`, `actor_role=getattr(request.user, "role", None)`, and the key with the ids before and after in its metadata. Register the route in `scripts/authority_matrix_registry.py` with `audit_event="settings.change"` and in `scripts/route-consumers.json`, and show the call in `docs/runbooks/multi-tenant-operations.md` with a placeholder origin, `$API_ORIGIN/api/v1/admin/documents/ocr-opt-in/`, and no host name (Requirement 6.6).
     - Keep the key out of the generic settings endpoints: their reads omit it, writes to it return 403 `KEY_MANAGED_ELSEWHERE`, import reports it as an entry error, and reset keeps its row. Change nothing else in those endpoints; their `IsAdmin` reads and role-string write gate stay a known issue (task 1.1).
     - Register `OCR_NOT_ENABLED` and `KEY_MANAGED_ELSEWHERE` in `apps/common/error_codes.py`, its frontend mirror and the truth map.
     - Add tests: a caller without `platform.settings.manage` gets a non-revealing 403, an invalid body writes nothing, a tenant admin's generic settings read does not contain the key, reset leaves the row, and a successful `PUT` leaves one audit row with a non-null `actor_id`, an `entity_id` equal to the setting row's id, and `key` and `actor_role` in its `changes`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the extract endpoint refuses every institution that has not opted in, which at first is every institution. Merge it together with task 18.2, so the wizard that stops calling the endpoint ships in the same Deploy run.
-    - _Requirements: 6.6, 11.2, 11.4, 11.5, 22.1, 22.9_
+    - _Requirements: 6.6, 11.2, 11.4, 11.5, 22.1, 22.9, 22.12_
 
-  - [ ] 18.2 [Blocked until D4 is confirmed] Publish OCR availability and stop polling where it is off
+  - [ ] 18.2 [Decision D4 confirmed 2026-11-08 (option B)] Publish OCR availability and stop polling where it is off
     - Add `ocr_available` to the required-documents contract and its client type, regenerate the types, and add a drift guard.
     - Make the wizard call extract and poll only when `ocr_available` is true, and render the manual grade form first on every tenant.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy, together with task 18.1.
     - _Requirements: 11.1, 11.3, 11.5, 11.6_
 
-  - [ ] 18.3 [Blocked until D4 is confirmed] Write the OCR property test and update the docs
+  - [ ] 18.3 [Decision D4 confirmed 2026-11-08 (option B)] Write the OCR property test and update the docs
     - **Property 9: OCR runs only for opted-in institutions**
     - **Validates: Requirements 11.2**
     - Test in `backend/tests/property/test_platform_simplification_properties.py` using hypothesis.
     - Update the tech steering's "Generative AI Boundary" table and `docs/ai-data-flows.md` to describe the opt-in.
 
 - [ ] 19. Email verification stance (D8)
-  - [ ] 19.1 [Blocked until D8 is confirmed] Write the decided email-verification wording
+  - [ ] 19.1 [Decision D8 confirmed 2026-11-08 (option B)] Write the decided email-verification wording
     - Option B: state in `product.md`, `tech.md` and `docs/canonical-truth-map.md` that email verification is not part of the flow by decision D8, and point to `backend/apps/common/email_links.py`'s existing note.
     - Option A: record that it needs its own spec, and change nothing else.
     - _Requirements: 6.1, 6.5_
 
 - [ ] 20. Spec relationships (D12)
-  - [ ] 20.1 [Blocked until D12 is confirmed] Record the decided spec relationships
+  - [ ] 20.1 [Decision D12 confirmed 2026-11-08 (two specs; Spec B supersedes `student-ui-ux-mobile-remediation`)] Record the decided spec relationships
     - Lean: register this spec in the canonical truth map's spec section as superseding `student-ui-ux-mobile-remediation` for the student surfaces, and list the record-only overlaps. Keep `spec-status-exceptions.json` in step.
     - Edit none of the four D12 specs.
     - _Requirements: 6.3, 22.10, 22.11_
 
 - [ ] 21. Checkpoint: P1 exit
   - The Documented_Local_Stack passes the Journey_Gate (task 11.1); the routes-versus-callers and doc-path checks are green; the test database is built from SQL and `-n 6` is green.
-  - List every gated P1 task that is still waiting for a decision, including task 6.8 while D14 is open, and state that Requirement 7.2's production comparison is open until it runs.
+  - List every P1 task that still waits on a prerequisite or an open decision: task 6.8 and tasks 16.1 and 16.2 until a live production host exists (D14), task 12.1's webhook step until D1.b is answered, tasks 17.1 to 17.3 until Spec A's P0 is merged (and 17.2 until the D3 and D5 conflict is answered, 17.3 until the merge table is approved), and task 11.2 until the operator has dropped `local-stack-storage` from the required checks. State that Requirement 7.2's production comparison is open until task 6.8 runs.
   - Ask the user if questions arise.
   - _Requirements: 1.1, 2.2, 6.2, 7.1, 7.2, 7.5_
 
@@ -518,7 +527,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Start after tasks 1.3 and 3.7: the payment pages load the card widget on mount, so without task 3.7's stub and outside-host gate, and task 1.3's parseable DSN, the console gate fails pages for reasons this gate does not measure (design §12.7).
     - Create `apps/admissions/playwright.rendered-gate.config.ts` with `desktop` (1440×900) and `mobile` (390×844) projects, reusing the harness fixtures.
     - On each page: wait for the network to go idle, take the screenshot, run axe, run the measurements, and run the impeccable detector last.
-    - Visit every page, public and authenticated, through the harness edge on top of Spec A's seed.
+    - Visit every page, public and authenticated, through the harness edge on top of Spec A's seed. Visit the wizard at `/student/application-wizard`, not at its `/apply` alias, which is not a Student_Route (Requirement 19.2).
     - Build each state of Requirement 19.2 in the gate's own setup with the helpers in `apps/admissions/tests/harness-e2e/helpers/api.ts` (design §12.7), so no state depends on seed data that may not hold it.
     - _Requirements: 19.2_
 
@@ -535,7 +544,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - [ ] 22.4 Measure type size, hit areas, overflow and clipped text
     - Add an in-page measurement script, plus the pure classifier `scripts/rendered-gate-rules.ts` (design §12.7), with the rules of Requirement 19.7:
       - font size on student routes, by role, with the precedence caption, navigation, control, body, other, plus each text-entry `input`, `select` and `textarea` measured as a control by its own computed size;
-      - hit area, the union of an element's box and its associated label's box, with skip links measured focused and links in running text measured like any control;
+      - hit area, the union of an element's box and its associated label's box, with skip links measured focused and links in running text measured like any control. Record an `inRunningText` flag on every anchor: its computed `display` is `inline` and its nearest block-level ancestor has a non-empty text node outside the anchor (design §12.7). Tasks 24.6 and 24.8 partition the hit-area findings by that flag;
       - overflow of text-bearing and interactive elements past the viewport's right edge, excused only inside a horizontal scroll container that ends inside the viewport, never by an `overflow-x: hidden` ancestor;
       - clipped or spilling text: a direct text child, an `overflow-x` other than `auto` or `scroll`, and `scrollWidth` more than 1 px over `clientWidth`, so text cut off by `truncate` and text spilling out of a fixed slot with `overflow-x: visible` are both reported.
     - Measure no element that is not rendered, is `visibility: hidden`, has zero area or sits in a closed `<details>` or collapsed region. Skip `aria-hidden` elements for the hit-area rule only.
@@ -550,6 +559,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Add the `rendered-design-gate` job to Spec A's `.github/workflows/student-journey-gate.yml`, blocking and without `continue-on-error`, with a 45-minute timeout like Spec A's `journey-gate` job (design §12.7). When relevant it runs `oven-sh/setup-bun@v2` (`harness up` builds the SPA with Bun, `harness/bin/harness:84-86,218`), sets up Node, runs `npm install -g impeccable@2.1.9` with `PUPPETEER_SKIP_DOWNLOAD=1`, runs `bunx playwright install --with-deps chromium` from `apps/admissions/` (`harness up` installs no browser; `ensure_browser` runs only in `smoke` and `e2e`, `:145-156,223,228`), brings the harness up, runs the rendered-gate config, dumps the harness logs on failure, and always tears the harness down.
     - Give the job the workflow's relevance step with one more prefix, `scripts/rendered-`, so it runs on every pull request that touches `apps/admissions/`, `backend/`, `harness/` or the gate's own files under `scripts/`, and treat every push to main as relevant. Leave the journey-gate job's relevance list unchanged. Keep the existing `design-audit` job.
     - Upload the screenshots as an artefact; never commit them.
+    - Operator step (repository settings): after two green runs on `main`, make `rendered-design-gate` a required check, as Spec A does for its own jobs (Spec A task 4.5). A failing job that branch protection does not require still lets a pull request merge. The workflow has no `paths:` filter, so requiring the job cannot leave a check pending.
     - _Requirements: 19.4, 19.5, 19.6_
 
   - [ ] 22.6 Fail the gate on the build badge outside diagnostics
@@ -628,7 +638,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 
   - [ ] 24.6 Give every control on the audited pages a 44 px hit area
     - Start after task 22.5's first baseline, and record its number of `measure/hit-area` entries.
-    - Fix every `measure/hit-area` entry on the Audited_Page_Set (design §12.5), public, authentication, student and admin pages alike, except the admin queue's rows and checkboxes, which task 30.4 fixes, and links inside running text, which wait for D17 (task 24.8):
+    - Fix every `measure/hit-area` entry on the Audited_Page_Set (design §12.5), public, authentication, student and admin pages alike, except the admin queue's rows and checkboxes, which task 30.4 fixes, and the findings that task 22.4's measurement flags `inRunningText`, which wait for D17 (task 24.8). Partition by that flag, so the two scopes are disjoint and together complete:
       - standalone links and buttons get `min-h-touch` and `min-w-touch` with centred content. Start with `AuthShellLink` (`components/auth/AuthShell.tsx:132-154`), a link with no minimum height that every authentication page renders inside the `text-sm` `AuthShellFooter` (`:117-126`);
       - icon buttons get padding up to 44 × 44 px, for example the Show password toggle (`components/ui/PasswordInput.tsx:51-54`), whose icon size stays;
       - the wizard error summary's jump buttons (`WizardErrorSummary.tsx:71-75`) become 44 px `inline-flex` rows inside their list;
@@ -649,7 +659,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - [ ] 24.8 [Blocked until D17 is confirmed] Bring links inside running text to the decided hit-area rule
     - Option A: pad each link inside running text that the gate lists, such as the sign-up consent sentence's "Terms" and "Privacy Policy" (`pages/auth/SignUpPage.tsx:336,338`), to a 44 × 44 px hit area.
     - Option B: move each such link out of its sentence into a standalone link or button that meets the rule, keeping what the sentence says.
-    - Option C: amend the 44 px rule in `.kiro/steering/design-skills.md` and `.agents/AGENTS.md` §2 to exempt links inside running text, then make `scripts/rendered-gate-rules.ts` and the Property 11 test skip an `a` element whose computed `display` is `inline` and whose nearest block-level ancestor has a non-empty text node outside it (design §12.7). Spec A is not edited.
+    - Option C: amend the 44 px rule in all four places that state it (`.kiro/steering/design-skills.md`, `.agents/AGENTS.md` §2, `PRODUCT.md:97` and `DESIGN.md:198`; `design-skills.md` says its guardrails duplicate `PRODUCT.md`) to exempt links inside running text, then make `scripts/rendered-gate-rules.ts` and the Property 11 test skip the records flagged `inRunningText` (design §12.7). Spec A is not edited.
+    - Recommendation recorded with D17 on 2026-11-08, not a confirmation: keep the guardrail and fix the link (option A or B). This task stays blocked until the user confirms D17.
     - Under every option, delete the baseline entries tied to D17.
     - Deploy path, under option A or B: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Option C changes nothing production serves.
     - _Requirements: 16.10, 19.7, 19.9_
@@ -659,7 +670,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Remove the "Application Flow" eyebrow and the "Student Application" title card (`index.tsx:836-900`).
     - Add `instruction` beside each step's `title` in the existing step definition list, and drop each step's duplicate `SectionCard` title.
     - On mobile, remove the "Back to Dashboard" row, and on the wizard route make the app bar's back arrow go back in history only when the previous entry is inside the app, and to the dashboard otherwise (`AppLayout.tsx:158-161`, design §12.4). Add a test for both cases.
-    - Keep the six steps, autosave, the draft picker and the save-status text.
+    - Keep the six steps, autosave, the draft picker and the save-status text. The Submit button keeps its `@idempotent` request and `submit-<applicationId>` key, and the wizard keeps pay-or-defer only (Requirements 22.2 and 22.13); `submitIdempotency.test.ts`, `applicationSubmitIdempotencyHeaders.test.ts` and `paymentOwnershipSplit.test.tsx` pass unchanged.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.1, 15.7, 22.5_
 
@@ -667,7 +678,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Create `WizardStillNeeded` (design §12.4) from the current step's failing Readiness items, plus the "Switch application" and "Start a new application" actions.
     - On mobile, collapse it below the form. Remove Step Checklist, Application Preview, Step notes and "Your applications".
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
-    - _Requirements: 15.3, 15.7_
+    - _Requirements: 15.3, 15.7, 22.2, 22.13_
 
   - [ ] 25.3 Make accessible names contain the visible text
     - In `WizardActionBar.tsx:233,267`, use the visible text as the name, and move the destination step to `aria-describedby`.
@@ -722,7 +733,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Show the total, the breakdown and the estimate note in `AssignedSchoolStep.tsx`, through `formatServerAmount` only.
     - Update `AssignmentPreviewFee` (`services/catalog.ts:128`) and the generated types, and regenerate the schema.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
-    - _Requirements: 14.5, 22.2, 22.4_
+    - _Requirements: 14.5, 22.2, 22.4, 22.13_
 
   - [ ] 26.5 Stop rendering missing data as values
     - Remove "Started on Not available", "Last updated: Not available" and the interview section on drafts, and every other placeholder that renders missing data as a value on a student surface, found by searching student pages and components for "Not available" and "Not provided".
@@ -762,7 +773,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.3, 20.4, 20.5_
 
-  - [ ] 27.4 [Blocked until D9 is confirmed] Align letter copy with the decided letter option
+  - [ ] 27.4 [Decision D9 confirmed 2026-11-08 (option C); blocked until Spec A's `[R7.4]` is merged] Align letter copy with the decided letter option
     - Start only after Spec A's letter-copy clause `[R7.4]` is merged, and record that commit in the evidence summary.
     - Make every letter mention this spec writes agree with the chosen option and with Spec A's letter copy, and add no rejection-letter mention unless D9 adds the type.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
@@ -816,11 +827,11 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
     - Register `/admin/applications/:applicationId`, and extract `ApplicationReviewWorkspace` from `ApplicationDetailModal.tsx` with every control, guard and confirmation.
     - Render the pane beside the queue at 1024 px and wider, keeping the queue's scroll position, filters and selection.
-    - Delete the modal once nothing imports it.
+    - Delete the modal once nothing imports it. `PaymentDecisionControls` and the approval actions keep their requests and guards (Requirement 22.2); the payment ownership tests pass unchanged.
     - Add the not-found and masked-404 states.
     - In the same change, move the assertions of the required harness spec `apps/admissions/tests/harness-e2e/required/admin-review-workspace.spec.ts` from tabs to sections: it clicks the documents, history, payment, interview and academic tabs with `getByRole('tab')` (`:438-446`), lists every tab to prove none is named AI and opens readiness (`:496-499`). Keep its claims (design §12.6): each section is reachable, one detail read with none of the retired calls (`:450-459`), the official-documents list as the one other per-application read (`:471-474`), and no section named AI. The spec must stay green.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
-    - _Requirements: 17.2, 17.7, 22.1_
+    - _Requirements: 17.2, 17.7, 22.1, 22.2, 22.13_
 
   - [ ] 30.3 Open the review as a page on narrow screens
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
@@ -869,12 +880,12 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - The rendered gate and axe are green against the shrunken baseline, every remaining baseline entry has a reason, and the Journey_Gate is still green.
   - List the tasks still waiting for Spec A: tasks 30.2–30.4 for `[R7.2]` and `[R7.3]`, and task 27.4 for `[R7.4]`.
   - List the hard-guardrail baseline entries that remain (Requirement 19.9: `measure/hit-area`, `measure/font-size` on student routes, `measure/overflow`, `measure/clipped-text` inside a `nav` element, `impeccable/nested-cards`, `impeccable/low-contrast` and `axe/color-contrast`); each must be gone by task 36. Name the task that removes each remaining `measure/hit-area` entry: 24.8 (links inside running text, D17) or 30.4 (the admin queue's rows and checkboxes); task 24.6 leaves no other.
-  - Ask the user to confirm D9, D10 and D16, and D17 if it is still open.
+  - D9, D10 and D16 were confirmed on 2026-11-08; ask the user to confirm D17 if it is still open.
   - Ask the user if questions arise.
   - _Requirements: 18.1, 19.4, 19.5, 19.9, 22.8_
 
 - [ ] 33. Landing restructure (D10)
-  - [ ] 33.1 [Blocked until D10 is confirmed] Restructure the landing for the decided audience
+  - [ ] 33.1 [Decision D10 confirmed 2026-11-08 (option A)] Restructure the landing for the decided audience
     - Option A: four sections (design §12.1), with no school-buyer, tenant or engineering copy.
     - Option B: keep the school-facing sections with sourced claims only, and flatten their nested cards in place.
     - Option C: the hero and the programme list only.
@@ -883,7 +894,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.3, 12.4, 12.8, 21.5_
 
-  - [ ] 33.2 [Blocked until D10 is confirmed] Move school-buyer content and retire the vendored hero
+  - [ ] 33.2 [Decision D10 confirmed 2026-11-08 (option A)] Move school-buyer content and retire the vendored hero
     - Option A: create `apps/admissions/src/pages/public/ForSchoolsPage.tsx`, register it, link it from the footer, and remove the `smoothui` hero, `AnimatedCounter` and the chip float from the landing.
     - Then delete their files and their exports from `components/smoothui/index.ts` once `git grep` finds no product import of each export name. The barrel keeps its modules reachable, so the unreachable-module check alone may never list them. Delete their baseline entries from task 29.1 in the same change.
     - Option C: retire the vendored hero only, the same way.
@@ -891,7 +902,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - _Requirements: 12.4, 12.5_
 
 - [ ] 34. Navigation size (D16)
-  - [ ] 34.1 [Blocked until D16 is confirmed] Consolidate the student navigation
+  - [ ] 34.1 [Decision D16 confirmed 2026-11-08 (option A)] Consolidate the student navigation
     - Option A: three destinations, "My application", "Messages" and "Account" (design §12.8), with every existing URL still resolving and documents within two activations of the dashboard.
     - Option B: the five-item version.
     - Update `tenantNav.test.ts` and the route registry tests.
@@ -908,7 +919,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 - [ ] 36. Final checkpoint: P2 exit and spec completion
   - The rendered gate and axe are green on built pages, and the sign-off from task 35.1 is recorded.
   - The rendered-design baseline holds, on no audited page, an entry for `measure/hit-area`, `measure/font-size` on student routes, `measure/overflow`, `measure/clipped-text` inside a `nav` element, `impeccable/nested-cards`, `impeccable/low-contrast` or `axe/color-contrast` (Requirement 19.9).
-  - List every gated task still waiting for a decision, including task 6.8 and Requirement 7.2 while D14 is open. The spec is complete only when none is left.
+  - List every gated task still waiting on a decision or a prerequisite, including D17 for task 24.8, a live production host (D14) for tasks 6.8, 16.1 and 16.2 and Requirement 7.2, D1.b for task 12.1, and the D3 and D5 conflict for task 17.2. The spec is complete only when none is left.
   - Record the files this spec added and removed in `docs/archive/steering-history-2026.md`.
   - When every task is done, add `"status": "completed"` to this spec's `.config.kiro`.
   - Ask the user if questions arise.
@@ -916,28 +927,28 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 
 ## Notes
 
-- **Gated tasks.** 36 tasks carry a gate marker, with 37 decision ids between them, because task 17.2 needs both D3 and D5. By decision id:
+- **Decision markers.** 36 tasks carry a decision marker, with 37 decision ids between them, because task 17.2 names both D3 and D5. On 2026-11-08 the user confirmed D1–D10 and D12–D16, so 35 markers read `[Decision Dn confirmed 2026-11-08 (option …)]`, and task 24.8 still reads `[Blocked until D17 is confirmed]`. Of the 36, 25 start when phase order allows, and 11 also wait on a further prerequisite named on their marker: 6.8, 11.1, 11.2, 12.1 (its webhook step only), 16.1, 16.2, 17.1, 17.2, 17.3, 24.8 and 27.4. By decision id:
 
-  | Decision | Gated tasks | Count |
-  |---|---|---|
-  | D1 | 12.1–12.3 | 3 |
-  | D2 | 11.1–11.4 | 4 |
-  | D3 | 17.1–17.3 | 3 |
-  | D4 | 18.1–18.3 | 3 |
-  | D5 | 13.1, 13.2, 17.2 | 3 |
-  | D6 | 15.1, 15.2 | 2 |
-  | D7 | 16.1, 16.2 | 2 |
-  | D8 | 19.1 | 1 |
-  | D9 | 27.4 | 1 |
-  | D10 | 33.1, 33.2 | 2 |
-  | D12 | 20.1 | 1 |
-  | D14 | 6.8 | 1 |
-  | D15 | 14.1–14.9 | 9 |
-  | D16 | 34.1 | 1 |
-  | D17 | 24.8 | 1 |
+  | Decision | Gated tasks | Count | Confirmed 2026-11-08 | Further prerequisite |
+  |---|---|---|---|---|
+  | D1 | 12.1–12.3 | 3 | option B (freeze) | 12.1's `webhooks/delivery/` step waits for the open D1.b |
+  | D2 | 11.1–11.4 | 4 | option A + B | 11.1 waits for Spec A's R9 tasks to merge; 11.2 waits for the operator to drop `local-stack-storage` from the required checks |
+  | D3 | 17.1–17.3 | 3 | option B | Spec A's P0 merged; 17.2 conflicts with D5; 17.3 needs the approved merge table |
+  | D4 | 18.1–18.3 | 3 | option B | none (18.1 and 18.2 merge together) |
+  | D5 | 13.1, 13.2, 17.2 | 3 | demo views cut; workflow dormant (option C) | 17.2: see D3 |
+  | D6 | 15.1, 15.2 | 2 | option B | none |
+  | D7 | 16.1, 16.2 | 2 | option A | a live production host and the P0_Ops_Check (D14) |
+  | D8 | 19.1 | 1 | option B | none |
+  | D9 | 27.4 | 1 | option C | Spec A's `[R7.4]` merged |
+  | D10 | 33.1, 33.2 | 2 | option A | none |
+  | D12 | 20.1 | 1 | two specs; supersede | none |
+  | D14 | 6.8 | 1 | option B (wait for the new host) | a live production host |
+  | D15 | 14.1–14.9 | 9 | remove each item | none |
+  | D16 | 34.1 | 1 | option A | none |
+  | D17 | 24.8 | 1 | not confirmed | Awaiting confirmation; recommendation: keep the guardrail and fix the link |
 
-  D11 and D13 gate no task. D11 is the operator's security track and is outside this spec; D13 is a note. D14 gates task 6.8 and is also D7's prerequisite.
-- **Waiting for Spec A, not for a decision.** Tasks 30.2–30.4 start after Spec A's `[R7.2]` and `[R7.3]` are merged, and task 27.4 after `[R7.4]`. Task 11.1's change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks as well as for D2. Each records the merge commit.
+  D11 is the operator's security track and is outside this spec. D13 was confirmed (option A) and gates no task. D14 gates task 6.8 and is also the prerequisite of D7's tasks. Tasks 7.1 to 7.4 are jobs-ops truthfulness work with no production dependency and are not blocked by D14.
+- **Waiting for Spec A, not for a decision.** Tasks 17.1–17.3 start after Spec A's P0 (its tasks 3 to 5) is merged. Tasks 30.2–30.4 start after Spec A's `[R7.2]` and `[R7.3]` are merged, and task 27.4 after `[R7.4]`. Task 11.1's change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks as well as for D2. Each records the merge commit.
 - **Early start.** Tasks 1.1–1.3 may start before Spec A's Journey_Gate is green. Task 1.3 is not doc-only: it restores the harness's error-reporter DSN, which Spec A's own harness runs need (requirements, "Dependencies and sequencing" item 2).
 - **Traceability.** Each task references the acceptance criteria it satisfies, using the clause numbers in `requirements.md`.
 - **Checkpoints.** The checkpoints (tasks 2, 10, 21, 32 and 36) gate each phase.
