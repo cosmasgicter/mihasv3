@@ -70,6 +70,7 @@ import { DraftManagementCard } from '@/components/student/dashboard/DraftManagem
 import { ApplicationsGrid } from '@/components/student/dashboard/ApplicationsGrid'
 import { useStudentNextAction } from '@/hooks/useStudentNextAction'
 import { studentApplicationNewPath } from '@/routes/routeRegistry'
+import { rateLimitMessage, retryAfterOf } from '@/lib/rateLimitCopy'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -269,7 +270,7 @@ export default function StudentDashboard() {
           if (!isLatestRequest() || signal.aborted) return
           if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) return
           logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
-          dispatch({ type: 'SET_INTAKES_ERROR', payload: `Failed to load intakes. ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}` })
+          dispatch({ type: 'SET_INTAKES_ERROR', payload: dashboardLoadError('intakes', intakeError) })
         })
 
       if (!isLatestRequest() || signal.aborted) return
@@ -304,7 +305,7 @@ export default function StudentDashboard() {
         const appError = applicationsResult.reason
         if (!(appError instanceof Error && (appError.name === 'AbortError' || appError.message.includes('aborted')))) {
           logApiError('student-dashboard', '/api/v1/applications/', appError)
-          dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: `Failed to load applications. ${appError instanceof Error ? appError.message : 'Please try again.'}` })
+          dispatch({ type: 'SET_APPLICATIONS_ERROR', payload: dashboardLoadError('applications', appError) })
         }
       }
 
@@ -318,7 +319,7 @@ export default function StudentDashboard() {
         const interviewError = interviewsResult.reason
         if (!(interviewError instanceof Error && (interviewError.name === 'AbortError' || interviewError.message.includes('aborted')))) {
           logApiError('student-dashboard', '/api/v1/interviews/', interviewError)
-          dispatch({ type: 'SET_INTERVIEWS_ERROR', payload: `Failed to load interviews. ${interviewError instanceof Error ? interviewError.message : 'Please try again.'}` })
+          dispatch({ type: 'SET_INTERVIEWS_ERROR', payload: dashboardLoadError('interviews', interviewError) })
           dispatch({ type: 'SET_SCHEDULED_INTERVIEWS', payload: [] })
         }
       }
@@ -539,3 +540,14 @@ export default function StudentDashboard() {
     </>
   );
 }
+/**
+ * The dashboard's load-failure text. A rate-limited request says when to retry
+ * (SJR R3-d, clause 2.16) instead of repeating the raw refusal.
+ */
+function dashboardLoadError(what: string, error: unknown): string {
+  if (error instanceof Error && (error as Error & { code?: string }).code === 'RATE_LIMITED') {
+    return rateLimitMessage(retryAfterOf(error))
+  }
+  return `Failed to load ${what}. ${error instanceof Error ? error.message : 'Please try again.'}`
+}
+

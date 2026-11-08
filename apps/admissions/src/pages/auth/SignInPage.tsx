@@ -20,6 +20,7 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 import { logApiError } from '@/lib/apiErrorLogger';
+import { isRateLimitedError, rateLimitMessage, retryAfterOf } from '@/lib/rateLimitCopy';
 import { onSignInEmailBlur, onLoginSuccess } from '@/lib/speculativePrefetch';
 import {
   BROWSER_KEYS,
@@ -160,6 +161,7 @@ export default function SignInPage() {
 
   const getErrorMessage = (error: Error | null) => {
     if (!error) return '';
+    if (isRateLimitedError(error)) return rateLimitMessage(retryAfterOf(error));
     const message = error.message || 'Failed to sign in. Please try again.';
     return message;
   };

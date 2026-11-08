@@ -9,6 +9,7 @@
 
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/lib/logger';
+import { parseRetryAfterSeconds } from '@/lib/rateLimitCopy';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 import { shouldDispatchAuthFailure, isPermissionDenial } from '@/lib/sessionHardening';
@@ -550,6 +551,13 @@ class ApiClient {
         const statusError = new Error(errorMessage) as Error & { status: number; data?: Record<string, unknown> };
         statusError.status = response.status;
         if (errorResponseData) statusError.data = errorResponseData;
+        if (response.status === 429) {
+          // A refusal for going over a budget: keep when to retry (the header is
+          // exposed through CORS) so surfaces can say so (SJR R3-d).
+          const rateLimited = statusError as Error & { retryAfterSeconds?: number | null; code?: string };
+          rateLimited.retryAfterSeconds = parseRetryAfterSeconds(response.headers.get('Retry-After'));
+          rateLimited.code = 'RATE_LIMITED';
+        }
         if (fieldErrors && Object.keys(fieldErrors).length > 0) {
           ;(statusError as Error & { fieldErrors?: Record<string, string> }).fieldErrors = fieldErrors
         }

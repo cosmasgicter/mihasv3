@@ -8,6 +8,7 @@
  * sees and the evidence the server stores come from the same contract.
  */
 import { logApiError } from '@/lib/apiErrorLogger'
+import { rateLimitMessage } from '@/lib/rateLimitCopy'
 import {
   parseRequiredDocumentsContract,
   type RequiredDocumentsContract,
@@ -50,10 +51,14 @@ function toUploadError(error: unknown): RequiredDocumentUploadError {
   const envelopeCode = typeof record.data?.code === 'string' ? record.data.code : null
   const code =
     typeof record.code === 'string' ? record.code : (envelopeCode ?? 'UPLOAD_FAILED')
+  const retryAfter = (error as { retryAfterSeconds?: unknown } | null)?.retryAfterSeconds
+  // A rate-limited upload says when to try again (SJR R3-d, clause 2.16).
   const message =
-    typeof record.message === 'string' && record.message.trim() !== ''
-      ? record.message
-      : 'Upload failed. Please try again.'
+    code === 'RATE_LIMITED'
+      ? rateLimitMessage(typeof retryAfter === 'number' ? retryAfter : null)
+      : typeof record.message === 'string' && record.message.trim() !== ''
+        ? record.message
+        : 'Upload failed. Please try again.'
   const status = typeof record.status === 'number' ? record.status : 0
   // A transport error states for itself whether the attempt may be repeated. A
   // rate limit stays manually retryable (the student can try again later); only

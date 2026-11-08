@@ -21,6 +21,7 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { CheckCircle } from 'lucide-react';
 import { logApiError } from '@/lib/apiErrorLogger';
+import { isRateLimitedError, rateLimitMessage, retryAfterOf } from '@/lib/rateLimitCopy';
 import { preloadStudentWorkspaceRoute } from '@/lib/routePreload';
 
 export const signUpSchema = z
@@ -99,6 +100,7 @@ export default function SignUpPage() {
 
   const getErrorMessage = (error: Error | null) => {
     if (!error) return '';
+    if (isRateLimitedError(error)) return rateLimitMessage(retryAfterOf(error));
     const message = error.message || 'Failed to create account. Please try again.';
     if (
       message.includes('already registered') ||

@@ -8,8 +8,7 @@
  * current intake". The API client drops `Retry-After`, so no surface can say when
  * to retry, and the dashboard shows the raw error text.
  *
- * Every test asserts the expected behaviour and is wrapped in `it.fails`
- * (design "Marker scheme"); task 3.12 removes the wrapper.
+ * The markers were removed at the R3 checkpoint (task 3.12); these now run unmarked.
  */
 import { render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
@@ -41,14 +40,14 @@ afterEach(() => {
 })
 
 describe('ProgramStep (clause 1.15)', () => {
-  it.fails('shows the retry copy, not the empty helper, when the programmes query is rate limited', () => {
+  it('shows the retry copy, not the empty helper, when the programmes query is rate limited', () => {
     render(<Harness programsError={RATE_LIMITED} />)
 
     expect(screen.queryByText(/No programmes available for the current intake/i)).toBeNull()
     expect(screen.getByText(/Try again in about 2 minutes/i)).toBeTruthy()
   })
 
-  it.fails('shows the retry copy, not the empty helper, when the intakes query is rate limited', () => {
+  it('shows the retry copy, not the empty helper, when the intakes query is rate limited', () => {
     render(<Harness intakesError={RATE_LIMITED} />)
 
     expect(screen.queryByText(/Intakes will appear here/i)).toBeNull()
@@ -57,7 +56,7 @@ describe('ProgramStep (clause 1.15)', () => {
 })
 
 describe('shared copy and client error (clause 1.15)', () => {
-  it.fails('rateLimitMessage rounds up to whole minutes and has an unknown-time form', async () => {
+  it('rateLimitMessage rounds up to whole minutes and has an unknown-time form', async () => {
     // `import.meta.glob` resolves to nothing while the module does not exist,
     // so the test fails on its assertion rather than on the build.
     const loaders = import.meta.glob('../../src/lib/rateLimitCopy.ts')
@@ -73,7 +72,7 @@ describe('shared copy and client error (clause 1.15)', () => {
     expect(rateLimitMessage(null)).toBe('Too many requests right now. Try again in a few minutes.')
   })
 
-  it.fails('a 429 with Retry-After exposes retryAfterSeconds and the RATE_LIMITED code', async () => {
+  it('a 429 with Retry-After exposes retryAfterSeconds and the RATE_LIMITED code', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(
@@ -99,7 +98,7 @@ describe('shared copy and client error (clause 1.15)', () => {
    * dashboard builds its three error strings inline, and the rate-limited case
    * must go through the shared copy instead of the raw message.
    */
-  it.fails('the student dashboard builds rate-limited errors from rateLimitMessage', () => {
+  it('the student dashboard builds rate-limited errors from rateLimitMessage', () => {
     const source = readFileSync(
       resolve(__dirname, '../../src/pages/student/Dashboard.tsx'),
       'utf8',
