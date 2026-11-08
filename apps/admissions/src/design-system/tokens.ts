@@ -3,10 +3,15 @@
  * Central source of truth for all design values
  */
 
-// Admin colors are sourced from the shared JS file so that both
-// this TypeScript module and the CommonJS tailwind.config.js
-// consume the exact same literal values.
-import { adminColors as _adminColors } from './tokens.colors.cjs'
+// Admin color values live in a plain JSON file so BOTH this ESM/TS module
+// and the CommonJS `tailwind.config.js` consume one source with zero
+// module-format interop: Vite's dev server and the Rollup build both
+// import JSON natively, and Node's `require()` reads JSON natively too.
+// (A `.cjs` body with `module.exports` cannot execute in the browser's
+// native-ESM dev server — it throws `module is not defined` — which is
+// the F1 regression this JSON source permanently removes.)
+import adminColorsJson from './tokens.colors.json'
+const _adminColors = adminColorsJson.adminColors
 
 export const designTokens = {
   colors: {

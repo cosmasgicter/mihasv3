@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Profile
 from apps.accounts.services import hash_password
-from apps.catalog.models import Institution, Program, Intake, ProgramIntake
+from apps.catalog.models import Institution, Program, CanonicalProgram, Intake, ProgramIntake
 from apps.documents.models import ProgramFee
 
 now = timezone.now()
@@ -32,15 +32,36 @@ inst, _ = Institution.objects.get_or_create(
 )
 print(f"Institution: {inst.name} ({inst.code})")
 
-# --- 2. Programs ---
+# --- 2. Canonical programs + tenant offerings ---
+# A Program row is an Institution_Program_Offering and MUST link to a global
+# CanonicalProgram. The DB check constraint chk_applications_canonical_assignment
+# requires program_id (canonical) on every non-draft application, so an offering
+# with a NULL canonical link makes application seeding impossible on a fresh DB
+# (finding F4). The production multi-tenant migration back-fills canonical
+# programs FROM programs, which is a no-op on an empty DB — so the dev seed must
+# create them itself and link each offering.
+#
+# (code, name, duration_months, regulatory_body, canonical_code)
 PROGRAMS = [
-    ('DCM', 'Diploma in Clinical Medicine', 36, 'Health Professions Council of Zambia'),
-    ('DEH', 'Diploma in Environmental Health', 36, 'Health Professions Council of Zambia'),
-    ('DRN', 'Diploma in Registered Nursing', 36, 'Nursing Council of Zambia'),
+    ('DCM', 'Diploma in Clinical Medicine', 36, 'Health Professions Council of Zambia', 'CANON-DCM'),
+    ('DEH', 'Diploma in Environmental Health', 36, 'Health Professions Council of Zambia', 'CANON-DEH'),
+    ('DRN', 'Diploma in Registered Nursing', 36, 'Nursing Council of Zambia', 'CANON-DRN'),
 ]
 
 programs = []
-for code, name, duration, reg_body in PROGRAMS:
+for code, name, duration, reg_body, canon_code in PROGRAMS:
+    canonical, _ = CanonicalProgram.objects.get_or_create(
+        code=canon_code,
+        defaults=dict(
+            name=name,
+            duration_months=duration,
+            regulatory_body=reg_body,
+            is_active=True,
+            metadata={},
+            created_at=now,
+            updated_at=now,
+        ),
+    )
     prog, _ = Program.objects.get_or_create(
         code=code,
         defaults=dict(
@@ -49,13 +70,26 @@ for code, name, duration, reg_body in PROGRAMS:
             regulatory_body=reg_body,
             accreditation_status='accredited',
             is_active=True,
+            offering_status='active',
+            canonical_program=canonical,
             institution=inst,
             created_at=now,
             updated_at=now,
         ),
     )
+    # Repair pre-existing rows missing the canonical link / active offering
+    # status so re-running the seed heals an earlier canonical-less seed.
+    repair = []
+    if prog.canonical_program_id is None:
+        prog.canonical_program = canonical
+        repair.append('canonical_program')
+    if prog.offering_status != 'active':
+        prog.offering_status = 'active'
+        repair.append('offering_status')
+    if repair:
+        prog.save(update_fields=repair)
     programs.append(prog)
-    print(f"  Program: {prog.name} ({prog.code})")
+    print(f"  Program: {prog.name} ({prog.code}) -> canonical {canon_code}")
 
 # --- 3. Intakes (Jan 2026 + Jul 2026) ---
 INTAKE_SPECS = [

@@ -842,7 +842,12 @@ class ApplicationListSerializer(
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
-    last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
+    # STU/F2: reviewer identity + internal review notes are staff-only. These
+    # are method fields (not plain CharField source=) so they can be nulled
+    # for a non-staff (owning student) viewer. Visibility fails closed: unless
+    # the view explicitly marks the viewer as staff via context, they are None.
+    last_payment_audit_notes = serializers.SerializerMethodField()
+    admin_feedback = serializers.SerializerMethodField()
     grades_summary = serializers.SerializerMethodField()
     total_subjects = serializers.SerializerMethodField()
     points = serializers.SerializerMethodField()
@@ -879,7 +884,21 @@ class ApplicationListSerializer(
             "created_at", "updated_at",
         ]
 
+    def _staff_fields_visible(self) -> bool:
+        """Whether staff-only fields may be serialized for this viewer (F2).
+
+        Reviewer identity (``payment_verified_by_*``) and internal review notes
+        (``admin_feedback`` / ``last_payment_audit_notes``) are staff-only. The
+        owning student reads the same list endpoint, so these must be withheld
+        from a non-staff viewer. Fails closed: only an explicit
+        ``context["staff_fields_visible"] is True`` (set by the view from
+        ``AdminCapabilityService``) unlocks them.
+        """
+        return self.context.get("staff_fields_visible") is True
+
     def get_payment_verified_by_name(self, obj) -> str | None:
+        if not self._staff_fields_visible():
+            return None
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None
@@ -891,10 +910,23 @@ class ApplicationListSerializer(
         return full_name or None
 
     def get_payment_verified_by_email(self, obj) -> str | None:
+        if not self._staff_fields_visible():
+            return None
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None
         return getattr(verifier, "email", None)
+
+    def get_admin_feedback(self, obj) -> str | None:
+        if not self._staff_fields_visible():
+            return None
+        return getattr(obj, "admin_feedback", None)
+
+    def get_last_payment_audit_notes(self, obj) -> str | None:
+        # Historically aliased from ``admin_feedback``; same staff-only gate.
+        if not self._staff_fields_visible():
+            return None
+        return getattr(obj, "admin_feedback", None)
 
     def _grade_summary(self, obj) -> dict[str, object]:
         """Compute the grade summary, total subjects, and points once per

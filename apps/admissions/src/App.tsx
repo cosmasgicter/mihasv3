@@ -86,7 +86,9 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Router>
+      {/* F5: opt into React Router v7 behaviour early to silence the
+          future-flag warnings and de-risk the eventual v7 upgrade. */}
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <RouteAwareApp />
       </Router>
     </ErrorBoundary>

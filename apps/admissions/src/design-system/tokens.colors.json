@@ -1,0 +1,10 @@
+{
+  "adminColors": {
+    "bg": "#f9fafb",
+    "card": "#ffffff",
+    "border": "#858c98",
+    "text": "#111827",
+    "textSecondary": "#374151",
+    "textMuted": "#6b7280"
+  }
+}

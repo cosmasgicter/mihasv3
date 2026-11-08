@@ -72,10 +72,20 @@ class Command(BaseCommand):
                 )
                 deactivated = cursor.rowcount
 
-        message = (
-            f"Catalogue {SUBJECT_CATALOG_VERSION}: {written} row(s) written "
-            f"({len(CANONICAL_SUBJECTS)} checked)"
-        )
+        total = len(CANONICAL_SUBJECTS)
+        if written == 0:
+            # F6: an idempotent re-run writes nothing because the catalogue is
+            # already current — say so, rather than printing a bare "0 row(s)
+            # written" that reads like a failure.
+            message = (
+                f"Catalogue {SUBJECT_CATALOG_VERSION}: already up to date "
+                f"({total} subject(s) verified, no changes)"
+            )
+        else:
+            message = (
+                f"Catalogue {SUBJECT_CATALOG_VERSION}: {written} of {total} "
+                f"subject(s) upserted ({total} checked)"
+            )
         if options.get("deactivate_legacy_duplicates"):
             message += f"; {deactivated} legacy duplicate row(s) deactivated"
         self.stdout.write(self.style.SUCCESS(message))
