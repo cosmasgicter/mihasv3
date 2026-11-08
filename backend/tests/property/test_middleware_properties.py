@@ -276,7 +276,11 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/auth/password-reset/", "5/5m"),
             ("/api/v1/auth/", "60/5m"),
             ("/api/v1/admin/", "200/10m"),
-            ("/api/v1/documents/", "20/10m"),
+            # SJR R3-b (task 3.9): the old single ("/api/v1/documents/", "20/10m")
+            # entry encoded the shared upload/read budget (clause 1.13). It is
+            # now the upload scope followed by the document read scope.
+            ("/api/v1/documents/upload/", "60/10m"),
+            ("/api/v1/documents/", "300/10m"),
             ("/api/v1/applications/bulk-status/", "20/10m"),
             ("/api/v1/applications/track/", "20/10m"),
             ("/api/v1/sessions/", "30/10m"),

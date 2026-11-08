@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.throttling import DocumentUserRateThrottle
 from apps.common.jobs_ops_seed import build_action_payload, sample_resume_assets
 from apps.common.openapi_helpers import envelope_serializer
 
@@ -96,6 +97,8 @@ class QuestionBankAnswerView(APIView):
 
 
 class DocumentVersionListView(APIView):
+    # Jobs-ops scaffold, throttled only because it shares the /documents/ prefix.
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
     serializer_class = DocumentVersionSerializer
 

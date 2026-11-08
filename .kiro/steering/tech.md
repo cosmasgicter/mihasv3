@@ -274,6 +274,8 @@ UI are unconditional.
 |------|-------|-------|
 | `PAYMENT_HARDENING_RATE_LIMITS` | Backend | Per-user DRF throttle scopes (`payment_initiate`, `payment_mobile_money`, `payment_verify`, `payment_resolve_fee`) |
 
+Document traffic has its own per-user DRF scopes, `documents_write` (upload, delete, extract) 40/hour and `documents_read` (info, signed URL, download) 300/hour, enforced by `DocumentUserRateThrottle`. They follow `RATELIMIT_ENABLE` (off in test and the broad harness matrix), not this flag, and fail open on cache errors. Client addresses come from `get_client_ip` (trusted proxies only: `TRUSTED_PROXY_CIDRS`, `NUM_PROXIES`).
+
 This is a policy switch, not a second code path: both settings run the same
 payment path. It reads `"1" | "true" | "yes"` as enabled and is hardcoded `True`
 in `prod.py` / `staging.py`.

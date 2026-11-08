@@ -323,7 +323,7 @@ CORS_ALLOWED_ORIGINS = split_csv_env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env("CORS_ALLOWED_ORIGIN_REGEXES")
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "x-csrf-token", "x-csrf-recovery", "idempotency-key"]))
-CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID", "X-Backend-Version"]
+CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID", "X-Backend-Version", "Retry-After"]
 CORS_PREFLIGHT_MAX_AGE = 86400
 
 # ---------------------------------------------------------------------------
@@ -340,6 +340,29 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Number of trusted reverse proxies (count from right of X-Forwarded-For)
 NUM_PROXIES = int(os.environ.get("NUM_PROXIES", "1"))
+
+# Peers allowed to supply X-Forwarded-For (SJR R3-a). A forwarded header from any
+# other peer is ignored, so a client talking to the app server directly cannot
+# choose its own address. Default: loopback and private ranges (the Caddy peer).
+import ipaddress as _ipaddress  # noqa: E402
+
+_TRUSTED_PROXY_CIDRS_RAW = os.environ.get(
+    "TRUSTED_PROXY_CIDRS",
+    "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7",
+)
+TRUSTED_PROXY_CIDRS = []
+for _cidr in _TRUSTED_PROXY_CIDRS_RAW.split(","):
+    if not _cidr.strip():
+        continue
+    try:
+        TRUSTED_PROXY_CIDRS.append(_ipaddress.ip_network(_cidr.strip(), strict=False))
+    except ValueError as _exc:
+        raise ImproperlyConfigured(
+            "TRUSTED_PROXY_CIDRS contains an invalid network entry"
+        ) from _exc
+
+# django-ratelimit resolves key="ip" through this callable instead of REMOTE_ADDR.
+RATELIMIT_IP_META_KEY = "apps.common.request_utils.get_client_ip"
 
 # Request body size limits (prevent memory exhaustion attacks)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB for JSON/form data
@@ -451,6 +474,10 @@ REST_FRAMEWORK = {
         # admissions-v2 task 7.4 retired the ai_admin_summary and
         # ai_student_preview scopes with the endpoints they throttled.
         "document_extract": "5/hour",
+        # Per-user document budgets (SJR R3-b): writes = upload, delete, extract;
+        # reads = info, signed URL, download.
+        "documents_write": "40/hour",
+        "documents_read": "300/hour",
         # Public-tracker FAILED attempts per IP (admissions-v2 task 10.5,
         # R13.12 / STU-22). A holder of a valid tracking link never spends this
         # budget — only lookups that resolved nothing do — so it can be far

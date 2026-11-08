@@ -237,13 +237,19 @@ class MetricsMiddleware:
 class RateLimitMiddleware:
     """Per-scope rate limiting using django-ratelimit.
 
+    Client identity: ``key="ip"`` resolves through ``RATELIMIT_IP_META_KEY`` to
+    ``apps.common.request_utils.get_client_ip``. ``X-Forwarded-For`` is honoured
+    only when ``REMOTE_ADDR`` is inside ``TRUSTED_PROXY_CIDRS`` and then only
+    ``NUM_PROXIES`` hops deep; any other peer is counted by its own address.
+
     Scopes and limits (ordered most-specific first):
       /api/v1/auth/login/          → 10/5m
       /api/v1/auth/register/       → 5/5m
       /api/v1/auth/password-reset/ → 5/5m
       /api/v1/auth/                → 60/5m
       /api/v1/admin/               → 200/10m
-      /api/v1/documents/           → 20/10m
+      /api/v1/documents/upload/    → 60/10m   (upload bucket, before the read bucket)
+      /api/v1/documents/           → 300/10m
       /api/v1/applications/bulk-status/ → 20/10m  (admin bulk state transitions, R4.8)
       /api/v1/applications/track/  → 20/10m
       /api/v1/sessions/            → 30/10m
@@ -277,7 +283,12 @@ class RateLimitMiddleware:
         # sensitive endpoint (all calls require valid auth cookies); the
         # true access control is the CapabilityService check per view.
         ("/api/v1/admin/", "200/10m"),
-        ("/api/v1/documents/", "20/10m"),
+        # Documents: the upload scope is separate from (and listed before) the
+        # document read scope, so polling and viewing never spend the upload
+        # budget. Per-IP figures fit a lab of ~15 students behind one address;
+        # the per-user DocumentUserRateThrottle budgets are the real control.
+        ("/api/v1/documents/upload/", "60/10m"),
+        ("/api/v1/documents/", "300/10m"),
         ("/api/v1/applications/bulk-status/", "20/10m"),
         ("/api/v1/applications/track/", "20/10m"),
         ("/api/v1/sessions/", "30/10m"),

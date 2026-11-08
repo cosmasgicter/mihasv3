@@ -36,6 +36,7 @@ Validates: Requirements R19.1, R19.2.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Optional
 
 from django.conf import settings
@@ -43,8 +44,23 @@ from rest_framework.throttling import ScopedRateThrottle, SimpleRateThrottle
 
 from apps.common.request_utils import get_client_ip
 
+logger = logging.getLogger(__name__)
 
-class PaymentUserScopedRateThrottle(ScopedRateThrottle):
+
+class ClientIpIdentMixin:
+    """Identify an anonymous client by the trusted-proxy aware address.
+
+    DRF's own ``get_ident`` keys on the whole ``X-Forwarded-For`` chain when
+    ``NUM_PROXIES`` is not in ``REST_FRAMEWORK``, which lets a caller mint a
+    fresh bucket per request. ``get_client_ip`` honours ``TRUSTED_PROXY_CIDRS``
+    and ``NUM_PROXIES`` (SJR R3-a). Authenticated keys stay ``user.pk``.
+    """
+
+    def get_ident(self, request: Any) -> str:
+        return get_client_ip(request)
+
+
+class PaymentUserScopedRateThrottle(ClientIpIdentMixin, ScopedRateThrottle):
     """Per-user (fallback IP) scoped throttle for payment endpoints.
 
     The scope name is read from the view's ``throttle_scope`` attribute
@@ -90,13 +106,15 @@ class PaymentUserScopedRateThrottle(ScopedRateThrottle):
 
 
 __all__ = [
+    "ClientIpIdentMixin",
+    "DocumentUserRateThrottle",
     "PaymentUserScopedRateThrottle",
     "DocumentExtractUserScopedRateThrottle",
     "PublicTrackingFailureThrottle",
 ]
 
 
-class DocumentExtractUserScopedRateThrottle(ScopedRateThrottle):
+class DocumentExtractUserScopedRateThrottle(ClientIpIdentMixin, ScopedRateThrottle):
     """Per-user (fallback IP) scoped throttle for the document-extraction retry.
 
     admissions-v2 task 7.4 (R11.9) retired the AI-scoped throttle this replaces.
@@ -129,7 +147,7 @@ class DocumentExtractUserScopedRateThrottle(ScopedRateThrottle):
         return self.cache_format % {"scope": scope, "ident": ident}
 
 
-class PublicTrackingFailureThrottle(SimpleRateThrottle):
+class PublicTrackingFailureThrottle(ClientIpIdentMixin, SimpleRateThrottle):
     """Per-IP **failed-attempt** budget for the unauthenticated public tracker.
 
     admissions-v2 task 10.5 (R13.12 "rate-limit attempts", R17.7, STU-22).
@@ -256,3 +274,47 @@ class PublicTrackingFailureThrottle(SimpleRateThrottle):
         self.key = key
         self.history = history
         self.now = now
+
+
+class DocumentUserRateThrottle(ClientIpIdentMixin, SimpleRateThrottle):
+    """Per-user document budgets: reads separate from writes (SJR R3-b).
+
+    Scope is ``documents_read`` for GET, HEAD and OPTIONS, else
+    ``documents_write``, chosen in :meth:`allow_request` before the rate is
+    parsed. Cache key ``throttle_<scope>_user_<user.pk>``, or the client
+    address when anonymous. Inactive when ``RATELIMIT_ENABLE`` is false (read
+    with a default, the way django-ratelimit reads it: the setting is only
+    defined by test and harness settings). A cache failure fails open and logs
+    a WARNING; the middleware's in-memory fallback still bounds abuse.
+    """
+
+    cache_format = "throttle_%(scope)s_user_%(ident)s"
+    READ_METHODS = ("GET", "HEAD", "OPTIONS")
+
+    def __init__(self) -> None:
+        # The scope depends on the request method, so the rate is resolved in
+        # allow_request rather than here.
+        self.scope = "documents_read"
+        self.rate = None
+
+    def get_cache_key(self, request: Any, view: Any) -> Optional[str]:
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            ident = str(getattr(user, "pk", None) or getattr(user, "id", ""))
+        else:
+            ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident}
+
+    def allow_request(self, request: Any, view: Any) -> bool:
+        if not getattr(settings, "RATELIMIT_ENABLE", True):
+            return True
+        self.scope = (
+            "documents_read" if request.method in self.READ_METHODS else "documents_write"
+        )
+        self.rate = self.get_rate()
+        self.num_requests, self.duration = self.parse_rate(self.rate)
+        try:
+            return super().allow_request(request, view)
+        except Exception:
+            logger.warning("ratelimit.document_throttle.cache_unavailable", exc_info=True)
+            return True

@@ -47,7 +47,11 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import DocumentExtractUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.throttling import (
+    DocumentExtractUserScopedRateThrottle,
+    DocumentUserRateThrottle,
+    PaymentUserScopedRateThrottle,
+)
 from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
@@ -257,6 +261,7 @@ class DocumentUploadView(APIView):
     Validates magic bytes, stores in S3/R2, creates ApplicationDocument record.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
     serializer_class = DocumentUploadSerializer
 
@@ -682,7 +687,7 @@ class DocumentExtractView(APIView):
     # Cap per-user OCR retries (5/hour) when the flag is on: repeated
     # ``force=True`` re-extract calls are CPU-expensive. Task 7.4 renamed the
     # throttle and scope off the retired AI vocabulary; extraction is local.
-    throttle_classes = [DocumentExtractUserScopedRateThrottle]
+    throttle_classes = [DocumentExtractUserScopedRateThrottle, DocumentUserRateThrottle]
     throttle_scope = "document_extract"
 
     def post(self, request, document_id):
@@ -700,7 +705,33 @@ class DocumentExtractView(APIView):
         from apps.documents.tasks import extract_document_text_task
 
         force = request.data.get("force", False) is True
-        task = extract_document_text_task.delay(str(document.id), force=force)
+        # Record that a job exists before enqueueing, so /info/ can tell "queued"
+        # from "never started" (SJR R3-c). A document the task would skip (text
+        # already extracted, no force) is left alone: nothing would clear
+        # ``pending``.
+        previous_state = document.extraction_state
+        marked_pending = False
+        if (force or previous_state is None) and not (document.extracted_text and not force):
+            ApplicationDocument.objects.filter(id=document.id).update(extraction_state="pending")
+            marked_pending = True
+        try:
+            task = extract_document_text_task.delay(str(document.id), force=force)
+        except Exception:
+            if marked_pending:
+                ApplicationDocument.objects.filter(id=document.id).update(
+                    extraction_state=previous_state
+                )
+            logger.error("OCR enqueue failed for document %s", document.id, exc_info=True)
+            emit_metric("ocr.extract.enqueue_failed")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Text extraction is temporarily unavailable. Enter your grades manually or try again shortly.",
+                    "code": "OCR_QUEUE_UNAVAILABLE",
+                    "retryable": True,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
             {
@@ -727,6 +758,7 @@ class DocumentSignedUrlView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
@@ -763,6 +795,7 @@ class DocumentDownloadView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={302: None})
@@ -806,6 +839,7 @@ class DocumentInfoView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
@@ -822,6 +856,7 @@ class DocumentInfoView(APIView):
         # labeled read-only provenance and never as current authority.
         historical_extraction = extraction_provenance.provenance_payload(document)
         _OCR_STATES = {
+            "ocr_pending",
             "ocr_processing",
             "ocr_complete",
             "ocr_no_text",
@@ -832,8 +867,11 @@ class DocumentInfoView(APIView):
         # ``extraction_state`` is the canonical home for OCR progress (task 7.3);
         # ``verification_status`` is only consulted for rows written before the
         # column existed, so an existing client keeps seeing the same `ocr_state`.
-        ocr_state = document.extraction_state if document.extraction_state in _OCR_STATES else None
-        if ocr_state is None and document.verification_status in _OCR_STATES:
+        if document.extraction_state == "pending":
+            ocr_state = "ocr_pending"
+        else:
+            ocr_state = document.extraction_state if document.extraction_state in _OCR_STATES else None
+        if ocr_state is None and document.verification_status in (_OCR_STATES - {"ocr_pending"}):
             ocr_state = document.verification_status
         data = {
             "id": str(document.id),
@@ -887,6 +925,7 @@ class DocumentDeleteView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})

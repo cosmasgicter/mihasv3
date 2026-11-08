@@ -169,6 +169,7 @@ flags, and cleanup stay consistent.
 - **Never commit real connection strings, the `.pem` key, or DB dumps.**
   `.env`/`.env.local` are gitignored and may hold real credentials locally; the
   SSH key stays in `/home/cosmas/Downloads/`.
+- **Proxy trust:** Caddy is the single trusted proxy (`NUM_PROXIES=1`). The backend honours `X-Forwarded-For` only from a peer inside `TRUSTED_PROXY_CIDRS` (default loopback and private ranges, which covers the compose network). A second proxy in front (for example Cloudflare) needs `NUM_PROXIES=2` and that proxy's ranges added to `TRUSTED_PROXY_CIDRS`.
 - **Never expose the production Postgres on a public port.** It stays on the
   internal compose network behind Caddy.
 - Treat any production DB write as **high-risk** per the safety guardrails:

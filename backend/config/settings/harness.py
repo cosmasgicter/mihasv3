@@ -69,7 +69,9 @@ CORS_ALLOW_CREDENTIALS = True
 # ---------------------------------------------------------------------------
 # Coarse IP-keyed rate limiting -> OFF. Per-user payment throttles stay ON.
 # ---------------------------------------------------------------------------
-# ``RateLimitMiddleware`` (apps/common/middleware.py) budgets by **client IP**:
+# ``RateLimitMiddleware`` (apps/common/middleware.py) budgets by **client IP**
+# (``get_client_ip``: the real client behind a trusted proxy, so production keys
+# each applicant separately since SJR R3-a):
 # ``/auth/login/`` 10/5m, ``/auth/register/`` 5/5m, ``/payments/`` 60/10m, and so
 # on. That is correct in production, where each applicant arrives from their own
 # address. It cannot mean the same thing here: every request in this harness —

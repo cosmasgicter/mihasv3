@@ -48,7 +48,6 @@ def _request(method: str, path: str, *, forwarded: str):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.9")
 @pytest.mark.parametrize("label,method,path,limit", SCOPES, ids=[s[0] for s in SCOPES])
 def test_each_real_client_has_its_own_bucket_behind_the_proxy(label, method, path, limit):
     middleware = RateLimitMiddleware(_ok)
@@ -70,7 +69,6 @@ def test_each_real_client_has_its_own_bucket_behind_the_proxy(label, method, pat
     )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.9")
 def test_get_client_ip_returns_an_untrusted_remote_addr_not_the_forwarded_value():
     request = RequestFactory().get(
         "/api/v1/auth/session/",
@@ -92,7 +90,6 @@ DOCUMENT_VIEWS = [
 ]
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.9")
 def test_document_views_carry_the_per_user_document_throttle():
     from apps.common import throttling
     from apps.documents import document_storage_views as views
@@ -103,7 +100,6 @@ def test_document_views_carry_the_per_user_document_throttle():
         assert throttle in classes, f"{name} has no per-user document throttle"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.9")
 def test_reads_and_writes_spend_separate_per_user_budgets(monkeypatch):
     from django.core.cache import cache
     from rest_framework.test import APIRequestFactory
