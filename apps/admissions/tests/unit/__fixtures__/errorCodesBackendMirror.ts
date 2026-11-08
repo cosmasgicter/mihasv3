@@ -133,6 +133,7 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   // Common operational
   DASHBOARD_ERROR: { http_status: 500, message: 'Dashboard data could not be loaded', category: 'common' },
   SERVICE_UNAVAILABLE: { http_status: 503, message: 'Service temporarily unavailable', category: 'common' },
+  OCR_QUEUE_UNAVAILABLE: { http_status: 503, message: 'Text extraction is temporarily unavailable', category: 'document' },
   // Security hardening
   BLACKLIST_UNAVAILABLE: { http_status: 503, message: 'Token blacklist service unavailable', category: 'auth' },
   DRAFT_TOO_LARGE: { http_status: 413, message: 'Draft data exceeds maximum size', category: 'application' },

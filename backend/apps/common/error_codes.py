@@ -620,6 +620,12 @@ ERROR_CODES.update({
         "message": "Service temporarily unavailable",
         "category": "common",
     },
+    # SJR R3-c: the extract call could not enqueue the OCR job (broker down).
+    "OCR_QUEUE_UNAVAILABLE": {
+        "http_status": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "message": "Text extraction is temporarily unavailable",
+        "category": "document",
+    },
 })
 
 # --- Document ---

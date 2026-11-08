@@ -8,8 +8,7 @@
  * a 20-per-10-minutes document budget), and it has no "no job exists" state, so
  * it keeps polling a document whose extract call was rejected.
  *
- * Every test asserts the expected behaviour and is wrapped in `it.fails`
- * (design "Marker scheme"); task 3.12 (the R3 checkpoint) removes the wrapper.
+ * The markers were removed at the R3 checkpoint (task 3.12); these now run unmarked.
  */
 import { act, renderHook } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
@@ -59,7 +58,7 @@ afterEach(() => {
 })
 
 describe('OCR polling (clause 1.14)', () => {
-  it.fails('stops after one poll when the document has no job (ocr_state null)', async () => {
+  it('stops after one poll when the document has no job (ocr_state null)', async () => {
     getInfo.mockResolvedValue(info())
     const { result } = start()
 
@@ -70,7 +69,7 @@ describe('OCR polling (clause 1.14)', () => {
     expect(result.current.failureReason).toBe('not_started')
   })
 
-  it.fails('polls at most 10 times on the backoff schedule, then times out', async () => {
+  it('polls at most 10 times on the backoff schedule, then times out', async () => {
     getInfo.mockResolvedValue(info({ ocr_state: 'ocr_processing' }))
     const startedAt = Date.now()
     const times: number[] = []
@@ -87,7 +86,7 @@ describe('OCR polling (clause 1.14)', () => {
     expect(result.current.failureReason).toBe('timeout')
   })
 
-  it.fails('reads the document without the client-level retries', async () => {
+  it('reads the document without the client-level retries', async () => {
     getInfo.mockResolvedValue(info({ ocr_state: 'ocr_processing' }))
     start()
 
@@ -97,7 +96,7 @@ describe('OCR polling (clause 1.14)', () => {
     expect(getInfo).toHaveBeenCalledWith(DOC_ID, { retries: 0 })
   })
 
-  it.fails('stops on a 429 and reports it as rate limited', async () => {
+  it('stops on a 429 and reports it as rate limited', async () => {
     getInfo.mockRejectedValue(Object.assign(new Error('Too many requests'), { status: 429 }))
     const { result } = start()
 
@@ -108,7 +107,7 @@ describe('OCR polling (clause 1.14)', () => {
     expect(result.current.failureReason).toBe('rate_limited')
   })
 
-  it.fails('stops on a 404 and reports the document as missing', async () => {
+  it('stops on a 404 and reports the document as missing', async () => {
     getInfo.mockRejectedValue(Object.assign(new Error('Not found'), { status: 404 }))
     const { result } = start()
 
@@ -126,7 +125,7 @@ describe('wizard controller wiring (clause 1.14)', () => {
    * controller starts polling on the line after it fires extract(), whether or
    * not extract succeeded.
    */
-  it.fails('starts OCR polling only after extract() resolves', () => {
+  it('starts OCR polling only after extract() resolves', () => {
     const source = readFileSync(
       resolve(
         __dirname,

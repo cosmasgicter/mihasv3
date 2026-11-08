@@ -45,7 +45,6 @@ def owned_document():
     return world, document
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.10")
 def test_extract_records_pending_and_info_reports_ocr_pending(owned_document):
     world, document = owned_document
     client = _client(world.student)
@@ -62,7 +61,6 @@ def test_extract_records_pending_and_info_reports_ocr_pending(owned_document):
     assert info.json()["data"]["ocr_state"] == "ocr_pending"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.10")
 def test_broker_failure_is_a_retryable_503_and_restores_the_state(owned_document):
     world, document = owned_document
     client = _client(world.student, raise_request_exception=False)
@@ -81,7 +79,6 @@ def test_broker_failure_is_a_retryable_503_and_restores_the_state(owned_document
     assert document.extraction_state is None  # restored, not left pending
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R3: fixed in task 3.10")
 def test_task_with_no_file_records_ocr_failed(owned_document):
     from apps.documents.tasks import extract_document_text_task
 

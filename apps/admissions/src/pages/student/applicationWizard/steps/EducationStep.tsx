@@ -15,6 +15,7 @@ import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import type { Grade12Subject, SubjectGrade } from '../types'
 import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
 import { cn } from '@/lib/utils'
+import { rateLimitMessage } from '@/lib/rateLimitCopy'
 import { validateLiveGrades, type RowDiagnostic } from '../lib/liveGradeValidation'
 
 interface EducationStepProps {
@@ -45,6 +46,8 @@ interface EducationStepProps {
   ocrWithheld?: import('../hooks/useOcrGradeExtraction').OcrWithheldCandidate[]
   ocrAppliedCount?: number
   ocrFailureReason?: import('../hooks/useOcrGradeExtraction').OcrFailureReason
+  /** When OCR can be retried after a rate limit, if the server said. */
+  ocrRetryAfterSeconds?: number | null
   ocrExtractionMeta?: import('../hooks/useOcrGradeExtraction').OcrExtractionMeta | null
   onConfirmOcrCandidates?: (subjectIds: string[]) => void
   onDismissOcrCandidates?: () => void
@@ -68,6 +71,7 @@ const EducationStep = ({
   ocrWithheld,
   ocrAppliedCount,
   ocrFailureReason,
+  ocrRetryAfterSeconds,
   ocrExtractionMeta,
   onConfirmOcrCandidates,
   onDismissOcrCandidates,
@@ -275,6 +279,10 @@ const EducationStep = ({
                   ? 'Your file is too large for automatic scanning. Please add your subjects manually below.'
                   : ocrFailureReason === 'no_text'
                     ? 'We couldn\'t read any text from your result slip. Make sure the image is clear and well-lit, then try again.'
+                    : ocrFailureReason === 'rate_limited'
+                    ? `${rateLimitMessage(ocrRetryAfterSeconds ?? null)} You can add your subjects manually below — your upload is still saved.`
+                    : ocrFailureReason === 'not_started' || ocrFailureReason === 'missing'
+                    ? 'Automatic grade scanning is not available for this upload. Please add your subjects manually below — your upload is still saved.'
                     : ocrFailureReason === 'no_grades_matched'
                       ? 'We found text in your result slip but couldn\'t match it to the subject catalogue confidently enough to suggest anything. Please add your subjects manually below.'
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}

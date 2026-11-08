@@ -34,6 +34,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { documentService } from '@/services/documents'
 import { logger } from '@/lib/logger'
 import { isCanonicalSubjectId } from '@/lib/canonicalSubjectId'
+import { retryAfterOf } from '@/lib/rateLimitCopy'
 
 /** One deterministic suggestion. Mirrors the backend `GradeCandidate` shape. */
 export interface OcrGradeCandidate {
@@ -84,8 +85,13 @@ interface DocumentInfo {
   extraction?: unknown
 }
 
-const POLL_INTERVAL = 3000
-const MAX_POLLS = 30 // 90 seconds max — Celery cold-start can take 30-60s
+/**
+ * Delay before each poll (SJR R3-c, clause 2.15): at most 10 polls, about 106 s in
+ * all, which covers a 60 s worker cold start. Each poll is one request with no
+ * client-level retry, so the document read budget is spent predictably.
+ */
+export const OCR_POLL_DELAYS_MS = [2000, 3000, 5000, 8000, 13000, 15000, 15000, 15000, 15000, 15000]
+const MAX_POLLS = OCR_POLL_DELAYS_MS.length
 const POST_EXTRACTION_GRACE_POLLS = 3
 
 const WITHHELD_STATUSES = new Set(['low_confidence', 'unresolved', 'duplicate', 'invalid_grade'])
@@ -194,6 +200,9 @@ export type OcrFailureReason =
   | 'skipped'
   | 'no_text'
   | 'no_grades_matched'
+  | 'not_started'
+  | 'missing'
+  | 'rate_limited'
   | null
 
 export function useOcrGradeExtraction(documentId: string | null) {
@@ -203,6 +212,7 @@ export function useOcrGradeExtraction(documentId: string | null) {
   const [extractionMeta, setExtractionMeta] = useState<OcrExtractionMeta | null>(null)
   const [failureReason, setFailureReason] = useState<OcrFailureReason>(null)
   const [appliedCount, setAppliedCount] = useState(0)
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState<number | null>(null)
 
   const pollCountRef = useRef(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -218,11 +228,48 @@ export function useOcrGradeExtraction(documentId: string | null) {
     return () => { mountedRef.current = false }
   }, [])
 
+  const visibilityCleanupRef = useRef<(() => void) | null>(null)
+
   const stopPolling = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
+    if (visibilityCleanupRef.current) {
+      visibilityCleanupRef.current()
+      visibilityCleanupRef.current = null
+    }
+  }, [])
+
+  /** Stop for good: record why, leave the education step usable for manual entry. */
+  const finishFailed = useCallback((reason: Exclude<OcrFailureReason, null>) => {
+    if (mountedRef.current) {
+      setFailureReason(reason)
+      setStatus('failed')
+    }
+    logger.info('[OCR] polling stopped', { reason, polls: pollCountRef.current })
+  }, [])
+
+  const pollRef = useRef<() => Promise<void>>(async () => {})
+
+  /**
+   * Run the next poll, but not while the tab is hidden: wait for it to become
+   * visible and resume without resetting the count (clause 2.15).
+   */
+  const runWhenVisible = useCallback(() => {
+    timeoutRef.current = null
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      const onVisible = () => {
+        if (document.visibilityState === 'hidden') return
+        document.removeEventListener('visibilitychange', onVisible)
+        visibilityCleanupRef.current = null
+        void pollRef.current()
+      }
+      document.addEventListener('visibilitychange', onVisible)
+      visibilityCleanupRef.current = () => document.removeEventListener('visibilitychange', onVisible)
+      return
+    }
+    void pollRef.current()
   }, [])
 
   const poll = useCallback(async () => {
@@ -230,25 +277,26 @@ export function useOcrGradeExtraction(documentId: string | null) {
     const currentDocId = docIdRef.current
     const currentRunId = runIdRef.current
     if (!currentDocId) return
-
     pollCountRef.current += 1
-    if (pollCountRef.current > MAX_POLLS) {
-      if (mountedRef.current) {
-        setFailureReason('timeout')
-        setStatus('failed')
-      }
-      logger.info('[OCR] Polling timed out', { attempts: MAX_POLLS })
-      return
-    }
-
-    try {
-      const info = await documentService.getInfo<DocumentInfo>(currentDocId)
-      if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current || docIdRef.current !== currentDocId) return
-      if (!info) {
-        timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+    const pollNumber = pollCountRef.current
+    /** Schedule the following poll on the backoff schedule, or stop at the bound. */
+    const scheduleNext = () => {
+      if (!mountedRef.current || doneRef.current) return
+      if (pollNumber >= MAX_POLLS) {
+        finishFailed('timeout')
         return
       }
-
+      timeoutRef.current = setTimeout(runWhenVisible, OCR_POLL_DELAYS_MS[pollNumber])
+    }
+    try {
+      // One request per poll: no client-level retry, so a slow worker cannot
+      // multiply the polls against the document read budget.
+      const info = await documentService.getInfo<DocumentInfo>(currentDocId, { retries: 0 })
+      if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current || docIdRef.current !== currentDocId) return
+      if (!info) {
+        scheduleNext()
+        return
+      }
       // Stop early if the backend reports a permanent extraction outcome.
       const state = info.ocr_state || info.verification_status
       if (state === 'ocr_failed' || state === 'ocr_skipped') {
@@ -256,10 +304,9 @@ export function useOcrGradeExtraction(documentId: string | null) {
           setFailureReason(state === 'ocr_skipped' ? 'skipped' : 'server_failed')
           setStatus('failed')
         }
-        logger.info('[OCR] Backend reported permanent failure', { state })
+        logger.info('[OCR] polling stopped', { reason: state, polls: pollNumber })
         return
       }
-
       const parsed = readExtractionPayload(info.extraction)
       if (parsed && parsed.candidates.length > 0 && !doneRef.current) {
         doneRef.current = true
@@ -277,19 +324,25 @@ export function useOcrGradeExtraction(documentId: string | null) {
         })
         return
       }
-
       if (state === 'ocr_no_text' || state === 'ocr_no_grades') {
         if (mountedRef.current) {
           setWithheld(parsed?.withheld ?? [])
           setFailureReason(state === 'ocr_no_grades' ? 'no_grades_matched' : 'no_text')
           setStatus('failed')
         }
-        logger.info('[OCR] Backend reported no confirmable candidates', { state })
+        logger.info('[OCR] polling stopped', { reason: state, polls: pollNumber })
         return
       }
-
+      // No job exists: nothing queued, nothing running, nothing extracted. The
+      // server publishes `ocr_pending` once a job is accepted, so null means
+      // there is nothing to wait for (clause 2.15).
+      const hasJobState = typeof state === 'string' && state.startsWith('ocr_')
+      if (!hasJobState && !info.extraction && !info.extracted_text) {
+        finishFailed('not_started')
+        return
+      }
       // Text extracted but no candidate set yet — keep polling to the grace window.
-      if (info.extracted_text && pollCountRef.current >= MAX_POLLS - POST_EXTRACTION_GRACE_POLLS) {
+      if (info.extracted_text && pollNumber >= MAX_POLLS - POST_EXTRACTION_GRACE_POLLS) {
         if (mountedRef.current) {
           setWithheld(parsed?.withheld ?? [])
           setFailureReason(parsed ? 'no_grades_matched' : 'no_text')
@@ -297,20 +350,24 @@ export function useOcrGradeExtraction(documentId: string | null) {
         }
         return
       }
-
-      if (mountedRef.current) {
-        timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+      scheduleNext()
+    } catch (error) {
+      if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current) return
+      const status = (error as { status?: unknown } | null)?.status
+      if (status === 404) {
+        finishFailed('missing')
+        return
       }
-    } catch {
-      // Non-critical — retry silently, then degrade to manual entry.
-      if (mountedRef.current && pollCountRef.current < MAX_POLLS) {
-        timeoutRef.current = setTimeout(poll, POLL_INTERVAL * 2)
-      } else if (mountedRef.current) {
-        setFailureReason('timeout')
-        setStatus('failed')
+      if (status === 429) {
+        setRetryAfterSeconds(retryAfterOf(error))
+        finishFailed('rate_limited')
+        return
       }
+      // Non-critical — try again on the schedule, then degrade to manual entry.
+      scheduleNext()
     }
-  }, []) // No deps — uses refs for everything
+  }, [finishFailed, runWhenVisible]) // Uses refs for everything else
+  pollRef.current = poll
 
   const startPolling = useCallback((nextDocumentId?: string | null) => {
     if (nextDocumentId) {
@@ -325,11 +382,27 @@ export function useOcrGradeExtraction(documentId: string | null) {
     setWithheld([])
     setExtractionMeta(null)
     setFailureReason(null)
+    setRetryAfterSeconds(null)
     setAppliedCount(0)
     stopPolling()
-    // Delay first poll — give Celery time to pick up the task
-    timeoutRef.current = setTimeout(poll, POLL_INTERVAL + 1000)
-  }, [poll, stopPolling])
+    // Delay first poll — give the worker time to pick up the job
+    timeoutRef.current = setTimeout(runWhenVisible, OCR_POLL_DELAYS_MS[0])
+  }, [runWhenVisible, stopPolling])
+
+  /**
+   * The extract request did not start a job (rejected, rate limited or the queue
+   * is down): there is nothing to poll, so go straight to manual entry.
+   */
+  const markExtractRejected = useCallback((error?: unknown) => {
+    stopPolling()
+    doneRef.current = true
+    if ((error as { status?: unknown } | null)?.status === 429) {
+      setRetryAfterSeconds(retryAfterOf(error))
+      finishFailed('rate_limited')
+      return
+    }
+    finishFailed('not_started')
+  }, [finishFailed, stopPolling])
 
   /**
    * The student's explicit confirmation. Returns only the selected candidates, so
@@ -370,8 +443,10 @@ export function useOcrGradeExtraction(documentId: string | null) {
     withheld,
     extractionMeta,
     failureReason,
+    retryAfterSeconds,
     appliedCount,
     startPolling,
+    markExtractRejected,
     stopPolling,
     confirmCandidates,
     dismissCandidates,

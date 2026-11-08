@@ -238,6 +238,8 @@ def extract_document_text_task(self, document_id, force=False):
     file_key = get_document_storage_key(document)
     if not file_key:
         logger.error("Document %s has no file URL", document_id)
+        # Terminal state, so a pending extraction never sticks (SJR R3-c).
+        evidence.record_extraction_state(document, "ocr_failed")
         return
 
     # Mark as processing so the frontend can distinguish "in progress" from "not started"

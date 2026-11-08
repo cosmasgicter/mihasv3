@@ -64,6 +64,10 @@ export function WizardStepRenderer({
     form,
     programs,
     programsLoading,
+    programsError,
+    intakesError,
+    onRetryPrograms,
+    onRetryIntakes,
     intakes,
     subjects,
     hasAutoPopulatedData,
@@ -100,6 +104,7 @@ export function WizardStepRenderer({
     ocrWithheld,
     ocrAppliedCount,
     ocrFailureReason,
+    ocrRetryAfterSeconds,
     ocrExtractionMeta,
     confirmOcrCandidates,
     dismissOcrCandidates,
@@ -120,6 +125,10 @@ export function WizardStepRenderer({
             form={typedForm}
             programs={programs}
             programsLoading={programsLoading}
+            programsError={programsError}
+            intakesError={intakesError}
+            onRetryPrograms={onRetryPrograms}
+            onRetryIntakes={onRetryIntakes}
             intakes={intakes}
             title={currentStepConfig.title}
             getFieldAriaDescribedBy={getFieldAriaDescribedBy}
@@ -182,6 +191,7 @@ export function WizardStepRenderer({
             ocrWithheld={ocrWithheld}
             ocrAppliedCount={ocrAppliedCount}
             ocrFailureReason={ocrFailureReason}
+            ocrRetryAfterSeconds={ocrRetryAfterSeconds}
             ocrExtractionMeta={ocrExtractionMeta}
             onConfirmOcrCandidates={confirmOcrCandidates}
             onDismissOcrCandidates={dismissOcrCandidates}
