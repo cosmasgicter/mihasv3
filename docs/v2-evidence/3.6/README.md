@@ -7,8 +7,11 @@
 **Candidate base commit:** `bae29a28d9657f288b3339062adb31285959c966` (task-3.6
 tool/test files are working-tree additions — this task does not commit).
 **Schema fingerprint (release DB):**
-`sha256:771c69eaf448361de576b0c120958ccb14dca6c8df1bee0a0e1acdc2220fc970`
-(task-3.1 manifest fingerprint of the fresh-from-empty canonical-committed-path DB;
+`sha256:a021666c5395bb8d3d7eb69ed1b3037f84221aa2188c052f3be9e9865625da6d`
+(re-emitted 2026-11-08 by student-journey-repair task 3.15, which added
+`2026_11_02_01_repair_document_snapshot_presence.sql`; see the regeneration log at
+the foot of this file. Previously `sha256:771c69eaf448…`, the
+task-3.1 manifest fingerprint of the fresh-from-empty canonical-committed-path DB;
 re-emitted 2026-08-15 by 13.6 remediation item **M4** — see the regeneration log
 at the foot of this file for the two earlier fingerprints and why each moved).
 
@@ -217,3 +220,15 @@ still declares `"intake" varchar(100)` where the model and the column are now
 database built *from* it measures **255** on all three snapshot columns, because
 the sweep applies the widen on top — so the snapshot being one number stale has
 no runtime effect, and the next operator regeneration picks it up.
+
+### Regeneration 2026-11-08 (student-journey-repair task 3.15)
+
+The release report was re-emitted by the §5 reproduction, unchanged in method,
+on a fresh database `v2_mig_history_sjr` in the throwaway local Postgres 17
+container (the earlier runs used Postgres 16.14, so the fingerprint moves for
+that reason as well as for the new script). `apply_sql_migrations
+--allow-non-additive` applied 47 scripts including the new data-only, idempotent
+`2026_11_02_01_repair_document_snapshot_presence.sql`; the report now has 49 rows
+(33 June 2026+), `--check-freshness` reports FRESHNESS OK, and
+`test_migration_history_report_freshness.py` passes (31). The neon-default report
+was not regenerated (no Neon access in that run).

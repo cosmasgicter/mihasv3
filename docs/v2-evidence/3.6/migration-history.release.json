@@ -1,306 +1,312 @@
 {
   "report_version": "1",
-  "generated_at": "2026-08-15T11:20:37.635998+00:00",
+  "generated_at": "2026-11-08T23:13:20.025232+00:00",
   "source": "database-introspection (apps.common.schema_manifest)",
   "environment": {
     "label": "release-canonical-committed-path",
-    "identity": "host=127.0.0.1 db=v2_mig_history_m4",
+    "identity": "host=127.0.0.1 db=v2_mig_history_sjr",
     "vendor": "postgresql",
-    "server_version": "16.14",
+    "server_version": "16.14 (Debian 16.14-1.pgdg13+1)",
     "schema": "public",
     "reduced": false
   },
-  "schema_fingerprint": "sha256:771c69eaf448361de576b0c120958ccb14dca6c8df1bee0a0e1acdc2220fc970",
-  "manifest_generated_at": "2026-08-15T11:20:37.619844+00:00",
-  "migration_count": 48,
-  "june_2026_plus_count": 32,
+  "schema_fingerprint": "sha256:a021666c5395bb8d3d7eb69ed1b3037f84221aa2188c052f3be9e9865625da6d",
+  "manifest_generated_at": "2026-11-08T23:13:20.009908+00:00",
+  "migration_count": 49,
+  "june_2026_plus_count": 33,
   "migrations": [
     {
       "migration_name": "2026_05_18_expand_application_status_columns.sql",
       "checksum": "384810082d2dea8b9b7c2be1dd753a31f0d52ae9915c9366ecc5bcf52465b329",
-      "applied_at": "2026-08-15T11:20:12.314360+00:00",
+      "applied_at": "2026-11-08T23:13:04.758030+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_18_hot_query_indexes.sql",
       "checksum": "afff4eff9b19761ba0d9c27e33b257a4771bb44f0dda3548f7dd4c87b830d21c",
-      "applied_at": "2026-08-15T11:20:12.321275+00:00",
+      "applied_at": "2026-11-08T23:13:04.764135+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_19_seed_communication_templates.sql",
       "checksum": "913afa433b496aa99642a1f261667608ff990bfb837a4b1ac3d10e3370b3c941",
-      "applied_at": "2026-08-15T11:20:12.336265+00:00",
+      "applied_at": "2026-11-08T23:13:04.779399+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_22_device_sessions_refresh_jti.sql",
       "checksum": "f689d42bf75e66a4f2f589571c0b61c19e5cd5649174b8db79fa5e4ec0fcdb44",
-      "applied_at": "2026-08-15T11:20:12.340051+00:00",
+      "applied_at": "2026-11-08T23:13:04.785505+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_22_fk_index_backfill.sql",
       "checksum": "fa8b9a8965d95753212112414ed5ba5a2620f9d75a7000b92bacb49f486a0963",
-      "applied_at": "2026-08-15T11:20:12.396892+00:00",
+      "applied_at": "2026-11-08T23:13:04.835315+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_22_migration_history_extend.sql",
       "checksum": "9df62f34f0eda84217fa20caea521b3cec67db8fb34888b14d824f1ac71dc469",
-      "applied_at": "2026-08-15T11:20:12.398317+00:00",
+      "applied_at": "2026-11-08T23:13:04.836848+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_05_22_migration_history_reconcile.sql",
       "checksum": "c49fd3dae0572180540c4316efd036281e235f91294f0e52be310aab33680af8",
-      "applied_at": "2026-08-15T11:20:12.400291+00:00",
+      "applied_at": "2026-11-08T23:13:04.839601+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "payment_hardening_indexes.sql",
       "checksum": "58baf5811de5276f44b4420ab9f43038b13c43a9d308328443d203c7e42dcc30",
-      "applied_at": "2026-08-15T11:20:12.400291+00:00",
+      "applied_at": "2026-11-08T23:13:04.839601+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "payment_hardening_preflight.sql",
       "checksum": "21b331f104216558f371ba962633371f01a0da58a97f7122f48ce158ea6dd067",
-      "applied_at": "2026-08-15T11:20:12.400291+00:00",
+      "applied_at": "2026-11-08T23:13:04.839601+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "2026_06_08_00_canonical_programs_id_default.sql",
       "checksum": "a66ba52e5d8f82badc0e1c35886548f5a90e9c9af75158d4ffe42d21f2e10670",
-      "applied_at": "2026-08-15T11:20:12.402272+00:00",
+      "applied_at": "2026-11-08T23:13:04.842369+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_08_01_multi_tenant_beanola_admissions.sql",
       "checksum": "7f0e69390dffe8c1e7e3788f3830fbe435eb153aefaf366c3ebf7253431de7aa",
-      "applied_at": "2026-08-15T11:20:12.411120+00:00",
+      "applied_at": "2026-11-08T23:13:04.852276+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_08_03_institution_document_profiles.sql",
       "checksum": "8a4007e90d586323f01357f7eacc8420c2cb25da3ec77c2043dfd5cac34f8917",
-      "applied_at": "2026-08-15T11:20:12.511255+00:00",
+      "applied_at": "2026-11-08T23:13:04.917321+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_08_04_communication_templates_tenant.sql",
       "checksum": "168fcfab5df7ad7f8dc6a7e9677b027b492257dc5b4994d975530e14558c265f",
-      "applied_at": "2026-08-15T11:20:12.526982+00:00",
+      "applied_at": "2026-11-08T23:13:04.930702+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_08_student_number.sql",
       "checksum": "57165411afb50e3524bc89fcfda5388ca9354255ec80c547784e5de9b8dd4b05",
-      "applied_at": "2026-08-15T11:20:12.531881+00:00",
+      "applied_at": "2026-11-08T23:13:04.936581+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_18_01_institution_domain_lifecycle.sql",
       "checksum": "052aedf1047154d9280db59af5ffd67a4609a8bb30dd35b50798aa3820bee0a2",
-      "applied_at": "2026-08-15T11:20:12.540478+00:00",
+      "applied_at": "2026-11-08T23:13:04.947762+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
       "checksum": "7b8a185d8019e328ec3b53a3cb575047d2a4aaa064c950317fc30ae26ee24ba3",
-      "applied_at": "2026-08-15T11:20:12.626907+00:00",
+      "applied_at": "2026-11-08T23:13:05.021377+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_06_25_02_jobs_ops_scaffold_tables.sql",
       "checksum": "21f5db3627ca9c9ebac5290da295741e559ac19fbce8290a7f0107edd9bf9a45",
-      "applied_at": "2026-08-15T11:20:12.703782+00:00",
+      "applied_at": "2026-11-08T23:13:05.091414+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_16_01_canonical_assignment_expand.sql",
       "checksum": "c35c29796e02b9a95fa0da804b8c735e5415850955291872bc0420dbf45fcf33",
-      "applied_at": "2026-08-15T11:20:12.705030+00:00",
+      "applied_at": "2026-11-08T23:13:05.093126+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_16_02_canonical_assignment_backfill.sql",
       "checksum": "92d8d09e3d7575479a8ee25f763a39be268a8317ed2ebce9236f311f44c05ed3",
-      "applied_at": "2026-08-15T11:20:12.717998+00:00",
+      "applied_at": "2026-11-08T23:13:05.107323+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_16_03_canonical_assignment_validate.sql",
       "checksum": "c1100026111b7d6e9b2009254bf36bd0c26d110ca9e765d6109ad12283249339",
-      "applied_at": "2026-08-15T11:20:12.730906+00:00",
+      "applied_at": "2026-11-08T23:13:05.120162+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_17_01_integrity_constraints_expand.sql",
       "checksum": "fa13a52246e30e8f4b8cc94f3a528559f43187a458a8a8339c100dc0a342e42b",
-      "applied_at": "2026-08-15T11:20:12.737110+00:00",
+      "applied_at": "2026-11-08T23:13:05.127671+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_17_02_communication_template_unique_switch.sql",
       "checksum": "80bcffd8cdfdd14860012adce9fca3c54bb66e9c70343b11d11b84ad31a03e96",
-      "applied_at": "2026-08-15T11:20:12.758022+00:00",
+      "applied_at": "2026-11-08T23:13:05.147667+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_18_01_tenant_fk_validate.sql",
       "checksum": "c60fc91154c7f1f2a0d7e0f8a373e5f44790e3cd24376037ccf7b66e88bce7d8",
-      "applied_at": "2026-08-15T11:20:12.761095+00:00",
+      "applied_at": "2026-11-08T23:13:05.150944+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_19_01_payments_documents_expand.sql",
       "checksum": "861cdec7fb24ea452ddaa13b8a326c1a336397d851b1182adc052193b3cb8c51",
-      "applied_at": "2026-08-15T11:20:12.782037+00:00",
+      "applied_at": "2026-11-08T23:13:05.168992+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_19_02_payments_documents_backfill.sql",
       "checksum": "f07b48b821b33e7617d3161284424664bc9061c6365513295374aca771011aeb",
-      "applied_at": "2026-08-15T11:20:12.798620+00:00",
+      "applied_at": "2026-11-08T23:13:05.185825+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_19_03_payments_documents_validate.sql",
       "checksum": "757c02c44883b13a43d76c0051830cf0930cf0355f5ce2260563db8bc1f6669c",
-      "applied_at": "2026-08-15T11:20:12.804718+00:00",
+      "applied_at": "2026-11-08T23:13:05.193795+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_20_01_tenant_onboarding.sql",
       "checksum": "570474d14cf390b8d520a96804718965313d7734412964d7c00ed840467e80c7",
-      "applied_at": "2026-08-15T11:20:12.812127+00:00",
+      "applied_at": "2026-11-08T23:13:05.201303+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_21_01_tenant_staff_invitations.sql",
       "checksum": "e2c6a9fbd2af1f71b9d1308e2d8eadd4d6307d5822b25260f2f07524def9fa27",
-      "applied_at": "2026-08-15T11:20:12.824093+00:00",
+      "applied_at": "2026-11-08T23:13:05.214665+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_22_01_tenant_change_requests.sql",
       "checksum": "8f83fb165767901f060c3a4dd972a71a8a5d00e4a042a2b8114d98b37b7f5792",
-      "applied_at": "2026-08-15T11:20:12.843037+00:00",
+      "applied_at": "2026-11-08T23:13:05.231977+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_23_01_application_assignment_snapshot.sql",
       "checksum": "e5e514adfc4b19b052b63225720773e728f9a459f7b48161a448c5f4f0cb1966",
-      "applied_at": "2026-08-15T11:20:12.861095+00:00",
+      "applied_at": "2026-11-08T23:13:05.249286+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_24_01_application_draft_name.sql",
       "checksum": "305f8ee21b07535ed0f22c8ad8110468d03c4a904d7b30e92953d2cf4fb6ed86",
-      "applied_at": "2026-08-15T11:20:12.864496+00:00",
+      "applied_at": "2026-11-08T23:13:05.253889+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_25_01_canonical_subject_catalog.sql",
       "checksum": "64c2550009c138a3c8db53fb6844c85dc375b8e23f71e53d58d9fdefb6d8ff94",
-      "applied_at": "2026-08-15T11:20:12.873954+00:00",
+      "applied_at": "2026-11-08T23:13:05.266423+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_26_01_document_evidence_lifecycle.sql",
       "checksum": "4daf5f9ce42ccda75c5a9df5af20f50e5f3f493fe1fab090179fdbed9df6bd42",
-      "applied_at": "2026-08-15T11:20:12.875618+00:00",
+      "applied_at": "2026-11-08T23:13:05.269003+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_26_02_document_current_slot_alignment.sql",
       "checksum": "c40ff6bac9a65baf25b71f00a79c54763b9ffde5690f826d33040a2450a5116e",
-      "applied_at": "2026-08-15T11:20:12.910302+00:00",
+      "applied_at": "2026-11-08T23:13:05.298365+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_07_30_01_payment_fee_quotes.sql",
       "checksum": "3b8979de1449019d586b982de4495f487d04296c7d419b35900ad71cee3ae2f8",
-      "applied_at": "2026-08-15T11:20:12.914297+00:00",
+      "applied_at": "2026-11-08T23:13:05.302460+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_06_01_admin_saved_filters.sql",
       "checksum": "5547808b8033ee25155d8686410f0949e26979308e784d4ec87cf4c42f729d31",
-      "applied_at": "2026-08-15T11:20:12.941992+00:00",
+      "applied_at": "2026-11-08T23:13:05.326151+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_09_01_application_tracking_secret.sql",
       "checksum": "3cc2e7416ecd2ee3808a97ac3b088f838666c200d87022ea23666736dc27783b",
-      "applied_at": "2026-08-15T11:20:12.953935+00:00",
+      "applied_at": "2026-11-08T23:13:05.340367+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_12_01_tenant_new_table_fk_validate.sql",
       "checksum": "e4650ba53dcfcb5c46ce7f7d72498b8e6a2fd1962e1b269b41c22285267284af",
-      "applied_at": "2026-08-15T11:20:12.958958+00:00",
+      "applied_at": "2026-11-08T23:13:05.346718+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_13_01_widen_application_snapshot_columns.sql",
       "checksum": "a53d8a78e95d8cecee86bad03ed438e37e454ca24b546595efe80a4c57b74cd1",
-      "applied_at": "2026-08-15T11:20:12.972528+00:00",
+      "applied_at": "2026-11-08T23:13:05.357080+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_14_01_neutral_platform_communication_templates.sql",
       "checksum": "3f6823fea9ef87af1a577b7d2c90a621c6678d0d5d7c13a2ee47ce8e84740ce4",
-      "applied_at": "2026-08-15T11:20:12.982634+00:00",
+      "applied_at": "2026-11-08T23:13:05.368238+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "2026_08_15_01_widen_application_intake_snapshot.sql",
       "checksum": "b68c5261f6f598a5a94d08da8a219283f4aca7b8a6767a97aee53031adb8e513",
-      "applied_at": "2026-08-15T11:20:12.986899+00:00",
+      "applied_at": "2026-11-08T23:13:05.375539+00:00",
+      "june_2026_plus": true
+    },
+    {
+      "migration_name": "2026_11_02_01_repair_document_snapshot_presence.sql",
+      "checksum": "ea8180f93446faecdafbec7eb84fc7ddd138363a6f6cfdaf29586101fe470f74",
+      "applied_at": "2026-11-08T23:13:05.385457+00:00",
       "june_2026_plus": true
     },
     {
       "migration_name": "application_number_sequences.sql",
       "checksum": "34c7c776c7ceee48ba37fc3213d06f8c42cd696cad9cde18d26aa84c20e9115b",
-      "applied_at": "2026-08-15T11:20:12.995967+00:00",
+      "applied_at": "2026-11-08T23:13:05.391075+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "backfill_application_documents_from_legacy_urls.sql",
       "checksum": "bdb0f8e28ecea943f4e5be27f6e9dd060ce337a6a5766a3e99a7ee0194f4f354",
-      "applied_at": "2026-08-15T11:20:13.002730+00:00",
+      "applied_at": "2026-11-08T23:13:05.400181+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "backfill_profiles_sex_lowercase.sql",
       "checksum": "9f201dca36a715896756aeed444f4942dfc1216e8fdb99e92f0ae8f43b14d00c",
-      "applied_at": "2026-08-15T11:20:13.004683+00:00",
+      "applied_at": "2026-11-08T23:13:05.404157+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "perf_idx_applications_status_submitted_at.sql",
       "checksum": "6a81b44c0c3c33507c1d678789e9c0da1016fd73fabf1a7f45b0cf97a166c697",
-      "applied_at": "2026-08-15T11:20:13.011254+00:00",
+      "applied_at": "2026-11-08T23:13:05.412201+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "schema_cleanup_device_session_default.sql",
       "checksum": "dd4ad056bfa4d6e5cf5d9413c0b546163ce70f284c0648edc468992b3c975897",
-      "applied_at": "2026-08-15T11:20:13.012571+00:00",
+      "applied_at": "2026-11-08T23:13:05.414416+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "schema_cleanup_drop_stale_columns.sql",
-      "checksum": "629381770d610efcef40dfdd59a5552390221b05d4e28ebe991dd7c27c9e6a75",
-      "applied_at": "2026-08-15T11:20:13.014781+00:00",
+      "checksum": "74193bd110c1bbcb5fbebb72049749d9511342e29e0a0ec24962757e2648c95f",
+      "applied_at": "2026-11-08T23:13:05.417791+00:00",
       "june_2026_plus": false
     },
     {
       "migration_name": "system_actor_seed.sql",
       "checksum": "bbf9561f2cee1db0a6db3ca9a5e12ec1259dec35e7fe0700c57eb99a36cfc18f",
-      "applied_at": "2026-08-15T11:20:13.017323+00:00",
+      "applied_at": "2026-11-08T23:13:05.421886+00:00",
       "june_2026_plus": false
     }
   ],
@@ -344,6 +350,7 @@
     "2026_08_13_01_widen_application_snapshot_columns.sql",
     "2026_08_14_01_neutral_platform_communication_templates.sql",
     "2026_08_15_01_widen_application_intake_snapshot.sql",
+    "2026_11_02_01_repair_document_snapshot_presence.sql",
     "application_number_sequences.sql",
     "backfill_application_documents_from_legacy_urls.sql",
     "backfill_profiles_sex_lowercase.sql",
@@ -384,6 +391,7 @@
     "2026_08_12_01_tenant_new_table_fk_validate.sql",
     "2026_08_13_01_widen_application_snapshot_columns.sql",
     "2026_08_14_01_neutral_platform_communication_templates.sql",
-    "2026_08_15_01_widen_application_intake_snapshot.sql"
+    "2026_08_15_01_widen_application_intake_snapshot.sql",
+    "2026_11_02_01_repair_document_snapshot_presence.sql"
   ]
 }
