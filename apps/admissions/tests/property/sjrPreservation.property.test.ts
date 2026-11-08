@@ -6,7 +6,8 @@
  *
  * Written observation-first: each property passes on the unfixed code (HEAD
  * 4a6c4ef) and is re-run unchanged at every task-3 checkpoint. (f) and (g)
- * render React trees and live in `sjrPreservation.property.test.tsx`.
+ * render the app with its real API client and live in
+ * `sjrPreservation.property.test.tsx`.
  */
 import * as fc from 'fast-check'
 import { renderHook, waitFor, act } from '@testing-library/react'

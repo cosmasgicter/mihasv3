@@ -1,6 +1,12 @@
 /**
  * Student-journey-repair preservation properties (frontend, session half).
  *
+ * A separate file from `sjrPreservation.property.test.ts` because that file
+ * mocks the API client for property (d), and these two need the real one. The
+ * shared base name keeps task 2.3's command (`bun run test --
+ * tests/property/sjrPreservation.property.test.ts`, a path-substring filter)
+ * selecting both files.
+ *
  * Spec: student-journey-repair task 2.3, design "New preservation tests"
  * (frontend (f) and (g)); Property 13; clauses 3.19, 3.23.
  *
