@@ -299,7 +299,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.12, 2.13, 2.14, 2.15, 2.16_
 
-  - [ ] 3.13 R4 — persist keys, sign on read, resolve legacy values (design R4-a, R4-c)
+  - [x] 3.13 R4 — persist keys, sign on read, resolve legacy values (design R4-a, R4-c)
     - Upload view, `backend/apps/applications/condition_evidence_service.py` and official-document generation (`backend/apps/applications/tasks/pdf_generation.py:210-222`): persist the key in `file_url` and `storage_key`; no `storage.url()` for persistence
     - `backend/apps/common/storage.py`: `resolve_document_object_key`, `resolve_document_open_url`, `_key_from_persisted_value` (a bare UUID resolves to no key)
     - Switch the signed-url, download, official-document, legacy-synthesis and OCR-task callers to the helpers
@@ -314,7 +314,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: admin signed-url and download behaviour (3.14); `storage_key` never published (3.6)_
     - _Requirements: 2.17, 2.20, 3.6, 3.14_
 
-  - [ ] 3.14 R4 — snapshot inside the version transaction, replay heal, filename-free keys (design R4-b)
+  - [x] 3.14 R4 — snapshot inside the version transaction, replay heal, filename-free keys (design R4-b)
     - `document_evidence.commit_version(..., snapshot_field=...)` with `SNAPSHOT_FIELD_BY_DOCUMENT_TYPE`; drop the view's post-commit write
     - Replay branch heals a NULL snapshot without touching `updated_at`
     - `ApplicationDocumentsView.get` (`backend/apps/applications/student_document_views.py:130-166`): id-aware legacy synthesis, comparing the snapshot with listed ids and stored `file_url` / `storage_key` values and skipping a pair when any covering type is listed (design R4-b); ship it in the same deploy as the snapshot writer, or before it
@@ -341,7 +341,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: no `updated_at` change, so no slip fingerprint is retired; additive only (3.16)_
     - _Requirements: 2.19, 3.16_
 
-  - [ ] 3.16 Checkpoint — R4 green
+  - [x] 3.16 Checkpoint — R4 green
     - **Property 4: Expected Behavior** - Keys, Not Links
     - **IMPORTANT**: Re-run the SAME tests from task 1.4 — do NOT write new tests
     - Remove the strict markers from task 1.4's tests, then run them unmarked
