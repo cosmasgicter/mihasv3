@@ -19,6 +19,9 @@ This module is for LOCAL TESTING ONLY. It is never used in production
 
 from .staging import *  # noqa: F401,F403  (inherits prod-parity hardening flags)
 
+# A local stack, not a deployment: staging turns startup validation on, this turns it off.
+STARTUP_ENV_VALIDATION = False
+
 # --- Transport: localhost is plain HTTP, so disable HTTPS-only behaviours ---
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0

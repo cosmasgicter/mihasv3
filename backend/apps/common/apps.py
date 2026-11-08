@@ -12,6 +12,24 @@ class CommonConfig(AppConfig):
 
         # Verify critical security configuration at startup.
         self._check_jwt_signing_key()
+        self._check_required_env_vars()
+
+    @staticmethod
+    def _check_required_env_vars():
+        """Refuse to start when a required variable is missing (prod and staging).
+
+        Runs here, after the final settings module is loaded, so it sees
+        ``REQUIRED_ENV_VARS``. Names only are reported, never values.
+        """
+        from django.conf import settings
+
+        if not getattr(settings, "STARTUP_ENV_VALIDATION", False):
+            return
+        if getattr(settings, "IS_TEST_PROCESS", False):
+            return
+        from .env_validator import validate_required_env_vars
+
+        validate_required_env_vars(settings.REQUIRED_ENV_VARS)
 
     @staticmethod
     def _check_jwt_signing_key():

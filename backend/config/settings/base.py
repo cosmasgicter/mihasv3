@@ -822,6 +822,8 @@ AUDIT_LOG_ENCRYPTION_KEY = os.environ.get("AUDIT_LOG_ENCRYPTION_KEY", "").strip(
 # Required environment variables — validated at startup (task 1.3)
 # ---------------------------------------------------------------------------
 
+# RESEND_API_KEY is deliberately absent: Zoho SMTP is the primary sender and
+# ``_send_via_resend`` skips itself when the key is unset, so it is optional.
 REQUIRED_ENV_VARS = [
     "SECRET_KEY",
     "DATABASE_URL",
@@ -829,7 +831,6 @@ REQUIRED_ENV_VARS = [
     "JWT_SIGNING_KEY",
     "ALLOWED_HOSTS",
     "CORS_ALLOWED_ORIGINS",
-    "RESEND_API_KEY",
     "S3_ENDPOINT_URL",
     "S3_BUCKET",
     "S3_ACCESS_KEY",
@@ -856,10 +857,12 @@ if _is_testing:
         }
     }
 
-if REQUIRED_ENV_VARS and not _is_testing:
-    from apps.common.env_validator import validate_required_env_vars
-
-    validate_required_env_vars()
+# Enforced after the final settings module is loaded, by
+# ``apps.common.apps.CommonConfig.ready()``. Calling the validator while this
+# module is still being imported read a half-built settings object and never
+# saw REQUIRED_ENV_VARS, so the check silently did nothing (R1-b).
+STARTUP_ENV_VALIDATION = False  # prod.py and staging.py turn it on
+IS_TEST_PROCESS = _is_testing
 
 # ---------------------------------------------------------------------------
 # GlitchTip / Sentry-compatible error tracking

@@ -536,6 +536,7 @@ isolation proven by deleting the other product is not isolation.
 ## Verification Expectations
 
 - Run relevant backend pytest suites when you change Django code.
+- Startup refusal for missing required variables (prod and staging) is proven by `backend/tests/unit/test_startup_env_validation.py`, which starts real subprocesses.
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.

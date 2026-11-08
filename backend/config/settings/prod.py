@@ -8,6 +8,9 @@ from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401,F403
 
+# Refuse to start when a REQUIRED_ENV_VARS name is missing (checked in CommonConfig.ready()).
+STARTUP_ENV_VALIDATION = True
+
 DEBUG = False
 
 ALLOWED_HOSTS = [
