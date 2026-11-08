@@ -216,7 +216,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-  - [ ] 3.5 R2 — server: key release, header validation and magic bytes first (design R2-b, R2-c)
+  - [x] 3.5 R2 — server: key release, header validation and magic bytes first (design R2-b, R2-c)
     - `backend/apps/documents/document_evidence.py` `mark_stage`: release the key for `compensated`, `compensation_pending`, `write_failed`, `orphaned`; emit `document.stage.idempotency_released`
     - `backend/apps/documents/document_storage_views.py`: `Idempotency-Key` format check; effective MIME type from `DECLARED_MIME_ALIASES`, `GENERIC_DECLARED_MIME_TYPES` and `detect_file_mime`; record the effective type
     - `backend/apps/documents/validators.py`: `detect_file_mime`
@@ -226,7 +226,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: every rejection in 3.5; identical-bytes replay returns the same id; an in-flight duplicate still gets the retryable 409_
     - _Requirements: 2.8, 2.9, 3.5, 3.6_
 
-  - [ ] 3.6 R2 — client upload transport, retry, progress and copy (design R2-a)
+  - [x] 3.6 R2 — client upload transport, retry, progress and copy (design R2-a)
     - New `apps/admissions/src/services/uploadTransport.ts`; `ApiClient.upload()` in `client.ts`; `refreshCsrfToken()` extracted in `csrf.ts`
     - `apps/admissions/src/services/requiredDocuments.ts`: upload through `apiClient.upload` with key, progress and signal
     - `apps/admissions/src/hooks/useRequiredDocuments.ts`: one key per user upload; throttled determinate progress; one automatic retry (not for 429) with the same key; first-error copy
@@ -239,7 +239,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: CSRF recovery through `?refresh_csrf=1`; refresh-and-replay only for keyed requests; one request when nothing fails_
     - _Requirements: 2.5, 2.6, 2.7, 2.8, 3.4_
 
-  - [ ] 3.7 R2 — photo downscaling and the single-path guard (design R2-e, R2-d)
+  - [x] 3.7 R2 — photo downscaling and the single-path guard (design R2-e, R2-d)
     - New `apps/admissions/src/lib/imageDownscale.ts`, called before the transport
     - New `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` with the frozen list of dead references at HEAD (deletion owned by Spec B S2, DEC-1); its `'/documents/upload/'` rule allows `services/requiredDocuments.ts` plus the three dead modules that contain the literal at HEAD (`services/documents.ts`, `lib/storage.ts`, `lib/applicationSlipStorage.ts`), so it passes on the day it lands
     - Docs: CTM "Required-document upload contract" (CTM 1106-1147) names the one transport and the downscaling threshold; guard added to "Drift Guard Inventory"
@@ -248,7 +248,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: server validation decides acceptance; nothing is deleted_
     - _Requirements: 2.10, 2.11, 3.5_
 
-  - [ ] 3.8 Checkpoint — R2 green
+  - [x] 3.8 Checkpoint — R2 green
     - **Property 2: Expected Behavior** - Upload Transport and Server Acceptance
     - **IMPORTANT**: Re-run the SAME tests from task 1.2 — do NOT write new tests
     - Remove the strict markers from task 1.2's tests, then run them unmarked
