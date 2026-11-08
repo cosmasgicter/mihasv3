@@ -125,31 +125,47 @@ class ApplicationDocumentsView(APIView):
         docs = ApplicationDocument.objects.select_related('application', 'verified_by').filter(application_id=application_id).exclude(
             verification_status='deleted'
         )
-        serialized = DocumentSerializer(docs, many=True).data
+        listed = list(docs)
+        serialized = DocumentSerializer(listed, many=True).data
 
         # Synthesize entries for legacy applications whose ``result_slip_url``
         # or ``extra_kyc_url`` was set on the Application row directly without
-        # a matching ApplicationDocument record. These entries get a fresh
-        # short-lived signed URL inline so the frontend never has to open a
-        # raw private R2/S3 URL (which always 403s).
-        existing_urls = {d.get("file_url") for d in serialized if d.get("file_url")}
-        existing_types = {d.get("document_type") for d in serialized if d.get("document_type")}
+        # a matching ApplicationDocument record. The snapshot columns hold
+        # either a legacy value (a URL or key) or, since design R4-b, the id of
+        # the current document: a presence marker, never a link. The check
+        # therefore compares the snapshot with the listed ids and with the
+        # STORED ``file_url`` / ``storage_key`` values (not the signed output),
+        # and skips a pair when any document of a covering type is listed.
+        known_values = (
+            {str(d.id) for d in listed}
+            | {d.file_url for d in listed if d.file_url}
+            | {d.storage_key for d in listed if d.storage_key}
+        )
+        listed_types = {d.document_type for d in listed if d.document_type}
         legacy_pairs = [
-            ("result_slip", "Result Slip", getattr(app, "result_slip_url", None)),
-            ("extra_kyc", "Identity Support Document", getattr(app, "extra_kyc_url", None)),
+            ("result_slip", {"result_slip"}, "Result Slip", getattr(app, "result_slip_url", None)),
+            (
+                "extra_kyc",
+                {"extra_kyc", "nrc", "passport"},
+                "Identity Support Document",
+                getattr(app, "extra_kyc_url", None),
+            ),
         ]
         synthesized: list[dict] = []
-        for doc_type, doc_name, file_url in legacy_pairs:
-            if not file_url or file_url in existing_urls or doc_type in existing_types:
+        for doc_type, covering_types, doc_name, value in legacy_pairs:
+            if not value or value in known_values or covering_types & listed_types:
+                continue
+            from apps.common.storage import is_snapshot_presence_marker, resolve_document_open_url
+
+            # A bare UUID is a presence marker for a document that is no longer
+            # listed (for example removed); there is no file to synthesize.
+            if is_snapshot_presence_marker(value):
                 continue
             try:
-                from apps.common.storage import (
-                    generate_signed_url,
-                    get_document_storage_key,
-                )
 
-                key = get_document_storage_key(type("Synth", (), {"file_url": file_url})())
-                signed = generate_signed_url(key) if key else None
+                signed = resolve_document_open_url(
+                    type("Synth", (), {"file_url": value, "storage_key": None, "id": None})()
+                )
             except Exception:
                 signed = None
             synthesized.append({
@@ -157,12 +173,11 @@ class ApplicationDocumentsView(APIView):
                 "application": str(app.id),
                 "document_type": doc_type,
                 "document_name": doc_name,
-                "file_url": signed or file_url,
+                "file_url": signed,
                 "verification_status": "pending",
                 "system_generated": False,
                 "is_legacy_synthetic": True,
             })
-
         return Response({"success": True, "data": serialized + synthesized})
 
 

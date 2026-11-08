@@ -308,8 +308,29 @@ def safe_object_name(raw_name: str | None) -> str:
     return name or "unnamed"
 
 
-def build_object_key(application_id, document_type: str, file_name: str) -> str:
+# Application snapshot columns that mirror "this requirement has a document".
+# They hold the id of the current document (a presence marker, never a link);
+# every frontend reader treats non-null as "uploaded" (design D-A3, R4-b).
+SNAPSHOT_FIELD_BY_DOCUMENT_TYPE = {
+    "result_slip": "result_slip_url",
+    "extra_kyc": "extra_kyc_url",
+    "nrc": "extra_kyc_url",
+    "passport": "extra_kyc_url",
+}
+
+_EXTENSION_BY_MIME = {
+    "application/pdf": ".pdf",
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+}
+
+
+def build_object_key(application_id, document_type: str, *, mime_type: str | None = None) -> str:
     """The staged object key for one upload attempt.
+
+    The key carries no client filename (design R4-b): the name is stored in
+    ``document_name`` and a long or non-ASCII name must never decide whether an
+    upload fits. The extension follows the effective MIME type.
 
     Every attempt gets its own random segment, so a retry never overwrites the
     object a previous attempt may still be referenced by, and the key is unique
@@ -317,10 +338,27 @@ def build_object_key(application_id, document_type: str, file_name: str) -> str:
     operator reading a bucket listing can tell what an orphan was for without a
     database round-trip.
     """
-    return (
-        f"documents/{application_id}/{document_type}/"
-        f"{uuid.uuid4().hex}_{safe_object_name(file_name)}"
+    extension = _EXTENSION_BY_MIME.get(str(mime_type or "").split(";")[0].strip().lower(), ".bin")
+    return f"documents/{application_id}/{document_type}/{uuid.uuid4().hex}{extension}"
+
+
+def heal_snapshot_on_replay(application_id, document) -> bool:
+    """Fill a NULL snapshot for a replayed upload, leaving ``updated_at`` alone."""
+    from apps.applications.models import Application
+
+    field = SNAPSHOT_FIELD_BY_DOCUMENT_TYPE.get(document.document_type)
+    if not field:
+        return False
+    healed = Application.objects.filter(id=application_id, **{f"{field}__isnull": True}).update(
+        **{field: str(document.id)}
     )
+    if healed:
+        emit_metric(
+            "document.snapshot.healed_on_replay",
+            application_id=str(application_id),
+            document_type=document.document_type,
+        )
+    return bool(healed)
 
 
 def _truncate(value: Any) -> str:
@@ -741,6 +779,7 @@ def commit_version(
     lifecycle_state: str = READY_FOR_REVIEW,
     supersede_document_types: list[str] | None = None,
     scan_reason: str | None = None,
+    snapshot_field: str | None = None,
 ) -> ApplicationDocument:
     """Insert the new immutable version and supersede the previous one.
 
@@ -864,6 +903,15 @@ def commit_version(
                 "scan": scan_reason or "synchronous_active_content_screen_passed",
             },
         )
+        if snapshot_field:
+            # Same transaction as the version row (design R4-b): a failure here
+            # rolls the version back, so a committed document never has a 5xx.
+            # A queryset update avoids saving the request's stale instance.
+            from apps.applications.models import Application
+
+            Application.objects.filter(id=application_id).update(
+                **{snapshot_field: str(document.id), "updated_at": now}
+            )
         mark_stage(stage, STAGE_COMMITTED, document=document)
 
     emit_metric(

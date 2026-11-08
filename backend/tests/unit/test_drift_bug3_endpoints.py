@@ -50,6 +50,8 @@ def _make_mock_document(doc_id=None, owner_id=None, file_url="documents/app123/a
     doc.document_name = "transcript.pdf"
     doc.document_type = "transcript"
     doc.file_url = file_url
+    # No stored key: the helper falls back to file_url (SJR task 3.13).
+    doc.storage_key = None
     doc.file_size = 102400
     doc.mime_type = "application/pdf"
     doc.verification_status = "pending"
@@ -135,26 +137,36 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_signed_url_passes_object_key_not_full_url(self):
+        """SJR task 3.13 (clause 2.20). The old assertion signed a foreign
+        ``cdn.example.com`` URL's path against our bucket, which is defect 1.18.
+        A legacy-provider URL is now returned unchanged, while a presigned
+        (``X-Amz-``) URL is still signed by its path."""
         factory = APIRequestFactory()
-        doc_id = uuid.uuid4()
-        request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
         user = _make_auth_user()
-        force_authenticate(request, user=user)
-
-        mock_doc = _make_mock_document(
-            doc_id,
-            owner_id=user.id,
-            file_url="https://cdn.example.com/media/documents/app123/abc_transcript.pdf?signature=ignored",
+        legacy = "https://cdn.example.com/media/documents/app123/abc_transcript.pdf?signature=ignored"
+        presigned = (
+            "https://anyhost.example.net/media/documents/app123/abc_transcript.pdf"
+            "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=old"
         )
-
-        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
-             patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed") as mock_signed:
-            _mock_document_lookup(mock_qs, mock_doc)
-            view = DocumentSignedUrlView.as_view()
-            response = view(request, document_id=doc_id)
-
-        self.assertEqual(response.status_code, 200)
-        mock_signed.assert_called_once_with("documents/app123/abc_transcript.pdf")
+        for file_url, expected_url, expected_key in (
+            (legacy, legacy, None),
+            (presigned, "https://r2.example.com/signed", "documents/app123/abc_transcript.pdf"),
+        ):
+            doc_id = uuid.uuid4()
+            request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
+            force_authenticate(request, user=user)
+            mock_doc = _make_mock_document(doc_id, owner_id=user.id, file_url=file_url)
+            with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
+                 patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed") as mock_signed:
+                _mock_document_lookup(mock_qs, mock_doc)
+                view = DocumentSignedUrlView.as_view()
+                response = view(request, document_id=doc_id)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["data"]["url"], expected_url)
+            if expected_key is None:
+                mock_signed.assert_not_called()
+            else:
+                mock_signed.assert_called_once_with(expected_key)
 
     def test_signed_url_requires_authentication(self):
         factory = APIRequestFactory()

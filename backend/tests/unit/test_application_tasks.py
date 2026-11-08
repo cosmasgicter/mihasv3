@@ -206,7 +206,7 @@ class TestGenerateAcceptanceLetterTask:
     def test_file_url_set_from_storage(
         self, mock_app_qs, mock_doc_qs, mock_open_stage, mock_commit, mock_storage_cls, mock_resolve
     ):
-        """ApplicationDocument.file_url is set from storage.url()."""
+        """ApplicationDocument.file_url is the stored key (SJR 3.13), not storage.url()."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
@@ -218,7 +218,11 @@ class TestGenerateAcceptanceLetterTask:
         generate_acceptance_letter_task(str(app_id))
 
         call_kwargs = mock_commit.call_args[1]
-        assert call_kwargs["file_url"] == "https://r2.example.com/media/acceptance-letters/test.pdf"
+        # SJR task 3.13 (design R4-a, clause 2.17): the stored key, never a
+        # presigned link; URLs are signed on read.
+        assert call_kwargs["file_url"] == "media/acceptance-letters/test.pdf"
+        assert call_kwargs["storage_key"] == "media/acceptance-letters/test.pdf"
+        storage_instance.url.assert_not_called()
 
     @patch(_COMMIT_VERSION)
     @patch(_OPEN_STAGE)
@@ -330,7 +334,7 @@ class TestGenerateFinanceReceiptTask:
     def test_file_url_set_from_storage(
         self, mock_app_qs, mock_doc_qs, mock_open_stage, mock_commit, mock_pay_qs, mock_storage_cls
     ):
-        """ApplicationDocument.file_url is set from storage.url()."""
+        """ApplicationDocument.file_url is the stored key (SJR 3.13), not storage.url()."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
@@ -343,7 +347,10 @@ class TestGenerateFinanceReceiptTask:
         generate_finance_receipt_task(str(app_id))
 
         call_kwargs = mock_commit.call_args[1]
-        assert call_kwargs["file_url"] == "https://r2.example.com/media/finance-receipts/test.pdf"
+        # SJR task 3.13 (design R4-a, clause 2.17): the stored key, not storage.url().
+        assert call_kwargs["file_url"] == storage_instance.save.return_value
+        assert call_kwargs["storage_key"] == storage_instance.save.return_value
+        storage_instance.url.assert_not_called()
 
     @patch(_COMMIT_VERSION)
     @patch(_OPEN_STAGE)

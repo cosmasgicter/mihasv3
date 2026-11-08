@@ -323,9 +323,11 @@ def test_upload_persists_application_document_url_fields(_mirror_world, _object_
         world.application.refresh_from_db()
         mirrored = getattr(world.application, expected_field)
         assert mirrored, (document_type, expected_field, mirrored)
-        # The projection carries the URL of the version that was just committed,
-        # not a stale one: the object key the command built ends the stored URL.
-        assert mirrored == response.json()["data"]["file_url"], (
+        # The projection names the version that was just committed, not a stale
+        # one. SJR task 3.14 (design R4-b, clause 2.19): it holds that document's
+        # id; it used to hold the persisted URL, which file_url no longer is now
+        # that file_url is signed on read (task 3.13).
+        assert mirrored == response.json()["data"]["id"], (
             document_type,
             expected_field,
             mirrored,

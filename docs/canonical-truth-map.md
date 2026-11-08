@@ -1215,6 +1215,16 @@ Invariants clients may rely on:
   (`record_extraction_state`), and the legacy projection is only written while no
   human decision exists to protect.
 
+**Storage keys, not links (student-journey-repair R4, tasks 3.13-3.15).**
+
+| Concept | Source of truth | Consumers |
+|---------|-----------------|-----------|
+| **What `application_documents.file_url` / `storage_key` hold** | For rows written after task 3.13 both hold the **object key**. The three writers (upload view, `condition_evidence_service.py`, `tasks/pdf_generation.py`) call no `storage.url()`; guard `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (tenant assets in `catalog/admin_asset_views.py` are listed Spec B exceptions) | every document reader |
+| **URLs are signed on read** | `backend/apps/common/storage.py` — `resolve_document_object_key`, `resolve_document_open_url`; `DocumentSerializer.file_url` is a `SerializerMethodField` (signing failure → `null` + ERROR `document.sign.failed`) | document list, signed-url and download endpoints, official-document envelope, legacy synthesis, OCR task |
+| **Legacy persisted values** | `storage.py:_key_from_persisted_value` (design R4-c): a bare UUID is a presence marker (no key); a relative value is a key; an `X-Amz-` URL or one on our endpoint/public/bucket host gives its path; any other `https` URL is a legacy-provider URL returned unchanged (INFO `document.open.legacy_provider`). Listed as a legacy fallback below | same readers |
+| **Application snapshot columns** (`applications.result_slip_url`, `extra_kyc_url`) | Presence markers holding the **current document id**, written inside `commit_version`'s transaction (`snapshot_field=`, map `document_evidence.SNAPSHOT_FIELD_BY_DOCUMENT_TYPE`); a replay heals a NULL snapshot without touching `updated_at` (`heal_snapshot_on_replay`, metric `document.snapshot.healed_on_replay`). Registered in `apps/common/legacy_columns.py:LEGACY_PRESENCE_SNAPSHOT_COLUMNS` (removal: every reader uses the required-documents contract, Spec B). Older rows may hold a URL | frontend presence readers; `ApplicationDocumentsView.get` id-aware legacy synthesis (skips a pair when the snapshot matches a listed id / stored `file_url` / `storage_key`, when a covering type is listed, or when it is a bare UUID) |
+| **Object key shape** | `document_evidence.build_object_key(application_id, document_type, *, mime_type)` → `documents/{application}/{type}/{uuid hex}{.pdf|.jpg|.png|.bin}`; no client filename (the name lives in `document_name`) | upload view; condition evidence |
+
 ## Database Schema
 
 | Concept | Source of truth | Consumers |
@@ -1227,6 +1237,7 @@ Invariants clients may rely on:
 | Document version columns + one-current index (V2 task 3.5) | `backend/scripts/2026_07_19_0{1,2,3}_payments_documents_{expand,backfill,validate}.sql` — `version`, `is_current`, `supersedes_id`, `superseded_at`, `content_hash`, `uploaded_by`, `provenance`, and `uq_application_documents_one_current` | `apply_sql_migrations`; `document_evidence.commit_version`; evidence `docs/v2-evidence/3.5/` |
 | Document evidence lifecycle + staged-write ledger (V2 task 7.3) | `backend/scripts/2026_07_26_01_document_evidence_lifecycle.sql` (+ `_rollback`) — `lifecycle_state`, `storage_key`, `extraction_state` columns plus the new `document_upload_stages` and `document_verification_events` tables, additive-only, idempotent | `apply_sql_migrations`; models `apps.documents.models.DocumentUploadStage` / `DocumentVerificationEvent` (`managed = False`); indexes mirrored in `backend/tests/conftest.py::unmanaged_schema`; registered in `tests/property/test_migration_properties.py::EXPECTED_TABLE_MAPPING`; evidence `docs/v2-evidence/7.3/` |
 | One-current slot alignment (V2 task 7.3) | `backend/scripts/2026_07_26_02_document_current_slot_alignment.sql` (+ `_rollback`) — data-only; releases `is_current` from soft-deleted rows (which 3.5's newest-`uploaded_at` backfill could promote) and promotes the newest surviving version. Without it a soft-deleted row can hold the enforced slot forever and no replacement is possible | `apply_sql_migrations`; evidence `docs/v2-evidence/7.3/` §2.3 |
+| Document snapshot repair (SJR task 3.15) | `backend/scripts/2026_11_02_01_repair_document_snapshot_presence.sql` (+ ledger-only `_rollback`) — data-only, idempotent; fills NULL `applications.result_slip_url` / `extra_kyc_url` with the newest current document id, never touches `updated_at`. Proven on a local scratch copy; Neon-branch proof and the Neon default-branch apply are operator-gated (pending); production runs it at boot on the approved task 6.2 deploy after the task 6.1 backup | `apply_sql_migrations`; evidence `.agents/tasks/implement-journey-repair-2026-11-08/g5-r4-evidence.md` |
 | Legacy column inventory | `backend/apps/common/legacy_columns.py:LEGACY_DEPRECATED_COLUMNS` | drift test, drop migration |
 | Drop migration (Day 90) | `backend/scripts/legacy_columns_drop_2026_08_15.sql` | scheduled execution |
 | Migration-history coverage exemptions | `check_schema_drift.py:_COVERAGE_EXEMPT_SCRIPTS` (`00_full_schema.sql` snapshot + `legacy_columns_drop_2026_08_15.sql` future drop) | drift guard `test_check_schema_drift_migration_history_coverage.py::test_exempt_scripts_are_not_flagged_as_stale` |
@@ -1305,6 +1316,8 @@ production (the same count captured in the Production_Cutover evidence block,
 R3.7/R3.9). When that count reaches zero, drop the legacy-string predicate from
 each module (keeping the canonical-ID path), delete the corresponding
 `_ALLOWED_PREDICATES` entries, and confirm the drift guard still passes.
+
+**Legacy document-value fallback (student-journey-repair R4-c).** `apps/common/storage.py:_key_from_persisted_value` keeps resolving pre-task-3.13 `file_url` values (presigned URLs, bucket URLs, legacy-provider URLs). Removal condition: no `application_documents` row without `storage_key` remains (a P0-ops count).
 
 ### Capacity policy: advisory until enrollment (R15.3, R15.4)
 

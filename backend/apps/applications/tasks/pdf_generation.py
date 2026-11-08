@@ -208,7 +208,6 @@ def _generate_official_document_task(task, application_id, document_type: str):
         )
         try:
             stored_name = storage.save(filename, pdf_buffer)
-            file_url = storage.url(stored_name)
         except Exception as exc:
             evidence.compensate_stage(stage, reason=f"official document write failed: {exc}")
             raise
@@ -219,7 +218,7 @@ def _generate_official_document_task(task, application_id, document_type: str):
                 application_id=application.id,
                 document_type=document_type,
                 document_name=f"{config['name']} - {application.full_name}.pdf",
-                file_url=file_url,
+                file_url=stored_name or filename,
                 storage_key=stored_name or filename,
                 file_size=len(pdf_bytes),
                 mime_type="application/pdf",

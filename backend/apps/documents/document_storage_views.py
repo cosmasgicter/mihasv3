@@ -204,15 +204,15 @@ def _audit_official_document_downloaded(request, document):
 
 
 def _get_document_storage_key(document):
-    """Compatibility shim - delegates to ``apps.common.storage.get_document_storage_key``.
+    """Compatibility shim - delegates to ``apps.common.storage.resolve_document_object_key``.
 
     Kept so legacy imports (e.g. ``from apps.documents.views import
     _get_document_storage_key``) and existing test patches keep working
     while we migrate callers to the shared helper.
     """
-    from apps.common.storage import get_document_storage_key
+    from apps.common.storage import resolve_document_object_key
 
-    return get_document_storage_key(document)
+    return resolve_document_object_key(document)
 
 
 DocumentResponseSerializer = envelope_serializer(
@@ -513,12 +513,13 @@ class DocumentUploadView(APIView):
             application_id, accepts, content_hash, document_name=safe_name
         )
         if replay is not None:
+            evidence.heal_snapshot_on_replay(application_id, replay)
             return Response(
                 {"success": True, "data": DocumentSerializer(replay).data},
                 status=status.HTTP_201_CREATED,
             )
 
-        object_key = evidence.build_object_key(application_id, document_type, safe_name)
+        object_key = evidence.build_object_key(application_id, document_type, mime_type=declared_mime)
         actor_id = getattr(request.user, "id", None)
         # Durable BEFORE the object write (design §17): once this row is committed
         # the object is discoverable, so a crash mid-command leaves a reconcilable
@@ -553,7 +554,6 @@ class DocumentUploadView(APIView):
 
             storage = MediaStorage()
             saved_name = storage.save(object_key, file_obj)
-            file_url = storage.url(saved_name)
         except Exception as exc:
             logger.exception("Failed to upload file to storage")
             # No object is known to exist, but the provider may have written a
@@ -607,7 +607,8 @@ class DocumentUploadView(APIView):
                 application_id=application_id,
                 document_type=document_type,
                 document_name=safe_name,
-                file_url=file_url,
+                # The key, never a link: links expire and are signed on read (R4-a).
+                file_url=saved_name or object_key,
                 storage_key=saved_name or object_key,
                 file_size=hashed_size or getattr(file_obj, "size", None),
                 mime_type=declared_mime or None,
@@ -625,6 +626,7 @@ class DocumentUploadView(APIView):
                 # deeper signature scanning without backdating a state here.
                 lifecycle_state=evidence.READY_FOR_REVIEW,
                 supersede_document_types=accepts,
+                snapshot_field=evidence.SNAPSHOT_FIELD_BY_DOCUMENT_TYPE.get(document_type),
             )
         except evidence.DocumentCommandError as exc:
             evidence.compensate_stage(stage, reason=f"metadata commit rejected: {exc.code}")
@@ -646,17 +648,6 @@ class DocumentUploadView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-        application_url_field = None
-        if document_type == "result_slip":
-            application_url_field = "result_slip_url"
-        elif document_type in ("extra_kyc", "nrc", "passport"):
-            application_url_field = "extra_kyc_url"
-
-        if application_url_field:
-            setattr(application, application_url_field, file_url)
-            application.updated_at = timezone.now()
-            application.save(update_fields=[application_url_field, "updated_at"])
 
         return Response(
             {"success": True, "data": DocumentSerializer(doc).data},
@@ -767,22 +758,19 @@ class DocumentSignedUrlView(APIView):
         if error_response is not None:
             return error_response
 
-        file_key = _get_document_storage_key(document)
-        if not file_key:
-            return Response(
-                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         try:
-            from apps.common.storage import generate_signed_url
-
-            signed_url = generate_signed_url(file_key)
+            from apps.common.storage import resolve_document_open_url
+            signed_url = resolve_document_open_url(document)
         except Exception:
             logger.exception("Failed to generate signed URL for document %s", document_id)
             return Response(
                 {"success": False, "error": "Failed to generate signed URL", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        if not signed_url:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return Response({"success": True, "data": {"url": signed_url}})
@@ -804,22 +792,19 @@ class DocumentDownloadView(APIView):
         if error_response is not None:
             return error_response
 
-        file_key = _get_document_storage_key(document)
-        if not file_key:
-            return Response(
-                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         try:
-            from apps.common.storage import generate_signed_url
-
-            signed_url = generate_signed_url(file_key)
+            from apps.common.storage import resolve_document_open_url
+            signed_url = resolve_document_open_url(document)
         except Exception:
             logger.exception("Failed to generate download URL for document %s", document_id)
             return Response(
                 {"success": False, "error": "Failed to generate download URL", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        if not signed_url:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         # R16.3: a download of an official (system-generated) document is an

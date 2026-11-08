@@ -697,7 +697,7 @@ def submit_evidence(
     if replay is not None:
         return _read_back(application, condition, is_owner=True)
 
-    object_key = evidence.build_object_key(application.id, document_type, safe_name)
+    object_key = evidence.build_object_key(application.id, document_type, mime_type=declared_mime)
     try:
         stage = evidence.open_stage(
             application_id=application.id,
@@ -717,7 +717,6 @@ def submit_evidence(
 
         storage = MediaStorage()
         saved_name = storage.save(object_key, file_obj)
-        file_url = storage.url(saved_name)
     except Exception as exc:  # pragma: no cover - provider failure path
         logger.exception("Condition evidence object write failed for condition %s", condition.id)
         evidence.compensate_stage(stage, reason=f"object write failed: {exc}")
@@ -741,7 +740,7 @@ def submit_evidence(
             application_id=application.id,
             document_type=document_type,
             document_name=safe_name,
-            file_url=file_url,
+            file_url=saved_name or object_key,
             storage_key=saved_name or object_key,
             file_size=hashed_size or size,
             mime_type=declared_mime or None,

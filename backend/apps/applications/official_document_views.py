@@ -317,25 +317,23 @@ def _institution_id(application) -> str | None:
 def _signed_download_url(document) -> str | None:
     """Return a time-limited signed download URL for a document's stored file.
 
-    The persisted ``file_url`` is a permanent, **unsigned** R2/S3 object URL and
-    the bucket is private (``AWS_DEFAULT_ACL = None``), so handing the raw URL to
-    the browser yields ``403 AccessDenied``. Mirror the working pattern in
-    ``DocumentDownloadView``/``DocumentSignedUrlView``: derive the storage key
-    from the stored ``file_url`` and presign it (default 15-minute expiry).
+    The persisted ``file_url`` / ``storage_key`` is an object key (older rows
+    may hold a URL) and the bucket is private (``AWS_DEFAULT_ACL = None``), so the
+    raw value is never a usable link. Resolve the key and presign it at read time
+    (default 15-minute expiry), as ``DocumentDownloadView`` does.
 
     Returns ``None`` when the document has no file or signing is unavailable so
     the caller can omit ``download_url`` (the UI then keeps surfacing a
     non-ready state rather than offering a link that 403s).
     """
-    if document is None or not getattr(document, "file_url", None):
+    if document is None or not (
+        getattr(document, "file_url", None) or getattr(document, "storage_key", None)
+    ):
         return None
     try:
-        from apps.common.storage import generate_signed_url, get_document_storage_key
+        from apps.common.storage import resolve_document_open_url
 
-        file_key = get_document_storage_key(document)
-        if not file_key:
-            return None
-        return generate_signed_url(file_key)
+        return resolve_document_open_url(document)
     except Exception:  # pragma: no cover - signing must never 500 the status read
         logger.warning(
             "Unable to sign official-document download URL for document %s; "

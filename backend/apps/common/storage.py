@@ -8,13 +8,18 @@ milliseconds of latency per request and exhausting file descriptors
 under load.
 """
 
+import logging
+import re
 import threading
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qsl, unquote, urlparse
 
 import boto3
 from botocore.config import Config
 from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
+
+
+logger = logging.getLogger(__name__)
 
 
 class MediaStorage(S3Boto3Storage):
@@ -143,6 +148,106 @@ def get_document_storage_key(document):
 # Backwards-compatible alias for the existing private name still used by
 # legacy views that have not yet been updated to the public symbol.
 _get_document_storage_key = get_document_storage_key
+
+
+_UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
+)
+
+
+def is_snapshot_presence_marker(value):
+    """True for a bare UUID: an application snapshot id, never a file reference."""
+    return isinstance(value, str) and bool(_UUID_RE.match(value.strip()))
+
+
+class _PersistedValue:
+    """Adapts one persisted value to ``get_document_storage_key``'s input."""
+
+    def __init__(self, value):
+        self.file_url = value
+
+
+def _our_hosts():
+    hosts = set()
+    for name in ("AWS_S3_ENDPOINT_URL", "AWS_S3_PUBLIC_ENDPOINT_URL"):
+        host = (urlparse(getattr(settings, name, "") or "").hostname or "").lower()
+        if host:
+            hosts.add(host)
+    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
+    if bucket_name:
+        for host in list(hosts):
+            hosts.add(f"{bucket_name}.{host}".lower())
+    return hosts
+
+
+def _key_from_persisted_value(value):
+    """Resolve a persisted ``file_url`` / ``storage_key`` value to a key.
+
+    Returns ``None`` for a snapshot presence marker (a bare UUID), for a
+    legacy-provider URL, and for anything that is not a file reference.
+    """
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+    if _UUID_RE.match(raw):
+        return None
+    if "://" not in raw:
+        return get_document_storage_key(_PersistedValue(raw)) or None
+    try:
+        parsed = urlparse(raw)
+    except ValueError:
+        return None
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return None
+    has_signature = any(
+        name.startswith("X-Amz-") for name, _ in parse_qsl(parsed.query, keep_blank_values=True)
+    )
+    if has_signature or parsed.hostname.lower() in _our_hosts():
+        # Our own (possibly presigned) URL: the decoded path is the key.
+        return get_document_storage_key(_PersistedValue(raw)) or None
+    return None
+
+
+def resolve_document_object_key(document):
+    """The object key for ``document``: ``storage_key``, else derived from ``file_url``."""
+    stored = _key_from_persisted_value(getattr(document, "storage_key", None))
+    if stored:
+        return stored
+    file_url = getattr(document, "file_url", None)
+    if isinstance(file_url, str) and file_url.strip() and _key_from_persisted_value(file_url) is None:
+        # A presence marker or a legacy-provider URL: not an object in our bucket.
+        return ""
+    # Our key or our own URL: ``get_document_storage_key`` derives it, as it
+    # always has for this value (design R4-c composes it).
+    return get_document_storage_key(document) or ""
+
+
+def _legacy_provider_url(document):
+    raw = str(getattr(document, "file_url", None) or "").strip()
+    if raw.startswith("https://") and not _key_from_persisted_value(raw):
+        return raw
+    return None
+
+
+def resolve_document_open_url(document, *, disposition="inline"):
+    """A URL the browser can open now: signed at call time, or a legacy URL unchanged.
+
+    Returns ``None`` when the document has no resolvable file. Signing errors
+    propagate so callers choose how to present them.
+    """
+    key = resolve_document_object_key(document)
+    if key:
+        return generate_signed_url(key)
+    legacy = None if getattr(document, "storage_key", None) else _legacy_provider_url(document)
+    if legacy:
+        logger.info(
+            "document.open.legacy_provider",
+            extra={"document_id": str(getattr(document, "id", ""))},
+        )
+        return legacy
+    return None
 
 
 # ---------------------------------------------------------------------------
