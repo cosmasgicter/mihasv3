@@ -32,10 +32,10 @@ _s3_client = None
 _s3_client_lock = threading.Lock()
 
 
-def _build_s3_client():
+def _build_s3_client(endpoint_url=None):
     return boto3.client(
         "s3",
-        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL if endpoint_url is None else endpoint_url,
         aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
         config=Config(
@@ -64,12 +64,34 @@ def get_s3_client():
     return _s3_client
 
 
-def reset_s3_client():
-    """Test-only helper to drop the cached client."""
+_presign_client = None
 
-    global _s3_client
+
+def get_presign_client():
+    """Return the cached client used only to compute presigned URLs.
+
+    Built like the internal client but against ``AWS_S3_PUBLIC_ENDPOINT_URL``,
+    the host the browser can reach. Signing is a local computation, so that
+    host need not be reachable from the backend. Where the public endpoint is
+    unset it equals the internal one (production).
+    """
+    global _presign_client
+    if _presign_client is not None:
+        return _presign_client
+    with _s3_client_lock:
+        if _presign_client is None:
+            _presign_client = _build_s3_client(
+                getattr(settings, "AWS_S3_PUBLIC_ENDPOINT_URL", "") or settings.AWS_S3_ENDPOINT_URL
+            )
+    return _presign_client
+
+
+def reset_s3_client():
+    """Test-only helper to drop the cached clients."""
+    global _s3_client, _presign_client
     with _s3_client_lock:
         _s3_client = None
+        _presign_client = None
 
 
 # ---------------------------------------------------------------------------
@@ -141,7 +163,7 @@ def generate_signed_url(file_key, expiry=None):
     """
     expiry = expiry or settings.AWS_QUERYSTRING_EXPIRE  # 900 seconds = 15 min
 
-    return get_s3_client().generate_presigned_url(
+    return get_presign_client().generate_presigned_url(
         "get_object",
         Params={
             "Bucket": settings.AWS_STORAGE_BUCKET_NAME,

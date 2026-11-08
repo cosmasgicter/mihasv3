@@ -48,7 +48,7 @@ inclusion: always
 | App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
 | Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
-| Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
+| Storage | Cloudflare R2 via `django-storages` | Signed URL workflow. MinIO locally and in CI; `S3_PUBLIC_ENDPOINT_URL` for browser-facing signatures; `S3_SIGNED_URL_TTL_SECONDS` (10-3600, default 900) |
 | Email | Zoho SMTP (primary) + Resend (fallback) | Zoho SMTP for outbound email; Resend as fallback for transactional delivery |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI gateway | Vercel AI Gateway (multi-model) | `AI_GATEWAY_API_KEY` — routes to gpt-4o-mini, gemini-2.5-flash, deepseek-v3 by task type |
@@ -99,6 +99,7 @@ inclusion: always
 | `cd backend && python3 manage.py check` | Django system checks |
 | `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` | Generate and verify OpenAPI schema |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
+| `cd backend && python3 manage.py storage_roundtrip_check --expect-private` | Object storage write/read/sign/fetch/delete check (prints `OK`) |
 | `cd backend && python3 -m uvicorn config.asgi:application --reload` | Local ASGI runtime parity check |
 
 ## API Contract

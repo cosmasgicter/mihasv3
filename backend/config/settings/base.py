@@ -362,7 +362,34 @@ AWS_S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL", "")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("S3_BUCKET", "")
 AWS_S3_ACCESS_KEY_ID = os.environ.get("S3_ACCESS_KEY", "")
 AWS_S3_SECRET_ACCESS_KEY = os.environ.get("S3_SECRET_KEY", "")
-AWS_QUERYSTRING_EXPIRE = 900  # 15-minute signed URLs
+# Host the BROWSER can reach, used only to compute signatures (signing is local,
+# so the backend need not reach it). Defaults to the internal endpoint, which is
+# the production behaviour (R2 is reachable from both sides).
+AWS_S3_PUBLIC_ENDPOINT_URL = (
+    os.environ.get("S3_PUBLIC_ENDPOINT_URL", "").strip() or AWS_S3_ENDPOINT_URL
+)
+if AWS_S3_PUBLIC_ENDPOINT_URL and not AWS_S3_PUBLIC_ENDPOINT_URL.startswith(("http://", "https://")):
+    from django.core.exceptions import ImproperlyConfigured as _ImproperlyConfigured
+
+    raise _ImproperlyConfigured("S3_PUBLIC_ENDPOINT_URL must start with http:// or https://")
+
+
+def _signed_url_ttl_seconds() -> int:
+    from django.core.exceptions import ImproperlyConfigured
+
+    raw = os.environ.get("S3_SIGNED_URL_TTL_SECONDS", "").strip()
+    if not raw:
+        return 900  # 15-minute signed URLs
+    try:
+        value = int(raw)
+    except ValueError:
+        value = -1
+    if not 10 <= value <= 3600:
+        raise ImproperlyConfigured("S3_SIGNED_URL_TTL_SECONDS must be an integer between 10 and 3600")
+    return value
+
+
+AWS_QUERYSTRING_EXPIRE = _signed_url_ttl_seconds()
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_DEFAULT_ACL = None
 

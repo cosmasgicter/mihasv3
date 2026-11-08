@@ -20,8 +20,9 @@ You can wipe it and start over any time. **No git commits are involved.**
 |--------|-------------------|
 | Database | A separate local Postgres (`mihas_localtest`) in its own Docker volume. Not Neon, not production. |
 | Secrets / env | Uses `backend/.env.local.test` only. It never reads `backend/.env` (which points at Neon). |
-| Payments / email / AI / storage | All faked or disabled in `.env.local.test` — nothing leaves your machine. |
-| Ports | Bound to `127.0.0.1` only (Postgres 5433, Redis 6380, API 8000). |
+| Payments / email / AI | Faked or disabled in `.env.local.test` — nothing leaves your machine. |
+| Object storage | A private MinIO container (`mihas-localtest` bucket, no anonymous policy, credentials fixed and fictional, bound to `127.0.0.1:9000`). Uploads, document viewing and signed URLs work locally; nothing reaches R2. |
+| Ports | Bound to `127.0.0.1` only (Postgres 5433, Redis 6380, API 8000, MinIO 9000/9001). |
 | Project name | Runs under the Docker project `mihas-localtest`, separate from any other stack. |
 
 ---
@@ -46,7 +47,7 @@ docker compose -p mihas-localtest \
   up -d --build
 ```
 
-Wait ~20 seconds, then confirm all 4 services are healthy/up:
+Wait ~20 seconds, then confirm the services (postgres, redis, minio, web, celery) are healthy/up; `minio-setup` exits after creating the bucket:
 
 ```bash
 docker compose -p mihas-localtest -f docker-compose.local-test.yml ps
@@ -86,6 +87,13 @@ Confirm the schema is healthy (this is the same check the server runs on boot):
 ```bash
 docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
   python3 manage.py check
+```
+
+Prove object storage works (write, read, sign, fetch, delete against the private bucket). It prints `OK` on success:
+
+```bash
+docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
+  python3 manage.py storage_roundtrip_check --expect-private
 ```
 
 > Optional: seed reference data (subjects) so dropdowns aren't empty:
