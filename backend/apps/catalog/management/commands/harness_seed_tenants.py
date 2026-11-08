@@ -20,6 +20,9 @@ TEN-03, TEN-04) and are rebuilt in Phase 4. Until then this command seeds the
 two-tenant baseline deterministically via canonical models so the harness is
 runnable now. The TypeScript API helpers additionally exercise API-driven
 institution + domain creation to prove that path as far as it currently works.
+Each offering also gets one local application fee in ``program_fees`` (the canonical
+fee authority), so a fresh database has an offering a student can pay for.
+
 This command is idempotent and never runs in production.
 """
 
@@ -75,6 +78,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **opts):
+        if (
+            os.environ.get("DJANGO_SETTINGS_MODULE", "").endswith(".prod")
+            or os.environ.get("ENVIRONMENT", "").lower() == "production"
+        ):
+            raise CommandError(
+                "harness_seed_tenants refuses to run under production settings."
+            )
         db_url = os.environ.get("DATABASE_URL", "")
         for danger in ("neon.tech", "amazonaws.com", "rds.", "beanola.com"):
             if danger in db_url:
@@ -92,6 +102,7 @@ class Command(BaseCommand):
 
         from apps.accounts.models import Profile
         from apps.accounts.services import hash_password
+        from apps.documents.models import ProgramFee
         from apps.catalog.models import (
             CanonicalProgram,
             Institution,
@@ -164,6 +175,22 @@ class Command(BaseCommand):
                         "is_active": True,
                         "offering_status": "active",
                         "assignment_priority": 100,
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                )
+
+                # The canonical fee authority is ``program_fees`` (FeeResolver), not
+                # ``programs.application_fee``. ``get_or_create`` matches any row an
+                # API-configured harness already added, so this never duplicates it.
+                ProgramFee.objects.get_or_create(
+                    program=offering,
+                    fee_type="application",
+                    residency_category="local",
+                    defaults={
+                        "amount": Decimal("153.00"),
+                        "currency": "ZMW",
+                        "is_active": True,
                         "created_at": now,
                         "updated_at": now,
                     },

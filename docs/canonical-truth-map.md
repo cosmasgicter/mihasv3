@@ -173,7 +173,9 @@ Payment. It closes findings **STU-08** (the client computed a 1% transaction fee
 and showed a K150/USD 20 default) and **DATA-05** (an invented default amount).
 
 `Payment` remains the source of truth for money that has moved (ADR-001); the
-quote is the record of what was *agreed* before it moved.
+quote is the record of what was *agreed* before it moved. Local and harness seeds
+(`harness_seed_tenants`) create canonical `program_fees` rows, so a fresh database
+resolves a fee through `FeeResolver` like any other.
 
 | Concept | Source of truth | Consumers |
 |---------|-----------------|-----------|

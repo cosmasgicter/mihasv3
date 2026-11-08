@@ -20,6 +20,42 @@ from apps.documents.fee_resolver import FeeResolver
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
+
+@pytest.fixture(autouse=True)
+def _remove_seeded_rows():
+    """Isolation (task 3.3): the seed tables are unmanaged, so a transactional test
+    does not flush them, and rows left by the seed test would make the refusal
+    test's "nothing was written" assertion order-dependent. Delete what the seed
+    command creates, before and after each case. Assertions are unchanged.
+    """
+
+    def _clean():
+        from apps.accounts.models import Profile
+        from apps.catalog.models import (
+            CanonicalProgram,
+            Intake,
+            InstitutionDomain,
+            Program,
+            ProgramIntake,
+            UserInstitutionMembership,
+        )
+        from apps.documents.models import ProgramFee
+
+        offerings = Program.objects.filter(code__in=["MIHAS-DRN", "KATC-DRN"])
+        ProgramFee.objects.filter(program__in=offerings).delete()
+        ProgramIntake.objects.filter(program__in=offerings).delete()
+        offerings.delete()
+        Intake.objects.filter(name__in=["MIHAS January 2027", "KATC January 2027"]).delete()
+        UserInstitutionMembership.objects.filter(institution__code__in=["MIHAS", "KATC"]).delete()
+        InstitutionDomain.objects.filter(hostname__in=["mihas.localhost", "katc.localhost"]).delete()
+        Profile.objects.filter(email__in=["admin@mihas.localhost", "admin@katc.localhost"]).delete()
+        Institution.objects.filter(code__in=["MIHAS", "KATC"]).delete()
+        CanonicalProgram.objects.filter(code="CANON-DRN").delete()
+
+    _clean()
+    yield
+    _clean()
+
 # A fictional local credential for the seeded example admins; never a real secret.
 LOCAL_SEED_PASSWORD = "Sjr-local-seed-0nly!"
 

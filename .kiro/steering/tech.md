@@ -551,7 +551,7 @@ The following security measures were applied during the April 2026 full reposito
 - Batch user import now creates an `AuditLog` entry with `action=user_batch_import` for every batch operation. Per-row savepoints handle `IntegrityError` races without discarding the entire batch. Role-level validation prevents creating users with roles above the actor's own.
 - Bulk notification retry no longer re-sends emails for already-processed notifications. The task retries with only the remaining unprocessed IDs.
 - `ApplicationReviewView` payment gate now checks the full `_RESOLVED_PAYMENT_STATUSES` tuple (including `verified`, `paid`, `deferred`) instead of a subset.
-- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only `.env.example` and `.env.scripts.example` remain as tracked templates. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
+- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only the example templates remain tracked: `.env.example`, `.env.scripts.example`, `apps/admissions/.env.example`, `backend/.env.example`, `backend/.env.local.test.example` and `deploy/.env.prod.example`. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
 
 ### Known Open Issues (from AUDIT-REPORT-2026-04-24.md)
 

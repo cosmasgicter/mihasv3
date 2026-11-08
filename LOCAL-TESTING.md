@@ -37,9 +37,16 @@ You can wipe it and start over any time. **No git commits are involved.**
 
 ## PART 1 — Start the backend (API + DB + Redis + worker)
 
+First create your env file from the tracked template (placeholders only; the real file is gitignored):
+
 ```bash
 cd backend
+cp .env.local.test.example .env.local.test
+```
 
+If you already have a `.env.local.test`, delete its `USE_LOCAL_FILE_STORAGE` and `CELERY_TASK_ALWAYS_EAGER` lines: nothing reads either of them. Storage comes from the MinIO in the compose file.
+
+```bash
 # Build and start the isolated stack (own project name + env file).
 docker compose -p mihas-localtest \
   -f docker-compose.local-test.yml \
@@ -96,11 +103,18 @@ docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
   python3 manage.py storage_roundtrip_check --expect-private
 ```
 
-> Optional: seed reference data (subjects) so dropdowns aren't empty:
+> Seed reference data (subjects) so dropdowns aren't empty:
 > ```bash
 > docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
 >   python3 manage.py seed_subjects
 > ```
+
+Seed two example tenants so there is an offering a student can apply to. This creates the MIHAS and KATC example records on `mihas.localhost` and `katc.localhost`, each with an open intake and a local application fee in `program_fees`. It refuses production settings and non-local databases. Use a local-only password of your own:
+
+```bash
+docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
+  python3 manage.py harness_seed_tenants --tenant-admin-password '<local value>'
+```
 
 ---
 
@@ -299,8 +313,10 @@ print('LENCO', s.LENCO_API_BASE_URL); print('DB', s.DATABASES['default']['NAME']
 
 ## R3 — Set every fee to K1 (so real payments cost ~K1)
 
-The fee resolver checks `program_fees` (per program + residency), then falls
-back to `programs.application_fee`. Set **both** to 1.00 so everything is K1:
+The fee resolver reads `program_fees` (per program + residency) only;
+`programs.application_fee` is not a fee source. Fees come from `program_fees`
+rows, which `harness_seed_tenants` creates for the example tenants. Set them to
+1.00 so everything is K1:
 
 ```bash
 docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
