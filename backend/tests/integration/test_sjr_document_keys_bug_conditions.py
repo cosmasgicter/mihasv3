@@ -123,7 +123,6 @@ def _list(client, application_id):
 # --- R4-a: keys persisted, URLs signed at read time (task 3.13) ------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_upload_persists_a_key_not_a_presigned_url(world_with_contract, provider_storage):
     world, client = world_with_contract
 
@@ -137,7 +136,6 @@ def test_upload_persists_a_key_not_a_presigned_url(world_with_contract, provider
     assert "X-Amz-" not in (world.application.result_slip_url or "")
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_condition_evidence_persists_a_key(provider_storage, tenant_world):
     from datetime import timedelta
 
@@ -176,7 +174,6 @@ def test_condition_evidence_persists_a_key(provider_storage, tenant_world):
     assert stored.file_url == stored.storage_key
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_generated_official_document_persists_a_key(provider_storage):
     from apps.applications.tasks.pdf_generation import _generate_official_document_task
 
@@ -197,7 +194,6 @@ def test_generated_official_document_persists_a_key(provider_storage):
     assert stored.file_url == stored.storage_key
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_the_document_list_signs_file_url_at_read_time(world_with_contract):
     world, client = world_with_contract
     row = build_document(
@@ -222,7 +218,6 @@ def test_the_document_list_signs_file_url_at_read_time(world_with_contract):
 # --- R4-c: legacy values (task 3.13) --------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_a_legacy_provider_url_is_returned_unchanged(world_with_contract):
     world, client = world_with_contract
     legacy = "https://legacy-files.example.org/uploads/old-slip.pdf"
@@ -246,7 +241,6 @@ def test_a_legacy_provider_url_is_returned_unchanged(world_with_contract):
     assert response.json()["data"]["url"] == legacy
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.13")
 def test_a_bare_uuid_snapshot_never_reaches_signing(world_with_contract):
     world, client = world_with_contract
     marker = str(uuid.uuid4())
@@ -267,7 +261,6 @@ def test_a_bare_uuid_snapshot_never_reaches_signing(world_with_contract):
 # --- R4-b: snapshot in the version transaction (task 3.14) -----------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.14")
 def test_the_snapshot_holds_the_document_id(world_with_contract, provider_storage):
     world, client = world_with_contract
 
@@ -278,7 +271,6 @@ def test_the_snapshot_holds_the_document_id(world_with_contract, provider_storag
     assert world.application.result_slip_url == response.json()["data"]["id"]
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.14")
 def test_a_255_character_name_succeeds_on_the_first_attempt(world_with_contract, provider_storage):
     world, client = world_with_contract
     name = ("Résumé ñ " * 40)[:251] + ".pdf"
@@ -293,7 +285,6 @@ def test_a_255_character_name_succeeds_on_the_first_attempt(world_with_contract,
     assert world.application.result_slip_url
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.14")
 def test_new_object_keys_contain_no_filename(world_with_contract, provider_storage):
     world, client = world_with_contract
 
@@ -311,7 +302,6 @@ def test_new_object_keys_contain_no_filename(world_with_contract, provider_stora
 # --- R4-b: an id-aware legacy reader (task 3.14) ---------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.14")
 def test_an_nrc_document_with_an_id_snapshot_lists_once_and_no_phantom_row(world_with_contract):
     world, client = world_with_contract
     nrc = build_document(
@@ -331,7 +321,6 @@ def test_an_nrc_document_with_an_id_snapshot_lists_once_and_no_phantom_row(world
     assert not [item for item in rows if item.get("is_legacy_synthetic")]
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R4: fixed in task 3.14")
 def test_removing_the_newest_identity_document_leaves_no_synthetic_row(
     world_with_contract, provider_storage
 ):
