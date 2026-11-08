@@ -382,6 +382,9 @@ class RateLimitMiddleware:
                             prefix,
                         )
                 if limited:
+                    from apps.common.ratelimit_metrics import record_limited
+
+                    record_limited(group, "ip")
                     response = JsonResponse(
                         {
                             "success": False,

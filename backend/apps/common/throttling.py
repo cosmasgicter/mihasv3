@@ -314,7 +314,14 @@ class DocumentUserRateThrottle(ClientIpIdentMixin, SimpleRateThrottle):
         self.rate = self.get_rate()
         self.num_requests, self.duration = self.parse_rate(self.rate)
         try:
-            return super().allow_request(request, view)
+            allowed = super().allow_request(request, view)
         except Exception:
             logger.warning("ratelimit.document_throttle.cache_unavailable", exc_info=True)
             return True
+        if not allowed:
+            from apps.common.ratelimit_metrics import record_limited
+
+            user = getattr(request, "user", None)
+            kind = "user" if getattr(user, "is_authenticated", False) else "ip"
+            record_limited(self.scope, kind)
+        return allowed
