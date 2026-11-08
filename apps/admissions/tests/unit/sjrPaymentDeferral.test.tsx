@@ -105,9 +105,12 @@ describe('payment hooks (clauses 1.32, 1.33)', () => {
 
     rerender({ applicationPaymentStatus: 'deferred' })
 
-    await waitFor(() => expect(result.current.status).toBe('deferred'))
-    // The wizard's Next gate reads this through the progress helper.
-    expect(isPaymentResolvedForProgress(result.current.status)).toBe(true)
+    // The wizard's Next gate reads the hook's status through the progress helper;
+    // checked inside the wait so a later poll cannot change what is measured.
+    await waitFor(() => {
+      expect(result.current.status).toBe('deferred')
+      expect(isPaymentResolvedForProgress(result.current.status)).toBe(true)
+    })
   })
 
   it.fails('clears the recovery entry once the server confirms a deferral', async () => {
