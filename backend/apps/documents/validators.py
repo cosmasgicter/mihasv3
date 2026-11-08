@@ -22,6 +22,16 @@ MAGIC_BYTES = {
 MAX_MAGIC_LENGTH = max(len(sig) for sig in MAGIC_BYTES)
 
 ALLOWED_MIME_TYPES = set(MAGIC_BYTES.values())
+
+# R2-c (clause 2.9): types a client may send for bytes it could not classify, and
+# spellings of an accepted type. The bytes, not the declaration, decide acceptance
+# for the first group; the second is normalised before any check.
+GENERIC_DECLARED_MIME_TYPES = frozenset({"", "application/octet-stream", "binary/octet-stream"})
+DECLARED_MIME_ALIASES = {
+    "image/jpg": "image/jpeg",
+    "image/pjpeg": "image/jpeg",
+    "image/x-png": "image/png",
+}
 ALLOWED_ASSET_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/svg+xml"}
 
 # Maximum bytes of an SVG asset scanned for active/unsafe content. Brand SVGs
@@ -46,6 +56,23 @@ _UNSAFE_SVG_PATTERNS = (
     re.compile(rb"\son\w+\s*=", re.IGNORECASE),
     re.compile(rb"javascript\s*:", re.IGNORECASE),
 )
+
+
+def _detect_from_header(header: bytes) -> str | None:
+    for signature, mime_type in MAGIC_BYTES.items():
+        if header[: len(signature)] == signature:
+            if mime_type == "image/webp" and header[8:12] != b"WEBP":
+                continue
+            return mime_type
+    return None
+
+
+def detect_file_mime(file_obj) -> str | None:
+    """The MIME type the leading bytes identify, or ``None``. Seeks to 0 before and after."""
+    file_obj.seek(0)
+    header = file_obj.read(MAX_MAGIC_LENGTH)
+    file_obj.seek(0)
+    return _detect_from_header(header) if header else None
 
 
 def validate_file_magic_bytes(file_obj, declared_mime_type):
@@ -73,14 +100,7 @@ def validate_file_magic_bytes(file_obj, declared_mime_type):
     if not header:
         raise ValidationError("Empty file uploaded.")
 
-    # Check against known magic byte signatures.
-    detected_mime = None
-    for signature, mime_type in MAGIC_BYTES.items():
-        if header[: len(signature)] == signature:
-            if mime_type == "image/webp" and header[8:12] != b"WEBP":
-                continue
-            detected_mime = mime_type
-            break
+    detected_mime = _detect_from_header(header)
 
     if detected_mime is None:
         raise ValidationError(

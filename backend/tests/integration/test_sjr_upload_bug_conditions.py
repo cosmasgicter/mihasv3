@@ -98,7 +98,6 @@ def _post(client, world, *, content: bytes, name: str, content_type: str, key: s
     )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R2: fixed in task 3.5")
 def test_retry_with_the_key_of_a_compensated_attempt_is_accepted(upload_world, object_storage):
     world, client = upload_world
     key = "retry-after-failed-write-0001"
@@ -118,7 +117,6 @@ def test_retry_with_the_key_of_a_compensated_attempt_is_accepted(upload_world, o
     ).count() == 1
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R2: fixed in task 3.5")
 def test_valid_pdf_declared_octet_stream_is_accepted_and_detected_type_recorded(
     upload_world, object_storage
 ):
@@ -132,7 +130,6 @@ def test_valid_pdf_declared_octet_stream_is_accepted_and_detected_type_recorded(
     assert document.mime_type == "application/pdf"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R2: fixed in task 3.5")
 def test_jpeg_declared_image_jpg_is_accepted_and_detected_type_recorded(upload_world, object_storage):
     world, client = upload_world
     response = _post(
@@ -144,7 +141,6 @@ def test_jpeg_declared_image_jpg_is_accepted_and_detected_type_recorded(upload_w
     assert document.mime_type == "image/jpeg"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R2: fixed in task 3.5")
 @pytest.mark.parametrize(
     "bad_key",
     [

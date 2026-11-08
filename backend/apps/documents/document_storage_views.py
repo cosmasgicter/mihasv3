@@ -8,6 +8,7 @@ import hashlib
 import ipaddress
 import json
 import logging
+import re
 import uuid
 from decimal import Decimal
 
@@ -52,6 +53,8 @@ from apps.documents import payment_metrics
 from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
+
+_IDEMPOTENCY_KEY_PATTERN = re.compile(r"[A-Za-z0-9._:-]{8,128}")
 
 
 from apps.common.request_utils import get_client_ip as _client_ip
@@ -342,7 +345,57 @@ class DocumentUploadView(APIView):
         # tenant-configured custom type is accepted; a type nobody asked for is
         # refused with a stable code; and an unevaluable configuration fails
         # closed with a retryable 503 instead of accepting unverified evidence.
-        declared_mime = file_obj.content_type or ""
+        # R2-b (clause 2.8): validate the optional replay key's shape. The value
+        # is never echoed back.
+        raw_idempotency_key = request.headers.get("Idempotency-Key")
+        if raw_idempotency_key is not None and not _IDEMPOTENCY_KEY_PATTERN.fullmatch(
+            raw_idempotency_key
+        ):
+            return Response(
+                {
+                    "success": False,
+                    "error": "Validation failed",
+                    "code": "VALIDATION_ERROR",
+                    "details": {
+                        "Idempotency-Key": [
+                            "Use 8 to 128 letters, digits, dots, colons, underscores or hyphens."
+                        ]
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # R2-c (clause 2.9): the effective type. A specific declared type takes
+        # today's path unchanged; an aliased spelling is normalised; a generic or
+        # empty declaration is replaced by what the bytes are. Magic bytes below
+        # still decide acceptance.
+        from apps.documents.validators import (
+            DECLARED_MIME_ALIASES,
+            GENERIC_DECLARED_MIME_TYPES,
+            detect_file_mime,
+        )
+
+        declared_mime = str(file_obj.content_type or "").strip().lower()
+        declared_mime = DECLARED_MIME_ALIASES.get(declared_mime, declared_mime)
+        if declared_mime in GENERIC_DECLARED_MIME_TYPES:
+            declared_class = "empty" if not declared_mime else "octet"
+            detected = detect_file_mime(file_obj)
+            emit_metric(
+                "document.upload.detected_mime",
+                declared_class=declared_class,
+                detected={
+                    "application/pdf": "pdf",
+                    "image/jpeg": "jpeg",
+                    "image/png": "png",
+                }.get(detected, "none"),
+            )
+            if detected is None:
+                logger.info("Upload refused: unrecognisable bytes (declared class=%s)", declared_class)
+                return Response(
+                    {"success": False, "error": "Invalid file format", "code": "INVALID_FILE"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            declared_mime = detected
         from apps.applications.assignment_resolution import AssignmentConfigurationError
         from apps.applications.required_documents import (
             UploadRejected,
@@ -433,7 +486,7 @@ class DocumentUploadView(APIView):
             )
 
         accepts = list(requirement.get("accepts_document_types") or [document_type])
-        idempotency_key = request.headers.get("Idempotency-Key") or None
+        idempotency_key = raw_idempotency_key or None
 
         # Idempotent replay (R17.1), strongest identity first.
         #

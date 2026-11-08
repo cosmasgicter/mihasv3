@@ -169,6 +169,7 @@ EVENT_STAGE_UNVERIFIED = "document.stage.unverified"
 EVENT_STAGE_COMPENSATION_PENDING = "document.stage.compensation_pending"
 EVENT_STAGE_RECONCILED = "document.stage.reconciled"
 EVENT_STAGE_ORPHANED = "document.stage.orphaned"
+EVENT_STAGE_IDEMPOTENCY_RELEASED = "document.stage.idempotency_released"
 
 #: Stage ledger states (mirrored by ``chk_document_upload_stages_state``).
 STAGE_STAGED = "staged"
@@ -563,6 +564,11 @@ def open_stage(
         ) from exc
 
 
+_KEY_RELEASING_STATES = frozenset(
+    {STAGE_COMPENSATED, STAGE_COMPENSATION_PENDING, STAGE_WRITE_FAILED, STAGE_ORPHANED}
+)
+
+
 def mark_stage(stage, state: str, *, error: str | None = None, document=None) -> None:
     """Move a stage row to *state*, recording a bounded operator reason."""
     stage.state = state
@@ -577,7 +583,27 @@ def mark_stage(stage, state: str, *, error: str | None = None, document=None) ->
     if state in (STAGE_COMMITTED, STAGE_COMPENSATED, STAGE_WRITE_FAILED, STAGE_ORPHANED):
         stage.resolved_at = stage.updated_at
         fields.append("resolved_at")
+    # R2-b (clause 2.8): a key is replayable only from a committed stage. When the
+    # stage ends without committed evidence, release the key in the same save so
+    # the client's retry with that key is accepted instead of meeting the unique
+    # index forever. Object key, hash, actor and history stay for reconciliation.
+    released = False
+    if state in _KEY_RELEASING_STATES and stage.idempotency_key:
+        stage.idempotency_key = None
+        fields.append("idempotency_key")
+        stage.last_error = _truncate(
+            f"{stage.last_error or ''}; idempotency key released"
+        )
+        if "last_error" not in fields:
+            fields.append("last_error")
+        released = True
     stage.save(update_fields=fields)
+    if released:
+        emit_metric(
+            EVENT_STAGE_IDEMPOTENCY_RELEASED,
+            stage_id=str(stage.id),
+            document_type=stage.document_type,
+        )
 
 
 def delete_staged_object(object_key: str) -> None:
