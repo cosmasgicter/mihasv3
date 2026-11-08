@@ -60,7 +60,6 @@ def _remove_seeded_rows():
 LOCAL_SEED_PASSWORD = "Sjr-local-seed-0nly!"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.3")
 def test_seeded_offerings_resolve_a_local_fee():
     call_command("harness_seed_tenants", "--tenant-admin-password", LOCAL_SEED_PASSWORD)
 
@@ -75,7 +74,6 @@ def test_seeded_offerings_resolve_a_local_fee():
         assert fee.currency == "ZMW"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.3")
 @pytest.mark.parametrize(
     "env",
     [

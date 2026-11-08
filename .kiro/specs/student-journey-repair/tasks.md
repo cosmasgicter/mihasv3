@@ -170,7 +170,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - One R-group per block, each ending in a checkpoint that re-runs that group's task 1 tests and every task 2 preservation test
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30, 2.31, 2.32, 2.33, 2.34, 2.35, 2.41, 2.42, 2.48_
 
-  - [ ] 3.1 R1 — local-test object storage and signing endpoint (design R1-a)
+  - [x] 3.1 R1 — local-test object storage and signing endpoint (design R1-a)
     - `backend/docker-compose.local-test.yml`: add `minio` and `minio-setup` (private bucket `mihas-localtest`), and the `S3_*` / `S3_PUBLIC_ENDPOINT_URL` environment for `web` and `celery`
     - `backend/config/settings/base.py`: `AWS_S3_PUBLIC_ENDPOINT_URL`, `AWS_QUERYSTRING_EXPIRE` from `S3_SIGNED_URL_TTL_SECONDS` (10–3600, default 900)
     - `backend/apps/common/storage.py`: `get_presign_client()`; `generate_signed_url` uses it
@@ -182,7 +182,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: production signing unchanged (public endpoint unset, TTL 900)_
     - _Requirements: 2.1, 3.16_
 
-  - [ ] 3.2 R1 — startup validation after the final settings load (design R1-b)
+  - [x] 3.2 R1 — startup validation after the final settings load (design R1-b)
     - Precondition: task 2.6 is done and the user has confirmed the pause, so merging this change does not deploy it; it reaches production only through task 6.2's approved deploy. Before merging, repeat task 2.6's visibility-and-plan check
     - `base.py`: remove the import-time `validate_required_env_vars()` call; add `STARTUP_ENV_VALIDATION = False` and `IS_TEST_PROCESS`
     - `prod.py` and `staging.py`: `STARTUP_ENV_VALIDATION = True`; `local_real.py`: `False`
@@ -195,7 +195,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: dev, test, local_real and harness start as before; existing `test_env_validator.py` cases pass_
     - _Requirements: 2.2, 3.16_
 
-  - [ ] 3.3 R1 — tracked env template, wired knobs and seeded fees (design R1-c, R1-d)
+  - [x] 3.3 R1 — tracked env template, wired knobs and seeded fees (design R1-c, R1-d)
     - New `backend/.env.local.test.example`; `backend/.gitignore` exception; `backend/tests/unit/test_tracked_env_files.py` allowlist
     - `dev.py` reads `EMAIL_BACKEND`; remove `USE_LOCAL_FILE_STORAGE` and `CELERY_TASK_ALWAYS_EAGER` from documented env; fix or allowlist every name the scanner reports
     - `harness_seed_tenants.py`: local `program_fees` row per offering; refuse production settings
@@ -205,7 +205,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: existing API-configured harness fees still match through `get_or_create`_
     - _Requirements: 2.3, 2.4, 3.16, 3.22_
 
-  - [ ] 3.4 Checkpoint — R1 green
+  - [x] 3.4 Checkpoint — R1 green
     - **Property 1: Expected Behavior** - Storage and Environment Truth
     - **IMPORTANT**: Re-run the SAME tests from task 1.1 — do NOT write new tests
     - Remove the strict markers from task 1.1's tests (design "Marker scheme"), then run them unmarked

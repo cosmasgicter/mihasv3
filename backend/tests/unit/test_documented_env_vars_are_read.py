@@ -128,7 +128,6 @@ def _is_read(name: str, python: str, infra: str, frontend: str) -> bool:
     return False
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.3")
 def test_local_test_stack_has_a_tracked_template():
     """The isolated stack's env file is gitignored with no template (Bring-up 1)."""
     template = BACKEND / ".env.local.test.example"
@@ -138,7 +137,6 @@ def test_local_test_stack_has_a_tracked_template():
     )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.3")
 def test_every_documented_variable_is_read_or_allowlisted():
     python, infra, frontend = _python_sources(), _infrastructure_sources(), _frontend_sources()
     documented = _documented_names()

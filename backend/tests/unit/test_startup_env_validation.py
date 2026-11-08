@@ -9,7 +9,7 @@ the process starts with an empty storage endpoint. Each case below starts a real
 subprocess (the only honest way to observe a startup refusal) with every other
 required variable set to a placeholder.
 
-Counterexample recorded from ``pytest --runxfail`` in g1-tests-evidence.md.
+Counterexample recorded from ``pytest --runxfail`` in g1-tests-evidence.md; the strict markers came off at checkpoint 3.4.
 """
 from __future__ import annotations
 
@@ -81,7 +81,6 @@ def test_control_with_every_variable_set_starts(settings_module):
     assert result.returncode == 0, result.stderr[-800:]
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.2")
 @pytest.mark.parametrize("variable", S3_VARS)
 @pytest.mark.parametrize("settings_module", ["config.settings.prod", "config.settings.staging"])
 def test_empty_storage_variable_refuses_to_start(settings_module, variable):

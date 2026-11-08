@@ -33,7 +33,6 @@ def _environment(service: dict) -> dict[str, str]:
     return {k: str(v) for k, v in env.items()}
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 def test_local_test_compose_declares_a_minio_service():
     services = _compose()["services"]
     minio = [
@@ -42,7 +41,6 @@ def test_local_test_compose_declares_a_minio_service():
     assert minio, "docker-compose.local-test.yml has no MinIO service; uploads cannot be stored"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 @pytest.mark.parametrize("service", ["web", "celery"])
 def test_web_and_celery_receive_storage_settings(service):
     env = _environment(_compose()["services"][service])
@@ -76,7 +74,6 @@ def _settings_probe(**overrides: str) -> subprocess.CompletedProcess:
     )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 def test_public_endpoint_defaults_to_the_internal_endpoint_and_ttl_to_900():
     result = _settings_probe()
     assert result.returncode == 0, result.stderr[-600:]
@@ -85,7 +82,6 @@ def test_public_endpoint_defaults_to_the_internal_endpoint_and_ttl_to_900():
     assert public == "http://minio:9000"
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 def test_public_endpoint_and_ttl_are_read_from_the_environment():
     result = _settings_probe(
         S3_PUBLIC_ENDPOINT_URL="http://localhost:9000", S3_SIGNED_URL_TTL_SECONDS="60"
@@ -95,7 +91,6 @@ def test_public_endpoint_and_ttl_are_read_from_the_environment():
     assert (ttl, public) == ("60", "http://localhost:9000")
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 @pytest.mark.parametrize("ttl", ["9", "3601", "abc", "-5", ""])
 def test_out_of_range_ttl_is_fatal_and_names_the_variable(ttl):
     # An empty value falls back to the default, so it is the one acceptable case.
@@ -108,7 +103,6 @@ def test_out_of_range_ttl_is_fatal_and_names_the_variable(ttl):
     assert "S3_SIGNED_URL_TTL_SECONDS" in result.stderr
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R1: fixed in task 3.1")
 def test_public_endpoint_must_be_http_or_https():
     result = _settings_probe(S3_PUBLIC_ENDPOINT_URL="ftp://nope")
     assert result.returncode != 0
