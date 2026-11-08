@@ -140,7 +140,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Some existing tests pin behaviour this spec changes on purpose. Each is named in its fix task with its new assertion or mock (3.1, 3.6, 3.9, 3.13, 3.14, 3.17, 3.18, 3.19, 3.20, 3.22, 3.23, 3.27, 5.3, 5.4), and the checkpoints count it with that new assertion or mock. Among the design's baselines that is `test_document_evidence_compensation_7_3.py` `:180`, `:341`, `:431` and `:490` (task 3.14) and `test_official_document_durability_10_4.py` `:632-643` and `:645-658` (task 3.19); `draftOutboxMinimisation.property.test.ts` gains the pending-grades case in task 3.23 with its existing assertions unchanged. A fix may change an existing test's assertion only when the old assertion encodes the defect it fixes. It may change a test's mocks, fixtures or patch targets, keeping every assertion, when the code under test changes shape (a new client, loader or transport), as tasks 3.1, 3.6, 3.19 and 3.22 do. Either way the task names the test and the test records why; any other test that turns red is a regression (design "Preservation Checking")
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.12, 3.13, 3.14, 3.15, 3.21_
 
-  - [ ] 2.5 Record the broad harness matrix baseline
+  - [x] 2.5 Record the broad harness matrix baseline
     - Run `bash harness/bin/harness smoke` once on unfixed code and record the result per project; it has not run since task 0.4, so record any pre-existing failure as such, not as a regression
     - Confirm `gatecheck-negative` fails as designed
     - _Requirements: 3.22, 3.23_
