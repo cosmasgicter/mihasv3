@@ -116,6 +116,22 @@ export const UPLOAD_REJECTION_CODES = [
   'UNSAFE_FILE_CONTENT',
 ] as const
 
+/**
+ * Codes only the client transport produces (frontend-only, no backend mirror),
+ * plus the one server code whose meaning the client words itself. Kept out of
+ * `UPLOAD_REJECTION_CODES` so the drift guard against the backend keeps its meaning.
+ */
+export const CLIENT_UPLOAD_ERROR_COPY: Readonly<Record<string, string>> = {
+  UPLOAD_STALLED: 'The upload stopped. Check your connection and try again.',
+  NETWORK_ERROR: 'We could not reach the server. Check your connection and try again.',
+  DOCUMENT_UPLOAD_IN_PROGRESS: 'This upload is still being processed. Try again in a minute.',
+}
+
+/** The message to show for a failed upload: our wording for transport codes, else the server's. */
+export function uploadFailureMessage(code: string, serverMessage: string): string {
+  return CLIENT_UPLOAD_ERROR_COPY[code] ?? serverMessage
+}
+
 /** The subset a client can decide on its own, before any byte leaves the device. */
 export type UploadRejectionCode = 'FILE_TOO_LARGE' | 'INVALID_FILE_TYPE' | 'EMPTY_FILE'
 

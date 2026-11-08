@@ -14,6 +14,27 @@ import { toApiV1Path } from './apiHelpers';
 const API_BASE = getApiBaseUrl();
 
 /**
+ * Re-fetch the CSRF token from the session endpoint and store it.
+ *
+ * Uses the `?refresh_csrf=1` query parameter instead of a custom header because
+ * cross-origin requests with non-standard headers need a CORS preflight that may
+ * be blocked if the header is not in CORS_ALLOW_HEADERS. Shared by the fetch
+ * recovery below and the upload transport, so there is one recovery contract.
+ */
+export async function refreshCsrfToken(signal?: AbortSignal): Promise<void> {
+  const sessionEndpoint = toApiV1Path('/auth/session/') + '?refresh_csrf=1';
+  const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
+    method: 'GET',
+    credentials: 'include',
+    signal,
+  });
+  const freshCsrf = sessionResponse.headers.get('X-CSRF-Token');
+  if (freshCsrf) {
+    setCsrfToken(freshCsrf);
+  }
+}
+
+/**
  * Handle a 403 response with a CSRF-related error code.
  * Re-fetches the CSRF token from the session endpoint, updates the
  * CSRF Token Store, and retries the original request once with the
@@ -26,22 +47,7 @@ export async function recoverCsrfAndRetry(
   requestHeaders: Record<string, string>,
   signal: AbortSignal,
 ): Promise<Response> {
-  // Re-fetch CSRF token from session endpoint.
-  // Use query parameter instead of (or in addition to) the custom header
-  // because cross-origin requests with non-standard headers require a CORS
-  // preflight that may be blocked if the header isn't in CORS_ALLOW_HEADERS.
-  const sessionEndpoint = toApiV1Path('/auth/session/') + '?refresh_csrf=1';
-  const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
-    method: 'GET',
-    credentials: 'include',
-    signal,
-  });
-
-  const freshCsrf = sessionResponse.headers.get('X-CSRF-Token');
-  if (freshCsrf) {
-    setCsrfToken(freshCsrf);
-  }
-
+  await refreshCsrfToken(signal);
   // Retry the original request with the fresh CSRF token
   const csrfToken = getCsrfToken();
   if (csrfToken) {

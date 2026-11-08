@@ -9,9 +9,9 @@
  * `Idempotency-Key` is sent, there is no byte progress, and the final message
  * comes from the LAST failure rather than the first.
  *
- * Every test here asserts the expected behaviour, so each fails at HEAD and is
- * wrapped in `it.fails` (design "Marker scheme"; the group's checkpoint, task
- * 3.8, removes the wrapper). Counterexamples are recorded from an unwrapped run.
+ * Every test here asserts the expected behaviour. They failed at HEAD and were
+ * wrapped in `it.fails` (design "Marker scheme"); the wrappers were removed at
+ * task 3.6/3.8 once the transport existed.
  */
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -84,7 +84,7 @@ afterEach(() => {
 })
 
 describe('upload seam (R2-d)', () => {
-  it.fails('requiredDocumentsService.upload goes through apiClient.upload with a key', async () => {
+  it('requiredDocumentsService.upload goes through apiClient.upload with a key', async () => {
     upload.mockResolvedValue({ id: 'doc-1' })
 
     await requiredDocumentsService.upload({
@@ -107,7 +107,7 @@ describe('upload seam (R2-d)', () => {
 })
 
 describe('hook retry and progress (R2-a)', () => {
-  it.fails('one failure leads to at most two POSTs carrying the same Idempotency-Key', async () => {
+  it('one failure leads to at most two POSTs carrying the same Idempotency-Key', async () => {
     upload.mockRejectedValue(failure('NETWORK_ERROR', 'Offline'))
     const { result } = await loadedHook()
     vi.useFakeTimers()
@@ -127,7 +127,7 @@ describe('hook retry and progress (R2-a)', () => {
     expect(keys[1]).toBe(keys[0])
   })
 
-  it.fails('reports determinate byte progress while uploading', async () => {
+  it('reports determinate byte progress while uploading', async () => {
     let release: (value: unknown) => void = () => undefined
     upload.mockImplementation(
       (_endpoint: string, _body: FormData, options: { onProgress?: (p: object) => void }) =>
@@ -148,7 +148,7 @@ describe('hook retry and progress (R2-a)', () => {
     })
   })
 
-  it.fails('shows the FIRST failure\'s code after the retry also fails', async () => {
+  it('shows the FIRST failure\'s code after the retry also fails', async () => {
     // Both transports draw from one queue, so the assertion isolates the
     // message rule: HEAD reaches the same two failures through request().
     const queue = [
@@ -282,7 +282,7 @@ describe('transport against a fake XMLHttpRequest (R2-a)', () => {
     }
   }
 
-  it.fails('does not abort a transfer that keeps reporting progress for 90 s', async () => {
+  it('does not abort a transfer that keeps reporting progress for 90 s', async () => {
     vi.useFakeTimers()
     const client = await realClient()
     const form = new FormData()
@@ -302,7 +302,7 @@ describe('transport against a fake XMLHttpRequest (R2-a)', () => {
     expect(xhr.headers['idempotency-key']).toBe('sjr-key-0002')
   })
 
-  it.fails('aborts after 30 s without any progress and raises UPLOAD_STALLED', async () => {
+  it('aborts after 30 s without any progress and raises UPLOAD_STALLED', async () => {
     vi.useFakeTimers()
     const client = await realClient()
     const form = new FormData()

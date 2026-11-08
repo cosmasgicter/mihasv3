@@ -29,7 +29,14 @@ export class RequiredDocumentUploadError extends Error {
   }
 }
 
-const RETRYABLE_CODES = new Set(['CONFIGURATION_UNAVAILABLE', 'STORAGE_ERROR', 'RATE_LIMITED'])
+const RETRYABLE_CODES = new Set([
+  'CONFIGURATION_UNAVAILABLE',
+  'STORAGE_ERROR',
+  'RATE_LIMITED',
+  'UPLOAD_STALLED',
+  'NETWORK_ERROR',
+  'DOCUMENT_UPLOAD_IN_PROGRESS',
+])
 
 function toUploadError(error: unknown): RequiredDocumentUploadError {
   const record = (error ?? {}) as {
@@ -48,6 +55,13 @@ function toUploadError(error: unknown): RequiredDocumentUploadError {
       ? record.message
       : 'Upload failed. Please try again.'
   const status = typeof record.status === 'number' ? record.status : 0
+  // A transport error states for itself whether the attempt may be repeated. A
+  // rate limit stays manually retryable (the student can try again later); only
+  // the hook's automatic retry excludes it.
+  const stated = (error as { retryable?: unknown } | null)?.retryable
+  if (typeof stated === 'boolean') {
+    return new RequiredDocumentUploadError(message, code, stated || code === 'RATE_LIMITED')
+  }
   const retryable = RETRYABLE_CODES.has(code) || status === 0 || status >= 500 || status === 429
   return new RequiredDocumentUploadError(message, code, retryable)
 }
@@ -91,6 +105,9 @@ export const requiredDocumentsService = {
     applicationId: string
     documentType: string
     file: File
+    idempotencyKey: string
+    onProgress?: (progress: { loaded: number; total: number }) => void
+    signal?: AbortSignal
   }): Promise<{ documentId: string; fileUrl: string | null }> => {
     const formData = new FormData()
     formData.append('file', args.file)
@@ -98,9 +115,14 @@ export const requiredDocumentsService = {
     formData.append('document_type', args.documentType)
 
     try {
-      const result = await apiClient.request<{ id?: string; file_url?: string }>(
+      const result = await apiClient.upload<{ id?: string; file_url?: string }>(
         '/documents/upload/',
-        { method: 'POST', body: formData },
+        formData,
+        {
+          idempotencyKey: args.idempotencyKey,
+          onProgress: args.onProgress,
+          signal: args.signal,
+        },
       )
       if (!result?.id) {
         throw new RequiredDocumentUploadError(

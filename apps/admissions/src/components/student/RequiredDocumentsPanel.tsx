@@ -15,7 +15,7 @@
  * `nursing_council_letter` gets a real, validated, accessible upload control
  * without a frontend change.
  */
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   AlertCircle,
@@ -362,6 +362,29 @@ export function RequiredDocumentsPanel({
     }
   }, [failureSignature])
 
+  // Polite announcements of upload outcomes ("<Label> uploaded" / "<Label> did not
+  // upload: <message>"), derived from state transitions so a re-render never
+  // repeats a message.
+  const previousStatuses = useRef<Record<string, string | undefined>>({})
+  const [announcement, setAnnouncement] = useState('')
+  useEffect(() => {
+    let next: string | null = null
+    for (const requirement of requirements) {
+      const state = uploadStates[requirement.documentType]
+      const status = state?.status
+      const before = previousStatuses.current[requirement.documentType]
+      if (status !== before) {
+        if (status === 'uploaded') {
+          next = `${requirement.label} uploaded`
+        } else if (status === 'failed' && state?.failedCommand === 'upload' && state.error) {
+          next = `${requirement.label} did not upload: ${state.error}`
+        }
+        previousStatuses.current[requirement.documentType] = status
+      }
+    }
+    if (next) setAnnouncement(next)
+  }, [requirements, uploadStates])
+
   if (loading) {
     return (
       <div className={cn('space-y-3', className)} aria-busy="true">
@@ -414,6 +437,9 @@ export function RequiredDocumentsPanel({
 
   return (
     <div className={cn('space-y-4', className)} data-testid="required-documents-panel">
+      <p className="sr-only" role="status" aria-live="polite" data-testid="upload-announcer">
+        {announcement}
+      </p>
       {failures.length > 0 && (
         <div
           ref={summaryRef}

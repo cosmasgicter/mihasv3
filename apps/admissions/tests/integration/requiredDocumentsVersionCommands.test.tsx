@@ -27,6 +27,12 @@ const request = vi.fn()
 vi.mock('@/services/client', () => ({
   apiClient: {
     request: (...args: unknown[]) => request(...args),
+    // SJR task 3.6: uploads now go through `apiClient.upload`, not `request`. The
+    // mock gains `upload` and routes it to the same handler, so every assertion
+    // below still matches on ('/documents/upload/') unchanged; only the mock
+    // shape follows the new transport.
+    upload: (endpoint: string, body: unknown, options: unknown) =>
+      request(endpoint, { method: 'POST', body, ...(options as object) }),
   },
 }))
 

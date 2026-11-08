@@ -16,6 +16,7 @@ import { shouldDispatchAuthFailure, isPermissionDenial } from '@/lib/sessionHard
 import { toApiV1Path, getServiceName } from './apiHelpers';
 import { isRetryableFailure, MAX_RETRIES, RETRY_DELAYS, createTimeoutController, getTimeoutForEndpoint } from './retry';
 import { recoverCsrfAndRetry } from './csrf';
+import { sendMultipart, type UploadProgress } from './uploadTransport';
 import { API_BASE, parseJsonSafely, normalizeHeaders, getBaseHeaders, unwrapApiResponse, type ApiRequestOptions } from './httpClient';
 import {
   AuthenticationError,
@@ -184,6 +185,29 @@ class ApiClient {
     // Default: no automatic React Query invalidation
     return [];
   }
+  /**
+   * Upload a multipart body with byte progress and no total timeout (design R2-a).
+   * The caller supplies the `Idempotency-Key`, which makes the post-refresh
+   * replay and the caller's one automatic retry safe.
+   */
+  async upload<TResponse = unknown>(
+    endpoint: string,
+    formData: FormData,
+    options: {
+      idempotencyKey: string;
+      onProgress?: (progress: UploadProgress) => void;
+      signal?: AbortSignal;
+    }
+  ): Promise<TResponse | null> {
+    return sendMultipart<TResponse>({
+      endpoint: toApiV1Path(endpoint),
+      formData,
+      idempotencyKey: options.idempotencyKey,
+      onProgress: options.onProgress,
+      signal: options.signal,
+    });
+  }
+
   async request<TResponse = unknown>(
     endpoint: string,
     options: ApiRequestOptions = {}

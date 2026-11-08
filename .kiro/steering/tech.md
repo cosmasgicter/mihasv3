@@ -144,6 +144,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
+- Uploads go through `apiClient.upload` (XMLHttpRequest, byte progress, inactivity timeout, keyed retry), never `fetch` or `apiClient.request`.
 - Payment in the admissions wizard supports mobile money (primary) and card widget (secondary). Mobile money is initiated via `POST /api/v1/payments/mobile-money/` and polled for completion. The Lenco card widget (`LencoPay.getPaid`) remains available as a fallback. Students may also defer payment and submit without paying upfront. Do not reintroduce the retired pre-Lenco payment UX.
 - Payment ownership is split at submission (task 8.3, R12.3): the **wizard** owns pre-submission pay-or-defer and renders no history or recovery; **`/student/payment`** owns deferred, failed, expired, and pending recovery plus history, and may take a payment for a fee still owed after submission. Do not restore the "payment page is read-only" description — that contradiction is finding STU-09.
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
