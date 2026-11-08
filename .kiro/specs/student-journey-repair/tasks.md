@@ -257,7 +257,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11_
 
-  - [ ] 3.9 R3 — trusted-proxy client IP and document budgets (design R3-a, R3-b)
+  - [x] 3.9 R3 — trusted-proxy client IP and document budgets (design R3-a, R3-b)
     - `backend/apps/common/request_utils.py`: the trusted-proxy algorithm
     - `base.py`: `TRUSTED_PROXY_CIDRS`, `RATELIMIT_IP_META_KEY`, `documents_write` 40/hour and `documents_read` 300/hour
     - `backend/apps/common/middleware.py`: upload IP scope 60/10m before the document IP scope 300/10m; docstring
@@ -271,7 +271,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: one client meets the same ceilings; webhook stays exempt; payment and extract throttles unchanged for authenticated users_
     - _Requirements: 2.12, 2.13, 2.14, 3.9, 3.17_
 
-  - [ ] 3.10 R3 — bounded OCR polling with a missing-job signal (design R3-c)
+  - [x] 3.10 R3 — bounded OCR polling with a missing-job signal (design R3-c)
     - Backend: `DocumentExtractView` sets `pending` before enqueueing and answers 503 `OCR_QUEUE_UNAVAILABLE` on broker failure; `DocumentInfoView` publishes `ocr_pending`; `tasks.py:240` records `ocr_failed` on the no-file path
     - Frontend: `useOcrGradeExtraction.ts` backoff schedule, stop rules and visibility pause; `documentService.getInfo(id, { retries: 0 })`; `useWizardController.ts` starts polling only after the extract resolves
     - Docs: CTM "Deterministic grade-extraction candidates" (CTM 1075-1105) adds `ocr_pending` and the polling bounds
@@ -280,7 +280,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: OCR stays advisory and student-confirmed; manual entry wins (3.12)_
     - _Requirements: 2.14, 2.15, 3.12_
 
-  - [ ] 3.11 R3 — honest 429 presentation (design R3-d)
+  - [x] 3.11 R3 — honest 429 presentation (design R3-d)
     - `base.py`: add `Retry-After` to `CORS_EXPOSE_HEADERS`
     - `client.ts` and `apps/admissions/src/lib/apiErrorHandler.ts`: `retryAfterSeconds` and `RATE_LIMITED` on 429 errors
     - New `apps/admissions/src/lib/rateLimitCopy.ts`; `ProgramStep` takes `programsError` and `intakesError` and renders `ErrorDisplay` for the failed query; the student dashboard's application, intake and interview error strings (`Dashboard.tsx:307`, `:272`, `:321`) use the copy for `RATE_LIMITED`; the same copy on upload rows, sign-in and sign-up banners; every other surface is OS-14
@@ -290,7 +290,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: the 429 envelope and `Retry-After` header unchanged (3.9)_
     - _Requirements: 2.16, 3.9, 3.11_
 
-  - [ ] 3.12 Checkpoint — R3 green
+  - [x] 3.12 Checkpoint — R3 green
     - **Property 3: Expected Behavior** - Client Identity, Budgets and Polling
     - **IMPORTANT**: Re-run the SAME tests from task 1.3 — do NOT write new tests
     - Remove the strict markers from task 1.3's tests, then run them unmarked
