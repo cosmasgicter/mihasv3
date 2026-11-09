@@ -176,7 +176,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 Beanola owns the Platform; MIHAS/KATC are example tenants. The full model lives
 in `.kiro/steering/enterprise-tenancy.md`; the rules below are the engineering
 conventions every backend and frontend change must follow. Spec of record:
-`.kiro/specs/enterprise-tenant-authority/`.
+`.kiro/specs/_archived/enterprise-tenant-authority/`.
 
 - **Centralized authorization is mandatory.** Resolve every authority decision
   through `AdminCapabilityService` (`backend/apps/catalog/services.py`) and the
@@ -445,7 +445,7 @@ State-changing endpoints use the `@idempotent` decorator (`backend/apps/common/i
 
 ## Celery Beat Periodic Tasks
 
-Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoid duplicate dispatches). The schedule is defined in `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`:
+Celery Beat runs as one dedicated instance (exactly 1, to avoid duplicate dispatches); `infrastructure.md` describes the production host. The schedule is the 21 entries of `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`; the table below lists the entries it documented before Spec A and the later additions are in that file (a table pinned to the schedule is task 4.4 of the platform-simplification spec):
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
@@ -530,12 +530,10 @@ isolation proven by deleting the other product is not isolation.
 
 ## Current Jobs Ops State
 
-- `apps/jobs-ops` is a real operator dashboard, not a placeholder shell.
-- Search and recommendation filtering are implemented in the jobs inbox.
-- Major views have loading states.
+- `apps/jobs-ops` is a frontend over scaffold APIs. Its backend routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` (`config/urls.py:69`) and serve seed data when on.
+- Decision D1 is confirmed as a freeze (2026-11-08) and is not yet implemented (platform-simplification task 12.1).
+- Search and recommendation filtering exist in the jobs inbox, and the major views have loading states.
 - Backend jobs-ops domains exist for jobs, outreach, automation, integrations, analytics, and reports.
-- Schema generation is currently clean.
-- Verified backend suites currently include application endpoints, notification endpoints, and jobs-ops endpoint coverage.
 
 ## Verification Expectations
 
@@ -560,17 +558,18 @@ The following security measures were applied during the April 2026 full reposito
 
 ### Known Open Issues (from AUDIT-REPORT-2026-04-24.md)
 
-These findings are documented but not yet fixed:
+Re-verified at HEAD on 2026-11-09. Fixed items stay listed with the place that fixed them.
 
-- `cleanup-idempotency-keys` Celery Beat task uses a bare task name instead of a dotted module path.
-- `SessionView.get()` returns non-envelope format for unauthenticated users.
-- Several catalog, analytics, and integrations views return raw data without the `{"success": true, "data": ...}` envelope.
-- `PaymentVerifyView` and `PaymentInitiateView` lack per-user rate limiting.
-- `IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.
-- `AuditMiddleware` does not populate `entity_id` from URL path segments.
-- `ReadOnlyMiddleware` queries the database on every write request when the env var is not set.
-- ~~Jobs-ops frontend has no auth refresh interceptor or session management.~~ **Resolved (2026-07-11).** `apps/jobs-ops/src/services/api/client.ts` already implements a 401-triggered token refresh with single-retry, in-memory CSRF token storage attached to state-changing requests, and CSRF-error recovery via `?refresh_csrf=1`. `apps/jobs-ops/src/auth/AuthContext.tsx` bootstraps the session and revalidates on tab-visibility regain (`useVisibilityRevalidation`). Verified via `apps/jobs-ops/tests/unit/apiClient.test.ts` and `authContext.test.ts` (31 tests passing). Fixed two stale tests in `router.test.ts` that asserted a hard sign-in redirect — `ProtectedRoute` is an intentional no-op passthrough (jobs-ops renders standalone; reads are public scaffold routes, writes are backend-policy-gated), and those tests predated that architecture decision.
-- 7 SQL scripts in `backend/scripts/` are fully applied and stale (safe to archive).
-- `idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.
+- ~~`cleanup-idempotency-keys` Celery Beat task uses a bare task name.~~ **Fixed:** the entry uses `apps.common.tasks.cleanup_idempotency_keys_task` (`config/settings/base.py:252-253`).
+- ~~`SessionView.get()` returns non-envelope format for unauthenticated users.~~ **Fixed:** it returns `{"success": true, "data": {"authenticated": false}}` (`apps/accounts/auth_views.py`, `SessionView`).
+- Several catalog, analytics, and integrations views return raw data without the envelope. **Unverified view by view:** the default `EnvelopeRenderer` (`apps/common/renderers.py`) wraps any DRF response that lacks a `success` key; non-DRF responses were not audited.
+- ~~`PaymentVerifyView` and `PaymentInitiateView` lack per-user rate limiting.~~ **Fixed:** both carry `throttle_scope` (`apps/documents/payment_query_views.py:540`, `payment_widget_views.py:151`).
+- ~~`IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.~~ **Fixed:** the class no longer exists in `backend/apps`.
+- ~~`AuditMiddleware` does not populate `entity_id`.~~ **Fixed:** `_extract_entity_id` (`apps/common/middleware.py:553`).
+- ~~`ReadOnlyMiddleware` queries the database on every write request.~~ **Fixed:** the env var is read once at init and there is no database query (`apps/common/readonly.py`).
+- ~~Jobs-ops frontend has no auth refresh interceptor or session management.~~ **Resolved (2026-07-11).** `apps/jobs-ops/src/services/api/client.ts` implements a 401-triggered token refresh with a single retry, in-memory CSRF storage and CSRF-error recovery via `?refresh_csrf=1`; `apps/jobs-ops/src/auth/AuthContext.tsx` bootstraps the session. `ProtectedRoute` is an intentional no-op passthrough.
+- ~~7 SQL scripts in `backend/scripts/` are fully applied and stale.~~ **Not re-counted.** Scripts there are additive and applied by `apply_sql_migrations`; archiving is not part of this spec.
+- ~~`idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.~~ **Gone:** the file is not in `backend/scripts/` (`docs/security-api-audit-2026-04.md`, BUG-016).
+- **Open (new):** the generic admin settings endpoints (`apps/accounts/admin_settings_views.py`) let any `admin` role read every setting (`IsAdmin`, `:224`, `:314`, `:388`, `:449`) and gate writes on the super-admin role string (`_settings_write_forbidden`, `:60`), while the route registry and `scripts/authority_matrix_registry.py:454-457` describe them as super-admin and `platform.settings.manage` surfaces. Re-gating them is a capability change that needs its own decision.
 
 See `AUDIT-REPORT-2026-04-24.md` and `all-files.txt` for the full file-by-file audit inventory.

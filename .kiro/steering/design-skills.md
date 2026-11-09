@@ -29,7 +29,7 @@ Impeccable provides a loader: `node .kiro/skills/impeccable/scripts/load-context
 - When invoking Impeccable, name the sub-command explicitly: `audit`, `polish`, `critique`, `clarify`, `layout`, `typeset`, `colorize`, `bolder`, `quieter`, `delight`, `harden`, `optimize`, `distill`, `adapt`, `animate`, `extract`, `live`, `onboard`, `overdrive`, `teach`, `document`, `shape`, `craft`. Loading the matching reference file under `.kiro/skills/impeccable/reference/` is non-negotiable.
 - When invoking ui-ux-pro-max, prefer `--design-system` first for full recommendations, then `--domain` searches for specific dimensions (`product`, `style`, `color`, `typography`, `landing`, `chart`, `ux`, `react`).
 - When invoking design-for-ai, choose CHECKER (audit) or APPLIER (build) mode and load the matching chapter under `.kiro/skills/design-for-ai/references/`. The 7 chapters are: typography (3), tech-and-culture (4), proportions (5), composition (6), visual hierarchy (7), color science (8), color theory (9). Plus foundations, ai-tells, checklists, motion, interaction, responsive, techniques.
-- All three skills must respect the existing canonical truth map (`docs/canonical-truth-map.md`). Do not invent design tokens — read from `apps/admissions/src/styles/design-tokens.css` and `apps/admissions/src/design-system/tokens.colors.cjs`.
+- All three skills must respect the existing canonical truth map (`docs/canonical-truth-map.md`). Do not invent design tokens — read from `apps/admissions/src/styles/design-tokens.css` and `apps/admissions/src/design-system/tokens.colors.json`.
 
 ## Hard guardrails (already enforced)
 

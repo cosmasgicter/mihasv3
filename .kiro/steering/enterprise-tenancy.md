@@ -8,7 +8,7 @@ inclusion: always
 future university or college are tenants — example `Institution` records, never
 the platform identity or platform owner.** This file is the authoritative
 steering reference for the tenant authority model. Spec of record:
-`.kiro/specs/enterprise-tenant-authority/`.
+`.kiro/specs/_archived/enterprise-tenant-authority/`.
 
 The single non-negotiable principle:
 
@@ -172,8 +172,7 @@ A Tenant_Admin who cannot directly mutate protected configuration (profile,
 program offering, or domain) **requests** the change through the durable
 `TenantChangeRequest` workflow (`backend/apps/catalog/change_request_service.py`;
 V2 routes under `/api/v2/admin/change-requests/`). This is the closure of
-finding TEN-06 — the tenant console's "request change" affordance is a real
-submit/review/apply workflow, not explanatory text.
+finding TEN-06 — the tenant console's "request change" affordance is a backend workflow with six routes and no frontend caller, dormant by decision D5 (confirmed 2026-11-08).
 
 - **State machine** (`TenantChangeRequestStateMachine`, design §6.4):
   `draft → submitted → approved → applied`, `submitted → rejected`,

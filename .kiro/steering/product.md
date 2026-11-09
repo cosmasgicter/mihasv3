@@ -30,11 +30,10 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 ## Current Platform State
 
 - `apps/admissions/` remains the live student and admin admissions experience.
-- `apps/jobs-ops/` now exists as a real operator dashboard with working route structure, data views, loading states, filters, and backend-connected scaffold APIs.
+- `apps/jobs-ops/` is a frontend over scaffold APIs: its backend routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` and serve seed data when on. Decision D1 is confirmed as a freeze (2026-11-08), not yet implemented (task 12.1).
 - `backend/` is the canonical server implementation for both product areas.
 - `shared/` exists for intentionally shared code, but remains lightly used.
 - `apps/website/` and `apps/student-portal/` are still placeholder/future apps.
-- `apps/librarymanagement/` exists in the repo but is not yet a wired application package.
 
 ### Error Monitoring
 
@@ -77,6 +76,7 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
 - `deferred` is a distinct canonical payment status. Students who deferred payment see a reminder to complete payment. Submission is allowed with deferred payment status.
 - Profile and settings forms must protect unsaved edits before navigation and provide accessible inline save feedback in addition to toast notifications. The Settings `onSubmit` handler uses explicit field-by-field merge with null-safe fallbacks in `reset()` to prevent isDirty persistence after save.
+- Current fact, finding C-15 (open, no spec owns the fix): the Settings page does not meet the bullet above today. The "Sex" field never shows the saved value, and "Unsaved changes" never clears after a save.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format (`APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX`) and returns actionable error messages — 400 with format guidance for invalid formats, descriptive 404 for valid-format codes not found.
 - Sessions list (`GET /api/v1/sessions/`) uses the standard `{"success": true, "data": [...]}` envelope and validates user_id before querying.
 - Token refresh (`POST /api/v1/auth/refresh/`) returns `NO_REFRESH_TOKEN` error code when the cookie is missing, distinct from `TOKEN_EXPIRED` for expired/blacklisted tokens.
@@ -126,7 +126,9 @@ backend `AdminCapabilityService`, never by comparing raw role strings. See
 
 ### Admissions
 
-`Registration -> Email Verification -> Profile Setup -> Application Wizard -> Payment (mobile money / card / defer) -> Submission -> Interview -> Decision`
+`Registration -> Profile Setup -> Application Wizard -> Payment (mobile money / card / defer) -> Submission -> Interview -> Decision`
+
+Email verification is not implemented and is not part of the flow (decision D8, confirmed 2026-11-08).
 
 Admissions expectations:
 

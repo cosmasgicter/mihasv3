@@ -12,7 +12,6 @@ inclusion: always
 | `apps/jobs-ops/` | AI job operations dashboard | Active frontend target |
 | `apps/website/` | Future public website | Placeholder unless task says otherwise |
 | `apps/student-portal/` | Future student portal | Placeholder unless task says otherwise |
-| `apps/librarymanagement/` | Incomplete app directory | Treat as reserved unless task explicitly targets it |
 | `backend/` | Django 5 + DRF API | Primary backend modification target |
 | `shared/` | Shared package scaffold | Use only for code intentionally shared across apps |
 | `docs/` | Project documentation | Modify when task requires documentation or handoff updates |
@@ -28,7 +27,7 @@ The master index of canonical sources of truth lives at `docs/canonical-truth-ma
 
 Where the Beanola multi-tenant authority code lives. Model and rules:
 `.kiro/steering/enterprise-tenancy.md`. Spec of record:
-`.kiro/specs/enterprise-tenant-authority/`.
+`.kiro/specs/_archived/enterprise-tenant-authority/`.
 
 | Concern | Location |
 |---------|----------|
@@ -325,7 +324,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 
 ### Files Added During Payment Hardening
 
-Spec: `.kiro/specs/payment-hardening/` (Phases 1–5, feature-flag-gated additive rollout).
+Spec: `.kiro/specs/_archived/payment-hardening/` (Phases 1–5, feature-flag-gated additive rollout).
 
 | Path | Purpose |
 |------|---------|
@@ -374,11 +373,11 @@ Spec: `.kiro/specs/payment-hardening/` (Phases 1–5, feature-flag-gated additiv
 | `backend/tests/property/test_payment_webhook_properties.py` | Phase 2 + 3 PBTs — Properties 5, 3, 4, 20, 21, 22 |
 | `backend/tests/property/test_payment_fee_resolver_properties.py` | Phase 2 PBTs — Properties 10, 11, 15 (skipped), 16 |
 | `backend/tests/property/test_payment_receipt_properties.py` | Phase 2 + 3 PBTs — Properties 17, 12, 6, 7, 8, 9 |
-| `.kiro/specs/payment-hardening/exploration-results.md` | Phase 1 checkpoint: 23-property baseline register |
+| `.kiro/specs/_archived/payment-hardening/exploration-results.md` | Phase 1 checkpoint: 23-property baseline register |
 
 ### Files Added During Payment Hardening Phases 4–5
 
-Spec: `.kiro/specs/payment-hardening/` (Phases 4–5 complete). Phase 4 shipped
+Spec: `.kiro/specs/_archived/payment-hardening/` (Phases 4–5 complete). Phase 4 shipped
 frontend-only behind `VITE_PAYMENT_HARDENING_UI` and Phase 5 backend-only behind
 `PAYMENT_HARDENING_RATE_LIMITS` + `PAYMENT_HARDENING_FORCE_APPROVED`;
 admissions-v2 task 8.2 deleted all but the rate-limit flag along with the
