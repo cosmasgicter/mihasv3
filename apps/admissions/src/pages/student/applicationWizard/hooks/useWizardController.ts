@@ -330,7 +330,6 @@ const useWizardController = (): UseWizardControllerResult => {
     [subjectsData]
   )
   const submitApplicationMutation = applicationsData.useSubmit()
-  const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications, isPending: draftApplicationsLoading } = applicationsData.useList({
     status: 'draft',
     mine: true,
@@ -550,8 +549,6 @@ const useWizardController = (): UseWizardControllerResult => {
     subjects,
     selectedGradesRef,
     setSelectedGrades,
-    applicationId,
-    syncGrades,
     showSuccess,
     clearStaleApplicationReference,
   })
@@ -599,6 +596,7 @@ const useWizardController = (): UseWizardControllerResult => {
     currentStepConfig,
     paymentStatus,
     selectedGradesRef,
+    setSelectedGrades,
     selectedProgramDetails,
     programsData,
     totalSteps,
@@ -726,6 +724,12 @@ const useWizardController = (): UseWizardControllerResult => {
     return () => subscription.unsubscribe()
   }, [form, draftMachine])
 
+  // Grades are the draft's second channel (SJR R6-b): the grid lives in React
+  // state rather than the form, so a change to it is an edit event too. The
+  // machine compares it with the rows the server acknowledged.
+  useEffect(() => {
+    draftMachine.observe()
+  }, [draftMachine, selectedGrades])
   // PAY: once the draft has payment activity it is payment-linked.
   useEffect(() => {
     if (paymentStatus) draftMachine.notePaymentActivity()
@@ -756,6 +760,10 @@ const useWizardController = (): UseWizardControllerResult => {
     if (intentNamesOpenDraft) return
     hydratedIntentKeyRef.current = null
     draftMachine.reset()
+    // The grid belongs to the draft being left. The grades channel compares it
+    // with the next draft's baseline, so a leftover grid would be sent to it.
+    selectedGradesRef.current = []
+    setSelectedGrades([])
     setDuplicateDraftConflict(null)
     setDraftLoaded(false)
   }, [draftIntentKey, draftLoaded, draftMachine, intentNamesOpenDraft])
@@ -982,7 +990,7 @@ const useWizardController = (): UseWizardControllerResult => {
     assignmentPreviewError,
     requiredDocuments,
     queryClient,
-    syncGrades,
+    draftMachine,
     saveDraft,
     applyDraftSelectionChange,
     resolveProgramIdentity,

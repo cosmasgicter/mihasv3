@@ -25,6 +25,7 @@ import {
   SELECTED_DRAFT_LOAD_ERROR,
   readAuthoritativeDraftRow,
 } from "../../lib/draftHydration";
+import { projectWizardGrades } from "../../lib/draftGrades";
 import type { SubjectGrade, WizardFormData, WizardProgram } from "../../types";
 import { getStepIndexById, wizardSteps } from "../../steps/config";
 import type { ApplicationFileType } from "../useApplicationFileUploads";
@@ -477,7 +478,10 @@ export function useWizardDraftLoader({
             } else if (localApplicationId) {
               setGradesHydrating(true);
               try {
-                await hydrateServerGrades(localApplicationId);
+                // The server's rows are the grades channel's baseline (SJR R6-b).
+                machine.setGradesBaseline(
+                  projectWizardGrades(await hydrateServerGrades(localApplicationId)).rows,
+                );
               } finally {
                 setGradesHydrating(false);
               }
@@ -486,7 +490,9 @@ export function useWizardDraftLoader({
           } else if (localApplicationId) {
             setGradesHydrating(true);
             try {
-              await hydrateServerGrades(localApplicationId);
+              machine.setGradesBaseline(
+                projectWizardGrades(await hydrateServerGrades(localApplicationId)).rows,
+              );
             } finally {
               setGradesHydrating(false);
             }

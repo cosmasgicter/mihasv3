@@ -531,7 +531,22 @@ export const applicationService = {
     })
   },
 
-  syncGrades: async (id: string, grades: Array<{ subject_id: string; grade: number }>) => {
+  syncGrades: async (
+    id: string,
+    grades: Array<{ subject_id: string; grade: number }>,
+    options?: { partial?: boolean; idempotencyKey?: string },
+  ) => {
+    if (options?.partial) {
+      // The draft machine's grades channel (SJR R6-b): it owns retry and backoff,
+      // so this call does not layer a second retry under it, and an empty set is
+      // a real command (the student removed every row), not a no-op.
+      return apiClient.request<unknown>(`/applications/${encodeURIComponent(id)}/grades/`, {
+        method: 'POST',
+        body: JSON.stringify({ grades, partial: true }),
+        headers: options.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : undefined,
+        retries: 0,
+      })
+    }
     const { syncGradesWithRecovery } = await importWithChunkRecovery(() => import('@/lib/connectionFix'), {
       guardKey: 'wizard-grade-sync',
       recoveryMessage: 'A newer version of the grade sync tools is loading. Please wait a moment and try again.',

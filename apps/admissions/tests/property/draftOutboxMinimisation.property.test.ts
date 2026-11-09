@@ -12,7 +12,11 @@ import { describe, expect, it } from 'vitest'
 import { classifyLocalDraftOutbox } from '@/lib/wizardDraftProjection'
 import { DRAFT_ANSWER_FIELDS } from '@/pages/student/applicationWizard/lib/draftAutosave'
 import { outboxAnswerOverlay } from '@/pages/student/applicationWizard/lib/draftHydration'
-import { buildDraftOutboxRecord, draftOutboxAnswers } from '@/pages/student/applicationWizard/lib/draftOutbox'
+import {
+  buildDraftOutboxRecord,
+  draftOutboxAnswers,
+  draftOutboxGrades,
+} from '@/pages/student/applicationWizard/lib/draftOutbox'
 
 const RECORD_KEYS = [
   'answers',
@@ -129,3 +133,60 @@ describe('the attached outbox record (task 6.3 M14 invariants)', () => {
     )
   })
 })
+
+// SJR task 3.23 (R6-b): grades are a second pending channel. They may appear in
+// the record only while they are pending, and then only as `{ subject_id, grade }`
+// pairs; every assertion above is unchanged.
+const gradeRowArb = fc.record({
+  subject_id: fc.stringMatching(/^[a-f0-9-]{8,36}$/),
+  grade: fc.integer({ min: 1, max: 9 }),
+})
+
+describe('the attached outbox record with pending grades (SJR task 3.23)', () => {
+  it('carries grades only while they are pending, as bare pairs, and reads them back', () => {
+    fc.assert(
+      fc.property(
+        formValuesArb,
+        fc.array(gradeRowArb, { minLength: 1, maxLength: 10 }),
+        (formValues, rows) => {
+          const withGrades = buildDraftOutboxRecord({
+            userId: 'u1',
+            applicationId: 'app-1',
+            assignment: null,
+            serverVersion: 2,
+            pendingBase: {},
+            formValues,
+            grades: rows.map((row) => ({ ...row, row_id: 'must-not-travel' })) as never,
+            savedAt: '2026-10-09T00:00:00.000Z',
+          })
+          expect(Object.keys(withGrades).sort()).toEqual([...RECORD_KEYS, 'grades'].sort())
+          expect(withGrades.version).toBe(4)
+          const stored = JSON.parse(JSON.stringify(withGrades))
+          expect(draftOutboxGrades(stored)).toEqual(rows)
+          for (const row of stored.grades) expect(Object.keys(row).sort()).toEqual(['grade', 'subject_id'])
+          const without = buildDraftOutboxRecord({
+            userId: 'u1',
+            applicationId: 'app-1',
+            assignment: null,
+            serverVersion: 2,
+            pendingBase: {},
+            formValues,
+            grades: null,
+            savedAt: '2026-10-09T00:00:00.000Z',
+          })
+          expect(Object.keys(without).sort()).toEqual(RECORD_KEYS)
+          expect(without.version).toBe(3)
+          expect(draftOutboxGrades(without)).toEqual([])
+        },
+      ),
+      { numRuns: 100 },
+    )
+  })
+
+  it('reads a damaged grades member as no row, never as a row', () => {
+    expect(draftOutboxGrades({ grades: [null, 4, { subject_id: '', grade: 3 }, { subject_id: 'a', grade: 'x' }] })).toEqual([])
+    expect(draftOutboxGrades({ grades: 'nope' })).toEqual([])
+    expect(draftOutboxGrades(null)).toEqual([])
+  })
+})
+

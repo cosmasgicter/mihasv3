@@ -131,7 +131,7 @@ backend `AdminCapabilityService`, never by comparing raw role strings. See
 Admissions expectations:
 
 - Multi-step application flow remains the core student journey.
-- Auto-save must remain silent and resilient.
+- Auto-save must remain silent and resilient. It covers the answers and the grade grid (grades are saved by the draft machine within the debounce, as a partial set; "Saved" is shown only when nothing is pending).
 - Eligibility checks are advisory, not hard blockers.
 - Drafts must survive refreshes, reconnects, and interrupted sessions.
 - Payment is handled by the Lenco inline widget in the payment step — no manual proof-of-payment.

@@ -10,8 +10,7 @@
  * (`setGradesBaseline`) are supplied here through the existing fake-server
  * harness; the machine ignores them at HEAD.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); the R6 checkpoint, task 3.25,
- * removes the wrapper.
+ * Markers removed at the R6 checkpoint (task 3.25).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -67,7 +66,7 @@ const PARTIAL: GradeRow[] = [
 ]
 
 describe('grades in the draft machine (clauses 1.30, 1.31)', () => {
-  it.fails('a grade edit saves within the debounce with the partial rows', async () => {
+  it('a grade edit saves within the debounce with the partial rows', async () => {
     const { h, syncGrades, editGrades } = withGrades()
 
     editGrades(PARTIAL)
@@ -86,7 +85,7 @@ describe('grades in the draft machine (clauses 1.30, 1.31)', () => {
     expect(typeof idempotencyKey).toBe('string')
   })
 
-  it.fails('never derives "Saved" while grades are pending', async () => {
+  it('never derives "Saved" while grades are pending', async () => {
     const { h, editGrades } = withGrades()
 
     editGrades(PARTIAL)
@@ -97,7 +96,7 @@ describe('grades in the draft machine (clauses 1.30, 1.31)', () => {
     expect(view.status).not.toBe('saved')
   })
 
-  it.fails('reports rows that cannot be saved yet instead of "Saved"', async () => {
+  it('reports rows that cannot be saved yet instead of "Saved"', async () => {
     const { h, setUnsavable } = withGrades(PARTIAL)
 
     setUnsavable(2)
@@ -108,7 +107,7 @@ describe('grades in the draft machine (clauses 1.30, 1.31)', () => {
     expect(view.message).toBe("Some grade rows can't be saved yet. Fix the highlighted rows.")
   })
 
-  it.fails('keeps pending grades in the outbox while offline', async () => {
+  it('keeps pending grades in the outbox while offline', async () => {
     const { h, editGrades } = withGrades()
     h.setOnline(false)
 

@@ -22,6 +22,7 @@ vi.mock('@/services/catalog', () => ({
 
 import { useWizardSubmission } from '@/pages/student/applicationWizard/hooks/wizard/useWizardSubmission'
 import { buildWizardReadiness } from '@/pages/student/applicationWizard/lib/wizardReadiness'
+import { readinessInput } from './__fixtures__/readinessInput'
 
 const canonicalSubjectId = (n: number) => `0000000${n}-0000-4000-8000-00000000000${n}`.slice(-36)
 const grades = [1, 2, 3, 4, 5].map((n) => ({ subject_id: canonicalSubjectId(n), grade: 4 }))
@@ -39,7 +40,7 @@ const values = {
 
 /** What the controller computes for the button: a tenant contract, school resolved. */
 function buttonReadiness(formValues: typeof values) {
-  return buildWizardReadiness({
+  return buildWizardReadiness(readinessInput({
     values: formValues,
     selectedGrades: grades,
     uploadedFiles: { nursing_council_letter: true },
@@ -54,7 +55,7 @@ function buttonReadiness(formValues: typeof values) {
     paymentStatus: 'successful',
     confirmSubmission: true,
     assignmentResolved: true,
-  })
+  }))
 }
 
 const mutateAsync = vi.fn()

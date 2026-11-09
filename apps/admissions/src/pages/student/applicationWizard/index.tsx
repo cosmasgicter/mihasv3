@@ -90,6 +90,7 @@ import useWizardController from "./hooks/useWizardController";
 import { useStepValidation } from "./hooks/useStepValidation";
 import { useOverallProgress } from "./hooks/useOverallProgress";
 import { useSmartAutoSave } from "./hooks/useSmartAutoSave";
+import { deriveWizardPageSaveView } from "./lib/pageSaveView";
 import { useWizardReadiness } from "./hooks/useWizardReadiness";
 import { wizardSteps, getStepIndexByKey } from "./steps/config";
 import type { StepKey } from "./steps/config";
@@ -149,6 +150,7 @@ const ApplicationWizardContent = () => {
     success,
     loading,
     uploading,
+    uploadStates,
     error,
     setError,
     form,
@@ -301,6 +303,20 @@ const ApplicationWizardContent = () => {
       !success &&
       !isPaymentInProgress,
   });
+  // What the action bar shows: the machine's draft view composed with this
+  // page's document commands (SJR R6-b). An upload in flight is "saving"; a
+  // failed one is an error the student can act on.
+  const pageSaveView = deriveWizardPageSaveView(
+    { status: smartAutoSave.saveStatus, message: smartAutoSave.saveError },
+    {
+      documentsUploading: uploading || requiredDocuments.uploading,
+      documentsFailed:
+        Object.values(uploadStates).includes("failed") ||
+        Object.values(requiredDocuments.uploadStates).some(
+          (state) => state.status === "failed",
+        ),
+    },
+  );
   /** Leaving a step writes pending work; an unchanged draft writes nothing. */
   const flushDraftBeforeLeavingStep = useCallback(() => {
     void draftMachine.flush();
@@ -1135,8 +1151,8 @@ const ApplicationWizardContent = () => {
                   onKeepConflictChanges={() => {
                     void smartAutoSave.keepMyChanges();
                   }}
-                  saveStatus={smartAutoSave.saveStatus}
-                  saveError={smartAutoSave.saveError}
+                  saveStatus={pageSaveView.status}
+                  saveError={pageSaveView.message}
                   lastSavedAt={
                     smartAutoSave.lastSaved
                       ? smartAutoSave.lastSaved.getTime()
