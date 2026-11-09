@@ -48,7 +48,7 @@ import {
   AlertTriangle,
   Award,
   ChevronDown,
-  Download,
+  ExternalLink,
   FileCheck,
   FileText,
   Mail,
@@ -63,14 +63,18 @@ import {
 } from '@/hooks/useOfficialDocument'
 import { OfficialDocumentRecovery } from '@/components/student/documents/OfficialDocumentRecovery'
 import { useIssuedOfficialDocuments } from '@/hooks/useIssuedOfficialDocuments'
+import { documentOpenHref, OPENABLE_OFFICIAL_TYPES, type OpenableOfficialType } from '@/lib/documentOpen'
 import { isOfficialDocumentOffered } from '@/lib/officialDocumentGate'
 import {
   announceOfficialDocumentState,
   officialDocumentOverflowLabel,
   officialDocumentSummary,
+  officialDocumentUnavailableMessage,
   presentOfficialDocuments,
+  PROFILE_REQUIRED_LETTER_TYPES,
   type OfficialDocumentCopy,
 } from '@/lib/officialDocumentPresentation'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
 import type { OfficialDocumentType } from '@/services/officialDocuments'
 
 /**
@@ -105,8 +109,14 @@ interface DocumentButtonsProps {
  */
 type DocumentEmailRegistry = Map<string, () => Promise<void>>
 
-/** Map a UI state to the in-button label for an official-document download. */
-function actionLabel(uiState: OfficialDocumentUiState, restingLabel: string): string {
+/**
+ * The text of the control that makes a document, by UI state.
+ *
+ * SJR task 3.20 (R5-f): the resting verb is "Prepare", not "Download", because the
+ * control asks the platform to make the document. It never downloads anything: once
+ * the document exists the control becomes an "Open" link (see {@link OfficialDocAction}).
+ */
+function prepareStateLabel(uiState: OfficialDocumentUiState): string | null {
   switch (uiState) {
     case 'generating':
       return 'Generating…'
@@ -117,15 +127,15 @@ function actionLabel(uiState: OfficialDocumentUiState, restingLabel: string): st
     case 'setup_required':
       return 'Setup Required'
     default:
-      return restingLabel
+      return null
   }
 }
 
 const DOCUMENT_ICONS: Record<string, React.ReactNode> = {
   acceptance_letter: <Award className="h-4 w-4" aria-hidden="true" />,
   conditional_offer: <FileCheck className="h-4 w-4" aria-hidden="true" />,
-  application_slip: <Download className="h-4 w-4" aria-hidden="true" />,
-  payment_receipt: <Download className="h-4 w-4" aria-hidden="true" />,
+  application_slip: <FileText className="h-4 w-4" aria-hidden="true" />,
+  payment_receipt: <FileText className="h-4 w-4" aria-hidden="true" />,
 }
 
 interface OfficialDocActionProps {
@@ -134,6 +144,13 @@ interface OfficialDocActionProps {
   applicationNumber?: string
   documentType: OfficialDocumentType | string
   copy: OfficialDocumentCopy
+  /**
+   * True when the platform has issued this document, so the control is an "Open"
+   * link from the first render (R5-f). False means it can only be prepared.
+   */
+  issued: boolean
+  /** Called when `prepare()` succeeds, so the surface can re-ask what is issued. */
+  onPrepared?: () => void
   /**
    * True when the platform is serving an artifact it already issued rather than
    * one it would mint from today's application state (task 10.4, R13.11, design
@@ -144,9 +161,13 @@ interface OfficialDocActionProps {
   /** `primary` gets the prominent button; `listed` sits inside the sheet. */
   placement: 'primary' | 'listed'
   /** Report state upward so the surface can hold **one** live region (R16.2). */
-  onUiState: (documentType: string, uiState: OfficialDocumentUiState) => void
+  onUiState: (documentType: string, uiState: OfficialDocumentUiState, notAvailableYet: boolean) => void
   /** Where to register this document's email command for the sheet to call. */
   emailRegistry?: DocumentEmailRegistry
+  /** True when the status sentence above the controls already names this document. */
+  statedInSummary?: boolean
+  /** False until the first read of what the platform has issued has settled. */
+  issuedKnown?: boolean
 }
 
 /**
@@ -167,23 +188,69 @@ function OfficialDocAction({
   applicationNumber,
   documentType,
   copy,
+  issued,
+  onPrepared,
   historical,
   placement,
   onUiState,
   emailRegistry,
+  statedInSummary = false,
+  issuedKnown = true,
 }: OfficialDocActionProps) {
-  const { uiState, isBusy, error, canRetry, isSetupRequired, download, email } =
-    useOfficialDocument(applicationId, documentType as OfficialDocumentType)
-  const { addToast } = useToastStore()
+  const {
+    uiState,
+    isBusy,
+    error,
+    canRetry,
+    isSetupRequired,
+    prepare,
+    openHref,
+    email,
+    setupKnownFromRead,
+    checkSetup,
+  } = useOfficialDocument(applicationId, documentType as OfficialDocumentType)
+  const { brandName, isWhiteLabel } = usePortalBrand()
 
-  const handleDownload = useCallback(async () => {
-    const ok = await download()
-    if (ok) {
-      addToast('success', 'Document downloaded successfully')
-    } else {
-      addToast('error', error || 'Failed to generate document. Please try again.')
+  // SJR R7-d: a letter the school has not set up is learned from a read, so the
+  // student is never offered a Prepare that can only fail. Slips and receipts are
+  // not profile-required and are not asked about.
+  useEffect(() => {
+    if (issuedKnown && !issued && PROFILE_REQUIRED_LETTER_TYPES.includes(documentType)) {
+      void checkSetup()
     }
-  }, [addToast, download, error])
+  }, [checkSetup, documentType, issued, issuedKnown])
+  const { addToast } = useToastStore()
+  const openRef = useRef<HTMLAnchorElement>(null)
+  const focusOpenRef = useRef(false)
+
+  const handlePrepare = useCallback(async () => {
+    const ok = await prepare()
+    if (ok) {
+      focusOpenRef.current = true
+      onPrepared?.()
+      addToast('success', `Your ${copy.noun} is ready to open`)
+    } else {
+      addToast('error', error || 'Failed to prepare the document. Please try again.')
+    }
+  }, [addToast, copy.noun, error, onPrepared, prepare])
+
+  // The control that was pressed becomes the link that replaces it; move focus to
+  // the link so a keyboard or screen-reader user does not lose their place.
+  const href =
+    openHref ??
+    (issued && (OPENABLE_OFFICIAL_TYPES as readonly string[]).includes(documentType)
+      ? documentOpenHref({
+          kind: 'official',
+          applicationId,
+          documentType: documentType as OpenableOfficialType,
+        })
+      : null)
+  useEffect(() => {
+    if (href && focusOpenRef.current) {
+      focusOpenRef.current = false
+      openRef.current?.focus()
+    }
+  }, [href])
 
   /**
    * The platform emails an official record to its owner and refuses any other
@@ -201,8 +268,8 @@ function OfficialDocAction({
   }, [addToast, copy.noun, email, error])
 
   useEffect(() => {
-    onUiState(documentType, uiState)
-  }, [documentType, onUiState, uiState])
+    onUiState(documentType, uiState, setupKnownFromRead)
+  }, [documentType, onUiState, setupKnownFromRead, uiState])
 
   useEffect(() => {
     if (!emailRegistry) return
@@ -213,14 +280,21 @@ function OfficialDocAction({
   }, [documentType, emailRegistry, handleEmail])
 
   const showSpinnerIcon = uiState === 'generating' || uiState === 'queued'
+  const working = showSpinnerIcon
+  const canOpen = Boolean(href) && !working && uiState !== 'failed' && uiState !== 'setup_required'
+  const stateLabel = prepareStateLabel(uiState)
   const leadingIcon =
     uiState === 'failed' ? (
       <RotateCcw className="h-4 w-4" aria-hidden="true" />
     ) : uiState === 'setup_required' ? (
       <AlertTriangle className="h-4 w-4" aria-hidden="true" />
     ) : !showSpinnerIcon ? (
-      DOCUMENT_ICONS[documentType] ?? <Download className="h-4 w-4" aria-hidden="true" />
+      DOCUMENT_ICONS[documentType] ?? <FileText className="h-4 w-4" aria-hidden="true" />
     ) : null
+  const controlClassName =
+    placement === 'primary'
+      ? 'min-h-touch-lg w-full justify-center gap-2 px-6 text-base font-semibold shadow-sm sm:w-auto'
+      : 'min-h-touch w-full justify-start gap-2'
 
   return (
     <div
@@ -228,23 +302,40 @@ function OfficialDocAction({
       data-testid={`official-document-${documentType}`}
       data-historical={historical ? 'true' : 'false'}
     >
-      <Button
-        onClick={handleDownload}
-        disabled={isBusy || uiState === 'setup_required'}
-        loading={showSpinnerIcon}
-        variant={placement === 'primary' ? 'primary' : 'outline'}
-        size={placement === 'primary' ? 'lg' : 'sm'}
-        className={
-          placement === 'primary'
-            ? 'min-h-touch-lg w-full justify-center gap-2 px-6 text-base font-semibold shadow-sm sm:w-auto'
-            : 'min-h-touch w-full justify-start gap-2'
-        }
-      >
-        {leadingIcon}
-        {actionLabel(uiState, copy.downloadLabel)}
-      </Button>
+      {canOpen && href ? (
+        // A plain anchor to the opener, which signs when it is opened. No code
+        // runs after an await, so there is no popup for a browser to block (R5-a).
+        <Button
+          asChild
+          variant={placement === 'primary' ? 'primary' : 'outline'}
+          size={placement === 'primary' ? 'lg' : 'sm'}
+          className={controlClassName}
+        >
+          <a ref={openRef} href={href} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            Open <span>{copy.label}</span>
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </Button>
+      ) : setupKnownFromRead ? null : (
+        <Button
+          onClick={handlePrepare}
+          disabled={isBusy || uiState === 'setup_required'}
+          loading={showSpinnerIcon}
+          variant={placement === 'primary' ? 'primary' : 'outline'}
+          size={placement === 'primary' ? 'lg' : 'sm'}
+          className={controlClassName}
+        >
+          {leadingIcon}
+          {stateLabel ?? (
+            <>
+              Prepare <span>{copy.label}</span>
+            </>
+          )}
+        </Button>
+      )}
 
-      {placement === 'listed' && (
+      {placement === 'listed' && !setupKnownFromRead && (
         <Button
           onClick={handleEmail}
           disabled={isBusy || uiState === 'setup_required'}
@@ -264,7 +355,20 @@ function OfficialDocAction({
         <p className="text-xs text-muted-foreground">Issued copy on record</p>
       )}
 
-      {(isSetupRequired || uiState === 'failed') && (
+      {setupKnownFromRead && (
+        <OfficialDocumentRecovery
+          message={officialDocumentUnavailableMessage(copy.noun, isWhiteLabel ? brandName : null, {
+            statedElsewhere: statedInSummary,
+          })}
+          canRetry={false}
+          isSetupRequired
+          notAvailableYet
+          applicationNumber={applicationNumber}
+          documentLabel={copy.noun}
+        />
+      )}
+
+      {!setupKnownFromRead && (isSetupRequired || uiState === 'failed') && (
         // admissions-v2 task 10.4 (STU-18): a neutral sentence, who is dealing
         // with it, and a tenant-resolved route to a human — never this school's
         // document-setup checklist, and no retry the server says cannot help.
@@ -274,7 +378,7 @@ function OfficialDocAction({
           isSetupRequired={isSetupRequired}
           applicationNumber={applicationNumber}
           documentLabel={copy.noun}
-          onRetry={handleDownload}
+          onRetry={handlePrepare}
           busy={isBusy}
         />
       )}
@@ -294,7 +398,11 @@ export function DocumentButtons({
   // only — "may a new artifact be created from today's state?" — which is a pure
   // function of status and payment. Whether the platform already issued a lawful
   // artifact is a fact about stored rows, so the surface asks rather than guesses.
-  const { isIssued, isHistorical } = useIssuedOfficialDocuments(applicationId)
+  const { isIssued, isHistorical, isLoading: issuedLoading, refresh: refreshIssued } =
+    useIssuedOfficialDocuments(applicationId)
+  const [uiStates, setUiStates] = useState<Record<string, OfficialDocumentUiState>>({})
+  // Types the school has not set up, learned from a read (SJR R7-d): they offer no control.
+  const [notAvailable, setNotAvailable] = useState<Record<string, boolean>>({})
 
   const presentation = useMemo(() => {
     const candidates: OfficialDocumentType[] = [
@@ -310,28 +418,55 @@ export function DocumentButtons({
     return presentOfficialDocuments({
       available,
       historical: available.filter((documentType) => isHistorical(documentType)),
+      // "Ready" is a claim about a stored artifact, so only an issued type (or one
+      // this student has just prepared) is one (R5-f).
+      issued: available.filter(
+        (documentType) => isIssued(documentType) || uiStates[documentType] === 'ready',
+      ),
     })
-  }, [isHistorical, isIssued, paymentStatus, status])
+  }, [isHistorical, isIssued, paymentStatus, status, uiStates])
 
-  const [uiStates, setUiStates] = useState<Record<string, OfficialDocumentUiState>>({})
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const emailRegistry = useRef<DocumentEmailRegistry>(new Map()).current
 
-  const handleUiState = useCallback((documentType: string, uiState: OfficialDocumentUiState) => {
-    setUiStates((current) => (current[documentType] === uiState ? current : { ...current, [documentType]: uiState }))
-  }, [])
+  const handleUiState = useCallback(
+    (documentType: string, uiState: OfficialDocumentUiState, notAvailableYet: boolean) => {
+      setUiStates((current) => (current[documentType] === uiState ? current : { ...current, [documentType]: uiState }))
+      setNotAvailable((current) =>
+        current[documentType] === notAvailableYet ? current : { ...current, [documentType]: notAvailableYet },
+      )
+    },
+    [],
+  )
 
   const { primary, secondary } = presentation
   if (!primary) {
     return null
   }
 
-  const summary = officialDocumentSummary(presentation)
-  const announcement = announceOfficialDocumentState(uiStates, presentation)
+  const summary = officialDocumentSummary(presentation, uiStates)
+  // A document the school has not set up is a resting state the summary already
+  // states, not work in progress, so it must not outrank (worst-news-first) the
+  // narration of a document the student is actually preparing.
+  const announcement = announceOfficialDocumentState(
+    Object.fromEntries(
+      Object.entries(uiStates).map(([type, state]) => [type, notAvailable[type] ? 'idle' : state]),
+    ),
+    presentation,
+  )
   // Every command that is not the one primary download: the primary's email, and
   // both commands for each other document.
-  const overflowCount = (density === 'row' ? 2 : 1) + secondary.length * 2
+  //
+  // A document the school has not set up offers no control at all (SJR R7-d: no
+  // Prepare, and an email of something that does not exist is a dead command), so
+  // it contributes nothing to the count. The count must equal what opening the
+  // sheet reveals.
+  const commandsOf = (documentType: string, ifAvailable: number) =>
+    notAvailable[documentType] ? 0 : ifAvailable
+  const overflowCount =
+    commandsOf(primary.documentType, density === 'row' ? 2 : 1) +
+    secondary.reduce((total, document) => total + commandsOf(document.documentType, 2), 0)
   // The hook's own re-entrancy guard (`if (inflight) return false`) is what makes
   // a double tap safe; this only keeps the control from *looking* available while
   // the platform is already working on that document.
@@ -344,10 +479,14 @@ export function DocumentButtons({
       applicationNumber={applicationNumber}
       documentType={primary.documentType}
       copy={primary.copy}
+      issued={primary.issued}
+      onPrepared={refreshIssued}
       historical={primary.historical}
       placement={density === 'row' ? 'listed' : 'primary'}
       onUiState={handleUiState}
       emailRegistry={emailRegistry}
+      statedInSummary
+      issuedKnown={!issuedLoading}
     />
   )
 
@@ -429,7 +568,7 @@ export function DocumentButtons({
       >
         {density === 'row' && primaryAction}
 
-        {density === 'panel' && (
+        {density === 'panel' && !notAvailable[primary.documentType] && (
           <Button
             onClick={() => void emailRegistry.get(primary.documentType)?.()}
             disabled={primaryBusy || primaryState === 'setup_required'}
@@ -449,10 +588,13 @@ export function DocumentButtons({
             applicationNumber={applicationNumber}
             documentType={document.documentType}
             copy={document.copy}
+            issued={document.issued}
+            onPrepared={refreshIssued}
             historical={document.historical}
             placement="listed"
             onUiState={handleUiState}
             emailRegistry={emailRegistry}
+            issuedKnown={!issuedLoading}
           />
         ))}
 

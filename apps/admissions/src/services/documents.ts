@@ -59,10 +59,13 @@ export const documentService = {
    * candidates. Errors are surfaced to the caller: the wizard's assistance hook
    * treats a failure as "no suggestion", never as a blocked upload.
    */
-  getInfo: async <T = unknown>(documentId: string) => {
+  getInfo: async <T = unknown>(documentId: string, options: { retries?: number } = {}) => {
     const endpoint = `/documents/${encodeURIComponent(documentId)}/info/`
     try {
-      const result = await apiClient.request<T>(endpoint, { method: 'GET' })
+      const result = await apiClient.request<T>(endpoint, {
+        method: 'GET',
+        ...(options.retries !== undefined ? { retries: options.retries } : {}),
+      })
       return result ?? null
     } catch (err) {
       logApiError('documents', endpoint, err)

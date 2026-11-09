@@ -79,4 +79,6 @@ class TestSynthesizedLegacyDocuments:
         data = response.data["data"]
         synth = [d for d in data if d.get("is_legacy_synthetic")]
         assert len(synth) == 1
-        assert synth[0]["file_url"] == "media/slips/result.pdf"
+        # SJR task 3.13 (clause 2.17): a list never publishes a raw key; a
+        # signing failure yields null.
+        assert synth[0]["file_url"] is None

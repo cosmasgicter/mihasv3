@@ -1,10 +1,7 @@
 import { useCallback, type MutableRefObject } from 'react'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { toError } from '@/lib/toError'
-import { logger } from '@/lib/logger'
 import { applicationService } from '@/services/applications'
 import { isApplicationMissingError } from '@/lib/applicationSession'
-import { syncableGrades } from '@/lib/canonicalSubjectId'
 import { resolveWizardSubjectId } from '../../lib/educationCatalog'
 import { normalizeDraftResumeGrades } from '../../lib/draftResume'
 import type { SubjectGrade } from '../../types'
@@ -14,8 +11,6 @@ export interface UseWizardGradesParams {
   subjects: Array<{ id: string; name: string; code: string }>
   selectedGradesRef: MutableRefObject<SubjectGrade[]>
   setSelectedGrades: React.Dispatch<React.SetStateAction<SubjectGrade[]>>
-  applicationId: string | null
-  syncGrades: { mutateAsync: (args: { id: string; grades: SubjectGrade[] }) => Promise<unknown> }
   showSuccess: (message: string) => void
   clearStaleApplicationReference: (staleApplicationId: string, message?: string) => void
 }
@@ -25,8 +20,6 @@ export function useWizardGrades(params: UseWizardGradesParams) {
     subjects,
     selectedGradesRef,
     setSelectedGrades,
-    applicationId,
-    syncGrades,
     showSuccess,
     clearStaleApplicationReference,
   } = params
@@ -52,6 +45,9 @@ export function useWizardGrades(params: UseWizardGradesParams) {
           }
         })
       )
+      // The ref moves with the state: the draft machine reads the grid through it
+      // the moment hydration completes, which is before the next render.
+      selectedGradesRef.current = normalized
       setSelectedGrades(normalized)
       return normalized
     } catch (gradeError) {
@@ -61,7 +57,7 @@ export function useWizardGrades(params: UseWizardGradesParams) {
       }
       return []
     }
-  }, [clearStaleApplicationReference, normalizeSelectedGrades, setSelectedGrades])
+  }, [clearStaleApplicationReference, normalizeSelectedGrades, selectedGradesRef, setSelectedGrades])
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { row_id: createGradeRowId(), subject_id: '', grade: 1 }] : prev))
@@ -114,16 +110,9 @@ export function useWizardGrades(params: UseWizardGradesParams) {
       showSuccess(`Added ${newGrades.length} confirmed subject${newGrades.length === 1 ? '' : 's'} from your result slip. Please check each grade is correct.`)
     }
 
-    if (applicationId) {
-      // R11.5 / STU-11: only canonical server identities are syncable. The
-      // shared allowlist replaces a `fallback-` denylist that let any other
-      // malformed reference reach the API to be rejected there.
-      const syncable = syncableGrades(merged)
-      if (syncable.length > 0) {
-        syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch((err) => logger.warn('Grade sync failed', toError(err)))
-      }
-    }
-  }, [applicationId, syncGrades, showSuccess, selectedGradesRef, setSelectedGrades])
+    // No direct sync (SJR R6-b): the merge is an edit like any other, and the draft
+    // machine saves it within the debounce and holds it in the outbox until then.
+  }, [showSuccess, selectedGradesRef, setSelectedGrades])
 
   return {
     normalizeSelectedGrades,

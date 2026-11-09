@@ -311,11 +311,15 @@ type-generic.
   HTML *details* (no PDF attachment). All other official documents are download-only; their
   notifications go through the `backend/apps/common/email/` component system without attaching
   the official PDF.
-- **Seeding caveat (data-readiness, not code):** `seed_tenant_document_profiles` seeds
-  `acceptance_letter` profiles only. Conditional-offer profiles for live tenants are an R12
-  data-readiness item; their absence produces the correct visible failure, not a silent
-  fallback.
-
+- **Seeding caveat (data-readiness, not code) — D9 confirmed 2026-11-08 (option C):**
+  `seed_tenant_document_profiles` seeds `acceptance_letter` profiles only.
+  Conditional-offer profiles for live tenants are an R12 data-readiness item.
+  Generation still hard-fails with `DOCUMENT_PROFILE_NOT_CONFIGURED` and
+  produces no document when no profile resolves. What changed is the read
+  state: for an application that may receive the letter, the student-facing
+  read now reports `setup_required` (the student sees that the school has not
+  set the letter up yet, with no download or prepare control) instead of a
+  generic failure. Harness offerings carry fictional validated letter profiles.
 ## Follow-on tasks (not in scope of 13.1)
 
 - **13.2** — confirm backend-only official downloads + `documentFlowDriftGuard.test.ts` (R6.2/6.3).

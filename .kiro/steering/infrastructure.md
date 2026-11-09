@@ -64,6 +64,11 @@ production container's database as the first step.
   `5432`) — reach it only via `docker compose exec postgres ...` on the box.
 - Production is **not Neon, not Koyeb, not Vercel** — the platform migrated to
   this self-hosted stack. The backend image runs `apply_sql_migrations` on boot.
+- Both jobs of `.github/workflows/deploy.yml` (`build-and-push` and `deploy`) run
+  in the GitHub `production` environment. With required reviewers configured on
+  that environment, each job waits for approval, so a green `main` no longer
+  rolls production on its own (student-journey-repair DEC-10, task 2.7). The
+  environment's protection rules are set in repository Settings, not in code.
 
 ### Logging in to the production EC2 box
 
@@ -120,6 +125,14 @@ docker compose -f docker-compose.prod.yml exec web \
     --password "$SCHOOL_ADMIN_PASSWORD"
 ```
 
+`seed_school_admins` is additive: it ensures the admin holds `review` (the
+default `--permissions`) on each school and removes nothing, so grants an
+operator added in the admin UI survive a re-run. `AccessGrant` rows are never
+touched. Pass `--replace` to make the membership hold exactly the
+`--permissions` list, or `--read-only` to grant none (both can remove
+permissions, so treat them as operator-confirmed). Every membership change is
+audited with ids and permission names only; `--dry-run` reports without writing.
+
 Per the Hard Rules below, **production writes are operator steps**: take a backup
 first (`./deploy/backup-db.sh`), prove the change on Neon, and never author a
 schema/data change on production as the first step. Never echo or commit secret
@@ -164,6 +177,7 @@ flags, and cleanup stay consistent.
 - **Never commit real connection strings, the `.pem` key, or DB dumps.**
   `.env`/`.env.local` are gitignored and may hold real credentials locally; the
   SSH key stays in `/home/cosmas/Downloads/`.
+- **Proxy trust:** Caddy is the single trusted proxy (`NUM_PROXIES=1`). The backend honours `X-Forwarded-For` only from a peer inside `TRUSTED_PROXY_CIDRS` (default loopback and private ranges, which covers the compose network). A second proxy in front (for example Cloudflare) needs `NUM_PROXIES=2` and that proxy's ranges added to `TRUSTED_PROXY_CIDRS`.
 - **Never expose the production Postgres on a public port.** It stays on the
   internal compose network behind Caddy.
 - Treat any production DB write as **high-risk** per the safety guardrails:

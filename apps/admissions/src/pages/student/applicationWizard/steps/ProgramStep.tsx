@@ -4,14 +4,30 @@ import { FormSelect } from '@/components/ui/form-select'
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { formatDate } from '@/lib/dateFormat'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { rateLimitMessage } from '@/lib/rateLimitCopy'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
+
+/** A failed catalogue query. `retryAfterSeconds` is set for a rate-limited request. */
+export interface CatalogueQueryError {
+  message: string
+  retryAfterSeconds: number | null
+  /** True when the server refused the request for going over a budget. */
+  rateLimited?: boolean
+}
 
 interface ProgramStepProps {
   form: UseFormReturn<WizardFormData>
   programs: WizardProgram[]
   programsLoading?: boolean
   intakes: WizardIntake[]
+  /** A failed programmes query: shown as an error, never as an empty catalogue (clause 2.16). */
+  programsError?: CatalogueQueryError | null
+  /** A failed intakes query: shown as an error, never as an empty list (clause 2.16). */
+  intakesError?: CatalogueQueryError | null
+  onRetryPrograms?: () => void
+  onRetryIntakes?: () => void
   title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
   getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
@@ -28,6 +44,10 @@ const ProgramStep = ({
   programs,
   programsLoading,
   intakes,
+  programsError,
+  intakesError,
+  onRetryPrograms,
+  onRetryIntakes,
   title,
   getFieldAriaDescribedBy,
 }: ProgramStepProps) => {
@@ -41,6 +61,11 @@ const ProgramStep = ({
     if (!date) return ''
     return formatDate(date)
   }
+
+  const errorText = (error: CatalogueQueryError) =>
+    error.rateLimited || error.retryAfterSeconds !== null
+      ? rateLimitMessage(error.retryAfterSeconds)
+      : error.message
 
   return (
     <div
@@ -84,11 +109,19 @@ const ProgramStep = ({
               placeholder="Select programme"
               error={errors.program?.message}
               disabled={programs.length === 0}
-              helperText={programs.length === 0 && !programsLoading ? 'No programmes available for the current intake' : undefined}
+              helperText={programs.length === 0 && !programsLoading && !programsError ? 'No programmes available for the current intake' : undefined}
               triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
               required
               extraDescribedBy={getFieldAriaDescribedBy?.('program')}
             />
+            {programsError && (
+              <ErrorDisplay
+                variant="inline"
+                className="mt-2"
+                message={errorText(programsError)}
+                onRetry={onRetryPrograms}
+              />
+            )}
           </div>
 
           <div style={shouldAnimate ? staggerChild(1) : undefined}>
@@ -107,11 +140,19 @@ const ProgramStep = ({
               placeholder="Select intake"
               disabled={intakes.length === 0}
               error={errors.intake?.message}
-              helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
+              helperText={intakes.length === 0 && !intakesError ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
               triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
               required
               extraDescribedBy={getFieldAriaDescribedBy?.('intake')}
             />
+            {intakesError && (
+              <ErrorDisplay
+                variant="inline"
+                className="mt-2"
+                message={errorText(intakesError)}
+                onRetry={onRetryIntakes}
+              />
+            )}
           </div>
         </div>
       </fieldset>

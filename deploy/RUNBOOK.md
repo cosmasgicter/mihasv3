@@ -90,6 +90,9 @@ Key values for the self-hosted stack (differs from Koyeb):
   `postgres` container, **not** Neon. Just set `POSTGRES_DB`, `POSTGRES_USER`,
   `POSTGRES_PASSWORD` (use a strong password).
 - `ALLOWED_HOSTS=api.mihas.edu.zm`
+- `NUM_PROXIES=1` (Caddy is the only proxy) and, optionally, `TRUSTED_PROXY_CIDRS` (comma-separated CIDRs;
+  default loopback + private ranges, which includes the compose network). Behind a second proxy set
+  `NUM_PROXIES=2` and add that proxy's ranges. Per-client rate limits depend on these.
 - `CORS_ALLOWED_ORIGINS=https://apply.mihas.edu.zm,https://api.mihas.edu.zm`
 - `APP_HOST=apply.mihas.edu.zm`, `API_HOST=api.mihas.edu.zm`, `ADMIN_EMAIL=<you>@mihas.edu.zm`
 - Keep all the integration secrets you already use on Koyeb (Lenco, Zoho,

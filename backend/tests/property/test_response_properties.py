@@ -235,7 +235,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
 
     @given(file_key=_file_key_strategy)
     @settings(max_examples=5)
-    @patch("apps.common.storage.get_s3_client")
+    @patch("apps.common.storage.get_presign_client")
     def test_signed_url_passes_correct_expiry(self, mock_boto3, file_key):
         """For any file key, generate_signed_url should call
         generate_presigned_url with ExpiresIn=900."""
@@ -264,7 +264,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
 
     @given(file_key=_file_key_strategy)
     @settings(max_examples=5)
-    @patch("apps.common.storage.get_s3_client")
+    @patch("apps.common.storage.get_presign_client")
     def test_signed_url_returns_string(self, mock_boto3, file_key):
         """For any file key, the result should always be a string URL."""
         from apps.common.storage import generate_signed_url
@@ -284,7 +284,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
         custom_expiry=st.integers(min_value=60, max_value=3600),
     )
     @settings(max_examples=5)
-    @patch("apps.common.storage.get_s3_client")
+    @patch("apps.common.storage.get_presign_client")
     def test_signed_url_respects_custom_expiry(self, mock_boto3, file_key, custom_expiry):
         """When a custom expiry is provided, it should be used instead of the default."""
         from apps.common.storage import generate_signed_url

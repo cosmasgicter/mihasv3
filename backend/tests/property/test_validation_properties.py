@@ -31,21 +31,43 @@ from apps.common.validators import (  # noqa: E402
 # Valid Zambian phone: +260 followed by exactly 9 digits
 _valid_phone = st.from_regex(r"\+260\d{9}", fullmatch=True)
 
+# student-journey-repair task 3.27 (clause 2.42): registration also accepts the
+# shapes printed on a SIM pack. ``260\d{9}`` therefore moves from the invalid set
+# to the valid set, and the random-text strategy below drops these shapes.
+def _is_registration_accepted(text: str) -> bool:
+    """The shapes registration accepts, read the way the shared normaliser reads
+    them (``str.isdigit``), so a stray Unicode digit cannot make a draw flaky."""
+    cleaned = text.strip()
+    for ch in (" ", "-", "(", ")", "\t"):
+        cleaned = cleaned.replace(ch, "")
+    if cleaned.startswith("+"):
+        return len(cleaned) == 13 and cleaned.startswith("+260") and cleaned[1:].isdigit()
+    if not cleaned.isdigit():
+        return False
+    return (
+        (len(cleaned) == 12 and cleaned.startswith("260"))
+        or (len(cleaned) == 10 and cleaned.startswith("0"))
+        or len(cleaned) == 9
+    )
+
+
+_local_phone = st.one_of(
+    st.from_regex(r"260\d{9}", fullmatch=True),
+    st.from_regex(r"0\d{9}", fullmatch=True),
+    st.from_regex(r"\d{9}", fullmatch=True),
+)
+
 # Invalid phone: any text that does NOT match +260 + 9 digits
 # We generate various invalid patterns to cover edge cases
 _invalid_phone = st.one_of(
     # Random text (very unlikely to match the pattern)
-    st.text(min_size=1, max_size=30).filter(
-        lambda s: not __import__("re").match(r"^\s*\+260\d{9}\s*$", s)
-    ),
+    st.text(min_size=1, max_size=30).filter(lambda s: not _is_registration_accepted(s)),
     # Wrong country code
     st.from_regex(r"\+261\d{9}", fullmatch=True),
     # Too few digits after +260
     st.from_regex(r"\+260\d{1,8}", fullmatch=True),
     # Too many digits after +260
     st.from_regex(r"\+260\d{10,15}", fullmatch=True),
-    # Missing + prefix
-    st.from_regex(r"260\d{9}", fullmatch=True),
 )
 
 # Valid NRC: 6 digits / 2 digits / 1 digit
@@ -98,6 +120,13 @@ class TestZambianPhoneValidation(SimpleTestCase):
         padded = padding + phone + padding
         result = validate_zambian_phone(padded)
         self.assertEqual(result, phone)
+
+    @given(phone=_local_phone)
+    @settings(max_examples=5)
+    def test_local_phone_shapes_accepted_as_e164(self, phone):
+        """Printed shapes (0..., 260..., bare nine digits) are stored as +260..."""
+        result = validate_zambian_phone(phone)
+        self.assertRegex(result, r"^\+260\d{9}$")
 
     @given(phone=_invalid_phone)
     @settings(max_examples=5)

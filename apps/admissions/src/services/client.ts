@@ -9,6 +9,7 @@
 
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/lib/logger';
+import { parseRetryAfterSeconds } from '@/lib/rateLimitCopy';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 import { shouldDispatchAuthFailure, isPermissionDenial } from '@/lib/sessionHardening';
@@ -16,6 +17,7 @@ import { shouldDispatchAuthFailure, isPermissionDenial } from '@/lib/sessionHard
 import { toApiV1Path, getServiceName } from './apiHelpers';
 import { isRetryableFailure, MAX_RETRIES, RETRY_DELAYS, createTimeoutController, getTimeoutForEndpoint } from './retry';
 import { recoverCsrfAndRetry } from './csrf';
+import { sendMultipart, type UploadProgress } from './uploadTransport';
 import { API_BASE, parseJsonSafely, normalizeHeaders, getBaseHeaders, unwrapApiResponse, type ApiRequestOptions } from './httpClient';
 import {
   AuthenticationError,
@@ -184,6 +186,29 @@ class ApiClient {
     // Default: no automatic React Query invalidation
     return [];
   }
+  /**
+   * Upload a multipart body with byte progress and no total timeout (design R2-a).
+   * The caller supplies the `Idempotency-Key`, which makes the post-refresh
+   * replay and the caller's one automatic retry safe.
+   */
+  async upload<TResponse = unknown>(
+    endpoint: string,
+    formData: FormData,
+    options: {
+      idempotencyKey: string;
+      onProgress?: (progress: UploadProgress) => void;
+      signal?: AbortSignal;
+    }
+  ): Promise<TResponse | null> {
+    return sendMultipart<TResponse>({
+      endpoint: toApiV1Path(endpoint),
+      formData,
+      idempotencyKey: options.idempotencyKey,
+      onProgress: options.onProgress,
+      signal: options.signal,
+    });
+  }
+
   async request<TResponse = unknown>(
     endpoint: string,
     options: ApiRequestOptions = {}
@@ -526,6 +551,13 @@ class ApiClient {
         const statusError = new Error(errorMessage) as Error & { status: number; data?: Record<string, unknown> };
         statusError.status = response.status;
         if (errorResponseData) statusError.data = errorResponseData;
+        if (response.status === 429) {
+          // A refusal for going over a budget: keep when to retry (the header is
+          // exposed through CORS) so surfaces can say so (SJR R3-d).
+          const rateLimited = statusError as Error & { retryAfterSeconds?: number | null; code?: string };
+          rateLimited.retryAfterSeconds = parseRetryAfterSeconds(response.headers.get('Retry-After'));
+          rateLimited.code = 'RATE_LIMITED';
+        }
         if (fieldErrors && Object.keys(fieldErrors).length > 0) {
           ;(statusError as Error & { fieldErrors?: Record<string, string> }).fieldErrors = fieldErrors
         }

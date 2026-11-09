@@ -40,7 +40,7 @@ Where the Beanola multi-tenant authority code lives. Model and rules:
 | Capability-gated legacy catalog writes | `backend/apps/catalog/views.py` (institution/program/intake write methods) |
 | Domain context endpoint | `backend/apps/catalog/views.py` — `CatalogContextView` → `GET /api/v1/catalog/context/` |
 | Frontend capability hooks | `apps/admissions/src/contexts/CapabilityContext.tsx` (`useCapabilities`), `apps/admissions/src/services/admin/capabilities.ts` (`adminCapabilityService`) |
-| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar` and `AppLayout`, which owns the mobile surface by injecting capability-filtered items into `components/ui/BottomNavigation.tsx`. (Task 12.4 removed a third consumer, `MobileBottomNav.tsx`: it had zero importers and was never rendered, so it was a second copy of the mobile bar that no user could reach.) |
+| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar` and `AppLayout`, which owns the mobile surface by injecting capability-filtered items into `components/ui/BottomNavigation.tsx`. (Task 12.4 removed a third consumer, `MobileBottomNav.tsx`: it had zero importers and was never rendered, so it was a second copy of the mobile bar that no user could reach.) The student `Application Status` entry (`student.status`) is `desktop: true` (SJR task 3.18, R5-c), so the documents card is one activation from the dashboard on desktop as on mobile. |
 | Super-admin route guard | `apps/admissions/src/components/AdminRoute.tsx` (`RequireSuperAdmin`); route config `apps/admissions/src/routes/config.tsx` |
 | Tenant console + panels | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher) → `apps/admissions/src/pages/admin/tenants/` (`SuperAdminTenantConsole`, `TenantAdminSchoolConsole`, panels) |
 | Tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` (super-admin-only stepper) |
@@ -87,6 +87,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/components/student/payment/PaymentApplicationCard.tsx` | One submitted application's payment state, its single recovery action, and its ledger history |
 | `apps/admissions/src/pages/student/Interview.tsx` | Student interview schedule and join actions |
 | `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
+| `apps/admissions/src/pages/student/DocumentOpen.tsx` | The one opener for every student View/Open control (`/student/documents/open`); signs at click time and only reads (SJR task 3.17, R5-a) |
 | `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
 | `backend/apps/applications/views.py` | Legacy re-exports for URL compatibility (imports from split modules) |
 | `backend/apps/applications/student_views.py` | Student-facing endpoints: submit, withdraw, email-slip, enrollment, amendments |
@@ -503,6 +504,38 @@ Two harness-level changes shipped with 8.3, both documented in
   `closeAbandonedAdapterCollection` (tell the simulator a collection was abandoned on
   purpose, which is what `expired` means, so the drain gate stops waiting for it).
 
+### Files Added During Student Journey Repair
+
+Spec: `.kiro/specs/student-journey-repair/` (Spec A, P0a tasks 1-3). The R7 tests
+keep strict markers until task 5.6.
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/services/uploadTransport.ts` | The one upload transport (R2): honest progress, one retry policy; `requiredDocumentsService.upload` is its only caller |
+| `apps/admissions/src/lib/imageDownscale.ts` | Client-side image downscale before upload (R2) |
+| `apps/admissions/src/lib/rateLimitCopy.ts` | Student-facing copy for a `RATE_LIMITED` (429) answer with `Retry-After` (R3) |
+| `apps/admissions/src/lib/documentOpen.ts` | Query grammar of the document opener (`documentOpenHref`, `parseDocumentOpenSearch`) (R5-a) |
+| `apps/admissions/src/pages/student/DocumentOpen.tsx` | `/student/documents/open`: the one place a student opens a stored document (R5-a) |
+| `apps/admissions/src/pages/student/applicationWizard/lib/draftGrades.ts` | Grades as a draft-machine channel with partial adapters (R6-b) |
+| `apps/admissions/src/pages/student/applicationWizard/lib/pageSaveView.ts` | `deriveWizardPageSaveView`: the draft machine's view composed with document commands (R6-b) |
+| `apps/admissions/src/hooks/auth/useSessionRestoreOnce.ts` | One session-restore attempt per guard mount; `suppressSessionRestore()` / `allowSessionRestore()` (R8-a) |
+| `backend/apps/common/ratelimit_metrics.py` | The `ratelimit.limited` counter (labels `scope`, `key_kind` only) (R3) |
+| `backend/apps/common/management/commands/storage_roundtrip_check.py` | Put/get/delete round trip against the configured object store (R1) |
+| `backend/.env.local.test.example` | Tracked template for the local-test stack (R1) |
+| `backend/scripts/2026_11_02_01_repair_document_snapshot_presence.sql` (+ `_rollback`) | Data-only, idempotent repair of NULL document snapshot columns (R4-d) |
+| `backend/tests/db_host_guard.py` | Refuses a test database host that is not local (task 2.1) |
+| `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json` | Shared MSISDN vectors for the frontend/backend drift guard (R8-b) |
+| `apps/admissions/tests/unit/__fixtures__/readinessInput.ts` | Shared fixture for the one submit-readiness computation (R6-a) |
+| `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` + `backend/tests/unit/test_zambian_msisdn_vectors.py` | MSISDN drift guard (R8-b) |
+| `apps/admissions/tests/unit/sjr*.test.ts(x)`, `apps/admissions/tests/property/sjr*.property.test.ts(x)` | Exploration (bug condition) and preservation tests for R2, R3, R5, R6, R7, R8, R10 |
+| `backend/tests/unit/test_sjr_*.py`, `backend/tests/integration/test_sjr_*.py`, `backend/tests/property/test_sjr_preservation_properties.py` | Exploration and preservation tests for R1-R8 |
+| `backend/tests/unit/test_no_persisted_signed_urls_sjr.py`, `test_document_key_resolution_sjr.py`, `test_storage_settings_contract.py`, `test_startup_env_validation.py`, `test_documented_env_vars_are_read.py` | Drift guards for storage keys, storage settings, startup refusal and documented environment variables (R1, R4) |
+| `.github/workflows/student-journey-gate.yml` | Blocking CI: jobs `journey-gate` and `local-stack-storage`; no `paths:` filter, relevance decided in-job so required checks report on unrelated changes (R9-e) |
+| `apps/admissions/playwright.journey-gate.config.ts` | Gate config: projects `journey-gate-mobile` (390x844, Chromium) and `journey-gate-desktop` (1440x900), retries 0, workers 1 (R9-b) |
+| `apps/admissions/tests/harness-e2e/journey-gate/` | `student-journey-gate.spec.ts`, `submit-desktop.spec.ts`, `upload-near-limit.spec.ts`, `a11y-surfaces.spec.ts`, plus `strictStatusGuard.ts`, `rateLimitHeadroom.ts`, `gate-fixtures.ts`, `gate-api.ts`, `journey-steps.ts` and `fixtures.ts` (files generated at test time) (R9-b) |
+| `harness/checks/edge_two_clients.py` | Two client addresses behind Caddy have independent rate-limit buckets; stdlib only, run in two `adapters` containers (R9-c) |
+| `apps/admissions/tests/unit/journeyGateGuards.test.ts`, `backend/tests/unit/test_journey_gate_configuration_sjr.py` | Drift guards for the gate's guards and configuration (R9) |
+
 ## Testing Layout
 
 | Area | Location | Notes |
@@ -513,6 +546,7 @@ Two harness-level changes shipped with 8.3, both documented in
 | Backend unit tests | `backend/tests/unit/` | Includes admissions, jobs-ops, and audit production fix coverage |
 | Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants, audit fix validation (hypothesis) |
 | Browser automation tests | Monorepo root or app-local | Playwright for deterministic E2E flows |
+| Student journey gate | `apps/admissions/tests/harness-e2e/journey-gate/` | The blocking CI journey (SJR task 4): config `apps/admissions/playwright.journey-gate.config.ts`, command `bash harness/bin/harness journey-gate`, workflow `.github/workflows/student-journey-gate.yml`. Runs on the harness stack with the limiter on, a private bucket and 20 s signed URLs. Evidence is run-scoped under `apps/admissions/test-results/harness-evidence/`, never `docs/v2-evidence/` |
 
 ## Current Migration-Sensitive Facts
 

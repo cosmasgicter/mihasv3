@@ -51,6 +51,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     application_id = serializers.UUIDField(read_only=True)
     supersedes_id = serializers.UUIDField(read_only=True, allow_null=True)
     lifecycle_state = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = ApplicationDocument
@@ -84,6 +85,26 @@ class DocumentSerializer(serializers.ModelSerializer):
             "provenance",
         ]
         read_only_fields = fields
+
+    def get_file_url(self, obj) -> str | None:
+        """A freshly signed URL, never the stored key (design R4-a).
+
+        A signing failure yields ``null`` and an ERROR log; the student opener
+        signs separately and shows its own state.
+        """
+        import logging
+
+        from apps.common.storage import resolve_document_open_url
+
+        try:
+            return resolve_document_open_url(obj)
+        except Exception:
+            logging.getLogger(__name__).error(
+                "document.sign.failed",
+                extra={"document_id": str(getattr(obj, "id", "")), "kind": "list"},
+                exc_info=True,
+            )
+            return None
 
     def get_lifecycle_state(self, obj) -> str:
         """The canonical lifecycle state, derived for pre-7.3 rows."""

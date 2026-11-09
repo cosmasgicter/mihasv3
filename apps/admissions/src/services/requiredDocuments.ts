@@ -8,6 +8,7 @@
  * sees and the evidence the server stores come from the same contract.
  */
 import { logApiError } from '@/lib/apiErrorLogger'
+import { rateLimitMessage } from '@/lib/rateLimitCopy'
 import {
   parseRequiredDocumentsContract,
   type RequiredDocumentsContract,
@@ -29,7 +30,14 @@ export class RequiredDocumentUploadError extends Error {
   }
 }
 
-const RETRYABLE_CODES = new Set(['CONFIGURATION_UNAVAILABLE', 'STORAGE_ERROR', 'RATE_LIMITED'])
+const RETRYABLE_CODES = new Set([
+  'CONFIGURATION_UNAVAILABLE',
+  'STORAGE_ERROR',
+  'RATE_LIMITED',
+  'UPLOAD_STALLED',
+  'NETWORK_ERROR',
+  'DOCUMENT_UPLOAD_IN_PROGRESS',
+])
 
 function toUploadError(error: unknown): RequiredDocumentUploadError {
   const record = (error ?? {}) as {
@@ -43,11 +51,22 @@ function toUploadError(error: unknown): RequiredDocumentUploadError {
   const envelopeCode = typeof record.data?.code === 'string' ? record.data.code : null
   const code =
     typeof record.code === 'string' ? record.code : (envelopeCode ?? 'UPLOAD_FAILED')
+  const retryAfter = (error as { retryAfterSeconds?: unknown } | null)?.retryAfterSeconds
+  // A rate-limited upload says when to try again (SJR R3-d, clause 2.16).
   const message =
-    typeof record.message === 'string' && record.message.trim() !== ''
-      ? record.message
-      : 'Upload failed. Please try again.'
+    code === 'RATE_LIMITED'
+      ? rateLimitMessage(typeof retryAfter === 'number' ? retryAfter : null)
+      : typeof record.message === 'string' && record.message.trim() !== ''
+        ? record.message
+        : 'Upload failed. Please try again.'
   const status = typeof record.status === 'number' ? record.status : 0
+  // A transport error states for itself whether the attempt may be repeated. A
+  // rate limit stays manually retryable (the student can try again later); only
+  // the hook's automatic retry excludes it.
+  const stated = (error as { retryable?: unknown } | null)?.retryable
+  if (typeof stated === 'boolean') {
+    return new RequiredDocumentUploadError(message, code, stated || code === 'RATE_LIMITED')
+  }
   const retryable = RETRYABLE_CODES.has(code) || status === 0 || status >= 500 || status === 429
   return new RequiredDocumentUploadError(message, code, retryable)
 }
@@ -91,6 +110,9 @@ export const requiredDocumentsService = {
     applicationId: string
     documentType: string
     file: File
+    idempotencyKey: string
+    onProgress?: (progress: { loaded: number; total: number }) => void
+    signal?: AbortSignal
   }): Promise<{ documentId: string; fileUrl: string | null }> => {
     const formData = new FormData()
     formData.append('file', args.file)
@@ -98,9 +120,14 @@ export const requiredDocumentsService = {
     formData.append('document_type', args.documentType)
 
     try {
-      const result = await apiClient.request<{ id?: string; file_url?: string }>(
+      const result = await apiClient.upload<{ id?: string; file_url?: string }>(
         '/documents/upload/',
-        { method: 'POST', body: formData },
+        formData,
+        {
+          idempotencyKey: args.idempotencyKey,
+          onProgress: args.onProgress,
+          signal: args.signal,
+        },
       )
       if (!result?.id) {
         throw new RequiredDocumentUploadError(

@@ -45,6 +45,7 @@ import { toError } from '@/lib/toError'
 import { isApplicationMissingError } from '@/lib/applicationSession'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import type { WizardDraftController } from '@/lib/wizardDraftController'
 
 import { validateLiveGrades } from '../../lib/liveGradeValidation'
 import { getStepIndexByKey } from '../../steps/config'
@@ -78,7 +79,8 @@ export interface UseWizardStepAdvanceParams {
     uploading: boolean
   }
   queryClient: QueryClient
-  syncGrades: { mutateAsync: (variables: { id: string; grades: SubjectGrade[] }) => Promise<unknown> }
+  /** The draft machine: the education step flushes pending grades through it (SJR R6-b). */
+  draftMachine: Pick<WizardDraftController, 'flush' | 'getSnapshot'>
   saveDraft: (options?: SaveDraftOptions) => Promise<import('@/types/database').Application | null>
   applyDraftSelectionChange: (input: {
     applicationId: string
@@ -120,7 +122,7 @@ export function useWizardStepAdvance({
   assignmentPreviewError,
   requiredDocuments,
   queryClient,
-  syncGrades,
+  draftMachine,
   saveDraft,
   applyDraftSelectionChange,
   resolveProgramIdentity,
@@ -401,8 +403,27 @@ export function useWizardStepAdvance({
         // here, so this normalisation is a safe final cleanup.
         const gradesToSync = normalizeSelectedGrades(latestGrades)
         if (gradesToSync.length > 0) {
-          await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
+          // The cleaned grid becomes the grid (ref first: the machine reads it
+          // there), and the draft machine saves it. There is no second grade
+          // write path (SJR R6-b, one autosave owner).
+          selectedGradesRef.current = gradesToSync
           setSelectedGrades(gradesToSync)
+        }
+        await draftMachine.flush()
+        const afterFlush = draftMachine.getSnapshot()
+        if (afterFlush.applicationId === null) {
+          // The server no longer has this draft: the machine detached from it.
+          const errorMessage = 'Your online draft was no longer available. Your grades are saved on this device; please continue from the personal details step to refresh the draft.'
+          setError(errorMessage)
+          goToStep(getStepIndexByKey('personal'))
+          return
+        }
+        if (afterFlush.pending) {
+          // Offline or refused: today's behaviour, the student does not advance.
+          setError("We couldn't save your grades. Check your connection and try again.")
+          return
+        }
+        if (gradesToSync.length > 0) {
           queryClient.invalidateQueries({ queryKey: ['applications'] })
         }
         goToStep(currentStepIndex + 1)
@@ -450,7 +471,7 @@ export function useWizardStepAdvance({
     eligibilityCheck,
     resultSlipFile,
     extraKycFile,
-    syncGrades,
+    draftMachine,
     applicationId,
     normalizeSelectedGrades,
     programIds,

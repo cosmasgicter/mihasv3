@@ -2,6 +2,9 @@
 
 from .base import *  # noqa: F401,F403
 
+# Refuse to start when a REQUIRED_ENV_VARS name is missing (checked in CommonConfig.ready()).
+STARTUP_ENV_VALIDATION = True
+
 DEBUG = False
 
 # Staging should exercise the same payment posture as production. The

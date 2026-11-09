@@ -432,11 +432,17 @@ async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<
  * A popup's `url()` is `''`/`about:blank` for the instant between the window
  * opening and the navigation committing, so reading it immediately proves
  * nothing. This waits for the real one.
+ *
+ * SJR task 3.17: every Open link now lands first on the in-app opener
+ * (`/student/documents/open`), which asks the platform for a fresh URL and then
+ * replaces itself with the stored record. The opener is a stop on the way, not
+ * the destination, so it is not "settled" either: waiting for it to leave is what
+ * keeps the assertions on the popup's storage host (SJR 3.20) meaningful.
  */
 async function settledPopupUrl(popup: Page): Promise<string> {
   await expect
     .poll(() => popup.url(), { timeout: 30_000, message: 'the download should navigate' })
-    .not.toMatch(/^(|about:blank)$/);
+    .not.toMatch(/^(|about:blank)$|\/student\/documents\/open(\?|$)/);
   return popup.url();
 }
 
@@ -522,12 +528,14 @@ test('a request the broker never received is still recorded, and the dispatcher 
   expect(ready.job.terminal).toBe(true);
   expect(ready.job.can_retry, 'a settled job offers no retry').toBe(false);
 
-  // And the student can take it. The download opens the signed stored record in
-  // a new tab, so the assertion is on the popup's URL rather than on navigation.
+  // And the student can take it. SJR task 3.17 (R5-a): the slip is issued, so the
+  // control is an "Open" link to the in-app opener (no longer a button that opens
+  // a tab in code after awaits). The opener signs when it is opened and replaces
+  // itself with the stored record, so the assertion is on the popup's final URL.
   await allowStorageNavigation(page, ready.download_url);
   await openApplication(page, applicant.applicationId);
-  const download = (await documentAction(page, SLIP)).getByRole('button', {
-    name: /Download Slip/i,
+  const download = (await documentAction(page, SLIP)).getByRole('link', {
+    name: /Open Application Slip/i,
   });
   await expect(download).toBeEnabled({ timeout: 30_000 });
   const popup = page.waitForEvent('popup', { timeout: 30_000 });
@@ -622,7 +630,8 @@ test('an issued document stays readable, and stays offered, once the application
   await expect(slip).toBeVisible({ timeout: 30_000 });
   await expect(slip).toHaveAttribute('data-historical', 'true');
   await expect(slip).toContainText(/Issued copy on record/i);
-  await expect(slip.getByRole('button', { name: /Download Slip/i })).toBeEnabled();
+  // SJR task 3.17: an issued slip is offered as an "Open" link to the opener.
+  await expect(slip.getByRole('link', { name: /Open Application Slip/i })).toBeEnabled();
 
   expect(gate.consoleErrors, 'no console errors').toEqual([]);
 });
@@ -656,7 +665,7 @@ test('the one canonical email route sends the stored record and lands in the his
   const slip = await documentAction(page, SLIP);
   await expect(slip).toBeVisible({ timeout: 30_000 });
   const popup = page.waitForEvent('popup', { timeout: 90_000 });
-  await slip.getByRole('button', { name: /Download Slip/i }).click();
+  await slip.getByRole('link', { name: /Open Application Slip/i }).click();
   const opened = await popup;
   expect(
     await settledPopupUrl(opened),
@@ -777,11 +786,16 @@ test('a document the school cannot issue tells the student nothing about its con
   await openApplication(page, applicant.applicationId);
   const letter = await documentAction(page, LETTER);
   await expect(letter).toBeVisible({ timeout: 30_000 });
-  await letter.getByRole('button').first().click();
-
-  const recovery = letter.locator('[role="alert"]');
-  await expect(recovery, 'the failure states itself').toBeVisible({ timeout: 60_000 });
-  await expect(recovery).toContainText(/admissions office has been notified/i);
+  // SJR task 5.4 (R7-d, D9 option C): the read already says the letter is not
+  // available yet, so there is nothing to click. The old step clicked the letter's
+  // first button and expected "the admissions office has been notified"; that
+  // button no longer exists, and the sentence would be untrue for this state,
+  // because no request is made on the student's behalf.
+  const recovery = letter.locator('[role="status"]');
+  await expect(recovery, 'the state states itself without a click').toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('document-status-summary')).toContainText(/isn.t available yet/i);
+  await expect(recovery).toContainText(/still setting it up/i);
+  await expect(letter.getByRole('button', { name: /Prepare|Try again|Retry/i })).toHaveCount(0);
   // The retired checklist, counted at zero.
   await expect(recovery).not.toContainText(/document profile/i);
   await expect(recovery).not.toContainText(/template/i);

@@ -26,6 +26,7 @@ import {
 } from '@/pages/student/applicationWizard/lib/educationCatalog'
 import { validateLiveGrades } from '@/pages/student/applicationWizard/lib/liveGradeValidation'
 import { buildWizardReadiness } from '@/pages/student/applicationWizard/lib/wizardReadiness'
+import { readinessInput } from '../__fixtures__/readinessInput'
 import { normalizeDraftResumeGrades } from '@/pages/student/applicationWizard/lib/draftResume'
 import type { SubjectGrade } from '@/pages/student/applicationWizard/types'
 
@@ -48,7 +49,7 @@ const gradesFor = (count: number): SubjectGrade[] =>
   SERVER_SUBJECTS.slice(0, count).map((subject, index) => row(subject.id, 2, `r${index}`))
 
 const readiness = (selectedGrades: SubjectGrade[]) =>
-  buildWizardReadiness({ values: {}, selectedGrades }).stepProgressByKey.education
+  buildWizardReadiness(readinessInput({ selectedGrades })).stepProgressByKey.education
     .missingItems.find(item => item.field === 'grades')
 
 // ---------------------------------------------------------------------------

@@ -44,9 +44,11 @@ import {
 import {
   draftAssignmentKey,
   fingerprintDraftProjection,
+  fingerprintGrades,
   mergeDraftAnswerProjections,
   pendingDraftBase,
   positiveDraftVersion,
+  type DraftGradeRow,
 } from './wizardDraftProjection'
 
 /** Debounce after an edit before the machine writes it. */
@@ -70,6 +72,7 @@ export const WIZARD_DRAFT_MESSAGES = {
   mergeUnavailable:
     'We could not load the latest version to combine with your changes. Check your connection and try again, or reload the latest draft.',
   saveFailed: 'Draft save failed. Please try again.',
+  gradesNeedAttention: "Some grade rows can't be saved yet. Fix the highlighted rows.",
 } as const
 
 /** How a failed draft command is handled. */
@@ -110,6 +113,11 @@ export interface WizardDraftLocalMeta {
    */
   pendingBase: Record<string, unknown> | null
   /**
+   * The grade rows the server has not acknowledged (R6-b), or null when none are
+   * pending. Held in the outbox so a reload before the save lands keeps them.
+   */
+  grades: DraftGradeRow[] | null
+  /**
    * Tell the rest of the app a save point was reached (draft store revision +
    * `applicationDraftSaved`). False for the per-edit outbox write, which must
    * stay silent so typing never triggers list refetches.
@@ -145,6 +153,14 @@ export interface WizardDraftAdapters {
   projectStart(): Record<string, unknown> | null
   /** The full form values (what an unattached draft keeps on this device). */
   projectLocal(): Record<string, unknown>
+  /**
+   * The grade grid as the grades channel would send it (R6-b): the rows that can
+   * be saved now, and how many cannot yet. An incomplete row (no subject chosen
+   * yet) is neither. Absent when the host has no grades channel.
+   */
+  projectGrades?(): { rows: DraftGradeRow[]; unsavableRows: number }
+  /** Replace the server's grade set with `rows` (partial: below the submit minimum is allowed). */
+  syncGrades?(applicationId: string, rows: DraftGradeRow[], idempotencyKey: string): Promise<void>
   /** Whether the student has edited anything (RHF dirty fields). */
   hasUserEdits(): boolean
   startDraft(payload: Record<string, unknown>, idempotencyKey: string): Promise<WizardDraftRecord | null>
@@ -165,7 +181,7 @@ export interface WizardDraftAdapters {
   /** Clear the one `(user, application)` local outbox record. */
   clearLocal(applicationId: string | null): void
   isOnline(): boolean
-  createCommandKey(kind: 'start' | 'update'): string
+  createCommandKey(kind: 'start' | 'update' | 'grades'): string
   classifyError(error: unknown, phase: 'start' | 'update'): WizardDraftErrorKind
   /**
    * Reload the authoritative draft (the conflict's reload resolution). Must let
@@ -212,6 +228,8 @@ export interface WizardDraftSnapshot {
   /** The selected draft could not be loaded: the form does not hold it, so nothing is written. */
   readonly hydrationFailed: boolean
   readonly conflictVersion: number | null
+  /** Grade rows that cannot be saved yet (R6-b); the student must fix them. */
+  readonly unsavableGradeRows: number
 }
 
 /** The save-state vocabulary a view renders (R10.7). */
@@ -248,6 +266,10 @@ export function deriveWizardDraftSaveView(snapshot: WizardDraftSnapshot): Wizard
   if (snapshot.retrying) return { status: 'retrying', message: snapshot.saveError }
   if (snapshot.state === 'saving') return { status: 'saving', message: null }
   if (snapshot.authExpired) return { status: 'error', message: WIZARD_DRAFT_MESSAGES.sessionExpired }
+  // Rows the grades channel cannot send are not "Saved" (R6-b, clause 2.34).
+  if (snapshot.unsavableGradeRows > 0) {
+    return { status: 'error', message: WIZARD_DRAFT_MESSAGES.gradesNeedAttention }
+  }
   if (snapshot.saveError && (snapshot.state === 'ready.dirty' || snapshot.state === 'ready.with_errors')) {
     return { status: 'error', message: snapshot.saveError }
   }
@@ -382,6 +404,16 @@ export class WizardDraftController {
   private startBlockedFingerprint: string | null = null
   /** A validation rejection is not re-sent automatically for the same answers. */
   private rejectedFingerprint: string | null = null
+  /**
+   * The grade rows the server last acknowledged (R6-b), as a fingerprint. Grades
+   * are the draft's second channel: they have their own baseline, their own
+   * command key and their own rejection, but share the one serialized chain, the
+   * debounce, the backoff and the outbox with the answers.
+   */
+  private gradesBaselineFingerprint: string = fingerprintGrades([])
+  private pendingGrades: { fingerprint: string; key: string } | null = null
+  /** A grade set the server refused is not re-sent automatically. */
+  private rejectedGradesFingerprint: string | null = null
 
   private chain: Promise<unknown> = Promise.resolve()
   private autosaveQueued = false
@@ -555,7 +587,7 @@ export class WizardDraftController {
       // Nothing was read, so nothing is cleared: the fingerprint is taken so the
       // student's next change is what writes the record.
       try {
-        this.lastOutboxFingerprint = fingerprintDraftProjection(this.adapters.projectLocal())
+        this.lastOutboxFingerprint = this.outboxFingerprint()
       } catch {
         // Best effort.
       }
@@ -582,10 +614,22 @@ export class WizardDraftController {
     this.emit()
   }
 
+  /**
+   * The grade rows the server holds for the open draft (R6-b). The loader calls
+   * this once it has read them; the machine then treats any difference between
+   * the grid and these rows as a pending grades edit, and nothing else. A
+   * draft with no grades yet has the empty set as its baseline.
+   */
+  setGradesBaseline(rows: ReadonlyArray<DraftGradeRow>): void {
+    this.gradesBaselineFingerprint = fingerprintGrades(rows)
+    this.pendingGrades = null
+    this.rejectedGradesFingerprint = null
+    this.observe()
+  }
+
   // ------------------------------------------------------------------------
   // Edits
   // ------------------------------------------------------------------------
-
   /** The form changed. Decides EDIT / REVERT and schedules the debounced write. */
   observe(): void {
     if (!this.canAcceptEdits()) {
@@ -954,6 +998,9 @@ export class WizardDraftController {
     this.pendingUpdate = null
     this.startBlockedFingerprint = null
     this.rejectedFingerprint = null
+    this.gradesBaselineFingerprint = fingerprintGrades([])
+    this.pendingGrades = null
+    this.rejectedGradesFingerprint = null
     this.manualSaveDeferred = false
     this.autosaveDeferred = false
   }
@@ -985,6 +1032,45 @@ export class WizardDraftController {
 
   /** Whether the server — or, before a draft exists, this device — lacks the student's current work. */
   private computePending(): boolean {
+    return this.computeAnswersPending() || this.computeGradesPending()
+  }
+  /** The grade rows the grid would send now, or null when the host has no grades channel. */
+  private currentGradeRows(): DraftGradeRow[] | null {
+    const project = this.adapters.projectGrades
+    if (!project) return null
+    return project.call(this.adapters).rows
+  }
+  /** Whether the open, attached draft's grade grid differs from what the server acknowledged. */
+  private computeGradesPending(): boolean {
+    if (this.hydrationFailed || !this.applicationId) return false
+    try {
+      const rows = this.currentGradeRows()
+      return rows !== null && fingerprintGrades(rows) !== this.gradesBaselineFingerprint
+    } catch {
+      return false
+    }
+  }
+  /** Pending grades the server has not refused for exactly this grid. */
+  private computeGradesSendable(): boolean {
+    if (!this.computeGradesPending()) return false
+    try {
+      const rows = this.currentGradeRows()
+      return rows !== null && fingerprintGrades(rows) !== this.rejectedGradesFingerprint
+    } catch {
+      return false
+    }
+  }
+  /** The pending grade rows an outbox record carries, or null when none are pending. */
+  private pendingGradeRows(): DraftGradeRow[] | null {
+    if (!this.computeGradesPending()) return null
+    try {
+      return this.currentGradeRows()
+    } catch {
+      return null
+    }
+  }
+  /** The answers-only half of "does the server lack the student's work". */
+  private computeAnswersPending(): boolean {
     if (this.hydrationFailed) return false
     if (this.applicationId) {
       if (this.pendingUpdate?.uncertain && this.pendingUpdate.applicationId === this.applicationId) return true
@@ -1013,12 +1099,23 @@ export class WizardDraftController {
         // A brand-new application nobody has typed into is not a draft yet.
         return
       }
-      const fingerprint = fingerprintDraftProjection(this.adapters.projectLocal())
+      const fingerprint = this.outboxFingerprint()
       if (fingerprint === this.lastOutboxFingerprint) return
       this.writeLocal(this.outboxPending(), { announce: false })
     } catch {
       // Best effort.
     }
+  }
+
+  /**
+   * What the outbox record was last written from: the form, plus the pending
+   * grade rows while there are any (R6-b), so a grade edit rewrites the record
+   * before the debounce — a reload inside that window loses nothing.
+   */
+  private outboxFingerprint(): string | null {
+    const local = fingerprintDraftProjection(this.adapters.projectLocal())
+    const grades = this.pendingGradeRows()
+    return grades ? `${local}|grades:${fingerprintGrades(grades)}` : local
   }
 
   private startIsPossible(): boolean {
@@ -1048,9 +1145,10 @@ export class WizardDraftController {
           pending && this.applicationId
             ? pendingDraftBase(this.baselineAnswers, this.adapters.projectAnswers())
             : null,
+        grades: pending && this.applicationId ? this.pendingGradeRows() : null,
         announce: options.announce,
       })
-      this.lastOutboxFingerprint = fingerprintDraftProjection(this.adapters.projectLocal())
+      this.lastOutboxFingerprint = this.outboxFingerprint()
     } catch {
       // The local outbox is best effort; the server write is unaffected.
     }
@@ -1148,11 +1246,14 @@ export class WizardDraftController {
 
     const generation = this.generation
     const applicationId = this.applicationId
-    const pending = this.computePending()
-
-    if (!pending) {
+    const answersPending = this.computeAnswersPending()
+    const gradesSendable = this.computeGradesSendable()
+    if (!answersPending && !gradesSendable) {
       if (requireServer) return this.confirmUnchanged(applicationId, generation)
-      if (this.state === 'ready.dirty' || this.state === 'offline.queued') this.dispatch('REVERT')
+      // Grades the server refused are still pending: that is not "nothing to do".
+      if ((this.state === 'ready.dirty' || this.state === 'offline.queued') && !this.computeGradesPending()) {
+        this.dispatch('REVERT')
+      }
       this.emit()
       return null
     }
@@ -1181,7 +1282,65 @@ export class WizardDraftController {
     this.emit()
 
     if (!applicationId) return this.performStart(requireServer, generation)
-    return this.performUpdate(requireServer, applicationId, generation)
+    // Answers first, then grades, on the same serialized chain (R6-b).
+    let record: WizardDraftRecord | null = null
+    if (answersPending) {
+      record = await this.performUpdate(requireServer, applicationId, generation)
+      if (!record) return null
+    }
+    if (!this.computeGradesSendable()) return record
+    if (answersPending) {
+      // The answers' write settled the machine; the grades are a second command.
+      this.clearDebounce()
+      this.enterSaving(reason === 'manual' || requireServer)
+      this.saveError = null
+      this.emit()
+    }
+    const gradesSaved = await this.performGradesSync(requireServer, applicationId, generation)
+    if (!gradesSaved) return null
+    return record ?? (requireServer ? this.confirmUnchanged(applicationId, generation) : null)
+  }
+
+  /**
+   * The grades command: replace the server's grade set with the grid's savable
+   * rows as a partial set (R6-b). One key per exact set, so a retry after a lost
+   * response replays it; a newer grid is a new command.
+   */
+  private async performGradesSync(
+    requireServer: boolean,
+    applicationId: string,
+    generation: number,
+  ): Promise<boolean> {
+    const sync = this.adapters.syncGrades
+    const rows = this.currentGradeRows()
+    if (!sync || !rows) return true
+    const fingerprint = fingerprintGrades(rows)
+    const command =
+      this.pendingGrades?.fingerprint === fingerprint
+        ? this.pendingGrades
+        : { fingerprint, key: this.adapters.createCommandKey('grades') }
+    this.pendingGrades = command
+    try {
+      await sync.call(this.adapters, applicationId, rows, command.key)
+    } catch (error) {
+      if (generation !== this.generation || this.applicationId !== applicationId) {
+        if (requireServer) throw error
+        return false
+      }
+      this.handleWriteError(error, { phase: 'grades', requireServer, applicationId })
+      return false
+    }
+    if (generation !== this.generation || this.applicationId !== applicationId) {
+      if (requireServer) throw new SupersededDraftCommand()
+      return false
+    }
+    this.pendingGrades = null
+    this.rejectedGradesFingerprint = null
+    this.gradesBaselineFingerprint = fingerprint
+    this.markWriteSucceeded()
+    this.writeLocal(this.computePending(), { announce: true })
+    this.afterWrite()
+    return true
   }
 
   /** Continue on an unchanged draft: confirm with a read, never a write. */
@@ -1410,7 +1569,7 @@ export class WizardDraftController {
   private handleWriteError(
     error: unknown,
     context: {
-      phase: 'start' | 'update'
+      phase: 'start' | 'update' | 'grades'
       requireServer: boolean
       startFingerprint?: string | null
       applicationId?: string
@@ -1418,7 +1577,8 @@ export class WizardDraftController {
   ): WizardDraftRecord | null {
     let kind: WizardDraftErrorKind
     try {
-      kind = this.adapters.classifyError(error, context.phase)
+      // A grades command fails the way an update does (auth, missing, validation, retryable).
+      kind = this.adapters.classifyError(error, context.phase === 'grades' ? 'update' : context.phase)
     } catch {
       kind = 'retryable'
     }
@@ -1483,6 +1643,18 @@ export class WizardDraftController {
 
     if (kind === 'validation') {
       // Definitive: the server did not apply it.
+      if (context.phase === 'grades') {
+        this.pendingGrades = null
+        this.dispatch('SAVE_FAILED')
+        this.saveError = errorMessage(error, WIZARD_DRAFT_MESSAGES.saveFailed)
+        try {
+          const rows = this.currentGradeRows()
+          this.rejectedGradesFingerprint = rows ? fingerprintGrades(rows) : null
+        } catch {
+          this.rejectedGradesFingerprint = null
+        }
+        return fail()
+      }
       if (context.phase === 'update') this.pendingUpdate = null
       else this.pendingStart = null
       this.dispatch('SAVE_FAILED')
@@ -1517,7 +1689,7 @@ export class WizardDraftController {
     return fail()
   }
 
-  private buildSnapshot(pending: boolean, persistedLocally: boolean): WizardDraftSnapshot {
+  private buildSnapshot(pending: boolean, persistedLocally: boolean, unsavableGradeRows = 0): WizardDraftSnapshot {
     const unsyncedState =
       this.state === 'saving' || this.state === 'offline.queued' || this.state === 'conflict'
     return {
@@ -1542,12 +1714,21 @@ export class WizardDraftController {
       paymentActivity: this.paymentActivity,
       hydrationFailed: this.hydrationFailed,
       conflictVersion: this.conflictVersion,
+      unsavableGradeRows,
     }
   }
 
   private emit(): void {
     let pending = false
     let persistedLocally = false
+    let unsavableGradeRows = 0
+    try {
+      if (this.applicationId && this.canAcceptEdits() && this.adapters.projectGrades) {
+        unsavableGradeRows = this.adapters.projectGrades().unsavableRows
+      }
+    } catch {
+      unsavableGradeRows = 0
+    }
     try {
       pending = this.canAcceptEdits() ? this.computePending() : false
       persistedLocally =
@@ -1560,7 +1741,7 @@ export class WizardDraftController {
       pending = false
       persistedLocally = false
     }
-    const next = this.buildSnapshot(pending, persistedLocally)
+    const next = this.buildSnapshot(pending, persistedLocally, unsavableGradeRows)
     const previous = this.snapshot
     const changed = (Object.keys(next) as Array<keyof WizardDraftSnapshot>).some(
       (key) => next[key] !== previous[key],

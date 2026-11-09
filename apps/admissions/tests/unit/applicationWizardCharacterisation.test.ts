@@ -50,6 +50,7 @@ import {
 } from '@/pages/student/applicationWizard/steps/config'
 import { useWizardNavigation } from '@/pages/student/applicationWizard/hooks/wizard/useWizardNavigation'
 import { buildWizardReadiness } from '@/pages/student/applicationWizard/lib/wizardReadiness'
+import { readinessInput } from './__fixtures__/readinessInput'
 import { parseWizardDraftIntent } from '@/pages/student/applicationWizard/hooks/wizard/useWizardDraftLoader'
 import { resolveDraftResumeStepId } from '@/pages/student/applicationWizard/lib/draftResume'
 import {
@@ -201,7 +202,7 @@ describe('wizard characterisation: the navigation reducer (R10.2)', () => {
 
 describe('wizard characterisation: the readiness rail (R10.6, R11.5)', () => {
   it('counts every requirement across the six steps', () => {
-    const readiness = buildWizardReadiness({ values: {} })
+    const readiness = buildWizardReadiness(readinessInput({ values: {} }))
 
     expect(readiness.stepProgress.map(step => step.stepKey)).toEqual(
       wizardSteps.map(step => step.key),
@@ -214,14 +215,14 @@ describe('wizard characterisation: the readiness rail (R10.6, R11.5)', () => {
   })
 
   it('reaches canSubmit only when every step is satisfied', () => {
-    const readiness = buildWizardReadiness({
+    const readiness = buildWizardReadiness(readinessInput({
       values: { ...completePersonal, program: 'programme-1', intake: 'intake-1' },
       selectedGrades: minimumGrades(),
       uploadedFiles: { result_slip: true, extra_kyc: true },
       paymentStatus: 'successful',
       confirmSubmission: true,
       assignmentResolved: true,
-    })
+    }))
 
     expect(readiness.missingItems).toEqual([])
     expect(readiness.canSubmit).toBe(true)
@@ -229,36 +230,36 @@ describe('wizard characterisation: the readiness rail (R10.6, R11.5)', () => {
   })
 
   it('refuses a duplicate subject and a non-canonical subject id (STU-11)', () => {
-    const duplicated = buildWizardReadiness({
+    const duplicated = buildWizardReadiness(readinessInput({
       values: {},
       selectedGrades: [
         ...minimumGrades().slice(0, 4),
         { subject_id: canonicalSubjectId(1), grade: 5 },
       ],
-    })
+    }))
     expect(
       duplicated.stepProgressByKey.education.missingItems.some(item => item.field === 'grades'),
     ).toBe(true)
 
-    const nonCanonical = buildWizardReadiness({
+    const nonCanonical = buildWizardReadiness(readinessInput({
       values: {},
       selectedGrades: [1, 2, 3, 4, 5].map(n => ({ subject_id: `subject-${n}`, grade: 4 })),
-    })
+    }))
     expect(
       nonCanonical.stepProgressByKey.education.missingItems.some(item => item.field === 'grades'),
     ).toBe(true)
   })
 
   it('treats a deferred fee as satisfied for progress, and an unpaid one as not', () => {
-    const deferred = buildWizardReadiness({ values: {}, paymentStatus: 'deferred' })
+    const deferred = buildWizardReadiness(readinessInput({ values: {}, paymentStatus: 'deferred' }))
     expect(deferred.stepProgressByKey.payment.isComplete).toBe(true)
 
-    const pending = buildWizardReadiness({ values: {}, paymentStatus: 'pending' })
+    const pending = buildWizardReadiness(readinessInput({ values: {}, paymentStatus: 'pending' }))
     expect(pending.stepProgressByKey.payment.isComplete).toBe(false)
   })
 
   it('names the tenant\u2019s own documents when a contract is supplied', () => {
-    const readiness = buildWizardReadiness({
+    const readiness = buildWizardReadiness(readinessInput({
       values: {},
       requiredDocumentItems: [
         {
@@ -268,7 +269,7 @@ describe('wizard characterisation: the readiness rail (R10.6, R11.5)', () => {
           completed: false,
         },
       ],
-    })
+    }))
 
     const documentFields = readiness.stepProgressByKey.education.missingItems.map(
       item => item.field,
@@ -278,7 +279,7 @@ describe('wizard characterisation: the readiness rail (R10.6, R11.5)', () => {
   })
 
   it('every missing item carries the step that fixes it, and a sentence', () => {
-    const readiness = buildWizardReadiness({ values: {} })
+    const readiness = buildWizardReadiness(readinessInput({ values: {} }))
     const stepKeys = new Set<StepKey>(wizardSteps.map(step => step.key))
 
     readiness.missingItems.forEach(item => {

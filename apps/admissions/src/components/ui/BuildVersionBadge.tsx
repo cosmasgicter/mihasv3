@@ -13,7 +13,20 @@ interface BuildVersionBadgeProps {
   muted?: boolean
 }
 
-export function BuildVersionBadge({
+/**
+ * Development diagnostics only (student-journey-repair R10, clause 2.48).
+ *
+ * Production pages show no build badge and send no `/health/live/` version
+ * request. Vite replaces `import.meta.env.DEV` with `false` in production
+ * builds, so the inner component and its probe leave the bundle. The backend
+ * version still travels in the `X-Backend-Version` header and `VITE_APP_VERSION`
+ * still drives chunk reloads, which is what support uses.
+ */
+export function BuildVersionBadge(props: BuildVersionBadgeProps) {
+  return import.meta.env.DEV ? <DevBuildVersionBadge {...props} /> : null
+}
+
+function DevBuildVersionBadge({
   className,
   compact = false,
   muted = false,
@@ -41,7 +54,7 @@ export function BuildVersionBadge({
   if (compact) {
     return (
       <div
-        className={cn('flex flex-wrap items-center gap-2 text-[11px]', className)}
+        className={cn('flex flex-wrap items-center gap-2 text-xs', className)}
         aria-label={`Frontend build ${frontendVersion}. Backend build ${backendVersion}.`}
       >
         <Badge
@@ -65,7 +78,7 @@ export function BuildVersionBadge({
   return (
     <div
       className={cn(
-        'inline-flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-background/80 px-3 py-2 text-xs text-muted-foreground backdrop-blur',
+        'inline-flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-muted px-3 py-2 text-xs text-muted-foreground',
         className,
       )}
       aria-label={`Frontend build ${frontendVersion}. Backend build ${backendVersion}.`}

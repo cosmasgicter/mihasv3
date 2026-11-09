@@ -83,3 +83,34 @@ class TestGetS3ClientCaching:
 class TestLegacyAlias:
     def test_legacy_alias_works(self):
         assert _get_document_storage_key is get_document_storage_key
+
+
+class TestSignedUrlHost:
+    """SJR task 3.1 (clause 2.1): signed URLs are signed against the browser-reachable
+    public endpoint, not the internal one. Signing is local, so no network is used."""
+
+    def _sign(self, settings, internal, public):
+        from apps.common.storage import generate_signed_url
+
+        settings.AWS_S3_ENDPOINT_URL = internal
+        settings.AWS_S3_PUBLIC_ENDPOINT_URL = public
+        settings.AWS_S3_ACCESS_KEY_ID = "testkey"
+        settings.AWS_S3_SECRET_ACCESS_KEY = "testsecret"
+        settings.AWS_STORAGE_BUCKET_NAME = "bucket"
+        reset_s3_client()
+        try:
+            return generate_signed_url("docs/file.pdf", expiry=300)
+        finally:
+            reset_s3_client()
+
+    def test_signs_against_public_endpoint(self, settings):
+        from urllib.parse import urlparse
+
+        url = self._sign(settings, "http://minio:9000", "http://127.0.0.1:59000")
+        assert urlparse(url).netloc == "127.0.0.1:59000"
+
+    def test_defaults_to_internal_endpoint(self, settings):
+        from urllib.parse import urlparse
+
+        url = self._sign(settings, "http://minio:9000", "")
+        assert urlparse(url).netloc == "minio:9000"

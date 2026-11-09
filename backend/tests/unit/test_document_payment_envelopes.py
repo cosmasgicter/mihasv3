@@ -23,7 +23,9 @@ class TestDocumentExtractEnvelope(SimpleTestCase):
         user_id = str(uuid.uuid4())
 
         mock_doc = MagicMock(id=doc_id, application_id=app_id)
-        mock_doc_qs.select_related.return_value.get.return_value = mock_doc
+        # SJR task 3.19: the loader's owner lookup is
+        # ``queryset.filter(application__user_id=...).get(...)``.
+        mock_doc_qs.select_related.return_value.filter.return_value.get.return_value = mock_doc
 
         with patch("apps.applications.models.Application.objects") as mock_app_qs:
             mock_app = MagicMock(user_id=user_id)

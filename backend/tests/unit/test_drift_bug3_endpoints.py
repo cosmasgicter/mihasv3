@@ -50,6 +50,8 @@ def _make_mock_document(doc_id=None, owner_id=None, file_url="documents/app123/a
     doc.document_name = "transcript.pdf"
     doc.document_type = "transcript"
     doc.file_url = file_url
+    # No stored key: the helper falls back to file_url (SJR task 3.13).
+    doc.storage_key = None
     doc.file_size = 102400
     doc.mime_type = "application/pdf"
     doc.verification_status = "pending"
@@ -68,14 +70,55 @@ def _make_mock_document(doc_id=None, owner_id=None, file_url="documents/app123/a
 
 
 def _mock_document_lookup(mock_qs, document=None, side_effect=None):
-    lookup = mock_qs.select_related.return_value.get
-    if side_effect is not None:
-        lookup.side_effect = side_effect
-    else:
-        lookup.return_value = document
+    """Wire the document loader's lookups.
+
+    SJR task 3.19 (R5-g): the loader is now ``resolve_owner_or_scoped_document``,
+    which first asks ``queryset.filter(application__user_id=<actor>).get(id=...)``
+    (the owner lookup) and only then the scoped lookup. The mock follows that
+    shape: the owner lookup answers with ``document`` when the actor owns it and
+    raises ``DoesNotExist`` otherwise; every 404, owner and envelope assertion in
+    this module is unchanged. The scoped fallback is patched by ``_ScopedLookupMiss``.
+    """
+    from apps.documents.models import ApplicationDocument as RealModel
+
+    base = mock_qs.select_related.return_value
+
+    def _owner_lookup(*args, **kwargs):
+        lookup = MagicMock()
+        if side_effect is not None:
+            lookup.get.side_effect = side_effect
+        elif document is not None and str(kwargs.get("application__user_id")) == str(
+            document.application.user_id
+        ):
+            lookup.get.return_value = document
+        else:
+            lookup.get.side_effect = RealModel.DoesNotExist
+        return lookup
+
+    base.filter.side_effect = _owner_lookup
 
 
-class TestDocumentSignedUrlEndpoint(SimpleTestCase):
+class _ScopedLookupMiss(SimpleTestCase):
+    """A non-owner has no tenant scope in these DB-free tests.
+
+    The scoped fallback of ``resolve_owner_or_scoped_document`` reads
+    memberships and grants, which a ``SimpleTestCase`` may not do, so it is
+    patched to its real answer for an actor with no scope: the masked not-found.
+    """
+
+    def setUp(self):
+        super().setUp()
+        from rest_framework.exceptions import NotFound
+
+        patcher = patch(
+            "apps.common.tenant_authorization.resolve_scoped_document",
+            side_effect=NotFound("Document not found"),
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+
+class TestDocumentSignedUrlEndpoint(_ScopedLookupMiss):
     """Integration tests for GET /documents/{id}/signed-url/.
 
     **Validates: Requirements 3.5**
@@ -135,26 +178,46 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_signed_url_passes_object_key_not_full_url(self):
+        """SJR task 3.13 (clause 2.20). The old assertion signed a foreign
+        ``cdn.example.com`` URL's path against our bucket, which is defect 1.18.
+        A legacy-provider URL is now returned unchanged, while a presigned
+        (``X-Amz-``) URL is still signed by its path."""
         factory = APIRequestFactory()
-        doc_id = uuid.uuid4()
-        request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
         user = _make_auth_user()
-        force_authenticate(request, user=user)
-
-        mock_doc = _make_mock_document(
-            doc_id,
-            owner_id=user.id,
-            file_url="https://cdn.example.com/media/documents/app123/abc_transcript.pdf?signature=ignored",
+        legacy = "https://cdn.example.com/media/documents/app123/abc_transcript.pdf?signature=ignored"
+        presigned = (
+            "https://anyhost.example.net/media/documents/app123/abc_transcript.pdf"
+            "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=old"
         )
-
-        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
-             patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed") as mock_signed:
-            _mock_document_lookup(mock_qs, mock_doc)
-            view = DocumentSignedUrlView.as_view()
-            response = view(request, document_id=doc_id)
-
-        self.assertEqual(response.status_code, 200)
-        mock_signed.assert_called_once_with("documents/app123/abc_transcript.pdf")
+        for file_url, expected_url, expected_key in (
+            (legacy, legacy, None),
+            (presigned, "https://r2.example.com/signed", "documents/app123/abc_transcript.pdf"),
+        ):
+            doc_id = uuid.uuid4()
+            request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
+            force_authenticate(request, user=user)
+            mock_doc = _make_mock_document(doc_id, owner_id=user.id, file_url=file_url)
+            with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
+                 patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed") as mock_signed:
+                _mock_document_lookup(mock_qs, mock_doc)
+                view = DocumentSignedUrlView.as_view()
+                response = view(request, document_id=doc_id)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["data"]["url"], expected_url)
+            if expected_key is None:
+                mock_signed.assert_not_called()
+            else:
+                # SJR task 3.19 (R5-h, clause 2.30): the signer is also told the
+                # display name and disposition, because object keys carry no
+                # client filename (R4-b). The old key-only call encoded the
+                # defect (no ``ResponseContentDisposition``); the key argument is
+                # asserted exactly as before.
+                mock_signed.assert_called_once_with(
+                    expected_key,
+                    filename="transcript.pdf",
+                    disposition="inline",
+                    content_type="application/pdf",
+                )
 
     def test_signed_url_requires_authentication(self):
         factory = APIRequestFactory()
@@ -168,7 +231,7 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
         self.assertIn(response.status_code, (401, 403))
 
 
-class TestDocumentDownloadEndpoint(SimpleTestCase):
+class TestDocumentDownloadEndpoint(_ScopedLookupMiss):
     """Integration tests for GET /documents/{id}/download/.
 
     **Validates: Requirements 3.5**
@@ -219,7 +282,7 @@ class TestDocumentDownloadEndpoint(SimpleTestCase):
         self.assertIn(response.status_code, (401, 403))
 
 
-class TestDocumentInfoEndpoint(SimpleTestCase):
+class TestDocumentInfoEndpoint(_ScopedLookupMiss):
     """Integration tests for GET /documents/{id}/info/.
 
     **Validates: Requirements 3.5**
@@ -275,7 +338,7 @@ class TestDocumentInfoEndpoint(SimpleTestCase):
         self.assertIn(response.status_code, (401, 403))
 
 
-class TestDocumentDeleteEndpoint(SimpleTestCase):
+class TestDocumentDeleteEndpoint(_ScopedLookupMiss):
     """Integration tests for DELETE /documents/{id}/delete/.
 
     **Validates: Requirements 3.5**

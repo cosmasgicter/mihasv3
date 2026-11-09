@@ -27,6 +27,13 @@
  * second one, and an application's cleanup is one key. The assignment is part of
  * the address the record is matched against on every read, not of the key name.
  *
+ * Grades (SJR task 3.23, R6-b) are a second pending channel. A record that
+ * holds grade rows the server has not acknowledged is format 4 and carries them
+ * as `grades`; a record with no pending grades is written exactly as format 3
+ * was, with no `grades` key, and a v3 record reads as "no pending grades". The
+ * rows are `{ subject_id, grade }` pairs only: ids and numbers the student typed,
+ * the same pairs the grades endpoint takes.
+ *
  * An unattached new application is not built here: its record keeps the whole
  * form, because all of it is pending.
  */
@@ -34,6 +41,13 @@ import { DRAFT_ANSWER_FIELDS } from './draftAutosave'
 
 /** `version` of an attached outbox record. Records without it predate task 6.3 M14. */
 export const DRAFT_OUTBOX_RECORD_FORMAT = 3
+/** `version` of a record that also holds pending grade rows (SJR task 3.23). */
+export const DRAFT_OUTBOX_GRADES_RECORD_FORMAT = 4
+
+export interface DraftOutboxGradeRow {
+  subject_id: string
+  grade: number
+}
 
 export interface DraftOutboxRecordInput {
   userId: string
@@ -44,6 +58,8 @@ export interface DraftOutboxRecordInput {
   pendingBase: Record<string, unknown> | null
   /** The live form values the pending answers are read from. */
   formValues: Record<string, unknown>
+  /** Grade rows the server has not acknowledged; omit or pass null when none are pending. */
+  grades?: ReadonlyArray<DraftOutboxGradeRow> | null
   savedAt: string
 }
 
@@ -57,8 +73,9 @@ export function buildDraftOutboxRecord(input: DraftOutboxRecordInput): Record<st
     const value = input.formValues[field]
     answers[field] = value === undefined ? null : value
   }
-  return {
-    version: DRAFT_OUTBOX_RECORD_FORMAT,
+  const grades = input.grades ?? null
+  const record: Record<string, unknown> = {
+    version: grades ? DRAFT_OUTBOX_GRADES_RECORD_FORMAT : DRAFT_OUTBOX_RECORD_FORMAT,
     userId: input.userId,
     applicationId: input.applicationId,
     assignment: input.assignment,
@@ -68,6 +85,28 @@ export function buildDraftOutboxRecord(input: DraftOutboxRecordInput): Record<st
     pendingBase: input.pendingBase,
     savedAt: input.savedAt,
   }
+  if (grades) record.grades = grades.map((row) => ({ subject_id: row.subject_id, grade: row.grade }))
+  return record
+}
+
+/**
+ * The pending grade rows a record holds. A record without the `grades` key
+ * (every format 3 record) holds none; malformed members are dropped, so a
+ * damaged record can never put a non-row into the grid.
+ */
+export function draftOutboxGrades(record: Record<string, unknown> | null | undefined): DraftOutboxGradeRow[] {
+  if (!record || typeof record !== 'object') return []
+  const grades = record.grades
+  if (!Array.isArray(grades)) return []
+  const rows: DraftOutboxGradeRow[] = []
+  for (const member of grades) {
+    if (!member || typeof member !== 'object') continue
+    const subjectId = (member as Record<string, unknown>).subject_id
+    const grade = Number((member as Record<string, unknown>).grade)
+    if (typeof subjectId !== 'string' || !subjectId || !Number.isFinite(grade)) continue
+    rows.push({ subject_id: subjectId, grade })
+  }
+  return rows
 }
 
 /**

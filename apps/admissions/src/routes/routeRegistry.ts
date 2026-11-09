@@ -38,6 +38,7 @@ export type ProductRouteId =
   | 'student.dashboard'
   | 'student.applicationWizard'
   | 'student.status'
+  | 'student.documentOpen'
   | 'student.settings'
   | 'student.notifications'
   | 'student.payment'
@@ -228,11 +229,31 @@ export const ROUTES = {
     nav: {
       label: 'Application Status',
       icon: BriefcaseBusiness,
+      // Task 3.18 (R5-c, finding B-04): the documents card lives on this page, so
+      // omitting it from the desktop sidebar left a desktop student with no
+      // one-activation route to their documents. Mobile already listed it.
+      desktop: true,
       mobile: true,
       order: 80,
       section: 'student',
       activeMatchPaths: ['/student/status'],
     },
+  },
+  /**
+   * The one opener every student View/Open control links to (SJR task 3.17,
+   * R5-a, findings B-01 and B-07).
+   *
+   * Query grammar (validated by `lib/documentOpen.ts` before any request):
+   * `doc=<uuid>`, `doc=legacy:<result_slip|extra_kyc>:<application uuid>`, or
+   * `app=<uuid>&type=<official document type>`. It signs at click time, so a link
+   * is never older than the moment it is used, and it has no nav entry: it is a
+   * destination, not a place to browse.
+   */
+  studentDocumentOpen: {
+    id: 'student.documentOpen',
+    path: '/student/documents/open',
+    guard: 'student',
+    skeletonType: 'detail',
   },
   studentSettings: {
     id: 'student.settings',

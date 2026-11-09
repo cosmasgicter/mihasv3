@@ -60,13 +60,22 @@ export class HarnessGate {
   readonly cancelledRequests: string[] = [];
 
   private allowedConsole: Matcher[] = [];
-  private allowedRequests: Matcher[] = [
-    // The app's documented anonymous "asserted error path": the session
-    // bootstrap / refresh calls legitimately return 401 for a logged-out
-    // visitor and the ApiClient handles them. These are allowed by default.
+  private allowedRequests: Matcher[] = [];
+  /**
+   * The two default allowances: the app's documented anonymous "asserted error path".
+   * The session bootstrap / refresh calls legitimately return 401 for a logged-out
+   * visitor and the ApiClient handles them. These are allowed by default.
+   */
+  private static readonly DEFAULT_ALLOWED: Matcher[] = [
     '/api/v1/auth/session',
     '/api/v1/auth/refresh',
   ];
+  /**
+   * Opt-in (SJR task 4.2, design R9-b). When true, the two default allowances apply
+   * only to a 401, so a 429 or a 5xx on those URLs is a violation. The journey gate
+   * turns it on; the broad matrix keeps the URL-only allowances (SJR 3.22).
+   */
+  constructor(private readonly statusAwareDefaults = false) {}
 
   /** Register an expected console error/warning substring or pattern. */
   allowConsole(pattern: Matcher): this {
@@ -80,8 +89,10 @@ export class HarnessGate {
     return this;
   }
 
-  isRequestAllowed(url: string): boolean {
-    return matches(url, this.allowedRequests);
+  isRequestAllowed(url: string, status?: number | string): boolean {
+    if (matches(url, this.allowedRequests)) return true;
+    if (!matches(url, HarnessGate.DEFAULT_ALLOWED)) return false;
+    return this.statusAwareDefaults ? status === 401 : true;
   }
 
   isConsoleAllowed(text: string): boolean {
@@ -97,7 +108,7 @@ export class HarnessGate {
       violations.push(`pageerror: ${err}`);
     }
     for (const req of this.failedRequests) {
-      if (!this.isRequestAllowed(req.url)) {
+      if (!this.isRequestAllowed(req.url, req.status)) {
         violations.push(`failed request [${req.status}]: ${req.url}${req.detail ? ` (${req.detail})` : ''}`);
       }
     }
@@ -130,10 +141,12 @@ function attach(page: Page, gate: HarnessGate): void {
   });
 }
 
-export const test = base.extend<{ gate: HarnessGate }>({
+export const test = base.extend<{ gate: HarnessGate; statusAwareDefaults: boolean }>({
+  // Off everywhere except the journey gate's Playwright config (`use: { statusAwareDefaults: true }`).
+  statusAwareDefaults: [false, { option: true }],
   gate: [
-    async ({ page }, use) => {
-      const gate = new HarnessGate();
+    async ({ page, statusAwareDefaults }, use) => {
+      const gate = new HarnessGate(statusAwareDefaults);
       attach(page, gate);
       await use(gate);
       const violations = gate.collectViolations();

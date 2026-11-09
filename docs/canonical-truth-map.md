@@ -14,6 +14,22 @@ student, tenant, catalog, payment, document, API-contract, database-alignment,
 mobile, and admissions de-AI work. It requires executable evidence before a
 finding or task can be called complete.
 
+### Student journey repair (P0a)
+
+`.kiro/specs/student-journey-repair/` (Spec A) is registered as an active
+alignment spec. It repairs the student journey end to end: object storage and
+uploads, rate limiting, document keys and viewing, the single document opener,
+submit readiness and draft grades, session continuity and registration phone
+handling, and the development-only diagnostics badge. It narrows, and does not
+supersede, the V2 spec: where it names a behaviour it is authoritative for that
+behaviour, and it keeps every V2 preservation clause true. Its P0a tasks (1-3)
+are complete when the checkpoint in `tasks.md` task 3.30 is green; its R7 tests
+keep their strict markers until task 5.6. The blocking CI journey gate
+(`.github/workflows/student-journey-gate.yml`, task 4, `bash harness/bin/harness
+journey-gate`) is its answer to R9; making its two jobs required checks on `main`
+is an operator step in repository settings. Spec B is a separate spec and is not
+registered here.
+
 The archived `canonical-multi-tenant-alignment` spec and other earlier active or
 archived specs remain historical design and evidence inputs. When an
 admissions-specific implementation choice conflicts with the V2 spec, the V2
@@ -66,6 +82,8 @@ drift guard" note must say so.
 | Platform attribution metadata | `backend/apps/common/meta_views.py` (`creator: Cosmas Kanchepa`, `developer: Beanola Technologies`, `https://beanola.com`) | `GET /api/v1/meta/platform/` |
 | Product admin tenant surface (route) | `apps/admissions/src/routes/config.tsx` → `{ path: '/admin/tenants', guard: 'admin' }` (lazy `@/pages/admin/Tenants`) | **Beanola product admin** UI for tenant onboarding / school management; **authoritative for the launch smoke check (R14.3)**. No route rename. |
 | Django operational admin surface (route) | `backend/config/urls.py` → `path("beanola-admin-panel/", admin.site.urls)` | low-level Django framework admin; checked separately from `/admin/tenants` per the R1 two-surface decision. No route rename. |
+| Object storage | `backend/config/settings/base.py` (`AWS_S3_ENDPOINT_URL` ← `S3_ENDPOINT_URL`; `AWS_S3_PUBLIC_ENDPOINT_URL` ← `S3_PUBLIC_ENDPOINT_URL`, signing host only, defaults to the internal endpoint; `AWS_QUERYSTRING_EXPIRE` ← `S3_SIGNED_URL_TTL_SECONDS`, 10-3600, default 900; private bucket; prod and staging refuse to start without `S3_*` and the rest of `REQUIRED_ENV_VARS`, checked in `apps.common.apps.CommonConfig.ready()` when `STARTUP_ENV_VALIDATION` is true) and `backend/apps/common/storage.py` (`get_s3_client`, `get_presign_client`, `generate_signed_url`) | local-test stack MinIO (`backend/docker-compose.local-test.yml`, bucket `mihas-localtest`); round-trip check `manage.py storage_roundtrip_check --expect-private`; contract test `backend/tests/unit/test_storage_settings_contract.py` |
+| Client IP and proxy trust (SJR R3-a/R3-b) | `backend/apps/common/request_utils.py:get_client_ip` - `X-Forwarded-For` is read only when `REMOTE_ADDR` is inside `TRUSTED_PROXY_CIDRS` (`base.py`, env `TRUSTED_PROXY_CIDRS`, default loopback + private ranges) and only `NUM_PROXIES` hops deep (default 1: Caddy). `RATELIMIT_IP_META_KEY` points django-ratelimit's `key="ip"` at it. Document budgets: per-IP `/api/v1/documents/upload/` 60/10m then `/api/v1/documents/` 300/10m (`RateLimitMiddleware.SCOPE_LIMITS`); per-user `DocumentUserRateThrottle` (`apps/common/throttling.py`) `documents_write` 40/hour and `documents_read` 300/hour, off when `RATELIMIT_ENABLE` is false, fail-open on cache errors | `RateLimitMiddleware`, `ClientIpIdentMixin` throttles, audit network fields, public-tracking failure throttle; `backend/tests/unit/test_sjr_rate_limit_bug_conditions.py`, `test_sjr_client_ip_trust.py` |
 | Email sender / default contact | `backend/config/settings/base.py` (`DEFAULT_FROM_EMAIL` ← `ZOHO_FROM_EMAIL`/`EMAIL_FROM`, default `admin@beanola.com`; `EMAIL_FROM` default `noreply@beanola.com`; `ERROR_ALERT_EMAIL` default `admin@beanola.com`) | outbound email (`apps/common/tasks.py`, `apps/common/email/`); default contact `apps/common/communication_service.py:_DEFAULT_CONTACT_EMAIL` (`admissions@beanola.com`); admin setting `accounts/admin_serializers.py` `contact_email` |
 | OpenAPI metadata | `backend/config/settings/base.py:SPECTACULAR_SETTINGS` (`TITLE`, `DESCRIPTION`, `VERSION`, `SERVERS`) | `python3 manage.py spectacular`; `/api/v1/` docs. Current title is `"Beanola Platform APIs"` and servers point to `api.beanola.com` plus local development. |
 | Public routes / SEO | `apps/admissions/src/components/seo/Seo.tsx` (`DEFAULT_SITE_NAME="Beanola Admissions"`, default image `/images/logos/beanolalogo.webp`, site URL ← `VITE_APP_BASE_URL`/`VITE_SITE_URL`, default `https://apply.beanola.com`) | per-page `<Seo>` usage across public/student routes (`LandingPage`, `tracker`, `Privacy`/`Terms`/`Contact`, auth, dashboard) |
@@ -76,7 +94,7 @@ drift guard" note must say so.
 | Concept | Source of truth | Consumers (drift-guarded) |
 |---------|-----------------|----------------------------|
 | Status enum & transitions | `backend/apps/applications/services.py:ALLOWED_TRANSITIONS` | `apps/admissions/src/types/applicationStatus.ts` |
-| Online student drafts | `backend/apps/applications/models.py:Application` rows where `status='draft'` (optional student-facing `draft_name` label — additive nullable column, `backend/scripts/2026_07_24_01_application_draft_name.sql`, task 6.2/R10.9) | Canonical multi-draft collection: `GET /api/v1/applications/drafts/` (own drafts only), `POST /api/v1/applications/drafts/` (start — requires the minimum canonical `program_id`+`intake_id`, `Idempotency-Key`-idempotent, never an empty payload and never silent duplicate `existing_id` adoption), `GET/PATCH/DELETE /api/v1/applications/drafts/{id}/`, and the validated label command `PATCH /api/v1/applications/drafts/{id}/rename/` (writes only `draft_name`, never assignment IDs). Also the dashboard draft list (`GET /api/v1/applications/?mine=true&status=draft`), wizard resume/update/delete (`GET/PATCH/DELETE /api/v1/applications/{id}/`), uploads, grades, payment protection. `Application.id` is the canonical draft id. Frontend consumers: `apps/admissions/src/services/applications.ts:startDraft/renameDraft`, `useMultiDraft`, `WizardDraftPicker` (the removed `DraftManager.tsx`'s successor). **The open wizard draft has one frontend owner** (task 6.3, R10.2, design §8.2): the draft machine `apps/admissions/src/lib/wizardDraftController.ts` (pure graph `wizardDraftMachine.ts`, pure rules `wizardDraftProjection.ts`) owns hydration, edits, debounced/8 s autosave, Save now, retry, conflict reload/merge, delete-detach, payment gate and submit; hooks and components are adapters or views over it. Its local outbox (`draftLocalCache.ts` over `localStorageCache.ts`, AES-GCM-encrypted) is, for an attached draft, one record addressed by `(user, application, assignment)` — the slot is keyed by user + application, and the assignment (`program_offering_id\|intake_id` as the server reports it) is carried in the record and matched on every read, so a record for another assignment is never replayed and opens the explicit conflict instead. It holds only the pending answers, their base and version (record format 3, `applicationWizard/lib/draftOutbox.ts`), exists only while the server lacks an edit, and is cleared on successful sync, submit, sign-out/owner change, or a server-confirmed delete/`404` (task 6.3 M14). An unattached new application keeps its whole form in the user's one `:new` slot, removed only when that application attaches or on explicit `mode=new`. No outbox operation ever touches the payment-recovery store. Hydration takes the record's canonical `intake_id`, never the shared display name. Drift-guarded by `tests/unit/wizardDraft*.test.ts*` (including `wizardDraftOutboxMinimisation.test.tsx`), `tests/property/wizardDraft*.property.test.ts`, `tests/property/draftOutboxMinimisation.property.test.ts`, `tests/unit/localStorageCacheEncryptedOutbox.test.ts`, `tests/unit/draftHydrationCanonicalIntake.test.ts`, and the required journeys `wizard-draft-refresh-each-step.spec.ts` / `wizard-draft-slow-network.spec.ts`. |
+| Online student drafts | `backend/apps/applications/models.py:Application` rows where `status='draft'` (optional student-facing `draft_name` label — additive nullable column, `backend/scripts/2026_07_24_01_application_draft_name.sql`, task 6.2/R10.9) | Canonical multi-draft collection: `GET /api/v1/applications/drafts/` (own drafts only), `POST /api/v1/applications/drafts/` (start — requires the minimum canonical `program_id`+`intake_id`, `Idempotency-Key`-idempotent, never an empty payload and never silent duplicate `existing_id` adoption), `GET/PATCH/DELETE /api/v1/applications/drafts/{id}/`, and the validated label command `PATCH /api/v1/applications/drafts/{id}/rename/` (writes only `draft_name`, never assignment IDs). Also the dashboard draft list (`GET /api/v1/applications/?mine=true&status=draft`), wizard resume/update/delete (`GET/PATCH/DELETE /api/v1/applications/{id}/`), uploads, grades, payment protection. `Application.id` is the canonical draft id. Frontend consumers: `apps/admissions/src/services/applications.ts:startDraft/renameDraft`, `useMultiDraft`, `WizardDraftPicker` (the removed `DraftManager.tsx`'s successor). **The open wizard draft has one frontend owner** (task 6.3, R10.2, design §8.2): the draft machine `apps/admissions/src/lib/wizardDraftController.ts` (pure graph `wizardDraftMachine.ts`, pure rules `wizardDraftProjection.ts`) owns hydration, edits (answers **and grades**: the grade grid is a second channel saved by the same debounce through `POST /api/v1/applications/{id}/grades/` with `partial: true`, at most 10 rows, atomic under the application row lock; the submit minimum is still enforced by readiness and `submit_application`), debounced/8 s autosave, Save now, retry, conflict reload/merge, delete-detach, payment gate and submit; hooks and components are adapters or views over it. Its local outbox (`draftLocalCache.ts` over `localStorageCache.ts`, AES-GCM-encrypted) is, for an attached draft, one record addressed by `(user, application, assignment)` — the slot is keyed by user + application, and the assignment (`program_offering_id\|intake_id` as the server reports it) is carried in the record and matched on every read, so a record for another assignment is never replayed and opens the explicit conflict instead. It holds only the pending answers, their base and version (record format 3, `applicationWizard/lib/draftOutbox.ts`), plus the pending grade rows while there are any (format 4; SJR task 3.23), exists only while the server lacks an edit, and is cleared on successful sync, submit, sign-out/owner change, or a server-confirmed delete/`404` (task 6.3 M14). An unattached new application keeps its whole form in the user's one `:new` slot, removed only when that application attaches or on explicit `mode=new`. No outbox operation ever touches the payment-recovery store. Hydration takes the record's canonical `intake_id`, never the shared display name. Drift-guarded by `tests/unit/wizardDraft*.test.ts*` (including `wizardDraftOutboxMinimisation.test.tsx`), `tests/property/wizardDraft*.property.test.ts`, `tests/property/draftOutboxMinimisation.property.test.ts`, `tests/unit/localStorageCacheEncryptedOutbox.test.ts`, `tests/unit/draftHydrationCanonicalIntake.test.ts`, and the required journeys `wizard-draft-refresh-each-step.spec.ts` / `wizard-draft-slow-network.spec.ts`. |
 | Compatibility draft payload | `backend/apps/applications/models.py:ApplicationDraft` + `ApplicationDraftView` (`/api/v1/applications/draft/`) | Compatibility/cache metadata only. Not the canonical online draft list and not a production wizard routing source. Removal condition: all frontend callers use explicit `Application(status='draft')` multi-draft APIs. |
 | Wizard draft intent | Frontend route registry helpers for `/student/application-wizard?mode=new` and `/student/application-wizard?mode=resume&draftId=<application_id>` | Legacy `?new=true`, `?fresh=1`, and `/student/applications/new` normalize to `mode=new`; no silent timestamp-based resume or duplicate `existing_id` adoption. |
 | Application assignment (reroute) | `backend/apps/applications/change_selection_service.py:change_application_selection` — the **only** writer of `applications.{institution_id, program_id, program_offering_id, intake_id}` and their display snapshots `{institution, program, intake}` on an existing row (admissions-v2 task 6.4, R7.2/R10.5, design §7.2; finding STU-01). Canonical IDs only; one transaction moves every ID, display snapshot, `configuration_version`, `requirements_snapshot`, `eligibility_snapshot`, re-resolved `application_fee`, and the cleared dependent answers (`DEPENDENT_ANSWER_FIELDS`), bumping `assignment_version`. **Any** `Payment` row makes a reassignment immutable (`ASSIGNMENT_LOCKED_BY_PAYMENT` 409 + structured `recovery`). | Command endpoint `POST /api/v1/applications/drafts/{id}/change-selection/` (owner-scoped, `Idempotency-Key`-idempotent, `assignment_version` optimistic guard). Assignment creation (first write) is `resolve_assignment_snapshot` via `POST /api/v1/applications/` + `/applications/drafts/` (task 5.2). The generic `PATCH /api/v1/applications/{id}/` and `…/drafts/{id}/` accept **no** assignment field — `program`/`intake`/`institution` are `read_only` on `ApplicationSerializer` (`ASSIGNMENT_FIELDS`, excluded from `DRAFT_SAFE_FIELDS`). Frontend consumers: `apps/admissions/src/services/applications.ts:changeSelection`, `…/applicationWizard/lib/selectionChange.ts` (intent + recovery), `useWizardController.applyDraftSelectionChange`. |
@@ -92,7 +110,7 @@ drift guard" note must say so.
 | Canonical payment status enum | `backend/apps/documents/payment_service.py:CanonicalStatus` | `PAYMENT_TO_APP_MAP` |
 | Derived app payment_status | `backend/apps/documents/payment_service.py:PAYMENT_TO_APP_MAP` | `apps/admissions/src/lib/paymentStatus.ts:normalizePaymentStatus` |
 | State transitions | `backend/apps/documents/payment_service.py:ALLOWED_TRANSITIONS` | `_transition()` (sole writer) |
-| Force-approved propagation | `review_queue.py:PAYMENT_READY_STATUSES`, `admin_views.py:_RESOLVED_PAYMENT_STATUSES`, analytics, frontend `normalizePaymentStatus` | drift-guarded |
+| Force-approved propagation | `review_queue.py:PAYMENT_READY_STATUSES`, `admin_views.py:_RESOLVED_PAYMENT_STATUSES`, analytics, frontend `normalizePaymentStatus`, and (SJR R7-b) the frontend Approve gate `paymentStatus.ts:APPROVAL_PAYMENT_STATUSES` / `isPaymentResolvedForApproval`, a mirror of `RESOLVED_PAYMENT_STATUSES` (`admin_review_views.py:35` alias) | drift-guarded; `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` parses the literal, `apps/admissions/tests/unit/sjrApprovalParity.test.ts` pins agreement with `isPaymentResolvedForProgress` |
 | Payment error codes | `backend/apps/documents/payment_error_codes.py:PAYMENT_ERROR_CODES` | `apps/admissions/src/lib/paymentErrorCodes.ts` |
 | Canonical fee resolution | `backend/apps/documents/fee_resolver.py:FeeResolver` (offering + fee_type + residency + active only; `FeeConfigurationError`→`FEE_NOT_CONFIGURED`/`FEE_AMBIGUOUS`; **no default, no name lookup** — DATA-05/STU-08) | `payment_helpers._resolve_fee_for_application`/`_build_snapshot_dict`, `FeeResolveView`, `V2FeeResolveView`; DB invariant `uq_program_fees_one_active` |
 | Webhook event identity | `backend/apps/documents/webhook_processor.py:WebhookEventIdentity` | dedup table `webhook_event_logs` |
@@ -159,6 +177,7 @@ recover. The line is submission.
 | State → copy + single action | `apps/admissions/src/lib/paymentRecovery.ts:PAYMENT_RECOVERY_PRESENTATION` — a **total** `Record<PaymentUiState, …>`, plus `PAYMENT_DEFERRED_PRESENTATION` | the recovery card; adds no state vocabulary of its own |
 | "May an initiate control render?" | `paymentRecovery.ts:PaymentRecoveryPresentation.allowsInitiate` — `false` for every waiting state | the double-charge guard as data; also the R12.6 "no indefinite disabled control" rule (a waiting state renders a wait, not a disabled button) |
 | "May the prompt be re-sent?" | `paymentRecovery.ts:resolvePaymentRecovery().resendAvailable` — only a spent **`action_required`** budget | never `provider_processing`: a second collection against a working provider is how a student is charged twice |
+| Deferral clears the recovery entry | `PaymentStep` after `deferPayment` resolves and when the application reports `deferred`; `PaymentForm.syncPendingPayment` on a `deferred` verify result (stops the poll, resets the pending method and payment id) | server answers only; `allowsInitiate` is untouched (SJR task 3.24) |
 | Tenant support affordance | `apps/admissions/src/lib/tenantSupport.ts:resolveTenantSupportContact` — resolved tenant inbox, else the neutral in-app `/contact` route | payment page + recovery card (STU-24); no hardcoded address, never MIHAS/KATC |
 | Drift guards | `apps/admissions/tests/unit/feeProviderSourceScan.test.ts` (source scan: no hardcoded support copy, no legacy tenant, the wizard has no history, `paymentRecovery.ts` restates no wait budget), `paymentRecoveryPresentation.test.ts` (totality over `PaymentUiState`), `paymentOwnershipSplit.test.tsx`, and the 7 required browser journeys in `tests/harness-e2e/required/payment-ownership-split.spec.ts` |
 | Evidence | `docs/v2-evidence/8.3/` (journey matrix, both required projects) |
@@ -172,7 +191,9 @@ Payment. It closes findings **STU-08** (the client computed a 1% transaction fee
 and showed a K150/USD 20 default) and **DATA-05** (an invented default amount).
 
 `Payment` remains the source of truth for money that has moved (ADR-001); the
-quote is the record of what was *agreed* before it moved.
+quote is the record of what was *agreed* before it moved. Local and harness seeds
+(`harness_seed_tenants`) create canonical `program_fees` rows, so a fresh database
+resolves a fee through `FeeResolver` like any other.
 
 | Concept | Source of truth | Consumers |
 |---------|-----------------|-----------|
@@ -372,6 +393,12 @@ on this surface contains an email address.
 
 ### Admin review workspace contract (Admissions V2 task 9.4, R8.2-R8.5/R8.7/R11.3)
 
+> SJR R7-a: seeded school admins hold `tenant.application.review` by default
+> (`seed_school_admins` adds the `review` membership permission, additively, via
+> `_seed_memberships.py:seed_membership_permissions`; `--read-only` opts out).
+> SJR R7-c: the review command requires at least one condition for
+> `conditionally_approved` (`NO_CONDITIONS_PROVIDED`).
+
 **One read, and one versioned command per decision.** Opening an application in
 the admin workspace used to issue six requests plus a seventh for a model
 (`/details/`, `/documents/`, `/grades/`, `/summary/`, `/interviews/`,
@@ -526,6 +553,12 @@ notification list still returns exactly `{page, pageSize, totalCount, results}`.
 
 ### Offer conditions: evidence, review, and amendment history (Admissions V2 task 10.2, R13.9/R13.10)
 
+> SJR R7-c: `POST …/review/` with `new_status=conditionally_approved` always goes through
+> `ConditionManager.assign_conditions`. No conditions → 400 `NO_CONDITIONS_PROVIDED`; a
+> non-list payload → 400 `VALIDATION_ERROR` (`details.conditions`); more than 10 → 400
+> `TOO_MANY_CONDITIONS`. The admin UI collects them in `ConditionsDialog.tsx` (1-10 rows,
+> description 1-500 characters, deadline today or later). Bulk status stays out of scope (OS-11).
+
 **A conditionally approved student was told what they owed and given nowhere to put
 it.** The conditions read published `{id, description, condition_type, deadline,
 status, met_at}`, and the only condition command was the staff two-outcome
@@ -652,11 +685,13 @@ columns already are a job's (`status`, `retry_count`, `error_message`,
 | Where a generation status is derived | `official_document_views.py:_generation_status` — one function, one precedence: current artifact → open job → terminal failure → previously-issued artifact under the read-existing policy → `not_requested`. The failure step sits **above** the historical step, so a failed refresh is reported rather than silently serving an older file | the detail read, the list read, and the email route |
 | Issuance eligibility | `official_document_views.py:_student_gate_open` — byte-for-byte the pre-10.4 gate (slip ⇒ a non-draft submitted status; acceptance letter ⇒ `approved`; conditional offer ⇒ `conditionally_approved`; receipt ⇒ a settled payment; finance receipt ⇒ staff only). Answers **only** "may a new artifact be created from today's state?" | POST (`for_issue=True`); frontend mirror `apps/admissions/src/lib/officialDocumentGate.ts:isOfficialDocumentOffered`, drift-guarded by `apps/admissions/tests/property/officialDocumentGating.property.test.ts` |
 | Read-existing eligibility | `official_document_views.py:_may_read_issued` — a **separate** function, deliberately narrow: a stored, platform-issued (`system_generated`, non-deleted) artifact of that type exists. Retention is the deletion state, which `_current_official_version` already honours. Never conjures a document and never widens which types exist | GET and the email route (`for_issue=False`); the envelope's `historical: true` |
-| Frontend read-existing surface | `apps/admissions/src/hooks/useIssuedOfficialDocuments.ts` — asks `GET …/official-documents/` which types are `ready`, because whether an artifact exists is a fact about stored rows and not a function of status. `DocumentButtons` offers an action when **issuance permits it OR the server reports an artifact**; a failed list read is quiet (the issuance-gated actions are unaffected) | `components/student/DocumentButtons.tsx`, `components/student/ApplicationSlipActions.tsx` (`historical` ⇒ "Issued copy on record") |
+| Student read precedence (SJR task 3.19, R5-e) | `official_document_views.py:_generation_status` — for a **student** (`not is_staff`) a stored, platform-issued artifact is returned `ready` with `historical: true` **before** the open-job and failure steps, so a status change (which retires the slip fingerprint) never hides the slip the student holds. Staff keep the original order (open job, then failure, then the issued copy when issuance is refused), so an operator is still told a refresh failed. Counter `official_document.student_served_historical` | the detail, list and email reads |
+| Frontend read-existing surface | `apps/admissions/src/hooks/useIssuedOfficialDocuments.ts` — asks `GET …/official-documents/` which types are `ready`, because whether an artifact exists is a fact about stored rows and not a function of status. `DocumentButtons` offers an action when **issuance permits it OR the server reports an artifact**; a failed list read is quiet (the issuance-gated actions are unaffected) | `components/student/DocumentButtons.tsx`, `components/student/ApplicationSlipActions.tsx` (`historical` ⇒ "Issued copy on record"). SJR task 3.17/3.20 (R5-a, R5-f): every student control is **"Prepare"** (makes the document: `useOfficialDocument().prepare()`) until the platform has issued it, then an **"Open"** anchor to `/student/documents/open` (`openHref`); nothing is opened in code after an await, and the summary says "ready" only for an issued type. The retired labels are "Download Slip" and "Download Receipt" |
 | Terminal failure and retry | `official_document_jobs.py` — `RENDER_FAILED`, `APPLICATION_NOT_FOUND`, `STATUS_NOT_ELIGIBLE`, `PAYMENT_NOT_FOUND`, plus `SETUP_REQUIRED_CODES` (shared with `official_document_views._SETUP_REQUIRED_FAILURE_CODES`, not restated). `OfficialDocumentJob.can_retry(is_staff=…)`: a student may retry a render failure, a **tenant setup** failure is not theirs to retry. Retry is the same POST — `request_generation` reopens a `failed` job with its attempt history intact, so there is no second command and no second authority | the envelope's `job.can_retry`; `useOfficialDocument.canRetry`; `OfficialDocumentRecovery` |
 | Broker-outage recovery | `official_document_jobs.py:sweep_pending_jobs` (bounded by `JOB_SWEEP_LIMIT`, re-opening a `dispatched` job stale by `JOB_REDISPATCH_AFTER_SECONDS`), run by `tasks/official_document_sweep.py:sweep_pending_official_document_jobs_task` on the beat schedule every 300 s with a cache-key lock — task 4.4's domain-verification shape | design §11.3's *"broker outage after commit is recovered by the dispatcher"* |
 | Canonical official-document email | `POST /api/v1/applications/{id}/official-documents/{document_type}/email/` → `OfficialDocumentEmailView`. One route for **every** type; reuses the read's authorize+gate, refuses `DOCUMENT_NOT_READY` (409) rather than emailing about nothing, sends only to the **owner's account address** (`RECIPIENT_NOT_PERMITTED`, 400, otherwise), delivers through task 10.1's `deliver_message` with `CATEGORY_APPLICATION_UPDATES` and an idempotency key per issued artifact, and renders `render_message("official_document", …)`. `/email-slip/` is a **deprecated proxy** onto it (`Deprecation: true` + successor `Link`), preserving the legacy `queued_id` shape | `apps/admissions/src/services/officialDocuments.ts:emailOfficialDocument`; `useOfficialDocument.email` |
 | Official-document email body | `backend/apps/common/email/messages/official_document.py` — the eighth registered message type. Carries a **link to the student's own authenticated surface**, never the file and never a long-lived signed URL | `render_message` dispatcher (`available_message_types()` ⇒ 8) |
+| Signing failure (SJR task 3.19, R5-d) | `official_document_views.py:_signed_download_url` logs `official_document.sign_failed` at **ERROR** (ids only) and returns a sentinel; `_build_envelope` keeps `status: "ready"` and adds `error_code: "DOCUMENT_LINK_UNAVAILABLE"`. Student copy: "This file can't be opened right now." with Retry (never "not ready") | `officialDocuments.ts` (`DOCUMENT_LINK_UNAVAILABLE`), `DocumentOpen.tsx` |
 | Student failure copy vs staff failure copy | `useOfficialDocument.ts` — `OFFICIAL_DOCUMENT_STUDENT_UNAVAILABLE_MESSAGE` (neutral: the office was notified) for `audience: 'student'`; `OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE` (names the configuration) for `'staff'`. The pre-10.4 student error printed the tenant's setup checklist, which asks an applicant to do operator work and discloses the school's internal state (STU-18) | `components/student/documents/OfficialDocumentRecovery.tsx` (+ task 8.3's `resolveTenantSupportContact`, never a hardcoded address); `useAdminOfficialDocuments` keeps the staff copy |
 | Staff setup alert | `tasks/pdf_generation.py:_alert_staff_of_setup_failure` + `SETUP_ALERT_CAPABILITY = "tenant.profile.read"` — recipients from task 9.5's `TenantStaffRecipientService` (active membership/grant holders at **this application's own** institution; Super_Admins deliberately excluded), fanned out with `create_notifications_bulk` + `staff_delivery_metadata`, idempotent per (document type, error code, recipient), and naming no applicant | the tenant staff inbox; `CATEGORY_STAFF_ACTION_REQUIRED` |
 | Drift guards | `backend/tests/unit/test_official_document_durability_10_4.py` (67 cases — the commit-before-202 order and its 503, idempotence, broker-down recovery and the bounded sweep, `queued` only while a job is open, the list's one-query job read, terminal failure + retry-is-the-same-command, the setup-failure retry asymmetry, every renderer exit path settling its job, the read-existing policy across all five terminal statuses, cross-tenant masking on the historical read, the two policies being two functions, every type emailable, the one delivery gate, non-redirectability, the legacy proxy, the staff alert's scope/idempotence/absence-of-PII, **no second generation-status vocabulary** (AST), **no role string compared** (AST), **dispatch after commit** (AST), and **no 10.4 SQL script exists**). Frontend: `apps/admissions/tests/unit/officialDocumentDurability.test.tsx` (22). Browser: `tests/harness-e2e/required/official-document-durability.spec.ts` (4 journeys × desktop and mobile) |
@@ -774,6 +809,7 @@ pinning the one hard-coded capability string it needs for navigation
 | `/admin/tenants` | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher → `SuperAdminTenantConsole` / `TenantAdminSchoolConsole` / no-access) | Shared admin route; renders the correct console per capability. Not super-admin-flagged in the route config. |
 | Super-admin tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` | Super_Admin only (guarded by `RequireSuperAdmin`; backend re-enforces) |
 | Tenant-admin school console | `apps/admissions/src/pages/admin/tenants/TenantAdminSchoolConsole.tsx` | Tenant_Admin (scoped to assigned institution(s)) |
+| `/student/documents/open` | `apps/admissions/src/pages/student/DocumentOpen.tsx` (query grammar in `apps/admissions/src/lib/documentOpen.ts`: `doc=<uuid>`, `doc=legacy:<result_slip\|extra_kyc>:<application uuid>`, `app=<uuid>&type=<application_slip\|acceptance_letter\|conditional_offer\|payment_receipt>`) | `student` guard (session restore runs before any redirect). The one opener every student View/Open control links to; it signs at click time and only reads (SJR task 3.17, R5-a) |
 
 ### Canonical backend tenant API paths
 
@@ -926,6 +962,7 @@ unchanged. **Never** restore an ungated write path on these views.
 | Catalog | `backend/apps/common/error_codes.py:ERROR_CODES` | views (via reference), tests |
 | Frontend mirror | `apps/admissions/src/lib/errorMessages.ts` | UI components |
 | Drift guards | `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts` + `backend/tests/unit/test_error_codes_canonical.py` |
+| `RATE_LIMITED` (429) | Carries `Retry-After`, exposed cross-origin through `CORS_EXPOSE_HEADERS`. `apps/admissions/src/services/client.ts` sets `retryAfterSeconds` (clamped 0-3600) and `code: 'RATE_LIMITED'`; `apps/admissions/src/lib/rateLimitCopy.ts:rateLimitMessage` is the one copy source (SJR R3-d) | wizard programme/intake selects, student dashboard lists, upload rows, sign-in/sign-up banners |
 | V2 envelope codes | `backend/apps/common/v2/error_codes.py:V2_ERROR_CODES` | `/api/v2` views, `backend/tests/contract/test_v2_*` |
 
 ### Catalog integrity 409 codes (Admissions V2 task 3.3)
@@ -992,7 +1029,9 @@ sees a code the backend cannot produce.
 | `DOCUMENT_TYPE_NOT_REQUIRED` | 400 | The type is neither configured for this application nor a platform type (`LEGACY_PLATFORM_DOCUMENT_TYPES`). |
 | `EMPTY_FILE` | 400 | Zero-byte selection — reported as its own code, not a generic validation error. |
 | `FILE_TOO_LARGE` | 400 | Exceeds the requirement's effective `max_size_bytes` (tenant-narrowed value, never above the platform ceiling). |
-| `INVALID_FILE_TYPE` | 400 | Declared MIME type is outside the requirement's accepted set, or the magic-byte check disagreed with it. |
+| `INVALID_FILE_TYPE` | 400 | Declared MIME type is outside the requirement's accepted set. |
+| `INVALID_FILE` | 400 | The magic-byte check disagreed with the declared type or recognised nothing (corrected by SJR task 3.5: a mismatch is `INVALID_FILE`, not `INVALID_FILE_TYPE`). A declared type that is empty, `application/octet-stream` or `binary/octet-stream` is replaced by the type the bytes identify (`validators.detect_file_mime`); `image/jpg`, `image/pjpeg` and `image/x-png` are normalised first (`DECLARED_MIME_ALIASES`). The effective type is what is recorded. |
+| `VALIDATION_ERROR` | 400 | `Idempotency-Key` present but not 8-128 characters of `[A-Za-z0-9._:-]`; the value is never echoed. |
 | `UNSAFE_FILE_CONTENT` | 400 | The active-content screen (`documents/validators.py:scan_document_for_active_content`) refused executable/script content before the object write. |
 | `CONFIGURATION_UNAVAILABLE` | 503 (retryable) | Requirement configuration could not be evaluated — the upload is refused, not accepted unverified. |
 
@@ -1018,6 +1057,7 @@ sees a code the backend cannot produce.
 | Multi-intake duplicate | `backend/apps/applications/duplicate_checker.py:DuplicateChecker.check_at_submit` (honors `multi_intake_policy`) | `submit_application` |
 | Persisted-canonical-grade minimum | `readiness_service.resolve_minimum_grades()` (`minimum_persisted_grades` setting may only *raise* the floor of 5) | readiness + submission + the batch grade write path `ApplicationGradesView` (R11.5, STU-11) |
 | Submit idempotency key (client) | `apps/admissions/src/lib/submitIdempotency.ts:buildSubmitIdempotencyKey` (`submit-<applicationId>`, stable so a lost response replays) | `useWizardController` submit; guard `apps/admissions/tests/unit/submitIdempotency.test.ts` |
+| Client readiness (one computation) | `apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts:computeReadiness` over `lib/wizardReadiness.ts:buildWizardReadiness` (every input required, no defaults) | the Submit button (`wizardReadiness`) **and** `useWizardSubmission.handleSubmitApplication`, so the handler cannot disagree with the button (SJR task 3.22, C-01). `useOverallProgress` is a separate display computation with today's defaults passed explicitly until Spec B V3 task 26.1 moves it |
 | Documentation | `docs/admissions-submission-gates.md`, evidence `docs/v2-evidence/6.5/` |
 
 ### Authoritative readiness endpoint (Admissions V2 task 6.5, R10.6/R11.2-R11.6/R12.3)
@@ -1083,6 +1123,7 @@ and no second subject-mapping table.
 | **Deterministic result-slip parser** (text → candidates; exact catalogue/alias resolution only, no fuzzy metric), `PARSER_VERSION`, confidence tiers, and the confirmable floor | `backend/apps/documents/grade_extraction.py` — `parse_result_slip`, `extract_candidates`, `PARSER_VERSION`, `CONFIDENCE_CANONICAL`, `CONFIDENCE_ALIAS`, `MIN_CONFIRMABLE_CONFIDENCE` | `extract_document_text_task`; `DocumentInfoView`; the corpus evaluation |
 | **Candidate status vocabulary** (`suggested`, `low_confidence`, `unresolved`, `duplicate`, `invalid_grade`) — only `suggested` may be pre-selected | same module — `STATUS_*`, `GradeCandidate.confirmable` | wizard confirmation panel; corpus expectations |
 | **Structured extraction record** (append-only; never `verification_notes`) | `document_verification_events` rows with `event_type='document.extraction.candidates'` — written by `grade_extraction.record_candidates`, read by `latest_candidates` | `GET /api/v1/documents/{id}/info/` → `data.extraction` |
+| **Published `ocr_state`** (`ocr_pending` = job accepted and queued, from `extraction_state='pending'` set by `POST /documents/{id}/extract/` before enqueue; then `ocr_processing`, `ocr_complete`, `ocr_no_text`, `ocr_no_grades`, `ocr_failed`, `ocr_skipped`; `null` = no job). A broker failure answers 503 `OCR_QUEUE_UNAVAILABLE` and restores the prior state. Client polling bounds: at most 10 polls on a 2, 3, 5, 8, 13, then 15 s schedule, no client retry per poll, paused while the tab is hidden, stopping on a terminal state, a missing job, 404 or 429 (SJR R3-c) | `GET /api/v1/documents/{id}/info/`; `useOcrGradeExtraction.ts` (`OCR_POLL_DELAYS_MS`) | 
 | **Scan/extraction state** (`pending`, `ocr_processing`, `ocr_complete`, `ocr_no_text`, `ocr_no_grades`, `ocr_failed`, `ocr_skipped`) | `apps/documents/document_evidence.py` — `EXTRACTION_STATES`, `record_extraction_state`; column `application_documents.extraction_state` | wizard assistance hook; document contract; admin document surfaces |
 | **Historical (pre-7.4) machine extraction** — labeled read-only provenance, never a candidate | `backend/apps/documents/extraction_provenance.py` — `HISTORICAL_SOURCE`, `provenance_payload` | `GET /api/v1/documents/{id}/info/` → `data.extraction_provenance` |
 | **Client-side candidate reader + confirmation gate** | `apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts` — `readExtractionPayload`, `confirmCandidates`, `dismissCandidates` | `ExtractedResultsCard`; `useWizardController.confirmOcrCandidates` → `handleOcrGrades` |
@@ -1134,14 +1175,40 @@ Invariants clients may rely on:
   (503) on both the read and the upload when the canonical requirement
   configuration cannot be evaluated — never "no requirements" and never an
   accepted upload (R11.6, DATA-04).
-- **Authority** mirrors `ApplicationDocumentsView`: owner always; a
-  non-super-admin admin only inside `AccessScopeService.filter_applications`,
-  and an out-of-scope read is masked as a non-revealing **404**.
-- **Progress is honest**: the unified fetch-based `ApiClient` cannot observe
-  request-body progress, so an in-flight upload renders an ARIA-indeterminate
-  indicator (`aria-valuetext="Uploading"`, no `aria-valuenow`) rather than a bar
-  frozen at a fabricated percentage.
-
+- **Authority** (SJR task 3.19, R5-g) is `resolve_owner_or_scoped_application`
+  with `tenant.document.read`, shared with `ApplicationDocumentsView`: the owner,
+  or staff inside `AccessScopeService.filter_applications` (an assignment-scoped
+  reviewer only for assigned work). A non-owner student, an out-of-scope staff
+  actor and an unknown id all receive the same **404**. The raw `role == "admin"`
+  branches and the 403 that confirmed an application existed are gone.
+- **Document reads** (`signed-url/`, `download/`, `info/`) load through
+  `_get_authorized_document` -> `resolve_owner_or_scoped_document` and
+  `require_reviewer_assignment`, so an assigned in-scope reviewer is served;
+  `extract/` and `delete/` pass `allow_assigned_reviewer=False`, so a reviewer
+  keeps the masked 404 there. Presigned reads carry a
+  `ResponseContentDisposition` from `storage.content_disposition_for` (R5-h).
+- **Workspace list** (SJR task 3.18, R5-b): the status page's "Supporting
+  documents" card reads `GET /applications/{id}/documents/` (every current
+  document, with a View anchor to `/student/documents/open?doc=<id>`); the two
+  snapshot columns are no longer rendered as links. The wizard panel shows a
+  View anchor for an uploaded requirement.
+- **Progress is honest** (SJR task 3.6): the one upload transport,
+  `requiredDocumentsService.upload` -> `apiClient.upload` ->
+  `services/uploadTransport.ts` (`XMLHttpRequest`), reports byte progress, so an
+  in-flight upload renders a determinate `role="progressbar"`
+  (`aria-valuenow` 0-100). The indeterminate state remains only before the first
+  progress event. There is no total timeout: a 30 s inactivity timer is re-armed by
+  every progress event, then a 60 s response timer. No fabricated percentage is ever shown.
+- **One upload transport** (SJR task 3.7): `requiredDocumentsService.upload` ->
+  `apiClient.upload` is the only upload path; `uploadPathSingleSource.test.ts`
+  freezes the dead stacks (deletion owned by Spec B S2). Phone photos over 2 MiB
+  (JPEG/PNG) are downscaled to a 2400 px long edge before sending
+  (`lib/imageDownscale.ts`, the original is sent when that is not smaller or on any
+  error); server validation, not the client, decides acceptance.
+- **Client-only upload codes** (frontend-only, no backend mirror): `UPLOAD_STALLED`,
+  `NETWORK_ERROR`, `ABORTED` (`UploadTransportError`); copy in
+  `lib/requiredDocuments.ts` (`CLIENT_UPLOAD_ERROR_COPY`). The user sees the first
+  failure's code after the one automatic retry (same `Idempotency-Key`, never for `RATE_LIMITED`).
 Drift guard: `apps/admissions/tests/unit/requiredDocumentsDrift.test.ts` against
 the pinned fixture `apps/admissions/tests/unit/__fixtures__/requiredDocumentsBackendMirror.ts`
 (regeneration command in `docs/v2-evidence/7.2/README.md`).
@@ -1158,12 +1225,12 @@ the current evidence for a requirement is.
 | **Legacy `verification_status` projection** (the pre-7.3 column every existing reader still uses) | same module — `LEGACY_STATUS_PROJECTION`, `legacy_status_for`, `lifecycle_of`, `lifecycle_from_row`. `superseded` deliberately has **no** projection so prior evidence keeps its own review outcome | readiness gates; student document list; admin review |
 | **The staged-write command** (hash → replay check → commit stage → write object → verify object → commit metadata → compensate) | same module — `compute_checksum`, `open_stage`, `verify_stored_object`, `commit_version`, `compensate_stage`, `mark_stage` | `POST /api/v1/documents/upload/`; `apps/applications/tasks/pdf_generation.py` (official documents, `provenance='system_generated'`) |
 | **Stage ledger states** (`staged`, `committed`, `compensated`, `compensation_pending`, `write_failed`, `orphaned`; `MAX_COMPENSATION_ATTEMPTS`) | same module — `STAGE_*`; table `document_upload_stages`, CHECK `chk_document_upload_stages_state` | the upload command; `reconcile_document_storage_task` |
-| **Upload replay identity** (what counts as "the same command") | same module — `find_replay_by_idempotency_key` (caller-declared, via `Idempotency-Key` + `uq_document_upload_stages_idempotency`), then `find_identical_current_version(..., document_name=…)` (same bytes **and** same name) | the upload command |
+| **Upload replay identity** (what counts as "the same command") | same module — `find_replay_by_idempotency_key` (caller-declared, via `Idempotency-Key` + `uq_document_upload_stages_idempotency`; a key is replayable only from a committed stage and `mark_stage` releases it when the stage ends compensated, compensation_pending, write_failed or orphaned), then `find_identical_current_version(..., document_name=…)` (same bytes **and** same name) | the upload command |
 | **One current version per application + requirement** | partial unique index `uq_application_documents_one_current` (`WHERE is_current`, task 3.5). `commit_version` releases the slot from **every** row holding it, whatever its lifecycle says | the upload command; `IntegrityError` → `DOCUMENT_VERSION_CONFLICT` (409) |
 | **Append-only verification history** | table `document_verification_events`; writer `record_event`; reader `history_rows` | `GET /api/v1/applications/{id}/required-documents/` → `history`; `GET /api/v1/documents/{id}/versions/` |
 | **Stable operator-visible event names** (`document.version.committed` / `.superseded` / `.deleted`, `document.verification.decided`, `document.extraction.state`, `document.stage.compensated` / `.compensation_pending` / `.reconciled` / `.orphaned` / `.unverified`) | same module — `EVENT_*`; written to `document_verification_events.event_type` and emitted via `emit_metric` | operator dashboards; `reconcile_document_storage_task` |
 | **Reconciliation sweeper** | `backend/apps/documents/tasks.py` — `reconcile_document_storage_task`, `DOCUMENT_STAGE_RECONCILE_AFTER_SECONDS`; beat entry `reconcile-document-storage` (900 s) | orphaned staged objects; deferred compensation retries |
-| **Stable document command codes** — `DOCUMENT_VERSION_CONFLICT` (409), `DOCUMENT_UPLOAD_IN_PROGRESS` (409), `DOCUMENT_STORAGE_UNVERIFIED` (500, retryable), `DOCUMENT_TRANSITION_REJECTED` (409), `DOCUMENT_COMMIT_FAILED` (500, retryable), `INVALID_VERIFICATION_DECISION` | same module — `DocumentCommandError` raisers | the upload/verify/delete endpoints |
+| **Stable document command codes** — `DOCUMENT_VERSION_CONFLICT` (409), `DOCUMENT_UPLOAD_IN_PROGRESS` (409, an attempt with this key is still in flight), `DOCUMENT_STORAGE_UNVERIFIED` (500, retryable), `DOCUMENT_TRANSITION_REJECTED` (409), `DOCUMENT_COMMIT_FAILED` (500, retryable), `INVALID_VERIFICATION_DECISION`; and `DOCUMENT_LINK_UNAVAILABLE` (SJR task 3.19, an official document exists but its link could not be signed; carried as `error_code` on a `ready` status read, not an HTTP error) | same module — `DocumentCommandError` raisers; `official_document_views.DOCUMENT_LINK_UNAVAILABLE` | the upload/verify/delete endpoints |
 | **Client replace/delete commands** | `apps/admissions/src/hooks/useRequiredDocuments.ts` — `beginReplace`, `cancelReplace`, `removeDocument`; transport `apps/admissions/src/services/requiredDocuments.ts` | `RequiredDocumentsPanel` |
 | Documentation / evidence | `docs/v2-evidence/7.3/` | — |
 
@@ -1195,6 +1262,16 @@ Invariants clients may rely on:
   (`record_extraction_state`), and the legacy projection is only written while no
   human decision exists to protect.
 
+**Storage keys, not links (student-journey-repair R4, tasks 3.13-3.15).**
+
+| Concept | Source of truth | Consumers |
+|---------|-----------------|-----------|
+| **What `application_documents.file_url` / `storage_key` hold** | For rows written after task 3.13 both hold the **object key**. The three writers (upload view, `condition_evidence_service.py`, `tasks/pdf_generation.py`) call no `storage.url()`; guard `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (tenant assets in `catalog/admin_asset_views.py` are listed Spec B exceptions) | every document reader |
+| **URLs are signed on read** | `backend/apps/common/storage.py` — `resolve_document_object_key`, `resolve_document_open_url`; `DocumentSerializer.file_url` is a `SerializerMethodField` (signing failure → `null` + ERROR `document.sign.failed`) | document list, signed-url and download endpoints, official-document envelope, legacy synthesis, OCR task |
+| **Legacy persisted values** | `storage.py:_key_from_persisted_value` (design R4-c): a bare UUID is a presence marker (no key); a relative value is a key; an `X-Amz-` URL or one on our endpoint/public/bucket host gives its path; any other `https` URL is a legacy-provider URL returned unchanged (INFO `document.open.legacy_provider`). Listed as a legacy fallback below | same readers |
+| **Application snapshot columns** (`applications.result_slip_url`, `extra_kyc_url`) | Presence markers holding the **current document id**, written inside `commit_version`'s transaction (`snapshot_field=`, map `document_evidence.SNAPSHOT_FIELD_BY_DOCUMENT_TYPE`); a replay heals a NULL snapshot without touching `updated_at` (`heal_snapshot_on_replay`, metric `document.snapshot.healed_on_replay`). Registered in `apps/common/legacy_columns.py:LEGACY_PRESENCE_SNAPSHOT_COLUMNS` (removal: every reader uses the required-documents contract, Spec B). Older rows may hold a URL | frontend presence readers; `ApplicationDocumentsView.get` id-aware legacy synthesis (skips a pair when the snapshot matches a listed id / stored `file_url` / `storage_key`, when a covering type is listed, or when it is a bare UUID) |
+| **Object key shape** | `document_evidence.build_object_key(application_id, document_type, *, mime_type)` → `documents/{application}/{type}/{uuid hex}{.pdf|.jpg|.png|.bin}`; no client filename (the name lives in `document_name`) | upload view; condition evidence |
+
 ## Database Schema
 
 | Concept | Source of truth | Consumers |
@@ -1207,6 +1284,7 @@ Invariants clients may rely on:
 | Document version columns + one-current index (V2 task 3.5) | `backend/scripts/2026_07_19_0{1,2,3}_payments_documents_{expand,backfill,validate}.sql` — `version`, `is_current`, `supersedes_id`, `superseded_at`, `content_hash`, `uploaded_by`, `provenance`, and `uq_application_documents_one_current` | `apply_sql_migrations`; `document_evidence.commit_version`; evidence `docs/v2-evidence/3.5/` |
 | Document evidence lifecycle + staged-write ledger (V2 task 7.3) | `backend/scripts/2026_07_26_01_document_evidence_lifecycle.sql` (+ `_rollback`) — `lifecycle_state`, `storage_key`, `extraction_state` columns plus the new `document_upload_stages` and `document_verification_events` tables, additive-only, idempotent | `apply_sql_migrations`; models `apps.documents.models.DocumentUploadStage` / `DocumentVerificationEvent` (`managed = False`); indexes mirrored in `backend/tests/conftest.py::unmanaged_schema`; registered in `tests/property/test_migration_properties.py::EXPECTED_TABLE_MAPPING`; evidence `docs/v2-evidence/7.3/` |
 | One-current slot alignment (V2 task 7.3) | `backend/scripts/2026_07_26_02_document_current_slot_alignment.sql` (+ `_rollback`) — data-only; releases `is_current` from soft-deleted rows (which 3.5's newest-`uploaded_at` backfill could promote) and promotes the newest surviving version. Without it a soft-deleted row can hold the enforced slot forever and no replacement is possible | `apply_sql_migrations`; evidence `docs/v2-evidence/7.3/` §2.3 |
+| Document snapshot repair (SJR task 3.15) | `backend/scripts/2026_11_02_01_repair_document_snapshot_presence.sql` (+ ledger-only `_rollback`) — data-only, idempotent; fills NULL `applications.result_slip_url` / `extra_kyc_url` with the newest current document id, never touches `updated_at`. Proven on a local scratch copy; Neon-branch proof and the Neon default-branch apply are operator-gated (pending); production runs it at boot on the approved task 6.2 deploy after the task 6.1 backup | `apply_sql_migrations`; evidence `.agents/tasks/implement-journey-repair-2026-11-08/g5-r4-evidence.md` |
 | Legacy column inventory | `backend/apps/common/legacy_columns.py:LEGACY_DEPRECATED_COLUMNS` | drift test, drop migration |
 | Drop migration (Day 90) | `backend/scripts/legacy_columns_drop_2026_08_15.sql` | scheduled execution |
 | Migration-history coverage exemptions | `check_schema_drift.py:_COVERAGE_EXEMPT_SCRIPTS` (`00_full_schema.sql` snapshot + `legacy_columns_drop_2026_08_15.sql` future drop) | drift guard `test_check_schema_drift_migration_history_coverage.py::test_exempt_scripts_are_not_flagged_as_stale` |
@@ -1231,7 +1309,8 @@ Invariants clients may rely on:
 | Wizard navigation | `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardNavigation.ts` | `useWizardController` |
 | Wizard state | `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts` | `useWizardController` |
 | Sanitizer | `apps/admissions/src/lib/security.ts:sanitizeInput` | wizard, services |
-| Payment recovery | `apps/admissions/src/stores/paymentRecoveryStore.ts` | `PaymentStep` |
+| Payment recovery | `apps/admissions/src/stores/paymentRecoveryStore.ts` | `PaymentStep`; cleared only by a server answer (a verify result of `deferred`/`successful`/`failed`, or `deferPayment` resolving) |
+| Page save status | `apps/admissions/src/pages/student/applicationWizard/lib/pageSaveView.ts:deriveWizardPageSaveView` — the draft machine's view composed with document commands (an upload in flight is "saving", a failed upload is an error) | `index.tsx` → `WizardActionBar` (SJR task 3.23) |
 
 ## Multi-Tenant (Beanola)
 
@@ -1286,6 +1365,8 @@ R3.7/R3.9). When that count reaches zero, drop the legacy-string predicate from
 each module (keeping the canonical-ID path), delete the corresponding
 `_ALLOWED_PREDICATES` entries, and confirm the drift guard still passes.
 
+**Legacy document-value fallback (student-journey-repair R4-c).** `apps/common/storage.py:_key_from_persisted_value` keeps resolving pre-task-3.13 `file_url` values (presigned URLs, bucket URLs, legacy-provider URLs). Removal condition: no `application_documents` row without `storage_key` remains (a P0-ops count).
+
 ### Capacity policy: advisory until enrollment (R15.3, R15.4)
 
 Spec: `.kiro/specs/multi-tenant-beanola-remediation/` (R15). The authoritative
@@ -1304,6 +1385,14 @@ assignment time and is committed under a lock at the submission/enrollment
 stages, which prevents capacity races without blocking draft authoring.
 
 ### Document profiles, official-document lifecycle, and tenant templates (R8, R14, R16)
+
+> SJR R7-d, **D9 confirmed 2026-11-08 (option C)**: the read path pre-checks profiles.
+> `render_context.py:has_active_document_profile` uses the renderer's own resolution; for a
+> profile-required letter (`PROFILE_REQUIRED_DOCUMENT_TYPES`) whose application may receive it
+> and has no active profile, `_generation_status` answers `setup_required` /
+> `DOCUMENT_PROFILE_NOT_CONFIGURED` (counter `official_document.setup_required_read`). The POST
+> path is unchanged and letters still hard-fail without a profile. The student surface says the
+> letter "isn't available yet", offers no Prepare, and routes to `resolveTenantSupportContact`.
 
 Spec: `.kiro/specs/multi-tenant-beanola-remediation/`. These concepts extend
 the Multi-Tenant truth map registered above. Each names the single authoritative
@@ -1344,11 +1433,35 @@ implementations live in per-workflow submodules:
 decomposed in this program — it ships in a separate spec because of its
 critical-path nature.
 
+## Zambian MSISDN normalisation (student-journey-repair R8-b)
+
+A mirrored concept: the same input must normalise to the same `+260XXXXXXXXX`
+(or be refused) on both sides.
+
+| Role | Location |
+|---|---|
+| Source of truth | `backend/apps/common/validators.py:normalize_zambian_msisdn` (raises `ValueError("INVALID_PHONE_FORMAT")`) |
+| Payment alias | `backend/apps/documents/payment_helpers.py:_normalize_phone_e164 = normalize_zambian_msisdn` (one implementation; mobile-money behaviour byte-for-byte unchanged) |
+| Registration entry point | `validate_zambian_phone` (backend) and `registrationPhoneSchema` (frontend). A registration-only pre-check: an input starting with `+` must be `+260` plus exactly nine digits, so `+260` plus six digits is refused and never stored as `+260260...` |
+| Frontend mirror | `apps/admissions/src/lib/zambianMsisdn.ts:normalizeZambianMsisdn` and `zambianMsisdnSchema` |
+| Messages | Phone and NRC validation messages carry no submitted value |
+| Drift guard | `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json`, read by `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` and `backend/tests/unit/test_zambian_msisdn_vectors.py` |
+
 ## Drift Guard Inventory
 
 CI-blocking tests that fail when canonical truth diverges:
+- `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` + `apps/admissions/tests/unit/sjrApprovalParity.test.ts` (the frontend Approve gate `APPROVAL_PAYMENT_STATUSES` equals the backend `RESOLVED_PAYMENT_STATUSES`; SJR task 5.2)
 
 - `apps/admissions/tests/unit/applicationStatusDriftGuard.test.ts`
+- `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` (one upload transport, SJR task 3.7)
+- `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` + `backend/tests/unit/test_zambian_msisdn_vectors.py` (shared MSISDN vectors in `__fixtures__/zambianMsisdnVectors.json`; the registration-refused list runs through `validate_zambian_phone` and `registrationPhoneSchema`; SJR task 3.27)
+- `apps/admissions/tests/unit/sjrSessionRestore.test.tsx` (route guards make one session-restore attempt, then redirect; SJR task 3.26) + `apps/admissions/tests/unit/sjrSignUpPhoneErrors.test.tsx` (a server phone error lands on the phone field and the banner never echoes it; SJR task 3.27) + `apps/admissions/tests/unit/sjrBuildBadge.test.tsx` (the diagnostics badge and its wrappers render on the development server only; SJR task 3.29)
+- `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (no document writer persists a presigned URL; SJR task 3.13) + `backend/tests/unit/test_document_key_resolution_sjr.py` (key resolution rules; SJR task 3.13)
+- `backend/tests/unit/test_storage_settings_contract.py` + `backend/tests/unit/test_startup_env_validation.py` + `backend/tests/unit/test_documented_env_vars_are_read.py` (storage settings, production startup refusal of an empty `S3_*`, and every documented environment variable has a reader; SJR tasks 3.1-3.4)
+- `backend/tests/unit/test_sjr_client_ip_trust.py` + `backend/tests/unit/test_sjr_ratelimit_metric.py` (trusted-proxy client IP and the `ratelimit.limited` counter; SJR task 3.9) + `backend/tests/unit/test_test_database_host_guard.py` (the test database host guard; SJR task 2.1)
+- `apps/admissions/tests/unit/documentOpenGrammar.test.ts` (the document opener's query grammar round-trips; SJR task 3.17)
+- `backend/tests/unit/test_journey_gate_configuration_sjr.py` (the journey gate's switches stay switched: limiter off by default and on with `HARNESS_RATELIMIT_ENABLE`, the four gate values, the stage order of `harness journey-gate`, evidence never under `docs/v2-evidence`, the workflow has no `paths:` filter, no `continue-on-error`, only already-used actions, and its relevance step reports success for unrelated changes; SJR tasks 4.1-4.5) + `apps/admissions/tests/unit/journeyGateGuards.test.ts` (the strict status guard, the status-aware defaults, and the scope table copied from `RateLimitMiddleware.SCOPE_LIMITS`; SJR task 4.2)
+- `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` (the Approve gate mirrors the backend payment gate; strict marker until SJR task 5.6)
 - `apps/admissions/tests/unit/paymentStatusMappingDriftGuard.test.ts`
 - `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts`
 - `apps/admissions/tests/unit/rolesBackendMirror.test.ts`

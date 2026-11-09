@@ -278,8 +278,8 @@ class TestChecksum:
 
     def test_object_key_is_unique_per_attempt_and_carries_context(self):
         application_id = uuid.uuid4()
-        first = evidence.build_object_key(application_id, "result_slip", "slip.pdf")
-        second = evidence.build_object_key(application_id, "result_slip", "slip.pdf")
+        first = evidence.build_object_key(application_id, "result_slip", mime_type="application/pdf")
+        second = evidence.build_object_key(application_id, "result_slip", mime_type="application/pdf")
         assert first != second, "a retry must not overwrite a previous attempt's object"
         assert str(application_id) in first and "result_slip" in first
 
@@ -334,7 +334,7 @@ def _stage_for(application, document_type="result_slip", content_hash="b" * 64):
     return evidence.open_stage(
         application_id=application.id,
         document_type=document_type,
-        object_key=evidence.build_object_key(application.id, document_type, "slip-v2.pdf"),
+        object_key=evidence.build_object_key(application.id, document_type, mime_type="application/pdf"),
         content_hash=content_hash,
         file_size=2048,
         mime_type="application/pdf",
@@ -613,7 +613,7 @@ class TestIdempotencyKeyReplay:
         stage = evidence.open_stage(
             application_id=application.id,
             document_type="result_slip",
-            object_key=evidence.build_object_key(application.id, "result_slip", "slip-v2.pdf"),
+            object_key=evidence.build_object_key(application.id, "result_slip", mime_type="application/pdf"),
             content_hash="b" * 64,
             file_size=2048,
             mime_type="application/pdf",
@@ -652,7 +652,7 @@ class TestIdempotencyKeyReplay:
         stage = evidence.open_stage(
             application_id=application.id,
             document_type="result_slip",
-            object_key=evidence.build_object_key(application.id, "result_slip", "slip-v2.pdf"),
+            object_key=evidence.build_object_key(application.id, "result_slip", mime_type="application/pdf"),
             content_hash="b" * 64,
             file_size=2048,
             mime_type="application/pdf",
@@ -682,7 +682,7 @@ class TestIdempotencyKeyReplay:
                 application_id=application.id,
                 document_type="result_slip",
                 object_key=evidence.build_object_key(
-                    application.id, "result_slip", "slip-v2.pdf"
+                    application.id, "result_slip", mime_type="application/pdf"
                 ),
                 content_hash="b" * 64,
                 file_size=2048,

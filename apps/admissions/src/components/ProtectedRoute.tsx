@@ -4,6 +4,7 @@ import { useAuthCheck } from '@/hooks/auth/useSessionListener'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
 import { BROWSER_KEYS } from '@/lib/browserNamespace'
+import { useSessionRestoreOnce } from '@/hooks/auth/useSessionRestoreOnce'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -27,6 +28,7 @@ const SIGNIN_REDIRECT_KEY = BROWSER_KEYS.postAuthRedirect
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthCheck()
   const location = useLocation()
+  const restore = useSessionRestoreOnce(!isLoading && !isAuthenticated)
   const telemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
 
   const fullPath = `${location.pathname}${location.search}${location.hash}`
@@ -50,6 +52,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <GuardInlineSkeleton label="Preparing your account" />
   }
 
+  if (!isAuthenticated && restore !== 'done') {
+    return <GuardInlineSkeleton label="Restoring your session" />
+  }
   if (!isAuthenticated) {
     persistReturnPath()
     return <Navigate to="/auth/signin" state={{ from: location }} replace />

@@ -29,6 +29,7 @@ export class ApiErrorHandler {
         fieldErrors?: Record<string, string>
         data?: Record<string, unknown>
         code?: string
+        retryAfterSeconds?: number | null
       }
 
       if (statusCode) {
@@ -40,14 +41,18 @@ export class ApiErrorHandler {
 
       // Preserve field-level validation errors from the original error so that
       // upstream callers (e.g. the application wizard) can map them to form fields.
-      const orig = originalError as { fieldErrors?: Record<string, string>; data?: Record<string, unknown>; code?: string } | null
+      const orig = originalError as { fieldErrors?: Record<string, string>; data?: Record<string, unknown>; code?: string; retryAfterSeconds?: number | null } | null
       if (orig?.fieldErrors && typeof orig.fieldErrors === 'object') {
         error.fieldErrors = orig.fieldErrors
       }
       if (orig?.data && typeof orig.data === 'object') {
         error.data = orig.data
       }
-      if (orig?.code) {
+      if (statusCode === 429) {
+        error.code = 'RATE_LIMITED'
+        error.retryAfterSeconds =
+          typeof orig?.retryAfterSeconds === 'number' ? orig.retryAfterSeconds : null
+      } else if (orig?.code) {
         error.code = orig.code
       } else if (orig?.data && typeof orig.data.code === 'string') {
         error.code = orig.data.code

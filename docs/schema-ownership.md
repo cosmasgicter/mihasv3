@@ -41,6 +41,17 @@ python3 backend/scripts/verify_migration.py
 - every table-mapping model must declare explicit `db_table`
 - every structural change must ship SQL plus model update in the same change
 
+## Document Storage Columns (student-journey-repair R4)
+
+- `application_documents.file_url` and `storage_key` hold the object key for
+  rows written after task 3.13; URLs exist only in API responses, signed at read
+  time. Older rows may hold a presigned or legacy-provider URL, resolved by
+  `apps/common/storage.py:_key_from_persisted_value`.
+- `applications.result_slip_url` and `extra_kyc_url` (`varchar(500)`) are
+  presence markers holding the current document id, written in the document
+  version transaction; `backend/scripts/2026_11_02_01_repair_document_snapshot_presence.sql`
+  repairs NULLs left by defect A-04 without touching `updated_at`.
+
 ## Existing Verification Assets
 
 Static verification:

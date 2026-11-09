@@ -92,7 +92,12 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   // payload tells us which wait we are in.
   const waitBudgetRef = useRef<number | null>(null)
 
-  useEffect(() => () => { mountedRef.current = false }, [])
+  // Re-arm on every mount: StrictMode runs mount, cleanup, mount, and a cleanup
+  // that only clears the flag would drop every later status update.
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const updateStatus = useCallback((nextStatus: PaymentStatusValue) => {
     if (!mountedRef.current) return

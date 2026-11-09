@@ -18,6 +18,12 @@ x-backend: &backend
     context: ../backend
   env_file:
     - harness.env
+  # Journey-gate switches (SJR task 4.1, R9-a). Defaults keep the broad matrix's
+  # settings: 900 s links, internal storage endpoint, limiter off.
+  environment:
+    S3_SIGNED_URL_TTL_SECONDS: ${S3_SIGNED_URL_TTL_SECONDS:-900}
+    S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-}
+    HARNESS_RATELIMIT_ENABLE: ${HARNESS_RATELIMIT_ENABLE:-0}
   restart: unless-stopped
 
 services:
@@ -47,32 +53,34 @@ services:
       retries: 20
 
   minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5@sha256:6dabb4a2088c9a79908de3bc05f4586c23ad2182c8908e7e3acbf61c1467fb20
+    # Bitnami image: its own entrypoint starts the server (no `server /data`).
     env_file: [harness.env]
     ports:
       - "127.0.0.1:59000:9000"
       - "127.0.0.1:59001:9001"
     tmpfs:
-      - /data
+      - /bitnami/minio/data:mode=1777
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /minio/health/live HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && read -r line <&3 && [[ $$line == *' 200 '* ]]"]
       interval: 5s
       timeout: 5s
       retries: 20
 
   # Create the harness bucket once MinIO is up, then exit.
   minio-setup:
-    image: minio/mc:latest
+    image: bitnamilegacy/minio-client:2025.7.21-debian-12-r3@sha256:73bd39f7899a0cef12b8dd5df13aa93a3ed1aaa44236542442e9ac76819ac158
     depends_on:
       minio:
         condition: service_started
     env_file: [harness.env]
+    environment:
+      HARNESS_BUCKET_ANONYMOUS: ${HARNESS_BUCKET_ANONYMOUS:-download}
     entrypoint: >-
       /bin/sh -c "
       until mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do echo 'waiting for minio'; sleep 1; done;
       mc mb -p local/harness || true;
-      mc anonymous set download local/harness || true;
+      mc anonymous set $${HARNESS_BUCKET_ANONYMOUS:-download} local/harness || true;
       echo 'minio bucket ready';
       "
     restart: "no"

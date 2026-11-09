@@ -42,6 +42,40 @@ services:
       timeout: 5s
       retries: 10
 
+  # Private S3-compatible object storage (R1-a). Fixed, fictional local
+  # credentials bound to 127.0.0.1 only, like harness/harness.env.
+  minio:
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5@sha256:6dabb4a2088c9a79908de3bc05f4586c23ad2182c8908e7e3acbf61c1467fb20
+    # Bitnami image: its own entrypoint starts the server (no `server /data`).
+    environment:
+      MINIO_ROOT_USER: localtest-minio
+      MINIO_ROOT_PASSWORD: localtest-minio-secret
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-localtest-data:/bitnami/minio/data
+    healthcheck:
+      # bash TCP probe: needs no curl/wget, which minimal MinIO images may omit.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /minio/health/live HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && read -r line <&3 && [[ $$line == *' 200 '* ]]"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Creates the bucket and applies NO anonymous policy: objects stay private.
+  minio-setup:
+    image: bitnamilegacy/minio-client:2025.7.21-debian-12-r3@sha256:73bd39f7899a0cef12b8dd5df13aa93a3ed1aaa44236542442e9ac76819ac158
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >-
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 localtest-minio localtest-minio-secret; do echo 'waiting for minio'; sleep 1; done;
+      mc mb -p local/mihas-localtest;
+      echo 'minio bucket ready';
+      "
+    restart: "no"
+
   web:
     build:
       context: .
@@ -50,24 +84,43 @@ services:
     # ONLY the isolated env file — no backend/.env, no Neon.
     env_file:
       - .env.local.test
+    # Takes precedence over env_file: storage always points at the MinIO above.
+    environment:
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:9000
+      S3_BUCKET: mihas-localtest
+      S3_ACCESS_KEY: localtest-minio
+      S3_SECRET_KEY: localtest-minio-secret
     command: uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
 
   celery:
     build:
       context: .
     env_file:
       - .env.local.test
+    # Takes precedence over env_file: storage always points at the MinIO above.
+    environment:
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:9000
+      S3_BUCKET: mihas-localtest
+      S3_ACCESS_KEY: localtest-minio
+      S3_SECRET_KEY: localtest-minio-secret
     command: celery -A config worker -l info --concurrency=1
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
 
 volumes:
   postgres-localtest-data:
+  minio-localtest-data:

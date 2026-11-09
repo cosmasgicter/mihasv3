@@ -13,6 +13,7 @@ import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStat
 import { formatDate } from '@/lib/dateFormat'
 import { StatusPill } from '@/components/ui/StatusPill'
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 export type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
@@ -28,7 +29,7 @@ export const getInstitutionName = (name?: string): string => {
 
 export interface ApplicationCardProps {
   application: ApplicationSummary
-  onStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onStatusUpdate: (id: string, status: string, options?: StatusCommandOptions) => void | Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   updatingStatus: boolean
@@ -422,7 +423,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
                 applicationId={app.id}
                 currentStatus={app.status}
                 currentPaymentStatus={app.payment_status}
-                onStatusUpdate={async (id, status) => { await onStatusUpdate(id, status) }}
+                onStatusUpdate={async (id, status, options) => {
+                  await (options ? onStatusUpdate(id, status, options) : onStatusUpdate(id, status))
+                }}
                 onPaymentStatusUpdate={async (id, status, verificationNotes) => {
                   await onPaymentStatusUpdate(id, status, verificationNotes)
                 }}

@@ -99,6 +99,7 @@ import { AssignReviewerControl } from './AssignReviewerControl'
 import { GradesDisplay } from './GradesDisplay'
 import { AmendmentReviewList, ConditionReviewList } from './ReviewDecisionLists'
 import { useReviewWorkspaceSession } from '@/hooks/admin/useReviewWorkspaceSession'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 // ---------------------------------------------------------------------------
 // The workspace
@@ -113,7 +114,7 @@ interface ApplicationDetailModalProps {
   onUpdateStatus: (
     id: string,
     status: string,
-    options?: { notes?: string; force?: boolean },
+    options?: StatusCommandOptions,
   ) => Promise<unknown>
 }
 

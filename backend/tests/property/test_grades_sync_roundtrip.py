@@ -37,6 +37,7 @@ _default_settings = settings(max_examples=5, deadline=None)
 _APP_OBJECTS = "apps.applications.student_submission_views.Application.objects"
 _GRADE_OBJECTS = "apps.applications.student_submission_views.ApplicationGrade.objects"
 _SUBJECT_EXISTS = "apps.catalog.models.Subject.objects"
+_TRANSACTION = "apps.applications.student_submission_views.transaction"
 
 
 # ---------------------------------------------------------------------------
@@ -150,8 +151,13 @@ class TestGradesSyncPostRoundTrip:
             patch(_APP_OBJECTS) as mock_app_qs,
             patch(_GRADE_OBJECTS) as mock_grade_qs,
             patch(_SUBJECT_EXISTS) as mock_subject_qs,
+            patch(_TRANSACTION),
         ):
             mock_app_qs.get.return_value = app
+            # SJR task 3.23: the replace now runs inside transaction.atomic() under
+            # the row lock (select_for_update().get). The mocks follow the new
+            # shape; every assertion below is unchanged.
+            mock_app_qs.select_for_update.return_value.get.return_value = app
             mock_subject_qs.filter.return_value.exists.return_value = True
             mock_grade_qs.update_or_create.side_effect = mock_update_or_create
             mock_grade_qs.filter.side_effect = get_filter_result
@@ -250,8 +256,13 @@ class TestGradesSyncPostRoundTrip:
             patch(_APP_OBJECTS) as mock_app_qs,
             patch(_GRADE_OBJECTS) as mock_grade_qs,
             patch(_SUBJECT_EXISTS) as mock_subject_qs,
+            patch(_TRANSACTION),
         ):
             mock_app_qs.get.return_value = app
+            # SJR task 3.23: the replace now runs inside transaction.atomic() under
+            # the row lock (select_for_update().get). The mocks follow the new
+            # shape; every assertion below is unchanged.
+            mock_app_qs.select_for_update.return_value.get.return_value = app
             mock_subject_qs.filter.return_value.exists.return_value = True
             mock_grade_qs.update_or_create.side_effect = mock_update_or_create
             mock_grade_qs.filter.side_effect = get_filter_result

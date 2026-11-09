@@ -285,6 +285,13 @@ test.describe('the admin dashboard states what it measured (task 9.2, ADM-02)', 
     await loginAdmin(page);
     await openDashboard(page);
 
+    // The page can still be on its "Loading dashboard" frame when the read-health line
+    // is first visible, so the body is read once the text this test is about exists,
+    // not on the first paint. Every assertion below is unchanged; a page that never
+    // says it still fails here, at 30 s. (The same race fails against the pre-SJR
+    // frontend build, so it is the test's, not the build's.)
+    await expect(page.locator('body')).toContainText(/staff accounts enabled/i, { timeout: 30_000 });
+
     // Lower-cased because `innerText` honours `text-transform`, and the headline
     // metric labels are rendered uppercase.
     const body = (await page.locator('body').innerText()).toLowerCase();

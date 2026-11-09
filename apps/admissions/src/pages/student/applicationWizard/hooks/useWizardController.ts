@@ -53,6 +53,8 @@ import {
   type WizardIntake,
 } from '../types'
 import { wizardSteps } from '../steps/config'
+import type { CatalogueQueryError } from '../steps/ProgramStep'
+import { isRateLimitedError, retryAfterOf } from '@/lib/rateLimitCopy'
 import {
   normalizeServerUploadedFiles,
   buildWizardIntakeDisplayName,
@@ -112,6 +114,10 @@ export interface UseWizardControllerResult {
   recommendedSubjects: string[]
   programs: WizardProgram[]
   programsLoading: boolean
+  programsError: CatalogueQueryError | null
+  intakesError: CatalogueQueryError | null
+  onRetryPrograms: () => void
+  onRetryIntakes: () => void
   intakes: WizardIntake[]
   subjects: Array<{ id: string; name: string; code: string }>
   hasAutoPopulatedData: boolean
@@ -156,6 +162,7 @@ export interface UseWizardControllerResult {
   ocrWithheld: import('./useOcrGradeExtraction').OcrWithheldCandidate[]
   ocrAppliedCount: number
   ocrFailureReason: import('./useOcrGradeExtraction').OcrFailureReason
+  ocrRetryAfterSeconds: number | null
   ocrExtractionMeta: import('./useOcrGradeExtraction').OcrExtractionMeta | null
   /** The student's explicit confirmation of selected candidates (R11.4). */
   confirmOcrCandidates: (subjectIds: string[]) => void
@@ -199,6 +206,14 @@ export interface PaymentValidationContext {
 
 
 
+function toCatalogueQueryError(error: unknown): CatalogueQueryError {
+  return {
+    message: error instanceof Error && error.message ? error.message : 'We could not load this list. Try again.',
+    retryAfterSeconds: retryAfterOf(error),
+    rateLimited: isRateLimitedError(error),
+  }
+}
+
 const useWizardController = (): UseWizardControllerResult => {
   const location = useLocation()
   const queryClient = useQueryClient()
@@ -222,6 +237,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const applicationId = draftSnapshot.applicationId
   const [ocrDocumentId, setOcrDocumentId] = useState<string | null>(null)
   const startOcrPollingRef = useRef<((documentId?: string | null) => void) | null>(null)
+  const markOcrExtractRejectedRef = useRef<((error?: unknown) => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
   const selectedGradesRef = useRef<SubjectGrade[]>([])
@@ -284,15 +300,36 @@ const useWizardController = (): UseWizardControllerResult => {
   })
   const { watch, setValue, getValues } = form
 
-  const { data: programsData, isLoading: programsLoading } = catalogData.useProgramsForIntake(watch('intake') || null)
-  const { data: intakesData } = catalogData.useIntakes()
+  const {
+    data: programsData,
+    isLoading: programsLoading,
+    error: programsQueryError,
+    isError: programsFailed,
+    refetch: refetchPrograms,
+  } = catalogData.useProgramsForIntake(watch('intake') || null)
+  const {
+    data: intakesData,
+    error: intakesQueryError,
+    isError: intakesFailed,
+    refetch: refetchIntakes,
+  } = catalogData.useIntakes()
+  // A failed catalogue query is an error, not an empty catalogue (SJR R3-d).
+  const programsError = useMemo(
+    () => (programsFailed ? toCatalogueQueryError(programsQueryError) : null),
+    [programsFailed, programsQueryError],
+  )
+  const intakesError = useMemo(
+    () => (intakesFailed ? toCatalogueQueryError(intakesQueryError) : null),
+    [intakesFailed, intakesQueryError],
+  )
+  const onRetryPrograms = useCallback(() => { void refetchPrograms() }, [refetchPrograms])
+  const onRetryIntakes = useCallback(() => { void refetchIntakes() }, [refetchIntakes])
   const { data: subjectsData } = catalogData.useSubjects()
   const subjects = useMemo(
     () => mergeWizardSubjects((subjectsData?.subjects as Array<{ id: string; name: string; code: string }> | undefined) || []),
     [subjectsData]
   )
   const submitApplicationMutation = applicationsData.useSubmit()
-  const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications, isPending: draftApplicationsLoading } = applicationsData.useList({
     status: 'draft',
     mine: true,
@@ -512,8 +549,6 @@ const useWizardController = (): UseWizardControllerResult => {
     subjects,
     selectedGradesRef,
     setSelectedGrades,
-    applicationId,
-    syncGrades,
     showSuccess,
     clearStaleApplicationReference,
   })
@@ -561,6 +596,7 @@ const useWizardController = (): UseWizardControllerResult => {
     currentStepConfig,
     paymentStatus,
     selectedGradesRef,
+    setSelectedGrades,
     selectedProgramDetails,
     programsData,
     totalSteps,
@@ -606,12 +642,17 @@ const useWizardController = (): UseWizardControllerResult => {
         // Optional deterministic grade assistance — never authoritative, and a
         // failure here never blocks the upload (R11.4, task 7.5).
         setOcrDocumentId(documentId)
+        // Follow progress only once the server has accepted the job: a rejected
+        // extract means no job exists, so there is nothing to poll (clause 2.15).
         documentService
           .extract({ documentId })
-          .catch((extractError: unknown) =>
-            logger.warn('OCR extraction request failed', toError(extractError)),
-          )
-        startOcrPollingRef.current?.(documentId)
+          .then(() => {
+            startOcrPollingRef.current?.(documentId)
+          })
+          .catch((extractError: unknown) => {
+            logger.warn('OCR extraction request failed', toError(extractError))
+            markOcrExtractRejectedRef.current?.(extractError)
+          })
       },
       [persistLocalDraftSnapshot, setOcrDocumentId, startOcrPollingRef],
     ),
@@ -683,6 +724,12 @@ const useWizardController = (): UseWizardControllerResult => {
     return () => subscription.unsubscribe()
   }, [form, draftMachine])
 
+  // Grades are the draft's second channel (SJR R6-b): the grid lives in React
+  // state rather than the form, so a change to it is an edit event too. The
+  // machine compares it with the rows the server acknowledged.
+  useEffect(() => {
+    draftMachine.observe()
+  }, [draftMachine, selectedGrades])
   // PAY: once the draft has payment activity it is payment-linked.
   useEffect(() => {
     if (paymentStatus) draftMachine.notePaymentActivity()
@@ -713,6 +760,10 @@ const useWizardController = (): UseWizardControllerResult => {
     if (intentNamesOpenDraft) return
     hydratedIntentKeyRef.current = null
     draftMachine.reset()
+    // The grid belongs to the draft being left. The grades channel compares it
+    // with the next draft's baseline, so a leftover grid would be sent to it.
+    selectedGradesRef.current = []
+    setSelectedGrades([])
     setDuplicateDraftConflict(null)
     setDraftLoaded(false)
   }, [draftIntentKey, draftLoaded, draftMachine, intentNamesOpenDraft])
@@ -757,26 +808,41 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [preserveDraftBeforeAuthRedirect])
 
   const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation()
-  const wizardReadiness = buildWizardReadiness({
-    values: watch(),
-    selectedGrades,
-    uploadedFiles,
-    hasResultSlipFile: Boolean(resultSlipFile),
-    hasIdentityFile: Boolean(extraKycFile),
-    // Task 7.2 (R11.6): the readiness rail describes the *tenant's* required
-    // documents. `undefined` (no readable contract) keeps the legacy pair, so
-    // the rail is never weaker than before.
-    requiredDocumentItems: requiredDocuments.contract
-      ? documentReadinessItems(requiredDocuments.contract, {
-          hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
-          hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
-        })
-      : undefined,
-    paymentStatus,
-    confirmSubmission,
-    assignmentResolved,
-  })
-
+  // The one client readiness computation (SJR R6-a): the Submit button reads it
+  // below and the Submit handler calls it, so they cannot disagree about which
+  // inputs count. The server re-runs readiness under row locks at submit.
+  const computeReadiness = useCallback(
+    (values: WizardFormData): WizardReadiness =>
+      buildWizardReadiness({
+        values,
+        selectedGrades: selectedGradesRef.current,
+        uploadedFiles,
+        hasResultSlipFile: Boolean(resultSlipFile),
+        hasIdentityFile: Boolean(extraKycFile),
+        // Task 7.2 (R11.6): the readiness rail describes the *tenant's* required
+        // documents. `undefined` (no readable contract) keeps the legacy pair, so
+        // the rail is never weaker than before.
+        requiredDocumentItems: requiredDocuments.contract
+          ? documentReadinessItems(requiredDocuments.contract, {
+              hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
+              hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+            })
+          : undefined,
+        paymentStatus,
+        confirmSubmission,
+        assignmentResolved,
+      }),
+    [
+      uploadedFiles,
+      resultSlipFile,
+      extraKycFile,
+      requiredDocuments.contract,
+      paymentStatus,
+      confirmSubmission,
+      assignmentResolved,
+    ],
+  )
+  const wizardReadiness = computeReadiness(watch() as WizardFormData)
   useEffect(() => {
     const currentIntake = watch('intake')
     if (!currentIntake) return
@@ -870,12 +936,15 @@ const useWizardController = (): UseWizardControllerResult => {
     withheld: ocrWithheld,
     appliedCount: ocrAppliedCount,
     failureReason: ocrFailureReason,
+    retryAfterSeconds: ocrRetryAfterSeconds,
+    markExtractRejected: markOcrExtractRejected,
     extractionMeta: ocrExtractionMeta,
     startPolling: startOcrPolling,
     confirmCandidates,
     dismissCandidates: dismissOcrCandidates,
   } = useOcrGradeExtraction(ocrDocumentId)
   startOcrPollingRef.current = startOcrPolling
+  markOcrExtractRejectedRef.current = markOcrExtractRejected
 
   const confirmOcrCandidates = useCallback((subjectIds: string[]) => {
     const confirmed = confirmCandidates(subjectIds)
@@ -921,7 +990,7 @@ const useWizardController = (): UseWizardControllerResult => {
     assignmentPreviewError,
     requiredDocuments,
     queryClient,
-    syncGrades,
+    draftMachine,
     saveDraft,
     applyDraftSelectionChange,
     resolveProgramIdentity,
@@ -949,12 +1018,7 @@ const useWizardController = (): UseWizardControllerResult => {
     draftMachine,
     applicationId,
     user,
-    uploadedFiles,
-    resultSlipFile,
-    extraKycFile,
-    paymentStatus,
-    confirmSubmission,
-    selectedGradesRef,
+    computeReadiness,
     isSubmittingRef,
     selectedProgramDetails,
     intakes,
@@ -993,6 +1057,10 @@ const useWizardController = (): UseWizardControllerResult => {
     recommendedSubjects,
     programs,
     programsLoading,
+    programsError,
+    intakesError,
+    onRetryPrograms,
+    onRetryIntakes,
     intakes,
     subjects,
     hasAutoPopulatedData,
@@ -1026,6 +1094,7 @@ const useWizardController = (): UseWizardControllerResult => {
     ocrWithheld,
     ocrAppliedCount,
     ocrFailureReason,
+    ocrRetryAfterSeconds,
     ocrExtractionMeta,
     confirmOcrCandidates,
     dismissOcrCandidates,

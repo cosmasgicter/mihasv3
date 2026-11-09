@@ -98,6 +98,17 @@ Rollback:
 - Deactivate offerings or mark institution inactive.
 - Do not delete tenant rows that already have applications or payments.
 
+### Seeded school admins can decide (SJR R7-a)
+
+`seed_school_admins` gives each seeded admin's membership the `review` permission
+by default and removes nothing, so a re-run never strips a grant an operator set
+in the admin UI. It never touches `AccessGrant` rows. Options: `--permissions`
+(comma list, default `review`), `--replace` (hold exactly that list), `--read-only`
+(grant none), `--dry-run`. Every created, reactivated or changed membership emits
+one `tenant.membership.permissions_seeded` event carrying `permissions_before` and
+`permissions_after`; to undo a run, re-run with `--replace --permissions <before>`.
+If an audit row is missing the whole run rolls back; re-run it.
+
 ## 2. Domain Setup
 
 Use when configuring a custom tenant portal domain.
@@ -144,6 +155,12 @@ Rollback:
 - Purge/retry domain context cache if the host still resolves incorrectly.
 
 ## 3. Official Document Troubleshooting
+
+> **Letter profiles are part of onboarding (D9 confirmed 2026-11-08, option C).** Until a tenant
+> has an active `acceptance_letter` / `conditional_offer` document profile, its students see
+> "isn't available yet" for that letter and no Prepare action; the API answers `setup_required`
+> with `DOCUMENT_PROFILE_NOT_CONFIGURED`. Create the profile (admin document-profile endpoints or
+> `seed_tenant_document_profiles`) and the letter becomes available on the next read.
 
 Use when application slips, receipts, acceptance letters, or conditional offers
 are missing, wrong, unsigned, unbranded, or failing.

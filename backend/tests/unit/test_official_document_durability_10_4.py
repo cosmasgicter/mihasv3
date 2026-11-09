@@ -633,12 +633,18 @@ class TestIssueVersusRead:
         """Read-existing must not become a freshness bypass."""
         world = build_tenant_world(application_status="submitted")
         _issue_document(world.application)
-        client = _client_for(world.student)
-
-        data = client.get(_detail_url(world.application.id)).json()["data"]
-        # The fingerprint no longer matches (nothing seeded it), issuance is
-        # permitted, so the honest answer is "ask for one" — never the stale file
-        # dressed as current.
+        # SJR task 3.19 (R5-e, clause 2.26; D-A13): the STUDENT read changed. The
+        # old assertion (``not_requested`` for a student holding an issued slip
+        # whose fingerprint was retired by a status change) encoded the defect:
+        # the student was told to ask for a document they already had. The
+        # student now gets the issued slip, labelled ``historical``.
+        student = _client_for(world.student).get(_detail_url(world.application.id)).json()["data"]
+        assert student["status"] == odv.STATUS_READY
+        assert student["historical"] is True
+        # The STAFF read keeps today's answer, unchanged: the fingerprint no
+        # longer matches (nothing seeded it), issuance is permitted, so the honest
+        # answer is "ask for one" — never the stale file dressed as current.
+        data = _client_for(world.staff).get(_detail_url(world.application.id)).json()["data"]
         assert data["status"] == odv.STATUS_NOT_REQUESTED
         assert data["historical"] is False
 
@@ -651,8 +657,15 @@ class TestIssueVersusRead:
             world.application.id, "application_slip", error_code=jobs.RENDER_FAILED
         )
         Application.objects.filter(id=world.application.id).update(status="withdrawn")
-
-        data = _client_for(world.student).get(
+        # SJR task 3.19 (R5-e, D-A13): the failure-before-issued-copy precedence
+        # now belongs to staff. The old STUDENT assertion (``failed``) encoded the
+        # defect: an applicant holding an issued copy was told it failed.
+        student = _client_for(world.student).get(
+            _detail_url(world.application.id)
+        ).json()["data"]
+        assert student["status"] == odv.STATUS_READY
+        assert student["historical"] is True
+        data = _client_for(world.staff).get(
             _detail_url(world.application.id)
         ).json()["data"]
         assert data["status"] == odv.STATUS_FAILED

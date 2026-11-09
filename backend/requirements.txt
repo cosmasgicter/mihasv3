@@ -10,6 +10,9 @@ psycopg2-binary>=2.9,<3.0
 # Async tasks
 celery>=5.3,<6.0
 redis>=5.0,<6.0
+# kombu 5.7 requires redis-py >= 6.1, which the pin above forbids; a fresh
+# image build otherwise gets a worker that cannot reach its broker.
+kombu>=5.6,<5.7
 
 # Storage
 django-storages>=1.14,<2.0

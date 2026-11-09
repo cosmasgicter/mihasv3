@@ -111,6 +111,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   NOT_WAITLISTED: 'Application is not in waitlisted status.',
   INVALID_STATUS_FOR_CONDITIONS: 'Conditions cannot be set for this application status.',
   NO_CONDITIONS_PROVIDED: 'At least one condition must be provided.',
+  TOO_MANY_CONDITIONS: 'An offer can carry at most 10 conditions.',
   MISSING_DESCRIPTION: 'Description is required.',
   MISSING_DEADLINE: 'Deadline is required.',
   INVALID_CONDITION_TYPE: 'Invalid condition type.',
@@ -178,6 +179,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   DUPLICATE_SUBJECT: 'This subject is already in your application.',
   MINIMUM_AGE_NOT_MET: 'Minimum age requirement not met.',
   MINIMUM_SUBJECTS_REQUIRED: 'Please add the minimum number of required subjects.',
+  TOO_MANY_SUBJECTS: 'You can enter at most 10 subjects. Remove one and try again.',
 
   // Payment (extended)
   PAYMENT_ERROR: 'Payment processing error. Please try again.',
@@ -186,6 +188,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   // Common operational
   DASHBOARD_ERROR: 'Dashboard data could not be loaded. Please try again.',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
+  OCR_QUEUE_UNAVAILABLE: 'Automatic grade scanning is unavailable right now. You can enter your grades manually.',
 
   // Security hardening
   BLACKLIST_UNAVAILABLE: 'Token service temporarily unavailable. Please try again.',

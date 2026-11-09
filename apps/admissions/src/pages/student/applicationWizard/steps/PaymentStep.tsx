@@ -77,8 +77,13 @@ const PaymentStep = ({
 
   // Sync local deferred state from polled status (e.g. when navigating back)
   useEffect(() => {
-    if (polledStatus === 'deferred') setDeferred(true)
-  }, [polledStatus])
+    if (polledStatus === 'deferred') {
+      setDeferred(true)
+      // A deferral the server reports (another tab, another device) leaves no
+      // payment to recover. Only a server answer clears the entry.
+      if (applicationId) recoveryStore.clear(applicationId)
+    }
+  }, [polledStatus, applicationId, recoveryStore])
 
   const handleDefer = useCallback(async () => {
     if (!applicationId) return
@@ -90,6 +95,8 @@ const PaymentStep = ({
     setDeferError(null)
     try {
       await deferPayment(applicationId)
+      // The server confirmed the deferral, so the local recovery entry is stale.
+      recoveryStore.clear(applicationId)
       setDeferred(true)
       onPaymentStatusChange?.('deferred')
     } catch (err) {
@@ -97,7 +104,7 @@ const PaymentStep = ({
     } finally {
       setDeferring(false)
     }
-  }, [applicationId, onPaymentStatusChange, deferConfirm])
+  }, [applicationId, onPaymentStatusChange, deferConfirm, recoveryStore])
 
   const handleDevBypass = useCallback(async () => {
     if (!applicationId) return

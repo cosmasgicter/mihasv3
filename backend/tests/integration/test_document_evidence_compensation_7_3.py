@@ -177,7 +177,10 @@ class TestServerBackedReplacement:
         assert str(stages[-1].document_id) == second["id"]
 
         world.application.refresh_from_db()
-        assert world.application.result_slip_url.endswith(stages[-1].object_key)
+        # SJR task 3.14 (design R4-b, clause 2.19): the snapshot is a presence
+        # marker holding the current document's id, written in the version
+        # transaction; it used to hold the (presigned) object URL.
+        assert world.application.result_slip_url == second["id"]
 
     def test_delete_command_keeps_immutable_history_and_clears_current_projection(
         self, upload_world, object_storage
@@ -339,7 +342,7 @@ class TestUploadReplayIdentity:
             application_id=world.application.id,
             document_type="result_slip",
             object_key=evidence.build_object_key(
-                world.application.id, "result_slip", "inflight.pdf"
+                world.application.id, "result_slip", mime_type="application/pdf"
             ),
             content_hash="c" * 64,
             file_size=32,
@@ -428,7 +431,8 @@ class TestStorageDatabaseFailureInjection:
         assert "metadata commit failed" in (failed_stage.last_error or "")
 
         world.application.refresh_from_db()
-        assert world.application.result_slip_url == original_url
+        # SJR task 3.14 (design R4-b): the snapshot still names version 1 by id.
+        assert world.application.result_slip_url == str(first.id)
 
     def test_an_unverifiable_object_is_never_recorded_as_evidence(
         self, upload_world, object_storage
@@ -487,7 +491,8 @@ class TestStorageDatabaseFailureInjection:
 
         # The legacy projection the student's UI reads still points at version 1.
         world.application.refresh_from_db()
-        assert world.application.result_slip_url == original_url
+        # SJR task 3.14 (design R4-b): the snapshot still names version 1 by id.
+        assert world.application.result_slip_url == str(first.id)
         row = _contract_row(client, world.application.id)
         assert row["document"]["id"] == str(first.id)
         assert row["document"]["version"] == 1

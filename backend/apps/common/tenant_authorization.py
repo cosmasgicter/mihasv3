@@ -412,10 +412,11 @@ def resolve_scoped_document(
         TypeError,
     ):
         raise NotFound(not_found_detail)
-    institution_id = getattr(getattr(document, "application", None), "institution_ref_id", None)
-    AdminCapabilityService().require_institution_capability(
-        request.user, institution_id, capability
-    )
+    # Scope-grained, like applications: an offering or application grant reaches
+    # exactly its own target, and institution authority reaches all of them. The
+    # institution-grain check alone would deny an application-scoped grant that
+    # ``filter_documents`` already admitted.
+    require_application_capability(request, document.application, capability)
     return document
 
 

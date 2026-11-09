@@ -8,6 +8,7 @@ dist/
 build/
 .env
 .env.*
+!.env.local.test.example
 venv/
 .venv/
 staticfiles/

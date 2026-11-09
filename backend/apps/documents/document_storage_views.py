@@ -8,6 +8,7 @@ import hashlib
 import ipaddress
 import json
 import logging
+import re
 import uuid
 from decimal import Decimal
 
@@ -46,12 +47,18 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import DocumentExtractUserScopedRateThrottle, PaymentUserScopedRateThrottle
+from apps.common.throttling import (
+    DocumentExtractUserScopedRateThrottle,
+    DocumentUserRateThrottle,
+    PaymentUserScopedRateThrottle,
+)
 from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
+
+_IDEMPOTENCY_KEY_PATTERN = re.compile(r"[A-Za-z0-9._:-]{8,128}")
 
 
 from apps.common.request_utils import get_client_ip as _client_ip
@@ -90,34 +97,46 @@ def _document_permission_denied_response():
     )
 
 
-def _get_authorized_document(request, view, document_id):
-    """Load a document and enforce ownership through its parent application."""
+def _get_authorized_document(request, view, document_id, *, allow_assigned_reviewer=True):
+    """Load a document through owner-or-scoped capability authority (R5-g).
+
+    Delegates to ``resolve_owner_or_scoped_document`` (scope before lookup,
+    ``tenant.document.read``), so a non-owner student, an out-of-scope staff
+    actor and an unknown id all receive the byte-identical 404. An
+    assignment-scoped reviewer reaches only assigned applications, the same rule
+    as applications. Commands that mutate or re-run extraction pass
+    ``allow_assigned_reviewer=False`` so a reviewer keeps the masked 404 there.
+    """
+    from rest_framework.exceptions import NotFound, PermissionDenied
+
+    from apps.common.tenant_authorization import (
+        _is_assignment_scoped_reviewer,
+        require_reviewer_assignment,
+        resolve_owner_or_scoped_document,
+    )
+
     try:
-        document = ApplicationDocument.objects.select_related("application").get(id=document_id)
-    except ApplicationDocument.DoesNotExist:
-        return None, _document_not_found_response()
-
-    application = getattr(document, "application", None)
-    if application is None:
-        return None, _document_not_found_response()
-
-    role = getattr(request.user, "role", "student")
-    if role == "admin":
-        scoped = AccessScopeService().filter_documents(
-            ApplicationDocument.objects.filter(id=document.id),
-            request.user,
+        document = resolve_owner_or_scoped_document(
+            request,
+            document_id,
+            capability="tenant.document.read",
+            queryset=ApplicationDocument.objects.select_related("application"),
         )
-        if not scoped.exists():
-            # Out-of-scope reads must be indistinguishable from a true
-            # not-found so existence cannot be inferred (R4.4).
+        application = getattr(document, "application", None)
+        if application is None:
             return None, _document_not_found_response()
-    elif not IsOwnerOrAdmin().has_object_permission(request, view, application):
-        # A non-owning student (or any non-admin without ownership) is masked
-        # as a genuine not-found so document existence cannot be inferred
-        # (R3.6, R4.3, Property 13). Out-of-scope reads across every document
-        # surface return the byte-identical 404 envelope.
+        actor_id = str(getattr(request.user, "id", "") or getattr(request.user, "pk", "") or "")
+        is_owner = actor_id and str(getattr(application, "user_id", "") or "") == actor_id
+        if not is_owner:
+            if not allow_assigned_reviewer and _is_assignment_scoped_reviewer(request.user):
+                return None, _document_not_found_response()
+            require_reviewer_assignment(request, application)
+    except NotFound:
+        # Out-of-scope reads must be indistinguishable from a true not-found so
+        # existence cannot be inferred (R4.4, R3.6, Property 13).
         return None, _document_not_found_response()
-
+    except PermissionDenied:
+        return None, _document_permission_denied_response()
     return document, None
 
 
@@ -197,15 +216,15 @@ def _audit_official_document_downloaded(request, document):
 
 
 def _get_document_storage_key(document):
-    """Compatibility shim - delegates to ``apps.common.storage.get_document_storage_key``.
+    """Compatibility shim - delegates to ``apps.common.storage.resolve_document_object_key``.
 
     Kept so legacy imports (e.g. ``from apps.documents.views import
     _get_document_storage_key``) and existing test patches keep working
     while we migrate callers to the shared helper.
     """
-    from apps.common.storage import get_document_storage_key
+    from apps.common.storage import resolve_document_object_key
 
-    return get_document_storage_key(document)
+    return resolve_document_object_key(document)
 
 
 DocumentResponseSerializer = envelope_serializer(
@@ -254,6 +273,7 @@ class DocumentUploadView(APIView):
     Validates magic bytes, stores in S3/R2, creates ApplicationDocument record.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
     serializer_class = DocumentUploadSerializer
 
@@ -342,7 +362,57 @@ class DocumentUploadView(APIView):
         # tenant-configured custom type is accepted; a type nobody asked for is
         # refused with a stable code; and an unevaluable configuration fails
         # closed with a retryable 503 instead of accepting unverified evidence.
-        declared_mime = file_obj.content_type or ""
+        # R2-b (clause 2.8): validate the optional replay key's shape. The value
+        # is never echoed back.
+        raw_idempotency_key = request.headers.get("Idempotency-Key")
+        if raw_idempotency_key is not None and not _IDEMPOTENCY_KEY_PATTERN.fullmatch(
+            raw_idempotency_key
+        ):
+            return Response(
+                {
+                    "success": False,
+                    "error": "Validation failed",
+                    "code": "VALIDATION_ERROR",
+                    "details": {
+                        "Idempotency-Key": [
+                            "Use 8 to 128 letters, digits, dots, colons, underscores or hyphens."
+                        ]
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # R2-c (clause 2.9): the effective type. A specific declared type takes
+        # today's path unchanged; an aliased spelling is normalised; a generic or
+        # empty declaration is replaced by what the bytes are. Magic bytes below
+        # still decide acceptance.
+        from apps.documents.validators import (
+            DECLARED_MIME_ALIASES,
+            GENERIC_DECLARED_MIME_TYPES,
+            detect_file_mime,
+        )
+
+        declared_mime = str(file_obj.content_type or "").strip().lower()
+        declared_mime = DECLARED_MIME_ALIASES.get(declared_mime, declared_mime)
+        if declared_mime in GENERIC_DECLARED_MIME_TYPES:
+            declared_class = "empty" if not declared_mime else "octet"
+            detected = detect_file_mime(file_obj)
+            emit_metric(
+                "document.upload.detected_mime",
+                declared_class=declared_class,
+                detected={
+                    "application/pdf": "pdf",
+                    "image/jpeg": "jpeg",
+                    "image/png": "png",
+                }.get(detected, "none"),
+            )
+            if detected is None:
+                logger.info("Upload refused: unrecognisable bytes (declared class=%s)", declared_class)
+                return Response(
+                    {"success": False, "error": "Invalid file format", "code": "INVALID_FILE"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            declared_mime = detected
         from apps.applications.assignment_resolution import AssignmentConfigurationError
         from apps.applications.required_documents import (
             UploadRejected,
@@ -433,7 +503,7 @@ class DocumentUploadView(APIView):
             )
 
         accepts = list(requirement.get("accepts_document_types") or [document_type])
-        idempotency_key = request.headers.get("Idempotency-Key") or None
+        idempotency_key = raw_idempotency_key or None
 
         # Idempotent replay (R17.1), strongest identity first.
         #
@@ -455,12 +525,13 @@ class DocumentUploadView(APIView):
             application_id, accepts, content_hash, document_name=safe_name
         )
         if replay is not None:
+            evidence.heal_snapshot_on_replay(application_id, replay)
             return Response(
                 {"success": True, "data": DocumentSerializer(replay).data},
                 status=status.HTTP_201_CREATED,
             )
 
-        object_key = evidence.build_object_key(application_id, document_type, safe_name)
+        object_key = evidence.build_object_key(application_id, document_type, mime_type=declared_mime)
         actor_id = getattr(request.user, "id", None)
         # Durable BEFORE the object write (design §17): once this row is committed
         # the object is discoverable, so a crash mid-command leaves a reconcilable
@@ -495,7 +566,6 @@ class DocumentUploadView(APIView):
 
             storage = MediaStorage()
             saved_name = storage.save(object_key, file_obj)
-            file_url = storage.url(saved_name)
         except Exception as exc:
             logger.exception("Failed to upload file to storage")
             # No object is known to exist, but the provider may have written a
@@ -549,7 +619,8 @@ class DocumentUploadView(APIView):
                 application_id=application_id,
                 document_type=document_type,
                 document_name=safe_name,
-                file_url=file_url,
+                # The key, never a link: links expire and are signed on read (R4-a).
+                file_url=saved_name or object_key,
                 storage_key=saved_name or object_key,
                 file_size=hashed_size or getattr(file_obj, "size", None),
                 mime_type=declared_mime or None,
@@ -567,6 +638,7 @@ class DocumentUploadView(APIView):
                 # deeper signature scanning without backdating a state here.
                 lifecycle_state=evidence.READY_FOR_REVIEW,
                 supersede_document_types=accepts,
+                snapshot_field=evidence.SNAPSHOT_FIELD_BY_DOCUMENT_TYPE.get(document_type),
             )
         except evidence.DocumentCommandError as exc:
             evidence.compensate_stage(stage, reason=f"metadata commit rejected: {exc.code}")
@@ -588,17 +660,6 @@ class DocumentUploadView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-        application_url_field = None
-        if document_type == "result_slip":
-            application_url_field = "result_slip_url"
-        elif document_type in ("extra_kyc", "nrc", "passport"):
-            application_url_field = "extra_kyc_url"
-
-        if application_url_field:
-            setattr(application, application_url_field, file_url)
-            application.updated_at = timezone.now()
-            application.save(update_fields=[application_url_field, "updated_at"])
 
         return Response(
             {"success": True, "data": DocumentSerializer(doc).data},
@@ -629,7 +690,7 @@ class DocumentExtractView(APIView):
     # Cap per-user OCR retries (5/hour) when the flag is on: repeated
     # ``force=True`` re-extract calls are CPU-expensive. Task 7.4 renamed the
     # throttle and scope off the retired AI vocabulary; extraction is local.
-    throttle_classes = [DocumentExtractUserScopedRateThrottle]
+    throttle_classes = [DocumentExtractUserScopedRateThrottle, DocumentUserRateThrottle]
     throttle_scope = "document_extract"
 
     def post(self, request, document_id):
@@ -637,7 +698,7 @@ class DocumentExtractView(APIView):
         # loader masks out-of-scope reads as a byte-identical 404 not-found
         # (R3.2, R3.3, R3.6) and never authorizes on ``role == "admin"`` alone
         # — scope comes only from ``AccessScopeService`` (R3.8).
-        document, error_response = _get_authorized_document(request, self, document_id)
+        document, error_response = _get_authorized_document(request, self, document_id, allow_assigned_reviewer=False)
         if error_response is not None:
             # Return the loader error unchanged; no OCR task is enqueued and no
             # document state is mutated (R3.1, R3.2).
@@ -647,7 +708,33 @@ class DocumentExtractView(APIView):
         from apps.documents.tasks import extract_document_text_task
 
         force = request.data.get("force", False) is True
-        task = extract_document_text_task.delay(str(document.id), force=force)
+        # Record that a job exists before enqueueing, so /info/ can tell "queued"
+        # from "never started" (SJR R3-c). A document the task would skip (text
+        # already extracted, no force) is left alone: nothing would clear
+        # ``pending``.
+        previous_state = document.extraction_state
+        marked_pending = False
+        if (force or previous_state is None) and not (document.extracted_text and not force):
+            ApplicationDocument.objects.filter(id=document.id).update(extraction_state="pending")
+            marked_pending = True
+        try:
+            task = extract_document_text_task.delay(str(document.id), force=force)
+        except Exception:
+            if marked_pending:
+                ApplicationDocument.objects.filter(id=document.id).update(
+                    extraction_state=previous_state
+                )
+            logger.error("OCR enqueue failed for document %s", document.id, exc_info=True)
+            emit_metric("ocr.extract.enqueue_failed")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Text extraction is temporarily unavailable. Enter your grades manually or try again shortly.",
+                    "code": "OCR_QUEUE_UNAVAILABLE",
+                    "retryable": True,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
             {
@@ -674,6 +761,7 @@ class DocumentSignedUrlView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
@@ -682,22 +770,19 @@ class DocumentSignedUrlView(APIView):
         if error_response is not None:
             return error_response
 
-        file_key = _get_document_storage_key(document)
-        if not file_key:
-            return Response(
-                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         try:
-            from apps.common.storage import generate_signed_url
-
-            signed_url = generate_signed_url(file_key)
+            from apps.common.storage import resolve_document_open_url
+            signed_url = resolve_document_open_url(document)
         except Exception:
             logger.exception("Failed to generate signed URL for document %s", document_id)
             return Response(
                 {"success": False, "error": "Failed to generate signed URL", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        if not signed_url:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return Response({"success": True, "data": {"url": signed_url}})
@@ -710,6 +795,7 @@ class DocumentDownloadView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={302: None})
@@ -718,22 +804,19 @@ class DocumentDownloadView(APIView):
         if error_response is not None:
             return error_response
 
-        file_key = _get_document_storage_key(document)
-        if not file_key:
-            return Response(
-                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         try:
-            from apps.common.storage import generate_signed_url
-
-            signed_url = generate_signed_url(file_key)
+            from apps.common.storage import resolve_document_open_url
+            signed_url = resolve_document_open_url(document)
         except Exception:
             logger.exception("Failed to generate download URL for document %s", document_id)
             return Response(
                 {"success": False, "error": "Failed to generate download URL", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        if not signed_url:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         # R16.3: a download of an official (system-generated) document is an
@@ -753,6 +836,7 @@ class DocumentInfoView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
@@ -769,6 +853,7 @@ class DocumentInfoView(APIView):
         # labeled read-only provenance and never as current authority.
         historical_extraction = extraction_provenance.provenance_payload(document)
         _OCR_STATES = {
+            "ocr_pending",
             "ocr_processing",
             "ocr_complete",
             "ocr_no_text",
@@ -779,8 +864,11 @@ class DocumentInfoView(APIView):
         # ``extraction_state`` is the canonical home for OCR progress (task 7.3);
         # ``verification_status`` is only consulted for rows written before the
         # column existed, so an existing client keeps seeing the same `ocr_state`.
-        ocr_state = document.extraction_state if document.extraction_state in _OCR_STATES else None
-        if ocr_state is None and document.verification_status in _OCR_STATES:
+        if document.extraction_state == "pending":
+            ocr_state = "ocr_pending"
+        else:
+            ocr_state = document.extraction_state if document.extraction_state in _OCR_STATES else None
+        if ocr_state is None and document.verification_status in (_OCR_STATES - {"ocr_pending"}):
             ocr_state = document.verification_status
         data = {
             "id": str(document.id),
@@ -834,11 +922,12 @@ class DocumentDeleteView(APIView):
     Requires authentication.
     """
 
+    throttle_classes = [DocumentUserRateThrottle]
     permission_classes = [IsAuthenticated]
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
     def delete(self, request, document_id):
-        document, error_response = _get_authorized_document(request, self, document_id)
+        document, error_response = _get_authorized_document(request, self, document_id, allow_assigned_reviewer=False)
         if error_response is not None:
             return error_response
 

@@ -1,0 +1,171 @@
+name: Student Journey Gate
+# Student journey repair, task 4 (design R9-e, clauses 2.43, 2.46, 2.47).
+#
+# Two blocking checks, `journey-gate` and `local-stack-storage`:
+#
+#   journey-gate        `bash harness/bin/harness journey-gate`: the harness stack with
+#                       real object storage (MinIO), the rate limiter ON, a private
+#                       bucket and 20-second signed URLs; a 390x844 browser journey
+#                       through a 1 Mbit/s uplink (register, upload an identity document
+#                       and a result slip, reopen a stored document after its first URL
+#                       has expired, Submit, download the slip), plus the Submit spec at
+#                       1440x900, a 9.5 MB upload and the accessibility spec. Before the
+#                       journey it runs the storage round trip and the two-client edge
+#                       check. It fails on any 429 or 5xx on any page or popup, any
+#                       console error, any unsigned storage URL, a missing throttle or an
+#                       accessibility violation on the new surfaces. Retries: zero.
+#   local-stack-storage the storage round trip on the documented local-test stack
+#                       (backend/docker-compose.local-test.yml), so the stack a developer
+#                       actually uses cannot silently lose its object storage again.
+#
+# NO `paths:` FILTER, on purpose. GitHub leaves a required check pending when path
+# filtering stops its workflow from running, so a filtered gate made required would block
+# every pull request that touches only other paths (docs, apps/jobs-ops). Instead each
+# job's first steps decide relevance from the changed paths, and every later step runs
+# only when the change touches apps/admissions/, backend/, harness/ or this workflow.
+# On an unrelated change both jobs report success within seconds.
+#
+# Making `journey-gate` and `local-stack-storage` required checks on `main` is a
+# repository-settings step for the operator; nothing here changes settings.
+#
+# This workflow never contacts production, Neon, R2, Zoho, Resend or Lenco.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+concurrency:
+  group: student-journey-gate-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  journey-gate:
+    name: journey-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether this change needs the journey gate
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+          relevant=false
+          changed=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")" || relevant=true
+          elif [ "$EVENT_NAME" = "push" ]; then
+            if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+              relevant=true
+            else
+              changed="$(git diff --name-only "${BEFORE_SHA}...HEAD")" || relevant=true
+            fi
+          else
+            relevant=true
+          fi
+          if grep -Eq '^(apps/admissions/|backend/|harness/|\.github/workflows/student-journey-gate\.yml$)' <<< "$changed"; then
+            relevant=true
+          fi
+          echo "relevant=${relevant}" >> "$GITHUB_OUTPUT"
+          echo "journey gate relevant: ${relevant}"
+      - uses: oven-sh/setup-bun@v2
+        if: steps.changes.outputs.relevant == 'true'
+        with:
+          bun-version: latest
+      - name: Show toolchain
+        if: steps.changes.outputs.relevant == 'true'
+        run: |
+          docker --version
+          docker compose version
+          bun --version
+      - name: Run the student journey gate
+        if: steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness journey-gate
+      # Always upload, so a failing run is diagnosable: the report, traces, screenshots
+      # and each spec's per-scope request counts (rate-limit-headroom.json).
+      - name: Upload journey gate evidence
+        if: always() && steps.changes.outputs.relevant == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: journey-gate-evidence
+          path: |
+            apps/admissions/test-results/harness-evidence/
+            apps/admissions/test-results/journey-gate-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Dump harness logs on failure
+        if: failure() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness logs || true
+      - name: Tear the harness down
+        if: always() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness down || true
+
+  local-stack-storage:
+    name: local-stack-storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether this change needs the storage check
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+          relevant=false
+          changed=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")" || relevant=true
+          elif [ "$EVENT_NAME" = "push" ]; then
+            if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+              relevant=true
+            else
+              changed="$(git diff --name-only "${BEFORE_SHA}...HEAD")" || relevant=true
+            fi
+          else
+            relevant=true
+          fi
+          if grep -Eq '^(apps/admissions/|backend/|harness/|\.github/workflows/student-journey-gate\.yml$)' <<< "$changed"; then
+            relevant=true
+          fi
+          echo "relevant=${relevant}" >> "$GITHUB_OUTPUT"
+          echo "local-stack storage check relevant: ${relevant}"
+      - name: Bring up the documented local-test stack
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: backend
+        run: |
+          cp .env.local.test.example .env.local.test
+          docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test up -d --build
+      - name: Storage round trip on the local-test stack
+        if: steps.changes.outputs.relevant == 'true'
+        working-directory: backend
+        run: |
+          # The web container needs a moment to start; retry the command itself, and let
+          # the last attempt fail the job.
+          for attempt in $(seq 1 30); do
+            if docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test \
+                 exec -T web python3 manage.py storage_roundtrip_check --expect-private; then
+              exit 0
+            fi
+            echo "attempt ${attempt} did not pass; waiting"
+            sleep 4
+          done
+          exit 1
+      - name: Dump local-test logs on failure
+        if: failure() && steps.changes.outputs.relevant == 'true'
+        working-directory: backend
+        run: docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test logs --tail=120 || true
+      - name: Tear the local-test stack down
+        if: always() && steps.changes.outputs.relevant == 'true'
+        working-directory: backend
+        run: docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test down -v || true

@@ -100,3 +100,5 @@ Use this parity mode when debugging:
 - Celery queue behavior
 - Redis-backed auth/rate-limit behavior
 - contract tests that should behave like production storage
+
+The local-test stack ships a private MinIO bucket so uploads and signed document URLs work; verify it with `manage.py storage_roundtrip_check --expect-private` (see `LOCAL-TESTING.md` Part 1).

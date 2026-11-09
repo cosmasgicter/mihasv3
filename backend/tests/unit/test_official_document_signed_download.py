@@ -1,9 +1,10 @@
 """Official-document envelope returns a SIGNED download URL, never the raw one.
 
 Regression for the production "downloads not working" bug: the stored
-``ApplicationDocument.file_url`` is a permanent, **unsigned** R2/S3 object URL
-and the bucket is private (``AWS_DEFAULT_ACL = None``), so handing the raw URL
-to the browser yields ``403 AccessDenied``. ``_build_envelope`` must presign the
+``ApplicationDocument.file_url`` / ``storage_key`` is an object key (rows written
+before SJR task 3.13 hold a presigned URL that expires after 15 minutes) and the
+bucket is private (``AWS_DEFAULT_ACL = None``), so the raw value is never a
+usable link. ``_build_envelope`` must presign the
 URL (mirroring ``DocumentDownloadView``) before exposing it as ``download_url``.
 
 These tests target the pure ``_build_envelope`` seam directly so they need no
@@ -30,19 +31,30 @@ from tests.tenant_fixtures import build_profile, build_tenant_world
 class _Doc:
     """Minimal stand-in for an ApplicationDocument row."""
 
-    def __init__(self, file_url, doc_id="11111111-1111-1111-1111-111111111111"):
+    def __init__(
+        self,
+        file_url,
+        doc_id="11111111-1111-1111-1111-111111111111",
+        storage_key=None,
+        document_name="Application Slip.pdf",
+    ):
         self.id = doc_id
         self.file_url = file_url
+        self.storage_key = storage_key
+        self.document_name = document_name
         self.uploaded_at = None
         self.verification_notes = None
 
 
 _APP = SimpleNamespace(institution_ref_id="22222222-2222-2222-2222-222222222222")
-_RAW_URL = (
+# What official-document generation persists since SJR task 3.13: the key.
+# (The old fixture was an unsigned bucket URL, which no writer ever stored: the
+# writer persisted ``storage.url()``, a presigned URL, which hid defect B-01.)
+_RAW_URL = "application-slips/abc/def.pdf"
+_SIGNED_URL = (
     "https://acct.r2.cloudflarestorage.com/mihasapplication/media/"
-    "application-slips/abc/def.pdf"
+    "application-slips/abc/def.pdf?X-Amz-Signature=deadbeef&X-Amz-Expires=900"
 )
-_SIGNED_URL = _RAW_URL + "?X-Amz-Signature=deadbeef&X-Amz-Expires=900"
 
 
 def _open_job(document_type: str = "application_slip"):
@@ -116,22 +128,31 @@ def test_no_document_has_no_download_url():
 
 
 def test_signer_helper_presigns_storage_key():
-    """``_signed_download_url`` derives the key and calls the shared signer."""
-    doc = _Doc(_RAW_URL)
-    with patch("apps.common.storage.get_document_storage_key", return_value="application-slips/abc/def.pdf") as key_fn, patch(
-        "apps.common.storage.generate_signed_url", return_value=_SIGNED_URL
-    ) as sign_fn:
+    """``_signed_download_url`` resolves the key and signs it at read time."""
+    doc = _Doc(_RAW_URL, storage_key=_RAW_URL)
+    with patch("apps.common.storage.generate_signed_url", return_value=_SIGNED_URL) as sign_fn:
         result = odv._signed_download_url(doc)
-    key_fn.assert_called_once_with(doc)
-    sign_fn.assert_called_once_with("application-slips/abc/def.pdf")
+    # SJR task 3.19 (R5-h, clause 2.30): the display name and disposition travel
+    # to the signer because object keys carry no client filename (R4-b). The old
+    # key-only assertion encoded the missing ``ResponseContentDisposition``.
+    sign_fn.assert_called_once_with(
+        "application-slips/abc/def.pdf",
+        filename="Application Slip.pdf",
+        disposition="inline",
+    )
     assert result == _SIGNED_URL
 
 
-def test_signer_helper_returns_none_on_failure():
-    """Signer failure degrades to None rather than raising (no 500 on status read)."""
-    doc = _Doc(_RAW_URL)
-    with patch("apps.common.storage.get_document_storage_key", side_effect=RuntimeError("boom")):
-        assert odv._signed_download_url(doc) is None
+def test_signer_helper_returns_sentinel_on_failure():
+    """Signer failure degrades to the signing-failure sentinel rather than raising.
+
+    SJR task 3.19 (R5-d, clause 2.24): this used to expect ``None``, which the
+    envelope read as "no link, so not ready". The sentinel lets the envelope say
+    ``DOCUMENT_LINK_UNAVAILABLE`` instead; the status read still never 500s.
+    """
+    doc = _Doc(_RAW_URL, storage_key=_RAW_URL)
+    with patch("apps.common.storage.resolve_document_open_url", side_effect=RuntimeError("boom")):
+        assert odv._signed_download_url(doc) is odv._SIGNING_FAILED
 
 
 def test_signer_helper_returns_none_for_fileless_document():

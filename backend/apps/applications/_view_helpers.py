@@ -490,6 +490,8 @@ class ApplicationGradeRequestSerializer(serializers.Serializer):
     subject_id = serializers.UUIDField(required=False)
     grade = serializers.IntegerField(required=False)
     grades = ApplicationGradeSerializer(many=True, required=False)
+    # R6-b: true saves a partial set (autosave); the minimum is enforced at submit.
+    partial = serializers.BooleanField(required=False)
 
 
 class ApplicationStatusHistorySerializer(serializers.Serializer):

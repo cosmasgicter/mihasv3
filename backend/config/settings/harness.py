@@ -67,9 +67,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # ---------------------------------------------------------------------------
-# Coarse IP-keyed rate limiting -> OFF. Per-user payment throttles stay ON.
+# Coarse IP-keyed rate limiting -> OFF by default; ON for the journey gate.
+# Per-user payment throttles stay ON in both modes.
 # ---------------------------------------------------------------------------
-# ``RateLimitMiddleware`` (apps/common/middleware.py) budgets by **client IP**:
+# ``RateLimitMiddleware`` (apps/common/middleware.py) budgets by **client IP**
+# (``get_client_ip``: the real client behind a trusted proxy, so production keys
+# each applicant separately since SJR R3-a):
 # ``/auth/login/`` 10/5m, ``/auth/register/`` 5/5m, ``/payments/`` 60/10m, and so
 # on. That is correct in production, where each applicant arrives from their own
 # address. It cannot mean the same thing here: every request in this harness —
@@ -87,7 +90,13 @@ CORS_ALLOW_CREDENTIALS = True
 # The per-user budget is the one payment hardening actually relies on
 # (``docs/runbooks/payment-hardening-rollout.md``); the IP budget is the coarse
 # outer layer this topology cannot reproduce.
-RATELIMIT_ENABLE = False
+#
+# The journey gate (``harness/bin/harness journey-gate``, SJR task 4.1, R9-a) turns
+# the limiter ON with ``HARNESS_RATELIMIT_ENABLE=1`` so a 429 on the student's path
+# fails the run. It stays off for the broad matrix (SJR 3.22). The gate clears the
+# limiter counters before each spec file (``resetRateLimitCounters``), because every
+# browser context here still arrives from one host address.
+RATELIMIT_ENABLE = os.environ.get("HARNESS_RATELIMIT_ENABLE", "0").strip().lower() in ("1", "true", "yes")
 
 # ---------------------------------------------------------------------------
 # Email -> Mailpit (console/test inbox). Never Zoho, never Resend.

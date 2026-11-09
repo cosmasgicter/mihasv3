@@ -15,10 +15,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { downscaleImageForUpload } from '@/lib/imageDownscale'
 import { logger } from '@/lib/logger'
 import {
   RequiredDocumentsContractError,
   unsatisfiedRequirements,
+  uploadFailureMessage,
   validateFileForRequirement,
   type RequiredDocumentRequirement,
   type RequiredDocumentsContract,
@@ -55,10 +57,9 @@ export interface RequiredDocumentUploadState {
    */
   failedCommand: 'upload' | 'remove' | null
   /**
-   * 0-100 when a transport can measure the transfer, otherwise `undefined` and
-   * the control renders an accessible indeterminate indicator. The unified
-   * fetch-based client cannot measure request-body progress, so today this is
-   * always `undefined` while uploading — never a frozen fabricated number.
+   * 0-100 once the upload transport has reported its first byte-progress event;
+   * `undefined` before that, when the control renders an accessible
+   * indeterminate indicator — never a fabricated number.
    */
   progress?: number
   file: File | null
@@ -110,7 +111,18 @@ const IDLE_STATE: RequiredDocumentUploadState = {
   retryable: false,
 }
 
-const RETRY_DELAY_MS = 1200
+const RETRY_DELAY_MS = 2000
+/** Progress is shown at most once per this interval, or when it moves this many points. */
+const PROGRESS_MIN_INTERVAL_MS = 250
+const PROGRESS_MIN_STEP = 2
+
+/** One key per user-initiated upload; reused by its single automatic retry. */
+function newIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+}
 
 export interface UseRequiredDocumentsOptions {
   applicationId: string | null
@@ -210,7 +222,13 @@ export function useRequiredDocuments({
   // -- upload ------------------------------------------------------------
 
   const runUpload = useCallback(
-    async (requirement: RequiredDocumentRequirement, file: File, attempt = 0): Promise<void> => {
+    async (
+      requirement: RequiredDocumentRequirement,
+      file: File,
+      idempotencyKey: string = newIdempotencyKey(),
+      attempt = 0,
+      firstError: RequiredDocumentUploadError | null = null,
+    ): Promise<void> => {
       if (!applicationId) return
 
       const documentType = requirement.documentType
@@ -220,19 +238,37 @@ export function useRequiredDocuments({
         error: null,
         errorCode: null,
         retryable: false,
-        // No percentage: the upload goes through the unified fetch-based
-        // ApiClient (task 1.4), which cannot observe request-body progress, and
-        // an invented number would render a bar frozen at that value. The
-        // control shows an accessible indeterminate indicator instead. This field
-        // stays in the state shape for a transport that can measure it.
+        // Indeterminate until the transport reports its first progress event.
         progress: undefined,
       })
 
+      let lastPercent = -PROGRESS_MIN_STEP
+      let lastShownAt = 0
+      const onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+        if (total <= 0) return
+        const percent = Math.min(100, Math.floor((loaded * 100) / total))
+        const now = Date.now()
+        if (
+          percent === lastPercent ||
+          (percent - lastPercent < PROGRESS_MIN_STEP && now - lastShownAt < PROGRESS_MIN_INTERVAL_MS)
+        ) {
+          return
+        }
+        lastPercent = percent
+        lastShownAt = now
+        patchState(documentType, { progress: percent })
+      }
+
       try {
+        // Shrink a large phone photo before it leaves the device. Falls back to
+        // the original file on any problem; the server still validates.
+        const toSend = await downscaleImageForUpload(file)
         const { documentId } = await requiredDocumentsService.upload({
           applicationId,
           documentType,
-          file,
+          file: toSend,
+          idempotencyKey,
+          onProgress,
         })
         patchState(documentType, {
           status: 'uploaded',
@@ -256,28 +292,32 @@ export function useRequiredDocuments({
                 'UPLOAD_FAILED',
                 true,
               )
+        const reported = firstError ?? uploadError
 
         logger.warn('Required-document upload failed', {
           documentType: sanitizeForLog(documentType),
           code: sanitizeForLog(uploadError.code),
+          attempt,
         })
 
-        if (uploadError.retryable && attempt === 0) {
-          // One silent retry: a dropped mobile connection should not cost the
-          // student an interaction (product.md — weak networks are the norm).
+        // One automatic retry with the same key, never for a rate limit (a
+        // second request only spends more of the budget). A dropped mobile
+        // connection should not cost the student an interaction.
+        if (uploadError.retryable && uploadError.code !== 'RATE_LIMITED' && attempt === 0) {
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
           if (!mounted.current) return
-          return runUpload(requirement, file, attempt + 1)
+          return runUpload(requirement, file, idempotencyKey, attempt + 1, uploadError)
         }
 
+        // The first failure is the cause; a later one is usually its echo.
         patchState(documentType, {
           status: 'failed',
           failedCommand: 'upload',
           progress: undefined,
           file,
-          error: uploadError.message,
-          errorCode: uploadError.code,
-          retryable: uploadError.retryable,
+          error: uploadFailureMessage(reported.code, reported.message),
+          errorCode: reported.code,
+          retryable: reported.retryable,
         })
       }
     },

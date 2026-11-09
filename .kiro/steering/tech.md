@@ -48,7 +48,7 @@ inclusion: always
 | App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
 | Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
-| Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
+| Storage | Cloudflare R2 via `django-storages` | Signed URL workflow. MinIO locally and in CI; `S3_PUBLIC_ENDPOINT_URL` for browser-facing signatures; `S3_SIGNED_URL_TTL_SECONDS` (10-3600, default 900) |
 | Email | Zoho SMTP (primary) + Resend (fallback) | Zoho SMTP for outbound email; Resend as fallback for transactional delivery |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI gateway | Vercel AI Gateway (multi-model) | `AI_GATEWAY_API_KEY` — routes to gpt-4o-mini, gemini-2.5-flash, deepseek-v3 by task type |
@@ -99,6 +99,7 @@ inclusion: always
 | `cd backend && python3 manage.py check` | Django system checks |
 | `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` | Generate and verify OpenAPI schema |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
+| `cd backend && python3 manage.py storage_roundtrip_check --expect-private` | Object storage write/read/sign/fetch/delete check (prints `OK`) |
 | `cd backend && python3 -m uvicorn config.asgi:application --reload` | Local ASGI runtime parity check |
 
 ## API Contract
@@ -130,6 +131,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
 - Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
 - CSRF is required for state-changing requests in authenticated flows. CSRF tokens are validated at the `JWTCookieAuthentication` layer (not middleware). The frontend bootstrap session call (`GET /api/v1/auth/session/?refresh_csrf=1`) requests a fresh token when the in-memory store is empty (e.g. after page refresh). CSRF recovery uses the `?refresh_csrf=1` query parameter (not a custom header) to avoid CORS preflight issues on cross-origin requests. `x-csrf-token`, `x-csrf-recovery`, and `idempotency-key` are all in `CORS_ALLOW_HEADERS`. CSRF tokens are issued by `SessionView` and `RefreshView` in the `X-CSRF-Token` response header. The frontend stores them in-memory only (never localStorage). After a page refresh the in-memory token is lost, so the bootstrap session call includes `?refresh_csrf=1` to force a fresh token. The CSRF recovery flow (`recoverCsrfAndRetry`) also uses `?refresh_csrf=1` instead of a custom header to avoid CORS preflight issues on cross-origin requests.
+- The student, admin and generic route guards (`StudentRoute`, `AdminRoute`, `ProtectedRoute`) make one refresh attempt through `useSessionRestoreOnce` before redirecting to sign-in, showing "Restoring your session" meanwhile. No attempt follows a sign-out, a cross-tab logout or an auth-failure cascade (`suppressSessionRestore()`), and public pages never refresh. The bootstrap session read (`fetchSessionData`) still never POSTs refresh.
 - `CORS_ALLOW_HEADERS` includes `x-csrf-token`, `x-csrf-recovery`, `idempotency-key`, and `cache-control` in addition to the `corsheaders` defaults.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format against `APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX` patterns, returning 400 with `INVALID_FORMAT` for bad formats and descriptive 404 messages for valid-format codes not found.
 - Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
@@ -143,6 +145,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
+- Uploads go through `apiClient.upload` (XMLHttpRequest, byte progress, inactivity timeout, keyed retry), never `fetch` or `apiClient.request`.
 - Payment in the admissions wizard supports mobile money (primary) and card widget (secondary). Mobile money is initiated via `POST /api/v1/payments/mobile-money/` and polled for completion. The Lenco card widget (`LencoPay.getPaid`) remains available as a fallback. Students may also defer payment and submit without paying upfront. Do not reintroduce the retired pre-Lenco payment UX.
 - Payment ownership is split at submission (task 8.3, R12.3): the **wizard** owns pre-submission pay-or-defer and renders no history or recovery; **`/student/payment`** owns deferred, failed, expired, and pending recovery plus history, and may take a payment for a fee still owed after submission. Do not restore the "payment page is read-only" description — that contradiction is finding STU-09.
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
@@ -271,6 +274,8 @@ UI are unconditional.
 | Flag | Scope | Gates |
 |------|-------|-------|
 | `PAYMENT_HARDENING_RATE_LIMITS` | Backend | Per-user DRF throttle scopes (`payment_initiate`, `payment_mobile_money`, `payment_verify`, `payment_resolve_fee`) |
+
+Document traffic has its own per-user DRF scopes, `documents_write` (upload, delete, extract) 40/hour and `documents_read` (info, signed URL, download) 300/hour, enforced by `DocumentUserRateThrottle`. They follow `RATELIMIT_ENABLE` (off in test and the broad harness matrix), not this flag, and fail open on cache errors. Client addresses come from `get_client_ip` (trusted proxies only: `TRUSTED_PROXY_CIDRS`, `NUM_PROXIES`).
 
 This is a policy switch, not a second code path: both settings run the same
 payment path. It reads `"1" | "true" | "yes"` as enabled and is hardcoded `True`
@@ -535,7 +540,9 @@ isolation proven by deleting the other product is not isolation.
 ## Verification Expectations
 
 - Run relevant backend pytest suites when you change Django code.
+- Startup refusal for missing required variables (prod and staging) is proven by `backend/tests/unit/test_startup_env_validation.py`, which starts real subprocesses.
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
+- Changes under `apps/admissions/`, `backend/` or `harness/` run the blocking student journey gate (`.github/workflows/student-journey-gate.yml`; locally `bash harness/bin/harness journey-gate`). It uses real object storage with a private bucket, 20 s signed URLs and the rate limiter on, and fails on any 429 or 5xx on any page or popup, any console error, any unsigned storage URL, a missing throttle or an accessibility violation on the surfaces it covers. Its jobs `journey-gate` and `local-stack-storage` are meant to be required checks on `main`; setting that is an operator step in repository settings and is recorded as pending until done. The broad matrix (`harness smoke`) keeps today's harness settings.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.
 - When modifying `ErrorDisplay`, `Settings.tsx`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
@@ -549,7 +556,7 @@ The following security measures were applied during the April 2026 full reposito
 - Batch user import now creates an `AuditLog` entry with `action=user_batch_import` for every batch operation. Per-row savepoints handle `IntegrityError` races without discarding the entire batch. Role-level validation prevents creating users with roles above the actor's own.
 - Bulk notification retry no longer re-sends emails for already-processed notifications. The task retries with only the remaining unprocessed IDs.
 - `ApplicationReviewView` payment gate now checks the full `_RESOLVED_PAYMENT_STATUSES` tuple (including `verified`, `paid`, `deferred`) instead of a subset.
-- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only `.env.example` and `.env.scripts.example` remain as tracked templates. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
+- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only the example templates remain tracked: `.env.example`, `.env.scripts.example`, `apps/admissions/.env.example`, `backend/.env.example`, `backend/.env.local.test.example` and `deploy/.env.prod.example`. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
 
 ### Known Open Issues (from AUDIT-REPORT-2026-04-24.md)
 

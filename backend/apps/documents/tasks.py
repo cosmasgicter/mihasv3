@@ -204,7 +204,7 @@ def extract_document_text_task(self, document_id, force=False):
     local, deterministic, and never becomes application data on its own.
     """
     from apps.documents.models import ApplicationDocument
-    from apps.common.storage import get_document_storage_key
+    from apps.common.storage import resolve_document_object_key
 
     try:
         document = ApplicationDocument.objects.get(id=document_id)
@@ -235,9 +235,11 @@ def extract_document_text_task(self, document_id, force=False):
             reset_fields.append("verification_notes")
         document.save(update_fields=reset_fields)
 
-    file_key = get_document_storage_key(document)
+    file_key = resolve_document_object_key(document)
     if not file_key:
         logger.error("Document %s has no file URL", document_id)
+        # Terminal state, so a pending extraction never sticks (SJR R3-c).
+        evidence.record_extraction_state(document, "ocr_failed")
         return
 
     # Mark as processing so the frontend can distinguish "in progress" from "not started"

@@ -51,6 +51,12 @@ export interface OfficialDocumentRecoveryProps {
   documentLabel?: string
   onRetry?: () => void
   busy?: boolean
+  /**
+   * True when the letter is "not available yet" because the school has not set it
+   * up (SJR R7-d). Nothing was attempted, so there is no "the office has been
+   * notified" sentence and no retry; only the message and the support route.
+   */
+  notAvailableYet?: boolean
 }
 
 export function OfficialDocumentRecovery({
@@ -61,6 +67,7 @@ export function OfficialDocumentRecovery({
   documentLabel = 'official document',
   onRetry,
   busy = false,
+  notAvailableYet = false,
 }: OfficialDocumentRecoveryProps) {
   const { brandName, supportEmail } = usePortalBrand()
   const support = resolveTenantSupportContact({
@@ -78,11 +85,11 @@ export function OfficialDocumentRecovery({
   return (
     <div
       className="flex w-full flex-col gap-3 rounded-lg border border-border bg-muted/40 p-4"
-      role="alert"
+      role={notAvailableYet ? 'status' : 'alert'}
     >
       <div className="flex items-start gap-2">
         <AlertTriangle
-          className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+          className={`mt-0.5 h-4 w-4 shrink-0 ${notAvailableYet ? 'text-muted-foreground' : 'text-destructive'}`}
           aria-hidden="true"
         />
         <div className="flex flex-col gap-1">
@@ -91,7 +98,7 @@ export function OfficialDocumentRecovery({
         </div>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        {canRetry && onRetry && (
+        {canRetry && onRetry && !notAvailableYet && (
           <Button
             onClick={onRetry}
             variant="secondary"
@@ -129,7 +136,7 @@ export function OfficialDocumentRecovery({
       {/* No tenant configuration detail is named here even when the cause is a
           setup failure: the school's own staff were told, by name, through the
           inbox work item the renderer writes (task 10.4 part 3). */}
-      {isSetupRequired && (
+      {isSetupRequired && !notAvailableYet && (
         <p className="text-xs text-muted-foreground">
           The admissions office has been notified and does not need you to do
           anything else.

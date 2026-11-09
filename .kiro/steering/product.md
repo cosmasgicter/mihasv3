@@ -72,6 +72,7 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
   take a payment for a fee still owed after submission. It is not a read-only
   surface, and it never shows a draft: a student with only a draft is handed back
   to the wizard. The wizard renders no history and no recovery.
+- Every student View or Open control for a document is a plain anchor to the in-app opener `/student/documents/open`, which signs at the moment it is opened (SJR task 3.17, R5-a). The status workspace lists every current document from the documents endpoint, the wizard panel shows View for an uploaded requirement, and an official document is "Prepare" until the platform has issued it, then "Open". A student keeps reading an issued slip after the application status changes.
 - Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
 - `deferred` is a distinct canonical payment status. Students who deferred payment see a reminder to complete payment. Submission is allowed with deferred payment status.
@@ -130,7 +131,7 @@ backend `AdminCapabilityService`, never by comparing raw role strings. See
 Admissions expectations:
 
 - Multi-step application flow remains the core student journey.
-- Auto-save must remain silent and resilient.
+- Auto-save must remain silent and resilient. It covers the answers and the grade grid (grades are saved by the draft machine within the debounce, as a partial set; "Saved" is shown only when nothing is pending).
 - Eligibility checks are advisory, not hard blockers.
 - Drafts must survive refreshes, reconnects, and interrupted sessions.
 - Payment is handled by the Lenco inline widget in the payment step — no manual proof-of-payment.
@@ -184,7 +185,7 @@ Jobs-ops expectations:
 | CSRF | Required on state-changing requests; enforced in `JWTCookieAuthentication._enforce_csrf()` with exempt patterns for unauthenticated endpoints. CSRF tokens are in-memory only on the frontend; bootstrap session call uses `?refresh_csrf=1` to recover after page refresh. Cross-origin recovery uses query params (not custom headers) to avoid CORS preflight issues. |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
-| Secrets | Credentials must be environment-backed and masked in logs. Only `.env.example` and `.env.scripts.example` are tracked in git — all real env files are gitignored. |
+| Secrets | Credentials must be environment-backed and masked in logs. Only the example templates are tracked in git (`.env.example`, `.env.scripts.example`, `apps/admissions/.env.example`, `backend/.env.example`, `backend/.env.local.test.example`, `deploy/.env.prod.example`) — all real env files are gitignored. |
 | Audit | Keep audit trails while avoiding PII in logs. Batch user imports are audit-logged. Admin user modifications are audit-logged with encrypted network context. |
 | URL safety | Prevent open redirects and unsafe external URL handling |
 | Automation safety | Respect approval thresholds, domain policies, and send caps |

@@ -7,19 +7,24 @@ with a descriptive error listing all missing vars if any are absent.
 
 import os
 
+from collections.abc import Iterable
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 
-def validate_required_env_vars() -> None:
+def validate_required_env_vars(required: Iterable[str] | None = None) -> None:
     """Validate that all required environment variables are set and non-empty.
 
     Reads the ``REQUIRED_ENV_VARS`` list from Django settings and checks
     ``os.environ`` for each entry.  If any variable is missing or empty,
     raises ``ImproperlyConfigured`` with a message listing every offending
     variable so the operator can fix them all in one pass.
+
+    ``required`` lets a caller that already holds the final list (the app
+    ``ready()`` hook) pass it in; ``None`` reads ``settings.REQUIRED_ENV_VARS``.
     """
-    required: list[str] = list(getattr(settings, "REQUIRED_ENV_VARS", []))
+    required = list(getattr(settings, "REQUIRED_ENV_VARS", []) if required is None else required)
 
     # SECRET_KEY is critical in production - must not use the dev default
     if "prod" in os.environ.get("DJANGO_SETTINGS_MODULE", "") and "SECRET_KEY" not in required:

@@ -38,6 +38,7 @@ import {
   toStatusHistory,
 } from '@/components/admin/applications/workspaceAdapters'
 import type { ApplicationWithDetails } from '@/components/admin/applications/applicationDetailTypes'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 interface UseReviewWorkspaceSessionInput {
   application: ApplicationWithDetails | null
@@ -45,7 +46,7 @@ interface UseReviewWorkspaceSessionInput {
   onUpdateStatus: (
     id: string,
     status: string,
-    options?: { notes?: string; force?: boolean },
+    options?: StatusCommandOptions,
   ) => Promise<unknown>
 }
 
@@ -58,7 +59,11 @@ export function useReviewWorkspaceSession({
   // focus trap stay with the component: they are about the sheet, not the record.
   const [adminFeedback, setAdminFeedback] = useState('')
   const [savingFeedback, setSavingFeedback] = useState(false)
-  const [paymentWarning, setPaymentWarning] = useState<{ applicationId: string; status: string } | null>(null)
+  const [paymentWarning, setPaymentWarning] = useState<{
+    applicationId: string
+    status: string
+    options?: StatusCommandOptions
+  } | null>(null)
   const [feeWaiverOpen, setFeeWaiverOpen] = useState(false)
   const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
 
@@ -270,10 +275,14 @@ export function useReviewWorkspaceSession({
     [applicationId, runCommand],
   )
 
-  const handleStatusWithWarning = async (appId: string, newStatus: string) => {
-    const result = await onUpdateStatus(appId, newStatus)
+  const handleStatusWithWarning = async (
+    appId: string,
+    newStatus: string,
+    options?: StatusCommandOptions,
+  ) => {
+    const result = await (options ? onUpdateStatus(appId, newStatus, options) : onUpdateStatus(appId, newStatus))
     if (result && typeof result === 'object' && 'warning' in result && result.warning === true) {
-      setPaymentWarning({ applicationId: appId, status: newStatus })
+      setPaymentWarning({ applicationId: appId, status: newStatus, options })
       return
     }
     window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: appId } }))
@@ -283,7 +292,10 @@ export function useReviewWorkspaceSession({
   const handlePaymentWarningConfirm = async () => {
     if (!paymentWarning) return
     try {
-      await onUpdateStatus(paymentWarning.applicationId, paymentWarning.status, { force: true })
+      await onUpdateStatus(paymentWarning.applicationId, paymentWarning.status, {
+        ...paymentWarning.options,
+        force: true,
+      })
       window.dispatchEvent(
         new CustomEvent('applicationUpdated', {
           detail: { applicationId: paymentWarning.applicationId },

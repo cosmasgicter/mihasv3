@@ -15,6 +15,8 @@ import secrets
 import time
 from decimal import Decimal
 
+from apps.common.validators import normalize_zambian_msisdn
+
 
 # ---------------------------------------------------------------------------
 # Reference & receipt generators
@@ -97,46 +99,9 @@ _MTN_PREFIXES: frozenset[str] = frozenset({"96", "76"})
 _ZAMTEL_PREFIXES: frozenset[str] = frozenset({"95", "75"})
 
 
-def _normalize_phone_e164(phone_raw: str) -> str:
-    """Normalise a Zambian MSISDN to E.164 (``+260XXXXXXXXX``).
-
-    Accepts these shapes, with whitespace / dashes stripped:
-
-    - ``+260XXXXXXXXX`` - already E.164, passed through.
-    - ``0XXXXXXXXX``    - national trunk prefix stripped, ``+260`` added.
-    - ``260XXXXXXXXX``  - country code without ``+``, ``+`` prepended.
-    - ``XXXXXXXXX``     - 9-digit bare subscriber number, ``+260`` prepended.
-
-    Anything else raises ``ValueError("INVALID_PHONE_FORMAT")``.
-    """
-    if phone_raw is None:
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    cleaned = phone_raw.strip()
-    for ch in (" ", "-", "(", ")", "\t"):
-        cleaned = cleaned.replace(ch, "")
-
-    if not cleaned:
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    digits = cleaned[1:] if cleaned.startswith("+") else cleaned
-
-    if not digits.isdigit():
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    # +260XXXXXXXXX → 260 + 9 digits
-    if digits.startswith("260") and len(digits) == 12:
-        return f"+{digits}"
-
-    # 0XXXXXXXXX → strip trunk, add +260
-    if digits.startswith("0") and len(digits) == 10:
-        return f"+260{digits[1:]}"
-
-    # Bare 9-digit subscriber number
-    if len(digits) == 9:
-        return f"+260{digits}"
-
-    raise ValueError("INVALID_PHONE_FORMAT")
+# One implementation: the normaliser lives in ``apps.common.validators`` so
+# registration and mobile money cannot drift (student-journey-repair R8-b).
+_normalize_phone_e164 = normalize_zambian_msisdn
 
 
 def _operator_prefix_overrides() -> tuple[frozenset[str], frozenset[str]]:

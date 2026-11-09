@@ -21,14 +21,16 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { CheckCircle } from 'lucide-react';
 import { logApiError } from '@/lib/apiErrorLogger';
+import { isRateLimitedError, rateLimitMessage, retryAfterOf } from '@/lib/rateLimitCopy';
 import { preloadStudentWorkspaceRoute } from '@/lib/routePreload';
+import { registrationPhoneSchema } from '@/lib/zambianMsisdn';
 
 export const signUpSchema = z
   .object({
     first_name: z.string().min(2, 'First name is required'),
     last_name: z.string().min(2, 'Last name is required'),
     email: z.string().email('Please enter a valid email address'),
-    phone: z.string().min(10, 'Please enter a valid phone number'),
+    phone: registrationPhoneSchema,
     password: z.string()
       .min(8, 'Password must be at least 8 characters')
       .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
@@ -79,7 +81,13 @@ export default function SignUpPage() {
       });
 
       if (result?.error) {
-        throw new Error(result.error);
+        // Carry the server's field errors so each input shows its own message
+        // (clause 2.42); the banner stays generic when there are any.
+        const failure = new Error(result.error) as Error & { fieldErrors?: Record<string, string> };
+        if (result.fieldErrors && Object.keys(result.fieldErrors).length > 0) {
+          failure.fieldErrors = result.fieldErrors;
+        }
+        throw failure;
       }
 
       return result;
@@ -99,6 +107,10 @@ export default function SignUpPage() {
 
   const getErrorMessage = (error: Error | null) => {
     if (!error) return '';
+    if (isRateLimitedError(error)) return rateLimitMessage(retryAfterOf(error));
+    // Field errors are shown on their inputs; the banner never repeats a
+    // "field: value" string built from the server's message.
+    if (Object.keys(getFieldErrors(error)).length > 0) return 'Please check the highlighted fields.';
     const message = error.message || 'Failed to create account. Please try again.';
     if (
       message.includes('already registered') ||

@@ -7,12 +7,18 @@
  * document a student receives is the authoritative tenant-branded backend
  * record — never a locally rendered `@/lib/pdf` blob (R7.1, R7.3, R7.4).
  *
+ * SJR task 3.17 (R5-a): the hook no longer opens anything. `prepare()` asks the
+ * platform to make the document and waits for it; `openHref` is then the link to
+ * the in-app opener (`/student/documents/open`), which signs at click time. A tab
+ * opened in code after a POST, a poll and a GET is a tab the browser blocks, and
+ * a URL signed before the student clicks can have expired by the time they do.
+ *
  * It maps the backend generation status to the four UI states the design
  * requires (R7.2):
  *
  *   - `Generating` — the initial generate request is in flight.
  *   - `Queued`     — the backend reported `queued`; we are polling for readiness.
- *   - `Ready`      — the backend reported `ready`; the download has been served.
+ *   - `Ready`      — the backend reported `ready`; the document can be opened.
  *   - `Failed`     — generation failed (or the gate/scope rejected the request);
  *                    a retry affordance is surfaced.
  *
@@ -27,6 +33,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { documentOpenHref, OPENABLE_OFFICIAL_TYPES, type OpenableOfficialType } from '@/lib/documentOpen'
 import { toError } from '@/lib/toError'
 import {
   officialDocumentService,
@@ -167,12 +174,33 @@ export interface UseOfficialDocumentResult {
   isHistorical: boolean
   /** The committed durable job behind the current status, or `null`. */
   job: OfficialDocumentJob | null
-  /** Generate (ensure current) then download the stored backend document. */
-  download: () => Promise<boolean>
+  /**
+   * Ask the platform to make the document (ensure current) and wait until it is
+   * ready. Resolves `true` when it is. It opens nothing: the student opens it
+   * with an anchor to {@link UseOfficialDocumentResult.openHref}.
+   */
+  prepare: () => Promise<boolean>
+  /**
+   * The in-app opener link once the document is ready, else `null`. Only the
+   * four student-openable types have one; no admin control uses it (OS-15).
+   */
+  openHref: string | null
   /** Email the backend-stored document to the applicant's own address. */
   email: (address?: string) => Promise<boolean>
   /** Clear transient error/state back to idle. */
   reset: () => void
+  /**
+   * True when the school's missing document profile was learned from a **read**
+   * (SJR R7-d), before the student asked for anything. The letter is then "not
+   * available yet" rather than a failed attempt, and no Prepare is offered.
+   */
+  setupKnownFromRead: boolean
+  /**
+   * Ask the platform, without requesting anything, whether this document is
+   * blocked on school setup. Only a `setup_required` answer changes state: every
+   * other answer belongs to `useIssuedOfficialDocuments` or to `prepare()`.
+   */
+  checkSetup: () => Promise<void>
 }
 
 /**
@@ -190,6 +218,7 @@ export function useOfficialDocument(
   const [setupRequired, setSetupRequired] = useState(false)
   const [job, setJob] = useState<OfficialDocumentJob | null>(null)
   const [historical, setHistorical] = useState(false)
+  const [setupKnownFromRead, setSetupKnownFromRead] = useState(false)
 
   const mountedRef = useRef(true)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -238,8 +267,22 @@ export function useOfficialDocument(
     [],
   )
 
+  const checkSetup = useCallback(async (): Promise<void> => {
+    try {
+      const payload = await officialDocumentService.getOfficialDocument(applicationId, documentType)
+      if (payload?.status !== 'setup_required' || !mountedRef.current) return
+      absorb(payload)
+      setSetupKnownFromRead(true)
+      setSetupRequired(true)
+    } catch {
+      // Quiet by design: a failed read leaves the surface as it was, and
+      // `prepare()` reports its own errors.
+    }
+  }, [absorb, applicationId, documentType])
+
   const reset = useCallback(() => {
     if (!mountedRef.current) return
+    setSetupKnownFromRead(false)
     setStatus(null)
     setError(null)
     setSetupRequired(false)
@@ -271,7 +314,7 @@ export function useOfficialDocument(
     [absorb, applicationId, documentType],
   )
 
-  const download = useCallback(async (): Promise<boolean> => {
+  const prepare = useCallback(async (): Promise<boolean> => {
     if (inflight) return false
     setInflight(true)
     setError(null)
@@ -279,11 +322,9 @@ export function useOfficialDocument(
     try {
       const generated = await officialDocumentService.generateOfficialDocument(applicationId, documentType)
       let current: OfficialDocumentGenerationStatus = absorb(generated) ?? 'failed'
-
       if (current === 'queued') {
         current = await pollUntilSettled()
       }
-
       if (current !== 'ready') {
         if (mountedRef.current) {
           setSetupRequired(current === 'setup_required')
@@ -291,10 +332,6 @@ export function useOfficialDocument(
         }
         return false
       }
-
-      // Always pull the authoritative stored record and stream it to the
-      // browser — never a local blob (R7.3, R7.4).
-      await officialDocumentService.downloadOfficialDocument(applicationId, documentType)
       return true
     } catch (err) {
       if (mountedRef.current) {
@@ -304,7 +341,7 @@ export function useOfficialDocument(
         setError(
           requiresSetup
             ? failureMessage('setup_required')
-            : toError(err).message || 'Unable to download the document',
+            : toError(err).message || 'Unable to prepare the document',
         )
       }
       return false
@@ -312,7 +349,6 @@ export function useOfficialDocument(
       if (mountedRef.current) setInflight(false)
     }
   }, [absorb, applicationId, documentType, failureMessage, inflight, pollUntilSettled])
-
   const email = useCallback(
     async (address?: string): Promise<boolean> => {
       if (inflight) return false
@@ -356,6 +392,14 @@ export function useOfficialDocument(
     [absorb, applicationId, documentType, failureMessage, inflight, pollUntilSettled],
   )
 
+  const openHref =
+    status === 'ready' && (OPENABLE_OFFICIAL_TYPES as readonly string[]).includes(documentType)
+      ? documentOpenHref({
+          kind: 'official',
+          applicationId,
+          documentType: documentType as OpenableOfficialType,
+        })
+      : null
   return {
     uiState: deriveOfficialDocumentUiState(inflight, status, setupRequired),
     status,
@@ -366,8 +410,11 @@ export function useOfficialDocument(
     canRetry: Boolean(job?.can_retry),
     isHistorical: historical,
     job,
-    download,
+    prepare,
+    openHref,
     email,
     reset,
+    setupKnownFromRead,
+    checkSetup,
   }
 }

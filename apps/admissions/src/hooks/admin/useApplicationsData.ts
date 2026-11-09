@@ -40,6 +40,7 @@ import {
   toApplicationRosterQuery,
 } from './useApplicationFilters'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 /**
  * One roster row as the triage surface renders it.
@@ -178,7 +179,7 @@ export interface UseApplicationsDataResult {
   updateStatus: (
     applicationId: string,
     newStatus: string,
-    options?: { notes?: string; force?: boolean }
+    options?: StatusCommandOptions
   ) => Promise<unknown>
   updatePaymentStatus: (
     applicationId: string,
@@ -266,14 +267,15 @@ export function useApplicationsData(
     async (
       applicationId: string,
       newStatus: string,
-      commandOptions?: { notes?: string; force?: boolean }
+      commandOptions?: StatusCommandOptions
     ) => {
       try {
         const result = await applicationService.updateStatus(
           applicationId,
           newStatus,
           commandOptions?.notes,
-          commandOptions?.force
+          commandOptions?.force,
+          commandOptions?.conditions
         )
 
         // An advisory warning is not a transition: leave the cache alone so the

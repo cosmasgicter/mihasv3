@@ -31,30 +31,38 @@ export interface WizardReadiness {
   stepProgressByKey: Record<StepKey, WizardStepReadiness>
 }
 
+/**
+ * Every field is required (SJR task 3.22, R6-a). A caller that omits one used to
+ * get a silent default, which let the Submit handler disagree with the Submit
+ * button (finding C-01). Required fields make `tsc` reject any call that leaves
+ * one out; `requiredDocumentItems` stays nullable but must be passed.
+ */
 export interface BuildWizardReadinessInput {
   values: Partial<WizardFormData>
-  selectedGrades?: SubjectGrade[]
-  uploadedFiles?: Record<string, boolean>
-  hasResultSlipFile?: boolean
-  hasIdentityFile?: boolean
+  selectedGrades: SubjectGrade[]
+  uploadedFiles: Record<string, boolean>
+  hasResultSlipFile: boolean
+  hasIdentityFile: boolean
   /**
    * The required-document rail entries derived from the application's versioned
    * requirement contract (task 7.2, R11.6, finding STU-13). Resolved by the
    * caller through `requiredDocumentSurfaces.documentReadinessItems`, so this
-   * module names no document type of its own. Omitted (or `undefined`) keeps the
-   * legacy result-slip + identity pair, which is what the caller supplies when
-   * the contract could not be read.
+   * module names no document type of its own. `undefined` keeps the legacy
+   * result-slip + identity pair, which is what the caller supplies when the
+   * contract could not be read.
    */
-  requiredDocumentItems?: Array<{
-    field: string
-    label: string
-    message: string
-    completed: boolean
-  }>
-  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
-  confirmSubmission?: boolean
+  requiredDocumentItems:
+    | Array<{
+        field: string
+        label: string
+        message: string
+        completed: boolean
+      }>
+    | undefined
+  paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
+  confirmSubmission: boolean
   /** True once the backend has resolved the assigned school + fee (R10.2/R10.3). */
-  assignmentResolved?: boolean
+  assignmentResolved: boolean
 }
 
 const isCompleteValue = (value: unknown): boolean => {
@@ -106,14 +114,14 @@ const buildStep = (stepKey: StepKey, items: WizardReadinessItem[]): WizardStepRe
 
 export const buildWizardReadiness = ({
   values,
-  selectedGrades = [],
-  uploadedFiles = {},
-  hasResultSlipFile = false,
-  hasIdentityFile = false,
+  selectedGrades,
+  uploadedFiles,
+  hasResultSlipFile,
+  hasIdentityFile,
   requiredDocumentItems,
-  paymentStatus = null,
-  confirmSubmission = false,
-  assignmentResolved = false,
+  paymentStatus,
+  confirmSubmission,
+  assignmentResolved,
 }: BuildWizardReadinessInput): WizardReadiness => {
   const validGrades = selectedGrades.filter(isValidGrade)
   const validGradeCount = new Set(validGrades.map(grade => grade.subject_id)).size

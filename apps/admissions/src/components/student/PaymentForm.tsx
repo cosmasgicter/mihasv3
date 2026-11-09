@@ -74,7 +74,7 @@ export interface PaymentFormProps {
   fullName?: string
   email?: string
   polledStatus?: 'pending' | 'successful' | 'failed' | null
-  onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | null) => void
+  onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | 'deferred' | null) => void
   onPaymentStatusRefresh?: () => Promise<void>
   onSuccess?: () => void
   /** External inflight signal — disables initiate buttons when true (R14.1). */
@@ -225,6 +225,16 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           setActiveMomoPaymentId(null)
           paymentRecoveryStore.clear(applicationId)
           onPaymentStatusChange?.('failed')
+          return
+        }
+        if (normalized === 'deferred') {
+          // The server says the fee was deferred (another tab or device): there
+          // is no payment left to wait on, so stop polling and drop the entry.
+          clearInterval(pollRef.current)
+          setActivePendingMethod(null)
+          setActiveMomoPaymentId(null)
+          paymentRecoveryStore.clear(applicationId)
+          onPaymentStatusChange?.('deferred')
           return
         }
         if (normalized === 'pending') {

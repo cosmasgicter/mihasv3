@@ -1,7 +1,10 @@
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { formatApplicationStatus } from '@/types/applicationStatus'
-import { normalizePaymentStatus } from '@/lib/paymentStatus'
+import { isPaymentResolvedForApproval, normalizePaymentStatus } from '@/lib/paymentStatus'
+import type { StatusCommandOptions } from '@/types/statusCommand'
+import { ConditionsDialog } from '@/components/admin/applications/ConditionsDialog'
+import { useState } from 'react'
 import { Button, StatusBadge } from '@/components/ui'
 /*
   Task 12.1 (R14.3-R14.5, R17.5; finding MAINT-01): this file was 689 lines that
@@ -34,7 +37,7 @@ interface ApplicationApprovalActionsProps {
   applicationId: string
   currentStatus: string
   currentPaymentStatus?: string | null
-  onStatusUpdate: (id: string, status: string) => Promise<void>
+  onStatusUpdate: (id: string, status: string, options?: StatusCommandOptions) => Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
   /**
    * Whether this actor holds `tenant.payment.verify` for this application's
@@ -74,12 +77,13 @@ export function ApplicationApprovalActions({
   disabled = false
 }: ApplicationApprovalActionsProps) {
   const normalizedPaymentStatus = normalizePaymentStatus(currentPaymentStatus)
-  const isPaymentVerified = normalizedPaymentStatus === 'verified'
+  const isPaymentResolved = isPaymentResolvedForApproval(currentPaymentStatus)
+  const [conditionsOpen, setConditionsOpen] = useState(false)
 
   const commands = useApprovalActionCommands({
     applicationId,
     disabled,
-    isPaymentVerified,
+    isPaymentResolved,
     onStatusUpdate,
     onPaymentStatusUpdate,
   })
@@ -165,9 +169,9 @@ export function ApplicationApprovalActions({
               <Button
                 variant="success"
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled || !isPaymentVerified}
+                disabled={updatingStatus || disabled || !isPaymentResolved}
                 className="w-full"
-                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
+                title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -191,7 +195,7 @@ export function ApplicationApprovalActions({
               </Button>
               <Button
                 variant="outline"
-                onClick={() => handleStatusUpdate('conditionally_approved')}
+                onClick={() => setConditionsOpen(true)}
                 disabled={updatingStatus || disabled}
                 className={`w-full ${OUTLINE_INFO}`}
               >
@@ -238,9 +242,9 @@ export function ApplicationApprovalActions({
               <Button
                 variant="success"
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled || !isPaymentVerified}
+                disabled={updatingStatus || disabled || !isPaymentResolved}
                 className="w-full"
-                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
+                title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -275,9 +279,9 @@ export function ApplicationApprovalActions({
               <Button
                 variant="success"
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled || !isPaymentVerified}
+                disabled={updatingStatus || disabled || !isPaymentResolved}
                 className="w-full"
-                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
+                title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -348,6 +352,16 @@ export function ApplicationApprovalActions({
         onDialogOpenChange={commands.handlePaymentDialogOpenChange}
         onSubmitDecision={() => {
           void commands.handlePaymentUpdate()
+        }}
+      />
+      <ConditionsDialog
+        open={conditionsOpen}
+        onOpenChange={setConditionsOpen}
+        submitting={updatingStatus}
+        onConfirm={async (conditions) => {
+          if (await handleStatusUpdate('conditionally_approved', { conditions })) {
+            setConditionsOpen(false)
+          }
         }}
       />
       <ConfirmAlertDialog

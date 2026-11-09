@@ -72,6 +72,27 @@ LEGACY_DEPRECATED_COLUMNS = {
 }
 
 
+# Legacy PRESENCE snapshots (student-journey-repair design R4-b, D-A3).
+#
+# These columns are NOT deprecated for writing: they are still written, in the
+# version transaction, and hold the id of the current document so that every
+# frontend reader keeps treating "non-null" as "uploaded". They are kept apart
+# from ``LEGACY_DEPRECATED_COLUMNS`` on purpose, so the no-writes guards and the
+# sunset drop script never see them.
+LEGACY_PRESENCE_SNAPSHOT_COLUMNS = {
+    "applications": {
+        "result_slip_url": {
+            "holds": "id of the current result_slip document (older rows: a URL or key)",
+            "removal_condition": "every reader uses the required-documents contract (Spec B)",
+        },
+        "extra_kyc_url": {
+            "holds": "id of the current extra_kyc/nrc/passport document (older rows: a URL or key)",
+            "removal_condition": "every reader uses the required-documents contract (Spec B)",
+        },
+    },
+}
+
+
 def get_deprecated_column_names(table: str) -> set[str]:
     """Return the set of deprecated column names for a given table."""
     entries = LEGACY_DEPRECATED_COLUMNS.get(table, {})

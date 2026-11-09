@@ -173,7 +173,10 @@ describe('DocumentButtons at panel density — one primary action (STU-05)', () 
     const { container } = renderApproved()
     const summary = screen.getByTestId('document-status-summary')
 
-    expect(summary.textContent).toMatch(/acceptance letter is ready to download/i)
+    // SJR task 3.20 (R5-f): nothing is issued in this case (the issued list is
+    // empty), so the letter "can be prepared now"; the old "ready to download"
+    // claimed a file that did not exist.
+    expect(summary.textContent).toMatch(/acceptance letter can be prepared now/i)
     // "Status first" is a claim about order, so it is asserted as one: the
     // sentence precedes every button in document order.
     const firstControl = first(controls(container), 'document control')
@@ -202,7 +205,8 @@ describe('DocumentButtons at panel density — one primary action (STU-05)', () 
     fireEvent.click(trigger)
     const panel = screen.getByTestId('document-options-panel')
     expect(panel.textContent).toContain('Email acceptance letter to me')
-    expect(panel.textContent).toContain('Download Slip')
+    // SJR task 3.20: the slip's Prepare label replaces the retired "Download Slip".
+    expect(panel.textContent).toContain('Prepare Application Slip')
     expect(panel.textContent).toContain('Email application slip to me')
     expect(panel.textContent).toContain('Payment Receipt')
     expect(panel.textContent).toContain('Email payment receipt to me')
@@ -361,7 +365,8 @@ describe('DocumentButtons at row density — live status stays out of dense rows
     const panel = screen.getByTestId('document-options-panel')
     expect(panel.textContent).toContain('Acceptance Letter')
     expect(panel.textContent).toContain('Email acceptance letter to me')
-    expect(panel.textContent).toContain('Download Slip')
+    // SJR task 3.20: the slip's Prepare label replaces the retired "Download Slip".
+    expect(panel.textContent).toContain('Prepare Application Slip')
     expect(panel.textContent).toContain('Payment Receipt')
   })
 
@@ -383,8 +388,10 @@ describe('DocumentButtons at row density — live status stays out of dense rows
     renderRow()
     // The row is de-densified, not made mute: the status sentence is the whole
     // point of "present status first".
+    // SJR task 3.20 (R5-f): nothing is issued here, so the sentence says the
+    // letter can be prepared, never that it is ready.
     expect(screen.getByTestId('document-status-summary').textContent).toMatch(
-      /ready to download/i,
+      /can be prepared now/i,
     )
   })
 })

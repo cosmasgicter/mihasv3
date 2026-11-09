@@ -22,20 +22,21 @@ import { useCallback, useState } from 'react'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 import { resolvePaymentReviewCopy } from '@/components/admin/applications/paymentReviewCopy'
 
 interface UseApprovalActionCommandsInput {
   applicationId: string
   disabled: boolean
-  isPaymentVerified: boolean
-  onStatusUpdate: (id: string, status: string) => Promise<void>
+  isPaymentResolved: boolean
+  onStatusUpdate: (id: string, status: string, options?: StatusCommandOptions) => Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
 }
 
 export function useApprovalActionCommands({
   applicationId,
   disabled,
-  isPaymentVerified,
+  isPaymentResolved,
   onStatusUpdate,
   onPaymentStatusUpdate,
 }: UseApprovalActionCommandsInput) {
@@ -49,18 +50,18 @@ export function useApprovalActionCommands({
 
   const paymentReviewCopy = resolvePaymentReviewCopy(pendingPaymentStatus)
 
-  const handleStatusUpdate = useCallback(async (newStatus: string) => {
-    if (updatingStatus || disabled) return
+  const handleStatusUpdate = useCallback(async (newStatus: string, options?: StatusCommandOptions): Promise<boolean> => {
+    if (updatingStatus || disabled) return false
 
     // Prevent approval without verified payment.
-    if (newStatus === 'approved' && !isPaymentVerified) {
+    if (newStatus === 'approved' && !isPaymentResolved) {
       await confirmDialog.confirm({
-        title: 'Payment Not Verified',
-        message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
+        title: 'Payment Not Settled',
+        message: 'This application cannot be approved until the payment is paid or deferred. Please resolve payment first.',
         confirmText: 'OK',
         variant: 'danger'
       })
-      return
+      return false
     }
 
     // Confirm critical actions
@@ -71,7 +72,7 @@ export function useApprovalActionCommands({
         confirmText: 'Reject',
         variant: 'danger'
       })
-      if (!confirmed) return
+      if (!confirmed) return false
     }
 
     if (newStatus === 'approved') {
@@ -81,13 +82,14 @@ export function useApprovalActionCommands({
         confirmText: 'Approve',
         variant: 'info'
       })
-      if (!confirmed) return
+      if (!confirmed) return false
     }
 
     try {
       setUpdatingStatus(true)
-      await onStatusUpdate(applicationId, newStatus)
+      await (options ? onStatusUpdate(applicationId, newStatus, options) : onStatusUpdate(applicationId, newStatus))
       // Success - state will be updated by parent component
+      return true
     } catch (error) {
       logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
       // Show error to user
@@ -97,10 +99,11 @@ export function useApprovalActionCommands({
         confirmText: 'OK',
         variant: 'danger'
       })
+      return false
     } finally {
       setUpdatingStatus(false)
     }
-  }, [applicationId, disabled, isPaymentVerified, updatingStatus, onStatusUpdate, confirmDialog])
+  }, [applicationId, disabled, isPaymentResolved, updatingStatus, onStatusUpdate, confirmDialog])
 
   const openPaymentReviewDialog = useCallback((newStatus: string) => {
     if (updatingPayment || disabled) return

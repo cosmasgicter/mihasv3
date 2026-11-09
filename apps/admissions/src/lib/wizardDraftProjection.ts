@@ -53,6 +53,23 @@ export function fingerprintDraftProjection(
   return JSON.stringify(stableValue(projection))
 }
 
+/** One grade row as the grades channel sends it (R6-b). */
+export interface DraftGradeRow {
+  subject_id: string
+  grade: number
+}
+
+/**
+ * A stable fingerprint of a set of grade rows (R6-b): sorted by subject id and
+ * serialised as `[subject_id, grade]` pairs, so row order, row ids and
+ * unsaved-row decoration never manufacture a difference.
+ */
+export function fingerprintGrades(rows: ReadonlyArray<DraftGradeRow>): string {
+  const pairs = rows.map((row) => [String(row.subject_id), Number(row.grade)] as const)
+  pairs.sort((left, right) => (left[0] < right[0] ? -1 : left[0] > right[0] ? 1 : 0))
+  return JSON.stringify(pairs)
+}
+
 /** Whether two projections would produce the same request body. */
 export function sameDraftProjection(
   left: Record<string, unknown> | null | undefined,

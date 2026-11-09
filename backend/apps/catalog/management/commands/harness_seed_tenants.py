@@ -20,6 +20,9 @@ TEN-03, TEN-04) and are rebuilt in Phase 4. Until then this command seeds the
 two-tenant baseline deterministically via canonical models so the harness is
 runnable now. The TypeScript API helpers additionally exercise API-driven
 institution + domain creation to prove that path as far as it currently works.
+Each offering also gets one local application fee in ``program_fees`` (the canonical
+fee authority), so a fresh database has an offering a student can pay for.
+
 This command is idempotent and never runs in production.
 """
 
@@ -63,6 +66,42 @@ TENANTS = [
 ]
 
 
+LETTER_PROFILE_TYPES = ("acceptance_letter", "conditional_offer")
+
+
+def _letter_profile_payload(letter_type: str, school_name: str) -> dict:
+    """A clearly fictional letter profile for the harness (never a real school's)."""
+    return {
+        "sections": {
+            "body": (
+                "Dear {{student_name}},\n\n"
+                "This is an example "
+                + ("conditional offer" if letter_type == "conditional_offer" else "acceptance letter")
+                + " for {{program}} at {{institution}}, {{intake}}. It is sample content "
+                "for automated testing."
+            ),
+            "notes": "Example notes for automated testing only.",
+        },
+        "fee_chart": [
+            {"item": "Application fee (example)", "amount": 153, "cadence": "Once off", "account": "0000000000"},
+        ],
+        "bank_accounts": [
+            {
+                "label": "Example account",
+                "account_name": f"{school_name} (example)",
+                "account_number": "0000000000",
+                "bank_name": "Example Bank",
+                "branch": "Example Branch",
+                "branch_code": "000",
+                "swift_code": "EXAMPLEXX",
+                "sort_code": "000000",
+            }
+        ],
+        "requirements": ["Original ID document (example)"],
+        "signatory": {"name": "Admissions Registrar (example)", "role": "Admissions Registrar"},
+    }
+
+
 class Command(BaseCommand):
     help = "Seed two same-shaped example tenants (MIHAS + KATC) with active domains for the harness."
 
@@ -75,6 +114,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **opts):
+        if (
+            os.environ.get("DJANGO_SETTINGS_MODULE", "").endswith(".prod")
+            or os.environ.get("ENVIRONMENT", "").lower() == "production"
+        ):
+            raise CommandError(
+                "harness_seed_tenants refuses to run under production settings."
+            )
         db_url = os.environ.get("DATABASE_URL", "")
         for danger in ("neon.tech", "amazonaws.com", "rds.", "beanola.com"):
             if danger in db_url:
@@ -92,17 +138,28 @@ class Command(BaseCommand):
 
         from apps.accounts.models import Profile
         from apps.accounts.services import hash_password
+        from apps.documents.models import ProgramFee
         from apps.catalog.models import (
             CanonicalProgram,
             Institution,
+            InstitutionDocumentProfile,
             InstitutionDomain,
             Intake,
             Program,
             ProgramIntake,
             UserInstitutionMembership,
         )
+        from apps.catalog.services import validate_profile_payload
+
+        from ._seed_memberships import (
+            assert_audit_rows_recorded,
+            new_run_id,
+            seed_membership,
+        )
 
         now = timezone.now()
+        run_id = new_run_id()
+        seeded_changes = 0
 
         with transaction.atomic():
             canonical, _ = CanonicalProgram.objects.get_or_create(
@@ -169,6 +226,49 @@ class Command(BaseCommand):
                     },
                 )
 
+                # R7-d (D9 option C): letters render only from a tenant profile, so the
+                # harness gives every seeded offering fictional, validated letter
+                # profiles. Without them a decided application would correctly read
+                # "not available yet" instead of producing a letter.
+                for letter_type in LETTER_PROFILE_TYPES:
+                    payload = _letter_profile_payload(letter_type, spec["name"])
+                    validate_profile_payload(
+                        sections=payload["sections"],
+                        fee_chart=payload["fee_chart"],
+                        bank_accounts=payload["bank_accounts"],
+                        requirements=payload["requirements"],
+                    )
+                    InstitutionDocumentProfile.objects.get_or_create(
+                        institution=institution,
+                        document_type=letter_type,
+                        program=offering,
+                        canonical_program=None,
+                        intake=None,
+                        version=1,
+                        defaults={
+                            "layout_key": "fee_chart_letter",
+                            "signatory": payload["signatory"],
+                            "is_active": True,
+                            "created_at": now,
+                            **payload,
+                        },
+                    )
+                # The canonical fee authority is ``program_fees`` (FeeResolver), not
+                # ``programs.application_fee``. ``get_or_create`` matches any row an
+                # API-configured harness already added, so this never duplicates it.
+                ProgramFee.objects.get_or_create(
+                    program=offering,
+                    fee_type="application",
+                    residency_category="local",
+                    defaults={
+                        "amount": Decimal("153.00"),
+                        "currency": "ZMW",
+                        "is_active": True,
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                )
+
                 intake, _ = Intake.objects.get_or_create(
                     name=f"{spec['code']} January 2027",
                     defaults={
@@ -215,6 +315,35 @@ class Command(BaseCommand):
                     defaults={"permissions": [], "is_active": True, "created_at": now},
                 )
 
+                # R7-a: a separate staff account that can decide (``review``), added
+                # through the same additive rule as ``seed_school_admins``. The
+                # ``admin@`` accounts above stay read-only on purpose: harness
+                # isolation specs rely on them.
+                decider_email = f"decider@{spec['slug']}.localhost"
+                decider = Profile.objects.filter(email__iexact=decider_email).first()
+                if decider is None:
+                    decider = Profile(email=decider_email, created_at=now)
+                decider.role = "admin"
+                decider.is_active = True
+                decider.email_verified = True
+                decider.first_name = spec["code"]
+                decider.last_name = "Decider"
+                decider.full_name = f"{spec['code']} Decider"
+                decider.password_hash = hash_password(password)
+                decider.password_changed_at = now
+                decider.updated_at = now
+                decider.save()
+                outcome = seed_membership(
+                    user=decider,
+                    institution=institution,
+                    role="admin",
+                    requested=["review"],
+                    mode="add",
+                    source="harness_seed_tenants",
+                    run_id=run_id,
+                    now=now,
+                )
+                seeded_changes += 1 if outcome.changed else 0
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"seeded tenant {spec['code']} -> {spec['hostname']} "
@@ -222,4 +351,5 @@ class Command(BaseCommand):
                     )
                 )
 
+            assert_audit_rows_recorded(run_id, seeded_changes)
         self.stdout.write(self.style.SUCCESS("harness_seed_tenants complete (2 tenants, 1 shared canonical program)"))

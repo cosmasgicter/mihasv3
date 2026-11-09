@@ -15,11 +15,12 @@
  * `nursing_council_letter` gets a real, validated, accessible upload control
  * without a frontend change.
  */
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   AlertCircle,
   CheckCircle2,
+  ExternalLink,
   FileText,
   Loader2,
   RotateCcw,
@@ -29,6 +30,7 @@ import {
 
 import { Button } from '@/components/ui/Button'
 import { FileUpload } from '@/components/ui/FileUpload'
+import { documentOpenHref } from '@/lib/documentOpen'
 import {
   acceptAttribute,
   constraintHint,
@@ -218,6 +220,22 @@ function RequirementRow({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {requirement.document?.id && (
+              // SJR task 3.18 (R5-b): a student can see what they uploaded. An
+              // anchor to the opener, which signs when it is opened; the contract
+              // carries the id, never a link.
+              <Button asChild variant="outline" size="sm" className="min-h-touch">
+                <a
+                  href={documentOpenHref({ kind: 'document', documentId: requirement.document.id })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  View
+                  <span className="sr-only"> {requirement.label} (opens in a new tab)</span>
+                </a>
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -362,6 +380,46 @@ export function RequiredDocumentsPanel({
     }
   }, [failureSignature])
 
+  // Polite announcements of upload outcomes ("<Label> uploaded" / "<Label> did not
+  // upload: <message>"), derived from state transitions so a re-render never
+  // repeats a message.
+  const previousStatuses = useRef<Record<string, string | undefined>>({})
+  const [announcement, setAnnouncement] = useState('')
+  const announceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    let next: string | null = null
+    for (const requirement of requirements) {
+      const state = uploadStates[requirement.documentType]
+      const status = state?.status
+      const before = previousStatuses.current[requirement.documentType]
+      if (status !== before) {
+        if (status === 'uploaded') {
+          next = `${requirement.label} uploaded`
+        } else if (status === 'failed' && state?.failedCommand === 'upload' && state.error) {
+          next = `${requirement.label} did not upload: ${state.error}`
+        }
+        previousStatuses.current[requirement.documentType] = status
+      }
+    }
+    if (next) {
+      // Clear first, then set on a later tick: an identical repeat outcome would
+      // otherwise leave the node unchanged and assistive tech would stay silent.
+      if (announceTimer.current) clearTimeout(announceTimer.current)
+      setAnnouncement('')
+      const message = next
+      announceTimer.current = setTimeout(() => {
+        announceTimer.current = null
+        setAnnouncement(message)
+      }, 50)
+    }
+  }, [requirements, uploadStates])
+  useEffect(
+    () => () => {
+      if (announceTimer.current) clearTimeout(announceTimer.current)
+    },
+    [],
+  )
+
   if (loading) {
     return (
       <div className={cn('space-y-3', className)} aria-busy="true">
@@ -414,6 +472,9 @@ export function RequiredDocumentsPanel({
 
   return (
     <div className={cn('space-y-4', className)} data-testid="required-documents-panel">
+      <p className="sr-only" role="status" aria-live="polite" data-testid="upload-announcer">
+        {announcement}
+      </p>
       {failures.length > 0 && (
         <div
           ref={summaryRef}

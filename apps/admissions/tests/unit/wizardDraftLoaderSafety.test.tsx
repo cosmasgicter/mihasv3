@@ -78,6 +78,9 @@ function fakeMachine() {
     beginHydration: vi.fn(),
     completeHydration: vi.fn(),
     failHydration: vi.fn(),
+    // SJR task 3.23: the loader reports the server's grade rows to the machine.
+    // The mock follows the machine's new method; every assertion is unchanged.
+    setGradesBaseline: vi.fn(),
   }
 }
 

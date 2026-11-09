@@ -27,6 +27,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { UseFormGetFieldState, UseFormSetValue } from 'react-hook-form'
 
 import { logApiError } from '@/lib/apiErrorLogger'
+import { logger } from '@/lib/logger'
 import { toError } from '@/lib/toError'
 import { applicationService } from '@/services/applications'
 import { isApplicationMissingError } from '@/lib/applicationSession'
@@ -72,11 +73,13 @@ import {
   outboxAnswerOverlay,
   readAuthoritativeDraftRow,
 } from '../../lib/draftHydration'
-import { buildDraftOutboxRecord, draftOutboxAnswers } from '../../lib/draftOutbox'
+import { buildDraftOutboxRecord, draftOutboxAnswers, draftOutboxGrades } from '../../lib/draftOutbox'
+import { projectWizardGrades } from '../../lib/draftGrades'
 import type { SubjectGrade, WizardFormData, WizardProgram } from '../../types'
 import type { ApplicationFileType } from '../useApplicationFileUploads'
 import { getStepIndexById } from '../../steps/config'
 import {
+  createGradeRowId,
   sanitizePhoneInput,
   isAuthSaveError,
   type SaveDraftOptions,
@@ -119,6 +122,8 @@ export interface UseWizardDraftPersistenceParams {
   currentStepConfig: { id: number; key: string }
   paymentStatus: string | null
   selectedGradesRef: { current: SubjectGrade[] }
+  /** Replace the grade grid (an outbox replay puts the pending rows back). */
+  setSelectedGrades: (grades: SubjectGrade[]) => void
   selectedProgramDetails: WizardProgram | undefined
   programsData: { programs?: unknown[] } | undefined
   totalSteps: number
@@ -182,7 +187,7 @@ export interface OutboxRecoveryContext {
   readable?: boolean
 }
 
-function createDraftCommandKey(prefix: 'start' | 'update'): string {
+function createDraftCommandKey(prefix: 'start' | 'update' | 'grades'): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return `${prefix}-${crypto.randomUUID()}`
   }
@@ -225,6 +230,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     currentStepConfig,
     paymentStatus,
     selectedGradesRef,
+    setSelectedGrades,
     selectedProgramDetails,
     programsData,
     totalSteps,
@@ -318,6 +324,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
               serverVersion: meta.serverVersion,
               pendingBase: meta.pendingBase,
               formValues: getValues() as unknown as Record<string, unknown>,
+              grades: meta.grades,
               savedAt,
             }),
             { userId: user.id, applicationId: meta.applicationId },
@@ -355,6 +362,19 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     [currentStepConfig.id, currentStepConfig.key, getValues, paymentStatus, selectedGradesRef, uploadedFiles, user?.id],
   )
 
+  /**
+   * Put pending grade rows from the outbox back into the grid (SJR R6-b). The
+   * ref is set first so the machine, which reads the grid through it, sees the
+   * rows in the same tick; the render that follows assigns the same value.
+   */
+  const restoreOutboxGrades = useCallback(
+    (rows: ReadonlyArray<{ subject_id: string; grade: number }>) => {
+      const restored = rows.map((row) => ({ row_id: createGradeRowId(), subject_id: row.subject_id, grade: row.grade }))
+      selectedGradesRef.current = restored
+      setSelectedGrades(restored)
+    },
+    [selectedGradesRef, setSelectedGrades],
+  )
   /** Put a stale outbox record's pending answers back into the form for an explicit merge. */
   const restoreStaleOutbox = useCallback(
     (applicationId: string | null): boolean => {
@@ -362,11 +382,13 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       const record = readWizardDraftSnapshot({ userId: user.id, applicationId })
       const base = restoreDraftBase(record?.pendingBase)
       const overlay = outboxAnswerOverlay(draftOutboxAnswers(record), getValues(), base ? Object.keys(base) : undefined)
-      if (Object.keys(overlay).length === 0) return false
-      applyDraftFormValues(overlay, setValue, { shouldDirty: true })
+      const pendingGrades = draftOutboxGrades(record)
+      if (Object.keys(overlay).length === 0 && pendingGrades.length === 0) return false
+      if (Object.keys(overlay).length > 0) applyDraftFormValues(overlay, setValue, { shouldDirty: true })
+      if (pendingGrades.length > 0) restoreOutboxGrades(pendingGrades)
       return true
     },
-    [getValues, setValue, user?.id],
+    [getValues, restoreOutboxGrades, setValue, user?.id],
   )
 
   const adapters = useMemo<WizardDraftAdapters>(
@@ -375,6 +397,12 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       projectAnswers: () => projectDraftAnswers(getValues()),
       projectStart,
       projectLocal: () => ({ ...getValues() }),
+      projectGrades: () => projectWizardGrades(selectedGradesRef.current),
+      syncGrades: async (applicationId, rows, idempotencyKey) => {
+        await applicationService.syncGrades(applicationId, rows, { partial: true, idempotencyKey })
+        // A count only: never the subjects or the grades.
+        logger.info('[draft] grades acknowledged', { rows: rows.length })
+      },
       hasUserEdits: () => WIZARD_FORM_FIELDS.some((field) => getFieldState(field).isDirty),
       startDraft: (payload, idempotencyKey) =>
         applicationService.startDraft(payload as Partial<Application>, idempotencyKey) as Promise<
@@ -488,6 +516,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       queryClient,
       resolveIntakeIdentity,
       resolveProgramIdentity,
+      selectedGradesRef,
       selectedProgramDetails,
       setDuplicateDraftConflict,
       setError,
@@ -537,6 +566,9 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
         setGradesHydrating(false)
       }
       if (!isCurrent()) return null
+      // The rows the server holds are the grades channel's baseline (SJR R6-b):
+      // a resume writes nothing until the student changes the grid.
+      machine.setGradesBaseline(projectWizardGrades(restoredGrades).rows)
 
       const stepId = resolveDraftResumeStepId(draft, restoredGrades, restoredUploads)
       const index = getStepIndexById(stepId)
@@ -549,6 +581,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       goToStep,
       hydrateServerDocuments,
       hydrateServerGrades,
+      machine,
       markUploadedFile,
       programs,
       restorePaymentStatus,
@@ -580,13 +613,21 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       const record = user?.id ? readWizardDraftSnapshot({ userId: user.id, applicationId }) : null
       const base = restoreDraftBase(record?.pendingBase)
       const overlay = outboxAnswerOverlay(draftOutboxAnswers(record), getValues(), base ? Object.keys(base) : undefined)
+      const pendingGrades = draftOutboxGrades(record)
       const disposition = classifyLocalDraftOutbox(
         record,
         { userId: user?.id, applicationId, serverVersion, assignment: context.assignment ?? null },
-        Object.keys(overlay).length > 0,
+        Object.keys(overlay).length > 0 || pendingGrades.length > 0,
       )
       if (disposition === 'replay') {
-        return { afterBaseline: () => applyDraftFormValues(overlay, setValue, { shouldDirty: true }) }
+        return {
+          afterBaseline: () => {
+            if (Object.keys(overlay).length > 0) applyDraftFormValues(overlay, setValue, { shouldDirty: true })
+            // The grades this device typed and never got acknowledged replace the
+            // hydrated grid; the machine sends them (last writer wins, EC-17).
+            if (pendingGrades.length > 0) restoreOutboxGrades(pendingGrades)
+          },
+        }
       }
       if (disposition === 'stale' || disposition === 'reassigned') {
         logApiError(
@@ -608,9 +649,8 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       }
       return {}
     },
-    [getValues, setValue, user?.id],
+    [getValues, restoreOutboxGrades, setValue, user?.id],
   )
-
   /** The draft picker's "continue": hydrate the chosen draft through the machine. */
   const handleLoadDraft = useCallback(
     async (draftData: unknown, draftId?: string) => {

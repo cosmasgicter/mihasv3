@@ -254,6 +254,11 @@ ERROR_CODES.update({
         "message": "At least one condition must be provided",
         "category": "application",
     },
+    "TOO_MANY_CONDITIONS": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Too many conditions on one offer",
+        "category": "application",
+    },
     "MISSING_DESCRIPTION": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Description is required",
@@ -587,6 +592,11 @@ ERROR_CODES.update({
         "message": "Minimum age requirement not met",
         "category": "validation",
     },
+    "TOO_MANY_SUBJECTS": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Too many subjects in one save",
+        "category": "validation",
+    },
     "MINIMUM_SUBJECTS_REQUIRED": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Minimum number of subjects required",
@@ -619,6 +629,12 @@ ERROR_CODES.update({
         "http_status": status.HTTP_503_SERVICE_UNAVAILABLE,
         "message": "Service temporarily unavailable",
         "category": "common",
+    },
+    # SJR R3-c: the extract call could not enqueue the OCR job (broker down).
+    "OCR_QUEUE_UNAVAILABLE": {
+        "http_status": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "message": "Text extraction is temporarily unavailable",
+        "category": "document",
     },
 })
 
