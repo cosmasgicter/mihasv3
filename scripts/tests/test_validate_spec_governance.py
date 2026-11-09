@@ -626,23 +626,81 @@ class RealRepoRegressionTests(unittest.TestCase):
 
         self.assertEqual(truncated, [], msg="truncated finding ids: %s" % truncated)
 
-    def test_all_specs_audit_detects_known_false_completed(self):
-        specs_root = self._specs_root()
-        target = specs_root / "full-platform-remediation-2026-07"
-        if not target.is_dir():
-            self.skipTest("full-platform-remediation-2026-07 spec not present")
+    def test_all_specs_audit_finds_no_falsely_completed_live_spec(self):
+        # Task 3.4 (Requirement 6.3) removed "status": "completed" from
+        # full-platform-remediation-2026-07, the one live spec this test used to
+        # pin as falsely completed (26 required tasks open). The detection itself
+        # is still proven by the synthetic rule-5 fixtures above; what this
+        # asserts now is that no live spec is in that state any more.
+        result = vsg.validate(self._specs_root(), all_specs=True)
+        false_completed = [f for f in result["findings"] if f["rule"] == "false-completed"]
+        self.assertEqual(false_completed, [], msg=false_completed)
+class EnforceStatusTests(GovernanceTestBase):
+    """Task 3.4: the two-way status rule of Requirement 6.3."""
 
-        result = vsg.validate(specs_root, all_specs=True)
-        false_completed = [
-            f
-            for f in result["findings"]
-            if f["rule"] == "false-completed"
-            and f["spec"] == "full-platform-remediation-2026-07"
-        ]
-        self.assertTrue(
-            false_completed,
-            msg="expected the completed spec with unchecked tasks to be flagged",
-        )
+    DONE = "- [x] 1.1 Done\n"
+    OPEN = "- [ ] 1.1 Open\n"
+    OPTIONAL_OPEN = "- [x] 1. Done\n- [ ]* 2. Optional test\n  - [ ]* 2.1 Optional sub-test\n"
+
+    def spec(self, name, tasks, status=None):
+        make_spec(self.specs_root, name, spec_id=name, status=status, tasks=tasks)
+
+    def run_rule(self, exceptions=None):
+        path = self.root / "scripts" / "spec-status-exceptions.json"
+        if exceptions is not None:
+            _write(path, json.dumps({"entries": exceptions}))
+        return vsg.enforce_status(self.specs_root, path)
+
+    def rules(self, result):
+        return sorted((f["spec"], f["rule"]) for f in result["findings"])
+
+    def test_completed_with_an_unchecked_required_task_fails(self):
+        self.spec("a", self.OPEN, status="completed")
+        self.assertEqual(self.rules(self.run_rule()), [("a", "status-completed-with-open-tasks")])
+
+    def test_all_required_tasks_checked_without_completed_fails(self):
+        self.spec("a", self.DONE)
+        self.assertEqual(self.rules(self.run_rule()), [("a", "status-missing-on-finished-spec")])
+
+    def test_open_optional_tasks_do_not_count_as_required(self):
+        self.spec("done", self.OPTIONAL_OPEN, status="completed")
+        self.spec("unmarked", self.OPTIONAL_OPEN)
+        self.assertEqual(self.rules(self.run_rule()), [("unmarked", "status-missing-on-finished-spec")])
+
+    def test_in_progress_and_not_started_markers_count_as_unchecked(self):
+        self.spec("a", "- [x] 1.1 Done\n- [-] 1.2 Working\n- [~] 1.3 Not started\n", status="completed")
+        self.assertEqual(self.rules(self.run_rule()), [("a", "status-completed-with-open-tasks")])
+
+    def test_passing_specs_are_quiet(self):
+        self.spec("finished", self.DONE, status="completed")
+        self.spec("in-flight", self.OPEN)
+        self.spec("no-required-tasks", "- [ ]* 1. Optional only\n")
+        self.assertTrue(self.run_rule()["ok"])
+
+    def test_archived_specs_are_not_live(self):
+        make_spec(self.specs_root, "_archived", spec_id="arch", status="completed", tasks=self.OPEN)
+        self.assertTrue(self.run_rule()["ok"])
+
+    def test_an_exception_silences_exactly_its_spec(self):
+        self.spec("a", self.DONE)
+        self.spec("b", self.DONE)
+        result = self.run_rule([{"spec": "a", "reason": "D12 record-only"}])
+        self.assertEqual(self.rules(result), [("b", "status-missing-on-finished-spec")])
+
+    def test_an_exception_for_a_missing_spec_fails(self):
+        self.spec("a", self.OPEN)
+        result = self.run_rule([{"spec": "ghost", "reason": "was a spec"}])
+        self.assertEqual(self.rules(result), [("-", "status-exceptions")])
+
+    def test_an_exception_needs_a_reason(self):
+        self.spec("a", self.OPEN)
+        result = self.run_rule([{"spec": "a", "reason": " "}])
+        self.assertEqual(self.rules(result), [("-", "status-exceptions")])
+
+    def test_the_live_repository_passes(self):
+        result = vsg.enforce_status(_REPO_ROOT / ".kiro" / "specs")
+        self.assertTrue(result["ok"], msg=result["findings"])
+        self.assertEqual(vsg.main(["--enforce-status"]), 0)
 
 
 if __name__ == "__main__":

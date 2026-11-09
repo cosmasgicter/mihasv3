@@ -17,6 +17,7 @@ on:
       - ".kiro/specs/**"
       - "scripts/validate_spec_metadata.py"
       - "scripts/validate_spec_governance.py"
+      - "scripts/spec-status-exceptions.json"
       - "scripts/check_doc_paths.py"
       - "scripts/doc-paths-allowlist.json"
       - "scripts/skill-paths-baseline.json"
@@ -29,6 +30,7 @@ on:
       - ".kiro/specs/**"
       - "scripts/validate_spec_metadata.py"
       - "scripts/validate_spec_governance.py"
+      - "scripts/spec-status-exceptions.json"
       - "scripts/check_doc_paths.py"
       - "scripts/doc-paths-allowlist.json"
       - "scripts/skill-paths-baseline.json"
@@ -74,6 +76,12 @@ jobs:
       - name: Spec governance validator (task 0.2, blocking)
         run: python3 scripts/validate_spec_governance.py
 
+      # Status markers (platform-simplification task 3.4, R6.3). One rule on every
+      # live spec, in both directions: completed with an unchecked required task
+      # fails, and every required task checked without a completed status fails.
+      # Exceptions (with reasons) are in scripts/spec-status-exceptions.json.
+      - name: Spec status markers (task 3.4, blocking)
+        run: python3 scripts/validate_spec_governance.py --enforce-status
       # Informational repo-wide audit of completed-status + evidence across
       # EVERY live spec. Non-blocking on purpose: it surfaces pre-existing
       # governance debt in unrelated specs (e.g. the GOV-02 falsely-completed
