@@ -409,7 +409,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30_
 
-  - [ ] 3.22 R6 — one readiness computation (design R6-a)
+  - [x] 3.22 R6 — one readiness computation (design R6-a)
     - `wizardReadiness.ts`: every `BuildWizardReadinessInput` field required
     - `useWizardController.ts`: `computeReadiness`; `useWizardSubmission.ts` calls it
     - `useOverallProgress.ts:41`: pass `assignmentResolved: false` and `requiredDocumentItems: undefined` explicitly (today's defaults), with a comment naming Spec B V3 task 26.1 as the owner of the percentage, so the displayed percentage does not change. Its five optional options at `:44-48` are `T | undefined` and would fail `tsc` under `"strict": true`, so it also passes today's defaults for them: `uploadedFiles ?? {}`, `hasResultSlipFile ?? false`, `hasIdentityFile ?? false`, `paymentStatus ?? null`, `confirmSubmission ?? false`
@@ -421,7 +421,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: Submit disabled while any blocker holds; `@idempotent` submission (3.8); the progress percentage unchanged_
     - _Requirements: 2.31, 2.32, 3.8, 3.23_
 
-  - [ ] 3.23 R6 — grades as a draft-machine channel (design R6-b)
+  - [x] 3.23 R6 — grades as a draft-machine channel (design R6-b)
     - Backend: `ApplicationGradesView.post` `partial` mode, 10-row cap, `transaction.atomic()` with the row lock
     - Draft machine: `projectGrades`, `syncGrades`, `setGradesBaseline`, grade fingerprinting, `unsavableGradeRows`, `gradesNeedAttention` message
     - Adapters in `useWizardDraftPersistence.ts`; loader calls `setGradesBaseline`
@@ -436,7 +436,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: one autosave owner; answer autosave and conflict handling unchanged; the minimum still enforced at submit (3.7, 3.8)_
     - _Requirements: 2.33, 2.34, 3.7, 3.8_
 
-  - [ ] 3.24 R6 — payment hook fixes (design R6-c, R6-d)
+  - [x] 3.24 R6 — payment hook fixes (design R6-c, R6-d)
     - `usePaymentStatus.ts`: re-arm `mountedRef` in the effect body
     - `PaymentStep.tsx`: clear the recovery entry after `deferPayment` resolves and in the existing effect that adopts a server `deferred` status (`:79-81`)
     - `PaymentForm.tsx`: handle a `deferred` verify result in `syncPendingPayment` (stop the poll, reset the pending method and payment id, clear the entry, report it) and widen `onPaymentStatusChange`'s parameter type to include `'deferred'`; no new prop
@@ -446,7 +446,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: `allowsInitiate` double-charge guard and the ownership split (3.3)_
     - _Requirements: 2.35, 3.3_
 
-  - [ ] 3.25 Checkpoint — R6 green
+  - [x] 3.25 Checkpoint — R6 green
     - **Property 6: Expected Behavior** - Submit, Grades and Deferral
     - **IMPORTANT**: Re-run the SAME tests from task 1.6 — do NOT write new tests
     - Remove the strict markers from task 1.6's tests, then run them unmarked

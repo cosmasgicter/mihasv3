@@ -178,6 +178,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   DUPLICATE_SUBJECT: 'This subject is already in your application.',
   MINIMUM_AGE_NOT_MET: 'Minimum age requirement not met.',
   MINIMUM_SUBJECTS_REQUIRED: 'Please add the minimum number of required subjects.',
+  TOO_MANY_SUBJECTS: 'You can enter at most 10 subjects. Remove one and try again.',
 
   // Payment (extended)
   PAYMENT_ERROR: 'Payment processing error. Please try again.',

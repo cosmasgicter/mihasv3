@@ -587,6 +587,11 @@ ERROR_CODES.update({
         "message": "Minimum age requirement not met",
         "category": "validation",
     },
+    "TOO_MANY_SUBJECTS": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Too many subjects in one save",
+        "category": "validation",
+    },
     "MINIMUM_SUBJECTS_REQUIRED": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Minimum number of subjects required",

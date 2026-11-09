@@ -126,6 +126,7 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   DUPLICATE_KEY: { http_status: 409, message: 'Duplicate key — record already exists', category: 'validation' },
   DUPLICATE_SUBJECT: { http_status: 400, message: 'Subject already exists in the application', category: 'validation' },
   MINIMUM_AGE_NOT_MET: { http_status: 400, message: 'Minimum age requirement not met', category: 'validation' },
+  TOO_MANY_SUBJECTS: { http_status: 400, message: 'Too many subjects in one save', category: 'validation' },
   MINIMUM_SUBJECTS_REQUIRED: { http_status: 400, message: 'Minimum number of subjects required', category: 'validation' },
   // Payment (extended)
   PAYMENT_ERROR: { http_status: 400, message: 'Payment processing error', category: 'payment' },
