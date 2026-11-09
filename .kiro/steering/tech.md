@@ -237,7 +237,7 @@ The platform uses Lenco as its payment gateway for application fees. Key compone
 | `WebhookEventLog` model | `backend/apps/documents/models.py` | Audit trail for all webhook events |
 | `PaymentForm` | `apps/admissions/src/components/student/PaymentForm.tsx` | Shared payment form with mobile money + card method selection |
 | `useLencoWidget` | `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading |
-| `useFeeResolver` | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook |
+| `useFeeQuote` | `apps/admissions/src/hooks/useFeeQuote.ts` | Frontend fee hook: shows the server-authored fee quote (replaced `useFeeResolver`) |
 | `usePaymentStatus` | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
 | `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Wizard payment step: mobile money (primary), card widget (secondary), defer option |
 | `PaymentAuditService` | `backend/apps/documents/payment_audit_service.py` | Payment audit writes + PII redaction; single source of truth for `audit_logs.entity_type='payment'` rows. See `docs/adrs/ADR-003-reuse-audit-logs.md`. |
@@ -467,7 +467,7 @@ Celery Beat runs as one dedicated instance (exactly 1, to avoid duplicate dispat
 | `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-completes interviews whose scheduled time has passed |
 | `interview_reminder_task` | Every 3600 seconds (1 hour) | Sends reminder notifications for interviews within next 24 hours |
 
-Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in `backend/apps/applications/tasks.py`. Intake tasks in `backend/apps/catalog/tasks.py`.
+Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in the `backend/apps/applications/tasks/` package. Intake tasks in `backend/apps/catalog/tasks.py`.
 
 ## Uptime Monitoring
 

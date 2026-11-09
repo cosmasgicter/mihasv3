@@ -17,6 +17,9 @@ on:
       - ".kiro/specs/**"
       - "scripts/validate_spec_metadata.py"
       - "scripts/validate_spec_governance.py"
+      - "scripts/check_doc_paths.py"
+      - "scripts/doc-paths-allowlist.json"
+      - "scripts/skill-paths-baseline.json"
       - "scripts/tests/**"
       - "docs/v2-evidence/**"
       - ".github/workflows/spec-governance.yml"
@@ -26,6 +29,9 @@ on:
       - ".kiro/specs/**"
       - "scripts/validate_spec_metadata.py"
       - "scripts/validate_spec_governance.py"
+      - "scripts/check_doc_paths.py"
+      - "scripts/doc-paths-allowlist.json"
+      - "scripts/skill-paths-baseline.json"
       - "scripts/tests/**"
       - "docs/v2-evidence/**"
       - ".github/workflows/spec-governance.yml"
@@ -53,6 +59,7 @@ jobs:
         run: |
           python3 scripts/tests/test_validate_spec_metadata.py
           python3 scripts/tests/test_validate_spec_governance.py
+          python3 scripts/tests/test_check_doc_paths.py
 
       # Rule 4 (repo-wide): every live spec has a unique spec ID and valid
       # .config.kiro JSON. Blocking.

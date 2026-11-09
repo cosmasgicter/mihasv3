@@ -581,6 +581,13 @@ jobs:
       # so it is a hard gate: a real brand leak or a stale/invalid allowlist
       # entry fails CI (R7.1/R7.2). Run from the repo root so the relative
       # script path resolves.
+      # Doc-path and skill-path check (platform-simplification task 3.3, R6.2, R4.7).
+      # Fails when a steering file, agent instruction or top-level doc names a
+      # path that does not exist, or a skill link dangles. ci.yml has no `paths:`
+      # filter, so this runs on every pull request and push to main: a change
+      # that deletes a file a doc names fails in that same change.
+      - name: Doc and skill paths
+        run: python3 scripts/check_doc_paths.py
       - name: Brand_Scan_Gate (Gate 7, blocking)
         run: python3 scripts/launch-verification/run-brand-scan.py
       - name: Upload Brand_Scan_Gate evidence (Gate 7)

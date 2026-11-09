@@ -56,7 +56,7 @@ or a status-prefix word ("Failed —", "Verified —"). See `StatusIcon.tsx`.
 
 A separate token set for the admin dashboard so admin and student surfaces
 are visually distinct. Defined in
-`apps/admissions/src/design-system/tokens.colors.cjs` and referenced by
+`apps/admissions/src/design-system/tokens.colors.json` and referenced by
 `tailwind.config.js`.
 
 | Token | Hex |
@@ -95,7 +95,7 @@ contrast verified in both).
 
 ### Print / PDF (acceptance letters, receipts, application slips)
 
-Different stack. Lives in `apps/admissions/public/fonts/pdf/` and is
+Different stack. Lives in `apps/admissions/src/lib/pdf/assets/fonts/` and is
 registered idempotently by `apps/admissions/src/lib/pdf/theme/typography.ts`.
 
 | Role | Font family | Use |
