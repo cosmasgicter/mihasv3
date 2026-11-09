@@ -28,7 +28,11 @@ async function expectAccessible(page: Page, label: string): Promise<void> {
     .filter((v) => v.impact === 'critical' || v.impact === 'serious')
     .map((v) => `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target.join(' ')}`);
   expect(blocking, `${label}: critical or serious accessibility violations`).toEqual([]);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  // Compared with the configured viewport width, not `window.innerWidth`: on a mobile
+  // profile the browser widens the layout viewport to fit overflowing content, so
+  // `innerWidth` grows with the overflow and the difference is always zero.
+  const viewportWidth = page.viewportSize()!.width;
+  const overflow = await page.evaluate((width) => document.documentElement.scrollWidth - width, viewportWidth);
   expect(overflow, `${label}: horizontal scrolling`).toBeLessThanOrEqual(0);
 }
 
