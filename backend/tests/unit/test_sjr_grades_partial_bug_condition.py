@@ -43,7 +43,6 @@ def _rows(subjects, grade):
     return [{"subject_id": str(subject.id), "grade": grade} for subject in subjects]
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R6: fixed in task 3.23")
 def test_a_partial_set_is_accepted_and_stored():
     world = build_tenant_world(application_status="draft")
     subjects = [build_subject() for _ in range(3)]
@@ -61,7 +60,6 @@ def test_a_partial_set_is_accepted_and_stored():
     assert {str(row.subject_id) for row in stored} == {str(s.id) for s in subjects}
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R6: fixed in task 3.23")
 def test_a_failure_midway_leaves_the_previous_set_intact():
     world = build_tenant_world(application_status="draft")
     kept = [build_subject() for _ in range(5)]
@@ -96,3 +94,42 @@ def test_a_failure_midway_leaves_the_previous_set_intact():
     }
     # HEAD deleted the dropped subject and rewrote two rows before failing.
     assert after == before
+
+
+def test_a_partial_set_over_the_cap_is_refused_and_nothing_changes():
+    world = build_tenant_world(application_status="draft")
+    kept = [build_subject() for _ in range(2)]
+    build_grades(application=world.application, subjects=kept, count=2, grade=3)
+    too_many = [build_subject() for _ in range(11)]
+    response = _client(world.student).post(
+        f"/api/v1/applications/{world.application.id}/grades/",
+        {"grades": _rows(too_many, 4), "partial": True},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "TOO_MANY_SUBJECTS"
+    assert ApplicationGrade.objects.filter(application_id=world.application.id).count() == 2
+
+
+def test_the_minimum_is_still_enforced_without_the_partial_flag():
+    world = build_tenant_world(application_status="draft")
+    subjects = [build_subject() for _ in range(2)]
+    response = _client(world.student).post(
+        f"/api/v1/applications/{world.application.id}/grades/",
+        {"grades": _rows(subjects, 4)},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "MINIMUM_SUBJECTS_REQUIRED"
+
+
+def test_a_partial_set_cannot_edit_a_submitted_application():
+    world = build_tenant_world(application_status="submitted")
+    subjects = [build_subject() for _ in range(3)]
+    response = _client(world.student).post(
+        f"/api/v1/applications/{world.application.id}/grades/",
+        {"grades": _rows(subjects, 4), "partial": True},
+        format="json",
+    )
+    assert response.status_code == 403
+    assert response.json()["code"] == "APPLICATION_NOT_EDITABLE"

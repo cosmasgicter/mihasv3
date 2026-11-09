@@ -5681,6 +5681,7 @@ export interface components {
             readonly subject_id?: string;
             readonly grade?: number;
             readonly grades?: readonly components["schemas"]["ApplicationGrade"][];
+            readonly partial?: boolean;
         };
         readonly ApplicationGradesResponse: {
             readonly data: readonly components["schemas"]["ApplicationGradeRead"][];

@@ -290,6 +290,11 @@ class ApplicationSummaryView(APIView):
 # ---------------------------------------------------------------------------
 
 
+
+# R6-b: the most rows one grades autosave may carry.
+MAX_PARTIAL_GRADE_ROWS = 10
+
+
 @extend_schema_view(
     get=extend_schema(
         operation_id="applications_grades_list",
@@ -398,38 +403,63 @@ class ApplicationGradesView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # R11.5 (task 7.1): the minimum is the configured, policy-floored one
-            # readiness and submission enforce — never a literal in this view.
-            minimum_required = resolve_minimum_grades()
-            if len(normalized) < minimum_required:
-                shortfall = minimum_required - len(normalized)
-                return Response(
-                    {
-                        "success": False,
-                        "error": (
-                            f"At least {minimum_required} unique valid subjects are required; "
-                            f"received {len(normalized)}."
-                        ),
-                        "code": "MINIMUM_SUBJECTS_REQUIRED",
-                        "details": {
-                            "grades": [
-                                f"Add {shortfall} more unique subject{'s' if shortfall != 1 else ''}."
-                            ]
+            # R6-b (task 3.23): a partial set is the autosave shape. It skips the
+            # minimum (readiness and submit_application still enforce it) and is
+            # capped so a client cannot spend unbounded rows on one draft.
+            partial = request.data.get("partial") is True
+            if partial:
+                if len(normalized) > MAX_PARTIAL_GRADE_ROWS:
+                    return Response(
+                        {
+                            "success": False,
+                            "error": f"At most {MAX_PARTIAL_GRADE_ROWS} subjects can be saved.",
+                            "code": "TOO_MANY_SUBJECTS",
+                            "details": {"grades": [f"Remove {len(normalized) - MAX_PARTIAL_GRADE_ROWS} subject(s)."]},
                         },
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                # R11.5 (task 7.1): the minimum is the configured, policy-floored one
+                # readiness and submission enforce — never a literal in this view.
+                minimum_required = resolve_minimum_grades()
+                if len(normalized) < minimum_required:
+                    shortfall = minimum_required - len(normalized)
+                    return Response(
+                        {
+                            "success": False,
+                            "error": (
+                                f"At least {minimum_required} unique valid subjects are required; "
+                                f"received {len(normalized)}."
+                            ),
+                            "code": "MINIMUM_SUBJECTS_REQUIRED",
+                            "details": {
+                                "grades": [
+                                    f"Add {shortfall} more unique subject{'s' if shortfall != 1 else ''}."
+                                ]
+                            },
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             created = []
             requested_subject_ids = [item["subject_id"] for item in normalized]
-            ApplicationGrade.objects.filter(application_id=application_id).exclude(subject_id__in=requested_subject_ids).delete()
-            for item in normalized:
-                grade, _created = ApplicationGrade.objects.update_or_create(
-                    application_id=application_id,
-                    subject_id=item["subject_id"],
-                    defaults={"grade": item["grade"]},
-                )
-                created.append({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade})
+            # The replace is one transaction under the application row lock, so a
+            # failure midway leaves the previous set intact and two saves serialise.
+            with transaction.atomic():
+                locked = Application.objects.select_for_update().get(id=application_id)
+                if role not in ("admin", "super_admin") and locked.status != "draft":
+                    return Response(
+                        {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+                ApplicationGrade.objects.filter(application_id=application_id).exclude(subject_id__in=requested_subject_ids).delete()
+                for item in normalized:
+                    grade, _created = ApplicationGrade.objects.update_or_create(
+                        application_id=application_id,
+                        subject_id=item["subject_id"],
+                        defaults={"grade": item["grade"]},
+                    )
+                    created.append({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade})
             return Response({"success": True, "data": {"grades": created}}, status=status.HTTP_200_OK)
 
         serializer = ApplicationGradeSerializer(data=request.data)
