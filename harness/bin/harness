@@ -84,7 +84,7 @@ export VITE_SITE_URL="${VITE_SITE_URL:-http://localhost:8090}"
 export VITE_APP_VERSION="${VITE_APP_VERSION:-2.0.0-harness}"
 # Dummy DSN so the prod-mode env validation passes; errors-only + a clean run
 # means Sentry/GlitchTip performs zero network calls.
-export VITE_GLITCHTIP_DSN="${VITE_GLITCHTIP_DSN:-https://[email protected]/1}"
+export VITE_GLITCHTIP_DSN="${VITE_GLITCHTIP_DSN:-https://harness@harness-invalid.localhost/1}"
 
 log()  { printf '\033[36m[harness]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[32m[harness] ✓ %s\033[0m\n' "$*"; }
