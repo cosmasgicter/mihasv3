@@ -10,8 +10,8 @@
  *   - signs at mount (GET only), then `window.location.replace(url)`;
  *   - never POSTs; renders loading, invalid, 404, retryable and rate-limited states.
  *
- * Every test is wrapped in `it.fails` (design "Marker scheme"); the R5
- * checkpoint, task 3.21, removes the wrapper.
+ * The `it.fails` markers were removed at the R5 checkpoint (task 3.21); every case
+ * runs unmarked and passes.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -83,7 +83,7 @@ afterEach(() => {
 })
 
 describe('the document opener page (clauses 1.19, 1.22)', () => {
-  it.fails('refuses an invalid query before sending any request', async () => {
+  it('refuses an invalid query before sending any request', async () => {
     await renderOpener('?doc=not-a-uuid')
 
     expect(await screen.findByText(/This link isn.t valid/i)).toBeTruthy()
@@ -93,7 +93,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(replace).not.toHaveBeenCalled()
   })
 
-  it.fails('signs an uploaded document at mount and replaces the location', async () => {
+  it('signs an uploaded document at mount and replaces the location', async () => {
     getSignedUrl.mockResolvedValue({ url: SIGNED })
 
     await renderOpener(`?doc=${DOC_ID}`)
@@ -103,7 +103,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(getSignedUrl).toHaveBeenCalledWith(DOC_ID)
   })
 
-  it.fails('opens a legacy synthetic row from the freshly signed list entry', async () => {
+  it('opens a legacy synthetic row from the freshly signed list entry', async () => {
     listByApplication.mockResolvedValue([
       {
         id: `legacy:extra_kyc:${APP_ID}`,
@@ -119,7 +119,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(listByApplication).toHaveBeenCalledWith(APP_ID)
   })
 
-  it.fails('opens a ready official document with one GET and never POSTs', async () => {
+  it('opens a ready official document with one GET and never POSTs', async () => {
     getOfficialDocument.mockResolvedValue({
       status: 'ready',
       document_id: DOC_ID,
@@ -133,7 +133,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(generateOfficialDocument).not.toHaveBeenCalled()
   })
 
-  it.fails('shows "isn\'t available" with a way back on a 404', async () => {
+  it('shows "isn\'t available" with a way back on a 404', async () => {
     getSignedUrl.mockRejectedValue(failure(404, 'NOT_FOUND'))
 
     await renderOpener(`?doc=${DOC_ID}`)
@@ -143,7 +143,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(replace).not.toHaveBeenCalled()
   })
 
-  it.fails('shows "can\'t be opened right now" with Retry on a server error', async () => {
+  it('shows "can\'t be opened right now" with Retry on a server error', async () => {
     getSignedUrl.mockRejectedValue(failure(500, 'STORAGE_ERROR'))
 
     await renderOpener(`?doc=${DOC_ID}`)
@@ -152,7 +152,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
   })
 
-  it.fails('maps DOCUMENT_LINK_UNAVAILABLE on a ready official document to the same state', async () => {
+  it('maps DOCUMENT_LINK_UNAVAILABLE on a ready official document to the same state', async () => {
     getOfficialDocument.mockResolvedValue({
       status: 'ready',
       document_id: DOC_ID,
@@ -165,7 +165,7 @@ describe('the document opener page (clauses 1.19, 1.22)', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
   })
 
-  it.fails('shows the shared rate-limit copy on a 429', async () => {
+  it('shows the shared rate-limit copy on a 429', async () => {
     getSignedUrl.mockRejectedValue(
       Object.assign(failure(429, 'RATE_LIMITED'), { retryAfterSeconds: 120 }),
     )

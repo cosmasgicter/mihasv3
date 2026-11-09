@@ -1,5 +1,6 @@
+import { useEffect, useRef } from 'react'
 import type React from 'react'
-import { AlertTriangle, Download, RotateCcw } from 'lucide-react'
+import { AlertTriangle, ExternalLink, FileText, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useOfficialDocument } from '@/hooks/useOfficialDocument'
 import { useToastStore } from '@/hooks/useToast'
@@ -23,7 +24,13 @@ interface DownloadReceiptButtonProps {
 }
 
 /**
- * Download the official payment receipt from the backend (R7.1, R7.3).
+ * Prepare, then open, the official payment receipt from the backend (R7.1, R7.3).
+ *
+ * SJR task 3.17/3.20 (R5-a, R5-f): "Download Receipt" is retired. The control is
+ * "Prepare receipt" until the receipt exists, then an "Open receipt" link to the
+ * in-app opener, which signs when it is opened. Nothing is opened in code after an
+ * await, and no copy claims a download that did not happen.
+ *
  *
  * Sources the receipt PDF from `services/officialDocuments.ts` via
  * `useOfficialDocument` — the authoritative tenant-branded backend record — and
@@ -37,17 +44,26 @@ export function DownloadReceiptButton({
   disabled,
   unavailableFallback,
 }: DownloadReceiptButtonProps) {
-  const { uiState, isBusy, error, download } = useOfficialDocument(applicationId, 'payment_receipt')
+  const { uiState, isBusy, error, prepare, openHref } = useOfficialDocument(applicationId, 'payment_receipt')
   const { addToast } = useToastStore()
-
-  const handleDownload = async () => {
-    const ok = await download()
+  const openRef = useRef<HTMLAnchorElement>(null)
+  const focusOpenRef = useRef(false)
+  const handlePrepare = async () => {
+    const ok = await prepare()
     if (ok) {
-      addToast('success', 'Receipt downloaded successfully')
+      focusOpenRef.current = true
+      addToast('success', 'Receipt is ready to open')
     } else {
       addToast('error', error || 'Failed to generate receipt')
     }
   }
+  // The pressed control becomes the link that replaces it: keep keyboard focus.
+  useEffect(() => {
+    if (openHref && focusOpenRef.current) {
+      focusOpenRef.current = false
+      openRef.current?.focus()
+    }
+  }, [openHref])
 
   if (!isOfficialDocumentOffered('payment_receipt', '', paymentStatus)) {
     return null
@@ -74,6 +90,17 @@ export function DownloadReceiptButton({
     )
   }
 
+  if (openHref && !isWorking && uiState !== 'failed') {
+    return (
+      <Button asChild variant="outline" size="sm" className="min-h-touch gap-2">
+        <a ref={openRef} href={openHref} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          Open receipt
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </Button>
+    )
+  }
   const label =
     uiState === 'generating'
       ? 'Generating…'
@@ -81,11 +108,10 @@ export function DownloadReceiptButton({
         ? 'Queued…'
         : uiState === 'failed'
           ? 'Retry'
-          : 'Download Receipt'
-
+          : 'Prepare receipt'
   return (
     <Button
-      onClick={handleDownload}
+      onClick={handlePrepare}
       disabled={disabled || isBusy}
       loading={isWorking}
       variant="outline"
@@ -96,7 +122,7 @@ export function DownloadReceiptButton({
       {!isWorking && (
         uiState === 'failed'
           ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
-          : <Download className="h-4 w-4" aria-hidden="true" />
+          : <FileText className="h-4 w-4" aria-hidden="true" />
       )}
       {label}
     </Button>

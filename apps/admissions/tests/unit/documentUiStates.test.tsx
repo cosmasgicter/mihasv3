@@ -218,17 +218,23 @@ describe('DocumentButtons — status-gated action visibility (R17.1)', () => {
   surface rather than as a client-side format check.
 */
 describe('DocumentButtons — download and email of the stored slip (R17.2)', () => {
-  it('downloads the backend-stored slip via the official-document service, not a local blob', async () => {
+  // SJR task 3.17 (R5-a, clause 1.23): this case clicked "Download Slip" and
+  // expected `downloadOfficialDocument`, which opened a tab in code after the
+  // awaits. The control now makes the slip ("Prepare"), then offers an "Open"
+  // anchor to the in-app opener; nothing is downloaded or opened in code.
+  it('prepares the backend-stored slip via the official-document service, then offers an Open link', async () => {
     generateMock.mockResolvedValue({ document_type: 'application_slip', status: 'ready' })
-    downloadMock.mockResolvedValue(undefined)
-
     render(<DocumentButtons applicationId={APP_ID} status="submitted" paymentStatus={null} />)
-    fireEvent.click(screen.getByText('Download Slip'))
-
+    fireEvent.click(screen.getByRole('button', { name: /Prepare Application Slip/i }))
     await waitFor(() => {
       expect(generateMock).toHaveBeenCalledWith(APP_ID, 'application_slip')
-      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'application_slip')
     })
+    const open = await screen.findByRole('link', { name: /Open Application Slip/i })
+    expect(open.getAttribute('href')).toBe(
+      `/student/documents/open?app=${APP_ID}&type=application_slip`,
+    )
+    expect(open.getAttribute('target')).toBe('_blank')
+    expect(downloadMock).not.toHaveBeenCalled()
   })
 
   it('emails the backend-stored slip via the official-document service, not a local blob', async () => {
@@ -270,39 +276,42 @@ describe('DownloadReceiptButton — payment-gated visibility + stored download (
       <DownloadReceiptButton applicationId={APP_ID} paymentStatus="pending" />,
     )
     expect(container.childElementCount).toBe(0)
-    expect(screen.queryByText('Download Receipt')).toBeNull()
+    // SJR task 3.17 (R5-f): the retired "Download Receipt" label is now "Prepare receipt".
+    expect(screen.queryByText('Prepare receipt')).toBeNull()
   })
 
   it('offers the receipt action once payment is verified (R17.1)', () => {
     render(<DownloadReceiptButton applicationId={APP_ID} paymentStatus="verified" />)
-    expect(screen.getByText('Download Receipt')).toBeTruthy()
+    expect(screen.getByText('Prepare receipt')).toBeTruthy()
   })
 
-  it('downloads the backend-stored receipt via the official-document service, not a local blob (R17.2)', async () => {
-    // generate() resolves ready → the download path streams the stored record.
+  // SJR task 3.17 (R5-a, R5-f): the receipt control is "Prepare receipt", then an
+  // "Open receipt" anchor to the opener. The old case expected a download and the
+  // toast "Receipt downloaded successfully", which claimed an action that never
+  // happened; the toast now says the receipt is ready to open.
+  it('prepares the backend-stored receipt via the official-document service, then offers an Open link (R17.2)', async () => {
+    // generate() resolves ready → the receipt can be opened.
     generateMock.mockResolvedValue({ document_type: 'payment_receipt', status: 'ready' })
-    downloadMock.mockResolvedValue(undefined)
-
     render(<DownloadReceiptButton applicationId={APP_ID} paymentStatus="verified" />)
-    fireEvent.click(screen.getByText('Download Receipt'))
-
-    await waitFor(() => {
-      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt')
-    })
-    // The authoritative record is ensured-current before download (no local render).
-    expect(generateMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt')
+    fireEvent.click(screen.getByText('Prepare receipt'))
+    // The authoritative record is ensured-current (no local render).
+    await waitFor(() => expect(generateMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt'))
+    const open = await screen.findByRole('link', { name: /Open receipt/i })
+    expect(open.getAttribute('href')).toBe(
+      `/student/documents/open?app=${APP_ID}&type=payment_receipt`,
+    )
+    expect(downloadMock).not.toHaveBeenCalled()
     await waitFor(() =>
-      expect(addToastMock).toHaveBeenCalledWith('success', 'Receipt downloaded successfully'),
+      expect(addToastMock).toHaveBeenCalledWith('success', 'Receipt is ready to open'),
     )
   })
 
   it('surfaces a retry affordance and error toast when backend generation fails (R17.2)', async () => {
-    // generate() resolves failed → download path bails before streaming, the
+    // generate() resolves failed → the prepare path bails before it is ready, the
     // button degrades to a Retry affordance.
     generateMock.mockResolvedValue({ document_type: 'payment_receipt', status: 'failed' })
-
     render(<DownloadReceiptButton applicationId={APP_ID} paymentStatus="verified" />)
-    fireEvent.click(screen.getByText('Download Receipt'))
+    fireEvent.click(screen.getByText('Prepare receipt'))
 
     await waitFor(() => expect(generateMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt'))
     // No stored record was streamed because generation did not reach `ready`.
@@ -316,21 +325,18 @@ describe('DownloadReceiptButton — payment-gated visibility + stored download (
     generateMock
       .mockResolvedValueOnce({ document_type: 'payment_receipt', status: 'failed' })
       .mockResolvedValueOnce({ document_type: 'payment_receipt', status: 'ready' })
-    downloadMock.mockResolvedValue(undefined)
-
     render(<DownloadReceiptButton applicationId={APP_ID} paymentStatus="verified" />)
-    fireEvent.click(screen.getByText('Download Receipt'))
-
+    fireEvent.click(screen.getByText('Prepare receipt'))
     const retryButton = await screen.findByText('Retry')
     fireEvent.click(retryButton)
-
     await waitFor(() => {
       expect(generateMock).toHaveBeenCalledTimes(2)
       expect(generateMock).toHaveBeenNthCalledWith(1, APP_ID, 'payment_receipt')
       expect(generateMock).toHaveBeenNthCalledWith(2, APP_ID, 'payment_receipt')
-      expect(downloadMock).toHaveBeenCalledTimes(1)
-      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt')
     })
+    // SJR task 3.17: the retry ends in an Open link, not a download.
+    expect(await screen.findByRole('link', { name: /Open receipt/i })).toBeTruthy()
+    expect(downloadMock).not.toHaveBeenCalled()
   })
 })
 
@@ -338,19 +344,21 @@ describe('DownloadReceiptButton — payment-gated visibility + stored download (
 // 3c. DocumentButtons sources the slip + receipt download from the backend (R17.2, R17.6)
 // ---------------------------------------------------------------------------
 describe('DocumentButtons — ready actions stream stored backend records (R17.2, R17.6)', () => {
-  it('downloads the official acceptance letter through the backend service, never @/lib/pdf', async () => {
+  // SJR task 3.17 (R5-a): prepare through the backend service, then an Open anchor
+  // to the opener; the old case expected `downloadOfficialDocument`.
+  it('prepares the official acceptance letter through the backend service, never @/lib/pdf', async () => {
     generateMock.mockResolvedValue({ document_type: 'acceptance_letter', status: 'ready' })
-    downloadMock.mockResolvedValue(undefined)
-
     render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus={null} />)
-
     // Desktop + mobile both render the action; click the first.
     fireEvent.click(screen.getAllByText('Acceptance Letter')[0])
-
     await waitFor(() => {
       expect(generateMock).toHaveBeenCalledWith(APP_ID, 'acceptance_letter')
-      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'acceptance_letter')
     })
+    const open = await screen.findByRole('link', { name: /Open Acceptance Letter/i })
+    expect(open.getAttribute('href')).toBe(
+      `/student/documents/open?app=${APP_ID}&type=acceptance_letter`,
+    )
+    expect(downloadMock).not.toHaveBeenCalled()
   })
 
   it('surfaces setup-required when tenant document profile or assets are missing', async () => {

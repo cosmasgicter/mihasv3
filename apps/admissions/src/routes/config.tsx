@@ -36,6 +36,7 @@ const AuthCallbackPage = React.lazy(() => import('@/pages/auth/AuthCallbackPage'
 const PaymentCallback = React.lazy(() => import('@/pages/student/PaymentCallback'))
 const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index'))
 const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationStatus'))
+const StudentDocumentOpen = React.lazy(() => import('@/pages/student/DocumentOpen'))
 const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
 const StudentNotificationSettings = React.lazy(() => import('@/pages/student/NotificationSettings'))
 const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
@@ -142,6 +143,7 @@ export const routes: RouteConfig[] = [
   { path: '/settings', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
   { path: '/student/profile', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
   { path: '/student/profile/edit', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
+  fromRegistry('student.documentOpen', StudentDocumentOpen, { lazy: true }),
   fromRegistry('student.settings', StudentSettings, { lazy: true }),
   fromRegistry('student.notifications', StudentNotificationSettings, { lazy: true }),
   fromRegistry('student.payment', StudentPayment, { lazy: true }),

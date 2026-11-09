@@ -522,12 +522,14 @@ test('a request the broker never received is still recorded, and the dispatcher 
   expect(ready.job.terminal).toBe(true);
   expect(ready.job.can_retry, 'a settled job offers no retry').toBe(false);
 
-  // And the student can take it. The download opens the signed stored record in
-  // a new tab, so the assertion is on the popup's URL rather than on navigation.
+  // And the student can take it. SJR task 3.17 (R5-a): the slip is issued, so the
+  // control is an "Open" link to the in-app opener (no longer a button that opens
+  // a tab in code after awaits). The opener signs when it is opened and replaces
+  // itself with the stored record, so the assertion is on the popup's final URL.
   await allowStorageNavigation(page, ready.download_url);
   await openApplication(page, applicant.applicationId);
-  const download = (await documentAction(page, SLIP)).getByRole('button', {
-    name: /Download Slip/i,
+  const download = (await documentAction(page, SLIP)).getByRole('link', {
+    name: /Open Application Slip/i,
   });
   await expect(download).toBeEnabled({ timeout: 30_000 });
   const popup = page.waitForEvent('popup', { timeout: 30_000 });
@@ -622,7 +624,8 @@ test('an issued document stays readable, and stays offered, once the application
   await expect(slip).toBeVisible({ timeout: 30_000 });
   await expect(slip).toHaveAttribute('data-historical', 'true');
   await expect(slip).toContainText(/Issued copy on record/i);
-  await expect(slip.getByRole('button', { name: /Download Slip/i })).toBeEnabled();
+  // SJR task 3.17: an issued slip is offered as an "Open" link to the opener.
+  await expect(slip.getByRole('link', { name: /Open Application Slip/i })).toBeEnabled();
 
   expect(gate.consoleErrors, 'no console errors').toEqual([]);
 });
@@ -656,7 +659,7 @@ test('the one canonical email route sends the stored record and lands in the his
   const slip = await documentAction(page, SLIP);
   await expect(slip).toBeVisible({ timeout: 30_000 });
   const popup = page.waitForEvent('popup', { timeout: 90_000 });
-  await slip.getByRole('button', { name: /Download Slip/i }).click();
+  await slip.getByRole('link', { name: /Open Application Slip/i }).click();
   const opened = await popup;
   expect(
     await settledPopupUrl(opened),

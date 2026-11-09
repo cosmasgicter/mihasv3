@@ -590,7 +590,8 @@ test.describe('The golden student lifecycle, in one canonical workspace (R13.7, 
 
     // Ask for it, then wait on the platform's own published status rather than on
     // a spinner: task 10.4 made that status the truth about durable work.
-    await slipControl.getByRole('button', { name: /Download Slip/i }).click();
+    // SJR task 3.17: the control that asks for the slip is "Prepare".
+    await slipControl.getByRole('button', { name: /Prepare Application Slip/i }).click();
     await expect
       .poll(
         async () => {

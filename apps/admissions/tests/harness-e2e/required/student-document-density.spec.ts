@@ -315,7 +315,9 @@ test('the document panel is status, then one action, then one counted sheet', as
     // Status first — and it is the platform's inventory, not a label.
     const summary = panel.getByTestId('document-status-summary');
     await expect(summary).toBeVisible();
-    await expect(summary).toContainText(/ready to download/i);
+    // SJR task 3.20 (R5-f): "ready" only for an issued document, else "can be
+    // prepared now". The seeded application may or may not have an issued slip.
+    await expect(summary).toContainText(/(can be prepared now|is ready to open)/i);
 
     // Exactly one prominent control. This is STU-05's whole sentence: the state
     // that used to produce three equally prominent downloads plus three email
@@ -669,7 +671,8 @@ test('one live region, one name per document, and the platform authors the words
   await trigger.click();
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   const slip = panel.locator(`[data-testid="official-document-${SLIP}"]`);
-  await slip.getByRole('button', { name: /Download Slip/i }).click();
+  // SJR task 3.17/3.20: the control that asks for a document is "Prepare".
+  await slip.getByRole('button', { name: /Prepare Application Slip/i }).click();
   await expect
     .poll(async () => ((await region.textContent()) || '').trim(), {
       timeout: 60_000,

@@ -113,6 +113,9 @@ export interface OfficialDocumentStatus {
 }
 
 const SERVICE = 'official-documents'
+/** Stable backend code: the document exists but its link could not be signed (R5-d). */
+export const DOCUMENT_LINK_UNAVAILABLE = 'DOCUMENT_LINK_UNAVAILABLE'
+export const DOCUMENT_LINK_UNAVAILABLE_MESSAGE = "This file can't be opened right now. Please try again."
 
 function applicationDocumentsBase(applicationId: string): string {
   return `/applications/${encodeURIComponent(applicationId)}/official-documents/`
@@ -204,6 +207,12 @@ export const officialDocumentService = {
     const endpoint = applicationDocumentPath(applicationId, documentType)
     try {
       const statusPayload = await apiClient.request<OfficialDocumentStatus>(endpoint, { method: 'GET' })
+      // SJR task 3.19 (R5-d): the document exists but the platform could not make
+      // a link for it. That is "can't be opened right now" with a retry, never
+      // "not ready", which would send the reader to prepare a document they hold.
+      if (statusPayload?.status === 'ready' && statusPayload.error_code === DOCUMENT_LINK_UNAVAILABLE) {
+        throw new Error(DOCUMENT_LINK_UNAVAILABLE_MESSAGE)
+      }
       const downloadUrl = statusPayload?.download_url
       if (!statusPayload || statusPayload.status !== 'ready' || !downloadUrl) {
         throw new Error('Official document is not ready for download yet')

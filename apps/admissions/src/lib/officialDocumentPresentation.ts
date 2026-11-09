@@ -30,17 +30,18 @@ import type { OfficialDocumentType } from '@/services/officialDocuments'
 /**
  * The student-facing name of each official document type, and the verbs used for
  * it. Sentence-cased in prose (`"application slip"`), title-cased on a control
- * (`"Download Slip"`), because the same words read wrong in both places.
+ * (`"Application Slip"`), because the same words read wrong in both places.
  *
- * `Download Slip` and the other resting labels are the strings task 10.4's
- * browser journeys press by name; they are kept verbatim so a presentation change
- * does not silently rename a command.
+ * SJR task 3.20 (R5-f): `label` is the document's name only. The control says what
+ * it does with a verb in front of it, "Prepare" for a document the platform has
+ * not issued yet and "Open" for one it has, because the old "Download Slip" claimed
+ * an action (a download, of a file that might not exist) the control did not take.
  */
 export interface OfficialDocumentCopy {
   /** The document, named in prose: "your acceptance letter". */
   readonly noun: string
-  /** The resting label of its download control. */
-  readonly downloadLabel: string
+  /** The document's name as it reads on a control, without a verb. */
+  readonly label: string
   /** The label of its email command. */
   readonly emailLabel: string
 }
@@ -50,22 +51,22 @@ export const OFFICIAL_DOCUMENT_COPY: Readonly<
 > = Object.freeze({
   acceptance_letter: {
     noun: 'acceptance letter',
-    downloadLabel: 'Acceptance Letter',
+    label: 'Acceptance Letter',
     emailLabel: 'Email acceptance letter to me',
   },
   conditional_offer: {
     noun: 'conditional acceptance',
-    downloadLabel: 'Conditional Acceptance',
+    label: 'Conditional Acceptance',
     emailLabel: 'Email conditional acceptance to me',
   },
   application_slip: {
     noun: 'application slip',
-    downloadLabel: 'Download Slip',
+    label: 'Application Slip',
     emailLabel: 'Email application slip to me',
   },
   payment_receipt: {
     noun: 'payment receipt',
-    downloadLabel: 'Payment Receipt',
+    label: 'Payment Receipt',
     emailLabel: 'Email payment receipt to me',
   },
 })
@@ -89,6 +90,11 @@ export interface OfficialDocumentPresentationInput {
   readonly available: readonly string[]
   /** The types the platform is serving under the read-existing policy. */
   readonly historical?: readonly string[]
+  /**
+   * The types the platform has actually issued (a stored artifact exists). A type
+   * that is `available` but not `issued` can be prepared, not opened (R5-f).
+   */
+  readonly issued?: readonly string[]
 }
 
 export interface PresentedOfficialDocument {
@@ -96,6 +102,8 @@ export interface PresentedOfficialDocument {
   readonly copy: OfficialDocumentCopy
   /** True when this is the issued copy rather than today's state (STU-18). */
   readonly historical: boolean
+  /** True when the platform has issued it, so it can be opened rather than prepared. */
+  readonly issued: boolean
 }
 
 export interface OfficialDocumentPresentation {
@@ -111,7 +119,7 @@ function copyFor(documentType: string): OfficialDocumentCopy {
   return (
     OFFICIAL_DOCUMENT_COPY[documentType] ?? {
       noun: documentType.replace(/_/g, ' '),
-      downloadLabel: 'Download document',
+      label: 'Document',
       emailLabel: 'Email document to me',
     }
   )
@@ -132,8 +140,10 @@ function priorityOf(documentType: string): number {
 export function presentOfficialDocuments({
   available,
   historical = [],
+  issued = [],
 }: OfficialDocumentPresentationInput): OfficialDocumentPresentation {
   const historicalSet = new Set(historical)
+  const issuedSet = new Set(issued)
   const seen = new Set<string>()
   const ordered: PresentedOfficialDocument[] = []
 
@@ -144,6 +154,7 @@ export function presentOfficialDocuments({
       documentType,
       copy: copyFor(documentType),
       historical: historicalSet.has(documentType),
+      issued: issuedSet.has(documentType),
     })
   }
 
@@ -166,24 +177,47 @@ export function presentOfficialDocuments({
  * The sentence that goes **before** the controls (STU-05: *"present status
  * first"*).
  *
- * It states what the platform has, and — when it is serving an issued copy —
- * that this is the copy on record rather than a claim about today's state. It
- * never says "not available": a document the application does not have is simply
- * not mentioned, because the surface renders nothing at all in that case.
+ * It states what the platform has, and it says "ready" only for a document the
+ * platform has issued (R5-f, clause 2.27). A document the student may prepare but
+ * that has not been issued "can be prepared now"; one being made "is being
+ * prepared"; one that failed "couldn't be prepared"; and one the school has not
+ * set up "isn't available yet". The old sentence said "ready to download" for all
+ * of them, so a student pressed a control for a file that did not exist.
+ *
+ * It never says "not available" for a document the application does not have: such
+ * a document is simply not mentioned, because the surface renders nothing at all
+ * in that case.
+ *
+ * `states` is the per-type UI state the surface already holds. It only refines the
+ * primary document's sentence: a type the student has just prepared reads as
+ * ready, and no other type does unless the platform issued it.
  */
 export function officialDocumentSummary(
   presentation: OfficialDocumentPresentation,
+  states: Readonly<Record<string, string>> = {},
 ): string | null {
   const { primary, secondary } = presentation
   if (!primary) return null
   const rest = secondary.length
   const noun = primary.copy.noun
-  if (rest === 0) {
-    return `Your ${noun} is ready to download.`
+  const state = states[primary.documentType]
+
+  let lead: string
+  if (state === 'generating' || state === 'queued') {
+    lead = `Your ${noun} is being prepared`
+  } else if (state === 'failed') {
+    return `Your ${noun} couldn't be prepared. Try again.`
+  } else if (state === 'setup_required') {
+    lead = `Your ${noun} isn't available yet`
+  } else if (primary.issued || state === 'ready') {
+    lead = `Your ${noun} is ready to open`
+  } else {
+    lead = `Your ${noun} can be prepared now`
   }
-  return `Your ${noun} is ready to download, with ${rest} other ${
-    rest === 1 ? 'document' : 'documents'
-  } on record.`
+  if (rest === 0) {
+    return `${lead}.`
+  }
+  return `${lead}, with ${rest} other ${rest === 1 ? 'document' : 'documents'} available.`
 }
 
 /**

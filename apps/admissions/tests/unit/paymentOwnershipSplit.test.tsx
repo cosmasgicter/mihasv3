@@ -107,7 +107,10 @@ vi.mock('@/hooks/useOfficialDocument', async (importOriginal) => {
       isBusy: false,
       error: null,
       isSetupRequired: false,
-      download: vi.fn().mockResolvedValue(true),
+      // SJR task 3.17: the hook's shape. It prepares and exposes an opener link;
+      // it no longer downloads anything.
+      prepare: vi.fn().mockResolvedValue(true),
+      openHref: null,
       email: vi.fn().mockResolvedValue(true),
       reset: vi.fn(),
     }),
@@ -252,7 +255,7 @@ describe('the payment page renders every post-submission state (R12.3)', () => {
   it('paid → receipt, no payment affordance', () => {
     renderCard(application({ payment_status: 'verified' }), [paymentRow({ status: 'successful' })])
     expect(screen.queryByTestId('payment-pay-action')).toBeNull()
-    expect(screen.getByRole('button', { name: /download receipt/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /prepare receipt/i })).toBeTruthy()
   })
 
   it('renders the payment history the page owns', () => {
