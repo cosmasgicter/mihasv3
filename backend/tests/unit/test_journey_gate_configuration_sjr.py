@@ -95,7 +95,7 @@ def test_gate_evidence_never_goes_to_docs_v2_evidence():
     config = (REPO / "apps" / "admissions" / "playwright.journey-gate.config.ts").read_text()
     assert "delete process.env.V2_EVIDENCE_TASK_DIRS" in config
     assert "retries: 0" in config and "workers: 1" in config
-    assert "trace: 'retain-on-failure'" in config
+    assert "trace: 'on'" in config
     assert "browserName: 'chromium'" in config, "the throttle needs CDP"
     assert "statusAwareDefaults: true" in config
 

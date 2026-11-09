@@ -124,7 +124,7 @@ describe('journey gate: rate-limit scope table', () => {
     const source = readFileSync(join(__dirname, '../../../../backend/apps/common/middleware.py'), 'utf-8');
     const block = source.slice(source.indexOf('SCOPE_LIMITS = ['), source.indexOf('VIEW_MANAGED_PAYMENT_PREFIXES'));
     const backend = [...block.matchAll(/\(\s*"(\/[^"]+)",\s*(None|"[^"]+")\s*\)/g)].map(
-      (m) => [m[1], m[2] === 'None' ? null : m[2]!.replaceAll('"', '')] as const,
+      (m) => [m[1], m[2] === 'None' ? null : m[2]!.replace(/"/g, '')] as const,
     );
     // The backend table also lists the Django admin panel, which is not an /api/ path.
     const api = backend.filter(([prefix]) => prefix!.startsWith('/api/'));

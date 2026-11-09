@@ -48,7 +48,8 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    trace: 'retain-on-failure',
+    // Always on: the gate's traces are the evidence for a green run, not only for a red one.
+    trace: 'on',
     screenshot: 'only-on-failure',
     ignoreHTTPSErrors: true,
     actionTimeout: 30_000,
