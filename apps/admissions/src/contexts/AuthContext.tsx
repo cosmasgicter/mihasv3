@@ -25,6 +25,7 @@ import { configureApiClientAuthFailure } from '@/services/client'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { clearSession, secureStorage } from '@/lib/secureStorage'
 import { preloadSecureStorage, resetCache } from '@/lib/localStorageCache'
+import { suppressSessionRestore } from '@/hooks/auth/useSessionRestoreOnce'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
 import { SESSION_MESSAGES } from '@/lib/sessionHardening'
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   //   5. Redirect to login page
   useEffect(() => {
     configureApiClientAuthFailure(() => {
+      suppressSessionRestore()
       void (async () => {
         await queryClient.cancelQueries({ queryKey: ['auth'] })
         await queryClient.cancelQueries({ queryKey: ['user-profile'] })

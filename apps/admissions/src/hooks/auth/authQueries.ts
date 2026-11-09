@@ -90,7 +90,8 @@ export async function fetchSessionData(): Promise<SessionQueryData> {
 
   // The API client owns refresh-on-401/403 for /auth/session/. A successful
   // session response with no user means the visitor is unauthenticated; do not
-  // POST /auth/refresh/ from public pages such as /auth/signin.
+  // POST /auth/refresh/ from public pages such as /auth/signin. The only
+  // bootstrap refresh is `useSessionRestoreOnce`, called by the route guards.
   return null
 }
 

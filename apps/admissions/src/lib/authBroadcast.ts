@@ -12,6 +12,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { syncApiClientCsrfToken } from '@/services/client'
+import { suppressSessionRestore } from '@/hooks/auth/useSessionRestoreOnce'
 import { useAuthStore } from '@/stores/authStore'
 import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
@@ -161,6 +162,7 @@ export function useAuthBroadcast(): void {
     const unsubscribe = onAuthBroadcast((message) => {
       switch (message.type) {
         case 'logout':
+          suppressSessionRestore()
           // Req 4.2: Clear React Query auth cache, clear authStore, redirect
           // Give wizard a chance to save drafts before cross-tab logout clears state
           window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.beforeAuthRedirect, { detail: { from: window.location.pathname } }))

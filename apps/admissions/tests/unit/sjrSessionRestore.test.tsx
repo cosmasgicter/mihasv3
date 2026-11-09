@@ -11,7 +11,7 @@
  * showing "Restoring your session" meanwhile.
  *
  * Public routes already never refresh; that half is preservation (g), task 2.3.
- * Wrapped in `it.fails` (design "Marker scheme"); task 3.28 removes the wrapper.
+ * Task 3.26 fixed this; the marker was removed at checkpoint 3.28.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, screen } from '@testing-library/react'
@@ -98,7 +98,7 @@ describe.each(GUARDS)('$name with an unauthenticated session (clause 1.38)', ({ 
     guardRole = role
   })
 
-  it.fails('restores the session once, then renders the route', async () => {
+  it('restores the session once, then renders the route', async () => {
     renderGuarded(Guard)
 
     // HEAD: an immediate redirect to sign-in, and no refresh request.
@@ -114,7 +114,7 @@ describe.each(GUARDS)('$name with an unauthenticated session (clause 1.38)', ({ 
     expect(refreshAuthSession).toHaveBeenCalledTimes(1)
   })
 
-  it.fails('redirects to sign-in after a failed restore, without retrying', async () => {
+  it('redirects to sign-in after a failed restore, without retrying', async () => {
     renderGuarded(Guard)
     expect(refreshAuthSession).toHaveBeenCalledTimes(1)
 

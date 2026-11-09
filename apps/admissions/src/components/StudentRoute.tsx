@@ -5,6 +5,7 @@ import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
 import { pathFor } from '@/routes/routeRegistry'
+import { useSessionRestoreOnce } from '@/hooks/auth/useSessionRestoreOnce'
 
 interface StudentRouteProps {
   children: React.ReactNode
@@ -21,6 +22,7 @@ interface StudentRouteProps {
 export function StudentRoute({ children }: StudentRouteProps) {
   const { user, isAdmin, loading } = useAuth()
   const location = useLocation()
+  const restore = useSessionRestoreOnce(!loading && !user)
   const telemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
 
   useEffect(() => {
@@ -36,6 +38,9 @@ export function StudentRoute({ children }: StudentRouteProps) {
     return <GuardInlineSkeleton label="Preparing your student dashboard" />
   }
 
+  if (!user && restore !== 'done') {
+    return <GuardInlineSkeleton label="Restoring your session" />
+  }
   if (!user) {
     return <Navigate to={pathFor('auth.signIn')} state={{ from: location }} replace />
   }

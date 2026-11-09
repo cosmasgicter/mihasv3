@@ -31,6 +31,7 @@ import {
   type SessionQueryData,
 } from './authQueries'
 import { logger } from '@/lib/logger'
+import { allowSessionRestore, suppressSessionRestore } from './useSessionRestoreOnce'
 import { toError } from '@/lib/toError'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
@@ -56,7 +57,9 @@ export function useSessionListener() {
     queryKey: SESSION_QUERY_KEY,
     queryFn: async () => {
       try {
-        return await fetchSessionData()
+        const fetched = await fetchSessionData()
+        if (fetched?.user) allowSessionRestore()
+        return fetched
       } catch (error) {
         const cached = queryClient.getQueryData<SessionQueryData>(SESSION_QUERY_KEY)
         const msg = error instanceof Error ? error.message.toLowerCase() : ''
@@ -115,6 +118,7 @@ export function useSessionListener() {
       const authUser = extractAuthUser(result)
       if (!authUser) return { error: 'Login failed' }
 
+      allowSessionRestore()
       queryClient.setQueryData(SESSION_QUERY_KEY, { user: authUser })
       const normalizedProfile = buildProfileFromUser(authUser)
       queryClient.setQueryData(profileQueryKey(authUser.id), normalizedProfile, { updatedAt: 0 })
@@ -173,6 +177,7 @@ export function useSessionListener() {
 
       const userPayload = extractAuthUser(loginResult) ?? extractAuthUser(registerResult)
       if (userPayload) {
+        allowSessionRestore()
         queryClient.setQueryData(SESSION_QUERY_KEY, { user: userPayload })
         const normalizedProfile = buildProfileFromUser(userPayload)
         queryClient.setQueryData(profileQueryKey(userPayload.id), normalizedProfile, { updatedAt: 0 })
@@ -199,6 +204,9 @@ export function useSessionListener() {
 
   // signOut — cancel queries, POST logout, clear everything, broadcast
   const signOut = useCallback(async () => {
+    // First statement: the logout POST is not awaited, so no guard may restore
+    // the session from a still-valid cookie after this point (R8-a, 3.19).
+    suppressSessionRestore()
     const currentUserId = user?.id
 
     await queryClient.cancelQueries({ queryKey: ['auth'] })
