@@ -18,6 +18,12 @@ x-backend: &backend
     context: ../backend
   env_file:
     - harness.env
+  # Journey-gate switches (SJR task 4.1, R9-a). Defaults keep the broad matrix's
+  # settings: 900 s links, internal storage endpoint, limiter off.
+  environment:
+    S3_SIGNED_URL_TTL_SECONDS: ${S3_SIGNED_URL_TTL_SECONDS:-900}
+    S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-}
+    HARNESS_RATELIMIT_ENABLE: ${HARNESS_RATELIMIT_ENABLE:-0}
   restart: unless-stopped
 
 services:
@@ -68,11 +74,13 @@ services:
       minio:
         condition: service_started
     env_file: [harness.env]
+    environment:
+      HARNESS_BUCKET_ANONYMOUS: ${HARNESS_BUCKET_ANONYMOUS:-download}
     entrypoint: >-
       /bin/sh -c "
       until mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do echo 'waiting for minio'; sleep 1; done;
       mc mb -p local/harness || true;
-      mc anonymous set download local/harness || true;
+      mc anonymous set $${HARNESS_BUCKET_ANONYMOUS:-download} local/harness || true;
       echo 'minio bucket ready';
       "
     restart: "no"

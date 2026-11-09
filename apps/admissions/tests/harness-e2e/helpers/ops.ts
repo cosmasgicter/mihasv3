@@ -91,6 +91,33 @@ export async function closeAbandonedAdapterCollection(reference: string): Promis
   await ctx.dispose();
 }
 
+/** Walk up from this file to `harness/docker-compose.harness.yml` (the repo root, by definition). */
+async function locateHarnessComposeFile(): Promise<string> {
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const { existsSync } = await import('node:fs');
+  // This module is ESM, so `__dirname` does not exist. Rather than counting
+  // directory hops (which depend on how the runner resolves this file), walk up
+  // until the harness compose file is found.
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  let composeFile = '';
+  for (let up = 0; up < 8; up += 1) {
+    const candidate = path.join(dir, 'harness', 'docker-compose.harness.yml');
+    if (existsSync(candidate)) {
+      composeFile = candidate;
+      break;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  expect(
+    composeFile,
+    'could not locate harness/docker-compose.harness.yml above this test file',
+  ).toBeTruthy();
+  return composeFile;
+}
+
 /**
  * Run one line of the platform's own code inside the harness `web` container.
  *
@@ -108,28 +135,7 @@ export async function closeAbandonedAdapterCollection(reference: string): Promis
  */
 async function runHarnessDjangoShell(statements: string[]): Promise<string> {
   const { execFileSync } = await import('node:child_process');
-  const path = await import('node:path');
-  const { fileURLToPath } = await import('node:url');
-  const { existsSync } = await import('node:fs');
-  // This module is ESM, so `__dirname` does not exist. Rather than counting
-  // directory hops (which depend on how the runner resolves this file), walk up
-  // until the harness compose file is found. That is the repo root by definition.
-  let dir = path.dirname(fileURLToPath(import.meta.url));
-  let composeFile = '';
-  for (let up = 0; up < 8; up += 1) {
-    const candidate = path.join(dir, 'harness', 'docker-compose.harness.yml');
-    if (existsSync(candidate)) {
-      composeFile = candidate;
-      break;
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  expect(
-    composeFile,
-    'could not locate harness/docker-compose.harness.yml above this test file',
-  ).toBeTruthy();
+  const composeFile = await locateHarnessComposeFile();
   return execFileSync(
     'docker',
     [
@@ -495,4 +501,44 @@ export async function clearPublicTrackingFailureBudget(): Promise<number> {
     `the harness should report how many tracking budgets it cleared (got: ${output})`,
   ).toBeTruthy();
   return Number((match as RegExpExecArray)[1]);
+}
+
+/**
+ * Clear the rate limiter's counters, and nothing else (SJR task 4.1, design R9-a).
+ *
+ * Every browser context and request helper in the harness reaches Caddy from one
+ * host address, which production does not, so a gate that spans several spec files
+ * would otherwise spend one shared budget. This deletes django-ratelimit's `:1:rl:*`
+ * keys and DRF's `:1:throttle_*` histories in the cache database, through one `sh -c`
+ * inside the harness `redis` container. It never runs `FLUSHDB`: that database also
+ * holds the Celery broker queues. The key format is Django's default
+ * (`<KEY_PREFIX>:<VERSION>:<key>`, neither set in `base.py`).
+ *
+ * Prints, and returns, the number of keys deleted.
+ */
+export async function resetRateLimitCounters(): Promise<number> {
+  const { execFileSync } = await import('node:child_process');
+  const composeFile = await locateHarnessComposeFile();
+  const output = execFileSync(
+    'docker',
+    [
+      'compose',
+      '-f',
+      composeFile,
+      'exec',
+      '-T',
+      'redis',
+      'sh',
+      '-c',
+      'n=0; for pattern in ":1:rl:*" ":1:throttle_*"; do ' +
+        'for key in $(redis-cli --scan --pattern "$pattern"); do ' +
+        'redis-cli del "$key" >/dev/null; n=$((n + 1)); done; done; echo "DELETED=$n"',
+    ],
+    { encoding: 'utf-8', timeout: 60_000 },
+  );
+  const match = /DELETED=(\d+)/.exec(output);
+  expect(match, `the rate-limit reset should report a count (got: ${output})`).toBeTruthy();
+  const deleted = Number((match as RegExpExecArray)[1]);
+  console.log(`[journey-gate] rate-limit counters cleared: ${deleted}`);
+  return deleted;
 }

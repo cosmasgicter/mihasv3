@@ -6,6 +6,7 @@
 #   harness/bin/harness down      # tear the stack down and wipe volumes
 #   harness/bin/harness build     # build the admissions SPA (build output for Caddy)
 #   harness/bin/harness e2e       # run the strict Playwright projects only
+#   harness/bin/harness journey-gate  # the blocking student-journey gate (SJR task 4)
 #   harness/bin/harness drain     # assert required background jobs drained
 #   harness/bin/harness logs [svc]# tail compose logs
 #   harness/bin/harness ps        # compose service status
@@ -56,7 +57,14 @@ EVIDENCE_DIR="${REPO_ROOT}/${EVIDENCE_REL}"
 # INFRA (compose, adapters, Caddyfile, env, this script) lives under harness/.
 PW_CONFIG="${ADMISSIONS_DIR}/playwright.harness.config.ts"
 
+GATE_PW_CONFIG="${ADMISSIONS_DIR}/playwright.journey-gate.config.ts"
+CHECKS_DIR="${HARNESS_DIR}/checks"
 DC=(docker compose -f "${COMPOSE_FILE}")
+# Optional extra compose file, e.g. to remap host ports on a machine whose 55432 or
+# 56379 is already taken. Unset in CI. It changes nothing about the stack's contents.
+if [ -n "${HARNESS_COMPOSE_OVERRIDE:-}" ]; then
+  DC+=(-f "${HARNESS_COMPOSE_OVERRIDE}")
+fi
 
 # Edge (Caddy) and direct backend URLs.
 EDGE_URL="http://localhost:8090"
@@ -211,6 +219,61 @@ write_evidence() {
   ok "evidence written to ${EVIDENCE_DIR}/smoke-run.md"
 }
 
+
+# --- journey gate (SJR task 4, design R9) ----------------------------------
+# Clear django-ratelimit's counters and DRF's throttle histories, and nothing else.
+# Never FLUSHDB: the Celery broker shares this Redis database.
+reset_ratelimit_counters() {
+  "${DC[@]}" exec -T redis sh -c '
+    n=0
+    for pattern in ":1:rl:*" ":1:throttle_*"; do
+      for key in $(redis-cli --scan --pattern "$pattern"); do
+        redis-cli del "$key" >/dev/null
+        n=$((n + 1))
+      done
+    done
+    echo "ratelimit counters cleared: $n"'
+}
+# Run the storage round trip inside the harness web container and
+# require the bucket to be private (R9-d).
+storage_check() {
+  log "storage round trip against the harness MinIO (private bucket expected)"
+  "${DC[@]}" exec -T web python manage.py storage_roundtrip_check --expect-private
+  ok "storage round trip OK"
+}
+# Two clients behind the real edge must not share a rate-limit bucket (R9-c).
+# Client A stays alive (so it keeps its address) while client B runs.
+edge_check() {
+  log "edge check: two client addresses behind Caddy have independent buckets"
+  reset_ratelimit_counters
+  "${DC[@]}" rm -f -s edge-a >/dev/null 2>&1 || true
+  docker rm -f edge-a >/dev/null 2>&1 || true
+  local rc=0
+  "${DC[@]}" run -d --no-deps --name edge-a -v "${CHECKS_DIR}:/checks:ro" adapters sleep 300 >/dev/null || rc=$?
+  if [ "${rc}" -eq 0 ]; then
+    docker exec edge-a python /checks/edge_two_clients.py exhaust || rc=$?
+  fi
+  if [ "${rc}" -eq 0 ]; then
+    "${DC[@]}" run --rm --no-deps -v "${CHECKS_DIR}:/checks:ro" adapters python /checks/edge_two_clients.py fresh || rc=$?
+  fi
+  docker rm -f edge-a >/dev/null 2>&1 || true
+  reset_ratelimit_counters >/dev/null || true
+  if [ "${rc}" -ne 0 ]; then err "edge check failed"; exit 1; fi
+  ok "edge check passed"
+}
+run_journey_gate() {
+  log "running the student journey gate (must PASS; retries 0)"
+  mkdir -p "${EVIDENCE_DIR}"
+  ( cd "${ADMISSIONS_DIR}" && PLAYWRIGHT_BASE_URL="${EDGE_URL}" bunx playwright test -c "${GATE_PW_CONFIG}" )
+  ok "journey gate passed"
+}
+# The four switches that make the stack look like production for this run only.
+export_gate_switches() {
+  export HARNESS_RATELIMIT_ENABLE=1
+  export S3_SIGNED_URL_TTL_SECONDS=20
+  export S3_PUBLIC_ENDPOINT_URL=http://localhost:59000
+  export HARNESS_BUCKET_ANONYMOUS=none
+}
 # --- commands -------------------------------------------------------------
 cmd="${1:-smoke}"
 case "${cmd}" in
@@ -221,6 +284,18 @@ case "${cmd}" in
   logs)  shift || true; "${DC[@]}" logs --tail="${LINES:-120}" "$@" ;;
   drain) drain_check ;;
   e2e)   ensure_browser; run_required; run_gatecheck; drain_check ;;
+  journey-gate)
+    export_gate_switches
+    build_spa
+    compose_up
+    wait_healthy
+    ensure_browser
+    storage_check
+    edge_check
+    run_journey_gate
+    drain_check
+    ok "JOURNEY GATE PASSED - real storage, limiter on, private bucket, 20 s links, throttled uplink."
+    ;;
   smoke)
     build_spa
     compose_up
