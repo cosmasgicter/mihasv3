@@ -800,26 +800,41 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [preserveDraftBeforeAuthRedirect])
 
   const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation()
-  const wizardReadiness = buildWizardReadiness({
-    values: watch(),
-    selectedGrades,
-    uploadedFiles,
-    hasResultSlipFile: Boolean(resultSlipFile),
-    hasIdentityFile: Boolean(extraKycFile),
-    // Task 7.2 (R11.6): the readiness rail describes the *tenant's* required
-    // documents. `undefined` (no readable contract) keeps the legacy pair, so
-    // the rail is never weaker than before.
-    requiredDocumentItems: requiredDocuments.contract
-      ? documentReadinessItems(requiredDocuments.contract, {
-          hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
-          hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
-        })
-      : undefined,
-    paymentStatus,
-    confirmSubmission,
-    assignmentResolved,
-  })
-
+  // The one client readiness computation (SJR R6-a): the Submit button reads it
+  // below and the Submit handler calls it, so they cannot disagree about which
+  // inputs count. The server re-runs readiness under row locks at submit.
+  const computeReadiness = useCallback(
+    (values: WizardFormData): WizardReadiness =>
+      buildWizardReadiness({
+        values,
+        selectedGrades: selectedGradesRef.current,
+        uploadedFiles,
+        hasResultSlipFile: Boolean(resultSlipFile),
+        hasIdentityFile: Boolean(extraKycFile),
+        // Task 7.2 (R11.6): the readiness rail describes the *tenant's* required
+        // documents. `undefined` (no readable contract) keeps the legacy pair, so
+        // the rail is never weaker than before.
+        requiredDocumentItems: requiredDocuments.contract
+          ? documentReadinessItems(requiredDocuments.contract, {
+              hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
+              hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+            })
+          : undefined,
+        paymentStatus,
+        confirmSubmission,
+        assignmentResolved,
+      }),
+    [
+      uploadedFiles,
+      resultSlipFile,
+      extraKycFile,
+      requiredDocuments.contract,
+      paymentStatus,
+      confirmSubmission,
+      assignmentResolved,
+    ],
+  )
+  const wizardReadiness = computeReadiness(watch() as WizardFormData)
   useEffect(() => {
     const currentIntake = watch('intake')
     if (!currentIntake) return
@@ -995,12 +1010,7 @@ const useWizardController = (): UseWizardControllerResult => {
     draftMachine,
     applicationId,
     user,
-    uploadedFiles,
-    resultSlipFile,
-    extraKycFile,
-    paymentStatus,
-    confirmSubmission,
-    selectedGradesRef,
+    computeReadiness,
     isSubmittingRef,
     selectedProgramDetails,
     intakes,

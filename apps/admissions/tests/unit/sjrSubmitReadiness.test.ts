@@ -11,8 +11,7 @@
  * The test supplies `computeReadiness` (the new parameter; HEAD ignores it) and
  * asserts the observable outcome: the submit mutation is called.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); the R6 checkpoint, task 3.25,
- * removes the wrapper.
+ * Markers removed at the R6 checkpoint (task 3.25).
  */
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -72,7 +71,7 @@ beforeEach(() => {
 })
 
 describe('the Submit handler (clause 1.29)', () => {
-  it.fails('submits when the button is enabled: one readiness, one answer', async () => {
+  it('submits when the button is enabled: one readiness, one answer', async () => {
     // Precondition (true at HEAD): the button's readiness allows submitting.
     expect(buttonReadiness(values).canSubmit).toBe(true)
 

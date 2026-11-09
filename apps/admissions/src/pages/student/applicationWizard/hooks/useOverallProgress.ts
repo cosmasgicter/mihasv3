@@ -41,11 +41,18 @@ export const useOverallProgress = (
     const readiness = buildWizardReadiness({
       values,
       selectedGrades,
-      uploadedFiles: options.uploadedFiles,
-      hasResultSlipFile: options.hasResultSlipFile,
-      hasIdentityFile: options.hasIdentityFile,
-      paymentStatus: options.paymentStatus,
-      confirmSubmission: options.confirmSubmission,
+      // Today's defaults, passed explicitly now that every input is required.
+      uploadedFiles: options.uploadedFiles ?? {},
+      hasResultSlipFile: options.hasResultSlipFile ?? false,
+      hasIdentityFile: options.hasIdentityFile ?? false,
+      paymentStatus: options.paymentStatus ?? null,
+      confirmSubmission: options.confirmSubmission ?? false,
+      // The displayed percentage does not change in this spec. Moving it onto
+      // the controller's readiness (assignment resolved, tenant document
+      // contract) is owned by Spec B V3, platform-simplification-and-polish
+      // task 26.1; until then these stay today's defaults.
+      assignmentResolved: false,
+      requiredDocumentItems: undefined,
     })
 
     return {

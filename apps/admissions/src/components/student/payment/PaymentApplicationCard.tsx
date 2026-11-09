@@ -200,7 +200,8 @@ export function PaymentApplicationCard({
   } = usePaymentStatus(shouldPoll ? app.id : '', app.payment_status)
 
   // What the student did in this session, reported by PaymentForm.
-  const [sessionStatus, setSessionStatus] = useState<'pending' | 'successful' | 'failed' | null>(null)
+  // 'deferred' is a server-confirmed result PaymentForm now reports (SJR task 3.24).
+  const [sessionStatus, setSessionStatus] = useState<'pending' | 'successful' | 'failed' | 'deferred' | null>(null)
   const [payFormOpen, setPayFormOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(isSelected)
   const stateBlockRef = useRef<HTMLDivElement>(null)
@@ -413,7 +414,7 @@ export function PaymentApplicationCard({
               phone={app.phone ?? ''}
               fullName={app.full_name ?? ''}
               email={app.email ?? ''}
-              polledStatus={sessionStatus}
+              polledStatus={sessionStatus === 'deferred' ? null : sessionStatus}
               paymentPhase={recovery.phase}
               onPaymentStatusChange={setSessionStatus}
               onPaymentStatusRefresh={onPaymentRefresh}

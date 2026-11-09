@@ -44,11 +44,11 @@ import type { WizardDraftController } from '@/lib/wizardDraftController'
 import { institutionService } from '@/services/catalog'
 import type { Application } from '@/types/database'
 
-import { buildWizardReadiness } from '../../lib/wizardReadiness'
+import type { WizardReadiness } from '../../lib/wizardReadiness'
 import { asAssignmentFailureCode, resolveAssignmentRecovery } from '../../lib/assignmentRecovery'
 import type { AssignmentFailureCode } from '../../lib/assignmentRecovery'
 import { getStepIndexByKey } from '../../steps/config'
-import type { SubjectGrade, WizardFormData, WizardIntake, WizardProgram } from '../../types'
+import type { WizardFormData, WizardIntake, WizardProgram } from '../../types'
 import type { SubmittedApplicationSummary } from '../useApplicationSlip'
 
 export interface UseWizardSubmissionParams {
@@ -56,12 +56,8 @@ export interface UseWizardSubmissionParams {
   draftMachine: WizardDraftController
   applicationId: string | null
   user: { id?: string } | null | undefined
-  uploadedFiles: Record<string, boolean>
-  resultSlipFile: File | null
-  extraKycFile: File | null
-  paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
-  confirmSubmission: boolean
-  selectedGradesRef: MutableRefObject<SubjectGrade[]>
+  /** The controller's single readiness computation, the one the Submit button reads (SJR R6-a). */
+  computeReadiness: (values: WizardFormData) => WizardReadiness
   isSubmittingRef: MutableRefObject<boolean>
   selectedProgramDetails: WizardProgram | undefined
   intakes: WizardIntake[]
@@ -85,12 +81,7 @@ export function useWizardSubmission({
   draftMachine,
   applicationId,
   user,
-  uploadedFiles,
-  resultSlipFile,
-  extraKycFile,
-  paymentStatus,
-  confirmSubmission,
-  selectedGradesRef,
+  computeReadiness,
   isSubmittingRef,
   selectedProgramDetails,
   intakes,
@@ -113,16 +104,7 @@ export function useWizardSubmission({
     if (isSubmittingRef.current) return
     isSubmittingRef.current = true
 
-    const finalReadiness = buildWizardReadiness({
-      values: data,
-      selectedGrades: selectedGradesRef.current,
-      uploadedFiles,
-      hasResultSlipFile: Boolean(resultSlipFile),
-      hasIdentityFile: Boolean(extraKycFile),
-      paymentStatus,
-      confirmSubmission,
-    })
-
+    const finalReadiness = computeReadiness(data)
     if (!finalReadiness.canSubmit) {
       const errorMessage = `Complete the remaining requirements before submitting: ${finalReadiness.missingItems
         .map(item => item.label)
@@ -296,7 +278,7 @@ export function useWizardSubmission({
   // setters, refs and `queryClient` are stable identities and were not listed
   // before the move either; adding them would change when the callback is
   // rebuilt, which is a behaviour change this lift is not allowed to make.
-  }, [confirmSubmission, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep, selectedProgramDetails, intakes, getValues, draftMachine])
+  }, [computeReadiness, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep, selectedProgramDetails, intakes, getValues, draftMachine])
 
   return { handleSubmitApplication }
 }
