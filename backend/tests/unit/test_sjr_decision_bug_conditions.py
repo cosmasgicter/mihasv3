@@ -115,7 +115,6 @@ def test_a_rerun_adds_review_to_a_membership_the_old_command_created():
 # --- R7-c: conditional offers carry conditions (task 5.3) ------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R7: fixed in task 5.3")
 def test_conditionally_approved_without_conditions_is_refused():
     world = build_tenant_world(application_status="under_review")
     Application.objects.filter(id=world.application.id).update(payment_status="verified")

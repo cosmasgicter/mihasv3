@@ -32,6 +32,7 @@ from apps.common.metrics import emit_metric
 from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 
 # Alias kept for backward-compat grep tests.
+MAX_OFFER_CONDITIONS = 10  # SJR R7-c: mirrors ConditionsDialog's 10-row limit
 _RESOLVED_PAYMENT_STATUSES = RESOLVED_PAYMENT_STATUSES  # "successful", "force_approved", "verified", "paid", "deferred"
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -801,9 +802,37 @@ class ApplicationReviewView(APIView):
                     }})
 
                 conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
-                if new_status == "conditionally_approved" and conditions_payload:
+                if new_status == "conditionally_approved":
+                    # SJR R7-c: a conditional offer always carries conditions. The
+                    # empty case is refused by ConditionManager.assign_conditions
+                    # (NO_CONDITIONS_PROVIDED) instead of taking the plain
+                    # transition branch, which recorded an offer with nothing to meet.
                     from apps.applications.condition_manager import ConditionError, ConditionManager
 
+                    if conditions_payload is None:
+                        conditions_payload = []
+                    if not isinstance(conditions_payload, list) or not all(
+                        isinstance(item, dict) and isinstance(item.get("description", ""), str)
+                        for item in conditions_payload
+                    ):
+                        return Response(
+                            {
+                                "success": False,
+                                "error": "conditions must be a list of objects.",
+                                "code": "VALIDATION_ERROR",
+                                "details": {"conditions": ["Expected a list of condition objects."]},
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if len(conditions_payload) > MAX_OFFER_CONDITIONS:
+                        return Response(
+                            {
+                                "success": False,
+                                "error": f"At most {MAX_OFFER_CONDITIONS} conditions can be set on one offer.",
+                                "code": "TOO_MANY_CONDITIONS",
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
                     try:
                         old_status = app.status
                         ConditionManager.assign_conditions(

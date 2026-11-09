@@ -257,3 +257,18 @@ def test_missing_audit_row_rolls_the_run_back(monkeypatch):
 
     assert not Profile.objects.filter(email__iexact=email).exists()
     assert not UserInstitutionMembership.objects.filter(institution=institution).exists()
+
+
+# --- harness decider account (5.1) -------------------------------------------
+
+
+def test_harness_seed_adds_a_decider_and_leaves_admin_read_only():
+    call_command("harness_seed_tenants", tenant_admin_password=PASSWORD, stdout=io.StringIO())
+    for slug in ("mihas", "katc"):
+        decider = Profile.objects.get(email__iexact=f"decider@{slug}.localhost")
+        admin = Profile.objects.get(email__iexact=f"admin@{slug}.localhost")
+        assert UserInstitutionMembership.objects.get(user=decider).permissions == ["review"]
+        assert UserInstitutionMembership.objects.get(user=admin).permissions == []
+    before = _events().count()
+    call_command("harness_seed_tenants", tenant_admin_password=PASSWORD, stdout=io.StringIO())
+    assert _events().count() == before

@@ -113,7 +113,15 @@ class Command(BaseCommand):
             UserInstitutionMembership,
         )
 
+        from ._seed_memberships import (
+            assert_audit_rows_recorded,
+            new_run_id,
+            seed_membership,
+        )
+
         now = timezone.now()
+        run_id = new_run_id()
+        seeded_changes = 0
 
         with transaction.atomic():
             canonical, _ = CanonicalProgram.objects.get_or_create(
