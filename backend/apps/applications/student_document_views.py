@@ -16,12 +16,11 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import status
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsOwnerOrAdmin, is_super_admin
-from apps.catalog.services import AccessScopeService
 from apps.applications.duplicate_checker import DuplicateChecker
 from apps.applications.models import (
     Application,
@@ -49,6 +48,7 @@ from apps.applications.services import (
     submit_application,
 )
 from apps.common.idempotency import idempotent
+from apps.common.tenant_authorization import resolve_owner_or_scoped_application
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
@@ -86,6 +86,20 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
+def _application_not_found_response():
+    return Response(
+        {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+        status=status.HTTP_404_NOT_FOUND,
+    )
+
+
+def _application_permission_denied_response():
+    return Response(
+        {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
 @extend_schema_view(
     get=extend_schema(
         operation_id="applications_documents_list",
@@ -101,27 +115,25 @@ logger = logging.getLogger(__name__)
     )
 )
 class ApplicationDocumentsView(APIView):
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, application_id):
         from apps.documents.serializers import DocumentSerializer
 
+        # Owner or scoped-capability authority (R5-g): a non-owner student, an
+        # out-of-scope or unassigned staff actor and an unknown id all receive
+        # this endpoint's one 404 body (clause 2.29).
         try:
-            app = _with_payment_summary(Application.objects.all()).get(id=application_id)
-        except Application.DoesNotExist:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        if not IsOwnerOrAdmin().has_object_permission(request, self, app):
-            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
-        # Tenant scope: a non-super-admin admin may only read documents for
-        # applications within their membership/grant scope. An out-of-scope
-        # read is masked as a genuine not-found so the other school's record
-        # (and its documents) cannot be inferred (R4.4, R18.4). Scope comes
-        # only from AccessScopeService — never from the admin role alone.
-        role = getattr(request.user, "role", "student")
-        if role == "admin" and not AccessScopeService().filter_applications(
-            Application.objects.filter(id=app.id), request.user
-        ).exists():
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            app = resolve_owner_or_scoped_application(
+                request,
+                application_id,
+                capability="tenant.document.read",
+                queryset=_with_payment_summary(Application.objects.all()),
+            )
+        except NotFound:
+            return _application_not_found_response()
+        except PermissionDenied:
+            return _application_permission_denied_response()
         docs = ApplicationDocument.objects.select_related('application', 'verified_by').filter(application_id=application_id).exclude(
             verification_status='deleted'
         )
@@ -226,12 +238,14 @@ class ApplicationRequiredDocumentsView(APIView):
     uploadable instead of being invisible behind two hardcoded fields.
 
     Authority mirrors :class:`ApplicationDocumentsView`: the owner reads their own
-    application; a non-super-admin admin only within their ``AccessScopeService``
-    scope, and an out-of-scope read is masked as a genuine not-found so another
-    school's application (and its requirement configuration) cannot be inferred.
+    application; staff only through ``resolve_owner_or_scoped_application`` with
+    ``tenant.document.read`` (an assignment-scoped reviewer only for assigned
+    work). A non-owner, an out-of-scope actor and an unknown id all receive the
+    same 404, so another school's application (and its requirement configuration)
+    cannot be inferred.
     """
 
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = ApplicationRequiredDocumentsResponseSerializer
 
     def get(self, request, application_id):
@@ -239,28 +253,13 @@ class ApplicationRequiredDocumentsView(APIView):
         from apps.applications.required_documents import build_contract
 
         try:
-            application = Application.objects.get(id=application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
+            application = resolve_owner_or_scoped_application(
+                request, application_id, capability="tenant.document.read"
             )
-
-        if not IsOwnerOrAdmin().has_object_permission(request, self, application):
-            return Response(
-                {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        role = getattr(request.user, "role", "student")
-        if role == "admin" and not AccessScopeService().filter_applications(
-            Application.objects.filter(id=application.id), request.user
-        ).exists():
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
+        except NotFound:
+            return _application_not_found_response()
+        except PermissionDenied:
+            return _application_permission_denied_response()
         try:
             contract = build_contract(application)
         except AssignmentConfigurationError as exc:

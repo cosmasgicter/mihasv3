@@ -77,10 +77,9 @@ def _normalised(response) -> dict:
     return body
 
 
-# --- R5-g: one masked 404 for a non-owner (task 3.19) ----------------------
+# --- R5-g: one masked 404 for a non-owner (task 3.19; markers removed at 3.21) ---
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R5: fixed in task 3.19")
 @pytest.mark.parametrize("path", ["documents", "required-documents"])
 def test_a_non_owner_student_gets_the_unknown_id_answer(path):
     world = build_tenant_world(application_status="draft")
@@ -98,7 +97,6 @@ def test_a_non_owner_student_gets_the_unknown_id_answer(path):
     assert _normalised(theirs) == _normalised(unknown)
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R5: fixed in task 3.19")
 def test_an_assigned_in_scope_reviewer_can_open_a_document():
     world = build_tenant_world(application_status="submitted")
     reviewer = build_profile(role="reviewer")
@@ -136,7 +134,6 @@ def test_an_assigned_in_scope_reviewer_can_open_a_document():
 # --- R5-d: a signing failure is not "not ready" (task 3.19) ----------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R5: fixed in task 3.19")
 def test_an_official_document_signing_failure_is_logged_at_error_with_a_code(caplog):
     document = SimpleNamespace(
         id=uuid.uuid4(),
@@ -165,7 +162,6 @@ def test_an_official_document_signing_failure_is_logged_at_error_with_a_code(cap
 # --- R5-e: an issued slip survives a status change (task 3.19) -------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R5: fixed in task 3.19")
 def test_a_student_is_served_the_issued_slip_after_a_status_change():
     world = build_tenant_world(application_status="submitted")
     ApplicationDocument.objects.create(
@@ -202,7 +198,6 @@ def test_a_student_is_served_the_issued_slip_after_a_status_change():
 # --- R5-h: Content-Disposition on presigned reads (task 3.19) --------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R5: fixed in task 3.19")
 def test_presign_parameters_include_a_content_disposition(monkeypatch):
     from apps.common import storage
 

@@ -75,6 +75,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsOwnerOrAdmin, is_super_admin
 from apps.applications import official_document_jobs as jobs
+from apps.common.metrics import emit_metric
 from apps.applications.models import Application
 from apps.applications.tasks.pdf_generation import (
     DOCUMENT_CONFIG as _RENDERER_DOCUMENT_CONFIG,
@@ -314,7 +315,15 @@ def _institution_id(application) -> str | None:
     return str(institution_id) if institution_id else None
 
 
-def _signed_download_url(document) -> str | None:
+# Returned by ``_signed_download_url`` when the document exists but the signer
+# failed, so the envelope can say so (``DOCUMENT_LINK_UNAVAILABLE``) instead of
+# omitting the URL and reading as "not ready" (R5-d).
+_SIGNING_FAILED = object()
+
+DOCUMENT_LINK_UNAVAILABLE = "DOCUMENT_LINK_UNAVAILABLE"
+
+
+def _signed_download_url(document):
     """Return a time-limited signed download URL for a document's stored file.
 
     The persisted ``file_url`` / ``storage_key`` is an object key (older rows
@@ -322,9 +331,9 @@ def _signed_download_url(document) -> str | None:
     raw value is never a usable link. Resolve the key and presign it at read time
     (default 15-minute expiry), as ``DocumentDownloadView`` does.
 
-    Returns ``None`` when the document has no file or signing is unavailable so
-    the caller can omit ``download_url`` (the UI then keeps surfacing a
-    non-ready state rather than offering a link that 403s).
+    Returns ``None`` when the document has no file, and the ``_SIGNING_FAILED``
+    sentinel when signing raised: that is logged at ERROR (ids only) so an
+    operator sees it, and the caller publishes ``DOCUMENT_LINK_UNAVAILABLE``.
     """
     if document is None or not (
         getattr(document, "file_url", None) or getattr(document, "storage_key", None)
@@ -332,16 +341,17 @@ def _signed_download_url(document) -> str | None:
         return None
     try:
         from apps.common.storage import resolve_document_open_url
-
         return resolve_document_open_url(document)
-    except Exception:  # pragma: no cover - signing must never 500 the status read
-        logger.warning(
-            "Unable to sign official-document download URL for document %s; "
-            "omitting download_url",
-            getattr(document, "id", None),
+    except Exception:  # signing must never 500 the status read
+        logger.error(
+            "official_document.sign_failed",
+            extra={
+                "document_id": str(getattr(document, "id", "") or ""),
+                "document_type": str(getattr(document, "document_type", "") or ""),
+            },
             exc_info=True,
         )
-        return None
+        return _SIGNING_FAILED
 
 
 def _build_envelope(
@@ -388,7 +398,12 @@ def _build_envelope(
         # the raw stored ``file_url`` 403s in the browser. Sign on read; omit
         # the field when the document carries no file or signing is unavailable.
         signed_url = _signed_download_url(document)
-        if signed_url:
+        if signed_url is _SIGNING_FAILED:
+            # The document exists; the link could not be made. Keep ``ready`` and
+            # say why, so the client shows "can't be opened right now" with Retry
+            # rather than "not ready" (R5-d, clause 2.24).
+            error_code = error_code or DOCUMENT_LINK_UNAVAILABLE
+        elif signed_url:
             data["download_url"] = signed_url
 
     if task_id is not None:
@@ -430,8 +445,12 @@ def _generation_status(
     2. **an open job** — committed, unfinished work: the only honest ``queued``;
     3. **a terminal failure** — from the job, or (for a render that predates this
        task, or one dispatched outside a job) from the renderer's own audit row;
+    1b. **a previously issued artifact, for a student** — the read-existing
+       policy (:func:`_may_read_issued`) comes before the job and failure steps
+       for the applicant (R5-e), so a status change never hides the slip they
+       hold;
     4. **a previously issued artifact, when issuance is refused** — the
-       read-existing policy (§:func:`_may_read_issued`);
+       read-existing policy for staff (§:func:`_may_read_issued`);
     5. **nothing** — ``not_requested``. Not a queue.
 
     Step 4 sits *below* the failure step on purpose: if the platform tried and
@@ -448,6 +467,23 @@ def _generation_status(
             document=current,
             status_value=STATUS_READY,
             job=job,
+            is_staff=is_staff,
+        )
+
+    # A student keeps reading the copy the platform issued even after the
+    # application moved on (R5-e, clause 2.26): the slip prints the status, so any
+    # later change retires its fingerprint, and the document in hand is still the
+    # lawful one. Staff keep the precedence below, so an operator is still told
+    # that a refresh failed or is queued (D-A13).
+    if not is_staff and current is not None and _may_read_issued(document_type, application, current):
+        emit_metric("official_document.student_served_historical", document_type=document_type)
+        return _build_envelope(
+            application,
+            document_type,
+            document=current,
+            status_value=STATUS_READY,
+            job=job,
+            historical=True,
             is_staff=is_staff,
         )
 

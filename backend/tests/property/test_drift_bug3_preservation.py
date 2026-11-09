@@ -169,7 +169,9 @@ class TestExtractEndpointPreservation(SimpleTestCase):
         with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs, \
              patch("apps.applications.models.Application.objects") as mock_app_qs, \
              patch("apps.documents.tasks.extract_document_text_task") as mock_extract:
-            mock_doc_qs.select_related.return_value.get.return_value = mock_doc
+            # SJR task 3.19: the loader's owner lookup is
+            # ``queryset.filter(application__user_id=...).get(...)``.
+            mock_doc_qs.select_related.return_value.filter.return_value.get.return_value = mock_doc
             mock_app_qs.get.return_value = mock_app
             mock_extract.delay.return_value = mock_task
 
@@ -189,8 +191,14 @@ class TestExtractEndpointPreservation(SimpleTestCase):
 
         from apps.documents.models import ApplicationDocument as RealModel
 
-        with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs:
-            mock_doc_qs.select_related.return_value.get.side_effect = RealModel.DoesNotExist
+        from rest_framework.exceptions import NotFound
+
+        # SJR task 3.19: owner lookup misses, and the scoped fallback (which reads
+        # memberships, not allowed in a SimpleTestCase) answers as for an actor
+        # with no scope: the masked not-found.
+        with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs, \
+             patch("apps.common.tenant_authorization.resolve_scoped_document", side_effect=NotFound("Document not found")):
+            mock_doc_qs.select_related.return_value.filter.return_value.get.side_effect = RealModel.DoesNotExist
             view = DocumentExtractView.as_view()
             response = view(request, document_id=doc_id)
 

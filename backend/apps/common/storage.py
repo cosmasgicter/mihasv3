@@ -11,7 +11,8 @@ under load.
 import logging
 import re
 import threading
-from urllib.parse import parse_qsl, unquote, urlparse
+import unicodedata
+from urllib.parse import parse_qsl, quote, unquote, urlparse
 
 import boto3
 from botocore.config import Config
@@ -239,7 +240,17 @@ def resolve_document_open_url(document, *, disposition="inline"):
     """
     key = resolve_document_object_key(document)
     if key:
-        return generate_signed_url(key)
+        extras = {}
+        name = getattr(document, "document_name", None)
+        if name:
+            # Object keys carry no client filename (R4-b), so the display name
+            # travels as a response override (R5-h).
+            extras["filename"] = name
+            extras["disposition"] = disposition
+        mime = getattr(document, "mime_type", None)
+        if mime:
+            extras["content_type"] = mime
+        return generate_signed_url(key, **extras)
     legacy = None if getattr(document, "storage_key", None) else _legacy_provider_url(document)
     if legacy:
         logger.info(
@@ -255,24 +266,65 @@ def resolve_document_open_url(document, *, disposition="inline"):
 # ---------------------------------------------------------------------------
 
 
-def generate_signed_url(file_key, expiry=None):
+_DISPOSITIONS = ("inline", "attachment")
+_FILENAME_MAX_CHARS = 150
+# Only types the upload validators accept may be forced onto a presigned read.
+# Anything else keeps the content type stored on the object (never ``text/html``).
+_RESPONSE_CONTENT_TYPES = frozenset(
+    {"application/pdf", "image/jpeg", "image/png", "image/webp"}
+)
+
+
+def content_disposition_for(name, disposition="inline"):
+    """An RFC 6266 ``Content-Disposition`` value that is safe for any client name.
+
+    Takes the basename, removes control characters, quotes, backslashes,
+    semicolons and line breaks, collapses whitespace and truncates to 150
+    characters. The quoted ``filename`` is an ASCII fallback; ``filename*``
+    carries the exact (sanitised) name. Never raises: an empty name becomes
+    ``document``.
+    """
+    kind = disposition if disposition in _DISPOSITIONS else "inline"
+    text = str(name or "").replace("\\", "/").rsplit("/", 1)[-1]
+    text = "".join(
+        ch for ch in text if unicodedata.category(ch)[0] != "C" and ch not in '"\\;'
+    )
+    text = re.sub(r"\s+", " ", text).strip()[:_FILENAME_MAX_CHARS].strip()
+    ascii_name = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    ascii_name = re.sub(r"[^A-Za-z0-9._ -]", "_", ascii_name).strip()
+    if not ascii_name:
+        ascii_name = "document"
+    header = f'{kind}; filename="{ascii_name}"'
+    if text:
+        header += f"; filename*=UTF-8''{quote(text, safe='')}"
+    return header
+
+
+def generate_signed_url(file_key, expiry=None, *, filename=None, disposition="inline", content_type=None):
     """Generate a time-limited signed URL for a file.
 
     Args:
         file_key: MediaStorage-relative file key or full S3/R2 object key.
         expiry: URL expiry in seconds. Defaults to AWS_QUERYSTRING_EXPIRE
             (typically 900s = 15 min).
+        filename: Display name for the response. Object keys carry no client
+            filename, so this is what the browser saves or shows (R5-h).
+        disposition: ``inline`` (view) or ``attachment`` (save).
+        content_type: Forced response type, honoured only for the upload types.
 
     Returns:
         A presigned URL string for the given file key.
     """
     expiry = expiry or settings.AWS_QUERYSTRING_EXPIRE  # 900 seconds = 15 min
-
+    params = {
+        "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+        "Key": _get_presigned_object_key(file_key),
+        "ResponseContentDisposition": content_disposition_for(filename, disposition),
+    }
+    if isinstance(content_type, str) and content_type.strip().lower() in _RESPONSE_CONTENT_TYPES:
+        params["ResponseContentType"] = content_type.strip().lower()
     return get_presign_client().generate_presigned_url(
         "get_object",
-        Params={
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": _get_presigned_object_key(file_key),
-        },
+        Params=params,
         ExpiresIn=expiry,
     )

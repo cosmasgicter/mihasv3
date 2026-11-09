@@ -132,15 +132,27 @@ def test_signer_helper_presigns_storage_key():
     doc = _Doc(_RAW_URL, storage_key=_RAW_URL)
     with patch("apps.common.storage.generate_signed_url", return_value=_SIGNED_URL) as sign_fn:
         result = odv._signed_download_url(doc)
-    sign_fn.assert_called_once_with("application-slips/abc/def.pdf")
+    # SJR task 3.19 (R5-h, clause 2.30): the display name and disposition travel
+    # to the signer because object keys carry no client filename (R4-b). The old
+    # key-only assertion encoded the missing ``ResponseContentDisposition``.
+    sign_fn.assert_called_once_with(
+        "application-slips/abc/def.pdf",
+        filename="Application Slip.pdf",
+        disposition="inline",
+    )
     assert result == _SIGNED_URL
 
 
-def test_signer_helper_returns_none_on_failure():
-    """Signer failure degrades to None rather than raising (no 500 on status read)."""
+def test_signer_helper_returns_sentinel_on_failure():
+    """Signer failure degrades to the signing-failure sentinel rather than raising.
+
+    SJR task 3.19 (R5-d, clause 2.24): this used to expect ``None``, which the
+    envelope read as "no link, so not ready". The sentinel lets the envelope say
+    ``DOCUMENT_LINK_UNAVAILABLE`` instead; the status read still never 500s.
+    """
     doc = _Doc(_RAW_URL, storage_key=_RAW_URL)
     with patch("apps.common.storage.resolve_document_open_url", side_effect=RuntimeError("boom")):
-        assert odv._signed_download_url(doc) is None
+        assert odv._signed_download_url(doc) is odv._SIGNING_FAILED
 
 
 def test_signer_helper_returns_none_for_fileless_document():

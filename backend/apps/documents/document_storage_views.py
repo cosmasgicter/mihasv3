@@ -97,34 +97,46 @@ def _document_permission_denied_response():
     )
 
 
-def _get_authorized_document(request, view, document_id):
-    """Load a document and enforce ownership through its parent application."""
+def _get_authorized_document(request, view, document_id, *, allow_assigned_reviewer=True):
+    """Load a document through owner-or-scoped capability authority (R5-g).
+
+    Delegates to ``resolve_owner_or_scoped_document`` (scope before lookup,
+    ``tenant.document.read``), so a non-owner student, an out-of-scope staff
+    actor and an unknown id all receive the byte-identical 404. An
+    assignment-scoped reviewer reaches only assigned applications, the same rule
+    as applications. Commands that mutate or re-run extraction pass
+    ``allow_assigned_reviewer=False`` so a reviewer keeps the masked 404 there.
+    """
+    from rest_framework.exceptions import NotFound, PermissionDenied
+
+    from apps.common.tenant_authorization import (
+        _is_assignment_scoped_reviewer,
+        require_reviewer_assignment,
+        resolve_owner_or_scoped_document,
+    )
+
     try:
-        document = ApplicationDocument.objects.select_related("application").get(id=document_id)
-    except ApplicationDocument.DoesNotExist:
-        return None, _document_not_found_response()
-
-    application = getattr(document, "application", None)
-    if application is None:
-        return None, _document_not_found_response()
-
-    role = getattr(request.user, "role", "student")
-    if role == "admin":
-        scoped = AccessScopeService().filter_documents(
-            ApplicationDocument.objects.filter(id=document.id),
-            request.user,
+        document = resolve_owner_or_scoped_document(
+            request,
+            document_id,
+            capability="tenant.document.read",
+            queryset=ApplicationDocument.objects.select_related("application"),
         )
-        if not scoped.exists():
-            # Out-of-scope reads must be indistinguishable from a true
-            # not-found so existence cannot be inferred (R4.4).
+        application = getattr(document, "application", None)
+        if application is None:
             return None, _document_not_found_response()
-    elif not IsOwnerOrAdmin().has_object_permission(request, view, application):
-        # A non-owning student (or any non-admin without ownership) is masked
-        # as a genuine not-found so document existence cannot be inferred
-        # (R3.6, R4.3, Property 13). Out-of-scope reads across every document
-        # surface return the byte-identical 404 envelope.
+        actor_id = str(getattr(request.user, "id", "") or getattr(request.user, "pk", "") or "")
+        is_owner = actor_id and str(getattr(application, "user_id", "") or "") == actor_id
+        if not is_owner:
+            if not allow_assigned_reviewer and _is_assignment_scoped_reviewer(request.user):
+                return None, _document_not_found_response()
+            require_reviewer_assignment(request, application)
+    except NotFound:
+        # Out-of-scope reads must be indistinguishable from a true not-found so
+        # existence cannot be inferred (R4.4, R3.6, Property 13).
         return None, _document_not_found_response()
-
+    except PermissionDenied:
+        return None, _document_permission_denied_response()
     return document, None
 
 
@@ -686,7 +698,7 @@ class DocumentExtractView(APIView):
         # loader masks out-of-scope reads as a byte-identical 404 not-found
         # (R3.2, R3.3, R3.6) and never authorizes on ``role == "admin"`` alone
         # — scope comes only from ``AccessScopeService`` (R3.8).
-        document, error_response = _get_authorized_document(request, self, document_id)
+        document, error_response = _get_authorized_document(request, self, document_id, allow_assigned_reviewer=False)
         if error_response is not None:
             # Return the loader error unchanged; no OCR task is enqueued and no
             # document state is mutated (R3.1, R3.2).
@@ -915,7 +927,7 @@ class DocumentDeleteView(APIView):
 
     @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
     def delete(self, request, document_id):
-        document, error_response = _get_authorized_document(request, self, document_id)
+        document, error_response = _get_authorized_document(request, self, document_id, allow_assigned_reviewer=False)
         if error_response is not None:
             return error_response
 
