@@ -542,6 +542,7 @@ isolation proven by deleting the other product is not isolation.
 - Run relevant backend pytest suites when you change Django code.
 - Startup refusal for missing required variables (prod and staging) is proven by `backend/tests/unit/test_startup_env_validation.py`, which starts real subprocesses.
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
+- Changes under `apps/admissions/`, `backend/` or `harness/` run the blocking student journey gate (`.github/workflows/student-journey-gate.yml`; locally `bash harness/bin/harness journey-gate`). It uses real object storage with a private bucket, 20 s signed URLs and the rate limiter on, and fails on any 429 or 5xx on any page or popup, any console error, any unsigned storage URL, a missing throttle or an accessibility violation on the surfaces it covers. Its jobs `journey-gate` and `local-stack-storage` are meant to be required checks on `main`; setting that is an operator step in repository settings and is recorded as pending until done. The broad matrix (`harness smoke`) keeps today's harness settings.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.
 - When modifying `ErrorDisplay`, `Settings.tsx`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.

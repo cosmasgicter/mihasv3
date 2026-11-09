@@ -24,7 +24,10 @@ handling, and the development-only diagnostics badge. It narrows, and does not
 supersede, the V2 spec: where it names a behaviour it is authoritative for that
 behaviour, and it keeps every V2 preservation clause true. Its P0a tasks (1-3)
 are complete when the checkpoint in `tasks.md` task 3.30 is green; its R7 tests
-keep their strict markers until task 5.6. Spec B is a separate spec and is not
+keep their strict markers until task 5.6. The blocking CI journey gate
+(`.github/workflows/student-journey-gate.yml`, task 4, `bash harness/bin/harness
+journey-gate`) is its answer to R9; making its two jobs required checks on `main`
+is an operator step in repository settings. Spec B is a separate spec and is not
 registered here.
 
 The archived `canonical-multi-tenant-alignment` spec and other earlier active or
@@ -1436,6 +1439,7 @@ CI-blocking tests that fail when canonical truth diverges:
 - `backend/tests/unit/test_storage_settings_contract.py` + `backend/tests/unit/test_startup_env_validation.py` + `backend/tests/unit/test_documented_env_vars_are_read.py` (storage settings, production startup refusal of an empty `S3_*`, and every documented environment variable has a reader; SJR tasks 3.1-3.4)
 - `backend/tests/unit/test_sjr_client_ip_trust.py` + `backend/tests/unit/test_sjr_ratelimit_metric.py` (trusted-proxy client IP and the `ratelimit.limited` counter; SJR task 3.9) + `backend/tests/unit/test_test_database_host_guard.py` (the test database host guard; SJR task 2.1)
 - `apps/admissions/tests/unit/documentOpenGrammar.test.ts` (the document opener's query grammar round-trips; SJR task 3.17)
+- `backend/tests/unit/test_journey_gate_configuration_sjr.py` (the journey gate's switches stay switched: limiter off by default and on with `HARNESS_RATELIMIT_ENABLE`, the four gate values, the stage order of `harness journey-gate`, evidence never under `docs/v2-evidence`, the workflow has no `paths:` filter, no `continue-on-error`, only already-used actions, and its relevance step reports success for unrelated changes; SJR tasks 4.1-4.5) + `apps/admissions/tests/unit/journeyGateGuards.test.ts` (the strict status guard, the status-aware defaults, and the scope table copied from `RateLimitMiddleware.SCOPE_LIMITS`; SJR task 4.2)
 - `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` (the Approve gate mirrors the backend payment gate; strict marker until SJR task 5.6)
 - `apps/admissions/tests/unit/paymentStatusMappingDriftGuard.test.ts`
 - `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts`

@@ -530,6 +530,11 @@ keep strict markers until task 5.6.
 | `apps/admissions/tests/unit/sjr*.test.ts(x)`, `apps/admissions/tests/property/sjr*.property.test.ts(x)` | Exploration (bug condition) and preservation tests for R2, R3, R5, R6, R7, R8, R10 |
 | `backend/tests/unit/test_sjr_*.py`, `backend/tests/integration/test_sjr_*.py`, `backend/tests/property/test_sjr_preservation_properties.py` | Exploration and preservation tests for R1-R8 |
 | `backend/tests/unit/test_no_persisted_signed_urls_sjr.py`, `test_document_key_resolution_sjr.py`, `test_storage_settings_contract.py`, `test_startup_env_validation.py`, `test_documented_env_vars_are_read.py` | Drift guards for storage keys, storage settings, startup refusal and documented environment variables (R1, R4) |
+| `.github/workflows/student-journey-gate.yml` | Blocking CI: jobs `journey-gate` and `local-stack-storage`; no `paths:` filter, relevance decided in-job so required checks report on unrelated changes (R9-e) |
+| `apps/admissions/playwright.journey-gate.config.ts` | Gate config: projects `journey-gate-mobile` (390x844, Chromium) and `journey-gate-desktop` (1440x900), retries 0, workers 1 (R9-b) |
+| `apps/admissions/tests/harness-e2e/journey-gate/` | `student-journey-gate.spec.ts`, `submit-desktop.spec.ts`, `upload-near-limit.spec.ts`, `a11y-surfaces.spec.ts`, plus `strictStatusGuard.ts`, `rateLimitHeadroom.ts`, `gate-fixtures.ts`, `gate-api.ts`, `journey-steps.ts` and `fixtures.ts` (files generated at test time) (R9-b) |
+| `harness/checks/edge_two_clients.py` | Two client addresses behind Caddy have independent rate-limit buckets; stdlib only, run in two `adapters` containers (R9-c) |
+| `apps/admissions/tests/unit/journeyGateGuards.test.ts`, `backend/tests/unit/test_journey_gate_configuration_sjr.py` | Drift guards for the gate's guards and configuration (R9) |
 
 ## Testing Layout
 
@@ -541,6 +546,7 @@ keep strict markers until task 5.6.
 | Backend unit tests | `backend/tests/unit/` | Includes admissions, jobs-ops, and audit production fix coverage |
 | Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants, audit fix validation (hypothesis) |
 | Browser automation tests | Monorepo root or app-local | Playwright for deterministic E2E flows |
+| Student journey gate | `apps/admissions/tests/harness-e2e/journey-gate/` | The blocking CI journey (SJR task 4): config `apps/admissions/playwright.journey-gate.config.ts`, command `bash harness/bin/harness journey-gate`, workflow `.github/workflows/student-journey-gate.yml`. Runs on the harness stack with the limiter on, a private bucket and 20 s signed URLs. Evidence is run-scoped under `apps/admissions/test-results/harness-evidence/`, never `docs/v2-evidence/` |
 
 ## Current Migration-Sensitive Facts
 
