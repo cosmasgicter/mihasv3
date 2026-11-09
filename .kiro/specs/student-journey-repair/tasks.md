@@ -455,7 +455,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.31, 2.32, 2.33, 2.34, 2.35_
 
-  - [ ] 3.26 R8 — session restore in the route guards (design R8-a)
+  - [x] 3.26 R8 — session restore in the route guards (design R8-a)
     - New `apps/admissions/src/hooks/auth/useSessionRestoreOnce.ts` with `suppressSessionRestore()` and `allowSessionRestore()`
     - `StudentRoute.tsx`, `AdminRoute.tsx` and `ProtectedRoute.tsx` call the hook before their redirect: one `refreshAuthSession()` attempt per mount, the "Restoring your session" skeleton meanwhile, then today's redirect if the session still reads unauthenticated
     - `useSessionListener.signOut`, the cross-tab logout handler in `lib/authBroadcast.ts` and the auth-failure callback in `contexts/AuthContext.tsx` call `suppressSessionRestore()` first; a successful sign-in, and a session read that returns a user, call `allowSessionRestore()`
@@ -466,7 +466,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: public pages never refresh; no refresh after a sign-out (task 2.3 (f)); genuine expiry and tab-refocus behaviour unchanged (3.4, 3.19)_
     - _Requirements: 2.41, 3.4, 3.19_
 
-  - [ ] 3.27 R8 — one MSISDN normaliser, echo-free messages, field errors kept (design R8-b)
+  - [x] 3.27 R8 — one MSISDN normaliser, echo-free messages, field errors kept (design R8-b)
     - Move the normaliser to `backend/apps/common/validators.py` as `normalize_zambian_msisdn`; keep the `payment_helpers` alias; new `validate_zambian_phone` and `validate_nrc` messages
     - `SignUpPage.tsx` uses `registrationPhoneSchema` (the registration pre-check, then `zambianMsisdnSchema`); `SignUpResult.fieldErrors`; `useSessionListener.signUp` returns it; generic banner when field errors exist
     - Registration-only pre-check (design R8-b, decided): `validate_zambian_phone` and `registrationPhoneSchema` accept a `+` input only as `+260` plus exactly nine digits, so `+260` plus six digits is refused with the inline error and never stored as `+260260…`; `normalize_zambian_msisdn`, the `payment_helpers` alias and `normalizeZambianMsisdn` are unchanged
@@ -478,7 +478,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: `+260` numbers stored unchanged; mobile-money normalisation byte-for-byte the same (3.18, 3.2)_
     - _Requirements: 2.42, 3.2, 3.10, 3.18_
 
-  - [ ] 3.28 Checkpoint — R8 green
+  - [x] 3.28 Checkpoint — R8 green
     - **Property 8: Expected Behavior** - Session Continuity and Registration Phone
     - **IMPORTANT**: Re-run the SAME tests from task 1.8 — do NOT write new tests
     - Remove the strict markers from task 1.8's tests, then run them unmarked
@@ -487,7 +487,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.41, 2.42_
 
-  - [ ] 3.29 R10 — diagnostics badge on the development server only (design R10)
+  - [x] 3.29 R10 — diagnostics badge on the development server only (design R10)
     - `BuildVersionBadge.tsx`: `import.meta.env.DEV` wrapper and inner dev component; `text-xs` and opaque background
     - `AppLayout.tsx:294-296` and `SharedFooter.tsx:187-189`: render the padded wrapper `div` only under `import.meta.env.DEV`, so production pages keep no empty band
     - Confirm with `bun run build:admissions` that the production bundle no longer contains the badge strings or the version probe
@@ -497,7 +497,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: `X-Backend-Version` and `VITE_APP_VERSION` keep serving support and chunk reloads; accessibility rules (3.11)_
     - _Requirements: 2.48, 3.11_
 
-  - [ ] 3.30 Checkpoint — P0a complete
+  - [x] 3.30 Checkpoint — P0a complete
     - **Property 10: Expected Behavior** - Diagnostics Badge
     - **IMPORTANT**: Re-run the SAME test from task 1.9 — do NOT write a new test
     - Remove the strict marker from task 1.9's test, then run it unmarked
