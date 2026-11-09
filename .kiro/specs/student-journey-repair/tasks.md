@@ -350,7 +350,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.17, 2.18, 2.19, 2.20, 2.30_
 
-  - [ ] 3.17 R5 — opener route and explicit controls (design R5-a)
+  - [x] 3.17 R5 — opener route and explicit controls (design R5-a)
     - New route `studentDocumentOpen` in `routeRegistry.ts` and page `apps/admissions/src/pages/student/DocumentOpen.tsx` with the query grammar and states
     - Every student View and Open control becomes an anchor to the opener
     - `useOfficialDocument.ts`: `{ state, prepare(), openHref }`; no programmatic tab after an await. Its callers are the student `DocumentButtons` and `DownloadReceiptButton`; the constants and helpers `useAdminOfficialDocuments` imports from it keep their names and behaviour, and no admin control gets an `openHref` (OS-15)
@@ -365,7 +365,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: admin uploaded-document viewing and admin official-document downloads unchanged (3.14, 3.15)_
     - _Requirements: 2.21, 2.25, 3.14_
 
-  - [ ] 3.18 R5 — workspace document list, wizard View and desktop nav (design R5-b, R5-c)
+  - [x] 3.18 R5 — workspace document list, wizard View and desktop nav (design R5-b, R5-c)
     - Rewrite `DocumentChecklist.tsx` in place to read the documents endpoint; `ApplicationStatus.tsx:327-329` passes `applicationId`
     - `RequiredDocumentsPanel.tsx`: View anchor for an uploaded requirement
     - `routeRegistry.ts`: `desktop: true` on `studentStatus.nav`; update any nav test that pinned the omission
@@ -375,7 +375,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: status colour paired with a word or icon; 44 px targets (3.11)_
     - _Requirements: 2.22, 2.23, 3.11_
 
-  - [ ] 3.19 R5 — backend authority, honest signing failures, student read precedence, Content-Disposition (design R5-d, R5-e, R5-g, R5-h)
+  - [x] 3.19 R5 — backend authority, honest signing failures, student read precedence, Content-Disposition (design R5-d, R5-e, R5-g, R5-h)
     - `_get_authorized_document(..., allow_assigned_reviewer=True)` delegates to `resolve_owner_or_scoped_document` plus `require_reviewer_assignment`; `DocumentExtractView` and `DocumentDeleteView` pass `allow_assigned_reviewer=False`, so an assignment-scoped reviewer keeps the masked 404 there; `ApplicationDocumentsView` and `ApplicationRequiredDocumentsView` use `resolve_owner_or_scoped_application`; remove the raw `role == "admin"` branches
     - `_signed_download_url` logs at ERROR; envelope `error_code: DOCUMENT_LINK_UNAVAILABLE`
     - `_generation_status`: the student-only issued-copy step
@@ -389,7 +389,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: byte-identical 404 envelope; reviewers still cannot extract or delete; staff precedence and retry rules unchanged (3.1, 3.15)_
     - _Requirements: 2.24, 2.26, 2.28, 2.29, 2.30, 3.1, 3.15_
 
-  - [ ] 3.20 R5 — truthful summary copy (design R5-f)
+  - [x] 3.20 R5 — truthful summary copy (design R5-f)
     - `officialDocumentPresentation.ts` and `DocumentButtons.tsx`: "ready" only for issued types; "Prepare" for issuable ones; per-status copy
     - Existing tests that pin the old copy (1.25), updated in this change: `apps/admissions/tests/unit/documentActionDensity.test.tsx:176` and `:387` expect the R5-f summary for their mocked status instead of "ready to download", and `:205` and `:364` the slip's Prepare or Open label instead of "Download Slip"; `student-document-density.spec.ts:318` expects the R5-f summary
     - _Bug_Condition: isBugCondition_R5 where a document is issuable but not issued_
@@ -397,7 +397,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: terminal-application reads stay offered (3.15)_
     - _Requirements: 2.27, 3.15_
 
-  - [ ] 3.21 Checkpoint — R5 green
+  - [x] 3.21 Checkpoint — R5 green
     - **Property 5: Expected Behavior** - Students Open Their Own Documents
     - **IMPORTANT**: Re-run the SAME tests from task 1.5 — do NOT write new tests
     - Remove the strict markers from task 1.5's tests, then run them unmarked
