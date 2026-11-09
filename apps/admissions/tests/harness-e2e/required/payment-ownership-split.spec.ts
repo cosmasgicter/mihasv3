@@ -510,7 +510,14 @@ test.describe('Student payment ownership split (R12.3)', () => {
     await expect(target).toHaveAttribute('data-payment-ui-state', /confirmed|already_paid/);
     await expect(target.getByTestId('payment-state-badge')).toContainText('Paid');
     // A settled fee offers a receipt, and offers nothing to pay.
-    await expect(target.getByRole('button', { name: /download receipt/i })).toBeVisible();
+    // SJR task 3.20 (R5-f) retired "Download receipt": the control is "Prepare receipt"
+    // until the receipt exists and an "Open receipt" link after. Either one is the
+    // receipt being offered, which is the claim here.
+    await expect(
+      target
+        .getByRole('button', { name: /prepare receipt/i })
+        .or(target.getByRole('link', { name: /open receipt/i })),
+    ).toBeVisible();
     await expect(target.getByTestId('payment-pay-action')).toHaveCount(0);
 
     // The amount the page shows is the **ledger row's own** amount, rendered

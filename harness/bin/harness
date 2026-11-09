@@ -11,6 +11,9 @@
 #   harness/bin/harness logs [svc]# tail compose logs
 #   harness/bin/harness ps        # compose service status
 #
+# Optional environment: HARNESS_COMPOSE_OVERRIDE=<path> adds one extra compose file to every
+# compose call (for example to remap host ports another stack already holds); unset in CI.
+#
 # Clean-machine prerequisites: Docker + Docker Compose v2, and Bun (the repo's
 # standard JS runtime) for the frontend build. No production credentials, no
 # network access to Neon/R2/Zoho/Resend/Lenco.

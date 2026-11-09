@@ -432,11 +432,17 @@ async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<
  * A popup's `url()` is `''`/`about:blank` for the instant between the window
  * opening and the navigation committing, so reading it immediately proves
  * nothing. This waits for the real one.
+ *
+ * SJR task 3.17: every Open link now lands first on the in-app opener
+ * (`/student/documents/open`), which asks the platform for a fresh URL and then
+ * replaces itself with the stored record. The opener is a stop on the way, not
+ * the destination, so it is not "settled" either: waiting for it to leave is what
+ * keeps the assertions on the popup's storage host (SJR 3.20) meaningful.
  */
 async function settledPopupUrl(popup: Page): Promise<string> {
   await expect
     .poll(() => popup.url(), { timeout: 30_000, message: 'the download should navigate' })
-    .not.toMatch(/^(|about:blank)$/);
+    .not.toMatch(/^(|about:blank)$|\/student\/documents\/open(\?|$)/);
   return popup.url();
 }
 
