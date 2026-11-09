@@ -28,6 +28,13 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }))
 
+// student-journey-repair task 3.26: ProtectedRoute now makes one session-restore
+// attempt (useSessionRestoreOnce) before it redirects. This file is about the
+// loading timeout and the redirect itself, so the restore has already finished
+// here; the restore behaviour is covered by sjrProtectedRouteRestore.test.tsx.
+vi.mock('@/hooks/auth/useSessionRestoreOnce', () => ({
+  useSessionRestoreOnce: () => 'done',
+}))
 vi.mock('@/hooks/auth/useSessionListener', () => ({
   useAuthCheck: () => mockUseAuthCheck(),
 }))

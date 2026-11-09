@@ -645,8 +645,15 @@ const validPasswordArb = fc
 // Generator: valid name (min 2 alpha chars)
 const validNameArb = fc.stringMatching(/^[a-zA-Z]{2,20}$/)
 
-// Generator: valid phone (min 10 digit chars)
-const validPhoneArb = fc.stringMatching(/^[0-9]{10,15}$/)
+// Generator: valid phone. student-journey-repair task 3.27 (clause 2.42): the
+// registration schema now accepts a Zambian mobile number as printed on a SIM
+// pack or as E.164, not any 10-15 digit string. Only this generator changed; the
+// property and every assertion below are as before.
+const validPhoneArb = fc.oneof(
+  fc.stringMatching(/^0[0-9]{9}$/),
+  fc.stringMatching(/^\+260[0-9]{9}$/),
+  fc.stringMatching(/^260[0-9]{9}$/),
+)
 
 // Generator: valid email
 const validEmailArb = fc
