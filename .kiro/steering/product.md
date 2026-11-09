@@ -72,6 +72,7 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
   take a payment for a fee still owed after submission. It is not a read-only
   surface, and it never shows a draft: a student with only a draft is handed back
   to the wizard. The wizard renders no history and no recovery.
+- Every student View or Open control for a document is a plain anchor to the in-app opener `/student/documents/open`, which signs at the moment it is opened (SJR task 3.17, R5-a). The status workspace lists every current document from the documents endpoint, the wizard panel shows View for an uploaded requirement, and an official document is "Prepare" until the platform has issued it, then "Open". A student keeps reading an issued slip after the application status changes.
 - Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
 - `deferred` is a distinct canonical payment status. Students who deferred payment see a reminder to complete payment. Submission is allowed with deferred payment status.

@@ -40,7 +40,7 @@ Where the Beanola multi-tenant authority code lives. Model and rules:
 | Capability-gated legacy catalog writes | `backend/apps/catalog/views.py` (institution/program/intake write methods) |
 | Domain context endpoint | `backend/apps/catalog/views.py` — `CatalogContextView` → `GET /api/v1/catalog/context/` |
 | Frontend capability hooks | `apps/admissions/src/contexts/CapabilityContext.tsx` (`useCapabilities`), `apps/admissions/src/services/admin/capabilities.ts` (`adminCapabilityService`) |
-| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar` and `AppLayout`, which owns the mobile surface by injecting capability-filtered items into `components/ui/BottomNavigation.tsx`. (Task 12.4 removed a third consumer, `MobileBottomNav.tsx`: it had zero importers and was never rendered, so it was a second copy of the mobile bar that no user could reach.) |
+| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar` and `AppLayout`, which owns the mobile surface by injecting capability-filtered items into `components/ui/BottomNavigation.tsx`. (Task 12.4 removed a third consumer, `MobileBottomNav.tsx`: it had zero importers and was never rendered, so it was a second copy of the mobile bar that no user could reach.) The student `Application Status` entry (`student.status`) is `desktop: true` (SJR task 3.18, R5-c), so the documents card is one activation from the dashboard on desktop as on mobile. |
 | Super-admin route guard | `apps/admissions/src/components/AdminRoute.tsx` (`RequireSuperAdmin`); route config `apps/admissions/src/routes/config.tsx` |
 | Tenant console + panels | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher) → `apps/admissions/src/pages/admin/tenants/` (`SuperAdminTenantConsole`, `TenantAdminSchoolConsole`, panels) |
 | Tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` (super-admin-only stepper) |
@@ -87,6 +87,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/components/student/payment/PaymentApplicationCard.tsx` | One submitted application's payment state, its single recovery action, and its ledger history |
 | `apps/admissions/src/pages/student/Interview.tsx` | Student interview schedule and join actions |
 | `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
+| `apps/admissions/src/pages/student/DocumentOpen.tsx` | The one opener for every student View/Open control (`/student/documents/open`); signs at click time and only reads (SJR task 3.17, R5-a) |
 | `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
 | `backend/apps/applications/views.py` | Legacy re-exports for URL compatibility (imports from split modules) |
 | `backend/apps/applications/student_views.py` | Student-facing endpoints: submit, withdraw, email-slip, enrollment, amendments |
