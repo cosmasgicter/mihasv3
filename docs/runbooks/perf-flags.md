@@ -11,10 +11,14 @@ explicitly flipped in production.
 
 ## Production Status
 
+No P0_Ops_Check has recorded a production value for any of these flags, so every production value is shown as Unverified.
+
 | Flag | Production value | Since |
 |------|-----------------|-------|
-| `PERF_CACHE_CATALOG` | `true` | 2026-07-04 (Performance Gate closure) |
-| `PERF_CACHE_DASHBOARD` | `false` | Not yet enabled |
+| `PERF_CACHE_CATALOG` | Unverified | Unverified |
+| `PERF_CACHE_DASHBOARD` | Unverified | Unverified |
+
+Previously claimed (nothing in the repository shows either): `PERF_CACHE_CATALOG` `true` since 2026-07-04 (Performance Gate closure); `PERF_CACHE_DASHBOARD` `false`, not yet enabled.
 
 ## How to flip
 
