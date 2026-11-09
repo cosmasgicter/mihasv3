@@ -14,6 +14,19 @@ student, tenant, catalog, payment, document, API-contract, database-alignment,
 mobile, and admissions de-AI work. It requires executable evidence before a
 finding or task can be called complete.
 
+### Student journey repair (P0a)
+
+`.kiro/specs/student-journey-repair/` (Spec A) is registered as an active
+alignment spec. It repairs the student journey end to end: object storage and
+uploads, rate limiting, document keys and viewing, the single document opener,
+submit readiness and draft grades, session continuity and registration phone
+handling, and the development-only diagnostics badge. It narrows, and does not
+supersede, the V2 spec: where it names a behaviour it is authoritative for that
+behaviour, and it keeps every V2 preservation clause true. Its P0a tasks (1-3)
+are complete when the checkpoint in `tasks.md` task 3.30 is green; its R7 tests
+keep their strict markers until task 5.6. Spec B is a separate spec and is not
+registered here.
+
 The archived `canonical-multi-tenant-alignment` spec and other earlier active or
 archived specs remain historical design and evidence inputs. When an
 admissions-specific implementation choice conflicts with the V2 spec, the V2
@@ -1397,12 +1410,33 @@ implementations live in per-workflow submodules:
 decomposed in this program — it ships in a separate spec because of its
 critical-path nature.
 
+## Zambian MSISDN normalisation (student-journey-repair R8-b)
+
+A mirrored concept: the same input must normalise to the same `+260XXXXXXXXX`
+(or be refused) on both sides.
+
+| Role | Location |
+|---|---|
+| Source of truth | `backend/apps/common/validators.py:normalize_zambian_msisdn` (raises `ValueError("INVALID_PHONE_FORMAT")`) |
+| Payment alias | `backend/apps/documents/payment_helpers.py:_normalize_phone_e164 = normalize_zambian_msisdn` (one implementation; mobile-money behaviour byte-for-byte unchanged) |
+| Registration entry point | `validate_zambian_phone` (backend) and `registrationPhoneSchema` (frontend). A registration-only pre-check: an input starting with `+` must be `+260` plus exactly nine digits, so `+260` plus six digits is refused and never stored as `+260260...` |
+| Frontend mirror | `apps/admissions/src/lib/zambianMsisdn.ts:normalizeZambianMsisdn` and `zambianMsisdnSchema` |
+| Messages | Phone and NRC validation messages carry no submitted value |
+| Drift guard | `apps/admissions/tests/unit/__fixtures__/zambianMsisdnVectors.json`, read by `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` and `backend/tests/unit/test_zambian_msisdn_vectors.py` |
+
 ## Drift Guard Inventory
 
 CI-blocking tests that fail when canonical truth diverges:
 
 - `apps/admissions/tests/unit/applicationStatusDriftGuard.test.ts`
 - `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` (one upload transport, SJR task 3.7)
+- `apps/admissions/tests/unit/zambianMsisdnVectors.test.ts` + `backend/tests/unit/test_zambian_msisdn_vectors.py` (shared MSISDN vectors in `__fixtures__/zambianMsisdnVectors.json`; the registration-refused list runs through `validate_zambian_phone` and `registrationPhoneSchema`; SJR task 3.27)
+- `apps/admissions/tests/unit/sjrSessionRestore.test.tsx` (route guards make one session-restore attempt, then redirect; SJR task 3.26) + `apps/admissions/tests/unit/sjrSignUpPhoneErrors.test.tsx` (a server phone error lands on the phone field and the banner never echoes it; SJR task 3.27) + `apps/admissions/tests/unit/sjrBuildBadge.test.tsx` (the diagnostics badge and its wrappers render on the development server only; SJR task 3.29)
+- `backend/tests/unit/test_no_persisted_signed_urls_sjr.py` (no document writer persists a presigned URL; SJR task 3.13) + `backend/tests/unit/test_document_key_resolution_sjr.py` (key resolution rules; SJR task 3.13)
+- `backend/tests/unit/test_storage_settings_contract.py` + `backend/tests/unit/test_startup_env_validation.py` + `backend/tests/unit/test_documented_env_vars_are_read.py` (storage settings, production startup refusal of an empty `S3_*`, and every documented environment variable has a reader; SJR tasks 3.1-3.4)
+- `backend/tests/unit/test_sjr_client_ip_trust.py` + `backend/tests/unit/test_sjr_ratelimit_metric.py` (trusted-proxy client IP and the `ratelimit.limited` counter; SJR task 3.9) + `backend/tests/unit/test_test_database_host_guard.py` (the test database host guard; SJR task 2.1)
+- `apps/admissions/tests/unit/documentOpenGrammar.test.ts` (the document opener's query grammar round-trips; SJR task 3.17)
+- `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` (the Approve gate mirrors the backend payment gate; strict marker until SJR task 5.6)
 - `apps/admissions/tests/unit/paymentStatusMappingDriftGuard.test.ts`
 - `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts`
 - `apps/admissions/tests/unit/rolesBackendMirror.test.ts`
