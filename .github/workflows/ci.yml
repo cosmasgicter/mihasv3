@@ -57,6 +57,20 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
         working-directory: backend
+      # Routes-versus-callers report (platform-simplification task 3.1, R2.1-2.5).
+      # Fails on a route with no caller, consumer, gate or baseline entry, and on
+      # a stale baseline or consumer entry. Runs from the repository root.
+      - name: Routes versus callers report
+        run: python3 scripts/routes_report.py --json "$RUNNER_TEMP/routes-report.json"
+      - name: Upload routes report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: routes-report
+          path: ${{ runner.temp }}/routes-report.json
+          if-no-files-found: ignore
+      - name: Routes report tests
+        run: python3 -m pytest -p no:django scripts/tests/test_routes_report.py
       - name: Install security tools
         run: pip install pip-audit bandit
         working-directory: backend

@@ -1,0 +1,153 @@
+{
+  "description": "Routes with no caller, consumer or gate. Every entry carries a reason; a stale entry fails scripts/routes_report.py. The first run of the report produced this list.",
+  "entries": [
+    {
+      "route": "/api/v1/admin/templates/",
+      "reason": "No first-party caller: the communication-template admin endpoints (template_views.py) have no UI. Owner undecided; needs a decision before any removal."
+    },
+    {
+      "route": "/api/v1/admin/templates/*/",
+      "reason": "No first-party caller: the communication-template admin endpoints (template_views.py) have no UI. Owner undecided; needs a decision before any removal."
+    },
+    {
+      "route": "/api/v1/admin/tenant-audit/",
+      "reason": "No first-party caller: the tenant audit panel reads /admin/institutions/{id}/audit/ (services/admin/tenantAudit.ts documents why)."
+    },
+    {
+      "route": "/api/v1/applications/*/conditions/*/verify/",
+      "reason": "No first-party caller: the review workspace moved off this two-outcome route (hooks/admin/useReviewWorkspaceSession.ts). Kept until usage is measured."
+    },
+    {
+      "route": "/api/v1/applications/*/official-documents/*/email/",
+      "reason": "Caller built through a helper call (`${applicationDocumentPath(...)}email/`, services/officialDocuments.ts:255) that the literal scan cannot resolve; verified by hand, so this is a scan limit, not an unused route."
+    },
+    {
+      "route": "/api/v1/catalog/institutions/*/",
+      "reason": "No first-party caller of the detail route: only the list is read (services/catalog.ts). Legacy catalog read, public GET preserved by steering."
+    },
+    {
+      "route": "/api/v1/catalog/intakes/*/",
+      "reason": "No first-party caller of the detail route: only the list is read (services/catalog.ts). Legacy catalog read, public GET preserved by steering."
+    },
+    {
+      "route": "/api/v1/documents/*/versions/",
+      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
+      "decision": "D1"
+    },
+    {
+      "route": "/api/v1/documents/cover-letters/generate/",
+      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
+      "decision": "D1"
+    },
+    {
+      "route": "/api/v1/documents/question-bank/answer/",
+      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
+      "decision": "D1"
+    },
+    {
+      "route": "/api/v1/documents/resumes/variants/",
+      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
+      "decision": "D1"
+    },
+    {
+      "route": "/api/v1/email/accounts/zoho/connect/",
+      "reason": "Jobs-ops mailbox connection with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
+      "decision": "D1"
+    },
+    {
+      "route": "/api/v2/auth/session/",
+      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/catalog/programs/",
+      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/applications/*/",
+      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/payments/resolve-fee/",
+      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/documents/",
+      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/approve/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/cancel/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/reject/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/submit/",
+      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
+      "decision": "D5"
+    },
+    {
+      "route": "/api/v2/admin/onboarding/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/activate/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/blockers/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/cancel/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/reject/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/resume/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/steps/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/submit/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    },
+    {
+      "route": "/api/v2/admin/onboarding/*/suspend/",
+      "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
+    }
+  ]
+}
