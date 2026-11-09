@@ -230,6 +230,14 @@ test('the role select offers whole-set counts, not the loaded rows', async ({ pa
   await expect(page.getByRole('heading', { name: 'User Management' })).toBeVisible();
 
   const select = page.locator('#user-role-filter');
+  // The heading renders before the directory's answer does, and the counts come with the
+  // answer. Read the labels once a counted option exists, not on the first paint: reading
+  // on the first paint lost this race whenever the aggregate ran slower than the shell
+  // (a larger directory late in a whole-matrix run). The assertions below are unchanged,
+  // and a directory that never sends counts still fails here at 30 s.
+  await expect(select.locator('option').filter({ hasText: /\(\d+\)\s*$/ }).first()).toBeAttached({
+    timeout: 30_000,
+  });
   const optionLabels = await select.locator('option').evaluateAll((options) =>
     options.map((option) => option.textContent || ''),
   );
