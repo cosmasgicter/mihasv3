@@ -36,7 +36,7 @@ def _environment(service: dict) -> dict[str, str]:
 def test_local_test_compose_declares_a_minio_service():
     services = _compose()["services"]
     minio = [
-        name for name, svc in services.items() if "minio/minio" in str(svc.get("image", ""))
+        name for name, svc in services.items() if "minio" in str(svc.get("image", "")) and "client" not in str(svc.get("image", ""))
     ]
     assert minio, "docker-compose.local-test.yml has no MinIO service; uploads cannot be stored"
 
