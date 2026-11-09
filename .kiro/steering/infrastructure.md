@@ -125,6 +125,14 @@ docker compose -f docker-compose.prod.yml exec web \
     --password "$SCHOOL_ADMIN_PASSWORD"
 ```
 
+`seed_school_admins` is additive: it ensures the admin holds `review` (the
+default `--permissions`) on each school and removes nothing, so grants an
+operator added in the admin UI survive a re-run. `AccessGrant` rows are never
+touched. Pass `--replace` to make the membership hold exactly the
+`--permissions` list, or `--read-only` to grant none (both can remove
+permissions, so treat them as operator-confirmed). Every membership change is
+audited with ids and permission names only; `--dry-run` reports without writing.
+
 Per the Hard Rules below, **production writes are operator steps**: take a backup
 first (`./deploy/backup-db.sh`), prove the change on Neon, and never author a
 schema/data change on production as the first step. Never echo or commit secret
