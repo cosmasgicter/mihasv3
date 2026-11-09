@@ -231,3 +231,6 @@ Cost_Accounting_*.docx
 
 # Personal — Benard Besa campaign manifesto (not part of the platform)
 besa/
+
+# Agent run directories (platform-simplification task 3.6, R4.4)
+.agents/tasks/
