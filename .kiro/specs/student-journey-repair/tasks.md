@@ -575,7 +575,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - Letter behaviour (5.4): decision D9 confirmed 2026-11-08 (option C); like all of task 5 it still starts only after task 4.6 is green
   - _Requirements: 2.36, 2.37, 2.38, 2.39, 2.40_
 
-  - [ ] 5.1 Seeded admins can decide, additively (design R7-a; DEC-11)
+  - [x] 5.1 Seeded admins can decide, additively (design R7-a; DEC-11)
     - New `backend/apps/catalog/management/commands/_seed_memberships.py`: the pure `seed_membership_permissions(existing, requested, mode)` (`add` is the union, `replace` is the requested list, `read_only` is `[]`) and the write-and-audit helper both seed commands use
     - `seed_school_admins.py`: `--permissions` (default `review`), `--replace` and `--read-only`, validated before any write; additive by default, so existing permissions are kept and `review` is added; a membership is saved only when it is created, reactivated or its permissions change, and each such change emits one `tenant.membership.permissions_seeded` event with `permissions_before` and `permissions_after` (ids and permission names only); a membership the run does not change is not written and gets no event, while the existing Profile update (role, active, verified, password) still runs as today; the run's audit rows are counted inside its transaction, and a missing row rolls the run back; `--dry-run` prints the same lines and writes nothing; `AccessGrant` rows are never touched
     - `harness_seed_tenants.py`: `decider@<slug>.localhost` per tenant through the same helper with `["review"]`; existing `admin@` accounts unchanged
@@ -586,7 +586,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: capability derivation unchanged; harness isolation specs unchanged (3.1); re-running the documented production command never removes a grant an operator added in the UI and touches no access grant (3.24, task 2.2's seed preservation test)_
     - _Requirements: 2.36, 3.1, 3.24_
 
-  - [ ] 5.2 Approve gate from the backend's resolved set (design R7-b)
+  - [x] 5.2 Approve gate from the backend's resolved set (design R7-b)
     - `paymentStatus.ts`: `APPROVAL_PAYMENT_STATUSES` and `isPaymentResolvedForApproval`
     - `ApplicationApprovalActions.tsx` and `useApprovalActionCommands` use it; new disabled title
     - Frontend parity test with `isPaymentResolvedForProgress`; the backend drift guard from task 1.7 passes
@@ -596,7 +596,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: the server gate and `force=true` override unchanged (3.20)_
     - _Requirements: 2.37, 3.20_
 
-  - [ ] 5.3 Conditional approval requires conditions (design R7-c)
+  - [x] 5.3 Conditional approval requires conditions (design R7-c)
     - New `ConditionsDialog.tsx`; "Conditional" opens it
     - `admin_review_views.py`: always route `conditionally_approved` through `ConditionManager.assign_conditions`; list and size checks
     - Update any backend test that posts `conditionally_approved` without conditions, recording that the old acceptance was the defect
@@ -606,7 +606,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: valid conditions still assign through `ConditionManager` (3.20); bulk status out of scope (OS-11)_
     - _Requirements: 2.38, 3.20_
 
-  - [ ] 5.4 Letters without a profile say so (design R7-d; decision D9 confirmed 2026-11-08, option C; starts only after task 4.6 is green)
+  - [x] 5.4 Letters without a profile say so (design R7-d; decision D9 confirmed 2026-11-08, option C; starts only after task 4.6 is green)
     - `render_context.py`: `has_active_document_profile` using the renderer's own resolution
     - `_generation_status`: `setup_required` with `DOCUMENT_PROFILE_NOT_CONFIGURED` for profile-required types with no profile
     - `officialDocumentPresentation.ts`: "isn't available yet" copy with `resolveTenantSupportContact`; no Prepare, no neutral fallback
@@ -618,14 +618,14 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: slip and receipt rendering unchanged (2.40); letters still hard-fail without a profile (3.13)_
     - _Requirements: 2.39, 2.40, 3.13_
 
-  - [ ] 5.5 Extend the gate with the staff decision and the letter
+  - [x] 5.5 Extend the gate with the staff decision and the letter
     - Add step 13 of design R9-b to `student-journey-gate.spec.ts`: `decider@` signs in, reviews and approves with the payment deferred; the student opens the acceptance letter (200 PDF from storage)
     - _Bug_Condition: isBugCondition_R9 where the decision loop was never exercised in a browser_
     - _Expected_Behavior: the full journey passes at 390×844 with the limiter on_
     - _Preservation: the P0a steps unchanged_
     - _Requirements: 2.43, 2.45_
 
-  - [ ] 5.6 Verify exploration and preservation tests
+  - [x] 5.6 Verify exploration and preservation tests
     - **Property 7: Expected Behavior** - Decisions and Decision Documents
     - **IMPORTANT**: Re-run the SAME tests from task 1.7 — do NOT write new tests
     - Remove the strict markers from task 1.7's tests, then run them unmarked
