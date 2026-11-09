@@ -9,8 +9,7 @@
  * server-confirmed deferral leaves the local payment-recovery entry behind, so
  * the next visit offers a payment that no longer exists.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); the R6 checkpoint, task 3.25,
- * removes the wrapper.
+ * Markers removed at the R6 checkpoint (task 3.25).
  */
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { StrictMode } from 'react'
@@ -92,7 +91,7 @@ beforeEach(() => {
 })
 
 describe('payment hooks (clauses 1.32, 1.33)', () => {
-  it.fails('a deferral arriving after mount is adopted under StrictMode', async () => {
+  it('a deferral arriving after mount is adopted under StrictMode', async () => {
     // The first effect pass (before StrictMode's simulated unmount) can still set
     // state, so the defect shows on an update that arrives later: the student
     // defers, the application's payment status changes, and the hook is told.
@@ -113,7 +112,7 @@ describe('payment hooks (clauses 1.32, 1.33)', () => {
     })
   })
 
-  it.fails('clears the recovery entry once the server confirms a deferral', async () => {
+  it('clears the recovery entry once the server confirms a deferral', async () => {
     recordEntry()
     render(<Step />)
 
@@ -126,7 +125,7 @@ describe('payment hooks (clauses 1.32, 1.33)', () => {
     expect(usePaymentRecoveryStore.getState().get(APP_ID)).toBeNull()
   })
 
-  it.fails('clears the recovery entry when another tab confirmed the deferral', async () => {
+  it('clears the recovery entry when another tab confirmed the deferral', async () => {
     recordEntry()
 
     render(<Step polledStatus="deferred" />)
