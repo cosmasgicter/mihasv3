@@ -84,6 +84,8 @@ export interface SignUpResult {
   user?: User | null;
   profile?: UserProfile | null;
   error?: string;
+  /** Per-field messages from a 400 validation response, keyed by field name. */
+  fieldErrors?: Record<string, string>;
 }
 
 /**

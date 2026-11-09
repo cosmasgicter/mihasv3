@@ -21,7 +21,6 @@ from apps.common.validators import validate_nrc, validate_zambian_phone
 pytestmark = pytest.mark.django_db(transaction=True)
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R8: fixed in task 3.27")
 @pytest.mark.parametrize(
     "typed,stored",
     [("0971234567", "+260971234567"), ("0761234567", "+260761234567")],
@@ -45,7 +44,6 @@ def test_local_formats_register_and_are_stored_in_e164(typed, stored):
     assert Profile.objects.get(email__iexact=email).phone == stored
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R8: fixed in task 3.27")
 @pytest.mark.parametrize(
     "validator,value",
     [

@@ -198,7 +198,11 @@ export function useSessionListener() {
 
       return { user: null }
     } catch (error) {
-      return { error: toError(error).message || 'Unable to create account' }
+      const fieldErrors = (error as { fieldErrors?: Record<string, string> } | null)?.fieldErrors
+      return {
+        error: toError(error).message || 'Unable to create account',
+        ...(fieldErrors && Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
+      }
     }
   }, [queryClient])
 

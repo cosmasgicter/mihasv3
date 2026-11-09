@@ -12,7 +12,7 @@
  * client all run for real; only `fetch` is replaced, answering the register call
  * with the 400 envelope the backend returns at HEAD.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); task 3.28 removes the wrapper.
+ * Task 3.27 fixed this; the marker was removed at checkpoint 3.28.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -84,7 +84,7 @@ async function submitWithLocalPhone() {
 }
 
 describe('sign-up phone errors (clause 1.39)', () => {
-  it.fails('marks the phone input invalid and keeps the key and value out of the banner', async () => {
+  it('marks the phone input invalid and keeps the key and value out of the banner', async () => {
     await submitWithLocalPhone()
 
     const phone = screen.getByLabelText(/^phone number$/i)

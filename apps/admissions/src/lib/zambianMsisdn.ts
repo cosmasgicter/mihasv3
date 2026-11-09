@@ -98,3 +98,30 @@ function buildSchema() {
 }
 
 export const zambianMsisdnSchema = buildSchema()
+
+/**
+ * Registration-only phone schema (student-journey-repair R8-b).
+ *
+ * Both normalisers read `+260` followed by six digits as a bare nine-digit
+ * subscriber number, which would store the typo `+260977123` as
+ * `+260260977123`. Registration refuses it instead: an input that starts with
+ * `+` (separators stripped) must be `+260` plus exactly nine digits. Every
+ * other shape is handled by `zambianMsisdnSchema`. The shared normaliser is
+ * untouched, so mobile-money normalisation stays byte-for-byte the same.
+ */
+const REGISTRATION_PHONE_MESSAGE =
+  'Enter a Zambian mobile number, for example 0977654321 or +260977654321.'
+
+export const registrationPhoneSchema = z.string().transform((raw, ctx) => {
+  const cleaned = stripSeparators(typeof raw === 'string' ? raw.trim() : '')
+  if (cleaned.startsWith('+') && !/^\+260\d{9}$/.test(cleaned)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: REGISTRATION_PHONE_MESSAGE })
+    return z.NEVER
+  }
+  const normalized = normalizeZambianMsisdn(raw)
+  if (normalized === null) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: REGISTRATION_PHONE_MESSAGE })
+    return z.NEVER
+  }
+  return normalized
+})

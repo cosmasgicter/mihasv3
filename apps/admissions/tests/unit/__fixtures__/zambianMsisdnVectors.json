@@ -1,0 +1,36 @@
+{
+  "_comment": "Shared MSISDN vectors (fictional numbers). Read by zambianMsisdnVectors.test.ts and backend/tests/unit/test_zambian_msisdn_vectors.py so the two normalisers cannot drift. student-journey-repair task 3.27.",
+  "normalise": [
+    { "input": "+260971234567", "expected": "+260971234567" },
+    { "input": "260971234567", "expected": "+260971234567" },
+    { "input": "0971234567", "expected": "+260971234567" },
+    { "input": "971234567", "expected": "+260971234567" },
+    { "input": " 097-123 4567 ", "expected": "+260971234567" },
+    { "input": "(097) 123-4567", "expected": "+260971234567" },
+    { "input": "+260 97 123 4567", "expected": "+260971234567" },
+    { "input": "+260977123", "expected": "+260260977123" },
+    { "input": "", "expected": null },
+    { "input": "   ", "expected": null },
+    { "input": "12345", "expected": null },
+    { "input": "09712345678", "expected": null },
+    { "input": "+261971234567", "expected": null },
+    { "input": "+0971234567", "expected": "+260971234567" },
+    { "input": "abc971234567", "expected": null }
+  ],
+  "registrationRefused": [
+    "+260977123",
+    "+26097123",
+    "+2609712345678",
+    "+261971234567",
+    "+0971234567",
+    "12345",
+    "abc971234567",
+    ""
+  ],
+  "registrationAccepted": [
+    { "input": "0971234567", "expected": "+260971234567" },
+    { "input": "+260971234567", "expected": "+260971234567" },
+    { "input": "260971234567", "expected": "+260971234567" },
+    { "input": "971234567", "expected": "+260971234567" }
+  ]
+}
