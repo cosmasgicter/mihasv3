@@ -561,7 +561,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: `v2-harness-smoke.yml` and `ci.yml` unchanged_
     - _Requirements: 2.43, 2.46, 2.47_
 
-  - [ ] 4.6 Checkpoint — gate green and stable
+  - [x] 4.6 Checkpoint — gate green and stable
     - **Property 9: Expected Behavior** - Journey Gate
     - Run `bash harness/bin/harness journey-gate` locally, then three consecutive green runs of the workflow in CI with no retries; keep each run's `rate-limit-headroom.json`, and treat any 429 as a budget finding inside one spec's window (EC-13), not as harness noise
     - Open one pull request that touches only `docs/` and confirm both required checks report success without running the journey
@@ -569,7 +569,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.43, 2.44, 2.45, 2.46, 2.47, 3.22_
 
-- [ ] 5. P0b — decisions and decision documents (R7)
+- [x] 5. P0b — decisions and decision documents (R7)
   - **Property 7: Expected Behavior** - Decisions and Decision Documents
   - Starts only after task 4.6 is green
   - Letter behaviour (5.4): decision D9 confirmed 2026-11-08 (option C); like all of task 5 it still starts only after task 4.6 is green
@@ -633,7 +633,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Re-run tasks 2.2–2.4: PASS, including `test_seed_admins_preservation_sjr.py` against the fixed command (3.24)
     - _Requirements: 2.36, 2.37, 2.38, 2.39, 3.24_
 
-  - [ ] 5.7 Checkpoint — P0b green
+  - [x] 5.7 Checkpoint — P0b green
     - Three consecutive green runs of the extended gate in CI
     - Full backend unit suite, admissions tests, build and lint: PASS
     - Re-run the broad matrix (`bash harness/bin/harness smoke`) and compare with task 2.5's baseline, counting the specs that tasks 3.17, 3.20 and 5.4 updated with their updated steps: no new failure
