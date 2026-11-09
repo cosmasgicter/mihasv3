@@ -512,7 +512,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
   - Starts after task 3.30 is green
   - _Requirements: 1.40, 1.41, 1.42_
 
-  - [ ] 4.1 Harness switches for the gate (design R9-a)
+  - [x] 4.1 Harness switches for the gate (design R9-a)
     - `backend/config/settings/harness.py`: `RATELIMIT_ENABLE` from `HARNESS_RATELIMIT_ENABLE` (default off) and the corrected comment
     - `harness/docker-compose.harness.yml`: pass `S3_SIGNED_URL_TTL_SECONDS`, `S3_PUBLIC_ENDPOINT_URL` and `HARNESS_RATELIMIT_ENABLE`; `minio-setup` reads `HARNESS_BUCKET_ANONYMOUS` (default `download`)
     - `harness/bin/harness`: new `journey-gate` command exporting the four gate values and running build, up, health, browser, storage check, edge check, journey and drain
@@ -522,7 +522,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: the broad matrix keeps today's settings (3.22)_
     - _Requirements: 2.43, 2.45, 3.22_
 
-  - [ ] 4.2 Journey gate config and specs (design R9-b)
+  - [x] 4.2 Journey gate config and specs (design R9-b)
     - New `apps/admissions/playwright.journey-gate.config.ts` with projects `journey-gate-mobile` (390×844, Chromium) and `journey-gate-desktop` (1440×900)
     - New `apps/admissions/tests/harness-e2e/journey-gate/student-journey-gate.spec.ts`: steps 1–12 of design R9-b, including the throttle self-check, reopen after expiry, the 403 on the expired URL, deferral, Submit, cookie-deletion restore and slip download
     - New `submit-desktop.spec.ts` (R6.1 at 1440×900), `upload-near-limit.spec.ts` (9.5 MB at 1 Mbit/s, one POST) and `a11y-surfaces.spec.ts` (axe with the `axe-viewport-sweep.spec.ts` tags on the documents list and the opener's invalid-link and not-found states at 390×844, failing on any critical or serious violation or any horizontal scrolling)
@@ -536,7 +536,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: existing required specs and helpers behave as before; `HarnessGate`'s default allowances are unchanged outside the gate (3.22)_
     - _Requirements: 2.31, 2.43, 2.44, 2.45, 3.11, 3.22_
 
-  - [ ] 4.3 Edge two-client check (design R9-c)
+  - [x] 4.3 Edge two-client check (design R9-c)
     - New `harness/checks/edge_two_clients.py` (`urllib.request` only; header `Host: localhost`) run in two `adapters` containers with `harness/checks` bind-mounted read-only at `/checks`; a new `edge_check` function in `harness/bin/harness` holds client A alive while client B runs, and removes A even on failure
     - Login and register: A exhausted gets 429; B's first request is not 429
     - _Bug_Condition: isBugCondition_R3 where real clients share a bucket behind Caddy_
@@ -544,7 +544,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: one client still meets the same ceiling_
     - _Requirements: 2.12, 2.45_
 
-  - [ ] 4.4 Configuration checks in CI (design R9-d)
+  - [x] 4.4 Configuration checks in CI (design R9-d)
     - `storage_roundtrip_check --expect-private` inside the harness `web` container as part of `journey-gate`
     - A `local-stack-storage` job: copy `backend/.env.local.test.example` to `.env.local.test`, bring up `backend/docker-compose.local-test.yml`, run the round-trip, tear down
     - Confirm the R1 unit configuration tests run in CI's blocking unit step
