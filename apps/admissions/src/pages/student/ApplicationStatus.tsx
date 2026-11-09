@@ -325,7 +325,7 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
             />
 
             <SectionCard title="Supporting documents" description="Access the files you uploaded with this application." icon={<Download className="h-5 w-5" />}>
-              <DocumentChecklist resultSlipUrl={application.result_slip_url} extraKycUrl={application.extra_kyc_url} />
+              <DocumentChecklist applicationId={application.id} />
             </SectionCard>
 
             {application.status === 'conditionally_approved' && conditions.length > 0 && (

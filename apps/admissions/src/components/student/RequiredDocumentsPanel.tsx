@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   CheckCircle2,
+  ExternalLink,
   FileText,
   Loader2,
   RotateCcw,
@@ -29,6 +30,7 @@ import {
 
 import { Button } from '@/components/ui/Button'
 import { FileUpload } from '@/components/ui/FileUpload'
+import { documentOpenHref } from '@/lib/documentOpen'
 import {
   acceptAttribute,
   constraintHint,
@@ -218,6 +220,22 @@ function RequirementRow({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {requirement.document?.id && (
+              // SJR task 3.18 (R5-b): a student can see what they uploaded. An
+              // anchor to the opener, which signs when it is opened; the contract
+              // carries the id, never a link.
+              <Button asChild variant="outline" size="sm" className="min-h-touch">
+                <a
+                  href={documentOpenHref({ kind: 'document', documentId: requirement.document.id })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  View
+                  <span className="sr-only"> {requirement.label} (opens in a new tab)</span>
+                </a>
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"

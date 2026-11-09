@@ -9,8 +9,8 @@
  * that has not been issued, and the official-document hook opens a tab after a
  * chain of awaits (which the browser blocks).
  *
- * Every test asserts the expected behaviour and is wrapped in `it.fails`
- * (design "Marker scheme"); the R5 checkpoint, task 3.21, removes the wrapper.
+ * Every test asserts the expected behaviour. The `it.fails` markers were removed
+ * at the R5 checkpoint (task 3.21); every case runs unmarked and passes.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, renderHook, screen } from '@testing-library/react'
@@ -94,7 +94,7 @@ afterEach(() => {
 })
 
 describe('the status workspace document list (clause 1.20)', () => {
-  it.fails('lists a custom type and condition evidence with View anchors to the opener', async () => {
+  it('lists a custom type and condition evidence with View anchors to the opener', async () => {
     listByApplication.mockResolvedValue([
       row({}),
       row({
@@ -119,7 +119,7 @@ describe('the status workspace document list (clause 1.20)', () => {
 })
 
 describe('the wizard panel (clause 1.20)', () => {
-  it.fails('shows View for an uploaded requirement', () => {
+  it('shows View for an uploaded requirement', () => {
     const contract = parseRequiredDocumentsContract({
       success: true,
       data: {
@@ -173,13 +173,13 @@ describe('the wizard panel (clause 1.20)', () => {
 })
 
 describe('desktop navigation (clause 1.21)', () => {
-  it.fails('lists Application Status in the desktop sidebar', () => {
+  it('lists Application Status in the desktop sidebar', () => {
     expect(ROUTES.studentStatus.nav?.desktop).toBe(true)
   })
 })
 
 describe('summary copy (clause 1.25)', () => {
-  it.fails('says "ready" only for an issued type', () => {
+  it('says "ready" only for an issued type', () => {
     const input = { available: ['application_slip'], issued: [] as string[] }
     const issuable = officialDocumentSummary(presentOfficialDocuments(input as never))
     expect(issuable).not.toBeNull()
@@ -194,7 +194,7 @@ describe('summary copy (clause 1.25)', () => {
 })
 
 describe('the official-document hook (clauses 1.23, 1.24)', () => {
-  it.fails('never opens a tab or downloads after an await', async () => {
+  it('never opens a tab or downloads after an await', async () => {
     const open = vi.spyOn(window, 'open').mockReturnValue(null)
     generateOfficialDocument.mockResolvedValue({ status: 'ready', document_id: DOC_ID })
     getOfficialDocument.mockResolvedValue({
@@ -219,7 +219,7 @@ describe('the official-document hook (clauses 1.23, 1.24)', () => {
     expect(after.openHref).toBe(`${OPENER}?app=${APP_ID}&type=application_slip`)
   })
 
-  it.fails('maps DOCUMENT_LINK_UNAVAILABLE to "can\'t be opened right now", not "not ready"', async () => {
+  it('maps DOCUMENT_LINK_UNAVAILABLE to "can\'t be opened right now", not "not ready"', async () => {
     const { officialDocumentService } = await vi.importActual<
       typeof import('@/services/officialDocuments')
     >('@/services/officialDocuments')
