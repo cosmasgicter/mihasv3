@@ -110,7 +110,7 @@ drift guard" note must say so.
 | Canonical payment status enum | `backend/apps/documents/payment_service.py:CanonicalStatus` | `PAYMENT_TO_APP_MAP` |
 | Derived app payment_status | `backend/apps/documents/payment_service.py:PAYMENT_TO_APP_MAP` | `apps/admissions/src/lib/paymentStatus.ts:normalizePaymentStatus` |
 | State transitions | `backend/apps/documents/payment_service.py:ALLOWED_TRANSITIONS` | `_transition()` (sole writer) |
-| Force-approved propagation | `review_queue.py:PAYMENT_READY_STATUSES`, `admin_views.py:_RESOLVED_PAYMENT_STATUSES`, analytics, frontend `normalizePaymentStatus` | drift-guarded |
+| Force-approved propagation | `review_queue.py:PAYMENT_READY_STATUSES`, `admin_views.py:_RESOLVED_PAYMENT_STATUSES`, analytics, frontend `normalizePaymentStatus`, and (SJR R7-b) the frontend Approve gate `paymentStatus.ts:APPROVAL_PAYMENT_STATUSES` / `isPaymentResolvedForApproval`, a mirror of `RESOLVED_PAYMENT_STATUSES` (`admin_review_views.py:35` alias) | drift-guarded; `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` parses the literal, `apps/admissions/tests/unit/sjrApprovalParity.test.ts` pins agreement with `isPaymentResolvedForProgress` |
 | Payment error codes | `backend/apps/documents/payment_error_codes.py:PAYMENT_ERROR_CODES` | `apps/admissions/src/lib/paymentErrorCodes.ts` |
 | Canonical fee resolution | `backend/apps/documents/fee_resolver.py:FeeResolver` (offering + fee_type + residency + active only; `FeeConfigurationError`→`FEE_NOT_CONFIGURED`/`FEE_AMBIGUOUS`; **no default, no name lookup** — DATA-05/STU-08) | `payment_helpers._resolve_fee_for_application`/`_build_snapshot_dict`, `FeeResolveView`, `V2FeeResolveView`; DB invariant `uq_program_fees_one_active` |
 | Webhook event identity | `backend/apps/documents/webhook_processor.py:WebhookEventIdentity` | dedup table `webhook_event_logs` |
@@ -552,6 +552,12 @@ retry writes a new outbox row instead of calling a provider inline; and the
 notification list still returns exactly `{page, pageSize, totalCount, results}`.
 
 ### Offer conditions: evidence, review, and amendment history (Admissions V2 task 10.2, R13.9/R13.10)
+
+> SJR R7-c: `POST …/review/` with `new_status=conditionally_approved` always goes through
+> `ConditionManager.assign_conditions`. No conditions → 400 `NO_CONDITIONS_PROVIDED`; a
+> non-list payload → 400 `VALIDATION_ERROR` (`details.conditions`); more than 10 → 400
+> `TOO_MANY_CONDITIONS`. The admin UI collects them in `ConditionsDialog.tsx` (1-10 rows,
+> description 1-500 characters, deadline today or later). Bulk status stays out of scope (OS-11).
 
 **A conditionally approved student was told what they owed and given nowhere to put
 it.** The conditions read published `{id, description, condition_type, deadline,
@@ -1436,6 +1442,7 @@ A mirrored concept: the same input must normalise to the same `+260XXXXXXXXX`
 ## Drift Guard Inventory
 
 CI-blocking tests that fail when canonical truth diverges:
+- `backend/tests/unit/test_approval_payment_gate_drift_sjr.py` + `apps/admissions/tests/unit/sjrApprovalParity.test.ts` (the frontend Approve gate `APPROVAL_PAYMENT_STATUSES` equals the backend `RESOLVED_PAYMENT_STATUSES`; SJR task 5.2)
 
 - `apps/admissions/tests/unit/applicationStatusDriftGuard.test.ts`
 - `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` (one upload transport, SJR task 3.7)

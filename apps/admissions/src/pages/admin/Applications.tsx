@@ -49,6 +49,7 @@ import {
   Keyboard
 } from 'lucide-react'
 import { toError } from '@/lib/toError'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 // Admin card-grid virtualization threshold (R10.6): a single fixed integer
 // within the inclusive range 30–50. The card grid switches to the virtualized
@@ -394,7 +395,7 @@ export default function Applications() {
   }, [refreshCurrentPage, showInfo])
 
   // Wrapper for updateStatus with error handling and toast notifications
-  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: ApplicationStatus, options?: { notes?: string; force?: boolean }) => {
+  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: ApplicationStatus, options?: StatusCommandOptions) => {
     try {
       setUpdatingStatusId(applicationId)
       const result = await updateStatus(applicationId, newStatus, options)
@@ -789,7 +790,7 @@ export default function Applications() {
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
-            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<void>}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             loading={isRefreshing}
@@ -797,7 +798,7 @@ export default function Applications() {
         ) : applications.length > ADMIN_CARD_VIRTUALIZATION_THRESHOLD ? (
           <VirtualizedApplicationsGrid
             applications={applications}
-            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<void>}
             onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
             updatingStatusId={updatingStatusId}
@@ -808,7 +809,7 @@ export default function Applications() {
         ) : (
           <ApplicationsTable
             applications={applications}
-            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<void>}
             onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
             selectedIds={selectedIds}
@@ -847,7 +848,7 @@ export default function Applications() {
           updating={null}
           onClose={handleCloseDetails}
           onSendNotification={handleSendNotification}
-          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>}
+          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
         />
       </div>
     </PageShell>

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 // Hook to track keyboard-focused row index for visible focus styling
 function useGridKeyboardNav(
@@ -52,7 +53,7 @@ function useGridKeyboardNav(
 
 interface VirtualizedApplicationsGridProps {
   applications: ApplicationSummary[]
-  onStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onStatusUpdate: (id: string, status: string, options?: StatusCommandOptions) => void | Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   updatingStatusId: string | null

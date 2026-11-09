@@ -2,10 +2,11 @@ import { useCallback, useState, useMemo } from 'react'
 import { FileText } from 'lucide-react'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 import { logger } from '@/lib/logger'
+import type { StatusCommandOptions } from '@/types/statusCommand'
 
 interface ApplicationsTableProps {
   applications: ApplicationSummary[]
-  onStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onStatusUpdate: (id: string, status: string, options?: StatusCommandOptions) => void | Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   selectedIds?: string[]
@@ -46,10 +47,10 @@ export function ApplicationsTable({
 
   // Parent (Applications.tsx) already handles toasts and error display.
   // This wrapper only tracks local loading state for the card UI.
-  const handleStatusUpdate = useCallback(async (id: string, status: string) => {
+  const handleStatusUpdate = useCallback(async (id: string, status: string, options?: StatusCommandOptions) => {
     try {
       setUpdatingStatus(id)
-      await onStatusUpdate(id, status)
+      await (options ? onStatusUpdate(id, status, options) : onStatusUpdate(id, status))
     } catch (error) {
       logger.error('Failed to update status:', error)
     } finally {

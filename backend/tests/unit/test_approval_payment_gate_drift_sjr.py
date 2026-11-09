@@ -25,7 +25,6 @@ _ARRAY = re.compile(
 )
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R7: fixed in task 5.2")
 def test_frontend_approval_statuses_equal_the_backend_resolved_set():
     source = PAYMENT_STATUS_TS.read_text(encoding="utf-8")
     match = _ARRAY.search(source)

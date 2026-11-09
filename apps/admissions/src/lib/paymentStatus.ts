@@ -76,6 +76,32 @@ export function isPaymentResolvedForProgress(paymentStatus?: string | null) {
   return normalizePaymentStatus(paymentStatus) === 'verified' || paymentStatus === 'deferred'
 }
 
+/**
+ * Payment statuses for which staff may approve an application (SJR R7-b).
+ *
+ * Mirrors the backend's `RESOLVED_PAYMENT_STATUSES`
+ * (`backend/apps/documents/payment_constants.py`); the server gate is
+ * authoritative and `force=true` is unchanged. Drift-guarded by
+ * `backend/tests/unit/test_approval_payment_gate_drift_sjr.py`, which parses
+ * this literal. A deferral is a promise to pay and is resolved for approval.
+ */
+export const APPROVAL_PAYMENT_STATUSES = [
+  'successful',
+  'force_approved',
+  'verified',
+  'paid',
+  'deferred',
+] as const
+
+/**
+ * Answers "may staff approve?". One helper per question: this is deliberately not
+ * `isPaymentVerified` (the receipt and letter question), and it agrees with
+ * `isPaymentResolvedForProgress` for every status the module knows.
+ */
+export function isPaymentResolvedForApproval(paymentStatus?: string | null) {
+  return (APPROVAL_PAYMENT_STATUSES as readonly string[]).includes(paymentStatus ?? '')
+}
+
 export function getPaymentStatusLabel(paymentStatus?: string | null) {
   switch (normalizePaymentStatus(paymentStatus)) {
     case 'verified':

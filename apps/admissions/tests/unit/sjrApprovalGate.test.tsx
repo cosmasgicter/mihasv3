@@ -8,7 +8,6 @@
  * "Conditional" sends the status change immediately, with no conditions, which
  * creates a conditional offer the student cannot meet.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); task 5.6 removes the wrapper.
  */
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -37,14 +36,14 @@ function tomorrow(): string {
 }
 
 describe('staff decisions (clauses 1.35, 1.36)', () => {
-  it.fails('Approve is enabled when the student deferred payment', () => {
+  it('Approve is enabled when the student deferred payment', () => {
     renderUnderReview('deferred')
 
     const approve = screen.getByRole('button', { name: /approve/i })
     expect((approve as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it.fails('Conditional opens a dialog and sends at least one condition', async () => {
+  it('Conditional opens a dialog and sends at least one condition', async () => {
     const onStatusUpdate = renderUnderReview('verified')
 
     await act(async () => {

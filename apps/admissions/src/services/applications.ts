@@ -4,6 +4,7 @@ import { logApiError } from '@/lib/apiErrorLogger'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { apiClient, buildQueryString, type ApiRequestOptions, type QueryParams } from './client'
 import { notificationService } from './notifications'
+import type { OfferConditionInput } from '@/types/statusCommand'
 
 export interface PaginatedApplicationsResponse {
   applications: Application[]
@@ -491,11 +492,22 @@ export const applicationService = {
   },
 
   /** PATCH /applications/{id}/review/ — update application status */
-  updateStatus: async (id: string, status: Application['status'], notes?: string, force?: boolean) => {
+  updateStatus: async (
+    id: string,
+    status: Application['status'],
+    notes?: string,
+    force?: boolean,
+    conditions?: OfferConditionInput[],
+  ) => {
     const encodedId = encodeURIComponent(id)
     await apiClient.request(`/applications/${encodedId}/review/`, {
       method: 'POST',
-      body: JSON.stringify({ new_status: status, notes, ...(force ? { force: true } : {}) }),
+      body: JSON.stringify({
+        new_status: status,
+        notes,
+        ...(force ? { force: true } : {}),
+        ...(conditions ? { conditions } : {}),
+      }),
     })
 
     return getApplicationById(id)
