@@ -69,9 +69,12 @@ import {
   announceOfficialDocumentState,
   officialDocumentOverflowLabel,
   officialDocumentSummary,
+  officialDocumentUnavailableMessage,
   presentOfficialDocuments,
+  PROFILE_REQUIRED_LETTER_TYPES,
   type OfficialDocumentCopy,
 } from '@/lib/officialDocumentPresentation'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
 import type { OfficialDocumentType } from '@/services/officialDocuments'
 
 /**
@@ -158,9 +161,13 @@ interface OfficialDocActionProps {
   /** `primary` gets the prominent button; `listed` sits inside the sheet. */
   placement: 'primary' | 'listed'
   /** Report state upward so the surface can hold **one** live region (R16.2). */
-  onUiState: (documentType: string, uiState: OfficialDocumentUiState) => void
+  onUiState: (documentType: string, uiState: OfficialDocumentUiState, notAvailableYet: boolean) => void
   /** Where to register this document's email command for the sheet to call. */
   emailRegistry?: DocumentEmailRegistry
+  /** True when the status sentence above the controls already names this document. */
+  statedInSummary?: boolean
+  /** False until the first read of what the platform has issued has settled. */
+  issuedKnown?: boolean
 }
 
 /**
@@ -187,9 +194,31 @@ function OfficialDocAction({
   placement,
   onUiState,
   emailRegistry,
+  statedInSummary = false,
+  issuedKnown = true,
 }: OfficialDocActionProps) {
-  const { uiState, isBusy, error, canRetry, isSetupRequired, prepare, openHref, email } =
-    useOfficialDocument(applicationId, documentType as OfficialDocumentType)
+  const {
+    uiState,
+    isBusy,
+    error,
+    canRetry,
+    isSetupRequired,
+    prepare,
+    openHref,
+    email,
+    setupKnownFromRead,
+    checkSetup,
+  } = useOfficialDocument(applicationId, documentType as OfficialDocumentType)
+  const { brandName, isWhiteLabel } = usePortalBrand()
+
+  // SJR R7-d: a letter the school has not set up is learned from a read, so the
+  // student is never offered a Prepare that can only fail. Slips and receipts are
+  // not profile-required and are not asked about.
+  useEffect(() => {
+    if (issuedKnown && !issued && PROFILE_REQUIRED_LETTER_TYPES.includes(documentType)) {
+      void checkSetup()
+    }
+  }, [checkSetup, documentType, issued, issuedKnown])
   const { addToast } = useToastStore()
   const openRef = useRef<HTMLAnchorElement>(null)
   const focusOpenRef = useRef(false)
@@ -239,8 +268,8 @@ function OfficialDocAction({
   }, [addToast, copy.noun, email, error])
 
   useEffect(() => {
-    onUiState(documentType, uiState)
-  }, [documentType, onUiState, uiState])
+    onUiState(documentType, uiState, setupKnownFromRead)
+  }, [documentType, onUiState, setupKnownFromRead, uiState])
 
   useEffect(() => {
     if (!emailRegistry) return
@@ -288,7 +317,7 @@ function OfficialDocAction({
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </Button>
-      ) : (
+      ) : setupKnownFromRead ? null : (
         <Button
           onClick={handlePrepare}
           disabled={isBusy || uiState === 'setup_required'}
@@ -306,7 +335,7 @@ function OfficialDocAction({
         </Button>
       )}
 
-      {placement === 'listed' && (
+      {placement === 'listed' && !setupKnownFromRead && (
         <Button
           onClick={handleEmail}
           disabled={isBusy || uiState === 'setup_required'}
@@ -326,7 +355,20 @@ function OfficialDocAction({
         <p className="text-xs text-muted-foreground">Issued copy on record</p>
       )}
 
-      {(isSetupRequired || uiState === 'failed') && (
+      {setupKnownFromRead && (
+        <OfficialDocumentRecovery
+          message={officialDocumentUnavailableMessage(copy.noun, isWhiteLabel ? brandName : null, {
+            statedElsewhere: statedInSummary,
+          })}
+          canRetry={false}
+          isSetupRequired
+          notAvailableYet
+          applicationNumber={applicationNumber}
+          documentLabel={copy.noun}
+        />
+      )}
+
+      {!setupKnownFromRead && (isSetupRequired || uiState === 'failed') && (
         // admissions-v2 task 10.4 (STU-18): a neutral sentence, who is dealing
         // with it, and a tenant-resolved route to a human — never this school's
         // document-setup checklist, and no retry the server says cannot help.
@@ -356,8 +398,11 @@ export function DocumentButtons({
   // only — "may a new artifact be created from today's state?" — which is a pure
   // function of status and payment. Whether the platform already issued a lawful
   // artifact is a fact about stored rows, so the surface asks rather than guesses.
-  const { isIssued, isHistorical, refresh: refreshIssued } = useIssuedOfficialDocuments(applicationId)
+  const { isIssued, isHistorical, isLoading: issuedLoading, refresh: refreshIssued } =
+    useIssuedOfficialDocuments(applicationId)
   const [uiStates, setUiStates] = useState<Record<string, OfficialDocumentUiState>>({})
+  // Types the school has not set up, learned from a read (SJR R7-d): they offer no control.
+  const [notAvailable, setNotAvailable] = useState<Record<string, boolean>>({})
 
   const presentation = useMemo(() => {
     const candidates: OfficialDocumentType[] = [
@@ -385,9 +430,15 @@ export function DocumentButtons({
   const panelId = useId()
   const emailRegistry = useRef<DocumentEmailRegistry>(new Map()).current
 
-  const handleUiState = useCallback((documentType: string, uiState: OfficialDocumentUiState) => {
-    setUiStates((current) => (current[documentType] === uiState ? current : { ...current, [documentType]: uiState }))
-  }, [])
+  const handleUiState = useCallback(
+    (documentType: string, uiState: OfficialDocumentUiState, notAvailableYet: boolean) => {
+      setUiStates((current) => (current[documentType] === uiState ? current : { ...current, [documentType]: uiState }))
+      setNotAvailable((current) =>
+        current[documentType] === notAvailableYet ? current : { ...current, [documentType]: notAvailableYet },
+      )
+    },
+    [],
+  )
 
   const { primary, secondary } = presentation
   if (!primary) {
@@ -395,10 +446,27 @@ export function DocumentButtons({
   }
 
   const summary = officialDocumentSummary(presentation, uiStates)
-  const announcement = announceOfficialDocumentState(uiStates, presentation)
+  // A document the school has not set up is a resting state the summary already
+  // states, not work in progress, so it must not outrank (worst-news-first) the
+  // narration of a document the student is actually preparing.
+  const announcement = announceOfficialDocumentState(
+    Object.fromEntries(
+      Object.entries(uiStates).map(([type, state]) => [type, notAvailable[type] ? 'idle' : state]),
+    ),
+    presentation,
+  )
   // Every command that is not the one primary download: the primary's email, and
   // both commands for each other document.
-  const overflowCount = (density === 'row' ? 2 : 1) + secondary.length * 2
+  //
+  // A document the school has not set up offers no control at all (SJR R7-d: no
+  // Prepare, and an email of something that does not exist is a dead command), so
+  // it contributes nothing to the count. The count must equal what opening the
+  // sheet reveals.
+  const commandsOf = (documentType: string, ifAvailable: number) =>
+    notAvailable[documentType] ? 0 : ifAvailable
+  const overflowCount =
+    commandsOf(primary.documentType, density === 'row' ? 2 : 1) +
+    secondary.reduce((total, document) => total + commandsOf(document.documentType, 2), 0)
   // The hook's own re-entrancy guard (`if (inflight) return false`) is what makes
   // a double tap safe; this only keeps the control from *looking* available while
   // the platform is already working on that document.
@@ -417,6 +485,8 @@ export function DocumentButtons({
       placement={density === 'row' ? 'listed' : 'primary'}
       onUiState={handleUiState}
       emailRegistry={emailRegistry}
+      statedInSummary
+      issuedKnown={!issuedLoading}
     />
   )
 
@@ -498,7 +568,7 @@ export function DocumentButtons({
       >
         {density === 'row' && primaryAction}
 
-        {density === 'panel' && (
+        {density === 'panel' && !notAvailable[primary.documentType] && (
           <Button
             onClick={() => void emailRegistry.get(primary.documentType)?.()}
             disabled={primaryBusy || primaryState === 'setup_required'}
@@ -524,6 +594,7 @@ export function DocumentButtons({
             placement="listed"
             onUiState={handleUiState}
             emailRegistry={emailRegistry}
+            issuedKnown={!issuedLoading}
           />
         ))}
 

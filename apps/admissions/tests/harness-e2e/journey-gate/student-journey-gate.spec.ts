@@ -17,6 +17,8 @@ import { STORAGE_ORIGIN } from './strictStatusGuard';
 import { asUpload, makePdf, makePng } from './fixtures';
 import {
   chooseProgrammeAndIntake,
+  STAFF_DECIDER_EMAIL,
+  STAFF_PASSWORD,
   confirmSchoolAndFillPersonal,
   enterFiveGrades,
   gateEmail,
@@ -47,7 +49,9 @@ test('student registers, uploads, reopens a document after expiry, submits and d
   page,
   context,
   gate,
-}) => {
+  browser,
+  watchContext,
+}, testInfo) => {
   test.setTimeout(420_000);
   // The one harness limitation the gate tolerates, and nothing wider: the harness edge's
   // Content-Security-Policy blocks the real gateway's card-widget script, which a harness
@@ -224,4 +228,68 @@ test('student registers, uploads, reopens a document after expiry, submits and d
     await opened.popup.close();
   });
 
+  await test.step('13. a seeded staff account reviews and approves with the payment deferred; the student opens the acceptance letter from storage', async () => {
+    // The application number is what a staff member searches by.
+    const numberText = (await page.getByText(/Application #MIHAS[\w-]*/).first().textContent()) ?? '';
+    const applicationNumber = /#(MIHAS[\w-]*)/.exec(numberText)?.[1];
+    expect(applicationNumber, 'the student page shows its application number').toBeTruthy();
+
+    const staffContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    watchContext(staffContext);
+    const staff = await staffContext.newPage();
+    const staffConsoleErrors: string[] = [];
+    staff.on('console', (message) => {
+      if (message.type() === 'error') staffConsoleErrors.push(message.text());
+    });
+    try {
+      await staff.goto(`${GATE_ORIGIN}/auth/signin`, { waitUntil: 'domcontentloaded' });
+      await staff.getByLabel(/email/i).first().fill(STAFF_DECIDER_EMAIL);
+      await staff.getByLabel('Password', { exact: true }).fill(STAFF_PASSWORD);
+      await staff.getByRole('button', { name: /sign in/i }).click();
+      await staff.waitForURL(/\/admin/, { timeout: 60_000 });
+
+      // The roster filters by the `search` query parameter; the narrow layout keeps
+      // the filter panel closed, so the staff member uses the link a person can share.
+      await staff.goto(`${GATE_ORIGIN}/admin/applications?search=${encodeURIComponent(applicationNumber as string)}`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await staff.getByRole('button', { name: 'Open review' }).first().click({ timeout: 60_000 });
+
+      // Submitted -> under review -> approved, with the payment still deferred.
+      await staff.getByRole('button', { name: /^Review$/ }).click({ timeout: 60_000 });
+      const approve = staff.getByRole('button', { name: /^Approve$/ });
+      await expect(approve).toBeEnabled({ timeout: 60_000 });
+      await approve.click();
+      await staff.getByRole('button', { name: /^Approve$/ }).last().click();
+      // The decision is recorded when Approve is no longer offered; the student's
+      // page below is the proof that it reached the platform.
+      await expect(staff.getByRole('button', { name: /^Approve$/ })).toHaveCount(0, { timeout: 60_000 });
+      await staff.screenshot({ path: `${testInfo.outputDir}/staff-approved.png` });
+    } finally {
+      expect(staffConsoleErrors, 'no console errors on the staff pages').toEqual([]);
+      await staffContext.close();
+    }
+
+    // The student sees the decision and opens the letter: a stored PDF.
+    await page.goto(`${GATE_ORIGIN}/student/status`, { waitUntil: 'domcontentloaded' });
+    const letter = page.getByTestId('official-document-acceptance_letter');
+    await expect(letter).toBeVisible({ timeout: 60_000 });
+    const prepare = letter.getByRole('button', { name: /Prepare/ });
+    const open = letter.getByRole('link', { name: /^Open/ });
+    await expect(prepare.or(open).first()).toBeVisible({ timeout: 60_000 });
+    if ((await prepare.isVisible()) && (await prepare.isEnabled())) {
+      await prepare.click({ timeout: 5_000 }).catch(async (error) => {
+        if ((await prepare.isVisible()) && (await prepare.isEnabled())) throw error;
+      });
+    }
+    await expect(open).toBeVisible({ timeout: 90_000 });
+    const opened = await openInPopup(context, open, STORAGE_ORIGIN);
+    expect(opened.status, 'letter popup').toBe(200);
+    expect(opened.contentType).toMatch(/application\/pdf/);
+    const probe = await playwrightRequest.newContext();
+    const head = (await (await probe.get(opened.url)).body()).subarray(0, 4).toString('latin1');
+    await probe.dispose();
+    expect(head).toBe('%PDF');
+    await opened.popup.close();
+  });
 });

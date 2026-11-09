@@ -156,6 +156,12 @@ Rollback:
 
 ## 3. Official Document Troubleshooting
 
+> **Letter profiles are part of onboarding (D9 confirmed 2026-11-08, option C).** Until a tenant
+> has an active `acceptance_letter` / `conditional_offer` document profile, its students see
+> "isn't available yet" for that letter and no Prepare action; the API answers `setup_required`
+> with `DOCUMENT_PROFILE_NOT_CONFIGURED`. Create the profile (admin document-profile endpoints or
+> `seed_tenant_document_profiles`) and the letter becomes available on the next read.
+
 Use when application slips, receipts, acceptance letters, or conditional offers
 are missing, wrong, unsigned, unbranded, or failing.
 

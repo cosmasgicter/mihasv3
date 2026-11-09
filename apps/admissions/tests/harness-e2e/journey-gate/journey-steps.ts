@@ -14,6 +14,10 @@ export const GATE_ORIGIN = tenantOrigin(GATE_TENANT_HOST);
 /** A phone in the local format the registration form must accept (R8-b). */
 export const GATE_PHONE_LOCAL = '0971234567';
 export const GATE_PASSWORD = 'HarnessStudent123';
+/** The seeded staff account that can decide (SJR R7-a): `review`, nothing else. */
+export const STAFF_DECIDER_EMAIL = `decider@${GATE_TENANT_HOST}`;
+/** The harness's committed, non-secret seed password (`harness/harness.env`). */
+export const STAFF_PASSWORD = process.env.HARNESS_TENANT_ADMIN_PASSWORD || 'HarnessTenant123!';
 
 export const IDENTITY_INPUT = 'input[type=file][aria-label="Upload NRC or passport"]';
 export const SLIP_INPUT = 'input[type=file][aria-label="Upload Grade 12 result slip"]';

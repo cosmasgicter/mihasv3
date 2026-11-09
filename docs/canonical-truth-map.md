@@ -1386,6 +1386,14 @@ stages, which prevents capacity races without blocking draft authoring.
 
 ### Document profiles, official-document lifecycle, and tenant templates (R8, R14, R16)
 
+> SJR R7-d, **D9 confirmed 2026-11-08 (option C)**: the read path pre-checks profiles.
+> `render_context.py:has_active_document_profile` uses the renderer's own resolution; for a
+> profile-required letter (`PROFILE_REQUIRED_DOCUMENT_TYPES`) whose application may receive it
+> and has no active profile, `_generation_status` answers `setup_required` /
+> `DOCUMENT_PROFILE_NOT_CONFIGURED` (counter `official_document.setup_required_read`). The POST
+> path is unchanged and letters still hard-fail without a profile. The student surface says the
+> letter "isn't available yet", offers no Prepare, and routes to `resolveTenantSupportContact`.
+
 Spec: `.kiro/specs/multi-tenant-beanola-remediation/`. These concepts extend
 the Multi-Tenant truth map registered above. Each names the single authoritative
 backend source plus its consumers; the "Frontend mirror / drift guard" column

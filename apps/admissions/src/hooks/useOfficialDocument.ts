@@ -189,6 +189,18 @@ export interface UseOfficialDocumentResult {
   email: (address?: string) => Promise<boolean>
   /** Clear transient error/state back to idle. */
   reset: () => void
+  /**
+   * True when the school's missing document profile was learned from a **read**
+   * (SJR R7-d), before the student asked for anything. The letter is then "not
+   * available yet" rather than a failed attempt, and no Prepare is offered.
+   */
+  setupKnownFromRead: boolean
+  /**
+   * Ask the platform, without requesting anything, whether this document is
+   * blocked on school setup. Only a `setup_required` answer changes state: every
+   * other answer belongs to `useIssuedOfficialDocuments` or to `prepare()`.
+   */
+  checkSetup: () => Promise<void>
 }
 
 /**
@@ -206,6 +218,7 @@ export function useOfficialDocument(
   const [setupRequired, setSetupRequired] = useState(false)
   const [job, setJob] = useState<OfficialDocumentJob | null>(null)
   const [historical, setHistorical] = useState(false)
+  const [setupKnownFromRead, setSetupKnownFromRead] = useState(false)
 
   const mountedRef = useRef(true)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -254,8 +267,22 @@ export function useOfficialDocument(
     [],
   )
 
+  const checkSetup = useCallback(async (): Promise<void> => {
+    try {
+      const payload = await officialDocumentService.getOfficialDocument(applicationId, documentType)
+      if (payload?.status !== 'setup_required' || !mountedRef.current) return
+      absorb(payload)
+      setSetupKnownFromRead(true)
+      setSetupRequired(true)
+    } catch {
+      // Quiet by design: a failed read leaves the surface as it was, and
+      // `prepare()` reports its own errors.
+    }
+  }, [absorb, applicationId, documentType])
+
   const reset = useCallback(() => {
     if (!mountedRef.current) return
+    setSetupKnownFromRead(false)
     setStatus(null)
     setError(null)
     setSetupRequired(false)
@@ -387,5 +414,7 @@ export function useOfficialDocument(
     openHref,
     email,
     reset,
+    setupKnownFromRead,
+    checkSetup,
   }
 }

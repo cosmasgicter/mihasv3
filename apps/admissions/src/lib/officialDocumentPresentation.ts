@@ -85,6 +85,38 @@ export const OFFICIAL_DOCUMENT_PRIORITY: readonly string[] = Object.freeze([
   'payment_receipt',
 ])
 
+/**
+ * The document types that render only from a school's document profile, so a
+ * school that has not set one up cannot produce them (SJR R7-d). Mirrors the
+ * backend's `PROFILE_REQUIRED_DOCUMENT_TYPES`; the backend read path is
+ * authoritative and the surface only asks it.
+ */
+export const PROFILE_REQUIRED_LETTER_TYPES: readonly string[] = Object.freeze([
+  'acceptance_letter',
+  'conditional_offer',
+])
+
+/**
+ * What a student reads when the school has not set a letter up (SJR R7-d, D9
+ * confirmed 2026-11-08, option C). It names no configuration, offers no retry and
+ * promises nothing the platform does not do: the school's own staff are alerted
+ * by the platform, and the student is given a way to ask.
+ *
+ * `school` is the resolved school's brand on a white-label host, else `null`.
+ */
+export function officialDocumentUnavailableMessage(
+  noun: string,
+  school: string | null,
+  { statedElsewhere = false }: { statedElsewhere?: boolean } = {},
+): string {
+  const who = school && school.trim() ? school.trim() : 'Your school'
+  const detail = `${who} is still setting it up. Check back here soon, or contact admissions.`
+  // The status sentence above the controls already says the document "isn't
+  // available yet" for the primary document; saying it twice on one card is two
+  // renderings of one fact (R16.5).
+  return statedElsewhere ? detail : `Your ${noun} isn't available yet. ${detail}`
+}
+
 export interface OfficialDocumentPresentationInput {
   /** The document types this application has, in any order. */
   readonly available: readonly string[]

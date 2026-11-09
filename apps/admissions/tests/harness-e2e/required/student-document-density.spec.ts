@@ -317,11 +317,18 @@ test('the document panel is status, then one action, then one counted sheet', as
     await expect(summary).toBeVisible();
     // SJR task 3.20 (R5-f): "ready" only for an issued document, else "can be
     // prepared now". The seeded application may or may not have an issued slip.
-    await expect(summary).toContainText(/(can be prepared now|is ready to open)/i);
+    //
+    // SJR task 5.4 (R7-d, D9 option C): this journey approves its application in a
+    // school it creates with no letter profile, so the letter, which outranks the
+    // slip and the receipt, now reads "isn't available yet" instead of "can be
+    // prepared now". The old assertion encoded the defect (a Prepare that could
+    // only fail); the state is read from the platform, never assumed.
+    await expect(summary).toContainText(/isn.t available yet/i);
 
-    // Exactly one prominent control. This is STU-05's whole sentence: the state
-    // that used to produce three equally prominent downloads plus three email
-    // affordances produces one button.
+    // No prominent control. A letter the school has not set up offers none, and
+    // the slip and receipt stay listed inside the sheet, so the surface is still
+    // not the stack of equally prominent downloads STU-05 names: it is zero
+    // buttons, not three. (Before 5.4 this was exactly one: the letter's Prepare.)
     const prominent = await panel.evaluate((root) =>
       Array.from(root.querySelectorAll('button'))
         .filter((el) => el.className.includes('bg-primary text-primary-foreground'))
@@ -329,11 +336,11 @@ test('the document panel is status, then one action, then one counted sheet', as
     );
     expect(
       prominent,
-      `exactly one prominent document control at ${viewport.label}`,
-    ).toHaveLength(1);
+      `no prominent document control at ${viewport.label} (5.4: the letter has no control)`,
+    ).toHaveLength(0);
 
     // …against the state the finding actually describes. Three documents, so
-    // "exactly one prominent control" is a real reduction rather than a surface
+    // "no stack of prominent controls" is a real reduction rather than a surface
     // that only ever had one thing to show.
     await expect(
       panel.locator('[data-testid^="official-document-"]'),
@@ -349,7 +356,11 @@ test('the document panel is status, then one action, then one counted sheet', as
     await expect(trigger).toBeVisible();
     const label = ((await trigger.textContent()) || '').trim();
     const claimed = Number(/\((\d+)\)/.exec(label)?.[1]);
-    expect(claimed, `the sheet label should carry a count (got "${label}")`).toBe(5);
+    // SJR task 5.4: four, not five. The letter the school has not set up offers no
+    // control, including no email, so the slip and the receipt (a Prepare/Open and
+    // an email each) are the only commands. The assertion below still proves the
+    // count is honest: opening the sheet yields exactly this many.
+    expect(claimed, `the sheet label should carry a count (got "${label}")`).toBe(4);
     expect(await trigger.getAttribute('aria-expanded')).toBe('false');
 
     // Before opening: the sheet's commands are not reachable, which is the point
@@ -357,8 +368,8 @@ test('the document panel is status, then one action, then one counted sheet', as
     const beforeOpen = await visibleButtons(panel).count();
     expect(
       beforeOpen,
-      `the closed panel offers the primary plus the sheet trigger at ${viewport.label}`,
-    ).toBe(2);
+      `the closed panel offers only the sheet trigger at ${viewport.label} (5.4: the letter has no control)`,
+    ).toBe(1);
 
     // The required artifact: the resting surface, which is the state STU-05 is
     // about. Taken *before* the sheet is opened, and framed on the panel so the

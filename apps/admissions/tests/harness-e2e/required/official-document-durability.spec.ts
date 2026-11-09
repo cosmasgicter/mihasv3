@@ -786,11 +786,16 @@ test('a document the school cannot issue tells the student nothing about its con
   await openApplication(page, applicant.applicationId);
   const letter = await documentAction(page, LETTER);
   await expect(letter).toBeVisible({ timeout: 30_000 });
-  await letter.getByRole('button').first().click();
-
-  const recovery = letter.locator('[role="alert"]');
-  await expect(recovery, 'the failure states itself').toBeVisible({ timeout: 60_000 });
-  await expect(recovery).toContainText(/admissions office has been notified/i);
+  // SJR task 5.4 (R7-d, D9 option C): the read already says the letter is not
+  // available yet, so there is nothing to click. The old step clicked the letter's
+  // first button and expected "the admissions office has been notified"; that
+  // button no longer exists, and the sentence would be untrue for this state,
+  // because no request is made on the student's behalf.
+  const recovery = letter.locator('[role="status"]');
+  await expect(recovery, 'the state states itself without a click').toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('document-status-summary')).toContainText(/isn.t available yet/i);
+  await expect(recovery).toContainText(/still setting it up/i);
+  await expect(letter.getByRole('button', { name: /Prepare|Try again|Retry/i })).toHaveCount(0);
   // The retired checklist, counted at zero.
   await expect(recovery).not.toContainText(/document profile/i);
   await expect(recovery).not.toContainText(/template/i);

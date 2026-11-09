@@ -10,7 +10,6 @@
  * acceptance letter is ready to download." for an approved application whatever
  * the server says, and there is no "isn't available yet" copy.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); task 5.6 removes the wrapper.
  */
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
@@ -45,7 +44,7 @@ vi.mock('@/hooks/usePortalBrand', () => ({
 const { DocumentButtons } = await import('@/components/student/DocumentButtons')
 
 describe('a letter in setup_required (clause 1.37)', () => {
-  it.fails('says it "isn\'t available yet", gives the support contact, and never says ready', async () => {
+  it('says it "isn\'t available yet", gives the support contact, and never says ready', async () => {
     render(
       <MemoryRouter>
         <DocumentButtons applicationId={APP_ID} status="approved" paymentStatus="verified" />
