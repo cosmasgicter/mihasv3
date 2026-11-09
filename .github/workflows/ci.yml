@@ -374,6 +374,11 @@ jobs:
         id: suite-unit
         run: bun run test
         working-directory: apps/admissions
+      # Unreachable-module check (platform-simplification task 3.2, R2.4-2.5):
+      # a module nothing reachable from main.tsx imports must be on the allowlist
+      # or baseline with a reason. Runs from the repository root.
+      - name: Unreachable modules
+        run: bun run ./scripts/unreferenced-modules.ts
       - name: Build
         id: suite-build
         run: bun run build

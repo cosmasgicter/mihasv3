@@ -1,0 +1,229 @@
+{
+  "description": "Modules unreachable from apps/admissions/src/main.tsx on the first run of scripts/unreferenced-modules.ts (task 3.2). Each has a reason; a stale entry fails the check. This measured list replaces the critique's heuristic count and is the input for D15 item (d).",
+  "entries": [
+    {
+      "module": "apps/admissions/src/components/8starlabs/index.ts",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/8starlabs/timeline.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (8 files, e.g. communicationsHistory.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/admin/index.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (66 files, e.g. mobileBreakpointScreenshots.spec.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/auth/index.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (44 files, e.g. simple-endpoints.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/motion/Confetti.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/navigation/BaseNavigation.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/navigation/Breadcrumbs.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. productDesignDeFluff.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/navigation/index.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (6 files, e.g. non-blocking-validation.property.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/AppShellSkeleton.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. appShellSkeleton.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/AuthLoadingOverlay.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. authPageFormMarkup.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/DataPopulationConfirmation.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/FocusTrap.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. keyboard-navigation.property.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/FormError.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. signin-page.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/FormFeedback.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/InlineLoader.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/LoadingButton.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/LoadingFallback.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/LoadingOverlay.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. authPageFormMarkup.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/LoadingSpinner.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. skeletonConsistency.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/PageLoadingFallback.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/ProgressIndicator.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (3 files, e.g. wizardProperties.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/Radio.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. ui-ux-accessibility.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/SafeHtml.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/SaveStatusIndicator.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/Spinner.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (4 files, e.g. skeletonConsistency.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/Stepper.tsx",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/form-radio-group.tsx",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. ui-ux-accessibility.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/forms/applicationSchema.ts",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/auth/useRoleVerification.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. sessionMonitor.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/queries/index.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. auth-profile-cache-fix-exploration.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/queries/useApplicationDataQueries.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. consolidation-cache-keys.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/queries/useApplicationQueries.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. errorPropagationStability.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/useApplicationSubmit.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (3 files, e.g. submissionPayload.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/useStyleInjection.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. style-injection.property.test.tsx). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/hooks/useUserManagement.ts",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/lib/__fixtures__/paymentStatusBackendMirror.ts",
+      "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
+    },
+    {
+      "module": "apps/admissions/src/lib/applicationSlip.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (3 files, e.g. uploadPathSingleSource.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/lib/applicationSlipStorage.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. uploadPathSingleSource.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/lib/applicationStats.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. applicationStats.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/lib/gradeValidation.ts",
+      "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/lib/slipService.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (6 files, e.g. test_bug5_slip_service.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
+      "reason": "Dev preview hook that no module reachable from main.tsx imports. Deletion belongs to D15 items (a) and (d), tasks 14.1 and 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts",
+      "reason": "Dev preview hook that no module reachable from main.tsx imports. Deletion belongs to D15 items (a) and (d), tasks 14.1 and 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/index.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (49 files, e.g. canonicalMultiTenantAlignment.spec.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. test_bug3_hydration_race.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. architectureEnforcement.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/utils/wizardUtils.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. sanitizeInputCanonical.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/services/csrfManager.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. architectureEnforcement.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/__fixtures__/lifecycleStatusBackendMirror.ts",
+      "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
+    },
+    {
+      "module": "apps/admissions/src/types/application.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (369 files, e.g. canonicalMultiTenantAlignment.spec.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/dashboard.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (105 files, e.g. canonicalMultiTenantAlignment.spec.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/eligibility.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (13 files, e.g. adminSchemaValidation.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/eligibilityAssessment.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (1 file, e.g. externalApiDegradation.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/errors.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (97 files, e.g. errorPropagationStability.property.test.ts). Deletion is part of D15 item (d), task 14.4."
+    },
+    {
+      "module": "apps/admissions/src/types/users.ts",
+      "reason": "No importer reachable from main.tsx; named only by tests (53 files, e.g. mobileBreakpointScreenshots.spec.ts). Deletion is part of D15 item (d), task 14.4."
+    }
+  ]
+}

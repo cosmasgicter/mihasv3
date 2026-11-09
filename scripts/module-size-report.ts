@@ -112,7 +112,7 @@ const TS_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]
 const PY_FROM = /^\s*from\s+([.\w]+)\s+import\s+/gm
 const PY_IMPORT = /^\s*import\s+([\w.]+)/gm
 
-function resolveTsSpecifier(
+export function resolveTsSpecifier(
   specifier: string,
   fromFile: string,
   known: Set<string>,
@@ -167,7 +167,7 @@ function resolvePySpecifier(specifier: string, fromFile: string, known: Set<stri
   return null
 }
 
-function collect(root: string, threshold: number): FileRecord[] {
+export function collect(root: string, threshold: number): FileRecord[] {
   const perSurface = SURFACES.map((spec) => {
     const files: string[] = []
     walk(root, spec.dir, spec, files)
@@ -1021,4 +1021,4 @@ function main(): void {
   }
 }
 
-main()
+if (import.meta.main) main()
