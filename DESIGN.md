@@ -173,7 +173,11 @@ message — never renders empty `role="alert"`)*, `EmptyState`, `FormError`,
 
 ### Auth / account
 
-`UserMenu`, `ActiveSessions`, `AuthLoadingOverlay`, `BuildVersionBadge`.
+`UserMenu`, `ActiveSessions`, `AuthLoadingOverlay`.
+
+Development diagnostics only: `BuildVersionBadge` renders on the development server
+and is removed from production builds (no badge, no `/health/live/` version
+probe). Support reads the backend version from the `X-Backend-Version` header.
 
 ### Skeletons
 

@@ -291,9 +291,11 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
           <RouteTransition mode="fade">
             {children}
           </RouteTransition>
-          <div className="px-4 pb-4 pt-2 md:px-6">
-            <BuildVersionBadge className="ml-auto w-fit" />
-          </div>
+          {import.meta.env.DEV && (
+            <div className="px-4 pb-4 pt-2 md:px-6">
+              <BuildVersionBadge className="ml-auto w-fit" />
+            </div>
+          )}
         </main>
       </div>
 

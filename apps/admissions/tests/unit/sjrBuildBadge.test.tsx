@@ -8,7 +8,7 @@
  * `/health/live/` from every visitor. Both render sites also keep a padded
  * wrapper, so gating the component alone would leave an empty band.
  *
- * Wrapped in `it.fails` (design "Marker scheme"); task 3.29 removes the wrapper.
+ * Task 3.29 fixed this; the marker was removed at checkpoint 3.30.
  */
 import { render } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
@@ -52,7 +52,7 @@ function isInsideDevBlock(source: string): boolean {
 }
 
 describe('the diagnostics badge (clause 1.43)', () => {
-  it.fails('renders nothing and requests nothing when DEV is false', () => {
+  it('renders nothing and requests nothing when DEV is false', () => {
     vi.stubEnv('DEV', false)
 
     const { container } = render(<BuildVersionBadge />)
@@ -61,11 +61,11 @@ describe('the diagnostics badge (clause 1.43)', () => {
     expect(getBackendBuildVersion).not.toHaveBeenCalled()
   })
 
-  it.fails('AppLayout renders the badge wrapper only under import.meta.env.DEV', () => {
+  it('AppLayout renders the badge wrapper only under import.meta.env.DEV', () => {
     expect(isInsideDevBlock(code('components/navigation/AppLayout.tsx'))).toBe(true)
   })
 
-  it.fails('SharedFooter renders the badge wrapper only under import.meta.env.DEV', () => {
+  it('SharedFooter renders the badge wrapper only under import.meta.env.DEV', () => {
     expect(isInsideDevBlock(code('components/layout/SharedFooter.tsx'))).toBe(true)
   })
 })

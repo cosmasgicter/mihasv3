@@ -184,9 +184,11 @@ export function SharedFooter({ className }: SharedFooterProps) {
               Beanola Technologies
             </a>
           </p>
-          <div className="mt-4 flex justify-center text-white/90">
-            <BuildVersionBadge compact className="justify-center" />
-          </div>
+          {import.meta.env.DEV && (
+            <div className="mt-4 flex justify-center text-white/90">
+              <BuildVersionBadge compact className="justify-center" />
+            </div>
+          )}
         </div>
       </div>
     </footer>
