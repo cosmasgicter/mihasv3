@@ -72,7 +72,6 @@ def _seed(world, email):
 # --- R7-a: seeded admins can decide (task 5.1) -----------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R7: fixed in task 5.1")
 def test_a_seeded_school_admin_can_review():
     world = build_tenant_world(application_status="submitted")
     admin = _seed(world, "decider@example-school.test")
@@ -90,7 +89,6 @@ def test_a_seeded_school_admin_can_review():
     assert "review" in (membership.permissions or [])
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R7: fixed in task 5.1")
 def test_a_rerun_adds_review_to_a_membership_the_old_command_created():
     world = build_tenant_world(application_status="submitted")
     admin = build_profile(role="admin")
@@ -105,7 +103,11 @@ def test_a_rerun_adds_review_to_a_membership_the_old_command_created():
 
     membership.refresh_from_db()
     assert "review" in (membership.permissions or [])
-    events = AuditLog.objects.filter(action="tenant.membership.permissions_seeded")
+    # Scoped to this membership: audit_logs is unmanaged and not flushed between
+    # tests, so a global count also sees rows other seed tests wrote (5.1).
+    events = AuditLog.objects.filter(
+        action="tenant.membership.permissions_seeded", entity_id=membership.id
+    )
     assert events.count() == 1
     assert events.first().changes.get("permissions_before") == []
 

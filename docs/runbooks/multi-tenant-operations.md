@@ -98,6 +98,17 @@ Rollback:
 - Deactivate offerings or mark institution inactive.
 - Do not delete tenant rows that already have applications or payments.
 
+### Seeded school admins can decide (SJR R7-a)
+
+`seed_school_admins` gives each seeded admin's membership the `review` permission
+by default and removes nothing, so a re-run never strips a grant an operator set
+in the admin UI. It never touches `AccessGrant` rows. Options: `--permissions`
+(comma list, default `review`), `--replace` (hold exactly that list), `--read-only`
+(grant none), `--dry-run`. Every created, reactivated or changed membership emits
+one `tenant.membership.permissions_seeded` event carrying `permissions_before` and
+`permissions_after`; to undo a run, re-run with `--replace --permissions <before>`.
+If an audit row is missing the whole run rolls back; re-run it.
+
 ## 2. Domain Setup
 
 Use when configuring a custom tenant portal domain.

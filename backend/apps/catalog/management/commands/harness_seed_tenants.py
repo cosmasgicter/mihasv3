@@ -242,6 +242,35 @@ class Command(BaseCommand):
                     defaults={"permissions": [], "is_active": True, "created_at": now},
                 )
 
+                # R7-a: a separate staff account that can decide (``review``), added
+                # through the same additive rule as ``seed_school_admins``. The
+                # ``admin@`` accounts above stay read-only on purpose: harness
+                # isolation specs rely on them.
+                decider_email = f"decider@{spec['slug']}.localhost"
+                decider = Profile.objects.filter(email__iexact=decider_email).first()
+                if decider is None:
+                    decider = Profile(email=decider_email, created_at=now)
+                decider.role = "admin"
+                decider.is_active = True
+                decider.email_verified = True
+                decider.first_name = spec["code"]
+                decider.last_name = "Decider"
+                decider.full_name = f"{spec['code']} Decider"
+                decider.password_hash = hash_password(password)
+                decider.password_changed_at = now
+                decider.updated_at = now
+                decider.save()
+                outcome = seed_membership(
+                    user=decider,
+                    institution=institution,
+                    role="admin",
+                    requested=["review"],
+                    mode="add",
+                    source="harness_seed_tenants",
+                    run_id=run_id,
+                    now=now,
+                )
+                seeded_changes += 1 if outcome.changed else 0
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"seeded tenant {spec['code']} -> {spec['hostname']} "
@@ -249,4 +278,5 @@ class Command(BaseCommand):
                     )
                 )
 
+            assert_audit_rows_recorded(run_id, seeded_changes)
         self.stdout.write(self.style.SUCCESS("harness_seed_tenants complete (2 tenants, 1 shared canonical program)"))

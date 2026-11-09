@@ -393,6 +393,12 @@ on this surface contains an email address.
 
 ### Admin review workspace contract (Admissions V2 task 9.4, R8.2-R8.5/R8.7/R11.3)
 
+> SJR R7-a: seeded school admins hold `tenant.application.review` by default
+> (`seed_school_admins` adds the `review` membership permission, additively, via
+> `_seed_memberships.py:seed_membership_permissions`; `--read-only` opts out).
+> SJR R7-c: the review command requires at least one condition for
+> `conditionally_approved` (`NO_CONDITIONS_PROVIDED`).
+
 **One read, and one versioned command per decision.** Opening an application in
 the admin workspace used to issue six requests plus a seventh for a model
 (`/details/`, `/documents/`, `/grades/`, `/summary/`, `/interviews/`,
