@@ -272,3 +272,17 @@ def test_harness_seed_adds_a_decider_and_leaves_admin_read_only():
     before = _events().count()
     call_command("harness_seed_tenants", tenant_admin_password=PASSWORD, stdout=io.StringIO())
     assert _events().count() == before
+
+
+def test_harness_seed_gives_each_offering_validated_letter_profiles():
+    from apps.catalog.models import InstitutionDocumentProfile, Program
+
+    call_command("harness_seed_tenants", tenant_admin_password=PASSWORD, stdout=io.StringIO())
+    call_command("harness_seed_tenants", tenant_admin_password=PASSWORD, stdout=io.StringIO())
+    for offering in Program.objects.filter(institution__code__in=["MIHAS", "KATC"]):
+        for letter in ("acceptance_letter", "conditional_offer"):
+            rows = InstitutionDocumentProfile.objects.filter(
+                institution=offering.institution, program=offering, document_type=letter, is_active=True
+            )
+            assert rows.count() == 1
+            assert "(example)" in rows.first().signatory["name"]

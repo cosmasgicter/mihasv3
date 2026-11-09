@@ -77,6 +77,11 @@ from apps.accounts.permissions import IsOwnerOrAdmin, is_super_admin
 from apps.applications import official_document_jobs as jobs
 from apps.common.metrics import emit_metric
 from apps.applications.models import Application
+from apps.applications.tasks.pdf.render_context import (
+    DOCUMENT_PROFILE_NOT_CONFIGURED,
+    PROFILE_REQUIRED_DOCUMENT_TYPES,
+    has_active_document_profile,
+)
 from apps.applications.tasks.pdf_generation import (
     DOCUMENT_CONFIG as _RENDERER_DOCUMENT_CONFIG,
     _current_official_version,
@@ -532,6 +537,26 @@ def _generation_status(
             is_staff=is_staff,
         )
 
+    # SJR R7-d (D9 confirmed 2026-11-08, option C): a profile-required letter the
+    # school has not set up is not "not requested" - that offered the student a
+    # Prepare action that can only fail. Ask the renderer's own resolution, and only
+    # for a letter the application is in a state to receive, so the list does not
+    # report a missing letter for every application of a tenant with no profile.
+    if (
+        document_type in PROFILE_REQUIRED_DOCUMENT_TYPES
+        and _student_gate_open(document_type, application)
+        and not has_active_document_profile(application, document_type)
+    ):
+        emit_metric("official_document.setup_required_read", document_type=document_type)
+        return _build_envelope(
+            application,
+            document_type,
+            document=None,
+            status_value=STATUS_SETUP_REQUIRED,
+            error_code=DOCUMENT_PROFILE_NOT_CONFIGURED,
+            job=job,
+            is_staff=is_staff,
+        )
     return _build_envelope(
         application,
         document_type,

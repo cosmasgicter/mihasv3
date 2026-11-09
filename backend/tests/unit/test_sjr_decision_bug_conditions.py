@@ -137,7 +137,6 @@ def test_conditionally_approved_without_conditions_is_refused():
 # --- R7-d: letters without a profile (task 5.4) ----------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SJR R7: fixed in task 5.4")
 def test_a_letter_for_a_tenant_with_no_profile_is_setup_required():
     world = build_tenant_world(application_status="approved")
 

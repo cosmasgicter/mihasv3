@@ -66,6 +66,42 @@ TENANTS = [
 ]
 
 
+LETTER_PROFILE_TYPES = ("acceptance_letter", "conditional_offer")
+
+
+def _letter_profile_payload(letter_type: str, school_name: str) -> dict:
+    """A clearly fictional letter profile for the harness (never a real school's)."""
+    return {
+        "sections": {
+            "body": (
+                "Dear {{student_name}},\n\n"
+                "This is an example "
+                + ("conditional offer" if letter_type == "conditional_offer" else "acceptance letter")
+                + " for {{program}} at {{institution}}, {{intake}}. It is sample content "
+                "for automated testing."
+            ),
+            "notes": "Example notes for automated testing only.",
+        },
+        "fee_chart": [
+            {"item": "Application fee (example)", "amount": 153, "cadence": "Once off", "account": "0000000000"},
+        ],
+        "bank_accounts": [
+            {
+                "label": "Example account",
+                "account_name": f"{school_name} (example)",
+                "account_number": "0000000000",
+                "bank_name": "Example Bank",
+                "branch": "Example Branch",
+                "branch_code": "000",
+                "swift_code": "EXAMPLEXX",
+                "sort_code": "000000",
+            }
+        ],
+        "requirements": ["Original ID document (example)"],
+        "signatory": {"name": "Admissions Registrar (example)", "role": "Admissions Registrar"},
+    }
+
+
 class Command(BaseCommand):
     help = "Seed two same-shaped example tenants (MIHAS + KATC) with active domains for the harness."
 
@@ -106,12 +142,14 @@ class Command(BaseCommand):
         from apps.catalog.models import (
             CanonicalProgram,
             Institution,
+            InstitutionDocumentProfile,
             InstitutionDomain,
             Intake,
             Program,
             ProgramIntake,
             UserInstitutionMembership,
         )
+        from apps.catalog.services import validate_profile_payload
 
         from ._seed_memberships import (
             assert_audit_rows_recorded,
@@ -188,6 +226,33 @@ class Command(BaseCommand):
                     },
                 )
 
+                # R7-d (D9 option C): letters render only from a tenant profile, so the
+                # harness gives every seeded offering fictional, validated letter
+                # profiles. Without them a decided application would correctly read
+                # "not available yet" instead of producing a letter.
+                for letter_type in LETTER_PROFILE_TYPES:
+                    payload = _letter_profile_payload(letter_type, spec["name"])
+                    validate_profile_payload(
+                        sections=payload["sections"],
+                        fee_chart=payload["fee_chart"],
+                        bank_accounts=payload["bank_accounts"],
+                        requirements=payload["requirements"],
+                    )
+                    InstitutionDocumentProfile.objects.get_or_create(
+                        institution=institution,
+                        document_type=letter_type,
+                        program=offering,
+                        canonical_program=None,
+                        intake=None,
+                        version=1,
+                        defaults={
+                            "layout_key": "fee_chart_letter",
+                            "signatory": payload["signatory"],
+                            "is_active": True,
+                            "created_at": now,
+                            **payload,
+                        },
+                    )
                 # The canonical fee authority is ``program_fees`` (FeeResolver), not
                 # ``programs.application_fee``. ``get_or_create`` matches any row an
                 # API-configured harness already added, so this never duplicates it.

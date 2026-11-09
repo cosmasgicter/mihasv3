@@ -15,8 +15,11 @@ status (``DOCUMENT_PROFILE_NOT_CONFIGURED``); 15.1 only surfaces the signal via
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Stable error code for the no-profile failure (canonical catalogue lives in
 # ``apps.common.error_codes`` — kept here as a module-level constant so the
@@ -92,6 +95,37 @@ class RenderContext:
     @property
     def institution_name(self):
         return (self.tenant or {}).get("name")
+
+
+def _resolve_profile(application, document_type: str):
+    """The one profile resolution: the renderer and the read path both use it.
+
+    Returns the most-specific active ``InstitutionDocumentProfile`` or ``None``.
+    A resolution error fails closed to ``None`` (no profile) and logs at ERROR
+    with ids only, so the read path and the renderer cannot disagree.
+    """
+    try:
+        from apps.catalog.services import InstitutionDocumentProfileService
+
+        return InstitutionDocumentProfileService().resolve(application, document_type)
+    except Exception as exc:  # pragma: no cover - resolver must never break the render seam
+        logger.error(
+            "document profile resolution failed application=%s document_type=%s error=%s",
+            getattr(application, "id", None),
+            document_type,
+            type(exc).__name__,
+        )
+        return None
+
+
+def has_active_document_profile(application, document_type: str) -> bool:
+    """Whether an active tenant document profile resolves (SJR R7-d, D9 option C).
+
+    Uses the same resolution as ``RenderContext.has_profile``. The read path asks
+    this before offering a profile-required letter, so a student is not offered a
+    Prepare action that can only fail.
+    """
+    return _resolve_profile(application, document_type) is not None
 
 
 def build_render_context(application, document_type: str, *, payment=None) -> RenderContext:
