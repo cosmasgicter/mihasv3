@@ -202,8 +202,17 @@ test('student registers, uploads, reopens a document after expiry, submits and d
     const slip = page.getByTestId('official-document-application_slip');
     await expect(slip).toBeVisible({ timeout: 60_000 });
     const prepare = slip.getByRole('button', { name: /Prepare/ });
-    if (await prepare.count()) await prepare.click();
     const open = slip.getByRole('link', { name: /^Open/ });
+    // The slip may already be generating after submission: the control then
+    // reads "Preparing…" and is disabled until it turns into "Open". Click
+    // Prepare only when it is an enabled action; "Open" must appear either way.
+    await expect(prepare.or(open).first()).toBeVisible({ timeout: 60_000 });
+    if ((await prepare.isVisible()) && (await prepare.isEnabled())) {
+      await prepare.click({ timeout: 5_000 }).catch(async (error) => {
+        // Swapped for "Open" (or went busy) between the check and the click.
+        if ((await prepare.isVisible()) && (await prepare.isEnabled())) throw error;
+      });
+    }
     await expect(open).toBeVisible({ timeout: 90_000 });
     const opened = await openInPopup(context, open, STORAGE_ORIGIN);
     expect(opened.status, 'slip popup').toBe(200);
