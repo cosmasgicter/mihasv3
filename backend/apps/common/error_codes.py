@@ -254,6 +254,11 @@ ERROR_CODES.update({
         "message": "At least one condition must be provided",
         "category": "application",
     },
+    "TOO_MANY_CONDITIONS": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Too many conditions on one offer",
+        "category": "application",
+    },
     "MISSING_DESCRIPTION": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Description is required",

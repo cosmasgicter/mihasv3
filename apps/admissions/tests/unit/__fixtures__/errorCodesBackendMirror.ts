@@ -77,6 +77,7 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   NOT_WAITLISTED: { http_status: 400, message: 'Application is not in waitlisted status', category: 'application' },
   INVALID_STATUS_FOR_CONDITIONS: { http_status: 400, message: 'Conditions cannot be set for this application status', category: 'application' },
   NO_CONDITIONS_PROVIDED: { http_status: 400, message: 'At least one condition must be provided', category: 'application' },
+  TOO_MANY_CONDITIONS: { http_status: 400, message: 'Too many conditions on one offer', category: 'application' },
   MISSING_DESCRIPTION: { http_status: 400, message: 'Description is required', category: 'application' },
   MISSING_DEADLINE: { http_status: 400, message: 'Deadline is required', category: 'application' },
   INVALID_CONDITION_TYPE: { http_status: 400, message: 'Invalid condition type', category: 'application' },

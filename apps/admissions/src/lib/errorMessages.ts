@@ -111,6 +111,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   NOT_WAITLISTED: 'Application is not in waitlisted status.',
   INVALID_STATUS_FOR_CONDITIONS: 'Conditions cannot be set for this application status.',
   NO_CONDITIONS_PROVIDED: 'At least one condition must be provided.',
+  TOO_MANY_CONDITIONS: 'An offer can carry at most 10 conditions.',
   MISSING_DESCRIPTION: 'Description is required.',
   MISSING_DEADLINE: 'Deadline is required.',
   INVALID_CONDITION_TYPE: 'Invalid condition type.',
