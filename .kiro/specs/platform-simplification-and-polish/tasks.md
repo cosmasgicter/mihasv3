@@ -386,56 +386,56 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path, under option B: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Options A and C change nothing production serves.
     - _Requirements: 2.7, 2.9, 6.5_
 
-- [ ] 14. Removals the critique did not number (D15)
-  - [ ] 14.1 [Decision D15 confirmed 2026-11-08 (remove)] Remove the dev-only `@react-pdf` stack (item a)
+- [x] 14. Removals the critique did not number (D15)
+  - [x] 14.1 [Decision D15 confirmed 2026-11-08 (remove)] Remove the dev-only `@react-pdf` stack (item a)
     - Delete `apps/admissions/src/lib/pdf/`, the dev preview pages that import it, its fonts, PNGs and 12 test files, the `@react-pdf/renderer` dependency, and the PDF chunk smoke step with `scripts/check-pdf-chunk-load.mjs`.
     - Rewrite `DESIGN.md` §2 "Print / PDF" to describe the backend renderers, and update `documentFlowDriftGuard.test.ts`'s file list while keeping its rule.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.2 [Decision D15 confirmed 2026-11-08 (remove)] Remove the draft compatibility endpoint and `saveDraft` (item b)
+  - [x] 14.2 [Decision D15 confirmed 2026-11-08 (remove)] Remove the draft compatibility endpoint and `saveDraft` (item b)
     - Remove `ApplicationDraftView` (`backend/apps/applications/urls.py:86`) and `applicationService.saveDraft`.
     - Update the truth map's "Compatibility draft payload" row. Keep the model and table.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: `/api/v1/applications/draft/` answers 404.
     - _Requirements: 2.8, 2.9, 2.10_
 
-  - [ ] 14.3 [Decision D15 confirmed 2026-11-08 (remove)] Remove the `applications/views.py` shim (item c)
+  - [x] 14.3 [Decision D15 confirmed 2026-11-08 (remove)] Remove the `applications/views.py` shim (item c)
     - Repoint the test imports and `patch()` targets listed in task 8.3 to the split modules, run the backend suite, then delete `backend/apps/applications/views.py`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: none expected; at HEAD only tests import the shim.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.4 [Decision D15 confirmed 2026-11-08 (remove)] Remove modules with no product importer (item d)
+  - [x] 14.4 [Decision D15 confirmed 2026-11-08 (remove)] Remove modules with no product importer (item d)
     - Delete the confirmed modules from task 8.3's list, with their tests, and delete their entries from the unreachable-module baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.5 [Decision D15 confirmed 2026-11-08 (remove)] Remove the placeholder apps (item e)
+  - [x] 14.5 [Decision D15 confirmed 2026-11-08 (remove)] Remove the placeholder apps (item e)
     - Delete `apps/website/` and `apps/student-portal/`, refresh `bun.lock`, and remove their rows from `structure.md` and `product.md`.
     - In the same change, remove the two lines that copy their `package.json` into the frontend image's build stage (`apps/admissions/Dockerfile:23-24`).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: none on what is served, but without the Dockerfile change the image build of the next Deploy run fails.
     - _Requirements: 2.8, 2.9_
 
-  - [ ] 14.6 [Decision D15 confirmed 2026-11-08 (remove)] Remove the agent hub (item f)
+  - [x] 14.6 [Decision D15 confirmed 2026-11-08 (remove)] Remove the agent hub (item f)
     - Delete `scripts/agenthub/`, `.agenthub/`, their five unit-test files and the integration smoke test.
     - _Requirements: 4.8_
 
-  - [ ] 14.7 [Decision D15 confirmed 2026-11-08 (remove)] Remove the stray root entries (item g)
+  - [x] 14.7 [Decision D15 confirmed 2026-11-08 (remove)] Remove the stray root entries (item g)
     - `git rm` the files `=== schema hash (sha256 of regenerated OpenAPI) ===` and `⚠️`, and `rmdir` the empty untracked directories `=== candidate commit ===/` and `echo/`.
     - _Requirements: 4.8_
 
-  - [ ] 14.8 [Decision D15 confirmed 2026-11-08 (remove)] Remove `keep_alive_task` (item h)
+  - [x] 14.8 [Decision D15 confirmed 2026-11-08 (remove)] Remove `keep_alive_task` (item h)
     - Remove the beat entry (`base.py:185-188`), the task function, `KEEP_ALIVE_URL`, their tests and the steering row. Task 4.4's drift guard must stay green.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: production's beat stops pinging its own health endpoint every 4 minutes.
     - _Requirements: 9.3_
 
-  - [ ] 14.9 [Decision D15 confirmed 2026-11-08 (remove)] Remove the unused upload paths (item i)
+  - [x] 14.9 [Decision D15 confirmed 2026-11-08 (remove)] Remove the unused upload paths (item i)
     - Delete the dead upload paths that task 8.3 took from Spec A's frozen list (design §2): `documentService.upload`, `useWizardFileUploads` and its barrel export, the `startUpload` callback of `useApplicationFileUploads` with `uploadApplicationFile` and `downloadFile` in `lib/storage.ts`, and `lib/applicationSlipStorage.ts` with `lib/slipService.ts`. Keep every other export that has a caller, checked with `git grep` for each name. Requirement 22.12's guard tests (`test_required_documents_contract.py`, `test_required_documents_contract_7_2.py`, `test_document_evidence_compensation_7_3.py`, `requiredDocumentsDrift.test.ts`) pass unchanged.
     - Remove the deleted entries from the frozen list in `apps/admissions/tests/unit/uploadPathSingleSource.test.ts` in the same change, and keep the guard.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 2.8, 2.9, 22.12_
 
-- [ ] 15. Vendored skills (D6)
-  - [ ] 15.1 [Decision D6 confirmed 2026-11-08 (option B)] Prune the skills to the confirmed keep-list
+- [x] 15. Vendored skills (D6)
+  - [x] 15.1 [Decision D6 confirmed 2026-11-08 (option B)] Prune the skills to the confirmed keep-list
     - Option B, skill by skill (design §4):
       - keep exactly one real copy of each kept skill. If `.kiro/skills/<name>` is a symlink, its content stays in `.agents/skills/<name>`, or moves into `.kiro/skills/<name>` with the symlink removed in the same commit. Never delete a directory that a kept entry resolves to;
       - delete `ui-ux-pro-max`'s second real copy in `.agents/skills/`;
@@ -446,7 +446,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Option C: move every skill to the confirmed location first, then update every steering path.
     - _Requirements: 4.6, 4.7_
 
-  - [ ] 15.2 [Decision D6 confirmed 2026-11-08 (option B)] Record the skill set in the steering
+  - [x] 15.2 [Decision D6 confirmed 2026-11-08 (option B)] Record the skill set in the steering
     - Update `design-skills.md`, `engineering-skills.md` and `.agents/AGENTS.md` §3 to the kept set and its location.
     - _Requirements: 4.6, 6.1_
 
@@ -465,7 +465,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - _Requirements: 5.1, 5.3, 5.4_
 
 - [ ] 17. Capability catalogue (D3)
-  - [ ] 17.1 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 (its tasks 3 to 5) is merged] Remove `platform.user.create_global` (option B)
+  - [x] 17.1 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 (its tasks 3 to 5) is merged] Remove `platform.user.create_global` (option B)
     - Remove it from `PLATFORM_CAPABILITIES`, and update every file in its update set from task 8.1 in the same commit: at HEAD `scripts/authority_matrix_registry.py`, `scripts/authority_matrix_v2.py`, `backend/tests/perf_baseline/fixtures/admin_scope.json`, the truth map and `docs/tenant-admin-super-admin-permissions-plan.md`, plus `enterprise-tenancy.md`'s capability list. Then run `test_capability_endpoint_shape.py`, `test_capability_self_description_m3.py` and the derivation property tests.
     - Add the regression test that a grant naming a removed capability grants nothing and raises nothing (design §8).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
@@ -481,8 +481,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.4, 8.5, 8.6, 22.1_
 
-- [ ] 18. OCR opt-in (D4)
-  - [ ] 18.1 [Decision D4 confirmed 2026-11-08 (option B)] Add the OCR policy and the backend gate (option B)
+- [x] 18. OCR opt-in (D4)
+  - [x] 18.1 [Decision D4 confirmed 2026-11-08 (option B)] Add the OCR policy and the backend gate (option B)
     - Create `backend/apps/documents/ocr_policy.py`.
     - Add the 409 `OCR_NOT_ENABLED` branch to `DocumentExtractView.post`, after the scoped authorization, and the run-time re-check in `extract_document_text_task`. Upload validation and its staged write order are untouched (Requirement 22.12); the extract endpoint changes nothing before the staged write.
     - Add the opt-in command (design §11): `GET` and `PUT /api/v1/admin/documents/ocr-opt-in/` in a new `ocr_opt_in_views.py`, gated by `HasPlatformCapability` with `required_capability = "platform.settings.manage"`, validating the body, and writing the row and a `TenantAuditService.record_event` in one transaction. The event uses `action="settings.change"` (a new `ACTION_SETTINGS_CHANGED` constant), `entity_type="setting"`, `entity_id` set to the setting row's UUID (never the key, which `_coerce_uuid` would store as `NULL`), `actor_id=getattr(request.user, "id", None)`, `actor_role=getattr(request.user, "role", None)`, and the key with the ids before and after in its metadata. Register the route in `scripts/authority_matrix_registry.py` with `audit_event="settings.change"` and in `scripts/route-consumers.json`, and show the call in `docs/runbooks/multi-tenant-operations.md` with a placeholder origin, `$API_ORIGIN/api/v1/admin/documents/ocr-opt-in/`, and no host name (Requirement 6.6).
@@ -492,31 +492,31 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the extract endpoint refuses every institution that has not opted in, which at first is every institution. Merge it together with task 18.2, so the wizard that stops calling the endpoint ships in the same Deploy run.
     - _Requirements: 6.6, 11.2, 11.4, 11.5, 22.1, 22.9, 22.12_
 
-  - [ ] 18.2 [Decision D4 confirmed 2026-11-08 (option B)] Publish OCR availability and stop polling where it is off
+  - [x] 18.2 [Decision D4 confirmed 2026-11-08 (option B)] Publish OCR availability and stop polling where it is off
     - Add `ocr_available` to the required-documents contract and its client type, regenerate the types, and add a drift guard.
     - Make the wizard call extract and poll only when `ocr_available` is true, and render the manual grade form first on every tenant.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy, together with task 18.1.
     - _Requirements: 11.1, 11.3, 11.5, 11.6_
 
-  - [ ] 18.3 [Decision D4 confirmed 2026-11-08 (option B)] Write the OCR property test and update the docs
+  - [x] 18.3 [Decision D4 confirmed 2026-11-08 (option B)] Write the OCR property test and update the docs
     - **Property 9: OCR runs only for opted-in institutions**
     - **Validates: Requirements 11.2**
     - Test in `backend/tests/property/test_platform_simplification_properties.py` using hypothesis.
     - Update the tech steering's "Generative AI Boundary" table and `docs/ai-data-flows.md` to describe the opt-in.
 
-- [ ] 19. Email verification stance (D8)
-  - [ ] 19.1 [Decision D8 confirmed 2026-11-08 (option B)] Write the decided email-verification wording
+- [x] 19. Email verification stance (D8)
+  - [x] 19.1 [Decision D8 confirmed 2026-11-08 (option B)] Write the decided email-verification wording
     - Option B: state in `product.md`, `tech.md` and `docs/canonical-truth-map.md` that email verification is not part of the flow by decision D8, and point to `backend/apps/common/email_links.py`'s existing note.
     - Option A: record that it needs its own spec, and change nothing else.
     - _Requirements: 6.1, 6.5_
 
-- [ ] 20. Spec relationships (D12)
-  - [ ] 20.1 [Decision D12 confirmed 2026-11-08 (two specs; Spec B supersedes `student-ui-ux-mobile-remediation`)] Record the decided spec relationships
+- [x] 20. Spec relationships (D12)
+  - [x] 20.1 [Decision D12 confirmed 2026-11-08 (two specs; Spec B supersedes `student-ui-ux-mobile-remediation`)] Record the decided spec relationships
     - Lean: register this spec in the canonical truth map's spec section as superseding `student-ui-ux-mobile-remediation` for the student surfaces, and list the record-only overlaps. Keep `spec-status-exceptions.json` in step.
     - Edit none of the four D12 specs.
     - _Requirements: 6.3, 22.10, 22.11_
 
-- [ ] 21. Checkpoint: P1 exit
+- [x] 21. Checkpoint: P1 exit
   - The Documented_Local_Stack passes the Journey_Gate (task 11.1); the routes-versus-callers and doc-path checks are green; the test database is built from SQL and `-n 6` is green.
   - List every P1 task that still waits on a prerequisite or an open decision: task 6.8 and tasks 16.1 and 16.2 until a live production host exists (D14), task 12.1's webhook step until D1.b is answered, tasks 17.1 to 17.3 until Spec A's P0 is merged (and 17.2 until the D3 and D5 conflict is answered, 17.3 until the merge table is approved), and task 11.2 until the operator has dropped `local-stack-storage` from the required checks. State that Requirement 7.2's production comparison is open until task 6.8 runs.
   - Ask the user if questions arise.
