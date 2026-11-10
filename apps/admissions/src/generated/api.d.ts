@@ -7454,7 +7454,7 @@ export interface components {
             readonly creator: components["schemas"]["PlatformMetaCreator"];
             readonly developer: components["schemas"]["PlatformMetaDeveloper"];
             readonly api_version: string;
-            readonly status: string;
+            readonly features: components["schemas"]["PlatformMetaFeatures"];
         };
         readonly PlatformMetaCreator: {
             readonly name: string;
@@ -7463,6 +7463,9 @@ export interface components {
             readonly name: string;
             /** Format: uri */
             readonly url: string;
+        };
+        readonly PlatformMetaFeatures: {
+            readonly jobs_ops: boolean;
         };
         readonly PlatformMetaResponse: {
             readonly data: components["schemas"]["PlatformMeta"];

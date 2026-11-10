@@ -133,6 +133,7 @@ def test_runtime_meta_endpoint_reports_distinct_api_version():
     payload = response.data
     assert payload["api_version"] == API_MAJOR_LABEL
     assert payload["api_version"] != PRODUCT_VERSION
+    assert "status" not in payload
 
 
 # --------------------------------------------------------------------------- #

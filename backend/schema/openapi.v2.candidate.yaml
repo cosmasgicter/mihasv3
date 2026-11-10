@@ -21948,14 +21948,14 @@ components:
           $ref: '#/components/schemas/PlatformMetaDeveloper'
         api_version:
           type: string
-        status:
-          type: string
+        features:
+          $ref: '#/components/schemas/PlatformMetaFeatures'
       required:
       - api_version
       - creator
       - developer
+      - features
       - product
-      - status
     PlatformMetaCreator:
       type: object
       properties:
@@ -21974,6 +21974,13 @@ components:
       required:
       - name
       - url
+    PlatformMetaFeatures:
+      type: object
+      properties:
+        jobs_ops:
+          type: boolean
+      required:
+      - jobs_ops
     PlatformMetaResponse:
       type: object
       properties:

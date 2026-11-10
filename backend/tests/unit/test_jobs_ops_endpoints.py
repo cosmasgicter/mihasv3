@@ -49,6 +49,8 @@ class JobsOpsEndpointTests(SimpleTestCase):
         self.assertEqual(payload["creator"]["name"], "Cosmas Kanchepa")
         self.assertEqual(payload["developer"]["name"], "Beanola Technologies")
         self.assertEqual(payload["developer"]["url"], "https://beanola.com")
+        self.assertEqual(payload["features"], {"jobs_ops": True})
+        self.assertNotIn("status", payload)
 
     def test_jobs_list_is_public_and_returns_seeded_results(self):
         response = self.client.get("/api/v1/jobs/")

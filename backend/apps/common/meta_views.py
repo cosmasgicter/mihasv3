@@ -1,5 +1,6 @@
 """Platform metadata endpoint."""
 
+from django.conf import settings
 from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny
@@ -25,7 +26,10 @@ PlatformMetaSerializer = inline_serializer(
             },
         ),
         "api_version": serializers.CharField(),
-        "status": serializers.CharField(),
+        "features": inline_serializer(
+            name="PlatformMetaFeaturesSerializer",
+            fields={"jobs_ops": serializers.BooleanField()},
+        ),
     },
 )
 
@@ -44,10 +48,10 @@ class PlatformMetaView(APIView):
                 "creator": {"name": "Cosmas Kanchepa"},
                 "developer": {"name": "Beanola Technologies", "url": "https://beanola.com"},
                 "api_version": "v1",
-                "status": "production_ready",
+                "features": {"jobs_ops": bool(settings.ENABLE_JOBS_OPS_ROUTES)},
             }
         )
-        # This payload is a static dict with zero database access — safe to
+        # This payload is configuration only with zero database access — safe to
         # cache at any intermediary (CDN, browser) that respects the header.
         # Added 2026-07-11 (full-platform-remediation-2026-07, R4.2) so a
         # future CDN/edge cache in front of Caddy can serve this without any
