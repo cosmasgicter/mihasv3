@@ -332,9 +332,9 @@ export function ApplicationDetailModal({
                       <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                         <div className="flex items-center gap-3">
                           {workspace.status === 'approved' ? (
-                            <CheckCircle className="h-5 w-5 text-accent" />
+                            <CheckCircle className="h-5 w-5 text-accent-foreground" />
                           ) : workspace.status === 'under_review' ? (
-                            <Eye className="h-5 w-5 text-accent" />
+                            <Eye className="h-5 w-5 text-accent-foreground" />
                           ) : workspace.status === 'submitted' ? (
                             <AlertCircle className="h-5 w-5 text-primary" />
                           ) : (
@@ -351,7 +351,7 @@ export function ApplicationDetailModal({
 
                       <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                         <div className="flex items-center gap-3">
-                          <CreditCard className="h-5 w-5 text-accent" />
+                          <CreditCard className="h-5 w-5 text-accent-foreground" />
                           <div>
                             <p className="text-sm font-medium text-foreground">Payment Status</p>
                             <p className="text-lg font-bold text-foreground">

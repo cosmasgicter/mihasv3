@@ -18,7 +18,7 @@ function getPaymentIcon(status: string) {
   switch (normalizePaymentStatus(status)) {
     case 'not_paid': return <Clock className="h-5 w-5 text-muted-foreground" />
     case 'pending_review': return <Clock className="h-5 w-5 text-orange-700" />
-    case 'verified': return <CheckCircle className="h-5 w-5 text-accent" />
+    case 'verified': return <CheckCircle className="h-5 w-5 text-accent-foreground" />
     case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
     case 'deferred': return <AlertTriangle className="h-5 w-5 text-amber-600" />
     default: return <Clock className="h-5 w-5 text-muted-foreground" />

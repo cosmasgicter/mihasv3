@@ -190,7 +190,7 @@ function ConfirmAlertDialog({
     warning: {
       headerBg: 'bg-accent/5',
       iconBg: 'bg-warning/10',
-      iconColor: 'text-accent',
+      iconColor: 'text-accent-foreground',
       buttonVariant: 'primary' as const
     },
     info: {

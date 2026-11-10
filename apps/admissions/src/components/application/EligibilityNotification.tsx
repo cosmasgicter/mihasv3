@@ -22,9 +22,9 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           {eligible ? (
-            <CheckCircle className="h-5 w-5 text-accent" />
+            <CheckCircle className="h-5 w-5 text-accent-foreground" />
           ) : (
-            <AlertTriangle className="h-5 w-5 text-accent" />
+            <AlertTriangle className="h-5 w-5 text-accent-foreground" />
           )}
         </div>
         
@@ -50,7 +50,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           </div>
           
           <p className={`text-sm mb-2 ${
-            eligible ? 'text-accent' : 'text-yellow-700'
+            eligible ? 'text-accent-foreground' : 'text-yellow-700'
           }`}>
             {message}
           </p>

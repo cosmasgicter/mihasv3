@@ -260,7 +260,7 @@ export default function AdminSettings() {
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert" aria-live="assertive">{state.error}</div>
           ) : null}
           {state.success ? (
-            <div className="rounded-lg border border-accent/30 bg-accent/10 p-4 text-accent" role="status" aria-live="polite">{state.success}</div>
+            <div className="rounded-lg border border-accent/30 bg-accent/10 p-4 text-accent-foreground" role="status" aria-live="polite">{state.success}</div>
           ) : null}
 
           {loading ? (

@@ -55,7 +55,7 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
                 status === 'under_review' ? 'bg-blue-100' :
                 'bg-primary/10'
               }`}>
-                {status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent" /> :
+                {status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent-foreground" /> :
                   status === 'rejected' ? <XCircle className="h-4 w-4 text-destructive" /> :
                   status === 'under_review' ? <Eye className="h-4 w-4 text-primary" /> :
                   <Clock className="h-4 w-4 text-primary" />}

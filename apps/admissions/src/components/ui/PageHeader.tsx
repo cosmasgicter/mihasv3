@@ -33,7 +33,7 @@ const statAccentStyles: Record<StatAccent, string> = {
  primary: 'bg-primary/5 border-primary/30 text-primary',
  secondary: 'bg-secondary/5 border-input/30 text-secondary-foreground',
  success: 'bg-success/10 border-success/30 text-success',
- warning: 'bg-warning/10 border-warning/30 text-accent',
+ warning: 'bg-warning/10 border-warning/30 text-accent-foreground',
  neutral: 'bg-muted border-border text-foreground'
 }
 

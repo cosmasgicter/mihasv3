@@ -10,9 +10,9 @@ interface ApplicationDetailHeaderProps {
 
 function getStatusIcon(status: string) {
   switch (status) {
-    case 'approved': return <CheckCircle className="h-5 w-5 text-accent" />
+    case 'approved': return <CheckCircle className="h-5 w-5 text-accent-foreground" />
     case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
-    case 'under_review': return <Eye className="h-5 w-5 text-accent" />
+    case 'under_review': return <Eye className="h-5 w-5 text-accent-foreground" />
     case 'submitted': return <AlertCircle className="h-5 w-5 text-primary" />
     default: return <Clock className="h-5 w-5 text-foreground" />
   }
