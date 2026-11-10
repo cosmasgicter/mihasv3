@@ -34,6 +34,8 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+
+from apps.common.local_database import require_local_database
 from django.utils import timezone
 
 CANONICAL_PROGRAM = {
@@ -114,20 +116,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **opts):
-        if (
-            os.environ.get("DJANGO_SETTINGS_MODULE", "").endswith(".prod")
-            or os.environ.get("ENVIRONMENT", "").lower() == "production"
-        ):
-            raise CommandError(
-                "harness_seed_tenants refuses to run under production settings."
-            )
-        db_url = os.environ.get("DATABASE_URL", "")
-        for danger in ("neon.tech", "amazonaws.com", "rds.", "beanola.com"):
-            if danger in db_url:
-                raise CommandError(
-                    f"harness_seed_tenants refuses to run: DATABASE_URL points at a "
-                    f"non-local host ({danger!r})."
-                )
+        # Allowlist, first: production settings and any non-local host are refused
+        # (task 6.6, R1.5). This absorbs Spec A's production-settings refusal.
+        require_local_database("harness_seed_tenants")
 
         password = opts.get("tenant_admin_password")
         if not password:
