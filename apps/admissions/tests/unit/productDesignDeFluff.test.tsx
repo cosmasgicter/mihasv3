@@ -286,7 +286,10 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
   })
 
   it('navigation names no AI page', () => {
-    const code = readCode('src/components/navigation/Breadcrumbs.tsx')
+    // Breadcrumbs.tsx (no importer) was removed by platform-simplification task
+    // 14.4; the navigation that renders is tenantNav.ts.
+    expect(existsSync(resolve(process.cwd(), 'src/components/navigation/Breadcrumbs.tsx'))).toBe(false)
+    const code = readCode('src/components/navigation/tenantNav.ts')
     expect(code).not.toMatch(/ai-insights|AI Insights/)
   })
 })
@@ -298,12 +301,13 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
 describe('fake real-time and unbuilt affordances are gone', () => {
   it('the animated real-time metrics widget no longer exists', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/admin/RealtimeMetricsDisplay.tsx'))).toBe(false)
-    expect(readCode('src/components/admin/index.ts')).not.toContain('RealtimeMetricsDisplay')
+    // The admin barrel that re-exported it was removed by task 14.4 (no importer).
+    expect(existsSync(resolve(process.cwd(), 'src/components/admin/index.ts'))).toBe(false)
   })
 
   it('the panel with the disabled "Coming soon" export no longer exists', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/admin/QuickActionsPanel.tsx'))).toBe(false)
-    expect(readCode('src/components/admin/index.ts')).not.toContain('QuickActionsPanel')
+    expect(existsSync(resolve(process.cwd(), 'src/components/admin/index.ts'))).toBe(false)
   })
 
   it('no admissions surface offers a channel the platform cannot send', () => {

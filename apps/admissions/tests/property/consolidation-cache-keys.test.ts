@@ -24,16 +24,8 @@ const EXPECTED_CACHE_KEYS: Array<{
   hookName: string;
   expectedKeyPattern: string; // regex pattern to match in the file
 }> = [
-  {
-    file: 'hooks/queries/useApplicationDataQueries.ts',
-    hookName: 'useApplications',
-    expectedKeyPattern: "queryKey:\\s*\\['applications'",
-  },
-  {
-    file: 'hooks/queries/useApplicationDataQueries.ts',
-    hookName: 'useApplication',
-    expectedKeyPattern: "queryKey:\\s*\\['application'",
-  },
+  // The two `hooks/queries/useApplicationDataQueries.ts` entries went with that
+  // module (platform-simplification task 14.4): nothing reachable used it.
   {
     file: 'data/catalog.ts',
     hookName: 'usePrograms',

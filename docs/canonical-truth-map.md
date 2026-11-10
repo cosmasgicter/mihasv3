@@ -1307,7 +1307,7 @@ Invariants clients may rely on:
 | Concept | Source of truth | Consumers |
 |---------|-----------------|-----------|
 | Wizard navigation | `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardNavigation.ts` | `useWizardController` |
-| Wizard state | `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts` | `useWizardController` |
+| Wizard state | `apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts` (selected grades, `gradesHydrating`; grade edits in `hooks/wizard/useWizardGrades.ts`). The unused `hooks/wizard/state/useWizardState.ts` was removed by platform-simplification task 14.4 | wizard steps via `useWizardController` |
 | Sanitizer | `apps/admissions/src/lib/security.ts:sanitizeInput` | wizard, services |
 | Payment recovery | `apps/admissions/src/stores/paymentRecoveryStore.ts` | `PaymentStep`; cleared only by a server answer (a verify result of `deferred`/`successful`/`failed`, or `deferPayment` resolving) |
 | Page save status | `apps/admissions/src/pages/student/applicationWizard/lib/pageSaveView.ts:deriveWizardPageSaveView` — the draft machine's view composed with document commands (an upload in flight is "saving", a failed upload is an error) | `index.tsx` → `WizardActionBar` (SJR task 3.23) |

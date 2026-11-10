@@ -19,9 +19,6 @@ vi.mock('@/components/seo/Seo', () => ({
   Seo: () => null,
 }))
 
-vi.mock('@/components/ui/AuthLoadingOverlay', () => ({
-  AuthLoadingOverlay: () => null,
-}))
 
 vi.mock('@/lib/notificationService', () => ({
   NotificationService: {
