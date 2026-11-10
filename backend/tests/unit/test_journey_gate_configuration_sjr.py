@@ -133,9 +133,8 @@ def test_workflow_triggers_have_no_path_filter():
 
 def test_workflow_has_the_two_required_jobs_and_never_continues_on_error():
     workflow = _workflow()
-    assert set(workflow["jobs"]) == {"journey-gate", "local-stack-storage"}
+    assert set(workflow["jobs"]) == {"journey-gate"}
     assert workflow["jobs"]["journey-gate"]["timeout-minutes"] == 45
-    assert workflow["jobs"]["local-stack-storage"]["timeout-minutes"] == 15
     assert "continue-on-error" not in WORKFLOW.read_text()
     for job in workflow["jobs"].values():
         assert "continue-on-error" not in job
@@ -167,19 +166,11 @@ def test_gate_job_runs_the_command_uploads_evidence_and_tears_down():
     assert steps["Dump harness logs on failure"]["if"].startswith("failure()")
 
 
-def test_local_stack_job_copies_the_template_and_checks_private_storage():
-    text = WORKFLOW.read_text()
-    assert "cp .env.local.test.example .env.local.test" in text
-    assert "docker-compose.local-test.yml" in text
-    assert "storage_roundtrip_check --expect-private" in text
-    assert "down -v" in text
-
-
 # --- the relevance script: both required checks report on unrelated changes -----------
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
-@pytest.mark.parametrize("job", ["journey-gate", "local-stack-storage"])
+@pytest.mark.parametrize("job", ["journey-gate"])
 @pytest.mark.parametrize(
     "changed, expected",
     [

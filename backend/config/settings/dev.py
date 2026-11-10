@@ -49,7 +49,7 @@ DATABASES = {
     )
 }
 
-# Honour EMAIL_BACKEND so the local-test stack can print mail to the console.
+# Honour EMAIL_BACKEND so a local run can print mail to the console.
 # Unset keeps Django's own default (SMTP), so behaviour is unchanged.
 EMAIL_BACKEND = os.environ.get(  # noqa: F405
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"

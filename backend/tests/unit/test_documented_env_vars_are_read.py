@@ -32,7 +32,6 @@ BACKEND = REPO_ROOT / "backend"
 TEMPLATES = (
     REPO_ROOT / ".env.example",
     BACKEND / ".env.example",
-    BACKEND / ".env.local.test.example",
     REPO_ROOT / "deploy" / ".env.prod.example",
 )
 LOCAL_TESTING_DOC = REPO_ROOT / "LOCAL-TESTING.md"
@@ -126,15 +125,6 @@ def _is_read(name: str, python: str, infra: str, frontend: str) -> bool:
     if name.startswith("VITE_") and name in frontend:
         return True
     return False
-
-
-def test_local_test_stack_has_a_tracked_template():
-    """The isolated stack's env file is gitignored with no template (Bring-up 1)."""
-    template = BACKEND / ".env.local.test.example"
-    assert template.exists(), (
-        "backend/.env.local.test.example is missing: a developer cannot start the "
-        "documented local-test stack without guessing its variables"
-    )
 
 
 def test_every_documented_variable_is_read_or_allowlisted():

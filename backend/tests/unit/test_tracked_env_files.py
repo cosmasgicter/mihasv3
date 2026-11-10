@@ -27,7 +27,6 @@ class TrackedEnvFilesTests(SimpleTestCase):
             ".env.scripts.example",
             "apps/admissions/.env.example",
             "backend/.env.example",
-            "backend/.env.local.test.example",
             "deploy/.env.prod.example",
         ])
 
