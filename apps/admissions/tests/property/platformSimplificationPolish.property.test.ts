@@ -3,11 +3,15 @@
  *
  * Property 11 (task 22.7): rendered size rules classify correctly.
  * Property 6 (task 23.5): every status tone is readable.
+ * Property 7 (task 25.6): a wizard control's accessible name contains its visible text.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import React from 'react';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 import * as fc from 'fast-check';
+import { WizardActionBar } from '../../src/pages/student/applicationWizard/components/WizardActionBar';
 import { STATUS_TONES, type StatusTone } from '../../src/lib/statusTone';
 import {
   FONT_FLOORS,
@@ -189,5 +193,48 @@ describe('Property 6: every status tone is readable', () => {
   it('the accent tone icon is text-accent-foreground, not the 1.2:1 text-accent', () => {
     expect(STATUS_TONES.accent.icon).toBe('text-accent-foreground');
     expect(ratio(token('accent'), token('background'))).toBeLessThan(3);
+  });
+});
+
+describe('Property 7: accessible name contains visible text', () => {
+  afterEach(cleanup);
+  const stepTitle = fc.stringMatching(/^[A-Z][a-z]{2,12}( [a-z]{2,10}){0,2}$/);
+  const label = fc.stringMatching(/^[A-Z][a-z]{2,12}( [a-z]{2,10}){0,2}$/);
+  it('the previous and next controls are named by their visible text, whatever the destination', () => {
+    fc.assert(
+      fc.property(stepTitle, stepTitle, label, (previousStepTitle, nextStepTitle, nextLabel) => {
+        render(
+          React.createElement(WizardActionBar, {
+            previousStepTitle,
+            nextStepTitle,
+            isLastStep: false,
+            loading: false,
+            nextDisabled: false,
+            submitDisabled: false,
+            nextLabel,
+            onPrev: () => {},
+            onNext: () => {},
+            onSaveNow: () => {},
+            saveStatus: 'saved',
+            saveError: null,
+            lastSavedAt: 0,
+            isOnline: true,
+            keyboardOpen: false,
+          }),
+        );
+        for (const button of screen.getAllByRole('button')) {
+          const visible = (button.textContent ?? '').replace(/\s+/g, ' ').trim();
+          const aria = button.getAttribute('aria-label');
+          // No aria-label may replace visible text with different words.
+          if (visible && aria) expect(aria.toLowerCase()).toContain(visible.toLowerCase());
+        }
+        // Exact-name lookups: the visible text is the name, the destination is not.
+        expect(screen.getByRole('button', { name: nextLabel })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Previous' })).toBeTruthy();
+        expect(screen.queryByRole('button', { name: new RegExp(`continue to ${nextStepTitle}`, 'i') })).toBeNull();
+        cleanup();
+      }),
+      { numRuns: 40 },
+    );
   });
 });
