@@ -84,6 +84,18 @@ STUB_ROUTES: Tuple[Tuple[str, str], ...] = (
     ("/api/v1/integrations/", "integrations"),
     ("/api/v1/analytics/", "analytics"),
     ("/api/v1/reports/", "analytics"),
+    # Jobs-ops seed and scaffold routes that live inside the always-mounted email and
+    # documents includes. ``apps/common/email_urls.py`` and ``apps/documents/urls.py``
+    # add them only when the flag is on (platform-simplification task 12.1). They are
+    # probed by resolving the exact path. ``POST /api/v1/email/send/`` is not listed:
+    # the admissions admin email action calls it, so it stays mounted whatever the flag says.
+    ("/api/v1/email/accounts/zoho/connect/", "integrations"),
+    ("/api/v1/email/messages/", "integrations"),
+    ("/api/v1/email/threads/", "integrations"),
+    ("/api/v1/documents/resumes/", "jobs"),
+    ("/api/v1/documents/resumes/variants/", "jobs"),
+    ("/api/v1/documents/cover-letters/generate/", "jobs"),
+    ("/api/v1/documents/question-bank/answer/", "jobs"),
 )
 
 
@@ -158,6 +170,17 @@ def _prefix_for(full_path: str) -> str:
     return full_path.lstrip("/")
 
 
+def _resolves(full_path: str) -> bool:
+    """Return ``True`` iff the root URLconf resolves ``full_path`` to a view."""
+    from django.urls import Resolver404, resolve
+
+    try:
+        resolve(full_path)
+    except Resolver404:
+        return False
+    return True
+
+
 def discover_via_django(settings_module: str) -> Tuple[bool, Dict[str, bool], str]:
     """Load Django and read the flag + probe stub-route reachability.
 
@@ -178,7 +201,7 @@ def discover_via_django(settings_module: str) -> Tuple[bool, Dict[str, bool], st
     mounted = _mounted_prefixes()
     reachability: Dict[str, bool] = {}
     for full_path, _module in STUB_ROUTES:
-        reachability[full_path] = _prefix_for(full_path) in mounted
+        reachability[full_path] = _prefix_for(full_path) in mounted or _resolves(full_path)
 
     return flag_value, reachability, f"django settings '{settings_module}'"
 

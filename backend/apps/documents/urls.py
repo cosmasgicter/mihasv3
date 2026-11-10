@@ -4,6 +4,7 @@ Implements task 16.4, 5.8.
 Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 """
 
+from django.conf import settings
 from django.urls import path
 
 from apps.documents.document_storage_views import (
@@ -46,10 +47,6 @@ app_name = "documents"
 # Document endpoints: /api/v1/documents/...
 document_urlpatterns = [
     path("upload/", DocumentUploadView.as_view(), name="document-upload"),
-    path("resumes/", ResumeListView.as_view(), name="resume-list"),
-    path("resumes/variants/", ResumeVariantCreateView.as_view(), name="resume-variant-create"),
-    path("cover-letters/generate/", CoverLetterGenerateView.as_view(), name="cover-letter-generate"),
-    path("question-bank/answer/", QuestionBankAnswerView.as_view(), name="question-bank-answer"),
     path(
         "<uuid:document_id>/extract/",
         DocumentExtractView.as_view(),
@@ -81,6 +78,16 @@ document_urlpatterns = [
         name="document-version-list",
     ),
 ]
+# Jobs-ops document views (resumes, cover letters, question bank). They answer 404 unless
+# the jobs-ops flag is on (platform-simplification task 12.1, requirement 3.3). The flag
+# is read when this module loads, as ``config/urls.py`` does.
+if settings.ENABLE_JOBS_OPS_ROUTES:
+    document_urlpatterns += [
+        path("resumes/", ResumeListView.as_view(), name="resume-list"),
+        path("resumes/variants/", ResumeVariantCreateView.as_view(), name="resume-variant-create"),
+        path("cover-letters/generate/", CoverLetterGenerateView.as_view(), name="cover-letter-generate"),
+        path("question-bank/answer/", QuestionBankAnswerView.as_view(), name="question-bank-answer"),
+    ]
 
 # Payment endpoints: /api/v1/payments/...
 payment_urlpatterns = [

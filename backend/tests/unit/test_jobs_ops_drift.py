@@ -16,12 +16,13 @@ os.environ["TESTING"] = "1"
 
 from django.test import Client, SimpleTestCase, override_settings
 from django.urls import clear_url_caches
+from tests.jobs_ops_urls import reload_jobs_ops_urlconf
 
 
 def _reload_urlconf():
     import config.urls
 
-    importlib.reload(config.urls)
+    reload_jobs_ops_urlconf()
     clear_url_caches()
 
 

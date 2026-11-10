@@ -38,6 +38,7 @@ from __future__ import annotations
 import importlib
 
 import pytest
+from tests.jobs_ops_urls import reload_jobs_ops_urlconf
 from django.core.cache import cache
 from django.urls import clear_url_caches
 from rest_framework.test import APIClient
@@ -90,11 +91,11 @@ def _enable_jobs_ops_routes(settings):
     settings.ENABLE_JOBS_OPS_ROUTES = True
     import config.urls
 
-    importlib.reload(config.urls)
+    reload_jobs_ops_urlconf()
     clear_url_caches()
     yield
     settings.ENABLE_JOBS_OPS_ROUTES = previous
-    importlib.reload(config.urls)
+    reload_jobs_ops_urlconf()
     clear_url_caches()
 
 

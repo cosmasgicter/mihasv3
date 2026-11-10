@@ -541,6 +541,9 @@ def run_routes() -> dict[str, Any]:
         import inventory_admissions_v2 as inv  # noqa: PLC0415
 
         settings.ENABLE_JOBS_OPS_ROUTES = True
+        # The email and documents URL modules read the flag when they load (task 12.1).
+        importlib.reload(importlib.import_module("apps.common.email_urls"))
+        importlib.reload(importlib.import_module("apps.documents.urls"))
         importlib.reload(config.urls)
         clear_url_caches()
         catalogue = inv.build_backend_route_catalogue(REPO_ROOT)

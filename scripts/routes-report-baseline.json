@@ -35,26 +35,6 @@
       "decision": "D1"
     },
     {
-      "route": "/api/v1/documents/cover-letters/generate/",
-      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
-      "decision": "D1"
-    },
-    {
-      "route": "/api/v1/documents/question-bank/answer/",
-      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
-      "decision": "D1"
-    },
-    {
-      "route": "/api/v1/documents/resumes/variants/",
-      "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
-      "decision": "D1"
-    },
-    {
-      "route": "/api/v1/email/accounts/zoho/connect/",
-      "reason": "Jobs-ops mailbox connection with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
-      "decision": "D1"
-    },
-    {
       "route": "/api/v2/auth/session/",
       "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
       "decision": "D5"
