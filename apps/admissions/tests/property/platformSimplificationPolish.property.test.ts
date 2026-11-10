@@ -3,6 +3,7 @@
  *
  * Property 11 (task 22.7): rendered size rules classify correctly.
  * Property 6 (task 23.5): every status tone is readable.
+ * Properties 1 and 2 (task 26.6): progress and step states come from the one readiness.
  * Property 7 (task 25.6): a wizard control's accessible name contains its visible text.
  */
 import { readFileSync } from 'node:fs';
@@ -11,6 +12,9 @@ import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import * as fc from 'fast-check';
+import { buildStepStates, progressPercent } from '../../src/pages/student/applicationWizard/lib/wizardProgress';
+import { buildWizardReadiness } from '../../src/pages/student/applicationWizard/lib/wizardReadiness';
+import { wizardSteps, type StepKey } from '../../src/pages/student/applicationWizard/steps/config';
 import { WizardActionBar } from '../../src/pages/student/applicationWizard/components/WizardActionBar';
 import { STATUS_TONES, type StatusTone } from '../../src/lib/statusTone';
 import {
@@ -235,6 +239,79 @@ describe('Property 7: accessible name contains visible text', () => {
         cleanup();
       }),
       { numRuns: 40 },
+    );
+  });
+});
+
+const readinessInput = fc.record({
+  program: fc.option(fc.constant('p1'), { nil: undefined }),
+  intake: fc.option(fc.constant('i1'), { nil: undefined }),
+  full_name: fc.option(fc.constant('Ada'), { nil: undefined }),
+  email: fc.option(fc.constant('a@example.com'), { nil: undefined }),
+  phone: fc.option(fc.constant('0971234567'), { nil: undefined }),
+  nrc_number: fc.option(fc.constant('123456/10/1'), { nil: undefined }),
+  date_of_birth: fc.option(fc.constant('2000-01-01'), { nil: undefined }),
+  sex: fc.option(fc.constant('Male'), { nil: undefined }),
+  residence_town: fc.option(fc.constant('Lusaka'), { nil: undefined }),
+  assignmentResolved: fc.boolean(),
+  confirmSubmission: fc.boolean(),
+  hasResultSlip: fc.boolean(),
+  hasIdentity: fc.boolean(),
+  paymentStatus: fc.constantFrom<'pending' | 'successful' | 'failed' | 'deferred' | null>('pending', 'successful', 'failed', 'deferred', null),
+});
+const readinessFrom = (i: any) => {
+  return buildWizardReadiness({
+    values: {
+      program: i.program, intake: i.intake, full_name: i.full_name, email: i.email, phone: i.phone,
+      nrc_number: i.nrc_number, date_of_birth: i.date_of_birth, sex: i.sex, residence_town: i.residence_town,
+    } as never,
+    selectedGrades: [],
+    uploadedFiles: {},
+    hasResultSlipFile: i.hasResultSlip,
+    hasIdentityFile: i.hasIdentity,
+    requiredDocumentItems: undefined,
+    paymentStatus: i.paymentStatus,
+    confirmSubmission: i.confirmSubmission,
+    assignmentResolved: i.assignmentResolved,
+  });
+};
+const stepKeys = wizardSteps.map(step => step.key) as StepKey[];
+
+describe('Property 1: progress equals passing items over total', () => {
+  it('is floor(passing / total * 100) of the same readiness, and never reaches 100 early', () => {
+    fc.assert(
+      fc.property(readinessInput, input => {
+        const readiness = readinessFrom(input);
+        const passing = readiness.stepProgress.reduce((n, step) => n + step.completed, 0);
+        const total = readiness.stepProgress.reduce((n, step) => n + step.total, 0);
+        expect(readiness.completedItems).toBe(passing);
+        expect(readiness.totalItems).toBe(total);
+        expect(progressPercent(readiness)).toBe(Math.floor((passing / total) * 100));
+        if (passing < total) expect(progressPercent(readiness)).toBeLessThan(100);
+      }),
+    );
+  });
+});
+
+describe('Property 2: a step is complete exactly when its items pass', () => {
+  it('marks complete the steps whose items all pass, whichever step the student is on', () => {
+    fc.assert(
+      fc.property(readinessInput, fc.integer({ min: 0, max: 5 }), fc.integer({ min: 0, max: 5 }), (input, current, highest) => {
+        const readiness = readinessFrom(input);
+        const states = buildStepStates(readiness, stepKeys, current, highest);
+        for (const [index, key] of stepKeys.entries()) {
+          const progress = readiness.stepProgressByKey[key];
+          const passes = progress.completed === progress.total;
+          expect(states[key] === 'complete').toBe(passes);
+          if (!passes) {
+            // Failing items are never complete; the state says whether the student has been here.
+            expect(['current', 'incomplete', 'upcoming']).toContain(states[key]);
+            if (index === current) expect(states[key]).toBe('current');
+            else if (index <= Math.max(highest, current)) expect(states[key]).toBe('incomplete');
+            else expect(states[key]).toBe('upcoming');
+          }
+        }
+      }),
     );
   });
 });
