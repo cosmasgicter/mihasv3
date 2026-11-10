@@ -188,7 +188,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
 | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
 | `docs/runbooks/redis-recovery.md` | Redis failure recovery procedures |
-| `docs/runbooks/scaling-playbook.md` | Scaling playbook for Koyeb workers and Neon |
+| `docs/runbooks/scaling-playbook.md` | Scaling playbook: the self-hosted EC2 stack (Koyeb and Vercel sections are marked historical) |
 | `docs/runbooks/release-and-rollback.md` | Release process and rollback procedures |
 | `docs/runbooks/post-deploy-smoke-check.md` | Post-deployment verification checklist |
 | `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |

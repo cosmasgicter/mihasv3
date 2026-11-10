@@ -244,14 +244,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path, only if this task adds a script: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the boot sweep applies the script on the first deploy that contains it (`backend/Dockerfile:65`). Precondition: a fresh `deploy/backup-db.sh` backup, as Spec A's task 6.1 takes.
     - _Requirements: 7.2, 22.7_
 
-- [ ] 7. Jobs-ops truthfulness without a decision
-  - [ ] 7.1 Replace the hardcoded readiness in the metadata endpoint
+- [x] 7. Jobs-ops truthfulness without a decision
+  - [x] 7.1 Replace the hardcoded readiness in the metadata endpoint
     - In `backend/apps/common/meta_views.py`, remove `status` and add `features: {jobs_ops: settings.ENABLE_JOBS_OPS_ROUTES}`. Keep the Cache-Control header.
     - Update `PlatformMetaSerializer`, regenerate the OpenAPI baseline and its lint baseline, and update `test_platform_meta.py`, `test_jobs_ops_endpoints.py` and `test_version_drift_guard.py`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the metadata response loses `status` and gains `features.jobs_ops`. Merge it together with task 7.2, so the jobs-ops build that stops reading `status` ships in the same Deploy run, which builds both images from one commit.
     - _Requirements: 3.1, 3.8_
 
-  - [ ] 7.2 Read the jobs-ops status from the backend
+  - [x] 7.2 Read the jobs-ops status from the backend
     - In `apps/jobs-ops/src/services/api/platform.ts` and the `PlatformMeta` contract, map `features.jobs_ops`, add `source: 'backend' | 'demo'`, request with `cache: 'no-cache'`, and change the demo fallback to drop `'production_v1_seeded'` and set `source: 'demo'`.
     - In `JobsOpsShell.tsx`, remove "Live backend" and the readiness chips. Show "Jobs-ops enabled" or "Jobs-ops not enabled" for a backend answer, and "Demo data. Backend not reached." for the demo fallback.
     - Register the `features.jobsOps` mirror in the truth map's "Platform attribution metadata" row, and add a jobs-ops unit test that fails if the OpenAPI baseline stops describing `features.jobs_ops`.
@@ -259,49 +259,49 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy, together with task 7.1.
     - _Requirements: 3.2, 22.10_
 
-  - [ ] 7.3 Pin the admissions email route
+  - [x] 7.3 Pin the admissions email route
     - Add a unit test that `POST /api/v1/email/send/` resolves with `ENABLE_JOBS_OPS_ROUTES` off.
     - _Requirements: 3.4_
 
-  - [ ] 7.4 Write the metadata property test
+  - [x] 7.4 Write the metadata property test
     - **Property 8: Metadata reports configuration, never a fixed readiness**
     - **Validates: Requirements 3.1**
     - Test in `backend/tests/property/test_platform_simplification_properties.py` using hypothesis.
 
-- [ ] 8. Prepare the inputs for pending decisions (analysis only; nothing is removed)
-  - [ ] 8.1 Inventory capabilities and propose a merge table for D3
+- [x] 8. Prepare the inputs for pending decisions (analysis only; nothing is removed)
+  - [x] 8.1 Inventory capabilities and propose a merge table for D3
     - Create `scripts/capability_inventory.py` (design §8). For each capability it records the enforcement sites, the frontend gates, the tests that name it, and the update set: every file `git grep -l` lists outside `.kiro/specs/`, `docs/archive/` and `docs/v2-evidence/`.
     - Attach its output and the proposed merge table to D3 in the evidence summary. Change no catalogue entry.
     - _Requirements: 8.4, 8.5_
 
-  - [ ] 8.2 Build the skill keep-list for D6
+  - [x] 8.2 Build the skill keep-list for D6
     - Grep the sources listed in design §4 for skill names and paths. Add the three design skills and the skills this spec's authoring workflow used.
     - For each kept skill, record where its one real copy lives: a `.kiro/skills/` directory, or the `.agents/skills/` target of a `.kiro/skills/` symlink. Attach the list to D6.
     - _Requirements: 4.6_
 
-  - [ ] 8.3 List the exact items for D15
+  - [x] 8.3 List the exact items for D15
     - From the output of tasks 3.1 and 3.2, and from Spec A's frozen list in `apps/admissions/tests/unit/uploadPathSingleSource.test.ts`, list the files for D15 items (a)–(i): the unreachable modules for (d), the test imports and `patch()` targets for (c), the dead upload paths for (i), and the file and line counts for each item. Attach the list to D15.
     - _Requirements: 2.8, 4.8, 9.3_
 
-- [ ] 9. Bring steering and docs to the current state after Spec A
-  - [ ] 9.1 Move steering history to an archive
+- [x] 9. Bring steering and docs to the current state after Spec A
+  - [x] 9.1 Move steering history to an archive
     - Move the "Files Added During …" and "Files Removed During …" tables from `.kiro/steering/structure.md` verbatim into `docs/archive/steering-history-2026.md`, with a header naming the source commit. Link the archive from `structure.md`.
     - _Requirements: 6.4_
 
-  - [ ] 9.2 Correct `DESIGN.md`'s component and token references
+  - [x] 9.2 Correct `DESIGN.md`'s component and token references
     - In §4, list only the components that task 3.2's import graph shows are rendered.
     - Name `tokens.colors.json`.
     - Replace the `ProgressIndicator` / `Stepper` rule with the component the wizard renders, `EnhancedProgressIndicator`.
     - Keep Spec A's `BuildVersionBadge` entry as Spec A left it.
     - _Requirements: 6.7_
 
-  - [ ] 9.3 Verify the steering against HEAD
+  - [x] 9.3 Verify the steering against HEAD
     - Run task 3.3's check and re-read the critique's §6 drift rows. Correct any claim that is still false and that no gated task owns.
     - Record in the evidence summary each §6 row this spec does not correct, with its owner: Spec A, the D11 operator track (row 16) or D14 (row 17). Row 21 is corrected by task 1.1, which states that finding C-15 is open; record that the defect itself has no owner (Non-goals) rather than naming Spec A.
     - Register the new checks in the canonical truth map's "Drift Guard Inventory".
     - _Requirements: 6.1, 6.5, 22.10_
 
-- [ ] 10. Checkpoint: P1 decision-independent work is green
+- [x] 10. Checkpoint: P1 decision-independent work is green
   - The routes report, the unreachable-module check, the doc-path check and the spec status check are blocking and green.
   - The harness keeps browser runs inside the stack (task 3.7), and its error-reporter DSN parses (task 1.3), so P2's rendered gate can start.
   - The backend suite is green with `-n 6` on the SQL-built database, the lock files and the image check are green, and the outbound defaults are tested.
