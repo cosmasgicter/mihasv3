@@ -23,7 +23,8 @@ _CURRENCY_SYMBOL = {
 def _format_amount(raw_amount, currency: str) -> str:
     """Format a raw amount as a locale-correct money string.
 
-    Mirrors the PDF currency formatter (src/lib/pdf/currency.ts). Uses
+    Originally mirrored the client PDF currency formatter (removed with
+    `@/lib/pdf`, task 14.1). Uses
     Decimal for deterministic rounding - banker's float rounding caused
     occasional off-by-a-cent drift on receipts that function as legal
     records. Falls back to a placeholder on bad input so the email still

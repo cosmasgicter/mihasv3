@@ -247,8 +247,8 @@ become a parallel lifecycle.
 
 - Document requirements resolve by tenant + program + intake context.
 - Official PDFs use the backend official-document pipeline and the tenant's
-  logo/signature/template/profile when configured. Frontend `@/lib/pdf` renderers
-  are legacy/dev-preview only for official-record purposes.
+  logo/signature/template/profile when configured. There is no frontend PDF
+  renderer (the `@/lib/pdf` stack was removed by platform-simplification task 14.1).
 - **Neutral fallback only.** A missing tenant branding asset falls back to the
   neutral Beanola asset (`InstitutionContextService.BEANOLA_BRAND`) — **never**
   to MIHAS or KATC assets.

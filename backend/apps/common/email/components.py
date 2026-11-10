@@ -191,8 +191,8 @@ def notice_box(text: str, *, variant: str = "info") -> str:
 def derive_division(program: str | None) -> str | None:
     """Map a program name to its originating school/division.
 
-    Mirror of `deriveSignatoryDivision()` in
-    `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx`. Matches the
+    Originally mirrored `deriveSignatoryDivision()` in the client
+    `AcceptanceLetter.tsx` (removed with `@/lib/pdf`, task 14.1). Matches the
     paper-form convention where the footer for a nursing acceptance reads
     "On behalf of … , School of Nursing".
 

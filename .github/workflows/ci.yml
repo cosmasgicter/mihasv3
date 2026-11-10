@@ -333,9 +333,6 @@ jobs:
           path: docs/launch-evidence/05-bundle/
           if-no-files-found: warn
           retention-days: 14
-      - name: PDF chunk smoke check (TDZ regression guard)
-        run: node ../../scripts/check-pdf-chunk-load.mjs
-        working-directory: apps/admissions
       - name: Dependency audit
         run: bun pm scan
         working-directory: apps/admissions

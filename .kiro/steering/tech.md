@@ -341,22 +341,21 @@ Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/
 
 ## Document and Email Generation
 
-There are two document-generation categories, but only one official-document
+There are two document-generation categories, and one official-document
 authority:
 
 | System | Scope | Engine | Entry point |
 |--------|-------|--------|-------------|
 | Official student/admin documents | Application slip, payment receipt, acceptance letter, conditional offer, and future tenant-branded official records | Backend renderers + tenant `InstitutionDocumentProfile` / `InstitutionAsset` config | `GET/POST /api/v1/applications/{id}/official-documents/{document_type}/` via `apps/admissions/src/services/officialDocuments.ts` |
-| Frontend PDF previews | Dev-only or explicitly non-official previews | `@react-pdf/renderer` v4 | `apps/admissions/src/pages/dev/*` and tightly scoped preview helpers only |
 | Admin large-table exports | Audit trail, applications roster | `jspdf` + `jspdf-autotable` (+ `pdf-lib` for user export) | `@/lib/auditExports`, `@/lib/exportUtils` |
 
 **Rules:**
 - Any new **official** student/admin document must be rendered by the backend
   official-document pipeline and configured through tenant document profiles and
-  assets. Do not add a production official-document caller to `@/lib/pdf`.
-- Frontend `@/lib/pdf` code is legacy/preview-only unless a specific
-  non-official preview use case is documented. It must not be reachable from
-  student/admin official download or email flows.
+  assets. There is no browser-side official-document renderer: the client
+  `@react-pdf` stack (`@/lib/pdf` and the `/dev` preview pages) was removed by
+  platform-simplification task 14.1. Do not reintroduce one;
+  `documentFlowDriftGuard.test.ts` fails on any `@/lib/pdf` reference.
 - Any new **admin tabular export** that stays in admin-only flows can continue
   to use `jspdf`.
 - Never mix official documents and table exports — official records need stored
@@ -371,8 +370,8 @@ Transactional emails use a Python component system at `backend/apps/common/email
 See `docs/runbooks/canonical-multi-tenant-alignment.md`,
 `backend/apps/common/email/README.md`, and the official-document sections in
 `docs/canonical-truth-map.md` for the current authority. Historical React-PDF
-docs explain the legacy/preview implementation, not the production official
-document authority.
+docs describe a removed implementation, not the production official document
+authority.
 
 ## Error Monitoring
 

@@ -150,24 +150,12 @@
       "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
     },
     {
-      "module": "apps/admissions/src/lib/applicationSlip.ts",
-      "reason": "No importer reachable from main.tsx; named only by tests (3 files, e.g. uploadPathSingleSource.test.ts). Deletion is part of D15 item (d), task 14.4."
-    },
-    {
       "module": "apps/admissions/src/lib/applicationStats.ts",
       "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. applicationStats.property.test.ts). Deletion is part of D15 item (d), task 14.4."
     },
     {
       "module": "apps/admissions/src/lib/gradeValidation.ts",
       "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
-    },
-    {
-      "module": "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
-      "reason": "Dev preview hook that no module reachable from main.tsx imports. Deletion belongs to D15 items (a) and (d), tasks 14.1 and 14.4."
-    },
-    {
-      "module": "apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts",
-      "reason": "Dev preview hook that no module reachable from main.tsx imports. Deletion belongs to D15 items (a) and (d), tasks 14.1 and 14.4."
     },
     {
       "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/index.ts",

@@ -1,8 +1,9 @@
 """Design tokens for Beanola outbound emails.
 
-Mirror of ``apps/admissions/src/lib/pdf/theme`` - identical palette, typography
-scale, and spacing units - so that emails and PDFs feel like they come from
-the same institution.
+Originally mirrored the client PDF theme (``apps/admissions/src/lib/pdf/theme``,
+removed by platform-simplification task 14.1) - palette, typography scale and
+spacing units - so that emails and PDFs feel like they come from the same
+institution.
 
 Email tokens are strings rather than typed objects because every style
 eventually ends up in an ``style="..."`` attribute in HTML.

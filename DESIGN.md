@@ -94,19 +94,22 @@ contrast verified in both).
   to the system stack. No external font CDN.
 
 ### Print / PDF (acceptance letters, receipts, application slips)
-
-Different stack. Lives in `apps/admissions/src/lib/pdf/assets/fonts/` and is
-registered idempotently by `apps/admissions/src/lib/pdf/theme/typography.ts`.
-
-| Role | Font family | Use |
-|------|-------------|-----|
-| Display headings | `Playfair Display` (variable, 400/700) | Document titles, section headings |
-| Body | `Source Sans 3` (variable, 300/400/600) | Letter body, metadata strips |
-| Numeric / mono | `JetBrains Mono` (variable, 400) | Reference numbers, receipt amounts |
-| Signature fallback | `Pinyon Script` | Used when no scanned PNG signature is supplied |
-
-The PDF system is documented in `apps/admissions/src/lib/pdf/README.md`.
-
+Official documents are rendered on the backend, not in the browser. The
+renderers live in `backend/apps/applications/tasks/pdf/` (one module per
+document type under `backend/apps/applications/tasks/pdf/renderers/`, the letter
+layouts under `backend/apps/applications/tasks/pdf/layouts/`) and are reached through
+`GET/POST /api/v1/applications/{id}/official-documents/{document_type}/`
+(`backend/apps/applications/official_document_views.py`); the frontend only
+calls `apps/admissions/src/services/officialDocuments.ts`.
+They draw with reportlab's built-in `Helvetica` and `Helvetica-Bold` faces, so
+no font file ships with them. Logos, signatures, seals, signatories and letter
+content come from the tenant's `InstitutionDocumentProfile` and
+`InstitutionAsset` configuration, with the neutral Beanola fallback when a
+tenant has none.
+The client `@react-pdf` stack and its bundled fonts were removed by
+platform-simplification task 14.1; there is no browser-side PDF renderer for
+official documents. Admin large-table exports still use `jspdf` in the
+browser (`@/lib/auditExports`, `@/lib/exportUtils`).
 ### Type scale rule
 
 Use the established scale: 12 / 14 / 16 / 18 / 20 / 24 / 28 / 32 px.
@@ -186,7 +189,7 @@ skeleton screens.
 - Apply `min-h-touch` (44 px) to every interactive element on touch surfaces.
 - Add `OptimizedImage` (or raw `<img>` with an `onError` fallback) for every content image.
 - Pair every animation with `prefers-reduced-motion` (already enforced globally).
-- Use `font-mono` (JetBrains Mono on PDF, system mono on web) for reference numbers, receipt totals, timer countdowns, and tabular figures.
+- Use `font-mono` (system mono on web) for reference numbers, receipt totals, timer countdowns, and tabular figures.
 - Validate forms `onBlur`, not on every keystroke. Show error inline + auto-focus the first invalid field on submit.
 - Auto-save drafts on the wizard and on Settings. Show an `AutoSaveIndicator` for the save state (idle / saving / saved / error).
 - Use the right register: `product` for the wizard and admin tools, `brand` for landing and PDFs.
