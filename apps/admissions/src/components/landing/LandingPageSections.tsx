@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardTitle, Badge } from '@/components/ui'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight, CheckCircle } from '@/components/icons'
 import { preloadAuthRoutes } from '@/lib/routePreload'
+import { useLandingProgrammes } from '@/hooks/useLandingProgrammes'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { formatDate } from '@/lib/dateFormat'
+import { resolveTenantSupportContact } from '@/lib/tenantSupport'
 import {
   accreditations,
   accommodationHighlights,
@@ -11,7 +15,6 @@ import {
   features,
   howItWorksSteps,
   internationalHighlights,
-  programs,
 } from '@/lib/constants/landing'
 
 import { StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion/stagger'
@@ -222,6 +225,9 @@ function AccreditationSection() {
 }
 
 function ProgramsSection() {
+  const { rows, isLoading, errorMessage, retry } = useLandingProgrammes()
+  const { brandName, supportEmail } = usePortalBrand()
+  const support = resolveTenantSupportContact({ supportEmail, brandName })
   return (
     <section
       id="programs"
@@ -233,76 +239,82 @@ function ProgramsSection() {
         <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
           <TextEffect effect="fadeUp">
             <h2 id="programs-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Three diplomas. Three career paths.
+              Open programmes
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Pick the one that matches the work you want to do. You can only apply to one programme at a time.
+            Each programme lists the school and the intake it is open for. You choose your programme and intake when you apply.
           </p>
         </ScrollReveal>
-
-        <StaggerReveal className="grid grid-cols-1 gap-5 lg:grid-cols-2" staggerDelay={0.2}>
-          {programs.map((program) => (
-            <StaggerItem key={program.institution}>
-              <Card className="overflow-hidden rounded-lg border border-border bg-card shadow-sm ring-1 ring-primary/10">
-                <CardContent className="p-0">
-                  <div className="relative mb-6 flex h-52 items-center justify-center overflow-hidden rounded-lg bg-primary/5 sm:h-60">
-                    <img
-                      src={program.logo}
-                      alt={`${program.institution} logo`}
-                      width={128}
-                      height={128}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-24 w-24 object-contain sm:h-28 sm:w-28"
-                    />
-                    <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-                      <Badge className="rounded-md border border-border bg-card text-xs text-foreground shadow-sm">
-                        {program.highlight}
-                      </Badge>
-                      <Badge className="rounded-md bg-primary text-xs text-primary-foreground shadow-sm">
-                        {program.accreditation}
-                      </Badge>
-                    </div>
+        {isLoading ? (
+          <p role="status" className="text-base text-muted-foreground">Loading programmes…</p>
+        ) : errorMessage ? (
+          <div role="alert" className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-base text-foreground">{errorMessage}</p>
+            <Button type="button" variant="outline" className="min-h-touch" onClick={retry}>
+              Try again
+            </Button>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="rounded-lg border border-border bg-card p-5">
+            <p className="text-base text-foreground">
+              Applications are closed right now. You can track an existing application or contact admissions.
+            </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <Button asChild variant="outline" className="min-h-touch">
+                <Link to="/track-application">Track an application</Link>
+              </Button>
+              <Button asChild variant="outline" className="min-h-touch">
+                {support.isExternal ? (
+                  <a href={support.href}>{support.label}</a>
+                ) : (
+                  <Link to={support.href}>Contact admissions</Link>
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {rows.map((row) => {
+              const programmeId = `programme-${row.key}-name`
+              const schoolId = `programme-${row.key}-school`
+              return (
+                <li key={row.key} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                  <div className="min-w-0">
+                    <p id={programmeId} className="break-words text-lg font-semibold text-foreground">
+                      {row.programmeName}
+                    </p>
+                    {row.schoolNames.length > 0 && (
+                      <p id={schoolId} className="mt-0.5 break-words text-base text-foreground">
+                        {row.schoolNames.join(', ')}
+                      </p>
+                    )}
+                    <p className="mt-0.5 text-base text-muted-foreground">
+                      {row.intakeName}
+                      {row.closesOn ? ` · Applications close ${formatDate(row.closesOn)}` : ''}
+                    </p>
                   </div>
-                  <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-                    <CardTitle className="mb-4 text-xl font-semibold tracking-tight text-foreground">
-                      {program.institution}
-                    </CardTitle>
-                    <div className="space-y-3">
-                      {program.courses.map((course) => (
-                        <div key={course} className="flex items-start space-x-3">
-                          <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
-                          <span className="text-sm leading-6 text-muted-foreground sm:text-base">
-                            {course}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-6">
-                      <Button asChild className="w-full min-h-touch bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 sm:w-auto">
-                        <Link
-                          to={`/auth/signup?program=${encodeURIComponent(program.institution)}`}
-                          onPointerEnter={warmAuthRoutes}
-                          onFocus={warmAuthRoutes}
-                          onTouchStart={warmAuthRoutes}
-                        >
-                          Apply to {program.institution.split(' ')[0]}
-                          <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </StaggerItem>
-          ))}
-        </StaggerReveal>
+                  <Button asChild className="min-h-touch w-full sm:w-auto">
+                    <Link
+                      to="/auth/signup"
+                      aria-describedby={row.schoolNames.length > 0 ? `${programmeId} ${schoolId}` : programmeId}
+                      onPointerEnter={warmAuthRoutes}
+                      onFocus={warmAuthRoutes}
+                      onTouchStart={warmAuthRoutes}
+                    >
+                      Apply
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </section>
   )
 }
-
 function AccommodationSection() {
   return (
     <section

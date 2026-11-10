@@ -34,13 +34,6 @@ export interface AccreditationItem {
   desc: string;
 }
 
-export interface ProgramItem {
-  institution: string;
-  courses: string[];
-  highlight: string;
-  accreditation: string;
-  logo: string;
-}
 
 export interface QuickLinkItem {
   name: string;
@@ -120,33 +113,6 @@ export const accreditations: AccreditationItem[] = [
     title: 'Official document automation',
     org: 'Beanola document profiles',
     desc: 'Offer letters, slips, and receipts use the selected school profile, logo, signature, and approved template.',
-  },
-];
-
-// ============================================================================
-// Programs
-// ============================================================================
-
-export const programs: ProgramItem[] = [
-  {
-    institution: 'Partner colleges',
-    courses: [
-      'Diploma and certificate programmes configured per institution',
-      'Health, business, technology, and professional pathways',
-    ],
-    highlight: 'College pathways',
-    accreditation: 'Tenant-managed accreditation data',
-    logo: '/images/logos/beanolalogo.webp',
-  },
-  {
-    institution: 'Partner universities',
-    courses: [
-      'Undergraduate, bridging, and professional programmes',
-      'Shared programmes assigned to the schools that offer them',
-    ],
-    highlight: 'University pathways',
-    accreditation: 'School-owned programme configuration',
-    logo: '/images/logos/beanolalogo.webp',
   },
 ];
 
