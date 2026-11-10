@@ -120,9 +120,9 @@ const AssignedSchoolStep = ({
               </span>
               <div className="min-w-0">
                 <p className="text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">Assigned school</p>
-                <h3 id="assigned-school-heading" className="text-base font-semibold text-foreground">
+                <h2 id="assigned-school-heading" className="text-base font-semibold text-foreground">
                   {preview.assigned_school.full_name || preview.assigned_school.name}
-                </h3>
+                </h2>
                 <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                   {preview.program_name} — {preview.intake_name}
                 </p>
@@ -137,7 +137,7 @@ const AssignedSchoolStep = ({
                 <Receipt className="h-5 w-5" aria-hidden="true" />
               </span>
               <div>
-                <h3 id="assigned-fee-heading" className="text-sm font-medium text-foreground">Application fee</h3>
+                <h2 id="assigned-fee-heading" className="text-sm font-medium text-foreground">Application fee</h2>
                 {feeLabel ? (
                   <p className="font-mono text-base font-semibold text-foreground">{feeLabel}</p>
                 ) : (
@@ -153,7 +153,7 @@ const AssignedSchoolStep = ({
           <section aria-labelledby="assigned-docs-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2">
               <FileCheck2 className="h-5 w-5 text-foreground" aria-hidden="true" />
-              <h3 id="assigned-docs-heading" className="text-sm font-medium text-foreground">Required documents</h3>
+              <h2 id="assigned-docs-heading" className="text-sm font-medium text-foreground">Required documents</h2>
             </div>
             {requiredDocs.length > 0 ? (
               <ul className="space-y-2">
@@ -177,7 +177,7 @@ const AssignedSchoolStep = ({
           {/* School contact */}
           {contact && (contact.email || contact.phone || contact.website) && (
             <section aria-labelledby="assigned-contact-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
-              <h3 id="assigned-contact-heading" className="mb-3 text-sm font-medium text-foreground">School contact</h3>
+              <h2 id="assigned-contact-heading" className="mb-3 text-sm font-medium text-foreground">School contact</h2>
               <ul className="space-y-2 text-base sm:text-sm">
                 {contact.email && (
                   <li className="flex items-center gap-2">

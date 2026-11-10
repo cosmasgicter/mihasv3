@@ -307,7 +307,7 @@ const EducationStep = ({
               meaning for anyone who cannot use the hue.
             */}
             <div className="min-w-0">
-              <h3 className="text-md font-medium text-foreground">Grade 12 Subjects</h3>
+              <h2 className="text-md font-medium text-foreground">Grade 12 Subjects</h2>
               {/*
                 The counter is its own line, not a parenthetical (13.6 §8.1 item L6).
 
@@ -391,9 +391,9 @@ const EducationStep = ({
                 7.2 : 1). `h4` is unchanged — it follows the `h3` above it, so it
                 skips no level.
               */}
-              <h4 className="text-sm font-medium text-accent-foreground mb-2">
+              <h3 className="text-sm font-medium text-accent-foreground mb-2">
                 Recommended subjects for {selectedProgram}:
-              </h4>
+              </h3>
               <div className="flex flex-wrap gap-1">
                 {recommendedSubjects.map((subject, index) => (
                   <span data-text-role="caption" key={index} className="px-2 py-1 bg-accent text-accent-foreground text-sm sm:text-xs rounded">
@@ -537,7 +537,7 @@ const EducationStep = ({
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Document uploads</legend>
           <div className="mb-4">
-            <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
+            <h2 className="text-md font-medium text-foreground">Upload your documents</h2>
             <p className="mt-1 text-base sm:text-sm text-muted-foreground">
               {uploadIntro}
             </p>

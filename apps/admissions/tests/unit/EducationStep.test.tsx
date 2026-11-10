@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import EducationStep from '@/pages/student/applicationWizard/steps/EducationStep'
 import type { UseRequiredDocumentsResult } from '@/hooks/useRequiredDocuments'
+import { extractHeadingLevels, validateHeadingHierarchy } from '@/lib/accessibility-utils'
 import { parseRequiredDocumentsContract, unsatisfiedRequirements } from '@/lib/requiredDocuments'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -80,6 +81,24 @@ const baseProps = {
   getUsedSubjects: () => [],
 }
 
+describe('EducationStep headings (task 25.4)', () => {
+  it('starts its content headings at H2 under the page H1, skipping no level', () => {
+    const host = document.createElement('div')
+    host.innerHTML = `<h1>Education</h1>${renderToStaticMarkup(<EducationStep {...baseProps} />)}`
+    const levels = extractHeadingLevels(host)
+    expect(levels[0]).toBe(1)
+    expect(levels[1]).toBe(2)
+    expect(validateHeadingHierarchy(levels)).toBe(true)
+  })
+
+  it('shows the file rules once per upload control, not again in the requirement text', () => {
+    const markup = renderToStaticMarkup(<EducationStep {...baseProps} />)
+    expect(markup.match(/PDF, JPG or PNG, up to 10 MB/g)).toHaveLength(2)
+    expect(markup).not.toMatch(/\.pdf, \.jpg/)
+    expect(markup).not.toMatch(/Max \d/)
+  })
+})
+
 describe('EducationStep', () => {
   beforeEach(() => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -91,7 +110,7 @@ describe('EducationStep', () => {
     // Labels and constraints come from the contract rows above.
     expect(markup).toContain('Grade 12 result slip')
     expect(markup).toContain('NRC or passport')
-    expect(markup).toContain('PDF, JPG or PNG up to 10MB')
+    expect(markup).toContain('PDF, JPG or PNG, up to 10 MB')
     expect(markup).not.toContain('Document checklist')
     expect(markup).not.toContain('Auto-fill enabled')
     expect(markup).not.toContain('Extra KYC Documents')

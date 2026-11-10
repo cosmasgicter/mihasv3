@@ -176,9 +176,9 @@ const SubmitStep = ({
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section className="space-y-4" aria-labelledby="submit-readiness-heading">
             <div>
-              <h3 id="submit-readiness-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 id="submit-readiness-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Submission readiness
-              </h3>
+              </h2>
               <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                 Each item below should be complete before you submit.
               </p>
@@ -252,9 +252,9 @@ const SubmitStep = ({
           <section className="space-y-4" aria-labelledby="submit-summary-heading">
             <div className="flex items-center justify-between">
               <div>
-                <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <h2 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Application summary
-                </h3>
+                </h2>
                 <p className="mt-1 max-w-prose text-base sm:text-sm text-muted-foreground">
                   Confirm the record exactly as admissions should review it.
                 </p>

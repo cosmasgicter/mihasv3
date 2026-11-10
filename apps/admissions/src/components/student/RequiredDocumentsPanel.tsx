@@ -33,8 +33,8 @@ import { FileUpload } from '@/components/ui/FileUpload'
 import { documentOpenHref } from '@/lib/documentOpen'
 import {
   acceptAttribute,
-  constraintHint,
   formatConstraintSize,
+  uploadRulesText,
   rejectionForDropzoneCode,
   type RequiredDocumentRequirement,
 } from '@/lib/requiredDocuments'
@@ -174,16 +174,15 @@ function RequirementRow({
     <div className="flex h-full flex-col gap-3 border-t border-border/60 pt-4 first:border-t-0 first:pt-0 md:border-t-0 md:pt-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h4 className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             {requirement.label}
             {!requirement.required && (
               <span data-text-role="caption" className="ml-2 text-sm sm:text-xs font-normal text-muted-foreground">(optional)</span>
             )}
-          </h4>
-          <p className="mt-1 text-base sm:text-sm text-muted-foreground">
-            {requirement.description ? `${requirement.description} ` : ''}
-            {constraintHint(requirement)}.
-          </p>
+          </h3>
+          {requirement.description && (
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">{requirement.description}</p>
+          )}
         </div>
         <StatusPill tone={tone} />
       </div>
@@ -271,6 +270,7 @@ function RequirementRow({
           <FileUpload
             label={`Upload ${requirement.label}`}
             accept={acceptAttribute(requirement)}
+            rulesText={uploadRulesText(requirement)}
             maxSize={requirement.maxSizeBytes}
             value={state?.file ?? null}
             uploading={state?.status === 'uploading'}

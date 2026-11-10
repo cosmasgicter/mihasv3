@@ -43,6 +43,12 @@ interface FileUploadProps {
   onRetry?: () => void
   /** Accessible label for the drop zone */
   label?: string
+  /**
+   * The one place the file rules are shown. When given it replaces the default
+   * accept/size line, so a caller that already states the rules elsewhere can state
+   * them here instead and nowhere else.
+   */
+  rulesText?: string
 }
 
 function formatFileSize(bytes: number): string {
@@ -113,6 +119,7 @@ function FileUpload({
   onCancel,
   onRetry,
   label,
+  rulesText,
 }: FileUploadProps) {
   const componentId = useId()
   const errorId = `${componentId}-error`
@@ -442,7 +449,7 @@ function FileUpload({
           {isDragActive ? 'Drop file here' : 'Drop file here or click to browse'}
         </p>
         <p className="text-xs text-muted-foreground">
-          {accept.split(',').map(s => s.trim()).join(', ')} • Max {formatFileSize(maxSize)}
+          {rulesText ?? `${accept.split(',').map(s => s.trim()).join(', ')} • Max ${formatFileSize(maxSize)}`}
         </p>
       </div>
 

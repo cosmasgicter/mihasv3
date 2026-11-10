@@ -109,9 +109,9 @@ const AssignmentRecoveryPanel = ({
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 space-y-1.5">
-          <h3 id="assignment-recovery-heading" className="text-base font-semibold text-foreground">
+          <h2 id="assignment-recovery-heading" className="text-base font-semibold text-foreground">
             {guidance.title}
-          </h3>
+          </h2>
           <p className="text-base sm:text-sm text-muted-foreground">{guidance.message}</p>
         </div>
       </div>

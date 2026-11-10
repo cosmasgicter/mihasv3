@@ -115,8 +115,8 @@ describe('EducationStep — required documents come from the contract (R11.6)', 
     const markup = container.innerHTML
 
     // The requirement's own limit is published; the old blanket copy is gone.
-    expect(markup).toContain('PDF up to 2MB')
-    expect(markup).not.toContain('PDF, JPG or PNG up to 10MB')
+    expect(markup).toContain('PDF, up to 2 MB')
+    expect(markup).not.toContain('PDF, JPG or PNG, up to 10 MB')
     expect(markup).not.toContain('Add both documents to continue')
   })
 

@@ -45,11 +45,16 @@ export const Header = React.memo(function Header() {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </span>
-            <div className="min-w-0">
+            {/* Text with a label, not a heading: the page's H1 is the first heading (task 25.4). */}
+            <div
+              className="min-w-0"
+              role="group"
+              aria-label={`${isAdmin ? 'Admin workspace' : 'Student workspace'}: ${fullName}`}
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 {isAdmin ? 'Admin workspace' : 'Student workspace'}
               </p>
-              <h2 className="truncate text-sm font-semibold text-foreground">{fullName}</h2>
+              <p className="truncate text-sm font-semibold text-foreground">{fullName}</p>
             </div>
           </div>
         </div>
