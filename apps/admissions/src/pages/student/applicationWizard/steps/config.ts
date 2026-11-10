@@ -7,7 +7,8 @@ export interface WizardStepConfig {
   key: StepKey
   progressTitle: string
   title: string
-  description: string
+  /** The one sentence under the page heading (task 25.1, R15.1). */
+  instruction: string
   icon: LucideIcon
   nextButtonLabel: string
 }
@@ -32,7 +33,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'program',
     progressTitle: 'Programme',
     title: 'Programme and intake',
-    description: 'Choose the programme and intake you are applying for.',
+    instruction: 'Choose your programme and intake. We then confirm the school assigned to you.',
     icon: BookOpen,
     nextButtonLabel: 'Next step'
   },
@@ -41,7 +42,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'assignedSchool',
     progressTitle: 'Assigned school',
     title: 'Your assigned school',
-    description: 'Review your assigned school, fee, and required documents before continuing.',
+    instruction: 'Check your school, the fee and the documents you will need before you pay.',
     icon: School,
     nextButtonLabel: 'Next step'
   },
@@ -50,7 +51,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'personal',
     progressTitle: 'Personal',
     title: 'Personal details',
-    description: 'Confirm your personal and contact details.',
+    instruction: 'Check your personal and contact details.',
     icon: FileText,
     nextButtonLabel: 'Next step'
   },
@@ -59,7 +60,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'education',
     progressTitle: 'Education',
     title: 'Education',
-    description: 'Add grades and upload documents.',
+    instruction: 'Add your Grade 12 subjects and upload your documents.',
     icon: GraduationCap,
     nextButtonLabel: 'Next step'
   },
@@ -68,7 +69,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'payment',
     progressTitle: 'Payment',
     title: 'Payment',
-    description: 'Pay the application fee.',
+    instruction: 'Pay the application fee, or choose to pay later.',
     icon: CreditCard,
     nextButtonLabel: 'Next step'
   },
@@ -77,7 +78,7 @@ export const wizardSteps: WizardStepConfig[] = [
     key: 'submit',
     progressTitle: 'Review',
     title: 'Review',
-    description: 'Confirm and submit.',
+    instruction: 'Check your answers, then submit your application.',
     icon: Send,
     nextButtonLabel: 'Submit application'
   }

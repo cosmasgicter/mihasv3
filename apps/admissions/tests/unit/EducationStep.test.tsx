@@ -68,7 +68,6 @@ function requiredDocuments(): UseRequiredDocumentsResult {
 }
 
 const baseProps = {
-  title: 'Education',
   subjects: [{ id: 'math', name: 'Mathematics', code: 'MATH' }],
   selectedProgram: 'Nursing',
   selectedGrades: [],

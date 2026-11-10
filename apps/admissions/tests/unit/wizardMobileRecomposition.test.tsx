@@ -135,8 +135,6 @@ describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', (
   const summaryProps = {
     stepNumber: 4,
     totalSteps: 6,
-    stepTitle: 'Education',
-    stepDescription: 'Add grades and upload documents.',
     percentComplete: 62,
     blockers: [] as ReadinessBlocker[],
     readinessLoading: false,

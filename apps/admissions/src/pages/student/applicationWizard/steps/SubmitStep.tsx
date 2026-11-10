@@ -45,7 +45,6 @@ import {
 } from '../lib/requiredDocumentSurfaces'
 
 interface SubmitStepProps {
-  title: string
   form: UseFormReturn<WizardFormData>
   subjects: Grade12Subject[]
   selectedGrades: SubjectGrade[]
@@ -83,7 +82,6 @@ const gradeLabelMap: Record<number, string> = {
 }
 
 const SubmitStep = ({
-  title,
   form,
   subjects,
   selectedGrades,

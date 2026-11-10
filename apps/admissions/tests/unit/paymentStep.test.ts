@@ -120,7 +120,6 @@ function renderWithState(state: { quoteLoading: boolean; quote: FeeQuote | null 
   const Harness = () => {
     const form = useForm<WizardFormData>({ defaultValues: DEFAULT_FORM_VALUES })
     return createElement(PaymentStep, {
-      title: 'Payment',
       form,
       applicationId: 'app-1',
       applicationNumber: 'MIHAS-2026-0001',

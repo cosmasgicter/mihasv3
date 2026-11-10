@@ -19,7 +19,6 @@ import { rateLimitMessage } from '@/lib/rateLimitCopy'
 import { validateLiveGrades, type RowDiagnostic } from '../lib/liveGradeValidation'
 
 interface EducationStepProps {
-  title: string
   subjects: Grade12Subject[]
   selectedProgram?: string
   selectedGrades: SubjectGrade[]
@@ -55,7 +54,6 @@ interface EducationStepProps {
 }
 
 const EducationStep = ({
-  title,
   subjects,
   selectedProgram,
   selectedGrades,
@@ -233,7 +231,6 @@ const EducationStep = ({
       className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${animateClasses.fadeIn}`}
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
         {/* OCR progress indicator */}

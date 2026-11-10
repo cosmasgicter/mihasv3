@@ -25,8 +25,9 @@ import type { ReadinessBlocker } from '@/types/database'
 export interface WizardProgressSummaryProps {
   stepNumber: number
   totalSteps: number
-  stepTitle: string
-  stepDescription: string
+  /** Where the draft came from, as plain text in the progress row (task 25.1). */
+  modeLabel?: string
+  modeDescription?: string
   /** Local form completion across every step. A view number, never a gate. */
   percentComplete: number
   /** The platform's blockers, in the platform's order (task 6.5). */
@@ -48,8 +49,8 @@ const NAMED_BLOCKERS = 2
 export function WizardProgressSummary({
   stepNumber,
   totalSteps,
-  stepTitle,
-  stepDescription,
+  modeLabel,
+  modeDescription,
   percentComplete,
   blockers,
   readinessLoading,
@@ -64,36 +65,41 @@ export function WizardProgressSummary({
   return (
     <section
       data-testid="wizard-progress-summary"
-      aria-labelledby="wizard-step-heading"
+      aria-label="Your progress"
       className="rounded-lg border border-border bg-card p-4 sm:p-5"
     >
-      <p className="break-words text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Step {stepNumber} of {totalSteps}
-      </p>
-      <h2 id="wizard-step-heading" className="mt-1 break-words text-lg font-semibold text-foreground sm:text-xl">
-        {stepTitle}
-      </h2>
-      <p className="mt-1 break-words text-base sm:text-sm text-muted-foreground">{stepDescription}</p>
-
-      <div className="mt-3 flex items-center gap-3">
-        <div
-          className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-label="Application progress"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={percentComplete}
-        >
-          <div
-            className="h-2 rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
-            style={{ width: `${percentComplete}%` }}
-          />
-        </div>
-        <span data-text-role="caption" className="shrink-0 text-sm sm:text-xs font-semibold text-foreground" data-testid="wizard-progress-percent">
-          {percentComplete}%
-        </span>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="break-words text-base sm:text-sm font-semibold text-foreground">
+          <span>Step {stepNumber} of {totalSteps}</span>
+          <span aria-hidden="true"> · </span>
+          <span data-testid="wizard-progress-percent">{percentComplete}%</span>
+        </p>
+        {modeLabel && (
+          <p
+            data-text-role="caption"
+            className="text-sm sm:text-xs text-muted-foreground"
+            role="status"
+            aria-live="polite"
+            data-testid="wizard-mode-summary"
+            title={modeDescription}
+          >
+            {modeLabel}
+          </p>
+        )}
       </div>
-
+      <div
+        className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Application progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percentComplete}
+      >
+        <div
+          className="h-2 w-full origin-left rounded-full bg-primary transition-transform duration-300 ease-out motion-reduce:transition-none"
+          style={{ transform: `scaleX(${percentComplete / 100})` }}
+        />
+      </div>
       <div className="mt-3" data-testid="wizard-current-blockers">
         {notEvaluatedYet ? (
           <p className="flex items-start gap-2 text-base sm:text-sm text-muted-foreground">

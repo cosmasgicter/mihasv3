@@ -246,14 +246,12 @@ const ApplicationWizardContent = () => {
       return {
         label: "New application",
         description: "Saved drafts will not be restored into this application.",
-        className: "border-primary/20 bg-primary/5 text-primary",
       };
     }
     if (draftIntent.mode === "resume") {
       return {
         label: "Resuming draft",
         description: "Only the selected saved draft is loaded in this session.",
-        className: "border-success/25 bg-success/5 text-foreground",
       };
     }
     if (draftIntent.mode === "local" || isLocalDraftIntent) {
@@ -261,13 +259,11 @@ const ApplicationWizardContent = () => {
         label: "Local draft",
         description:
           "Your browser draft is being continued without clearing local progress.",
-        className: "border-warning/25 bg-warning/5 text-warning",
       };
     }
     return {
       label: applicationId ? "Draft in progress" : "Application in progress",
       description: "Autosave is active while you complete the application.",
-      className: "border-border bg-muted/50 text-foreground",
     };
   })();
   const draftChoices = (draftApplications?.applications ?? []) as Array<{
@@ -853,7 +849,6 @@ const ApplicationWizardContent = () => {
         />
         <PageShell
           title="Choose an application"
-          eyebrow="Application flow"
           subtitle="Continue a saved draft or begin a clean application."
           maxWidth="4xl"
           tone="application"
@@ -896,9 +891,8 @@ const ApplicationWizardContent = () => {
         noindex
       />
       <PageShell
-        title="Student application"
-        eyebrow="Application flow"
-        subtitle={`Complete ${totalSteps} steps with autosave. You can leave and come back at any time.`}
+        title={currentStepConfig.title}
+        subtitle={currentStepConfig.instruction}
         maxWidth="full"
         tone="application"
         className={shouldAnimate ? "animate-fade-in" : ""}
@@ -909,28 +903,19 @@ const ApplicationWizardContent = () => {
         </div>
 
         <Container size="md" className="space-y-4 pb-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* On a phone the app bar's back arrow does this job (task 25.1). */}
+          <div className="hidden md:block">
             <button
               type="button"
               onClick={() => {
                 void handleBackToDashboard();
               }}
-              className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-base sm:text-sm font-medium text-primary hover:bg-primary/5"
+              className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back to Dashboard
+              Back to dashboard
             </button>
-            <span data-text-role="caption"
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm sm:text-xs font-semibold ${wizardModeSummary.className}`}
-              role="status"
-              aria-live="polite"
-              data-testid="wizard-mode-summary"
-              title={wizardModeSummary.description}
-            >
-              {wizardModeSummary.label}
-            </span>
           </div>
-
           {!isOnline && (
             <div
               role="alert"
@@ -952,8 +937,8 @@ const ApplicationWizardContent = () => {
           <WizardProgressSummary
             stepNumber={currentStepIndex + 1}
             totalSteps={totalSteps}
-            stepTitle={currentStepConfig.title}
-            stepDescription={currentStepConfig.description}
+            modeLabel={wizardModeSummary.label}
+            modeDescription={wizardModeSummary.description}
             percentComplete={progressPercent}
             blockers={serverReadiness.blockers}
             readinessLoading={serverReadiness.isLoading}

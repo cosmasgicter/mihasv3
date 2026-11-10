@@ -17,7 +17,6 @@ interface BasicKycStepProps {
   hasAutoPopulatedData: boolean
   completionPercentage: number
   missingFields?: { key: string; label: string }[]
-  title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
   getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
 }
@@ -33,7 +32,6 @@ const BasicKycStep = ({
   hasAutoPopulatedData,
   completionPercentage,
   missingFields,
-  title,
   getFieldAriaDescribedBy
 }: BasicKycStepProps) => {
   const {
@@ -50,12 +48,11 @@ const BasicKycStep = ({
       className={`overflow-visible bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        {hasAutoPopulatedData && (
+      {hasAutoPopulatedData && (
+        <div className="mb-4 flex">
           <ProfileCompletionBadge completionPercentage={completionPercentage} missingFields={missingFields} />
-        )}
-      </div>
+        </div>
+      )}
 
       {hasAutoPopulatedData && (
         <div

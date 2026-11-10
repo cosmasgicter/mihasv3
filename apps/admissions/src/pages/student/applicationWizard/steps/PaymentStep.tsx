@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CreditCard, Clock, Zap } from 'lucide-react'
+import { Clock, Zap } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -16,7 +16,6 @@ import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount } from '@/l
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
 interface PaymentStepProps {
-  title: string
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
@@ -28,7 +27,6 @@ interface PaymentStepProps {
 }
 
 const PaymentStep = ({
-  title,
   form,
   applicationId,
   polledStatus = null,
@@ -128,9 +126,6 @@ const PaymentStep = ({
 
   return (
     <SectionCard
-      title={title}
-      description="Pay the application fee to continue."
-      icon={<CreditCard className="h-5 w-5" />}
       className={animateClasses.fadeIn}
       contentClassName="space-y-6"
       data-testid="payment-step"

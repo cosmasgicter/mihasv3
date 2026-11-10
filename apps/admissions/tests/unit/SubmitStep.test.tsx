@@ -17,7 +17,6 @@ function renderSubmitStep(uploadedFiles: Record<string, boolean>) {
 
     return (
       <SubmitStep
-        title="Review and Submit"
         form={form}
         subjects={[{ id: 'math', name: 'Mathematics', code: 'MATH' }]}
         selectedGrades={[

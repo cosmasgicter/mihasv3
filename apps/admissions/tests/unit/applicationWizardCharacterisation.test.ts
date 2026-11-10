@@ -119,7 +119,7 @@ describe('wizard characterisation: the step table is the state machine (R10.2)',
       'Review',
     ])
     expect(wizardSteps.every(step => step.title.length > 0)).toBe(true)
-    expect(wizardSteps.every(step => step.description.length > 0)).toBe(true)
+    expect(wizardSteps.every(step => step.instruction.length > 0)).toBe(true)
     expect(saveNowLabel).toBe('Save now')
     expect(previousButtonLabel).toBe('Previous')
   })

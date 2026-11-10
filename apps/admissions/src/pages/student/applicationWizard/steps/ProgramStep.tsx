@@ -28,7 +28,6 @@ interface ProgramStepProps {
   intakesError?: CatalogueQueryError | null
   onRetryPrograms?: () => void
   onRetryIntakes?: () => void
-  title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
   getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
 }
@@ -48,7 +47,6 @@ const ProgramStep = ({
   intakesError,
   onRetryPrograms,
   onRetryIntakes,
-  title,
   getFieldAriaDescribedBy,
 }: ProgramStepProps) => {
   const {
@@ -73,12 +71,6 @@ const ProgramStep = ({
       className={`overflow-visible bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="program-step"
     >
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <p className="mt-1 text-base sm:text-sm text-muted-foreground">
-          Choose your programme and intake. We will then confirm the school assigned to you.
-        </p>
-      </div>
 
       <fieldset className="border-none p-0 m-0">
         <legend className="sr-only">Programme and intake</legend>

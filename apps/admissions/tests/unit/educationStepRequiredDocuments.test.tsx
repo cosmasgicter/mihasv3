@@ -78,7 +78,6 @@ function requiredDocumentsStub(
 }
 
 const baseProps = {
-  title: 'Education',
   subjects: [{ id: '11111111-1111-4111-8111-111111111111', name: 'Mathematics', code: 'MATH' }],
   selectedProgram: 'Nursing',
   selectedGrades: [],

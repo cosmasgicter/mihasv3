@@ -9,7 +9,6 @@ import AssignmentRecoveryPanel from './AssignmentRecoveryPanel'
 import type { AssignmentRecoveryGuidance } from '../lib/assignmentRecovery'
 
 interface AssignedSchoolStepProps {
-  title: string
   preview: AssignmentPreview | null
   isLoading: boolean
   error?: string | null
@@ -55,7 +54,6 @@ function formatFee(fee: AssignmentPreview['fee']): string | null {
  * re-assignment failures (R2.7).
  */
 const AssignedSchoolStep = ({
-  title,
   preview,
   isLoading,
   error,
@@ -77,12 +75,6 @@ const AssignedSchoolStep = ({
       className={`overflow-visible bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="assigned-school-step"
     >
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <p className="mt-1 text-base sm:text-sm text-muted-foreground">
-          Confirm the school assigned to you, the application fee, and the documents you will need before you pay.
-        </p>
-      </div>
 
       {isLoading && (
         <div

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
+import { resolveBackAction } from './backNavigation'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge'
@@ -156,9 +157,18 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   // Determine mobile header props from current route
   const pageTitle = resolvePageTitle(location.pathname)
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
-  const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
   const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith(pathFor('student.applicationWizard'))
+  const handleBack = () => {
+    const action = resolveBackAction({
+      isWizardRoute,
+      locationKey: location.key,
+      historyIndex: (window.history.state as { idx?: number } | null)?.idx ?? null,
+      dashboardPath: pathFor('student.dashboard'),
+    })
+    if (action.kind === 'path') navigate(action.path, { replace: true })
+    else navigate(-1)
+  }
   const handleSignOut = async () => {
     try {
       await signOut()
