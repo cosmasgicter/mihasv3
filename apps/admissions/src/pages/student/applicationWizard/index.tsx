@@ -106,7 +106,12 @@ import {
   documentValidationFields,
 } from "./lib/requiredDocumentSurfaces";
 import { focusWizardField } from "./lib/wizardFieldFocus";
-import { buildStepStates, progressPercent as progressPercentOf } from "./lib/wizardProgress";
+import {
+  buildStepStates,
+  progressPercent as progressPercentOf,
+  recordContinueAttempt,
+  shouldShowIncompleteAlert,
+} from "./lib/wizardProgress";
 import { collectWizardValidationErrors } from "./lib/wizardValidationErrors";
 import { resolveWizardDeepLinkStep } from "./lib/wizardStepDeepLink";
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
@@ -541,10 +546,19 @@ const ApplicationWizardContent = () => {
   }, [success, goToStep]);
 
   // Track step direction for transitions
+  // Steps where the student pressed Next while the step was incomplete. The
+  // "still incomplete" alert reads this, so it never greets a student who has
+  // only arrived (task 26.2, R14.4). In memory only: nothing about it is saved.
+  const [continueAttemptedSteps, setContinueAttemptedSteps] = useState<
+    ReadonlySet<StepKey>
+  >(() => new Set());
   const wrappedHandleNextStep = useCallback(() => {
     setStepDirection("forward");
+    setContinueAttemptedSteps((attempted) =>
+      recordContinueAttempt(attempted, currentStepConfig.key, stepValidation.isValid),
+    );
     void handleNextStep();
-  }, [handleNextStep]);
+  }, [handleNextStep, stepValidation.isValid, currentStepConfig.key]);
 
   const wrappedHandlePrevStep = useCallback(() => {
     setStepDirection("backward");
@@ -1004,9 +1018,11 @@ const ApplicationWizardContent = () => {
             </Alert>
           )}
 
-          {!stepValidation.isValid &&
-            !isLastStep &&
-            stepValidation.completedFields > 0 && (
+          {shouldShowIncompleteAlert(
+            continueAttemptedSteps,
+            currentStepConfig.key,
+            stepValidation.isValid,
+          ) && (
               <Alert variant="warning" className="animate-slide-up">
                 <div className="flex-1">
                   <AlertTitle className="text-foreground">

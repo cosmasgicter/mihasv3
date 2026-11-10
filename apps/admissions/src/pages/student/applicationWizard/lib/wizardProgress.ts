@@ -40,3 +40,24 @@ export function buildStepStates(
   })
   return states
 }
+
+/**
+ * The "this step is still incomplete" alert belongs to a student who pressed Next
+ * and was stopped, not to one who has only arrived (task 26.2, R14.4).
+ */
+export function recordContinueAttempt(
+  attempted: ReadonlySet<StepKey>,
+  step: StepKey,
+  stepIsValid: boolean,
+): ReadonlySet<StepKey> {
+  if (stepIsValid || attempted.has(step)) return attempted
+  return new Set(attempted).add(step)
+}
+
+export function shouldShowIncompleteAlert(
+  attempted: ReadonlySet<StepKey>,
+  step: StepKey,
+  stepIsValid: boolean,
+): boolean {
+  return attempted.has(step) && !stepIsValid
+}
