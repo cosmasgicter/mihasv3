@@ -1,33 +1,5 @@
 [
   {
-    "rule": "axe/color-contrast",
-    "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"payment-form\"] > div:nth-of-type(1) > button:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(3)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "axe/color-contrast",
-    "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"payment-form\"] > div:nth-of-type(1) > button:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "axe/color-contrast",
-    "page": "/student/application-wizard#payment",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"payment-form\"] > div:nth-of-type(1) > button:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(3)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "axe/color-contrast",
-    "page": "/student/application-wizard#payment",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"payment-form\"] > div:nth-of-type(1) > button:nth-of-type(2) > div:nth-of-type(2) > p:nth-of-type(3)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
     "rule": "axe/label",
     "page": "/admin/applications#review",
     "viewport": "1440x900",
@@ -1097,34 +1069,6 @@
     "viewport": "1440x900",
     "selector": "#tracker-search-hint",
     "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
-  },
-  {
-    "rule": "impeccable/low-contrast",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#cta > div:nth-of-type(1) > div:nth-of-type(1) > h2:nth-of-type(1)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "impeccable/low-contrast",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#cta > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "impeccable/low-contrast",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#cta > div:nth-of-type(1) > div:nth-of-type(1) > h2:nth-of-type(1)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
-  },
-  {
-    "rule": "impeccable/low-contrast",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#cta > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Today's finding; fixed by tasks 23.1 to 23.4."
   },
   {
     "rule": "impeccable/nested-cards",
