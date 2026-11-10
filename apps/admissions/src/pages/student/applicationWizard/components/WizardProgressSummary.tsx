@@ -34,7 +34,7 @@ export function WizardProgressSummary({
     <section
       data-testid="wizard-progress-summary"
       aria-label="Your progress"
-      className="rounded-lg border border-border bg-card p-4 sm:p-5"
+      className="px-1 sm:rounded-lg sm:border sm:border-border sm:bg-card sm:p-5"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <p className="break-words text-base sm:text-sm font-semibold text-foreground">

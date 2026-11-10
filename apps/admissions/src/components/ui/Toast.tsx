@@ -218,7 +218,7 @@ export function ToastContainer() {
 
   return (
     <div
-      className="toast-container fixed top-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
+      className="toast-container fixed top-[4.5rem] left-4 right-4 md:top-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
       data-toast-container
     >
       {/* Assertive region for error/warning toasts (Req 19.5) */}
