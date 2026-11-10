@@ -145,7 +145,7 @@ export function AdvancedKeysSection({
                           {inferValueType(setting.value)}
                         </span>
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                          setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-foreground'
                         }`}>
                           {setting.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                         </span>
@@ -262,7 +262,7 @@ export function AdvancedKeysSection({
                             />
                           ) : (
                             <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                              setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                              setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-foreground'
                             }`}>
                               {setting.is_public ? (
                                 <>

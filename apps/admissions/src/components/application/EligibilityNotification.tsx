@@ -37,7 +37,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             </h4>
             
             {score !== undefined && (
-              <span data-text-role="caption" className="px-2 py-0.5 bg-primary/10 text-primary-foreground text-sm sm:text-xs font-medium rounded-full">
+              <span data-text-role="caption" className="px-2 py-0.5 bg-primary/10 text-foreground text-sm sm:text-xs font-medium rounded-full">
                 Score: {score}%
               </span>
             )}
@@ -58,7 +58,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           {eligibility.competitivenessLevel && (
             <div data-text-role="caption" className={`inline-block px-2 py-1 rounded text-sm sm:text-xs font-medium mb-3 ${
               eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-accent/10 text-accent-foreground' :
-              eligibility.competitivenessLevel === 'Competitive' ? 'bg-primary/10 text-primary-foreground' :
+              eligibility.competitivenessLevel === 'Competitive' ? 'bg-primary/10 text-foreground' :
               eligibility.competitivenessLevel === 'Minimum' ? 'bg-accent/10 text-accent-foreground' :
               'bg-accent text-foreground'
             }`}>

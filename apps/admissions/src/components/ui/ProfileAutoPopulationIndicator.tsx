@@ -11,7 +11,7 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
 
   return (
     <div data-text-role="caption"
-      className="inline-flex items-center space-x-1 text-sm sm:text-xs text-success-foreground bg-success/10 px-2 py-1 rounded-full border border-success/30 animate-scale-in"
+      className="inline-flex items-center space-x-1 text-sm sm:text-xs text-foreground bg-success/10 px-2 py-1 rounded-full border border-success/30 animate-scale-in"
     >
       <CheckCircle className="h-3 w-3" />
       <span>Auto-filled from profile</span>
@@ -28,10 +28,10 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
   const [expanded, setExpanded] = useState(false)
 
   const getColor = () => {
-    if (completionPercentage >= 100) return 'bg-success/10 text-success-foreground border-success/30'
-    if (completionPercentage >= 80) return 'bg-success/10 text-success-foreground border-success/30'
+    if (completionPercentage >= 100) return 'bg-success/10 text-foreground border-success/30'
+    if (completionPercentage >= 80) return 'bg-success/10 text-foreground border-success/30'
     if (completionPercentage >= 60) return 'bg-warning/10 text-foreground border-warning/30'
-    return 'bg-destructive/10 text-destructive-foreground border-destructive/30'
+    return 'bg-destructive/10 text-foreground border-destructive/30'
   }
 
   const hasMissing = completionPercentage < 100 && missingFields.length > 0
