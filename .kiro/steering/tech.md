@@ -453,7 +453,7 @@ Celery Beat runs as one dedicated instance (exactly 1, to avoid duplicate dispat
 | `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
-| `cleanup_idempotency_keys` | Daily at 03:00 UTC | Purge expired idempotency key records |
+| `cleanup_idempotency_keys_task` | Daily at 03:00 UTC | Purge expired idempotency key records |
 | `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments, expires payments > 24h, max 50 per run |
 | `process_pending_emails_task` | Every 120 seconds (2 minutes) | Sweep stale pending EmailQueue rows |
 | `intake_manager_task` | Daily at 04:00 UTC | Ensures at least 2 open intakes exist following the Jan/Jul pattern |
@@ -466,6 +466,10 @@ Celery Beat runs as one dedicated instance (exactly 1, to avoid duplicate dispat
 | `deferred_payment_reminder_task` | Daily at 11:00 UTC | Reminds students who deferred payment to complete it |
 | `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-completes interviews whose scheduled time has passed |
 | `interview_reminder_task` | Every 3600 seconds (1 hour) | Sends reminder notifications for interviews within next 24 hours |
+| `condition_reminder_task` | Daily at 06:30 UTC | Chases a conditional-admission deadline before it lands |
+| `sweep_pending_domain_verifications_task` | Every 300 seconds (5 minutes) | Re-dispatches committed-but-undispatched domain verification jobs after a broker outage |
+| `sweep_pending_official_document_jobs_task` | Every 300 seconds (5 minutes) | Re-dispatches committed-but-undispatched official-document generation jobs after a broker outage |
+| `reconcile_document_storage_task` | Every 900 seconds (15 minutes) | Deletes staged document objects whose metadata commit never landed, retries deferred compensation, marks exhausted rows orphaned |
 
 Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in the `backend/apps/applications/tasks/` package. Intake tasks in `backend/apps/catalog/tasks.py`.
 
