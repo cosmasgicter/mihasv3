@@ -91,24 +91,24 @@ export function AmendmentHistory({ amendments, totalCount, isLoading }: Amendmen
                 <span className="font-normal text-muted-foreground"> to </span>
                 <span className="break-words">{amendment.new_value}</span>
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                 Requested {formatTimestamp(amendment.requested_at ?? '')}
                 {amendment.reviewed_at && ` \u2022 Reviewed ${formatTimestamp(amendment.reviewed_at)}`}
               </p>
-              <span
-                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass(amendment)}`}
+              <span data-text-role="caption"
+                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${badgeClass(amendment)}`}
               >
                 {amendment.status.toUpperCase()}
               </span>
               {amendment.status_definition && (
-                <p className="mt-2 text-xs text-muted-foreground">{amendment.status_definition}</p>
+                <p className="mt-2 text-base sm:text-sm text-muted-foreground">{amendment.status_definition}</p>
               )}
             </div>
           </li>
         ))}
       </ul>
       {typeof totalCount === 'number' && totalCount > amendments.length && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-base sm:text-sm text-muted-foreground">
           Showing {amendments.length} of {totalCount} requests.
         </p>
       )}

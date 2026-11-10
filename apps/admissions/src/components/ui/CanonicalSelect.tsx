@@ -133,7 +133,7 @@ export function CanonicalSelect({
                 {option.label}
               </span>
               {option.description ? (
-                <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
+                <span data-text-role="caption" className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
                   {option.description}
                 </span>
               ) : null}

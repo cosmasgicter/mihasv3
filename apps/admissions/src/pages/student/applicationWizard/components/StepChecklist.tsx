@@ -21,7 +21,7 @@ export const StepChecklist = ({ items, title = 'Step checklist' }: StepChecklist
     >
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <span className={`text-xs font-medium ${allCompleted ? 'text-success' : 'text-muted-foreground'}`}>
+        <span data-text-role="caption" className={`text-sm sm:text-xs font-medium ${allCompleted ? 'text-success' : 'text-muted-foreground'}`}>
           {completedCount}/{items.length}
         </span>
       </div>

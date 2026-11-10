@@ -216,16 +216,16 @@ export function ActiveSessions() {
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold">Active sessions</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base sm:text-sm text-muted-foreground">
             Review devices that are signed in to your account and revoke any session you do not recognize.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
-          <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm font-medium text-foreground">
+          <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-base sm:text-sm font-medium text-foreground">
             {sortedSessions.length} active session{sortedSessions.length === 1 ? '' : 's'}
           </div>
           {lastSyncedLabel && (
-            <p className="text-xs text-muted-foreground">Last synced {lastSyncedLabel}</p>
+            <p className="text-base sm:text-sm text-muted-foreground">Last synced {lastSyncedLabel}</p>
           )}
         </div>
       </div>
@@ -235,8 +235,8 @@ export function ActiveSessions() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-success" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Current device protected</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm font-semibold text-foreground">Current device protected</p>
+              <p className="text-base sm:text-sm text-muted-foreground">
                 This page stays signed in on{' '}
                 <span className="font-medium text-foreground">
                   {getDeviceHeadline(normalizeDeviceInfo(currentSession.device_info))}
@@ -249,7 +249,7 @@ export function ActiveSessions() {
       )}
 
       {hasSessionAccessIssue && (
-        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-foreground">
+        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-base sm:text-sm text-foreground">
           Session details are temporarily unavailable. Your current session remains active.
         </div>
       )}
@@ -257,7 +257,7 @@ export function ActiveSessions() {
       {sortedSessions.length === 0 ? (
         <div className="text-center py-4">
           <p className="text-foreground mb-2">No active sessions were found for this account.</p>
-          <p className="text-sm text-foreground">Your current device will appear here after your next authenticated refresh.</p>
+          <p className="text-base sm:text-sm text-foreground">Your current device will appear here after your next authenticated refresh.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -278,16 +278,16 @@ export function ActiveSessions() {
                   <DeviceIcon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                   <div>
                     <div className="flex items-center space-x-2">
-                      <p className="font-medium text-sm">
+                      <p className="font-medium text-base sm:text-sm">
                         {headline}
                         {session.is_current && (
-                          <span className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-xs rounded-full">
+                          <span data-text-role="caption" className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-sm sm:text-xs rounded-full">
                             Current session
                           </span>
                         )}
                       </p>
                     </div>
-                    <p className="text-xs text-foreground">
+                    <p className="text-base sm:text-sm text-foreground">
                       {meta ? `${meta} • ` : ''}
                       Signed in {formatDistanceFromNow(new Date(session.created_at))} •{' '}
                       Last active {formatDistanceFromNow(new Date(session.last_activity))}

@@ -80,13 +80,13 @@ export function NextActionPanel({
         names; wrapped text is not.
       */}
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-        <p className="break-words text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="break-words text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Next action
         </p>
         {nextAction && (
-          <span
+          <span data-text-role="caption"
             data-testid="next-action-application"
-            className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground"
+            className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-sm sm:text-xs font-semibold text-muted-foreground"
           >
             <StateIcon status={nextAction.applicationStatus} />
             <span className="break-words">{formatApplicationStatus(nextAction.applicationStatus)}</span>

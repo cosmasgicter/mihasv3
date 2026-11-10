@@ -54,8 +54,8 @@ export function TenantListPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-foreground">{heading}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="min-w-0 text-base font-semibold text-foreground">{heading}</h2>
         {canCreate && (
           <Button type="button" size="sm" onClick={onNew}>
             <Plus className="h-4 w-4" aria-hidden="true" /> New institution

@@ -186,7 +186,7 @@ export function WizardDraftPicker({
                       {draft.draft_name}
                     </p>
                     {draft.updated_at && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <p className="mt-1 flex items-center gap-1.5 text-base sm:text-sm text-muted-foreground">
                         <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         Last saved {formatTimestamp(draft.updated_at)}
                       </p>
@@ -259,7 +259,7 @@ export function WizardDraftPicker({
         <FilePlus2 className="h-4 w-4 mr-2" aria-hidden="true" />
         Start a new application
       </Button>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-base sm:text-sm text-muted-foreground">
         A new application does not restore or change any saved draft. Drafts with payment activity
         cannot be deleted here. Continue the draft or contact admissions.
       </p>

@@ -209,7 +209,7 @@ const SubmitStep = ({
                       <button
                         type="button"
                         onClick={() => onNavigateToStep(item.stepKey)}
-                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-base sm:text-sm font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                       >
                         Go to step
                       </button>
@@ -237,7 +237,7 @@ const SubmitStep = ({
                             <button
                               type="button"
                               onClick={() => onNavigateToStep(item.stepKey)}
-                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-base sm:text-sm font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                             >
                               Fix
                             </button>
@@ -265,7 +265,7 @@ const SubmitStep = ({
                 <button
                   type="button"
                   onClick={() => onNavigateToStep('personal')}
-                  className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
+                  className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-base sm:text-sm font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
                 >
                   Edit details
                 </button>
@@ -274,31 +274,31 @@ const SubmitStep = ({
 
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
               </div>
               {institutionLabel && (
                 <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
                   <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{institutionLabel}</dd>
                 </div>
               )}
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   {isSuccessfulPayment
                     ? 'Processed via Lenco payment gateway'

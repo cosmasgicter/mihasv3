@@ -75,7 +75,7 @@ export function StatusTimeline({ timeline }: StatusTimelineProps) {
                 {step.description}
               </p>
               {step.date && (
-                <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(step.date)}</p>
+                <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">{formatDate(step.date)}</p>
               )}
             </div>
           </div>

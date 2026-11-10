@@ -45,7 +45,7 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
           <Calendar className="w-5 h-5" />
           Interview scheduled
         </h3>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor()}`}>
+        <span data-text-role="caption" className={`px-3 py-1 rounded-full text-sm sm:text-xs font-semibold ${getStatusColor()}`}>
           {interview.status.toUpperCase()}
         </span>
       </div>

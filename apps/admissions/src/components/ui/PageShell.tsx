@@ -90,7 +90,7 @@ export function PageShell({
               <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0 max-w-3xl">
                   {eyebrow && (
-                    <p className="mb-2 break-words text-xs font-semibold uppercase text-foreground">
+                    <p data-text-role="caption" className="mb-2 break-words text-sm font-semibold uppercase text-foreground sm:text-xs">
                       {eyebrow}
                     </p>
                   )}

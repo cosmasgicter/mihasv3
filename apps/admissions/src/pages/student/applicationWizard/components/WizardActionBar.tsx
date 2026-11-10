@@ -122,8 +122,8 @@ export function WizardActionBar({
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <div className="flex min-w-0 items-center gap-2">
           {showOfflineBadge && (
-            <span
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-warning"
+            <span data-text-role="caption"
+              className="inline-flex items-center gap-1.5 text-sm sm:text-xs font-medium text-warning"
               data-testid="wizard-offline-badge"
             >
               <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -179,7 +179,7 @@ export function WizardActionBar({
 
       {alertMessage && (
         <div className="mb-2 flex flex-wrap items-center gap-2" role="alert">
-          <p className="min-w-0 flex-1 break-words text-xs font-medium text-destructive">
+          <p className="min-w-0 flex-1 break-words text-base sm:text-sm font-medium text-destructive">
             {saveError}
           </p>
           {saveStatus === 'conflict' && onReloadConflict && (
@@ -209,7 +209,7 @@ export function WizardActionBar({
 
       {politeMessage && (
         <p
-          className="mb-2 min-w-0 break-words text-xs text-muted-foreground"
+          className="mb-2 min-w-0 break-words text-base sm:text-sm text-muted-foreground"
           data-testid="wizard-save-detail"
         >
           {saveError}

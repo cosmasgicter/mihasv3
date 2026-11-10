@@ -248,7 +248,7 @@ export function ApplicationWorkspaceIndex() {
                     <p className="mt-1 break-words text-base font-semibold text-foreground">
                       {choice.program}
                     </p>
-                    <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                    <p className="mt-0.5 break-words text-base sm:text-sm text-muted-foreground">
                       {choice.applicationNumber ? `#${choice.applicationNumber}` : 'Not yet submitted'}
                       {choice.intake ? `: ${choice.intake}` : ''}
                       {choice.updatedAt ? `: last activity ${formatDate(choice.updatedAt)}` : ''}

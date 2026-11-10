@@ -142,7 +142,7 @@ const PaymentStep = ({
         <div className="rounded-lg border border-border bg-card p-5" data-testid="fee-quote-panel">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
+              <p className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
               {quoteLoading ? (
                 <div className="mt-2 space-y-2" role="status" aria-label="Preparing fee">
                   <Skeleton className="h-7 w-32" />
@@ -155,7 +155,7 @@ const PaymentStep = ({
                   <p className="mt-1 font-mono text-2xl font-bold text-foreground" data-testid="fee-quote-total">
  {formatServerAmount(quote.total_amount, quote.currency)}
  </p>
-                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <div data-text-role="caption" className="mt-2 space-y-1 text-sm sm:text-xs text-muted-foreground">
  <div className="flex justify-between gap-6">
  <span>Application fee</span>
  <span>{formatServerAmount(quote.base_amount, quote.currency)}</span>
@@ -186,7 +186,7 @@ const PaymentStep = ({
  </button>
  </div>
  ) : expiryLabel ? (
- <p className="mt-3 text-xs text-muted-foreground" data-testid="fee-quote-expiry">
+ <p className="mt-3 text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-expiry">
  This price is held until {expiryLabel}.
  </p>
  ) : null}
@@ -200,7 +200,7 @@ const PaymentStep = ({
               )}
             </div>
             {quote?.residency_category && (
-              <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
+              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1 text-sm sm:text-xs font-medium capitalize text-muted-foreground">
                 {quote.residency_category}
               </span>
             )}
@@ -256,7 +256,7 @@ const PaymentStep = ({
                   </div>
                   <div>
                     <p className="text-base sm:text-sm font-semibold text-foreground">Pay later</p>
-                    <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
+                    <p className="text-base sm:text-sm text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
                   </div>
                 </div>
               </button>
@@ -303,7 +303,7 @@ const PaymentStep = ({
                   <p className="text-base sm:text-sm font-semibold text-orange-700">
                     {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
-                  <p className="text-xs text-orange-600/70">Bypass Lenco gateway: dev only, tree-shaken from production builds.</p>
+                  <p className="text-base sm:text-sm text-orange-600/70">Bypass Lenco gateway: dev only, tree-shaken from production builds.</p>
  </div>
  </div>
  </button>

@@ -58,7 +58,7 @@ function SuggestionButtons({
           type="button"
           /* 44 px, not 36 (admissions-v2 task 11.5, R16.2) — a suggestion chip is
              a touch target on the student's phone like any other control. */
-          className="min-h-touch rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="min-h-touch rounded-full border border-border bg-card px-3 py-1 text-base sm:text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           onMouseDown={event => event.preventDefault()}
           onClick={() => onSelect(option.value)}
         >

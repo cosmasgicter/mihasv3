@@ -61,10 +61,11 @@ interface StatusPillProps {
 export function StatusPill({ status, size = 'sm', className = '' }: StatusPillProps) {
   const config = STATUS_MAP[status as ApplicationStatus] ?? { tone: 'neutral' as StatusTone, icon: <FileEdit className="h-3 w-3" /> }
   const toneClass = toneSurfaceClasses(config.tone)
-  const sizeClass = size === 'sm' ? 'rounded-full px-2.5 py-0.5 text-xs' : 'rounded-full px-3 py-1 text-sm'
+  const sizeClass = size === 'sm' ? 'rounded-full px-2.5 py-0.5 text-sm sm:text-xs' : 'rounded-full px-3 py-1 text-sm'
 
   return (
     <span
+      data-text-role="caption"
       className={`inline-flex items-center gap-1 border font-medium whitespace-nowrap ${toneClass} ${sizeClass} ${className}`}
     >
       {config.icon}

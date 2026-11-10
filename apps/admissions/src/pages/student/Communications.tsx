@@ -396,13 +396,13 @@ export default function Communications() {
                           {message}
                         </p>
                         <div className="mt-1 flex items-center gap-3">
-                          <time className="text-xs text-muted-foreground" dateTime={createdAt}>
+                          <time data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground" dateTime={createdAt}>
                             {formatRelative(createdAt)}
                           </time>
                           {safeActionUrl && (
-                            <a
+                            <a data-text-role="caption"
                               href={safeActionUrl}
-                              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                              className="inline-flex items-center gap-1 text-sm sm:text-xs font-medium text-primary hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <ExternalLink className="h-3 w-3" />

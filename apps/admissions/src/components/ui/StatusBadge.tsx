@@ -91,12 +91,13 @@ export function StatusBadge({
   const Icon = icon ?? TONE_DEFAULT_ICONS[tone]
   const sizeClass =
     size === 'sm'
-      ? 'rounded-full px-2.5 py-0.5 text-xs'
+      ? 'rounded-full px-2.5 py-0.5 text-sm sm:text-xs'
       : 'rounded-full px-3 py-1 text-sm'
   const iconClass = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'
 
   return (
     <span
+      data-text-role="caption"
       className={cn(
         'inline-flex items-center gap-1 border font-semibold whitespace-nowrap',
         toneSurfaceClasses(TONE_FOR_BADGE[tone]),

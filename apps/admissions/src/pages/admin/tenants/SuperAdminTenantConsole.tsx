@@ -263,7 +263,7 @@ export function SuperAdminTenantConsole() {
             <Rocket className="h-4 w-4" aria-hidden="true" /> New institution (wizard)
           </Button>
         </div>
-        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <TenantListPanel
             institutions={institutions}
             selectedId={selectedId}

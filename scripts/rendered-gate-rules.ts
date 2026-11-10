@@ -50,6 +50,8 @@ export interface TextRecord extends Presence {
 
 export interface HitRecord extends Presence {
   selector: string;
+  /** The control's accessible name or text, for diagnosis only (not part of the key). */
+  label?: string;
   /** Width and height of the union of the element's box and its label's box. */
   width: number;
   height: number;
@@ -146,7 +148,7 @@ export function classifyFontSize(records: TextRecord[], options: ClassifyOptions
       out.push({
         rule: 'measure/font-size',
         selector: r.selector,
-        detail: `${r.role} text is ${round(r.fontSize)} px, floor ${floor} px`,
+        detail: `${r.role} text is ${round(r.fontSize)} px, floor ${floor} px${r.text ? `, "${r.text}"` : ''}`,
       });
     }
   }
@@ -161,7 +163,7 @@ export function classifyHitArea(records: HitRecord[]): Finding[] {
       out.push({
         rule: 'measure/hit-area',
         selector: r.selector,
-        detail: `hit area is ${round(r.width)} x ${round(r.height)} px, floor ${HIT_AREA_MIN} x ${HIT_AREA_MIN} px`,
+        detail: `hit area is ${round(r.width)} x ${round(r.height)} px, floor ${HIT_AREA_MIN} x ${HIT_AREA_MIN} px${r.label ? `, "${r.label}"` : ''}`,
         inRunningText: r.inRunningText || undefined,
       });
     }

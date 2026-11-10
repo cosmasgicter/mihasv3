@@ -288,7 +288,7 @@ const EducationStep = ({
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
             </span>
             {onRetryOcr && (
-              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-xs font-medium text-primary underline underline-offset-2 hover:text-link-hover">
+              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-base sm:text-sm font-medium text-primary underline underline-offset-2 hover:text-link-hover">
                 Retry scan
               </button>
             )}
@@ -399,7 +399,7 @@ const EducationStep = ({
               </h4>
               <div className="flex flex-wrap gap-1">
                 {recommendedSubjects.map((subject, index) => (
-                  <span key={index} className="px-2 py-1 bg-accent text-accent-foreground text-xs rounded">
+                  <span data-text-role="caption" key={index} className="px-2 py-1 bg-accent text-accent-foreground text-sm sm:text-xs rounded">
                     {subject}
                   </span>
                 ))}
@@ -408,7 +408,7 @@ const EducationStep = ({
           )}
 
           {selectedGrades.length > 0 && (
-            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-foreground uppercase tracking-wide">
+            <div data-text-role="caption" className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-sm sm:text-xs font-medium text-foreground uppercase tracking-wide">
               <div className="col-span-6">Subject</div>
               <div className="col-span-3">Grade</div>
               <div className="col-span-3">Action</div>
@@ -441,7 +441,7 @@ const EducationStep = ({
               >
                 {/* Subject Select */}
                 <div className="sm:col-span-6">
-                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
+                  <label className="block text-base sm:text-sm font-medium text-foreground mb-1 sm:hidden">
                     Subject
                   </label>
                   <CanonicalSelect
@@ -454,12 +454,12 @@ const EducationStep = ({
                     error={isDuplicate || diagnostic === 'unresolved_subject'}
                   />
                   {isDuplicate && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       This subject is already selected in another row.
                     </p>
                   )}
                   {!isDuplicate && subjectHint && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       {subjectHint}
                     </p>
                   )}
@@ -467,7 +467,7 @@ const EducationStep = ({
 
                 {/* Grade Select */}
                 <div className="sm:col-span-3">
-                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
+                  <label className="block text-base sm:text-sm font-medium text-foreground mb-1 sm:hidden">
                     Grade
                   </label>
                   <CanonicalSelect
@@ -478,7 +478,7 @@ const EducationStep = ({
                     aria-label={`Grade for subject ${index + 1}`}
                   />
                   {gradeHint && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       {gradeHint}
                     </p>
                   )}

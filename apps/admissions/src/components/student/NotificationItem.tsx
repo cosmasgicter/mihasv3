@@ -99,7 +99,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
           <p className={cn('text-base sm:text-sm truncate', !notification.read ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground')}>
             {sanitizeText(notification.title)}
           </p>
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+          <p className="text-base sm:text-sm text-muted-foreground line-clamp-2 mt-0.5">
             {sanitizeText(notification.content)}
           </p>
           <span data-text-role="caption" className="text-sm text-muted-foreground mt-1 block">

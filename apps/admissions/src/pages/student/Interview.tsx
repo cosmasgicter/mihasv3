@@ -380,7 +380,7 @@ export default function InterviewPage() {
                 <p className="text-base sm:text-sm text-muted-foreground mb-2">
                   Need to reschedule your interview?
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-base sm:text-sm text-muted-foreground">
                   Contact the admissions office at{' '}
                   <a href="mailto:admissions@beanola.com" className="text-primary hover:underline">
                     admissions@beanola.com
@@ -451,7 +451,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
               <Clock className="h-4 w-4 flex-shrink-0" />
               {time}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+            <span data-text-role="caption" className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-sm sm:text-xs font-medium text-foreground">
               {getModeIcon(interview.mode)}
               {getModeLabel(interview.mode)}
             </span>
@@ -473,7 +473,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
           {/* Reminder copy for upcoming */}
           {isUpcoming && (
-            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-base sm:text-sm text-muted-foreground">
               Please arrive 10 minutes early. Bring your NRC or passport for identification.
             </p>
           )}

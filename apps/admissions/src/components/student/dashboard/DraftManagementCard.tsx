@@ -132,7 +132,7 @@ export function DraftManagementCard({
                 Phase 3 (R15.2), not something to paper over with a browser clock.
               */}
               {savedAt(draft) && (
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                   Saved {formatDate(savedAt(draft))}
                 </p>
               )}
@@ -164,7 +164,7 @@ export function DraftManagementCard({
           >
             <div className="min-w-0">
               <p className="text-base sm:text-sm font-semibold text-foreground">Unsaved application</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                 Saved on this device only. Continue it to save it to your account.
               </p>
             </div>

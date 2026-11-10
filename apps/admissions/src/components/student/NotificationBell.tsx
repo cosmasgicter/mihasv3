@@ -115,7 +115,7 @@ export function NotificationBell() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold text-foreground text-sm">Notifications</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-base sm:text-sm text-muted-foreground mt-0.5">
                     {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
                   </p>
                 </div>
@@ -125,7 +125,7 @@ export function NotificationBell() {
                       variant="ghost"
                       size="sm"
                       onClick={handleMarkAllRead}
-                      className="text-xs text-primary hover:bg-primary/10 min-h-touch"
+                      className="text-base sm:text-sm text-primary hover:bg-primary/10 min-h-touch"
                       data-testid="mark-all-read"
                     >
                       Mark all read
@@ -159,7 +159,7 @@ export function NotificationBell() {
                 <div className="p-8 text-center">
                   <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
                   <p className="font-medium text-foreground text-base sm:text-sm">No new notifications</p>
-                  <p className="text-xs mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
+                  <p className="text-base sm:text-sm mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
                 </div>
               ) : (
                 <div className="py-1">
@@ -182,7 +182,7 @@ export function NotificationBell() {
                 <div className="flex items-center justify-center">
                   <Link
                     to={isAdmin ? '/admin/dashboard' : '/student/communications'}
-                    className="text-xs font-medium text-primary hover:underline min-h-touch inline-flex items-center"
+                    className="text-base sm:text-sm font-medium text-primary hover:underline min-h-touch inline-flex items-center"
                     onClick={() => setShowPanel(false)}
                   >
                     View all

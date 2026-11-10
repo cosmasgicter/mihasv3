@@ -112,9 +112,9 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       </div>
 
       {/* Step label */}
-      <div
+      <div data-text-role="caption"
         className={cn(
-          'mt-3 text-xs font-medium text-center leading-tight max-w-[100px]',
+          'mt-3 text-sm sm:text-xs font-medium text-center leading-tight max-w-[100px]',
           'transition-[color] duration-150',
           isCurrent ? 'text-primary font-semibold' : isActive ? 'text-foreground' : 'text-muted-foreground'
         )}
@@ -123,9 +123,9 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       </div>
 
       {/* Step number badge */}
-      <div
+      <div data-text-role="caption"
         className={cn(
-          'mt-1 text-xs font-medium transition-opacity duration-300',
+          'mt-1 text-sm sm:text-xs font-medium transition-opacity duration-300',
           isCurrent ? 'text-primary' : 'text-muted-foreground'
         )}
       >
@@ -134,7 +134,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
 
       {/* Click to return hint */}
       {isClickable && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary whitespace-nowrap">
+        <div data-text-role="caption" className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-sm sm:text-xs text-primary whitespace-nowrap">
           Click to return
         </div>
       )}
@@ -198,7 +198,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
         )}>
           {step.progressTitle}
         </div>
-        <div className="text-xs text-caption mt-0.5">
+        <div data-text-role="caption" className="text-sm sm:text-xs text-caption mt-0.5">
           Step {step.id} of {totalSteps}
         </div>
       </div>
@@ -415,7 +415,7 @@ export const EnhancedProgressIndicator = ({
       {/* Overall progress bar (mobile only) */}
       {!compact && (
         <div className="md:hidden mt-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+          <div data-text-role="caption" className="flex items-center justify-between text-sm sm:text-xs text-muted-foreground mb-1">
             <span>Overall progress</span>
             <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
           </div>

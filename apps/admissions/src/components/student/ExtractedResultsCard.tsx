@@ -49,8 +49,8 @@ const WITHHELD_COPY: Record<OcrWithheldCandidate['status'], string> = {
 function CheckChip({ check }: { check: ExtractionCheck }) {
   const isPass = check.status === 'pass'
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+    <span data-text-role="caption"
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm sm:text-xs font-medium ${
         isPass
           ? 'bg-green-50 text-green-700 border border-green-200'
           : 'bg-amber-50 text-amber-700 border border-amber-200'
@@ -130,7 +130,7 @@ export function ExtractedResultsCard({
           We read {valid.length} subject{valid.length > 1 ? 's' : ''} from your slip
         </span>
       </div>
-      <p className="text-xs text-muted-foreground mb-4">
+      <p className="text-base sm:text-sm text-muted-foreground mb-4">
         These are suggestions, not your answers. Tick the rows you want to use, then confirm. Nothing
         is added to your application until you do.
       </p>
@@ -157,7 +157,7 @@ export function ExtractedResultsCard({
                     <span className="text-base sm:text-sm font-medium text-foreground">{candidate.subject_name}</span>
                     <span className="text-base sm:text-sm text-foreground">grade {candidate.grade}</span>
                   </span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                  <span data-text-role="caption" className="mt-0.5 block text-sm sm:text-xs text-muted-foreground">
                     {confidenceLabel(candidate.confidence)} ({Math.round(candidate.confidence * 100)}%)
                     {' · '}
                     {candidate.match === 'alias' && candidate.matched_alias
@@ -174,13 +174,13 @@ export function ExtractedResultsCard({
 
       {withheld.length > 0 && (
         <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
-          <p className="text-xs font-medium text-amber-800 mb-1">
+          <p className="text-base sm:text-sm font-medium text-amber-800 mb-1">
             {withheld.length} row{withheld.length > 1 ? 's' : ''} we will not suggest. Please enter
             {withheld.length > 1 ? ' them' : ' it'} yourself:
           </p>
           <ul className="space-y-0.5">
             {withheld.map((row, index) => (
-              <li key={`${row.raw_label}-${row.source_line}-${index}`} className="text-xs text-amber-700">
+              <li key={`${row.raw_label}-${row.source_line}-${index}`} className="text-base sm:text-sm text-amber-700">
                 {row.raw_label || row.subject_name || 'Unreadable row'}
                 {row.grade !== null ? ` (grade ${row.grade})` : ''} — {WITHHELD_COPY[row.status]}
               </li>
@@ -218,12 +218,12 @@ export function ExtractedResultsCard({
 
       <div className="mt-3 space-y-1">
         {decoded.valid && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-base sm:text-sm text-muted-foreground">
             Exam number read: {decoded.raw}
             {year ? ` · ${year}` : ''}
           </p>
         )}
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-base sm:text-sm text-muted-foreground leading-relaxed">
           Read on our servers by deterministic text recognition
           {parserVersion ? ` (${parserVersion})` : ''} — no AI. Your slip stays on file and final
           verification against ECZ records happens during admin review.

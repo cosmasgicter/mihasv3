@@ -160,7 +160,7 @@ export function DocumentChecklist({ applicationId }: DocumentChecklistProps) {
               <div className="min-w-0 space-y-1">
                 <p className="break-words text-base sm:text-sm font-semibold text-foreground">{label}</p>
                 {row.documentName && (
-                  <p className="truncate text-xs text-muted-foreground">{row.documentName}</p>
+                  <p className="truncate text-base sm:text-sm text-muted-foreground">{row.documentName}</p>
                 )}
                 <StatusBadge label={presentation.label} tone={presentation.tone} size="sm" />
               </div>

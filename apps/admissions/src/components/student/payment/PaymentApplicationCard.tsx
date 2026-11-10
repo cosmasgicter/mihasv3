@@ -463,7 +463,7 @@ export function PaymentApplicationCard({
                       {formatLedgerAmount(record.amount, record.currency) || '—'}
                     </span>
                   </span>
-                  <span className="text-xs text-muted-foreground">{formatTimestamp(record.created_at)}</span>
+                  <span data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground">{formatTimestamp(record.created_at)}</span>
                 </li>
               ))}
             </ul>

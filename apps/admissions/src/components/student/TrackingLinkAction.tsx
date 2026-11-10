@@ -88,7 +88,7 @@ export const TrackingLinkAction: React.FC<TrackingLinkActionProps> = ({
       {link && (
         <div className="mt-3 space-y-3" aria-live="polite">
           <div className="rounded-lg border border-border bg-muted/50 p-3">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="mb-1 text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Tracking link
             </p>
             <p className="break-all font-mono text-base sm:text-sm text-foreground" data-testid="issued-tracking-url">

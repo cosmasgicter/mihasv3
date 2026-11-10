@@ -121,11 +121,11 @@ export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps)
             which is the honest reading of a legacy row with no recorded time —
             not today's date.
           */}
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
             {formatTimestamp(row.created_at ?? '')}
           </p>
           {row.changed_by_name && (
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <p className="mt-1 flex items-center gap-1.5 text-base sm:text-sm text-muted-foreground">
               <UserIcon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <span>{row.changed_by_name}</span>
             </p>

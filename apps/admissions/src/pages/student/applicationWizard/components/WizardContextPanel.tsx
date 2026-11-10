@@ -114,7 +114,7 @@ export function WizardContextPanel({
           {tips.length > 0 && (
             <div className="rounded-lg border border-border bg-card p-4">
               <h3 className="text-sm font-semibold text-foreground">{WIZARD_COPY.quickTipsTitle}</h3>
-              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+              <ul data-text-role="caption" className="mt-2 space-y-1 text-sm sm:text-xs text-muted-foreground">
                 {tips.map(tip => (
                   <li key={tip} className="break-words">
                     {tip}

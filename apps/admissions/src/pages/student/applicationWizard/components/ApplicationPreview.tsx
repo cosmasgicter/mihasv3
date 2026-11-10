@@ -21,7 +21,7 @@ export const ApplicationPreview = ({ form, programName, intakeName }: Applicatio
         Application preview
       </h3>
 
-      <div className="space-y-3 text-xs">
+      <div data-text-role="caption" className="space-y-3 text-sm sm:text-xs">
         <div className="flex items-start gap-2">
           <User className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0">

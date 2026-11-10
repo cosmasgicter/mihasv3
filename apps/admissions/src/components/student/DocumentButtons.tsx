@@ -352,7 +352,7 @@ function OfficialDocAction({
         // Not a warning and not an error: the document is lawful and readable.
         // It is simply the copy the platform issued, which is why it stays
         // available once the application itself is terminal (STU-18).
-        <p className="text-xs text-muted-foreground">Issued copy on record</p>
+        <p className="text-base sm:text-sm text-muted-foreground">Issued copy on record</p>
       )}
 
       {setupKnownFromRead && (

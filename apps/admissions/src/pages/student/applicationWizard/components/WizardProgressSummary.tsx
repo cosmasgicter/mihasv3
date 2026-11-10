@@ -67,7 +67,7 @@ export function WizardProgressSummary({
       aria-labelledby="wizard-step-heading"
       className="rounded-lg border border-border bg-card p-4 sm:p-5"
     >
-      <p className="break-words text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="break-words text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Step {stepNumber} of {totalSteps}
       </p>
       <h2 id="wizard-step-heading" className="mt-1 break-words text-lg font-semibold text-foreground sm:text-xl">
@@ -89,7 +89,7 @@ export function WizardProgressSummary({
             style={{ width: `${percentComplete}%` }}
           />
         </div>
-        <span className="shrink-0 text-xs font-semibold text-foreground" data-testid="wizard-progress-percent">
+        <span data-text-role="caption" className="shrink-0 text-sm sm:text-xs font-semibold text-foreground" data-testid="wizard-progress-percent">
           {percentComplete}%
         </span>
       </div>

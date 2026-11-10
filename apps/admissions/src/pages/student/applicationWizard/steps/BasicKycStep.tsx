@@ -65,7 +65,7 @@ const BasicKycStep = ({
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile details pre-filled</span>
           </div>
-          <p className="text-xs text-foreground mt-1">
+          <p className="text-base sm:text-sm text-foreground mt-1">
             Review them before continuing.
           </p>
         </div>

@@ -102,34 +102,34 @@ function ConditionEvidenceForm({
   return (
     <form onSubmit={handleSubmit} className="mt-3 space-y-2 border-t border-border pt-3">
       <div>
-        <label htmlFor={fileInputId} className="block text-xs font-medium text-foreground mb-1">
+        <label htmlFor={fileInputId} className="block text-base sm:text-sm font-medium text-foreground mb-1">
           {isReplacement ? 'Replace your evidence' : 'Attach your evidence'}
         </label>
-        <input
+        <input data-text-role="caption"
           id={fileInputId}
           ref={inputRef}
           type="file"
           accept="application/pdf,image/jpeg,image/png"
           onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          className="block w-full text-xs text-muted-foreground file:mr-3 file:min-h-touch file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-xs file:font-medium"
+          className="block w-full text-sm sm:text-xs text-muted-foreground file:mr-3 file:min-h-touch file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-xs file:font-medium"
         />
       </div>
       <div>
-        <label htmlFor={commentInputId} className="block text-xs font-medium text-foreground mb-1">
+        <label htmlFor={commentInputId} className="block text-base sm:text-sm font-medium text-foreground mb-1">
           Add a note (optional)
         </label>
-        <textarea
+        <textarea data-text-role="caption"
           id={commentInputId}
           value={comment}
           onChange={(event) => setComment(event.target.value)}
           rows={2}
           maxLength={1000}
           placeholder="Explain what you have attached, if it helps."
-          className="w-full rounded-md border border-input bg-card px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm sm:text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
       {error && (
-        <p className="text-xs text-destructive" role="alert" aria-live="assertive">
+        <p className="text-base sm:text-sm text-destructive" role="alert" aria-live="assertive">
           {error}
         </p>
       )}
@@ -163,26 +163,26 @@ export function ConditionsTimeline({
             <div className="flex-shrink-0 mt-0.5">{iconFor(condition)}</div>
             <div className="flex-1 min-w-0">
               <p className="text-base sm:text-sm font-medium text-foreground">{condition.description}</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-base sm:text-sm text-muted-foreground mt-1">
                 Deadline: {formatDate(condition.deadline ?? '')}
                 {condition.met_at && ` \u2022 Fulfilled: ${formatDate(condition.met_at)}`}
               </p>
-              <span
-                className={`inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass(condition)}`}
+              <span data-text-role="caption"
+                className={`inline-block mt-1 rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${badgeClass(condition)}`}
               >
                 {statusLabel(condition).toUpperCase()}
               </span>
               {condition.state_definition && (
-                <p className="mt-2 text-xs text-muted-foreground">{condition.state_definition}</p>
+                <p className="mt-2 text-base sm:text-sm text-muted-foreground">{condition.state_definition}</p>
               )}
               {condition.status === 'changes_required' && condition.review_reason && (
-                <p className="mt-2 rounded-md bg-destructive/10 px-2 py-1 text-xs text-destructive">
+                <p className="mt-2 rounded-md bg-destructive/10 px-2 py-1 text-base sm:text-sm text-destructive">
                   <span className="font-medium">The admissions team asked for: </span>
                   {condition.review_reason}
                 </p>
               )}
               {condition.evidence && (
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-base sm:text-sm text-muted-foreground">
                   Attached: <span className="font-medium">{condition.evidence.document_name}</span>
                   {` \u2022 version ${condition.evidence.version}`}
                   {condition.evidence.uploaded_at &&
@@ -190,7 +190,7 @@ export function ConditionsTimeline({
                 </p>
               )}
               {condition.superseded_evidence.length > 0 && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <p className="mt-1 flex items-center gap-1 text-base sm:text-sm text-muted-foreground">
                   <History className="h-3 w-3" aria-hidden="true" />
                   {condition.superseded_evidence.length === 1
                     ? '1 earlier version kept'

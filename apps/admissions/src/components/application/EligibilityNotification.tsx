@@ -37,13 +37,13 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             </h4>
             
             {score !== undefined && (
-              <span className="px-2 py-0.5 bg-primary/10 text-primary-foreground text-xs font-medium rounded-full">
+              <span data-text-role="caption" className="px-2 py-0.5 bg-primary/10 text-primary-foreground text-sm sm:text-xs font-medium rounded-full">
                 Score: {score}%
               </span>
             )}
             
             {regulatoryBody && (
-              <span className="px-2 py-0.5 bg-secondary/10 text-purple-800 text-xs font-medium rounded-full">
+              <span data-text-role="caption" className="px-2 py-0.5 bg-secondary/10 text-purple-800 text-sm sm:text-xs font-medium rounded-full">
                 {regulatoryBody}
               </span>
             )}
@@ -56,7 +56,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           </p>
           
           {eligibility.competitivenessLevel && (
-            <div className={`inline-block px-2 py-1 rounded text-xs font-medium mb-3 ${
+            <div data-text-role="caption" className={`inline-block px-2 py-1 rounded text-sm sm:text-xs font-medium mb-3 ${
               eligibility.competitivenessLevel === 'Highly Competitive' ? 'bg-accent/10 text-accent-foreground' :
               eligibility.competitivenessLevel === 'Competitive' ? 'bg-primary/10 text-primary-foreground' :
               eligibility.competitivenessLevel === 'Minimum' ? 'bg-accent/10 text-accent-foreground' :
@@ -70,7 +70,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             <div className="mb-3 p-3 bg-primary/5 border border-primary/30 rounded-md">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-primary-foreground">
+                <div data-text-role="caption" className="text-sm sm:text-xs text-primary-foreground">
                   <p className="font-medium mb-1">✓ You can still proceed with your application</p>
                   <p>
                     The admissions committee reviews all applications. Consider alternative entry routes or improving grades for better competitiveness.
@@ -82,10 +82,10 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
           {recommendations && recommendations.length > 0 && (
             <div className="space-y-1 mb-2">
-              <p className="text-xs font-medium text-foreground">Recommendations:</p>
+              <p className="text-base sm:text-sm font-medium text-foreground">Recommendations:</p>
               <ul className="space-y-1">
                 {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 text-xs text-foreground">
+                  <li key={index} className="flex items-start gap-2 text-base sm:text-sm text-foreground">
                     <span className="text-foreground mt-0.5">•</span>
                     <span>{rec}</span>
                   </li>
@@ -96,10 +96,10 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           
           {eligibility.alternativePathways && eligibility.alternativePathways.length > 0 && (
             <div className="mt-2 p-2 bg-secondary/5 border border-input/30 rounded">
-              <p className="text-xs font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
+              <p className="text-base sm:text-sm font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
               <ul className="space-y-1">
                 {eligibility.alternativePathways.map((pathway, index) => (
-                  <li key={index} className="text-xs text-purple-700">
+                  <li key={index} className="text-base sm:text-sm text-purple-700">
                     • {pathway}
                   </li>
                 ))}

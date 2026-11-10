@@ -176,10 +176,10 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
 
   const entry = config[status]
   return (
-    <span
+    <span data-text-role="caption"
       role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}
       aria-live={entry.live}
-      className={`inline-flex items-center gap-2 text-xs font-medium ${entry.className}`}
+      className={`inline-flex items-center gap-2 text-sm sm:text-xs font-medium ${entry.className}`}
     >
       <span className="flex-shrink-0" aria-hidden="true">{entry.icon}</span>
       {entry.label}

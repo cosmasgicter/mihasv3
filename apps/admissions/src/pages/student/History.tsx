@@ -131,14 +131,14 @@ export default function History() {
                       >
                         {/* Status transition indicator */}
                         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.old_status)}`}
+                          <span data-text-role="caption"
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${getTimelineStatusColor(entry.old_status)}`}
                           >
                             {formatStatus(entry.old_status)}
                           </span>
                           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-label="to" />
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.new_status)}`}
+                          <span data-text-role="caption"
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${getTimelineStatusColor(entry.new_status)}`}
                           >
                             {formatStatus(entry.new_status)}
                           </span>
@@ -152,14 +152,14 @@ export default function History() {
                             </p>
                           )}
                           <div className="mt-1 flex flex-wrap items-center gap-3">
-                            <time
-                              className="text-xs text-muted-foreground"
+                            <time data-text-role="caption"
+                              className="text-sm sm:text-xs text-muted-foreground"
                               dateTime={entry.created_at}
                             >
                               {formatRelative(entry.created_at)}
                             </time>
                             {entry.changed_by_name && (
-                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <span data-text-role="caption" className="inline-flex items-center gap-1 text-sm sm:text-xs text-muted-foreground">
                                 <User className="h-3 w-3" />
                                 {entry.changed_by_name}
                               </span>

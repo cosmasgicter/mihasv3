@@ -160,12 +160,12 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               <h3 className="text-sm font-bold text-foreground break-words leading-tight sm:text-base">
                 {application.program || 'Unknown programme'}
               </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-base sm:text-sm text-muted-foreground mt-0.5">
                 #{application.application_number}
               </p>
             </div>
           </div>
-          <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium shadow-sm ${getStatusColor(application.status)}`}>
+          <span data-text-role="caption" className={`w-fit rounded-full px-3 py-1 text-sm sm:text-xs font-medium shadow-sm ${getStatusColor(application.status)}`}>
             {application.status.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
@@ -181,10 +181,10 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
             className="flex flex-col gap-2 rounded-lg border border-border bg-muted/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next action</p>
+              <p className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Next action</p>
               <p className="break-words text-base sm:text-sm font-medium text-foreground">{nextAction.label}</p>
               {nextAction.blockerMessage && (
-                <p className="break-words text-xs text-muted-foreground">{nextAction.blockerMessage}</p>
+                <p className="break-words text-base sm:text-sm text-muted-foreground">{nextAction.blockerMessage}</p>
               )}
             </div>
             {nextAction.href && (
@@ -202,11 +202,11 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div data-text-role="caption" className="flex items-center gap-2 text-sm sm:text-xs text-muted-foreground">
             <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Intake: <span className="text-foreground">{application.intake || 'Unknown'}</span></span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div data-text-role="caption" className="flex items-center gap-2 text-sm sm:text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Submitted: <span className="text-foreground">{formatDate(application.submitted_at)}</span></span>
           </div>

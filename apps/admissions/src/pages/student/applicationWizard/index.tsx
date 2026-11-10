@@ -920,8 +920,8 @@ const ApplicationWizardContent = () => {
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Dashboard
             </button>
-            <span
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${wizardModeSummary.className}`}
+            <span data-text-role="caption"
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm sm:text-xs font-semibold ${wizardModeSummary.className}`}
               role="status"
               aria-live="polite"
               data-testid="wizard-mode-summary"
@@ -1062,7 +1062,7 @@ const ApplicationWizardContent = () => {
                     Complete the remaining items before continuing.
                   </AlertDescription>
                   {stepValidation.missingFields.length > 0 && (
-                    <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                    <ul data-text-role="caption" className="mt-2 list-disc space-y-1 pl-4 text-sm sm:text-xs text-muted-foreground">
                       {stepValidation.missingFields.map((field, idx) => (
                         <li key={idx}>{field}</li>
                       ))}

@@ -72,7 +72,7 @@ export const KeyboardShortcutsHelp = () => {
                   <div className="flex items-center gap-1">
                     {shortcut.keys.map((key, i) => (
                       <span key={i}>
-                        <kbd className="px-2 py-1 text-xs font-semibold bg-muted border border-border rounded">
+                        <kbd data-text-role="caption" className="px-2 py-1 text-sm sm:text-xs font-semibold bg-muted border border-border rounded">
                           {key}
                         </kbd>
                         {i < shortcut.keys.length - 1 && (

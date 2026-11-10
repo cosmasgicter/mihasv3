@@ -188,7 +188,7 @@ export const MEASURE_SOURCE = String.raw`(function measure(selectorFor, roleOf, 
       p.rendered = p.rendered || el.getClientRects().length > 0;
     }
     var size = unionSize(el);
-    hit.push(merge(p, { selector: selectorFor(el), width: size.width, height: size.height, inRunningText: inRunningText(el), measuredFocused: focused || undefined }));
+    hit.push(merge(p, { selector: selectorFor(el), label: ((el.getAttribute('aria-label') || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 40)) || undefined, width: size.width, height: size.height, inRunningText: inRunningText(el), measuredFocused: focused || undefined }));
     if (focused) el.blur();
   });
   window.scrollTo(0, 0);

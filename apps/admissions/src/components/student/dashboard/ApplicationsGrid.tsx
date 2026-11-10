@@ -169,7 +169,7 @@ export function ApplicationsGrid({
                 <span className="break-words text-base sm:text-sm font-medium text-foreground">
                   {intake.name}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground">
                   Closes{' '}
                   <time dateTime={intake.application_deadline}>
                     {formatDate(intake.application_deadline)}
@@ -220,7 +220,7 @@ export function ApplicationsGrid({
 function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 break-words text-base sm:text-sm font-medium text-foreground">{value}</dd>
     </div>
   )

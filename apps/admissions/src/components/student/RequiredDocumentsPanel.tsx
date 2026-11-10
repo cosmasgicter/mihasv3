@@ -96,9 +96,9 @@ function StatusPill({ tone }: { tone: StatusTone }) {
             : FileText
 
   return (
-    <span
+    <span data-text-role="caption"
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm sm:text-xs font-semibold',
         STATUS_STYLES[tone],
       )}
     >
@@ -177,10 +177,10 @@ function RequirementRow({
           <h4 className="text-sm font-semibold text-foreground">
             {requirement.label}
             {!requirement.required && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">(optional)</span>
+              <span data-text-role="caption" className="ml-2 text-sm sm:text-xs font-normal text-muted-foreground">(optional)</span>
             )}
           </h4>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-base sm:text-sm text-muted-foreground">
             {requirement.description ? `${requirement.description} ` : ''}
             {constraintHint(requirement)}.
           </p>
@@ -196,7 +196,7 @@ function RequirementRow({
               <p className="font-medium">
                 {requirement.state === 'verified' ? 'Verified by the admissions team' : 'Saved'}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-base sm:text-sm text-muted-foreground">
                 {documentName ?? 'Uploaded document'}
                 {documentSize ? ` · ${formatConstraintSize(documentSize)}` : ''}
               </p>
@@ -207,7 +207,7 @@ function RequirementRow({
                 upload is still on file (R11.7-R11.8).
               */}
               {(storedVersion !== null || preservedVersions > 0) && (
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                   {storedVersion !== null ? `Version ${storedVersion}` : null}
                   {storedVersion !== null && preservedVersions > 0 ? ' · ' : null}
                   {preservedVersions > 0
@@ -322,7 +322,7 @@ function RequirementRow({
             rather than destroyed (R11.8).
           */}
           {preservedVersions > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-base sm:text-sm text-muted-foreground">
               {preservedVersions} earlier {preservedVersions === 1 ? 'version' : 'versions'} kept on
               file.
             </p>
@@ -489,7 +489,7 @@ export function RequiredDocumentsPanel({
               ? '1 document needs your attention'
               : `${failures.length} documents need your attention`}
           </p>
-          <ul className="mt-1.5 space-y-1 pl-6 text-xs text-destructive">
+          <ul data-text-role="caption" className="mt-1.5 space-y-1 pl-6 text-sm sm:text-xs text-destructive">
             {failures.map((entry) => (
               <li key={entry.requirement.documentType}>
                 <span className="font-medium">{entry.requirement.label}:</span>{' '}

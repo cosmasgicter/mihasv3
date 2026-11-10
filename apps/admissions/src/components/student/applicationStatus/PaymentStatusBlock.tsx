@@ -6,7 +6,7 @@ import { formatServerAmount } from '@/lib/serverAmount'
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="text-base sm:text-sm font-medium text-foreground break-words">{value}</dd>
     </div>
   )
