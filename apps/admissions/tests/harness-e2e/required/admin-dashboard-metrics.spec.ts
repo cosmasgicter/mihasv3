@@ -388,6 +388,14 @@ test.describe('a failed source is unknown, never a healthy zero (R8.6, R17.6)', 
     gate.allowConsole(
       'Failed to load resource: the server responded with a status of 500 (Internal Server Error)',
     );
+    // The app reports the deliberate 500 to the error reporter. Since task 1.3 of
+    // platform-simplification the harness DSN parses, so that report is really
+    // sent, to `harness-invalid.localhost`, a loopback name where nothing listens
+    // (connection refused). It is the reporter doing its job on an error this test
+    // causes, declared like every other spec that tolerates the reporter. Its
+    // console echo carries no URL, so it is allowed by its exact text.
+    gate.allowRequest('harness-invalid.localhost');
+    gate.allowConsole('Failed to load resource: net::ERR_CONNECTION_REFUSED');
 
     await page.goto('/admin/dashboard');
     await expect(page.getByTestId('dashboard-read-health')).toBeVisible({ timeout: 30_000 });
