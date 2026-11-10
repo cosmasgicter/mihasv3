@@ -234,6 +234,31 @@ def _money(value: Any) -> Decimal:
     return Decimal(str(value)).quantize(_MONEY, rounding=ROUND_HALF_UP)
 
 
+def fee_preview_payload(resolved_fee: Any, policy: ProviderFeePolicy | None = None) -> dict[str, Any]:
+    """The non-binding fee estimate shown before a quote exists (task 26.4, R14.5).
+
+    One builder for ``GET /payments/resolve-fee/`` and the assignment preview, so
+    the two cannot describe the same fee differently. The base, the provider fee
+    and the total are quantised with the quote mint's :func:`_money`, so the
+    estimate's total equals the total a minted quote would carry (Property 10).
+    It takes no application, so it cannot bind, expire or be redeemed: the money
+    contract is ``POST /api/v1/payments/quote/``.
+    """
+    policy = policy or provider_fee_policy()
+    base_amount = _money(resolved_fee.amount)
+    provider_fee_estimate = _money(policy.compute(base_amount))
+    return {
+        "amount": str(base_amount),
+        "currency": resolved_fee.currency,
+        "residency_category": resolved_fee.residency_category,
+        "source": resolved_fee.source,
+        "provider_fee_estimate": str(provider_fee_estimate),
+        "customer_total": str(_money(base_amount + provider_fee_estimate)),
+        "bearer": policy.bearer,
+        "is_binding_quote": False,
+    }
+
+
 class FeeQuoteService:
     """Mint, read, and redeem server-authored fee quotes."""
 

@@ -4,7 +4,7 @@ import { animateClasses } from '@/lib/animations'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
 import type { AssignmentPreview } from '@/services/catalog'
-import { formatServerAmount } from '@/lib/serverAmount'
+import { formatServerAmount, isNonZeroServerAmount, residencyRateLabel } from '@/lib/serverAmount'
 import AssignmentRecoveryPanel from './AssignmentRecoveryPanel'
 import type { AssignmentRecoveryGuidance } from '../lib/assignmentRecovery'
 
@@ -42,6 +42,26 @@ function formatFee(fee: AssignmentPreview['fee']): string | null {
 }
 
 /**
+ * The full estimate, every figure as the server sent it (task 26.4, R14.5).
+ *
+ * `formatServerAmount` only puts a currency marker in front of a string; the total
+ * and the transaction fee are the server's own, quantised like a minted quote, so
+ * this does no arithmetic (STU-08). Without the server's total there is no estimate
+ * to show, and the caller falls back to the base amount alone. A zero transaction
+ * fee (a merchant-borne policy) is left out rather than shown as K0.00.
+ */
+function feeEstimate(fee: AssignmentPreview['fee']) {
+  if (!fee?.customer_total) return null
+  const base = formatServerAmount(fee.amount, fee.currency)
+  const total = formatServerAmount(fee.customer_total, fee.currency)
+  if (!base || !total) return null
+  const transaction = isNonZeroServerAmount(fee.provider_fee_estimate)
+    ? formatServerAmount(fee.provider_fee_estimate, fee.currency)
+    : ''
+  return { base, total, transaction, rate: residencyRateLabel(fee.residency_category) }
+}
+
+/**
  * Step 2 of the program-first wizard (R10.1, R10.2): show the school assigned
  * by the backend for the chosen programme + intake, the resolved fee, the
  * required documents, and the school contact — all before payment. Payment is
@@ -66,6 +86,7 @@ const AssignedSchoolStep = ({
 }: AssignedSchoolStepProps) => {
   const { shouldAnimate } = useOptimizedAnimation()
   const feeLabel = preview ? formatFee(preview.fee) : null
+  const estimate = preview ? feeEstimate(preview.fee) : null
   const requiredDocs = preview?.required_documents ?? []
   const contact = preview?.contact
 
@@ -138,7 +159,23 @@ const AssignedSchoolStep = ({
               </span>
               <div>
                 <h2 id="assigned-fee-heading" className="text-sm font-medium text-foreground">Application fee</h2>
-                {feeLabel ? (
+                {estimate ? (
+                  <div data-testid="assigned-fee-estimate">
+                    <p className="font-mono text-base font-semibold text-foreground">
+                      Total you will pay: {estimate.total}
+                    </p>
+                    <p className="text-base sm:text-sm text-foreground">
+                      Application fee {estimate.base}
+                      {estimate.transaction ? ` · Transaction fee ${estimate.transaction}` : ''}
+                    </p>
+                    <p className="text-base sm:text-sm text-muted-foreground">
+                      Estimate before any fee waiver. The payment step confirms the amount.
+                    </p>
+                    {estimate.rate && (
+                      <p className="text-base sm:text-sm text-muted-foreground">{estimate.rate}</p>
+                    )}
+                  </div>
+                ) : feeLabel ? (
                   <p className="font-mono text-base font-semibold text-foreground">{feeLabel}</p>
                 ) : (
                   <p className="text-base sm:text-sm text-muted-foreground">
@@ -148,7 +185,6 @@ const AssignedSchoolStep = ({
               </div>
             </div>
           </section>
-
           {/* Required documents */}
           <section aria-labelledby="assigned-docs-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2">

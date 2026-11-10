@@ -35,6 +35,23 @@ export function formatServerAmount(amount: string | null | undefined, currency: 
   return code ? `${code} ${value}` : value
 }
 
+/**
+ * The plain label for the residency category a fee was resolved for (task 28.2,
+ * R13.4). The code is the backend's; a student reads "Zambian applicant rate".
+ * An unknown code gives an empty string, so a raw value is never shown in its
+ * place.
+ */
+export function residencyRateLabel(category: string | null | undefined): string {
+  switch ((category ?? '').trim().toLowerCase()) {
+    case 'local':
+      return 'Zambian applicant rate'
+    case 'international':
+      return 'International applicant rate'
+    default:
+      return ''
+  }
+}
+
 /** Whether a server-sent decimal string represents a non-zero amount. */
 export function isNonZeroServerAmount(amount: string | null | undefined): boolean {
   const value = (amount ?? '').trim()

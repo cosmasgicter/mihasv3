@@ -130,6 +130,16 @@ export interface AssignmentPreviewFee {
   currency: string
   residency_category: string
   source: string
+  /**
+   * The server's non-binding estimate (task 26.4): the provider fee and the total
+   * the student would pay, quantised like a minted quote. Optional because a cached
+   * response from before the change lacks them. `is_binding_quote` is always false:
+   * the payment step's quote is the contract.
+   */
+  provider_fee_estimate?: string
+  customer_total?: string
+  bearer?: string
+  is_binding_quote?: boolean
 }
 
 export interface AssignmentPreviewContact {
