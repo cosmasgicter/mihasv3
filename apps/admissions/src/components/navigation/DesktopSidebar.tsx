@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -202,32 +202,6 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         )}
       </nav>
 
-      {/* Footer with system status */}
-      <div className={cn(
-        'border-t border-white/10',
-        collapsed ? 'p-2' : 'p-4'
-      )}>
-        {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-white/80 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/20 text-white">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-semibold text-white">Workspace ready</p>
-              <p className="text-xs text-white/80">Navigation synced</p>
-            </div>
-          </div>
-        ) : (
-          <Tooltip content="Workspace ready" side="right">
-            <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-success/20 text-white shadow-sm">
-                <Sparkles className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <span className="sr-only">Workspace ready</span>
-            </div>
-          </Tooltip>
-        )}
-      </div>
     </aside>
   )
 })
