@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
+import { FeatureGate } from '@/app/FeatureGate'
 import { JobsOpsShell } from '@/app/layout/JobsOpsShell'
 import { ProtectedRoute } from '@/auth/ProtectedRoute'
 import { ReportsPage } from '@/features/analytics/pages/ReportsPage'
@@ -20,9 +21,11 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <ProtectedRoute>
-        <JobsOpsShell />
-      </ProtectedRoute>
+      <FeatureGate>
+        <ProtectedRoute>
+          <JobsOpsShell />
+        </ProtectedRoute>
+      </FeatureGate>
     ),
     children: [
       { index: true, element: <OverviewPage /> },

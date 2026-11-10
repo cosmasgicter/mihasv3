@@ -7,7 +7,9 @@ const fallbackMeta: PlatformMeta = {
   creator: { name: 'Cosmas Kanchepa' },
   developer: { name: 'Beanola Technologies', url: 'https://beanola.com' },
   apiVersion: 'v1',
-  features: { jobsOps: false },
+  // Demo mode renders the seeded pages, so the fallback reports the feature on; the shell
+  // labels it "Demo data. Backend not reached." through `source`.
+  features: { jobsOps: true },
   source: 'demo',
 }
 
