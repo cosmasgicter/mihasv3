@@ -9,7 +9,7 @@ inclusion: always
 | Path | Purpose | Guidance |
 |------|---------|----------|
 | `apps/admissions/` | Admissions React app | Active frontend target |
-| `apps/jobs-ops/` | AI job operations dashboard | Active frontend target |
+| `apps/jobs-ops/` | AI job operations dashboard | Active frontend target; its backend routes are off unless `ENABLE_JOBS_OPS_ROUTES` is on (D1) |
 | `apps/website/` | Future public website | Placeholder unless task says otherwise |
 | `apps/student-portal/` | Future student portal | Placeholder unless task says otherwise |
 | `backend/` | Django 5 + DRF API | Primary backend modification target |
@@ -115,7 +115,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 
 | Path | Purpose |
 |------|---------|
-| `apps/jobs-ops/src/app/` | App shell, providers, router |
+| `apps/jobs-ops/src/app/` | App shell, providers, router, and `FeatureGate` / `JobsOpsNotEnabled` (the flag-off state, task 12.2) |
 | `apps/jobs-ops/src/app/layout/` | Shell layout and navigation |
 | `apps/jobs-ops/src/components/ui/` | Shared UI primitives |
 | `apps/jobs-ops/src/features/` | Route-level feature slices |

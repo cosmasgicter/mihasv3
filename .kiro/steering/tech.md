@@ -142,7 +142,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - The student, admin and generic route guards (`StudentRoute`, `AdminRoute`, `ProtectedRoute`) make one refresh attempt through `useSessionRestoreOnce` before redirecting to sign-in, showing "Restoring your session" meanwhile. No attempt follows a sign-out, a cross-tab logout or an auth-failure cascade (`suppressSessionRestore()`), and public pages never refresh. The bootstrap session read (`fetchSessionData`) still never POSTs refresh.
 - `CORS_ALLOW_HEADERS` includes `x-csrf-token`, `x-csrf-recovery`, `idempotency-key`, and `cache-control` in addition to the `corsheaders` defaults.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format against `APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX` patterns, returning 400 with `INVALID_FORMAT` for bad formats and descriptive 404 messages for valid-format codes not found.
-- Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
+- Every jobs-ops route is off unless `ENABLE_JOBS_OPS_ROUTES` is on (decision D1, option B): the `/api/v1/jobs/`, `job-applications/`, `outreach/`, `automation/`, `integrations/`, `analytics/` and `reports/` includes, and the seven seed routes under `/api/v1/email/` and `/api/v1/documents/`, answer 404 while it is off. `POST /api/v1/email/send/` stays mounted either way (the admissions admin email action calls it). `POST /api/v1/email/webhooks/delivery/` stays mounted as before until decision D1.b is answered (`scripts/route-consumers.json`, "pending D1.b").
 
 ## Conventions For New Code
 
@@ -543,7 +543,7 @@ isolation proven by deleting the other product is not isolation.
 ## Current Jobs Ops State
 
 - `apps/jobs-ops` is a frontend over scaffold APIs. Its backend routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` (`config/urls.py:69`) and serve seed data when on.
-- Decision D1 is confirmed as a freeze (2026-11-08) and is not yet implemented (platform-simplification task 12.1).
+- Decision D1 is confirmed as a freeze (2026-11-08) and implemented (platform-simplification tasks 12.1 and 12.2), except that the `webhooks/delivery/` step waits for the D1.b answer. While `ENABLE_JOBS_OPS_ROUTES` is off, the metadata endpoint reports `features.jobs_ops: false` and the jobs-ops frontend renders one "Jobs-ops is not enabled" state (`FeatureGate` at the router root, `src/app/FeatureGate.tsx`) that names the setting and fires no feature request.
 - Search and recommendation filtering exist in the jobs inbox, and the major views have loading states.
 - Backend jobs-ops domains exist for jobs, outreach, automation, integrations, analytics, and reports.
 - Several jobs-ops reads need a session: analytics views use `IsAdmin` (`apps/analytics/views.py`) and the email thread and message reads use `IsAuthenticated` (`apps/integrations/email_views.py`). `apps/jobs-ops/src/auth/` holds only `AuthContext.tsx` and `ProtectedRoute.tsx` (a no-op passthrough) and the app has no sign-in page, so without a session from the admissions app those requests answer 401. How each page renders that 401 was not re-checked in task 9.3.
