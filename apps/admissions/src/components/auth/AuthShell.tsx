@@ -144,7 +144,7 @@ export function AuthShellLink({
       className={cn(
         'rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         emphasis === 'default'
-          ? 'text-primary hover:text-primary/80'
+          ? 'text-primary hover:text-link-hover'
           : 'text-muted-foreground hover:text-foreground',
       )}
     >

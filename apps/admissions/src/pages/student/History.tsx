@@ -147,7 +147,7 @@ export default function History() {
                         {/* Content */}
                         <div className="min-w-0 flex-1">
                           {entry.notes && (
-                            <p className="text-sm text-foreground/80">
+                            <p className="text-sm text-muted-foreground">
                               {entry.notes}
                             </p>
                           )}

@@ -225,7 +225,7 @@ export default function SignInPage() {
             Welcome back. Pick up where you left off.{' '}
             <Link
               to="/auth/signup"
-              className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+              className="font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
               New here? Create an account
             </Link>

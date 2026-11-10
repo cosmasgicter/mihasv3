@@ -181,7 +181,7 @@ export default function SignUpPage() {
             Start your journey with Beanola.{' '}
             <Link
               to="/auth/signin"
-              className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+              className="font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
               Already have an account? Sign in
             </Link>

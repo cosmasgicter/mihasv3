@@ -545,7 +545,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
       <div className="space-y-4" data-testid="payment-form">
         <div className={`rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center ${animateClasses.scaleIn}`}>
           {errorInfo.type === 'network' ? (
-            <WifiOff className="mx-auto mb-3 h-10 w-10 text-destructive/70" />
+            <WifiOff className="mx-auto mb-3 h-10 w-10 text-destructive" />
           ) : (
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <CreditCard className="h-6 w-6 text-destructive" />
@@ -586,7 +586,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           <div>
             <p className={`font-semibold ${paymentMethod === 'mobile-money' ? 'text-foreground' : ''}`}>Mobile Money</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Pay with Airtel or MTN mobile money</p>
-            <p className="mt-1 text-xs text-muted-foreground/70">Instant · No card needed</p>
+            <p className="mt-1 text-xs text-muted-foreground">Instant · No card needed</p>
           </div>
         </button>
 
@@ -610,7 +610,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           <div>
             <p className={`font-semibold ${paymentMethod === 'card' ? 'text-foreground' : ''}`}>Card</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Pay with Visa or Mastercard</p>
-            <p className="mt-1 text-xs text-muted-foreground/70">Secure card payment</p>
+            <p className="mt-1 text-xs text-muted-foreground">Secure card payment</p>
           </div>
         </button>
       </div>

@@ -61,7 +61,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
               'text-base text-foreground ring-offset-background',
               'transition-all duration-200 motion-reduce:transition-none',
               'file:border-0 file:bg-transparent file:text-sm file:font-medium',
-              'placeholder:text-muted-foreground/60',
+              'placeholder:text-muted-foreground',
               'hover:border-primary/40 hover:bg-accent/20',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary',
               'disabled:cursor-not-allowed disabled:opacity-50',

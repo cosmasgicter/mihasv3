@@ -218,7 +218,7 @@ export function NextActionPanel({
               {action.href ? (
                 <Link
                   to={action.href}
-                  className="inline-flex min-h-touch items-center gap-2 rounded-md text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="inline-flex min-h-touch items-center gap-2 rounded-md text-sm font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   {action.label}

@@ -221,7 +221,7 @@ export function ApplicationsTableView({
       rowActions={rowActions}
       loading={loading}
       emptyMessage="No applications found"
-      emptyIcon={<FileText className="h-12 w-12 text-muted-foreground/50" />}
+      emptyIcon={<FileText className="h-12 w-12 text-muted-foreground" />}
       className={cn('overflow-hidden rounded-lg border border-border bg-card shadow-sm', className)}
       striped
     />

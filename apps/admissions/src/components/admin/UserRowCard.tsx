@@ -154,7 +154,7 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
             </span>
           </div>
           <p className="text-sm text-foreground">{getRoleDescription(user.role)}</p>
-          <p className="font-mono text-xs text-foreground/80">
+          <p className="font-mono text-xs text-muted-foreground">
             User ID: {userId.slice(0, 8)}...
           </p>
         </div>
@@ -208,7 +208,7 @@ export const UserTableRow = React.memo<UserRowProps>(function UserTableRow({
               {sanitizeForDisplay(user.full_name) || 'No name provided'}
             </p>
             <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
-            <p className="font-mono text-xs text-foreground/80">ID: {userId.slice(0, 8)}...</p>
+            <p className="font-mono text-xs text-muted-foreground">ID: {userId.slice(0, 8)}...</p>
           </div>
         </div>
       </td>

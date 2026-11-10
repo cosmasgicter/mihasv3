@@ -88,7 +88,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
             ? 'bg-success/90 border-success/70 text-white shadow-sm'
             : isCurrent
             ? 'bg-primary border-primary text-white  shadow-primary/25 scale-110'
-            : 'bg-background border-border/50 text-muted-foreground/60',
+            : 'bg-background border-border/50 text-muted-foreground',
         )}
         style={{ width: isCurrent ? '48px' : 'var(--touch-target, 44px)', height: isCurrent ? '48px' : 'var(--touch-target, 44px)' }}
       >
@@ -386,7 +386,7 @@ export const EnhancedProgressIndicator = ({
                       ? 'bg-primary text-white ring-2 ring-primary/40 ring-offset-2 ring-offset-card shadow-primary/25'
                       : isCompleted
                       ? 'bg-success/90 text-white'
-                      : 'bg-muted border border-border/50 text-muted-foreground/60'
+                      : 'bg-muted border border-border/50 text-muted-foreground'
                   )}
                   aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
                   aria-current={isCurrent ? 'step' : undefined}

@@ -156,7 +156,7 @@ export function NotificationBell() {
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" aria-hidden="true" />
+                  <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
                   <p className="font-medium text-foreground text-sm">No new notifications</p>
                   <p className="text-xs mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
                 </div>

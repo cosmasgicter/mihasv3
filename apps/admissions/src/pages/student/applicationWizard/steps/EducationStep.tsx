@@ -288,7 +288,7 @@ const EducationStep = ({
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
             </span>
             {onRetryOcr && (
-              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
+              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-xs font-medium text-primary underline underline-offset-2 hover:text-link-hover">
                 Retry scan
               </button>
             )}
@@ -351,7 +351,7 @@ const EducationStep = ({
 
           {selectedGrades.length === 0 && (
             <div className={`mb-6 flex flex-col items-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
-              <GraduationCap className="h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
+              <GraduationCap className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <p className="mt-4 text-base font-semibold text-foreground">Add your Grade 12 subjects to continue</p>
               <p className="mt-1 text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
               <Button
