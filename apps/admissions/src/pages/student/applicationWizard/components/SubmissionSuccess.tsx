@@ -9,10 +9,6 @@ import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
 
-const getInstitutionName = (code?: string) => {
-  const value = code?.trim()
-  return value || 'Not specified'
-}
 
 interface SubmissionSuccessProps {
   submittedApplication: SubmittedApplicationSummary
@@ -163,10 +159,12 @@ const SubmissionSuccess = ({
               <dt className="text-muted-foreground">Programme</dt>
               <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Institution</dt>
-              <dd className="font-semibold text-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</dd>
-            </div>
+            {submittedApplication.institution?.trim() && (
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Institution</dt>
+                <dd className="font-semibold text-foreground">{submittedApplication.institution.trim()}</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Payment</dt>
               <dd>

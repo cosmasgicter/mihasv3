@@ -64,18 +64,14 @@ function PlatformCheck({
 >) {
   const named = blockers.slice(0, NAMED_BLOCKERS)
   const remaining = Math.max(blockers.length - named.length, 0)
+  // Before a draft exists there is nothing to check, and the step's own instruction
+  // already says what to do (task 26.5, R14.8): render nothing.
+  if (notEvaluatedYet) return null
   return (
     <div data-testid="wizard-current-blockers">
       <h3 className="text-base sm:text-sm font-semibold text-foreground">Whole application</h3>
       <div className="mt-2">
-        {notEvaluatedYet ? (
-          <p className="flex items-start gap-2 text-base sm:text-sm text-muted-foreground">
-            <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="break-words">
-              Choose your programme and intake, and we will check what is still needed.
-            </span>
-          </p>
-        ) : readinessLoading ? (
+        {readinessLoading ? (
           <p className="flex items-start gap-2 text-base sm:text-sm text-muted-foreground" aria-live="polite">
             <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
             <span className="min-w-0 break-words">Checking what is still needed…</span>

@@ -187,7 +187,7 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
   )
 }
 
-function getDisplayValue(value?: string | null, fallback = 'Not provided') {
+function getDisplayValue(value: string | null | undefined, fallback: string) {
   return value && value.trim().length > 0 ? value : fallback
 }
 

@@ -29,6 +29,15 @@ export function formatDate(iso: string | number | Date | null | undefined): stri
 }
 
 /**
+ * Like {@link formatDate}, but `null` for a missing or invalid date. A student
+ * surface leaves the date out instead of printing "Not available" as if it were
+ * the value (task 26.5, R14.6).
+ */
+export function formatDateOrNull(iso: string | number | Date | null | undefined): string | null {
+  return toSafeDate(iso) ? formatDate(iso) : null
+}
+
+/**
  * Format a timestamp as "15 Jan 2025, 14:30".
  * Returns "Not available" for falsy/invalid input.
  */

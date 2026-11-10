@@ -191,7 +191,10 @@ describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', (
   })
   it('says nothing about blockers before a draft exists to evaluate', () => {
     renderPanel({ notEvaluatedYet: true })
-    expect(screen.getByText(/choose your programme and intake/i)).toBeTruthy()
+    // Nothing renders for the platform check: the step's own instruction says what
+    // to do, so another step's line can never appear here (task 26.5, R14.8).
+    expect(screen.queryByTestId('wizard-current-blockers')).toBeNull()
+    expect(screen.queryByText(/choose your programme and intake/i)).toBeNull()
     expect(screen.queryByTestId('wizard-no-blockers')).toBeNull()
   })
   it('reports one progress number, once, with an accessible progressbar', () => {

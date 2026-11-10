@@ -20,7 +20,7 @@ import {
   DetailRow,
 } from '@/components/student/applicationStatus/ApplicationDetailsSection'
 import { NextActionCards } from '@/components/student/applicationStatus/NextActionCards'
-import { formatDate } from '@/lib/dateFormat'
+import { formatDateOrNull } from '@/lib/dateFormat'
 import { enrollmentReadinessOf } from '@/lib/enrollmentReadiness'
 import { pathFor } from '@/routes/routeRegistry'
 import type { ApplicationWithDetails } from '@/types/database'
@@ -60,13 +60,13 @@ export function WorkspaceAside({
 
       <SectionCard title="Quick information" description="Essential application details at a glance." icon={<User className="h-5 w-5" />}>
         <dl className="space-y-3 text-base sm:text-sm">
-          <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
-          <DetailRow label="Programme" value={application.program || 'Not provided'} />
+          <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : null} />
+          <DetailRow label="Programme" value={application.program} />
           {/* Task 10.6 parity: the retired workspace named the institution. */}
           <DetailRow label="Institution" value={institutionLabel} />
-          <DetailRow label="Intake" value={application.intake || 'Not provided'} />
-          <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)} />
-          <DetailRow label="Last updated" value={formatDate(application.updated_at)} />
+          <DetailRow label="Intake" value={application.intake} />
+          <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDateOrNull(application.status === 'draft' ? application.created_at : application.submitted_at)} />
+          <DetailRow label="Last updated" value={formatDateOrNull(application.updated_at)} />
         </dl>
       </SectionCard>
 

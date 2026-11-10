@@ -14,7 +14,7 @@
  * functions of the server's status now.
  */
 import type { ApplicationWithDetails } from '@/types/database'
-import { formatDate } from '@/lib/dateFormat'
+import { formatDateOrNull } from '@/lib/dateFormat'
 import {
   getPaymentStatusLabel,
   normalizePaymentStatus,
@@ -115,7 +115,7 @@ export function buildWorkspacePresentation(
   }
 
   const applicationSubtitlePrefix = application.status === 'draft' ? 'Started on' : 'Submitted on'
-  const applicationSubtitleDate = formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)
+  const applicationSubtitleDate = formatDateOrNull(application.status === 'draft' ? application.created_at : application.submitted_at)
 
   return {
     statusLabel,
@@ -129,10 +129,15 @@ export function buildWorkspacePresentation(
     }),
     paymentReviewNote,
     institutionLabel:
-      institutionSnapshot.institution_name || institutionSnapshot.institution || 'Not provided',
+      institutionSnapshot.institution_name || institutionSnapshot.institution || '',
     applicationTitle: application.application_number
       ? `Application #${application.application_number}`
       : 'Application status',
-    applicationSubtitle: `${truncateValue(application.program, 40) || 'Programme pending'} \u2022 ${applicationSubtitlePrefix} ${applicationSubtitleDate}`,
+    applicationSubtitle: [
+      truncateValue(application.program, 40) || 'Programme pending',
+      applicationSubtitleDate ? `${applicationSubtitlePrefix} ${applicationSubtitleDate}` : null,
+    ]
+      .filter(Boolean)
+      .join(' \u2022 '),
   }
 }

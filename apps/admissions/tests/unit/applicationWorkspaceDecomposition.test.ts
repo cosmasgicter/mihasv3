@@ -232,6 +232,14 @@ describe('buildWorkspacePresentation derives every label from the row', () => {
       .toContain('Submitted on')
   })
 
+  it('leaves the date out of the subtitle when the row has none (task 26.5, R14.6)', () => {
+    const subtitle = buildWorkspacePresentation(
+      application({ status: 'draft', created_at: undefined } as Partial<ApplicationWithDetails>),
+    ).applicationSubtitle
+    expect(subtitle).not.toContain('Started on')
+    expect(subtitle).not.toContain('Not available')
+    expect(subtitle).not.toContain('\u2022')
+  })
   it('names the programme, and falls back rather than printing an empty subtitle', () => {
     expect(buildWorkspacePresentation(application({ program: null })).applicationSubtitle)
       .toContain('Programme pending')
@@ -246,7 +254,7 @@ describe('buildWorkspacePresentation derives every label from the row', () => {
     expect(
       buildWorkspacePresentation(application({ institution: 'EHI' } as Partial<ApplicationWithDetails>)).institutionLabel,
     ).toBe('EHI')
-    expect(buildWorkspacePresentation(application({})).institutionLabel).toBe('Not provided')
+    expect(buildWorkspacePresentation(application({})).institutionLabel).toBe('')
   })
 
   it('treats a deferral as a fee still owed, and names the student\u2019s own choice', () => {

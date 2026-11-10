@@ -1096,6 +1096,13 @@ sees a code the backend cannot produce.
   step ranks with `submit`), stable within a step. The frontend renders the
   server's order and adds no rule (`lib/studentNextAction.ts`). Pinned by
   `tests/property/test_platform_simplification_properties.py` Property 3.
+- Document state presentation (platform-simplification task 26.5, R14.7): the
+  backend publishes `DOCUMENT_STATES` (`required_documents.py`); the one frontend
+  mirror is `apps/admissions/src/lib/documentStatePresentation.ts`
+  (`DOCUMENT_STATE_PRESENTATION`: one word, one Lucide icon, one tone per state),
+  read by `RequiredDocumentsPanel` and `DocumentChecklist`. Drift guard:
+  `apps/admissions/tests/unit/documentStatePresentation.test.ts` fails if the
+  backend gains a state with no entry.
 - Invariant clients may rely on:
   `can_submit == (status == "draft" and blockers == [])`. An un-ticked
   declaration is **not** a blocker (it is the submit action itself); its state

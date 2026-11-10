@@ -30,6 +30,8 @@ import {
 
 import { Button } from '@/components/ui/Button'
 import { FileUpload } from '@/components/ui/FileUpload'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { DOCUMENT_STATE_PRESENTATION } from '@/lib/documentStatePresentation'
 import { documentOpenHref } from '@/lib/documentOpen'
 import {
   acceptAttribute,
@@ -64,56 +66,41 @@ export interface RequiredDocumentsPanelProps {
 }
 
 type StatusTone = 'verified' | 'uploaded' | 'uploading' | 'removing' | 'failed' | 'missing'
-
-const STATUS_STYLES: Record<StatusTone, string> = {
-  verified: 'border-success/30 bg-success/5 text-success',
-  uploaded: 'border-success/30 bg-success/5 text-success',
+/** Transient, client-side states. The persisted ones come from the shared map. */
+const TRANSIENT_STYLES: Record<'uploading' | 'removing' | 'failed', string> = {
   uploading: 'border-primary/30 bg-primary/5 text-primary',
   removing: 'border-primary/30 bg-primary/5 text-primary',
   failed: 'border-destructive/30 bg-destructive/5 text-destructive',
-  missing: 'border-border bg-muted text-muted-foreground',
 }
-
-const STATUS_LABELS: Record<StatusTone, string> = {
-  verified: 'Verified',
-  uploaded: 'Uploaded',
+const TRANSIENT_LABELS: Record<'uploading' | 'removing' | 'failed', string> = {
   uploading: 'Uploading',
   removing: 'Removing',
   failed: 'Needs retry',
-  missing: 'Not added',
 }
-
 function StatusPill({ tone }: { tone: StatusTone }) {
-  const Icon =
-    tone === 'verified'
-      ? ShieldCheck
-      : tone === 'uploaded'
-        ? CheckCircle2
-        : tone === 'uploading' || tone === 'removing'
-          ? Loader2
-          : tone === 'failed'
-            ? AlertCircle
-            : FileText
-
+  // Missing, uploaded and verified read the one document-state map (task 26.5).
+  if (tone === 'missing' || tone === 'uploaded' || tone === 'verified') {
+    const presentation = DOCUMENT_STATE_PRESENTATION[tone]
+    return (
+      <StatusBadge label={presentation.label} tone={presentation.tone} icon={presentation.icon} size="sm" />
+    )
+  }
+  const Icon = tone === 'failed' ? AlertCircle : Loader2
   return (
     <span data-text-role="caption"
       className={cn(
         'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm sm:text-xs font-semibold',
-        STATUS_STYLES[tone],
+        TRANSIENT_STYLES[tone],
       )}
     >
       <Icon
-        className={cn(
-          'h-3.5 w-3.5',
-          (tone === 'uploading' || tone === 'removing') && 'animate-spin',
-        )}
+        className={cn('h-3.5 w-3.5', tone !== 'failed' && 'animate-spin')}
         aria-hidden="true"
       />
-      {STATUS_LABELS[tone]}
+      {TRANSIENT_LABELS[tone]}
     </span>
   )
 }
-
 function toneFor(
   requirement: RequiredDocumentRequirement,
   state: RequiredDocumentUploadState | undefined,

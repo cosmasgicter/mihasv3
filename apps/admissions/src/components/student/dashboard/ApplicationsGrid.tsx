@@ -197,15 +197,15 @@ export function ApplicationsGrid({
               getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]),
             )}
           />
-          <ProfileFact label="Email" value={sanitizeForDisplay(user?.email) || 'Not provided'} />
+          <ProfileFact label="Email" value={sanitizeForDisplay(user?.email)} />
           <ProfileFact
             label="Phone"
-            value={sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
+            value={sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, ''))}
           />
           <ProfileFact
             label="Residence"
             value={sanitizeForDisplay(
-              getBestValue(profile?.address, metadata.address, 'Not provided'),
+              getBestValue(profile?.address, metadata.address, ''),
             )}
           />
         </dl>
@@ -218,6 +218,8 @@ export function ApplicationsGrid({
 }
 
 function ProfileFact({ label, value }: { label: string; value: string }) {
+  // A missing value is left out, not printed as "Not provided" (task 26.5, R14.6).
+  if (!value || value.trim().length === 0) return null
   return (
     <div className="min-w-0">
       <dt className="text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>

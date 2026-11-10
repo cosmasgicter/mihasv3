@@ -271,14 +271,18 @@ const SubmitStep = ({
             </div>
 
             <dl className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
-                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
-              </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
-                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
-              </div>
+              {formValues.full_name && (
+                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name}</dd>
+                </div>
+              )}
+              {programLabel && (
+                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel}</dd>
+                </div>
+              )}
               {institutionLabel && (
                 <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                   <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>

@@ -286,7 +286,7 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
           />
         ) : null}
 
-        {!hasActiveInterview && (
+        {!hasActiveInterview && application.status !== 'draft' && (
           <SectionCard title="Interview status" description="Our admissions team will contact you if a new interview is required." icon={<Calendar className="h-5 w-5" />}>
             <p className="text-base sm:text-sm text-foreground">If you have questions, please reach out to admissions support.</p>
           </SectionCard>

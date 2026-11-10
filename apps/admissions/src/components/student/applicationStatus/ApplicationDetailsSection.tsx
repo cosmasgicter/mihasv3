@@ -15,7 +15,14 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { PaymentStatusBlock } from '@/components/student/applicationStatus/PaymentStatusBlock'
 import type { ApplicationWithDetails } from '@/types/database'
 
+/**
+ * One labelled fact. A fact the student has not given, or the platform does not
+ * have, is left out: a row reading "Not provided" presents a missing value as if
+ * it were the answer (task 26.5, R14.6).
+ */
 export function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value === null || value === undefined || value === false) return null
+  if (typeof value === 'string' && value.trim().length === 0) return null
   return (
     <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
       <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
@@ -41,24 +48,24 @@ export function ApplicationDetailsSection({
         <div className="rounded-lg border border-border bg-muted px-5 py-4">
           <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
           <dl className="space-y-2 text-base sm:text-sm">
-            <DetailRow label="Full name" value={application.full_name || 'Not provided'} />
-            <DetailRow label="Date of birth" value={application.date_of_birth || 'Not provided'} />
-            <DetailRow label="Sex" value={application.sex || 'Not provided'} />
-            <DetailRow label="Phone" value={application.phone || 'Not provided'} />
-            <DetailRow label="Email" value={application.email || 'Not provided'} />
+            <DetailRow label="Full name" value={application.full_name} />
+            <DetailRow label="Date of birth" value={application.date_of_birth} />
+            <DetailRow label="Sex" value={application.sex} />
+            <DetailRow label="Phone" value={application.phone} />
+            <DetailRow label="Email" value={application.email} />
             {/* Task 10.6 parity: the retired workspace showed nationality; the
                 canonical one did not, so consolidating without it would have
                 removed a field the student could previously read. */}
-            <DetailRow label="Nationality" value={application.nationality || 'Not provided'} />
+            <DetailRow label="Nationality" value={application.nationality} />
           </dl>
         </div>
         <div className="rounded-lg border border-border bg-muted px-5 py-4">
           <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
           <dl className="space-y-2 text-base sm:text-sm">
-            <DetailRow label="Residence town" value={application.residence_town || 'Not provided'} />
-            <DetailRow label="NRC" value={application.nrc_number || 'Not provided'} />
-            <DetailRow label="Next of kin" value={application.next_of_kin_name || 'Not provided'} />
-            <DetailRow label="Next of kin phone" value={application.next_of_kin_phone || 'Not provided'} />
+            <DetailRow label="Residence town" value={application.residence_town} />
+            <DetailRow label="NRC" value={application.nrc_number} />
+            <DetailRow label="Next of kin" value={application.next_of_kin_name} />
+            <DetailRow label="Next of kin phone" value={application.next_of_kin_phone} />
           </dl>
         </div>
         <PaymentStatusBlock

@@ -109,6 +109,11 @@ LEGACY_PLATFORM_DOCUMENT_TYPES: tuple[str, ...] = (
 )
 
 #: Requirement source labels published in the contract.
+#: The states a required-document row can be in. The frontend's
+#: ``documentStatePresentation`` has an entry for each (drift-guarded by
+#: ``tests/unit/documentStatePresentation.test.ts``, task 26.5).
+DOCUMENT_STATES = ("missing", "uploaded", "verified")
+
 SOURCE_TENANT = "tenant"
 SOURCE_PLATFORM = "platform"
 
@@ -402,7 +407,7 @@ def build_contract(application, *, allow_live_resolution: bool = True) -> dict[s
             for entry in history.get(candidate_type, [])
         ]
         if document is None:
-            row["state"] = "missing"
+            row["state"] = DOCUMENT_STATES[0]  # "missing"
             row["document"] = None
             if row["required"]:
                 missing_required.append(

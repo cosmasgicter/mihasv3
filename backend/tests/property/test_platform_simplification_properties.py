@@ -127,3 +127,45 @@ def test_property_3_next_actions_follow_the_wizard_step_order(codes, can_submit)
     # Each action appears once, whatever the number of blockers that map to it.
     names = [action["action"] for action in actions]
     assert len(names) == len(set(names))
+
+
+# Feature: platform-simplification-and-polish, Property 10: Fee estimate agrees with the binding quote
+# Validates: Requirements 14.5
+@settings(max_examples=80, deadline=None)
+@given(
+    cents=st.integers(min_value=1, max_value=50_000_000),
+    percent=st.decimals(min_value=0, max_value=10, places=2),
+    fixed=st.decimals(min_value=0, max_value=50, places=2),
+    cap=st.decimals(min_value=0, max_value=100, places=2),
+    bearer=st.sampled_from(["customer", "merchant"]),
+)
+def test_property_10_fee_estimate_agrees_with_the_binding_quote(cents, percent, fixed, cap, bearer):
+    from decimal import Decimal
+    from types import SimpleNamespace
+
+    from apps.documents.fee_quote_service import _money, fee_preview_payload, provider_fee_policy
+
+    amount = Decimal(cents) / Decimal(100)
+    resolved = SimpleNamespace(amount=amount, currency="ZMW", residency_category="local", source="program_fee")
+    with override_settings(
+        PAYMENT_PROVIDER_FEE_PERCENT=str(percent),
+        PAYMENT_PROVIDER_FEE_FIXED=str(fixed),
+        PAYMENT_PROVIDER_FEE_CAP=str(cap),
+        PAYMENT_PROVIDER_FEE_BEARER=bearer,
+    ):
+        preview = fee_preview_payload(resolved)
+        # What the quote mint computes for the same base (fee_quote_service.mint):
+        policy = provider_fee_policy()
+        base = _money(amount)
+        quote_fee = policy.compute(base)
+        quote_total = _money(base + quote_fee)
+    assert preview["is_binding_quote"] is False
+    assert Decimal(preview["amount"]) == base
+    assert Decimal(preview["provider_fee_estimate"]) == quote_fee
+    assert Decimal(preview["customer_total"]) == quote_total
+    assert Decimal(preview["customer_total"]) == base + Decimal(preview["provider_fee_estimate"])
+    # Every money string carries exactly two decimals, so the client never rounds.
+    for key in ("amount", "provider_fee_estimate", "customer_total"):
+        assert len(preview[key].split(".")[1]) == 2
+    if bearer == "merchant":
+        assert Decimal(preview["provider_fee_estimate"]) == 0
