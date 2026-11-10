@@ -17,8 +17,6 @@ services.
 apps/
   admissions/          React 18 admissions portal (Vercel → apply.beanola.com)
   jobs-ops/            React 18 operator dashboard for AI job operations
-  website/             Future public website (placeholder)
-  student-portal/      Future student management system (placeholder)
   librarymanagement/   Reserved app directory (not yet wired)
 backend/               Django 5 + DRF API (self-hosted EC2 Docker stack → api.beanola.com)
 shared/                Shared package scaffold (lightly used)

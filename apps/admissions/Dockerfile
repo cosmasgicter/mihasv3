@@ -20,8 +20,6 @@ WORKDIR /repo
 COPY package.json bun.lock ./
 COPY apps/admissions/package.json apps/admissions/package.json
 COPY apps/jobs-ops/package.json apps/jobs-ops/package.json
-COPY apps/student-portal/package.json apps/student-portal/package.json
-COPY apps/website/package.json apps/website/package.json
 COPY shared/package.json shared/package.json
 RUN bun install --frozen-lockfile
 

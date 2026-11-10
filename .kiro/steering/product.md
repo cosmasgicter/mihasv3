@@ -33,7 +33,6 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 - `apps/jobs-ops/` is a frontend over scaffold APIs: its backend routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` and serve seed data when on. Decision D1 is confirmed as a freeze (2026-11-08) and implemented (tasks 12.1 and 12.2): with the flag off every jobs-ops route answers 404 and the jobs-ops UI says it is not enabled. Platform attribution stays in the metadata response either way.
 - `backend/` is the canonical server implementation for both product areas.
 - `shared/` exists for intentionally shared code, but remains lightly used.
-- `apps/website/` and `apps/student-portal/` are still placeholder/future apps.
 
 ### Error Monitoring
 

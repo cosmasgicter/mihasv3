@@ -127,14 +127,6 @@
         "vitest": "4.0.18",
       },
     },
-    "apps/student-portal": {
-      "name": "@beanola/student-portal",
-      "version": "0.1.0",
-    },
-    "apps/website": {
-      "name": "@beanola/website",
-      "version": "0.1.0",
-    },
     "shared": {
       "name": "@beanola/shared",
       "version": "0.1.0",
@@ -232,10 +224,6 @@
     "@bcoe/v8-coverage": ["@bcoe/v8-coverage@1.0.2", "", {}, "sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA=="],
 
     "@beanola/shared": ["@beanola/shared@workspace:shared"],
-
-    "@beanola/student-portal": ["@beanola/student-portal@workspace:apps/student-portal"],
-
-    "@beanola/website": ["@beanola/website@workspace:apps/website"],
 
     "@cfworker/json-schema": ["@cfworker/json-schema@4.1.1", "", {}, "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="],
 

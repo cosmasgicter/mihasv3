@@ -10,8 +10,6 @@ inclusion: always
 |------|---------|----------|
 | `apps/admissions/` | Admissions React app | Active frontend target |
 | `apps/jobs-ops/` | AI job operations dashboard | Active frontend target; its backend routes are off unless `ENABLE_JOBS_OPS_ROUTES` is on (D1) |
-| `apps/website/` | Future public website | Placeholder unless task says otherwise |
-| `apps/student-portal/` | Future student portal | Placeholder unless task says otherwise |
 | `backend/` | Django 5 + DRF API | Primary backend modification target |
 | `shared/` | Shared package scaffold | Use only for code intentionally shared across apps |
 | `docs/` | Project documentation | Modify when task requires documentation or handoff updates |
