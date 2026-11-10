@@ -71,17 +71,24 @@ def test_journey_gate_command_exports_the_four_values_and_runs_every_stage_in_or
         assert line in body
     command = re.search(r"\n  journey-gate\)\n(.*?)\n    ;;", script, re.DOTALL)
     assert command, "the journey-gate command is missing"
-    stages = [line.strip() for line in command.group(1).splitlines() if line.strip()]
-    assert stages[:8] == [
+    stages = [
+        line.strip()
+        for line in command.group(1).splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    # Platform-simplification task 11.1 (decision D2): the gate brings the stack up through
+    # the documented setup script, once, in place of its own build_spa, compose_up and
+    # wait_healthy. The four exported values reach it through the environment.
+    assert stages[:6] == [
         "export_gate_switches",
-        "build_spa",
-        "compose_up",
-        "wait_healthy",
+        'bash "${HARNESS_DIR}/bin/local-setup.sh"',
         "ensure_browser",
         "storage_check",
         "edge_check",
         "run_journey_gate",
     ]
+    for own_bring_up in ("build_spa", "compose_up", "wait_healthy"):
+        assert own_bring_up not in stages, "the stack must be brought up once, by local-setup.sh"
     assert "drain_check" in stages
 
 
