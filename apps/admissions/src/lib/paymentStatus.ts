@@ -347,10 +347,10 @@ export const PAYMENT_WAITING_STATES: Record<
   },
   provider_processing: {
     title: 'Confirming with your provider',
-    body: "Your payment is with your mobile money provider. There's nothing to do — we'll update this page as soon as they confirm.",
+    body: "Your payment is with your mobile money provider. There's nothing to do. We'll update this page as soon as they confirm.",
     studentActionable: false,
     timeoutSeconds: 600,
-    onTimeout: 'Still confirming. You can safely leave this page and check back — we will not charge you twice.',
+    onTimeout: 'Still confirming. You can safely leave this page and check back. We will not charge you twice.',
   },
 }
 

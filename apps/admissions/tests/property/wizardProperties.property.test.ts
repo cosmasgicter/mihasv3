@@ -273,14 +273,14 @@ describe('Property 14: AutoSaveIndicator State Rendering', () => {
     )
   })
 
-  it('renders "Saving..." text only when status is saving', () => {
+  it('renders "Saving…" text only when status is saving', () => {
     fc.assert(
       fc.property(autoSaveStatusArb, (status) => {
         const html = renderToStaticMarkup(
           React.createElement(AutoSaveIndicator, { status })
         )
         if (status === 'saving') {
-          expect(html).toContain('Saving...')
+          expect(html).toContain('Saving…')
           expect(html).toContain('animate-pulse')
         } else if (status !== 'idle') {
           expect(html).not.toContain('animate-pulse')
@@ -326,7 +326,7 @@ describe('Property 14: AutoSaveIndicator State Rendering', () => {
       React.createElement(AutoSaveIndicator, { status: 'idle' })
     )
     // idle should not show saving, saved, or error text visually
-    expect(html).not.toContain('Saving...')
+    expect(html).not.toContain('Saving…')
     expect(html).not.toContain('Save failed')
     // The only content should be the sr-only span (which is empty for idle)
     expect(html).toContain('aria-live="polite"')
@@ -334,7 +334,7 @@ describe('Property 14: AutoSaveIndicator State Rendering', () => {
 
   it('each non-idle status renders exactly one visual indicator', () => {
     const statusToText: Record<string, string> = {
-      saving: 'Saving...',
+      saving: 'Saving…',
       saved: 'Saved',
       error: 'Save failed',
     }

@@ -133,7 +133,7 @@ export function AuditPanel({ institutionId }: { institutionId: string }) {
   return (
     <SectionCard
       title="Configuration audit"
-      description="Recorded activity for this school — configuration changes, authorization refusals, review decisions and exports. Filters, counts and the export are the server's."
+      description="Recorded activity for this school. Configuration changes, authorization refusals, review decisions and exports. Filters, counts and the export are the server's."
       icon={<History className="h-5 w-5" />}
       actions={
         mayExport ? (

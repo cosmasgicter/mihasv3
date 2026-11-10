@@ -338,7 +338,7 @@ export function useWizardStepAdvance({
       }
 
       if (validGradeCount < 5) {
-        const hintSuffix = liveValidation.hintMessage ? ` — ${liveValidation.hintMessage}` : ''
+        const hintSuffix = liveValidation.hintMessage ? `: ${liveValidation.hintMessage}` : ''
         const errorMessage = `Minimum 5 unique subjects required (${validGradeCount} selected${hintSuffix})`
         setError(errorMessage)
         return

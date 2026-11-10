@@ -330,7 +330,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter your message..."
+              placeholder="Enter your message…"
               rows={6}
               className={cn(remainingChars < 0 && 'border-destructive')}
             />
@@ -352,7 +352,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
             {sending ? (
               <>
                 <Send className="w-4 h-4 mr-2 animate-pulse" />
-                Sending...
+                Sending…
               </>
             ) : (
               <>

@@ -498,7 +498,7 @@ export default function StudentDashboard() {
                 loading={isRefreshing || isManualRefreshing}
               >
                 {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" aria-hidden="true" />}
-                {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
+                {(isRefreshing || isManualRefreshing) ? 'Refreshing…' : 'Refresh'}
               </Button>
             </div>
 

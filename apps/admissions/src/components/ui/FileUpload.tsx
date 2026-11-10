@@ -205,7 +205,7 @@ function FileUpload({
             <Upload className="h-6 w-6 text-primary flex-shrink-0 animate-pulse" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="text-base sm:text-sm font-medium text-foreground truncate">
-                {primaryFile?.name ?? 'Uploading...'}
+                {primaryFile?.name ?? 'Uploading…'}
               </p>
               {primaryFile && (
                 <p className="text-xs text-muted-foreground">
@@ -228,7 +228,7 @@ function FileUpload({
           </div>
           <div className="w-full">
             <div className="flex justify-between text-xs text-muted-foreground mb-1" aria-live="polite">
-              <span>{hasUploadProgress ? 'Uploading...' : 'Uploading securely...'}</span>
+              <span>{hasUploadProgress ? 'Uploading…' : 'Uploading securely…'}</span>
               {hasUploadProgress && (
                 <span className="font-medium text-primary">{Math.round(normalizedProgress)}%</span>
               )}

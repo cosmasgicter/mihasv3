@@ -287,7 +287,7 @@ export default function SignInPage() {
             variant="primary"
             size="lg"
           >
-            {signInMutation.isPending ? 'Signing in...' : 'Sign in'}
+            {signInMutation.isPending ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
       </AuthShell>

@@ -93,7 +93,7 @@ export default function SignUpPage() {
       return result;
     },
     onSuccess: () => {
-      setSuccess('Account created. Opening your dashboard...');
+      setSuccess('Account created. Opening your dashboard…');
       void preloadStudentWorkspaceRoute('signup-success');
 
       redirectTimerRef.current = window.setTimeout(() => {
@@ -340,7 +340,7 @@ export default function SignUpPage() {
             variant="primary"
             size="lg"
           >
-            {signUpMutation.isPending ? 'Creating account...' : 'Create account'}
+            {signUpMutation.isPending ? 'Creating account…' : 'Create account'}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">

@@ -51,7 +51,7 @@ export default function AuthCallbackPage() {
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">Authentication failed</h3>
               <p className="text-sm text-foreground mb-4">{error}</p>
-              <p className="text-xs text-foreground">Redirecting to sign in page...</p>
+              <p className="text-xs text-foreground">Redirecting to sign in page…</p>
             </div>
           </div>
           </div>

@@ -152,7 +152,7 @@ const PaymentStep = ({
  <FeeQuoteRefusal error={quoteError} onRefresh={refreshQuote} className="mt-1"/>
               ) : quote ? (
                 <>
-                  <p className="mt-1 text-2xl font-bold text-foreground" data-testid="fee-quote-total">
+                  <p className="mt-1 font-mono text-2xl font-bold text-foreground" data-testid="fee-quote-total">
  {formatServerAmount(quote.total_amount, quote.currency)}
  </p>
                   <div className="mt-2 space-y-1 text-xs text-muted-foreground">
@@ -303,7 +303,7 @@ const PaymentStep = ({
                   <p className="text-base sm:text-sm font-semibold text-orange-700">
                     {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
-                  <p className="text-xs text-orange-600/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
+                  <p className="text-xs text-orange-600/70">Bypass Lenco gateway: dev only, tree-shaken from production builds.</p>
  </div>
  </div>
  </button>

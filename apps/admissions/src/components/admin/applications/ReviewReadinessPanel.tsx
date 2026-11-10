@@ -117,7 +117,7 @@ export function ReviewReadinessPanel({ readiness, definition }: ReviewReadinessP
             <p className="mt-1 text-sm text-muted-foreground">
               The programme configuration for this application could not be evaluated, so
               the readiness checklist cannot be produced. This is not the same as "nothing
-              outstanding" — reload shortly, and escalate if it persists.
+              outstanding". Reload shortly, and escalate if it persists.
             </p>
           </div>
         </div>

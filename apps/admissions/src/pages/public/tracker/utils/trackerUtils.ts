@@ -82,11 +82,11 @@ export const getPaymentStatusStyles = (status?: string | null) => {
 export const getPaymentStatusDescription = (status?: string | null) => {
   switch (status) {
     case 'verified':
-      return 'Payment verified — you are all set.'
+      return 'Payment verified: you are all set.'
     case 'rejected':
-      return 'Payment issue detected — please contact support.'
+      return 'Payment issue detected: please contact support.'
     default:
-      return 'Payment submitted — awaiting verification by admissions.'
+      return 'Payment submitted: awaiting verification by admissions.'
   }
 }
 

@@ -85,7 +85,7 @@ export function ApplicationDetailPayment({
         {loadingPayments ? (
           <div className="flex items-center gap-2 text-sm text-foreground py-4">
             <div className="h-2.5 w-2.5 rounded-md bg-primary animate-pulse" aria-hidden="true" />
-            <span>Loading payment records...</span>
+            <span>Loading payment records…</span>
           </div>
         ) : paymentRecords.length === 0 ? (
           <div className="text-center py-6 text-foreground">

@@ -134,7 +134,7 @@ export function ApplicationApprovalActions({
               */}
               {showStatusSummary && (
               <div className="flex-1 rounded-lg border border-border bg-muted py-3 text-center">
-                <StatusBadge tone="neutral" label="Draft — not yet submitted" />
+                <StatusBadge tone="neutral" label="Draft: not yet submitted" />
               </div>
               )}
               <Button
@@ -143,7 +143,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : 'Force submit'}
+                {updatingStatus ? 'Updating…' : 'Force submit'}
               </Button>
             </>
           )}
@@ -155,7 +155,7 @@ export function ApplicationApprovalActions({
               disabled={updatingStatus || disabled}
               className="sm:col-span-2"
             >
-              {updatingStatus ? 'Updating...' : (
+              {updatingStatus ? 'Updating…' : (
                 <>
                   <Clock className="h-3 w-3" />
                   Review
@@ -173,7 +173,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -186,7 +186,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -199,7 +199,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className={`w-full ${OUTLINE_INFO}`}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Conditional
@@ -212,7 +212,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className={`w-full ${OUTLINE_WARNING}`}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Waitlist
@@ -246,7 +246,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -259,7 +259,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -283,7 +283,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -296,7 +296,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject

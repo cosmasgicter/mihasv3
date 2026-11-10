@@ -63,7 +63,7 @@ export function SessionMonitor() {
         <div className="flex-1">
           <h3 className="text-sm font-medium text-foreground">Session idle</h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            You've been inactive for a while. Your session may expire soon — save any unsaved work.
+            You've been inactive for a while. Your session may expire soon. Save any unsaved work.
           </p>
           <Button
             variant="outline"

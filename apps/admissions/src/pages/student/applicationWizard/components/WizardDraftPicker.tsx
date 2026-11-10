@@ -261,7 +261,7 @@ export function WizardDraftPicker({
       </Button>
       <p className="text-xs text-muted-foreground">
         A new application does not restore or change any saved draft. Drafts with payment activity
-        cannot be deleted here — continue the draft or contact admissions.
+        cannot be deleted here. Continue the draft or contact admissions.
       </p>
 
       <ConfirmAlertDialog

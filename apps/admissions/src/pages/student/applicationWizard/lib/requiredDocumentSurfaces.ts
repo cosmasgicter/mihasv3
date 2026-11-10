@@ -217,12 +217,12 @@ export function documentReviewChecks(
     const stored = requirement.document?.documentName
     const detail =
       requirement.state === 'verified'
-        ? `${stored ?? 'Uploaded'} — verified`
+        ? `${stored ?? 'Uploaded'}: verified`
         : requirement.state === 'uploaded'
           ? (stored ?? 'Already uploaded')
           : requirement.required
             ? `Upload ${requirement.label} to complete this step`
-            : `Optional — ${requirement.label} is not required`
+            : `Optional: ${requirement.label} is not required`
     return {
       field: requirement.documentType,
       label: `${requirement.label} attached`,

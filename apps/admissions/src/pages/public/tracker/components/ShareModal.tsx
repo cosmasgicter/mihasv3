@@ -77,7 +77,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
             <p className="text-sm text-foreground">
               Anyone with this link can see this application&apos;s status. Share it only
-              with people you trust — you can replace it at any time from your
+              with people you trust. You can replace it at any time from your
               application.
             </p>
           </div>

@@ -68,7 +68,7 @@ export function SkeletonBase({
         height: typeof height === 'number' ? `${height}px` : height
       }}
       role="status"
-      aria-label="Loading..."
+      aria-label="Loading…"
     />
   )
 }

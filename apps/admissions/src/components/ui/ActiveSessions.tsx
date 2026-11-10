@@ -303,7 +303,7 @@ export function ActiveSessions() {
                     disabled={terminating === session.id}
                     className="text-destructive hover:text-error hover:bg-destructive/5"
                   >
-                    {terminating === session.id ? 'Terminating...' : 'Terminate'}
+                    {terminating === session.id ? 'Terminating…' : 'Terminate'}
                   </Button>
                 )}
               </div>
@@ -321,7 +321,7 @@ export function ActiveSessions() {
             disabled={terminatingAll || otherSessionsCount === 0}
             className="w-full"
           >
-            {terminatingAll ? 'Terminating all...' : 'Terminate all other sessions'}
+            {terminatingAll ? 'Terminating all…' : 'Terminate all other sessions'}
           </Button>
         )}
         <Button

@@ -165,7 +165,7 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
     return (
       <>
       <Seo title={brandedPageTitle('Application status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
-      <PageShell title="Application status" subtitle="Loading...">
+      <PageShell title="Application status" subtitle="Loading…">
         <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
           <Skeleton className="h-8 w-40 rounded-full" />
           <SkeletonCard />

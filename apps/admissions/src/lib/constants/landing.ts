@@ -212,7 +212,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 1,
     title: 'Create your account',
     description:
-      'Takes 2 minutes and you are in. You can start the application and come back later — your progress is saved automatically.',
+      'Takes 2 minutes and you are in. You can start the application and come back later. Your progress is saved automatically.',
   },
   {
     step: 2,
@@ -230,7 +230,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 4,
     title: 'Submit and track your status',
     description:
-      'We review within a few working days. You see every update in the portal — under review, interview scheduled, decision. You also get an email and an SMS.',
+      'We review within a few working days. You see every update in the portal. Under review, interview scheduled, decision. You also get an email and an SMS.',
   },
 ];
 
@@ -249,13 +249,13 @@ export const eligibilityItems: EligibilityItem[] = [
     icon: GraduationCap,
     title: 'ECZ Grade 12 certificate',
     description:
-      'We accept ECZ School Certificate and GCE. Specific grade requirements vary by programme — full details show up inside your application.',
+      'We accept ECZ School Certificate and GCE. Specific grade requirements vary by programme. Full details show up inside your application.',
   },
   {
     icon: FileCheck,
     title: 'Cambridge certificate accepted',
     description:
-      "If you sat Cambridge IGCSE or A-Levels instead of ECZ, that is fine. Our system supports both — just upload your certificate and we will convert.",
+      "If you sat Cambridge IGCSE or A-Levels instead of ECZ, that is fine. Our system supports both. Just upload your certificate and we will convert.",
   },
   {
     icon: FileCheck,
@@ -286,7 +286,7 @@ export const internationalHighlights: InternationalHighlight[] = [
     icon: Globe,
     title: 'Open to SADC and beyond',
     description:
-      'We enroll students from Namibia, Botswana, Zimbabwe, Malawi, DRC, and further afield. The application is the same — we just verify your documents differently.',
+      'We enroll students from Namibia, Botswana, Zimbabwe, Malawi, DRC, and further afield. The application is the same. We just verify your documents differently.',
   },
   {
     icon: Award,
@@ -304,7 +304,7 @@ export const internationalHighlights: InternationalHighlight[] = [
     icon: Users,
     title: 'Help with the practical stuff',
     description:
-      'Visa letters, arrival logistics, accommodation booking — we have done this many times. Email admissions and we will walk you through it.',
+      'Visa letters, arrival logistics, accommodation booking. We have done this many times. Email admissions and we will walk you through it.',
   },
 ];
 

@@ -267,22 +267,22 @@ const EducationStep = ({
         )}
         {ocrStatus === 'dismissed' && (
           <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
-            <span>Suggestions dismissed. Add your subjects below — your upload is still saved.</span>
+            <span>Suggestions dismissed. Add your subjects below. Your upload is still saved.</span>
           </div>
         )}
         {ocrStatus === 'failed' && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-base sm:text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
             <span>
               {ocrFailureReason === 'server_failed'
-                ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually — your upload is still saved.'
+                ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually. Your upload is still saved.'
                 : ocrFailureReason === 'skipped'
                   ? 'Your file is too large for automatic scanning. Please add your subjects manually below.'
                   : ocrFailureReason === 'no_text'
                     ? 'We couldn\'t read any text from your result slip. Make sure the image is clear and well-lit, then try again.'
                     : ocrFailureReason === 'rate_limited'
-                    ? `${rateLimitMessage(ocrRetryAfterSeconds ?? null)} You can add your subjects manually below — your upload is still saved.`
+                    ? `${rateLimitMessage(ocrRetryAfterSeconds ?? null)} You can add your subjects manually below. Your upload is still saved.`
                     : ocrFailureReason === 'not_started' || ocrFailureReason === 'missing'
-                    ? 'Automatic grade scanning is not available for this upload. Please add your subjects manually below — your upload is still saved.'
+                    ? 'Automatic grade scanning is not available for this upload. Please add your subjects manually below. Your upload is still saved.'
                     : ocrFailureReason === 'no_grades_matched'
                       ? 'We found text in your result slip but couldn\'t match it to the subject catalogue confidently enough to suggest anything. Please add your subjects manually below.'
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
@@ -449,7 +449,7 @@ const EducationStep = ({
                     onChange={(value) => updateGrade(index, 'subject_id', value)}
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
-                    placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
+                    placeholder={subjects.length === 0 ? 'Loading subjects…' : 'Select subject'}
                     aria-label={`Subject ${index + 1}`}
                     error={isDuplicate || diagnostic === 'unresolved_subject'}
                   />

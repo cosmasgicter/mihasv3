@@ -53,7 +53,7 @@ export function RoutingSimulatorPanel({
   return (
     <SectionCard
       title="Test routing"
-      description="Dry-run the real assignment service for a programme + intake. The result matches exactly what a real submission would route — no application is created."
+      description="Dry-run the real assignment service for a programme + intake. The result matches exactly what a real submission would route. No application is created."
       icon={<Route className="h-5 w-5" />}
     >
       <RoutingSimulatorBody institutionId={institutionId} institutionName={institutionName} />

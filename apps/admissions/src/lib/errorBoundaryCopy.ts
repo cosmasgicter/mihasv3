@@ -114,7 +114,7 @@ export function classifyBoundaryError(error: unknown, online: boolean): Boundary
       kind: 'chunk',
       title: 'We could not finish loading this page',
       message:
-        'Part of the app could not be downloaded — usually a dropped connection, or a newer version having just been released. Anything you had already saved is safe. Try again, or reload the page.',
+        'Part of the app could not be downloaded. Usually a dropped connection, or a newer version having just been released. Anything you had already saved is safe. Try again, or reload the page.',
       offerReload: true,
     }
   }

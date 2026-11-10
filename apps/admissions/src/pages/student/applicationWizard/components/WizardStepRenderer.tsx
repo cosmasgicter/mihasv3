@@ -210,7 +210,7 @@ export function WizardStepRenderer({
               <AlertDescription>
                 {assignedSchoolLabel}
                 {assignmentPreview?.program_name || submittedApplication?.program
-                  ? ` — ${assignmentPreview?.program_name || submittedApplication?.program}`
+                  ? `: ${assignmentPreview?.program_name || submittedApplication?.program}`
                   : ''}
               </AlertDescription>
             </Alert>

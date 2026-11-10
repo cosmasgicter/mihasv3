@@ -193,7 +193,7 @@ export function TokenChips({
           ))}
         </ul>
       ) : (
-        <p className="text-xs text-muted-foreground">No entries — applies to all.</p>
+        <p className="text-xs text-muted-foreground">No entries: applies to all.</p>
       )}
     </div>
   )

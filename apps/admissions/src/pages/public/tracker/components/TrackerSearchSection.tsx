@@ -72,7 +72,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               className="h-14 min-h-touch w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? 'Searching…' : 'Search'}
             </Button>
           </div>
           {/*
@@ -81,7 +81,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             more — a tracking link is — so the hint names the link, and the cards
             below say where to get one instead of where to find the number.
           */}
-          <p id="tracker-search-hint" className="mt-2 text-sm text-muted-foreground">
+          <p id="tracker-search-hint" className="mt-2 max-w-prose text-sm text-muted-foreground">
             Your tracking link looks like <span className="font-mono">TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX</span>. An application number will not open tracking.
           </p>
           

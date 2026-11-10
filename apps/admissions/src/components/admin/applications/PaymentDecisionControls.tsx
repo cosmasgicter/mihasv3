@@ -101,7 +101,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={`w-full ${OUTLINE_SUCCESS}`}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Mark as Paid
@@ -119,7 +119,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={OUTLINE_SUCCESS}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Verify
@@ -132,7 +132,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className="w-full"
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -145,7 +145,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={`${OUTLINE_WARNING} sm:col-span-2`}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Defer
@@ -162,7 +162,7 @@ export function PaymentDecisionControls({
               disabled={updatingPayment || disabled}
               className="sm:col-span-2"
             >
-              {updatingPayment ? 'Updating...' : (
+              {updatingPayment ? 'Updating…' : (
                 <>
                   <RotateCcw className="h-3 w-3" />
                   Reopen review
@@ -184,7 +184,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className="w-full"
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <RotateCcw className="h-3 w-3" />
                     Reopen review
@@ -235,7 +235,7 @@ export function PaymentDecisionControls({
               onClick={onSubmitDecision}
               disabled={updatingPayment}
             >
-              {updatingPayment ? 'Saving...' : paymentReviewCopy.confirmText}
+              {updatingPayment ? 'Saving…' : paymentReviewCopy.confirmText}
             </Button>
           </DialogFooter>
         </DialogContent>

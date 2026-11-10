@@ -131,7 +131,7 @@ export function ExtractedResultsCard({
         </span>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
-        These are suggestions, not your answers. Tick the rows you want to use, then confirm — nothing
+        These are suggestions, not your answers. Tick the rows you want to use, then confirm. Nothing
         is added to your application until you do.
       </p>
 
@@ -175,7 +175,7 @@ export function ExtractedResultsCard({
       {withheld.length > 0 && (
         <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
           <p className="text-xs font-medium text-amber-800 mb-1">
-            {withheld.length} row{withheld.length > 1 ? 's' : ''} we will not suggest — please enter
+            {withheld.length} row{withheld.length > 1 ? 's' : ''} we will not suggest. Please enter
             {withheld.length > 1 ? ' them' : ' it'} yourself:
           </p>
           <ul className="space-y-0.5">

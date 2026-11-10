@@ -119,7 +119,7 @@ export function PageHeader({
 							 <div className="min-w-0 space-y-3">
 								 <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
 								 {description && (
-									 <p className={cn('break-words', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+									 <p className={cn('max-w-prose break-words', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
 								 )}
 								 {children}
 							 </div>

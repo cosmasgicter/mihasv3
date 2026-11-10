@@ -356,7 +356,7 @@ export default function AdminDashboard() {
               loading={refreshing}
             >
               {!refreshing && <RefreshCw className="h-4 w-4" />}
-              {refreshing ? 'Refreshing...' : 'Refresh'}
+              {refreshing ? 'Refreshing…' : 'Refresh'}
             </Button>
           </div>
         )}

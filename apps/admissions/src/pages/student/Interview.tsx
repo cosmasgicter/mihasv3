@@ -238,7 +238,7 @@ export default function InterviewPage() {
         siteName={brandName}
         noindex
       />
-      <PageShell title="Interview schedule" subtitle="Loading interview information...">
+      <PageShell title="Interview schedule" subtitle="Loading interview information…">
         <div className="space-y-6" role="status" aria-label="Loading interview information">
           <div className="rounded-lg border border-primary/20 bg-card p-6">
             <div className="space-y-2">

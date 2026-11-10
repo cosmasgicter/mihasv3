@@ -169,7 +169,7 @@ export default function Communications() {
  const result = await notificationService.retryDelivery(messageId)
  setRetryNotices((prev) => ({
  ...prev,
- [messageId]: `Queued again — attempt ${result?.attempts ?? 2}.`,
+ [messageId]: `Queued again: attempt ${result?.attempts ?? 2}.`,
  }))
  invalidate()
  } catch (err) {
@@ -330,7 +330,7 @@ export default function Communications() {
               description={
                 typeFilter || readFilter
                   ? 'No notifications match your current filters. Try adjusting them.'
-                  : "Nothing here yet — we'll let you know when there's something important."
+                  : "Nothing here yet: we'll let you know when there's something important."
               }
             />
           )}

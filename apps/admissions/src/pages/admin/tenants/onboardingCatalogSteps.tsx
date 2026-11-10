@@ -144,7 +144,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
     <div className="space-y-5">
       <StepIntro>
         Assign a canonical Beanola programme to this school. That creates the school&apos;s own
-        offering — routing, fees, and required documents attach to it. The canonical programme is
+        offering. Routing, fees, and required documents attach to it. The canonical programme is
         the only write authority; pick it from the list rather than pasting an identifier.
       </StepIntro>
 
@@ -168,7 +168,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
                   <option key={program.id} value={program.id}>
                     {program.name}
                     {program.code ? ` (${program.code})` : ''}
-                    {assigned ? ' — already assigned' : ''}
+                    {assigned ? ': already assigned' : ''}
                   </option>
                 )
               })}
@@ -456,7 +456,7 @@ export function WizardFeesStep({ institutionId }: { institutionId: string }) {
     <div className="space-y-5">
       <StepIntro>
         Set the canonical fee for an offering and residency. The backend returns this exact amount
-        as an expiring quote at payment time — students never see an invented or hardcoded fee. One
+        as an expiring quote at payment time. Students never see an invented or hardcoded fee. One
         active fee is allowed per offering, type, and residency.
       </StepIntro>
 

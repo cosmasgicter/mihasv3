@@ -143,7 +143,7 @@ export function useApprovalActionCommands({
       await confirmDialog.confirm({
         title: isNoPaymentRecord ? 'No payment record' : 'Update failed',
         message: isNoPaymentRecord
-          ? 'No payment record found — the student must initiate payment first.'
+          ? 'No payment record found. The student must initiate payment first.'
           : errorMessage || 'Failed to update payment status. Please try again.',
         confirmText: 'OK',
         variant: 'danger'

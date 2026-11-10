@@ -265,7 +265,7 @@ export default function ResetPasswordPage() {
             size="lg"
             loading={resetPasswordMutation.isPending}
           >
-            {resetPasswordMutation.isPending ? 'Updating password...' : 'Update password'}
+            {resetPasswordMutation.isPending ? 'Updating password…' : 'Update password'}
           </Button>
         </form>
       </AuthShell>

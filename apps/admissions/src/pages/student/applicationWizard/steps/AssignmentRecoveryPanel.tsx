@@ -66,7 +66,7 @@ const AssignmentRecoveryPanel = ({
             role="status"
           >
             <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            You&apos;re on the interest list — we&apos;ll be in touch if a place opens.
+            You&apos;re on the interest list. We&apos;ll be in touch if a place opens.
           </p>
         ) : (
           <Button

@@ -86,6 +86,6 @@ describe('TokenChips structured rule builder', () => {
     const { getByText } = render(
       <TokenChips label="Allowed countries" values={[]} onChange={vi.fn()} />,
     )
-    expect(getByText('No entries — applies to all.')).toBeTruthy()
+    expect(getByText('No entries: applies to all.')).toBeTruthy()
   })
 })

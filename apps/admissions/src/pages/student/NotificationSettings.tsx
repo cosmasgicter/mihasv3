@@ -203,7 +203,7 @@ export default function NotificationSettings() {
                 checked={row.enabled}
                 disabled={isBusy}
                 onCheckedChange={(next) => handleToggle(row, next)}
-                aria-label={`${PREFERENCE_LABELS[row.key] ?? row.key} — ${
+                aria-label={`${PREFERENCE_LABELS[row.key] ?? row.key}: ${
                   row.enabled ? 'on' : 'off'
                 }`}
                 data-testid={`preference-switch-${row.key}`}

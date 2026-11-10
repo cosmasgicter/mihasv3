@@ -143,7 +143,7 @@ describe('wizard document review rows — contract driven (R11.6)', () => {
       ]),
       NO_LEGACY,
     )
-    expect(checks[0]!.detail).toBe('council-letter.pdf — verified')
+    expect(checks[0]!.detail).toBe('council-letter.pdf: verified')
     expect(checks[0]!.completed).toBe(true)
   })
 

@@ -525,7 +525,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           )}
 
           <Button type="button" variant="outline" size="sm" className="mt-4 min-h-touch" onClick={async () => { await syncPendingPayment() }}>
-            <RefreshCw className="mr-1 h-3 w-3" />{studentMustAct ? "I've approved — check now" : 'Check payment now'}
+            <RefreshCw className="mr-1 h-3 w-3" />{studentMustAct ? "I've approved: check now" : 'Check payment now'}
           </Button>
         </div>
         <style>{`

@@ -181,7 +181,7 @@ export function freshnessLabel(
   const measured = ageSeconds < 60
     ? `${ageSeconds}s ago`
     : `${Math.round(ageSeconds / 60)}m ago`
-  return isStale(freshness, now) ? `Stale — measured ${measured}` : `Measured ${measured}`
+  return isStale(freshness, now) ? `Stale: measured ${measured}` : `Measured ${measured}`
 }
 
 /** The banner copy for a degraded or unknown read. Empty when operational. */

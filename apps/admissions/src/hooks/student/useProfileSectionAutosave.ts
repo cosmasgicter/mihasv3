@@ -30,7 +30,7 @@ import {
 
 const SESSION_EXPIRED_MESSAGE =
   'Your changes are held on this device while we reconnect your session.'
-const OFFLINE_MESSAGE = 'Offline — your changes will save automatically when you reconnect.'
+const OFFLINE_MESSAGE = 'Offline: your changes will save automatically when you reconnect.'
 const RETRY_MESSAGE = 'Could not reach the server. Retrying…'
 const FAILED_MESSAGE = 'Could not save your changes. Please try again.'
 const CONFLICT_MESSAGE =

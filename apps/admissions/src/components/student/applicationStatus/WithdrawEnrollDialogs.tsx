@@ -48,7 +48,7 @@ export function WithdrawDialog({ open, onOpenChange, reason, onReasonChange, onC
               minLength={10}
               maxLength={500}
               className="w-full rounded-md border border-input bg-card px-3 py-2 text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Please explain why you are withdrawing this application..."
+              placeholder="Please explain why you are withdrawing this application…"
             />
             <p className="text-xs text-muted-foreground mt-1">{reason.length}/10 characters minimum</p>
           </div>

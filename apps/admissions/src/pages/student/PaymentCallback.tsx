@@ -58,7 +58,7 @@ export default function PaymentCallback() {
       }
 
       setStatus('pending')
-      setMessage('Your payment is being processed. You can close this tab and return to your application — your status will update automatically.')
+      setMessage('Your payment is being processed. You can close this tab and return to your application. Your status will update automatically.')
     }
 
     verify()

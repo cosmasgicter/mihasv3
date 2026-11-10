@@ -170,9 +170,9 @@ export function ResidenceLocationFields({
     [cityOptions, deferredTownQuery]
   )
 
-  const countryHelper = loadingCountries ? 'Loading countries...' : 'Type to search countries.'
+  const countryHelper = loadingCountries ? 'Loading countries…' : 'Type to search countries.'
   const townHelper = loadingCities
-    ? 'Loading town suggestions...'
+    ? 'Loading town suggestions…'
     : townSuggestions.length > 0
       ? 'Type or choose a town.'
       : 'Type your town.'

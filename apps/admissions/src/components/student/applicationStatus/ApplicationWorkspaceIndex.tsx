@@ -232,7 +232,7 @@ export function ApplicationWorkspaceIndex() {
       >
         <SectionCard
           title="Your applications"
-          description="Each one opens its own workspace — status, next action, documents and history."
+          description="Each one opens its own workspace. Status, next action, documents and history."
         >
           <ul className="divide-y divide-border" data-testid="status-index-choices">
             {choices.map((choice) => (
@@ -250,8 +250,8 @@ export function ApplicationWorkspaceIndex() {
                     </p>
                     <p className="mt-0.5 break-words text-xs text-muted-foreground">
                       {choice.applicationNumber ? `#${choice.applicationNumber}` : 'Not yet submitted'}
-                      {choice.intake ? ` — ${choice.intake}` : ''}
-                      {choice.updatedAt ? ` — last activity ${formatDate(choice.updatedAt)}` : ''}
+                      {choice.intake ? `: ${choice.intake}` : ''}
+                      {choice.updatedAt ? `: last activity ${formatDate(choice.updatedAt)}` : ''}
                     </p>
                   </div>
                   <Button asChild variant="outline" className="min-h-touch w-full shrink-0 sm:w-auto">

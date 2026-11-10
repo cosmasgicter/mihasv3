@@ -81,7 +81,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-wider text-success">Fastest response</p>
-                    <p className="text-base text-foreground">WhatsApp — usually within an hour on working days</p>
+                    <p className="text-base text-foreground">WhatsApp: usually within an hour on working days</p>
                   </div>
                 </div>
                 <Button asChild size="lg" className="min-h-touch bg-success text-white hover:bg-success/90 sm:w-auto">

@@ -62,7 +62,7 @@ export const MarketingRouteSkeleton: FC = () => {
         </div>
       </section>
 
-      <span className="sr-only">Loading page — please wait a moment…</span>
+      <span className="sr-only">Loading page: please wait a moment…</span>
     </div>
   )
 }

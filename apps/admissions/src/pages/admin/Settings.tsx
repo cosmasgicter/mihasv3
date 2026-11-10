@@ -293,7 +293,7 @@ export default function AdminSettings() {
               <div className="rounded-lg border border-border bg-muted/30 p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex-1">
-                    <Input placeholder="Search guided controls or advanced keys..." value={state.searchTerm} onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })} aria-label="Search settings" />
+                    <Input placeholder="Search guided controls or advanced keys…" value={state.searchTerm} onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })} aria-label="Search settings" />
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button variant={state.filterType === 'all' ? 'primary' : 'outline'} onClick={() => dispatch({ type: 'SET_FILTER_TYPE', payload: 'all' })} size="sm">All</Button>

@@ -134,15 +134,15 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   NO_FILE: 'No file provided.',
   STORAGE_ERROR: 'File storage operation failed. Please try again.',
   OFFICIAL_DOCUMENT_IMMUTABLE: 'Official generated documents cannot be deleted.',
-  DOCUMENT_PROFILE_NOT_CONFIGURED: 'This document is not available yet — its template has not been configured. Please contact the admissions office.',
+  DOCUMENT_PROFILE_NOT_CONFIGURED: 'This document is not available yet. Its template has not been configured. Please contact the admissions office.',
   ASSET_INVALID: 'This asset must be a PNG, JPEG, WebP, or SVG under 2MB.',
   TEMPLATE_TOKEN_REJECTED: 'Disallowed section or token in document template.',
 
   // Immutable document evidence versions (admissions-v2 task 7.3)
   EMPTY_FILE: 'That file is empty. Please choose the file again.',
   UNSAFE_FILE_CONTENT: 'This file contains active content, so it cannot be accepted. Please upload a plain PDF, JPEG, or PNG.',
-  DOCUMENT_STORAGE_UNVERIFIED: 'We could not confirm your upload was stored. Your previous document is still on file — please try again.',
-  DOCUMENT_COMMIT_FAILED: 'The upload could not be saved. Your previous document is still on file — please try again.',
+  DOCUMENT_STORAGE_UNVERIFIED: 'We could not confirm your upload was stored. Your previous document is still on file. Please try again.',
+  DOCUMENT_COMMIT_FAILED: 'The upload could not be saved. Your previous document is still on file. Please try again.',
   DOCUMENT_VERSION_CONFLICT: 'Another upload for this document finished first. Reload the page to see the current file.',
   DOCUMENT_TRANSITION_REJECTED: 'This document version can no longer accept that change. Reload the page to see its current state.',
   INVALID_VERIFICATION_DECISION: 'A document decision must be either verified or rejected.',
@@ -209,7 +209,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   //
   // Official-document email path
   DOCUMENT_NOT_READY:
-    'This document is not ready yet. Nothing was emailed — try again once it finishes preparing.',
+    'This document is not ready yet. Nothing was emailed. Try again once it finishes preparing.',
   RECIPIENT_NOT_PERMITTED:
     'Official documents can only be emailed to the address on the application. Update the account email first.',
   NO_RECIPIENT:

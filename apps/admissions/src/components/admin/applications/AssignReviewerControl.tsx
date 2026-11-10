@@ -123,7 +123,7 @@ export function AssignReviewerControl({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search reviewers..."
+          placeholder="Search reviewers…"
           className="w-full rounded-md border border-border bg-background py-1.5 pl-7 pr-2 text-xs text-foreground focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
@@ -131,7 +131,7 @@ export function AssignReviewerControl({
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground" role="status">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            Loading reviewers...
+            Loading reviewers…
           </div>
         ) : error ? (
           <p className="py-3 text-xs text-destructive" role="alert">

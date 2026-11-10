@@ -153,7 +153,7 @@ export function NotificationBell() {
               {loading ? (
                 <div className="p-6 text-center" role="status" aria-label="Loading notifications">
                   <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-muted animate-pulse" aria-hidden="true" />
-                  <p className="text-muted-foreground text-base sm:text-sm mt-2">Loading notifications...</p>
+                  <p className="text-muted-foreground text-base sm:text-sm mt-2">Loading notifications…</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">

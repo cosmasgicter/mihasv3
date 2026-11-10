@@ -28,7 +28,7 @@ function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: Aut
   // Screen reader text for all states (always rendered for aria-live)
   const srText =
     status === 'saving'
-      ? 'Saving...'
+      ? 'Saving…'
       : status === 'saved'
         ? 'Saved'
         : status === 'error'
@@ -45,7 +45,7 @@ function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: Aut
       {status === 'saving' && (
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
           <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse" />
-          Saving...
+          Saving…
         </span>
       )}
 

@@ -81,8 +81,7 @@ export function DownloadReceiptButton({
         <p className="flex items-start gap-2 text-base sm:text-sm text-foreground">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
           <span>
-            Your payment is confirmed. The receipt document is not available to download yet —
-            admissions can send you a copy.
+            Your payment is confirmed. The receipt document is not available to download yet. Admissions can send you a copy.
           </span>
         </p>
         {unavailableFallback}

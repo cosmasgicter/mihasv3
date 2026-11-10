@@ -149,7 +149,7 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
       live: 'polite',
     },
     offline: {
-      label: error ?? 'Offline — changes will sync when you reconnect',
+      label: error ?? 'Offline: changes will sync when you reconnect',
       className: 'text-warning',
       icon: <CloudOff className="h-4 w-4" />,
       live: 'polite',

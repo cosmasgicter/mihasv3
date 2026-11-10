@@ -456,7 +456,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-card/80 ">
           <div className="flex items-center gap-2 text-sm text-foreground">
             <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-            <span>Updating...</span>
+            <span>Updating…</span>
           </div>
         </div>
       )}

@@ -245,7 +245,7 @@ export default function PaymentPage() {
               description={
                 outstandingCount > 0
                   ? `${outstandingCount} of ${orderedApplications.length} still needs a payment${
-                      deferredCount > 0 ? ` — ${deferredCount} deferred` : ''
+                      deferredCount > 0 ? `: ${deferredCount} deferred` : ''
                     }.`
                   : 'Every application fee here is paid.'
               }
@@ -271,7 +271,7 @@ export default function PaymentPage() {
               <EmptyState
                 icon={<CreditCard />}
                 heading="Your application fee is paid in the application form"
-                description="You have an application in progress. The fee — and the option to pay later — is on the payment step, just before you submit."
+                description="You have an application in progress. The fee. And the option to pay later. Is on the payment step, just before you submit."
                 action={{
                   label: 'Continue your application',
                   onClick: () => navigate(studentApplicationResumePath(firstDraftId)),

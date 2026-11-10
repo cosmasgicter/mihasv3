@@ -158,7 +158,7 @@ function HowItWorksSection() {
             ))}
           </div>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            Short on cash right now? You can defer payment and still submit — pay before your interview.
+            Short on cash right now? You can defer payment and still submit. Pay before your interview.
           </p>
         </div>
       </div>
@@ -449,7 +449,7 @@ function CTASection() {
               The current intake is open. You can start tonight.
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-accent sm:text-lg">
-              Takes about 30 minutes if your documents are ready. Your application fee is shown before you pay, in your own currency. Mobile money or card — either works.
+              Takes about 30 minutes if your documents are ready. Your application fee is shown before you pay, in your own currency. Mobile money or card. Either works.
             </p>
           </div>
         </TextEffect>

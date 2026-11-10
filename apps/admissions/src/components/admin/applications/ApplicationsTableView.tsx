@@ -213,7 +213,7 @@ export function ApplicationsTableView({
       defaultSortKey="submitted_at"
       defaultSortDirection="desc"
       searchable={true}
-      searchPlaceholder="Search by name, email, or application number..."
+      searchPlaceholder="Search by name, email, or application number…"
       selectable={!!onSelectionChange}
       selectedRows={selectedIds}
       onSelectionChange={handleSelectionChange}

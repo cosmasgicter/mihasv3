@@ -103,7 +103,7 @@ export function useWizardGrades(params: UseWizardGradesParams) {
     setSelectedGrades(merged)
 
     if (hadManualGrades && newGrades.length > 0) {
-      showSuccess(`Added ${newGrades.length} confirmed subject${newGrades.length === 1 ? '' : 's'} — your ${currentGrades.length} existing entr${currentGrades.length === 1 ? 'y was' : 'ies were'} kept unchanged. Please check each grade.`)
+      showSuccess(`Added ${newGrades.length} confirmed subject${newGrades.length === 1 ? '' : 's'}: your ${currentGrades.length} existing entr${currentGrades.length === 1 ? 'y was' : 'ies were'} kept unchanged. Please check each grade.`)
     } else if (hadManualGrades && newGrades.length === 0) {
       showSuccess('Those subjects were already entered, so nothing changed. Please check each grade.')
     } else {

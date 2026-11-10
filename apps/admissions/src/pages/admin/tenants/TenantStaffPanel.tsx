@@ -112,7 +112,7 @@ export function TenantStaffPanel({ institutionId }: { institutionId: string }) {
         permissions: ROLE_PERMISSIONS[role] ?? ['review'],
       }),
     onSuccess: () => {
-      toast.success('Invitation sent — the staff member will set their own password via email')
+      toast.success('Invitation sent: the staff member will set their own password via email')
       setEmail('')
       setRole('admin')
       invalidate()

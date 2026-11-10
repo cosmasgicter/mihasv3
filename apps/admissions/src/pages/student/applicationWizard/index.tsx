@@ -288,7 +288,7 @@ const ApplicationWizardContent = () => {
   const isPaymentStepActive = currentStepConfig.key === "payment";
   const isPaymentInProgress =
     isPaymentStepActive && paymentStatus === "pending";
-  const nextButtonLabel = loading ? "Saving step..." : "Next step";
+  const nextButtonLabel = loading ? "Saving step…" : "Next step";
   // The view over the draft machine. `enabled` is the autosave gate only: edits
   // made while it is closed are recorded and written when it opens.
   const smartAutoSave = useSmartAutoSave({

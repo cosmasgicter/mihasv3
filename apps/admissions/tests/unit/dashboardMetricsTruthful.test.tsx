@@ -209,7 +209,7 @@ describe('freshness is measured, not asserted (R8.6)', () => {
   it('labels a payload past its budget stale', () => {
     const freshness = { generatedAt: '2026-08-08T11:55:00.000Z', staleAfterSeconds: 120 }
     expect(isStale(freshness, now)).toBe(true)
-    expect(freshnessLabel(freshness, now)).toBe('Stale — measured 5m ago')
+    expect(freshnessLabel(freshness, now)).toBe('Stale: measured 5m ago')
   })
 
   it('treats a zero budget as immediately stale', () => {

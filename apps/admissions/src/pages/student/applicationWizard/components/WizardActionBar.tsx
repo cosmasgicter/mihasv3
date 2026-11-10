@@ -127,7 +127,7 @@ export function WizardActionBar({
               data-testid="wizard-offline-badge"
             >
               <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Offline — saved on this device
+              Offline: saved on this device
             </span>
           )}
           {!showOfflineBadge && saveStatus === 'retrying' && (
@@ -248,7 +248,7 @@ export function WizardActionBar({
               className="min-h-touch max-w-full whitespace-normal text-left"
             >
               {loading ? (
-                'Submitting...'
+                'Submitting…'
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" aria-hidden="true" />

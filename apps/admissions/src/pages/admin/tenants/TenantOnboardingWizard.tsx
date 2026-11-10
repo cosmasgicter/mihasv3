@@ -282,7 +282,7 @@ function CountNote({ count, singular, plural }: { count: number; singular: strin
   const noun = count === 1 ? singular : plural ?? `${singular}s`
   return (
     <p className="text-sm text-muted-foreground">
-      {count > 0 ? `${count} ${noun} configured.` : `No ${plural ?? `${singular}s`} configured yet — this step is optional.`}
+      {count > 0 ? `${count} ${noun} configured.` : `No ${plural ?? `${singular}s`} configured yet: this step is optional.`}
     </p>
   )
 }
@@ -509,7 +509,7 @@ export function TenantOnboardingWizard() {
       setCreatedDomain(domain ?? null)
       setHostnameDraft('')
       invalidateTenants()
-      toast.success('Domain added — publish the DNS record to verify it')
+      toast.success('Domain added: publish the DNS record to verify it')
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not added')),
   })
@@ -572,7 +572,7 @@ export function TenantOnboardingWizard() {
       setInviteDraft({ full_name: '', email: '' })
       invalidateTenants()
       membershipsQuery.refetch()
-      toast.success('Invitation sent — the admin will set their own password via email')
+      toast.success('Invitation sent: the admin will set their own password via email')
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Tenant admin was not invited')),
   })
@@ -867,7 +867,7 @@ export function TenantOnboardingWizard() {
                             )}
                           </dl>
                           <p className="text-xs text-muted-foreground">
-                            Verification runs automatically once DNS propagates. You can finish onboarding now — the tenant and its configuration are already saved.
+                            Verification runs automatically once DNS propagates. You can finish onboarding now. The tenant and its configuration are already saved.
                           </p>
                         </div>
                       )}
@@ -993,7 +993,7 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'programs' && (
                     <>
-                      <StepHeading title="Programme offerings" description="Assign canonical Beanola programmes to this school as offerings. This is a real canonical mutation saved to this tenant — no manual database edit and no legacy string identifiers." />
+                      <StepHeading title="Programme offerings" description="Assign canonical Beanola programmes to this school as offerings. This is a real canonical mutation saved to this tenant. No manual database edit and no legacy string identifiers." />
                       <WizardProgramsStep institutionId={institutionId!} />
                     </>
                   )}
@@ -1007,21 +1007,21 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'fees' && (
                     <>
-                      <StepHeading title="Fees" description="Configure the canonical application fee per offering and residency. Students are quoted this exact server amount at payment — never an invented or hardcoded fee." />
+                      <StepHeading title="Fees" description="Configure the canonical application fee per offering and residency. Students are quoted this exact server amount at payment. Never an invented or hardcoded fee." />
                       <WizardFeesStep institutionId={institutionId!} />
                     </>
                   )}
 
                   {step.key === 'routing' && (
                     <>
-                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a programme + intake. Read-only — no application is created." />
+                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a programme + intake. Read-only. No application is created." />
                       <RoutingSimulatorBody institutionId={institutionId!} institutionName={tenantName} />
                     </>
                   )}
 
                   {step.key === 'invite' && (
                     <>
-                      <StepHeading title="Tenant-admin invitation" description="Invite the tenant administrator by email and scope a membership to this tenant only. They set their own password via a single-use link — you never set or see a password. They will see no other school's data (R16.2/R16.3)." />
+                      <StepHeading title="Tenant-admin invitation" description="Invite the tenant administrator by email and scope a membership to this tenant only. They set their own password via a single-use link. You never set or see a password. They will see no other school's data (R16.2/R16.3)." />
                       {inviteCompleted ? (
                         <div className="flex items-start gap-2 rounded-lg border border-success/25 bg-success/5 p-3 text-sm text-foreground">
                           <Check className="mt-0.5 h-4 w-4 text-success" aria-hidden="true" />
@@ -1104,7 +1104,7 @@ export function TenantOnboardingWizard() {
                             })}
                             <p className="flex items-start gap-2 text-xs text-muted-foreground">
                               <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                              DNS verification is asynchronous. Activation unlocks once a domain reaches Verified — you can finish now and activate later from the console.
+                              DNS verification is asynchronous. Activation unlocks once a domain reaches Verified. You can finish now and activate later from the console.
                             </p>
                           </div>
                         )}

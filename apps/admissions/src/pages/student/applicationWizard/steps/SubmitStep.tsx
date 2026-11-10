@@ -257,7 +257,7 @@ const SubmitStep = ({
                 <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Application summary
                 </h3>
-                <p className="mt-1 text-base sm:text-sm text-muted-foreground">
+                <p className="mt-1 max-w-prose text-base sm:text-sm text-muted-foreground">
                   Confirm the record exactly as admissions should review it.
                 </p>
               </div>
@@ -314,7 +314,7 @@ const SubmitStep = ({
               <ul className="mt-3 space-y-2 text-base sm:text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {
                   const subject = subjects.find(subjectItem => subjectItem.id === grade.subject_id)
-                  const subjectName = subject?.name || grade.subject_id || 'Loading...'
+                  const subjectName = subject?.name || grade.subject_id || 'Loading…'
                   const gradeLabel = gradeLabelMap[grade.grade] || grade.grade
 
                   return (

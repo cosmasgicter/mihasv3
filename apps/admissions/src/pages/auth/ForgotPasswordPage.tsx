@@ -151,7 +151,7 @@ export default function ForgotPasswordPage() {
             variant="primary"
             size="lg"
           >
-            {resetRequestMutation.isPending ? 'Sending...' : 'Send reset instructions'}
+            {resetRequestMutation.isPending ? 'Sending…' : 'Send reset instructions'}
             {!resetRequestMutation.isPending && <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />}
           </Button>
         </form>

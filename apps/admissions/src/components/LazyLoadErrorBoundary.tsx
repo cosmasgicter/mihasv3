@@ -104,7 +104,7 @@ export class LazyLoadErrorBoundary extends Component<Props, State> {
       } catch {
         // best effort persistence
       }
-      logChunkReloadWarning('Auto-reloading due to stale chunk...', { route, reloadCount: reloadCount + 1 })
+      logChunkReloadWarning('Auto-reloading due to stale chunk…', { route, reloadCount: reloadCount + 1 })
       window.location.reload()
     } else {
       logChunkReloadWarning('Chunk auto-reload denied by policy', { cause: decision.cause, context: decision.context })

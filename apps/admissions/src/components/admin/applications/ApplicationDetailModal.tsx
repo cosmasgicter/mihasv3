@@ -577,7 +577,7 @@ export function ApplicationDetailModal({
                             id="admin-feedback"
                             value={adminFeedback}
                             onChange={(e) => setAdminFeedback(e.target.value)}
-                            placeholder="Add feedback for the applicant..."
+                            placeholder="Add feedback for the applicant…"
                             rows={4}
                             className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
                           />

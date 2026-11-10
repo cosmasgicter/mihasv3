@@ -56,17 +56,17 @@ const getPaymentStatusDescription = (status?: string | null) => {
     case 'verified':
     case 'paid':
     case 'successful':
-      return 'Payment verified — you are all set.'
+      return 'Payment verified: you are all set.'
     case 'deferred':
-      return 'Payment deferred — you can pay anytime from the payment page.'
+      return 'Payment deferred: you can pay anytime from the payment page.'
     case 'rejected':
-      return 'Payment issue detected — please contact support.'
+      return 'Payment issue detected: please contact support.'
     case null:
     case undefined:
-      return 'Payment is still pending — complete it later from the student payment page.'
+      return 'Payment is still pending. Complete it later from the student payment page.'
     case 'pending_review':
     default:
-      return 'Payment submitted — awaiting verification by admissions.'
+      return 'Payment submitted: awaiting verification by admissions.'
   }
 }
 
@@ -100,7 +100,7 @@ const SubmissionSuccess = ({
             </button>
             <Skeleton className="mx-auto h-12 w-12 rounded-full" />
             <p className="mt-4 text-base sm:text-sm font-medium text-foreground">
-              {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
+              {persistingSlip ? 'Generating application slip…' : 'Preparing your slip…'}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               You can close this and download the slip later.

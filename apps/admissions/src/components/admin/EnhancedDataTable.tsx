@@ -283,7 +283,7 @@ export function EnhancedDataTable<T extends object>({
   defaultSortKey,
   defaultSortDirection = null,
   searchable = true,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = 'Search…',
   selectable = false,
   selectedRows = [],
   onSelectionChange,

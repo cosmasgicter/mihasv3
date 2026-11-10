@@ -470,7 +470,7 @@ export default function AdminIntakes() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium ${bg} ${text}`}
                           title={label}
-                          aria-label={`${enrollment} of ${row.max_capacity} enrolled — ${label}`}
+                          aria-label={`${enrollment} of ${row.max_capacity} enrolled: ${label}`}
                         >
                           <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
                           <span>{enrollment}/{row.max_capacity}</span>

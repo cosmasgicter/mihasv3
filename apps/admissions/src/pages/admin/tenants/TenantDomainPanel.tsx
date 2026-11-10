@@ -53,7 +53,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const createMutation = useMutation({
     mutationFn: (host: string) => tenantAdminService.createDomain(institutionId, { hostname: host, is_active: true }),
     onSuccess: () => {
-      toast.success('Domain added — publish the DNS records to verify it')
+      toast.success('Domain added: publish the DNS records to verify it')
       setHostname('')
       invalidate()
     },
@@ -81,7 +81,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const retryMutation = useMutation({
     mutationFn: (domainId: string) => tenantAdminService.retryDomain(institutionId, domainId),
     onSuccess: () => {
-      toast.success('Verification restarted — publish the DNS records if you have not already')
+      toast.success('Verification restarted: publish the DNS records if you have not already')
       invalidate()
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Verification could not be restarted')),
@@ -90,7 +90,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const approveMutation = useMutation({
     mutationFn: (domainId: string) => tenantAdminService.approveDomain(institutionId, domainId),
     onSuccess: () => {
-      toast.success('Domain approved — activate it to start routing')
+      toast.success('Domain approved: activate it to start routing')
       invalidate()
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not approved')),

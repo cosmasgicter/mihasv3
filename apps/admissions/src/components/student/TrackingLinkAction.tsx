@@ -98,7 +98,7 @@ export const TrackingLinkAction: React.FC<TrackingLinkActionProps> = ({
           <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
             <p className="text-base sm:text-sm text-foreground">
-              Copy it now — it is shown once.{' '}
+              Copy it now: it is shown once.{' '}
               {link.replaced_previous
                 ? 'Any link you shared earlier no longer works.'
                 : 'Anyone with this link can see this application’s status.'}
