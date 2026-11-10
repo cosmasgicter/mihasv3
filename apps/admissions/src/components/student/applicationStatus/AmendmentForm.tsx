@@ -7,7 +7,7 @@ const AMENDABLE_FIELDS = [
   { key: 'email', label: 'Email' },
   { key: 'address_line_1', label: 'Address Line 1' },
   { key: 'address_line_2', label: 'Address Line 2' },
-  { key: 'residence_town', label: 'Residence Town' },
+  { key: 'residence_town', label: 'Residence town' },
   { key: 'next_of_kin_name', label: 'Next of Kin Name' },
   { key: 'next_of_kin_phone', label: 'Next of Kin Phone' },
 ] as const

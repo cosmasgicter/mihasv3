@@ -58,9 +58,9 @@ const landingStructuredData = [
 
 /** Rotating phrases displayed in the hero via TextRotate */
 const heroRotatingPhrases = [
-  'College Programmes',
-  'University Programmes',
-  'Professional Courses',
+  'College programmes',
+  'University programmes',
+  'Professional courses',
 ];
 
 function LandingSectionsFallback() {
@@ -126,27 +126,27 @@ export default function LandingPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Beanola Admissions | Apply to Partner College and University Programs"
-        description="Apply online through Beanola Admissions. Choose a program and intake first, then Beanola routes your application to the right school."
+        title="Beanola Admissions | Apply to Partner College and University Programmes"
+        description="Apply online through Beanola Admissions. Choose a programme and intake first, then Beanola routes your application to the right school."
         path="/"
         structuredData={landingStructuredData}
       />
       <ShapeLandingHero
         headline="Apply to the right school from one admissions portal."
-        description="Beanola lets students choose a program and intake first, then routes the application to the configured school before payment and submission."
+        description="Beanola lets students choose a programme and intake first, then routes the application to the configured school before payment and submission."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
-          label: 'Start Your Application',
+          label: 'Start your application',
           href: '/auth/signup',
           icon: <ArrowRight className="w-5 h-5" />,
         }}
         secondaryCta={{
-          label: 'Explore Programs',
+          label: 'Explore programmes',
           href: '#programs',
           icon: <BookOpen className="w-5 h-5" />,
         }}
         proofPanel={{
-          eyebrow: 'Program first. School assigned clearly.',
+          eyebrow: 'Programme first. School assigned clearly.',
           title: 'Start now. Finish when your documents are ready.',
           description: 'Save your progress, upload documents, confirm payment, and review the assigned school before submission.',
           badges: ['Schools', 'Programs', 'Payments', 'Documents'],

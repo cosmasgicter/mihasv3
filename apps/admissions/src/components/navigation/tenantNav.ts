@@ -54,7 +54,7 @@ export function resolveTenantNavItem(caps: TenantNavCapabilities): TenantNavItem
   // R13.2: a tenant-admin holding tenant.profile.read sees a school-specific
   // item instead of the platform tenant-management item.
   if (caps.isTenantAdmin && caps.can(TENANT_PROFILE_READ)) {
-    return { to: TENANT_NAV_PATH, label: 'My School', icon: School }
+    return { to: TENANT_NAV_PATH, label: 'My school', icon: School }
   }
 
   return null

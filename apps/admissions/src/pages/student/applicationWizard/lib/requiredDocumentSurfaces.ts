@@ -94,7 +94,7 @@ export function documentBlockers(
     if (!legacy.hasIdentityDocument) {
       blockers.push({
         field: 'extra_kyc',
-        label: 'Identity Document',
+        label: 'Identity document',
         message: 'An NRC or Passport document is required before proceeding',
       })
     }

@@ -22,7 +22,7 @@ interface DashboardActivityFeedProps {
 export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
   return (
     <SectionCard
-      title="Recent Activity"
+      title="Recent activity"
       icon={<Activity className="h-5 w-5" aria-hidden="true" />}
     >
       {items.length === 0 ? (

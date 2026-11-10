@@ -40,7 +40,7 @@ export default function NotFoundPage() {
     if (attemptedPath.includes('track') || attemptedPath.includes('application') || attemptedPath === '/404') {
       suggestions.push({
         path: pathFor('public.trackApplication'),
-        label: 'Track Application',
+        label: 'Track application',
         icon: <Search className="h-4 w-4" />,
         description: 'Check your application status'
       })
@@ -49,7 +49,7 @@ export default function NotFoundPage() {
     if (looksLikeAdminPath) {
       suggestions.push({
         path: CANONICAL_ADMIN_DASHBOARD_PATH,
-        label: 'Admin Dashboard',
+        label: 'Admin dashboard',
         icon: <FileText className="h-4 w-4" />,
         description: 'Return to the admin dashboard'
       })
@@ -58,7 +58,7 @@ export default function NotFoundPage() {
     if (looksLikeStudentPath) {
       suggestions.push({
         path: CANONICAL_STUDENT_DASHBOARD_PATH,
-        label: 'My Dashboard',
+        label: 'My dashboard',
         icon: <FileText className="h-4 w-4" />,
         description: 'Return to your student dashboard'
       })
@@ -67,7 +67,7 @@ export default function NotFoundPage() {
     if (attemptedPath.includes('signin') || attemptedPath.includes('login') || attemptedPath.includes('auth')) {
       suggestions.push({
         path: CANONICAL_SIGN_IN_PATH,
-        label: 'Sign In',
+        label: 'Sign in',
         icon: <User className="h-4 w-4" />,
         description: 'Sign in to your account'
       })
@@ -76,7 +76,7 @@ export default function NotFoundPage() {
     if (attemptedPath.includes('signup') || attemptedPath.includes('register')) {
       suggestions.push({
         path: pathFor('auth.signUp'),
-        label: 'Sign Up',
+        label: 'Sign up',
         icon: <User className="h-4 w-4" />,
         description: 'Create a new account'
       })
@@ -85,7 +85,7 @@ export default function NotFoundPage() {
     if (attemptedPath.includes('apply')) {
       suggestions.push({
         path: pathFor('auth.signUp'),
-        label: 'Apply Now',
+        label: 'Apply now',
         icon: <FileText className="h-4 w-4" />,
         description: 'Start your application'
       })
@@ -124,7 +124,7 @@ export default function NotFoundPage() {
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10">
                   <span className="text-3xl font-semibold text-destructive">404</span>
                 </div>
-                <h1 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Page Not Found</h1>
+                <h1 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Page not found</h1>
                 <p className="mb-2 text-sm text-muted-foreground">
                   The page you're looking for doesn't exist or has been moved.
                 </p>
@@ -146,7 +146,7 @@ export default function NotFoundPage() {
                   onClick={() => window.history.back()}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
-                  Go Back
+                  Go back
                 </Button>
               </div>
 

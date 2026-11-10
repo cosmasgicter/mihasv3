@@ -288,7 +288,7 @@ const ApplicationWizardContent = () => {
   const isPaymentStepActive = currentStepConfig.key === "payment";
   const isPaymentInProgress =
     isPaymentStepActive && paymentStatus === "pending";
-  const nextButtonLabel = loading ? "Saving step..." : "Next Step";
+  const nextButtonLabel = loading ? "Saving step..." : "Next step";
   // The view over the draft machine. `enabled` is the autosave gate only: edits
   // made while it is closed are recorded and written when it opens.
   const smartAutoSave = useSmartAutoSave({
@@ -853,7 +853,7 @@ const ApplicationWizardContent = () => {
         />
         <PageShell
           title="Choose an application"
-          eyebrow="Application Flow"
+          eyebrow="Application flow"
           subtitle="Continue a saved draft or begin a clean application."
           maxWidth="4xl"
           tone="application"
@@ -896,8 +896,8 @@ const ApplicationWizardContent = () => {
         noindex
       />
       <PageShell
-        title="Student Application"
-        eyebrow="Application Flow"
+        title="Student application"
+        eyebrow="Application flow"
         subtitle={`Complete ${totalSteps} steps with autosave. You can leave and come back at any time.`}
         maxWidth="full"
         tone="application"
@@ -1016,7 +1016,7 @@ const ApplicationWizardContent = () => {
                         goToStep(getStepIndexByKey("program"));
                       }}
                     >
-                      Change program
+                      Change programme
                     </Button>
                   )}
                   {(error.toLowerCase().includes("network") ||

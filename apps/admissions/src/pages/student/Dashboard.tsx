@@ -392,7 +392,7 @@ export default function StudentDashboard() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('Student Dashboard', brandName)}
+        title={brandedPageTitle('Student dashboard', brandName)}
         description="View your application progress, pending actions, interview updates, and key admission milestones."
         path="/student/dashboard"
         siteName={brandName}

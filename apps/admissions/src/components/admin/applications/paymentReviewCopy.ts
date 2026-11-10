@@ -24,7 +24,7 @@ export interface PaymentReviewCopy {
 export function resolvePaymentReviewCopy(pendingPaymentStatus: string | null): PaymentReviewCopy {
   if (pendingPaymentStatus === 'verified') {
     return {
-      title: 'Verify Payment',
+      title: 'Verify payment',
       description: 'Confirm that the application fee has been received before marking this payment as verified.',
       confirmText: 'Verify payment',
       notesLabel: 'Verification note',
@@ -35,7 +35,7 @@ export function resolvePaymentReviewCopy(pendingPaymentStatus: string | null): P
 
   if (pendingPaymentStatus === 'rejected') {
     return {
-      title: 'Reject Payment',
+      title: 'Reject payment',
       description: 'Explain why the proof was rejected so the student can correct and resubmit it.',
       confirmText: 'Reject payment',
       notesLabel: 'Rejection reason',
@@ -46,7 +46,7 @@ export function resolvePaymentReviewCopy(pendingPaymentStatus: string | null): P
 
   if (pendingPaymentStatus === 'deferred') {
     return {
-      title: 'Defer Payment',
+      title: 'Defer payment',
       description: 'Defer payment collection for this application. The student will be contacted to arrange payment.',
       confirmText: 'Defer payment',
       notesLabel: 'Deferral reason',
@@ -56,7 +56,7 @@ export function resolvePaymentReviewCopy(pendingPaymentStatus: string | null): P
   }
 
   return {
-    title: 'Return Payment To Review',
+    title: 'Return payment to review',
     description: 'Reopen this payment for review so the applicant can continue the payment process.',
     confirmText: 'Return to review',
     notesLabel: 'Review note',

@@ -81,7 +81,7 @@ export const useStepValidation = (
       2: () => {
         const hasNrcOrPassport = isFieldComplete(values.nrc_number) || isFieldComplete(values.passport_number)
         const fields = [
-          { label: 'Full Name', complete: isFieldComplete(values.full_name) },
+          { label: 'Full name', complete: isFieldComplete(values.full_name) },
           { label: 'Email', complete: isFieldComplete(values.email) },
           { label: 'Phone', complete: isFieldComplete(values.phone) },
           { label: 'NRC or Passport', complete: hasNrcOrPassport },

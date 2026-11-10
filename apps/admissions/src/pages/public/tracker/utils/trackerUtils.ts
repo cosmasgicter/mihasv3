@@ -64,7 +64,7 @@ export const displayValue = (value?: string | null, fallback = 'Not available') 
 }
 
 export const formatPaymentStatus = (status?: string | null) => {
-  if (!status) return 'Pending Review'
+  if (!status) return 'Pending review'
   return status.split('_').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
 }
 
@@ -97,13 +97,13 @@ export const getStatusMessage = (status: string) => {
     case 'under_review':
       return 'Your application is currently being reviewed by the admissions team. We are evaluating all aspects of your submission.'
     case 'approved':
-      return 'Your application has been approved. You have been accepted into the program. Check your email for next steps and enrollment information.'
+      return 'Your application has been approved. You have been accepted into the programme. Check your email for next steps and enrollment information.'
     case 'conditionally_approved':
       return 'Your application has been conditionally approved. Please review the conditions attached and fulfil them before the stated deadline.'
     case 'waitlisted':
       return 'You have been placed on the waitlist. If a spot opens, you will be notified automatically by email.'
     case 'enrolled':
-      return 'Your enrollment is confirmed. Welcome to the program.'
+      return 'Your enrollment is confirmed. Welcome to the programme.'
     case 'rejected':
       return 'We appreciate your interest. Unfortunately, your application was not successful this time. You may apply for future intakes with improved qualifications.'
     case 'withdrawn':

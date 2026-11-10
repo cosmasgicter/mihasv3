@@ -49,13 +49,13 @@ export const KeyboardShortcutsHelp = () => {
             ref={focusTrapRef as React.RefObject<HTMLDivElement>}
             role="dialog"
             aria-modal="true"
-            aria-label="Keyboard Shortcuts"
+            aria-label="Keyboard shortcuts"
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-md p-6 z-50 w-full max-w-md animate-scale-in"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Keyboard className="h-5 w-5" />
-                Keyboard Shortcuts
+                Keyboard shortcuts
               </h3>
               <button
                 onClick={() => setIsOpen(false)}

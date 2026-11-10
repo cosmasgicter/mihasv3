@@ -137,7 +137,7 @@ export function UserMenu() {
             ref={(el) => { itemsRef.current[1] = el }}
           >
             <LogOut className="w-4 h-4 mr-3" aria-hidden="true" />
-            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+            {isSigningOut ? 'Signing out...' : 'Sign out'}
           </button>
         </div>
       )}

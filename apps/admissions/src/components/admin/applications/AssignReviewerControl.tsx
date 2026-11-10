@@ -92,7 +92,7 @@ export function AssignReviewerControl({
         className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-        Assign Reviewer
+        Assign reviewer
       </button>
     )
   }

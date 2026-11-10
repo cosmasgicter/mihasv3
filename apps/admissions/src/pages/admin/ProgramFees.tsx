@@ -223,7 +223,7 @@ export default function ProgramFees() {
 
   const handleCreate = createFeeForm.handleSubmit((values) => {
     if (!selectedProgramId) {
-      setError('Please select a program')
+      setError('Please select a programme')
       return
     }
     void runMutation(
@@ -272,15 +272,15 @@ export default function ProgramFees() {
   return (
     <>
       <Seo
-        title="Program Fees | Beanola Admissions"
-        description="Manage application and tuition fees for each program and residency category."
+        title="Programme Fees | Beanola Admissions"
+        description="Manage application and tuition fees for each programme and residency category."
         path="/admin/program-fees"
         noindex
       />
     <PageShell
-      title="Program Fees"
-      eyebrow="Pricing Controls"
-      subtitle="Manage application and tuition fees for each program and residency category."
+      title="Programme fees"
+      eyebrow="Pricing controls"
+      subtitle="Manage application and tuition fees for each programme and residency category."
       maxWidth="7xl"
       tone="admin"
       /*
@@ -312,7 +312,7 @@ export default function ProgramFees() {
           )}
           <Button onClick={openCreate} disabled={programs.length === 0} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Add Fee
+            Add fee
           </Button>
         </div>
       }
@@ -351,7 +351,7 @@ export default function ProgramFees() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="rounded-lg border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardDescription>Active Fees</CardDescription>
+                  <CardDescription>Active fees</CardDescription>
                   <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                     <DollarSign className="h-6 w-6 text-primary" />
                     {totalFees}
@@ -359,7 +359,7 @@ export default function ProgramFees() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Fee configurations across all programs.
+                    Fee configurations across all programmes.
                   </p>
                 </CardContent>
               </Card>
@@ -393,14 +393,14 @@ export default function ProgramFees() {
                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <DollarSign className="h-10 w-10" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground">No Fees Configured</h3>
+                <h3 className="text-2xl font-bold text-foreground">No fees configured</h3>
                 <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                  Add application or tuition fees for your programs so students see the correct amount during payment.
+                  Add application or tuition fees for your programmes so students see the correct amount during payment.
                 </p>
                 <div className="mt-6 flex justify-center">
                   <Button onClick={openCreate} disabled={programs.length === 0}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add First Fee
+                    Add first fee
                   </Button>
                 </div>
               </div>
@@ -409,7 +409,7 @@ export default function ProgramFees() {
                 columns={[
                   {
                     key: 'programName',
-                    header: 'Program',
+                    header: 'Programme',
                     priority: 'always',
                     render: (_value, row) => (
                       <span className="font-semibold text-foreground">
@@ -419,7 +419,7 @@ export default function ProgramFees() {
                   },
                   {
                     key: 'fee_type',
-                    header: 'Fee Type',
+                    header: 'Fee type',
                     priority: 'always',
                     render: (_value, row) => (
                       <Badge variant="secondary" className="capitalize">
@@ -486,7 +486,7 @@ export default function ProgramFees() {
                   },
                 ]}
                 data={fees}
-                caption="Program fees"
+                caption="Programme fees"
                 loading={false}
               />
             )}
@@ -524,18 +524,18 @@ export default function ProgramFees() {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Add Program Fee</DialogTitle>
+            <DialogTitle>Add programme fee</DialogTitle>
             <DialogDescription>
-              Configure a new fee for a program and residency category.
+              Configure a new fee for a programme and residency category.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate}>
           <div className="space-y-4 py-4">
             <CanonicalSelect
-              label="Program"
+              label="Programme"
               value={selectedProgramId}
               onChange={(value) => setSelectedProgramId(value)}
-              placeholder="Select a program"
+              placeholder="Select a programme"
               options={programs.map((p) => ({
                 value: p.id,
                 label: p.name,
@@ -543,7 +543,7 @@ export default function ProgramFees() {
               required
             />
             <CanonicalSelect
-              label="Fee Type"
+              label="Fee type"
               value={createFeeForm.watch('fee_type')}
               onChange={(value) => createFeeForm.setValue('fee_type', value as 'application' | 'tuition')}
               options={FEE_TYPE_OPTIONS}
@@ -551,7 +551,7 @@ export default function ProgramFees() {
               error={createFeeForm.formState.errors.fee_type?.message}
             />
             <CanonicalSelect
-              label="Residency Category"
+              label="Residency category"
               value={createFeeForm.watch('residency_category')}
               onChange={(value) => createFeeForm.setValue('residency_category', value as 'local' | 'international')}
               options={RESIDENCY_OPTIONS}
@@ -586,7 +586,7 @@ export default function ProgramFees() {
               Cancel
             </Button>
             <Button type="submit" loading={saving}>
-              Create Fee
+              Create fee
             </Button>
           </DialogFooter>
           </form>
@@ -597,7 +597,7 @@ export default function ProgramFees() {
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Edit Program Fee</DialogTitle>
+            <DialogTitle>Edit programme fee</DialogTitle>
             <DialogDescription>
               Update the fee for {currentFee?.programName}.
             </DialogDescription>
@@ -605,7 +605,7 @@ export default function ProgramFees() {
           <form onSubmit={handleUpdate}>
           <div className="space-y-4 py-4">
             <CanonicalSelect
-              label="Fee Type"
+              label="Fee type"
               value={editFeeForm.watch('fee_type')}
               onChange={(value) => editFeeForm.setValue('fee_type', value as 'application' | 'tuition')}
               options={FEE_TYPE_OPTIONS}
@@ -613,7 +613,7 @@ export default function ProgramFees() {
               error={editFeeForm.formState.errors.fee_type?.message}
             />
             <CanonicalSelect
-              label="Residency Category"
+              label="Residency category"
               value={editFeeForm.watch('residency_category')}
               onChange={(value) => editFeeForm.setValue('residency_category', value as 'local' | 'international')}
               options={RESIDENCY_OPTIONS}
@@ -648,7 +648,7 @@ export default function ProgramFees() {
               Cancel
             </Button>
             <Button type="submit" loading={saving}>
-              Save Changes
+              Save changes
             </Button>
           </DialogFooter>
           </form>
@@ -659,7 +659,7 @@ export default function ProgramFees() {
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent size="sm">
           <DialogHeader>
-            <DialogTitle>Delete Fee</DialogTitle>
+            <DialogTitle>Delete fee</DialogTitle>
             <DialogDescription>
               This will deactivate the {currentFee?.fee_type} fee (
               {currentFee?.residency_category}) for {currentFee?.programName}.
@@ -679,7 +679,7 @@ export default function ProgramFees() {
               onClick={handleDelete}
               loading={saving}
             >
-              Delete Fee
+              Delete fee
             </Button>
           </DialogFooter>
         </DialogContent>

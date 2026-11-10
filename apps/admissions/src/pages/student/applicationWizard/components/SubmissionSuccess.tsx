@@ -25,7 +25,7 @@ interface SubmissionSuccessProps {
 }
 
 const formatPaymentStatusLabel = (status?: string | null) => {
-  if (!status) return 'Pending Payment'
+  if (!status) return 'Pending payment'
   return status
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
@@ -130,7 +130,7 @@ const SubmissionSuccess = ({
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application Submitted</h2>
+        <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application submitted</h2>
         <p className="text-base sm:text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
 
         {/*
@@ -142,7 +142,7 @@ const SubmissionSuccess = ({
           for, with the real tracking credential offered as a command underneath.
         */}
         <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 mb-6">
-          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Application Number</span>
+          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Application number</span>
           <span className="block font-mono text-xl font-bold text-foreground tracking-wide">{submittedApplication.applicationNumber}</span>
           <span className="block text-xs text-muted-foreground mt-1">Quote this when you contact the admissions office.</span>
           {submittedApplication.applicationId && (
@@ -156,11 +156,11 @@ const SubmissionSuccess = ({
 
         {/* Application details */}
         <div className={`rounded-lg border border-border/70 bg-muted/30 p-4 mb-6 ${animateClasses.slideUp}`}>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Application Details</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Application details</h3>
           {/* The application number is the headline above; not repeated here. */}
           <dl className="space-y-2 text-base sm:text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Program</dt>
+              <dt className="text-muted-foreground">Programme</dt>
               <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
             </div>
             <div className="flex justify-between">
@@ -185,11 +185,11 @@ const SubmissionSuccess = ({
         <div className="flex flex-col gap-2 mb-6 sm:flex-row">
           <Button onClick={onDownload} loading={slipLoading} className="flex-1 min-h-[48px] touch-manipulation bg-success hover:bg-success/90">
             <Download className="h-4 w-4 mr-2" />
-            Download Slip
+            Download slip
           </Button>
           <Button variant="outline" onClick={onEmail} loading={emailLoading} className="flex-1 min-h-[48px] touch-manipulation">
             <Mail className="h-4 w-4 mr-2" />
-            Email Slip
+            Email slip
           </Button>
         </div>
 
@@ -223,11 +223,11 @@ const SubmissionSuccess = ({
         {/* Navigation links */}
         <div className="mt-6 space-y-2">
           <Link to="/track-application">
-            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track Application Status</Button>
+            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track application status</Button>
           </Link>
           {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
             <Link to="/student/payment">
-              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete Payment</Button>
+              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete payment</Button>
             </Link>
           )}
           <Link to="/student/dashboard">

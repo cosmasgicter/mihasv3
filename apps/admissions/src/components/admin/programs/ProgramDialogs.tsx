@@ -42,19 +42,19 @@ function ProgramFormFields({ form, activeInstitutions, canonicalPrograms, onAddI
   return (
     <div className="space-y-4 py-4">
       <CanonicalSelect
-        label="Canonical program"
+        label="Canonical programme"
         value={form.watch('canonical_program_id')}
         onChange={(value) => form.setValue('canonical_program_id', value)}
-        placeholder="Select a canonical program"
+        placeholder="Select a canonical programme"
         options={canonicalPrograms.map((program) => ({
           value: program.id,
           label: program.code ? `${program.name} (${program.code})` : program.name,
         }))}
         error={form.formState.errors.canonical_program_id?.message}
-        helperText="Offerings inherit routing, fees, and requirements from the canonical Beanola program."
+        helperText="Offerings inherit routing, fees, and requirements from the canonical Beanola programme."
         required
       />
-      <Input label="Program name" {...form.register('name')} error={form.formState.errors.name?.message} required />
+      <Input label="Programme name" {...form.register('name')} error={form.formState.errors.name?.message} required />
       <CanonicalSelect
         label="Institution"
         value={form.watch('institution_id')}
@@ -75,7 +75,7 @@ function ProgramFormFields({ form, activeInstitutions, canonicalPrograms, onAddI
         </Button>
       </div>
       <Textarea
-        label="Program description"
+        label="Programme description"
         {...form.register('description')}
         helperText="Use this to clarify the course focus for admissions teams and applicants."
       />
@@ -155,8 +155,8 @@ export function ProgramDialogs({
       <Dialog open={showCreate} onOpenChange={(open) => { if (!open) onCloseCreate() }}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Create Program</DialogTitle>
-            <DialogDescription>Add the academic program details and assign it to an institution.</DialogDescription>
+            <DialogTitle>Create programme</DialogTitle>
+            <DialogDescription>Add the academic programme details and assign it to an institution.</DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmitCreate}>
             <ProgramFormFields
@@ -164,11 +164,11 @@ export function ProgramDialogs({
               activeInstitutions={activeInstitutions}
               canonicalPrograms={canonicalPrograms}
               onAddInstitution={onAddInstitutionFromCreate}
-              addInstitutionLabel="Need a new institution before saving this program?"
+              addInstitutionLabel="Need a new institution before saving this programme?"
             />
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onCloseCreate} disabled={saving}>Cancel</Button>
-              <Button type="submit" loading={saving}>Create Program</Button>
+              <Button type="submit" loading={saving}>Create programme</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -177,8 +177,8 @@ export function ProgramDialogs({
       <Dialog open={showEdit} onOpenChange={(open) => { if (!open) onCloseEdit() }}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Edit Program</DialogTitle>
-            <DialogDescription>Update the academic program details and institution ownership.</DialogDescription>
+            <DialogTitle>Edit programme</DialogTitle>
+            <DialogDescription>Update the academic programme details and institution ownership.</DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmitEdit}>
             <ProgramFormFields
@@ -190,7 +190,7 @@ export function ProgramDialogs({
             />
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onCloseEdit} disabled={saving}>Cancel</Button>
-              <Button type="submit" loading={saving}>Save Changes</Button>
+              <Button type="submit" loading={saving}>Save changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -199,14 +199,14 @@ export function ProgramDialogs({
       <Dialog open={showDelete} onOpenChange={(open) => { if (!open) onCloseDelete() }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Archive Program</DialogTitle>
+            <DialogTitle>Archive programme</DialogTitle>
             <DialogDescription>
               Archive "{currentProgram?.name}" to remove it from active admissions setup while keeping historical records.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={onCloseDelete} disabled={saving}>Cancel</Button>
-            <Button variant="danger" onClick={onDelete} loading={saving}>Archive Program</Button>
+            <Button variant="danger" onClick={onDelete} loading={saving}>Archive programme</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

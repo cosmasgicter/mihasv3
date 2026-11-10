@@ -269,7 +269,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
     const resolvedProgram = resolveProgramIdentity(formData.program)
     if (!resolvedProgram) {
-      throw new Error('Please select a valid program before saving your draft online.')
+      throw new Error('Please select a valid programme before saving your draft online.')
     }
     const resolvedIntake = resolveIntakeIdentity(formData.intake)
     if (!resolvedIntake) {

@@ -44,15 +44,15 @@ const pageTitles: Record<string, string> = {
   // preferences screen was half of why the inbox was hard to find.
   [pathFor('student.notifications')]: 'Notification settings',
   [pathFor('student.communications')]: 'Communications',
-  [pathFor('student.status')]: 'Application Status',
-  [pathFor('admin.dashboard')]: 'Admin Dashboard',
+  [pathFor('student.status')]: 'Application status',
+  [pathFor('admin.dashboard')]: 'Admin dashboard',
   [pathFor('admin.applications')]: 'Applications',
   [pathFor('admin.users')]: 'Users',
   [pathFor('admin.tenants')]: 'Tenants',
   [pathFor('admin.programs')]: 'Programs',
   [pathFor('admin.intakes')]: 'Intakes',
-  [pathFor('admin.audit')]: 'Audit Trail',
-  [pathFor('admin.programFees')]: 'Program Fees',
+  [pathFor('admin.audit')]: 'Audit trail',
+  [pathFor('admin.programFees')]: 'Programme fees',
   [pathFor('admin.settings')]: 'Settings',
 }
 

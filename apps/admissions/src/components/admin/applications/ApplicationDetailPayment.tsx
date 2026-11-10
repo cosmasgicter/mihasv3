@@ -30,10 +30,10 @@ export function ApplicationDetailPayment({
 }: ApplicationDetailPaymentProps) {
   const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
   const paymentStatusTextClass = {
-    'Awaiting Payment': 'text-foreground',
-    'Awaiting Payment Review': 'text-orange-900',
+    'Awaiting payment': 'text-foreground',
+    'Awaiting payment review': 'text-orange-900',
     Verified: 'text-green-900',
-    'Payment Rejected': 'text-red-900',
+    'Payment rejected': 'text-red-900',
     Deferred: 'text-amber-800'
   }[paymentStatusLabel] || 'text-foreground'
 
@@ -41,14 +41,14 @@ export function ApplicationDetailPayment({
     <div className="rounded-lg border border-border bg-card p-6">
       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-primary" />
-        Payment Information
+        Payment information
       </h3>
 
       <div className="mb-4 rounded-lg border border-border bg-muted p-3">
         <div className="flex items-center gap-3">
           {getPaymentIcon(application.payment_status || 'not_paid')}
           <div>
-            <p className="text-sm font-medium text-foreground">Current Status</p>
+            <p className="text-sm font-medium text-foreground">Current status</p>
             <p className={`text-lg font-bold ${paymentStatusTextClass}`}>{paymentStatusLabel}</p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export function ApplicationDetailPayment({
         <div className="mb-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <p className="font-medium text-amber-900">Payment Deferred</p>
+            <p className="font-medium text-amber-900">Payment deferred</p>
           </div>
           <p className="text-sm text-amber-800 mb-3">This student's payment has been deferred. Please contact them to arrange payment.</p>
           <div className="space-y-1 mb-3">
@@ -75,13 +75,13 @@ export function ApplicationDetailPayment({
           </div>
           <Button variant="outline" size="sm" onClick={onShowNotificationModal} className="border-amber-300 text-amber-800 hover:bg-amber-100">
             <Send className="h-3.5 w-3.5 mr-1.5" />
-            Send Payment Reminder
+            Send payment reminder
           </Button>
         </div>
       )}
 
       <div>
-        <p className="text-sm font-medium text-foreground mb-3">Payment History</p>
+        <p className="text-sm font-medium text-foreground mb-3">Payment history</p>
         {loadingPayments ? (
           <div className="flex items-center gap-2 text-sm text-foreground py-4">
             <div className="h-2.5 w-2.5 rounded-md bg-primary animate-pulse" aria-hidden="true" />
@@ -139,7 +139,7 @@ export function ApplicationDetailPayment({
         <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-amber-700" />
-            <p className="font-medium text-amber-900">Latest Payment Review</p>
+            <p className="font-medium text-amber-900">Latest payment review</p>
           </div>
           {(applicationData?.application?.last_payment_audit_at || application.last_payment_audit_at) && (
             <p className="text-sm text-amber-900/80 mb-1">
@@ -177,10 +177,10 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm space-y-3">
-      <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
+      <h4 className="text-sm font-semibold text-foreground">Apply fee waiver</h4>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-foreground block mb-1">Waiver Type</label>
+          <label className="text-xs text-foreground block mb-1">Waiver type</label>
           <select value={form.waiver_type} onChange={e => setForm(f => ({ ...f, waiver_type: e.target.value }))} className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm">
             <option value="full">Full</option>
             <option value="partial">Partial</option>
@@ -189,9 +189,9 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
         <div>
           <label className="text-xs text-foreground block mb-1">Reason</label>
           <select value={form.reason_code} onChange={e => setForm(f => ({ ...f, reason_code: e.target.value }))} className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm">
-            <option value="staff_dependent">Staff Dependent</option>
+            <option value="staff_dependent">Staff dependent</option>
             <option value="scholarship">Scholarship</option>
-            <option value="financial_hardship">Financial Hardship</option>
+            <option value="financial_hardship">Financial hardship</option>
             <option value="other">Other</option>
           </select>
         </div>

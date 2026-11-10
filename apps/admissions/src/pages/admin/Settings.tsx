@@ -45,9 +45,9 @@ const SETTING_BLUEPRINTS: SettingBlueprint[] = [
 ]
 
 const GUIDED_SECTIONS: GuidedSectionDef[] = [
-  { id: 'experience', title: 'Portal Experience', description: 'Public-facing branding and the main online admissions switch.', icon: <Settings className="h-5 w-5" />, settingKeys: ['site_name', 'enable_online_applications'] },
-  { id: 'contact', title: 'Admissions Contact', description: 'Official contact details used across public pages and notification surfaces.', icon: <Phone className="h-5 w-5" />, settingKeys: ['contact_email', 'contact_phone'] },
-  { id: 'operations', title: 'Admissions Operations', description: 'Fee and intake guardrails that affect application processing.', icon: <Users className="h-5 w-5" />, settingKeys: ['application_fee', 'max_applications_per_user', 'multi_intake_policy'] },
+  { id: 'experience', title: 'Portal experience', description: 'Public-facing branding and the main online admissions switch.', icon: <Settings className="h-5 w-5" />, settingKeys: ['site_name', 'enable_online_applications'] },
+  { id: 'contact', title: 'Admissions contact', description: 'Official contact details used across public pages and notification surfaces.', icon: <Phone className="h-5 w-5" />, settingKeys: ['contact_email', 'contact_phone'] },
+  { id: 'operations', title: 'Admissions operations', description: 'Fee and intake guardrails that affect application processing.', icon: <Users className="h-5 w-5" />, settingKeys: ['application_fee', 'max_applications_per_user', 'multi_intake_policy'] },
 ]
 
 export default function AdminSettings() {
@@ -131,7 +131,7 @@ export default function AdminSettings() {
   }
 
   const handleDelete = async (id: string, key: string) => {
-    const confirmed = await confirmDialog.confirm({ title: 'Delete Advanced Setting', message: `The setting "${key}" will be permanently deleted.`, confirmText: 'Delete', variant: 'danger' })
+    const confirmed = await confirmDialog.confirm({ title: 'Delete advanced setting', message: `The setting "${key}" will be permanently deleted.`, confirmText: 'Delete', variant: 'danger' })
     if (!confirmed) return
     await runReloadingMutation(() => deleteSetting(id), 'Advanced setting deleted successfully')
   }
@@ -227,8 +227,8 @@ export default function AdminSettings() {
     <>
       <Seo title="Operational Settings | Beanola Admissions" description="Configure admissions portal settings, guided controls, and advanced system keys." path="/admin/settings" noindex />
       <PageShell
-        title="Operational Settings"
-        eyebrow="System Configuration"
+        title="Operational settings"
+        eyebrow="System configuration"
         subtitle="Configure the admissions portal through guided controls first, then use advanced keys only when needed."
         maxWidth="7xl"
         tone="admin"
@@ -245,7 +245,7 @@ export default function AdminSettings() {
               <Button variant="ghost" size="sm" className="w-full sm:w-auto"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
             </Link>
             <Button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ADD_FORM' })} variant="outline" size="sm" className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />{state.showAddForm ? 'Hide Advanced Key' : 'New Advanced Key'}
+              <Plus className="h-4 w-4 mr-2" />{state.showAddForm ? 'Hide advanced key' : 'New advanced key'}
             </Button>
             <Button onClick={exportSettings} variant="outline" size="sm" className="w-full sm:w-auto">Export</Button>
             <label className="w-full cursor-pointer sm:w-auto">
@@ -269,22 +269,22 @@ export default function AdminSettings() {
             <>
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided Controls</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided controls</p>
                   <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
                   <p className="mt-1 text-sm text-muted-foreground">Operational settings configured</p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public Settings</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public settings</p>
                   <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
                   <p className="mt-1 text-sm text-muted-foreground">Visible to applicants and portal surfaces</p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private Settings</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private settings</p>
                   <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
                   <p className="mt-1 text-sm text-muted-foreground">Operational settings only for staff workflows</p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced Keys</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced keys</p>
                   <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
                   <p className="mt-1 text-sm text-muted-foreground">Custom keys outside the guided configuration</p>
                 </div>
@@ -307,7 +307,7 @@ export default function AdminSettings() {
               <div className="rounded-lg border border-border bg-card p-5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground">Guided Configuration</h2>
+                    <h2 className="text-lg font-semibold text-foreground">Guided configuration</h2>
                     <p className="text-sm text-muted-foreground">Use these operational controls for the main admissions settings instead of creating raw keys manually.</p>
                   </div>
                   <div className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{configuredBlueprintCount} configured</div>

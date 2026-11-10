@@ -70,7 +70,7 @@ export function ShapeLandingHero({
             {visiblePrograms.length > 0 && (
               <div
                 className="mt-5 flex flex-wrap gap-2 motion-safe:animate-hero-enter"
-                aria-label="Available program areas"
+                aria-label="Available programme areas"
                 style={revealStyle(0.4)}
               >
                 {visiblePrograms.map((phrase, i) => (
@@ -172,8 +172,8 @@ export function ShapeLandingHero({
                     <GraduationCap className="h-8 w-8 text-primary sm:h-10 sm:w-10" />
                   </span>
                   <figcaption className="text-center">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">Choose a program</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">Pick a program and intake first</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">Choose a programme</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Pick a programme and intake first</p>
                   </figcaption>
                 </figure>
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">

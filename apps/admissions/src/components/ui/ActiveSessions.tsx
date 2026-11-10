@@ -215,7 +215,7 @@ export function ActiveSessions() {
     <Card className="p-4">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Active Sessions</h3>
+          <h3 className="text-lg font-semibold">Active sessions</h3>
           <p className="text-sm text-muted-foreground">
             Review devices that are signed in to your account and revoke any session you do not recognize.
           </p>
@@ -321,7 +321,7 @@ export function ActiveSessions() {
             disabled={terminatingAll || otherSessionsCount === 0}
             className="w-full"
           >
-            {terminatingAll ? 'Terminating All...' : 'Terminate All Other Sessions'}
+            {terminatingAll ? 'Terminating all...' : 'Terminate all other sessions'}
           </Button>
         )}
         <Button
@@ -332,7 +332,7 @@ export function ActiveSessions() {
           className="w-full"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Sessions
+          Refresh sessions
         </Button>
       </div>
     </Card>

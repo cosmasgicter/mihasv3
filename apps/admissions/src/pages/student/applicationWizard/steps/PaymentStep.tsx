@@ -255,7 +255,7 @@ const PaymentStep = ({
                     <Clock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-base sm:text-sm font-semibold text-foreground">Pay Later</p>
+                    <p className="text-base sm:text-sm font-semibold text-foreground">Pay later</p>
                     <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
                   </div>
                 </div>

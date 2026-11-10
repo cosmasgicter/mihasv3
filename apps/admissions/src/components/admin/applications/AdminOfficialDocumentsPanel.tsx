@@ -43,7 +43,7 @@ function generateLabel(uiState: OfficialDocumentUiState, hasLatest: boolean): st
     case 'failed':
       return 'Retry'
     case 'setup_required':
-      return 'Setup Required'
+      return 'Setup required'
     case 'ready':
       return 'Regenerate'
     default:

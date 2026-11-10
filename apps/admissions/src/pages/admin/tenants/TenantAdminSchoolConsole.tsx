@@ -186,7 +186,7 @@ export function TenantAdminSchoolConsole() {
               <EmptyState
                 icon={<ShieldCheck />}
                 heading="Setup or permission required"
-                description="Your account can view this school's profile, but no management sections are enabled for your role yet. Contact your platform administrator for domains, programs, documents, staff, or audit access."
+                description="Your account can view this school's profile, but no management sections are enabled for your role yet. Contact your platform administrator for domains, programmes, documents, staff, or audit access."
                 action={{
                   label: 'Contact platform admin',
                   onClick: () => {

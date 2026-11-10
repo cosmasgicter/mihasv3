@@ -54,7 +54,7 @@ export default function History() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('Activity History', brandName)}
+        title={brandedPageTitle('Activity history', brandName)}
         description="View the chronological timeline of your application activity."
         path="/student/history"
         siteName={brandName}
@@ -73,7 +73,7 @@ export default function History() {
         timeline below the fold. Task 11.1 named this row as this task's.
       */}
       <PageShell
-        title="Activity History"
+        title="Activity history"
         subtitle="A chronological timeline of all activity on your applications."
         eyebrow="Timeline"
         tone="student"

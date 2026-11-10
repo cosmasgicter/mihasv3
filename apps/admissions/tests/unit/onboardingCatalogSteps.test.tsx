@@ -92,7 +92,7 @@ describe('WizardProgramsStep (TEN-02, TEN-03, TEN-05)', () => {
     await findByRole('option', { name: /Diploma in Registered Nursing/ })
     // Choosing from the scoped selector prefills name/code; the canonical id is
     // the write authority (never a pasted UUID).
-    fireEvent.change(getByLabelText('Canonical program'), { target: { value: 'canon-1' } })
+    fireEvent.change(getByLabelText('Canonical programme'), { target: { value: 'canon-1' } })
     fireEvent.click(getByRole('button', { name: /assign program/i }))
 
     await waitFor(() => expect(createOffering).toHaveBeenCalledTimes(1))

@@ -122,7 +122,7 @@ export function ApplicationApprovalActions({
       {/* Application Status Controls */}
       <div>
         <label className="mb-2 block text-xs font-medium text-foreground">
-          Application Status
+          Application status
         </label>
         <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
@@ -143,7 +143,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : 'Force Submit'}
+                {updatingStatus ? 'Updating...' : 'Force submit'}
               </Button>
             </>
           )}
@@ -236,7 +236,7 @@ export function ApplicationApprovalActions({
             <>
               {showStatusSummary && (
               <div className="sm:col-span-2 text-center py-2">
-                <StatusBadge tone="info" icon={Clock} label="Conditionally Approved" />
+                <StatusBadge tone="info" icon={Clock} label="Conditionally approved" />
               </div>
               )}
               <Button
@@ -326,7 +326,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'enrollment_expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <StatusBadge tone="warning" icon={Clock} label="Enrollment Expired" />
+              <StatusBadge tone="warning" icon={Clock} label="Enrollment expired" />
             </div>
           )}
         </div>

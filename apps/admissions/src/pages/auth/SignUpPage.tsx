@@ -347,7 +347,7 @@ export default function SignUpPage() {
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>{' '}
             and{' '}
-            <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+            <Link to="/privacy" className="text-primary hover:underline">Privacy policy</Link>.
           </p>
         </form>
       </AuthShell>

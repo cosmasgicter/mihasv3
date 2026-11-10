@@ -171,7 +171,7 @@ describe('Student interview page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Interview Schedule')
+    expect(text).toContain('Interview schedule')
   })
 
   it('renders the page subtitle', async () => {
@@ -193,14 +193,14 @@ describe('Student interview page verification', () => {
   it('renders the upcoming interviews section with interview data', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Upcoming Interviews')
+    expect(text).toContain('Upcoming interviews')
     expect(text).toContain('Diploma in Clinical Medicine')
   })
 
   it('renders interview mode for upcoming in-person interview', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('In Person')
+    expect(text).toContain('In person')
   })
 
   it('renders interview location for in-person interview', async () => {
@@ -220,7 +220,7 @@ describe('Student interview page verification', () => {
   it('renders the past interviews section with completed interview', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Past Interviews')
+    expect(text).toContain('Past interviews')
     expect(text).toContain('Diploma in Registered Nursing')
   })
 
@@ -246,7 +246,7 @@ describe('Student interview page verification', () => {
 
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('No Scheduled Interviews')
+    expect(text).toContain('No scheduled interviews')
   })
 
   // ── Error state ─────────────────────────────────────────────────────

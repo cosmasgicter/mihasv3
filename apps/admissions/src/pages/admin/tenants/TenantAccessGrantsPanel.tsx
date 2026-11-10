@@ -206,7 +206,7 @@ export function TenantAccessGrantsPanel({ institutionId }: { institutionId: stri
                 return
               }
               if (form.scope_type === 'program_offering' && !form.program_id.trim()) {
-                toast.error('Select a program offering')
+                toast.error('Select a programme offering')
                 return
               }
               if (form.scope_type === 'application' && !form.application_id.trim()) {
@@ -255,7 +255,7 @@ export function TenantAccessGrantsPanel({ institutionId }: { institutionId: stri
                 aria-label="Grant scope type"
               >
                 <option value="institution">Institution</option>
-                <option value="program_offering">Program offering</option>
+                <option value="program_offering">Programme offering</option>
                 <option value="application">Application</option>
               </select>
               {form.scope_type === 'program_offering' && (
@@ -263,7 +263,7 @@ export function TenantAccessGrantsPanel({ institutionId }: { institutionId: stri
                   value={form.program_id}
                   onChange={(event) => setForm((prev) => ({ ...prev, program_id: event.target.value }))}
                   className={TENANT_SELECT_CLASS}
-                  aria-label="Grant program offering"
+                  aria-label="Grant programme offering"
                   disabled={offeringsQuery.isLoading}
                 >
                   <option value="">Select an offering…</option>

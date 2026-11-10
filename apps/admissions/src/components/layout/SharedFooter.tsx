@@ -105,7 +105,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-6 text-white">Quick Links</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-6 text-white">Quick links</h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
@@ -144,7 +144,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-lg sm:text-xl font-semibold mb-6 text-white">Follow Us</h3>
+            <h3 className="text-lg sm:text-xl font-semibold mb-6 text-white">Follow us</h3>
             <div className="flex flex-wrap gap-2 sm:gap-4">
               {socialLinks.map((social) => (
                 <a

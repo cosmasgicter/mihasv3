@@ -422,15 +422,15 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
             </select>
           </label>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-foreground">Canonical program</span>
+            <span className="font-medium text-foreground">Canonical programme</span>
             <select
               value={draft.canonical_program_id}
               onChange={event => setDraft(prev => ({ ...prev, canonical_program_id: event.target.value }))}
               className={TENANT_SELECT_CLASS}
-              aria-label="Applies to canonical program"
+              aria-label="Applies to canonical programme"
               disabled={canonicalQuery.isLoading}
             >
-              <option value="">Any canonical program</option>
+              <option value="">Any canonical programme</option>
               {canonicalPrograms.map(program => (
                 <option key={program.id} value={program.id}>{program.name}</option>
               ))}
@@ -579,7 +579,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Signatory title</span>
-            <Input value={draft.signatory_title} onChange={event => setDraft(prev => ({ ...prev, signatory_title: event.target.value }))} placeholder="Managing Director" aria-label="Signatory title" />
+            <Input value={draft.signatory_title} onChange={event => setDraft(prev => ({ ...prev, signatory_title: event.target.value }))} placeholder="Managing director" aria-label="Signatory title" />
           </label>
         </div>
 

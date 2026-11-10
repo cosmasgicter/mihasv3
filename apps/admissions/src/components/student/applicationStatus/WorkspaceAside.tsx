@@ -61,7 +61,7 @@ export function WorkspaceAside({
       <SectionCard title="Quick information" description="Essential application details at a glance." icon={<User className="h-5 w-5" />}>
         <dl className="space-y-3 text-base sm:text-sm">
           <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
-          <DetailRow label="Program" value={application.program || 'Not provided'} />
+          <DetailRow label="Programme" value={application.program || 'Not provided'} />
           {/* Task 10.6 parity: the retired workspace named the institution. */}
           <DetailRow label="Institution" value={institutionLabel} />
           <DetailRow label="Intake" value={application.intake || 'Not provided'} />

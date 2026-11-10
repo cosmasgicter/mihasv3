@@ -174,27 +174,27 @@ describe('DocumentButtons — status-gated action visibility (R17.1)', () => {
   it('offers the acceptance-letter action only when the application is approved', () => {
     render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus={null} />)
     // The acceptance action is offered (rendered once for desktop + once for mobile).
-    expect(screen.getAllByText('Acceptance Letter').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('acceptance letter').length).toBeGreaterThan(0)
     // The conditional-offer action is NOT offered for an approved application.
-    expect(screen.queryByText('Conditional Acceptance')).toBeNull()
+    expect(screen.queryByText('conditional acceptance')).toBeNull()
   })
 
   it('offers the conditional-offer action only when conditionally approved', () => {
     render(
       <DocumentButtons applicationId={APP_ID} status="conditionally_approved" paymentStatus={null} />,
     )
-    expect(screen.getAllByText('Conditional Acceptance').length).toBeGreaterThan(0)
-    expect(screen.queryByText('Acceptance Letter')).toBeNull()
+    expect(screen.getAllByText('conditional acceptance').length).toBeGreaterThan(0)
+    expect(screen.queryByText('acceptance letter')).toBeNull()
   })
 
   it('offers the payment-receipt action only when payment is verified', () => {
     render(<DocumentButtons applicationId={APP_ID} status="submitted" paymentStatus="verified" />)
-    expect(screen.getAllByText('Payment Receipt').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('payment receipt').length).toBeGreaterThan(0)
   })
 
   it('hides the payment-receipt action when payment is not verified', () => {
     render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus="pending" />)
-    expect(screen.queryByText('Payment Receipt')).toBeNull()
+    expect(screen.queryByText('payment receipt')).toBeNull()
   })
 })
 
@@ -218,7 +218,7 @@ describe('DocumentButtons — status-gated action visibility (R17.1)', () => {
   surface rather than as a client-side format check.
 */
 describe('DocumentButtons — download and email of the stored slip (R17.2)', () => {
-  // SJR task 3.17 (R5-a, clause 1.23): this case clicked "Download Slip" and
+  // SJR task 3.17 (R5-a, clause 1.23): this case clicked "Download slip" and
   // expected `downloadOfficialDocument`, which opened a tab in code after the
   // awaits. The control now makes the slip ("Prepare"), then offers an "Open"
   // anchor to the in-app opener; nothing is downloaded or opened in code.
@@ -350,7 +350,7 @@ describe('DocumentButtons — ready actions stream stored backend records (R17.2
     generateMock.mockResolvedValue({ document_type: 'acceptance_letter', status: 'ready' })
     render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus={null} />)
     // Desktop + mobile both render the action; click the first.
-    fireEvent.click(screen.getAllByText('Acceptance Letter')[0])
+    fireEvent.click(screen.getAllByText('acceptance letter')[0])
     await waitFor(() => {
       expect(generateMock).toHaveBeenCalledWith(APP_ID, 'acceptance_letter')
     })
@@ -370,9 +370,9 @@ describe('DocumentButtons — ready actions stream stored backend records (R17.2
 
     render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus={null} />)
 
-    fireEvent.click(screen.getAllByText('Acceptance Letter')[0])
+    fireEvent.click(screen.getAllByText('acceptance letter')[0])
 
-    expect(await screen.findByText('Setup Required')).toBeTruthy()
+    expect(await screen.findByText('Setup required')).toBeTruthy()
     expect(downloadMock).not.toHaveBeenCalled()
   })
 })
@@ -445,7 +445,8 @@ describe('AdminOfficialDocumentsPanel — scoped latest-per-type listing (R17.4)
     const generateButtons = await screen.findAllByText('Generate')
     fireEvent.click(generateButtons[0])
 
-    expect(await screen.findByText('Setup Required')).toBeTruthy()
-    expect(await screen.findByText('Setup required')).toBeTruthy()
+    // The control's label and the status line now share one sentence-cased string
+    // (task 24.3), so two elements carry it.
+    expect((await screen.findAllByText('Setup required')).length).toBeGreaterThan(1)
   })
 })

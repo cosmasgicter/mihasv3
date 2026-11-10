@@ -81,7 +81,7 @@ export function buildWizardChecklist({
   switch (stepKey) {
     case 'program':
       return [
-        { label: 'Program selected', completed: isFilled(values.program) },
+        { label: 'Programme selected', completed: isFilled(values.program) },
         { label: 'Intake selected', completed: isFilled(values.intake) },
       ]
     case 'assignedSchool':

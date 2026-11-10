@@ -178,13 +178,13 @@ describe('Public tracker page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Track Your Application')
+    expect(text).toContain('Track your application')
   })
 
   it('renders the search section with input and button', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Find Your Application')
+    expect(text).toContain('Find your application')
     expect(text).toContain('Search')
     const input = container.querySelector('input')
     expect(input).toBeTruthy()
@@ -195,8 +195,8 @@ describe('Public tracker page verification', () => {
     const text = container.textContent || ''
     // Task 10.5 renamed the first card: the credential comes from the owner's own
     // "Get tracking link" command, not from the confirmation email's number.
-    expect(text).toContain('Get Your Link')
-    expect(text).toContain('Format Example')
+    expect(text).toContain('Get your link')
+    expect(text).toContain('Format example')
     // Task 11.5 replaced the third card: "Instant Results — real-time status
     // updates" claimed a capability the tracker does not have (it reads the
     // recorded status of a submitted application on request, and there is no
@@ -212,7 +212,7 @@ describe('Public tracker page verification', () => {
   it('renders the help section with status meanings', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Need Help?')
+    expect(text).toContain('Need help?')
     // Task 11.5 (R16.5): the glossary heading states what it is instead of
     // narrating the feature ("Application Status Meanings"), and each entry is
     // the status plus what it means for the applicant — without the
@@ -272,11 +272,11 @@ describe('Public tracker page verification', () => {
     await renderAndWait(500)
 
     const text = container.textContent || ''
-    expect(text).toContain('Application Details')
-    expect(text).toContain('Application Number')
+    expect(text).toContain('Application details')
+    expect(text).toContain('Application number')
     expect(text).toContain('Program')
     expect(text).not.toContain('applicant@example.com')
-    expect(text).not.toContain('Payment Status')
+    expect(text).not.toContain('Payment status')
   })
 
   it('renders share/copy actions without anonymous slip controls when application is found', async () => {
@@ -288,8 +288,8 @@ describe('Public tracker page verification', () => {
     const text = container.textContent || ''
     expect(text).toContain('Share')
     expect(text).toContain('Copy #')
-    expect(text).not.toContain('Download Slip')
-    expect(text).not.toContain('Email Slip')
+    expect(text).not.toContain('Download slip')
+    expect(text).not.toContain('Email slip')
   })
 
   // -- No results state --
@@ -302,7 +302,7 @@ describe('Public tracker page verification', () => {
 
     const text = container.textContent || ''
     expect(text).toContain('No application found')
-    expect(text).toContain('Try Again')
+    expect(text).toContain('Try again')
   })
 
   // -- Task 10.5: an application number is not a credential --

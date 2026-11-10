@@ -584,7 +584,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             <Smartphone className="h-6 w-6" />
           </div>
           <div>
-            <p className={`font-semibold ${paymentMethod === 'mobile-money' ? 'text-foreground' : ''}`}>Mobile Money</p>
+            <p className={`font-semibold ${paymentMethod === 'mobile-money' ? 'text-foreground' : ''}`}>Mobile money</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Pay with Airtel or MTN mobile money</p>
             <p className="mt-1 text-xs text-muted-foreground">Instant · No card needed</p>
           </div>

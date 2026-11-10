@@ -84,7 +84,7 @@ export const contactInfo = {
 export const stats: StatItem[] = [
   { value: 300, suffix: '+', label: 'Applications processed through partner schools' },
   { value: 92, suffix: '%', label: 'Configured workflows completed without manual follow-up' },
-  { value: 25, suffix: '+', label: 'Programs ready for institution assignment' },
+  { value: 25, suffix: '+', label: 'Programmes ready for institution assignment' },
   { value: 6, suffix: '+', label: 'Years building admissions operations software' },
 ];
 
@@ -153,7 +153,7 @@ export const accreditations: AccreditationItem[] = [
 
 export const programs: ProgramItem[] = [
   {
-    institution: 'Partner Colleges',
+    institution: 'Partner colleges',
     courses: [
       'Diploma and certificate programmes configured per institution',
       'Health, business, technology, and professional pathways',
@@ -163,7 +163,7 @@ export const programs: ProgramItem[] = [
     logo: '/images/logos/beanolalogo.webp',
   },
   {
-    institution: 'Partner Universities',
+    institution: 'Partner universities',
     courses: [
       'Undergraduate, bridging, and professional programmes',
       'Shared programmes assigned to the schools that offer them',
@@ -249,7 +249,7 @@ export const eligibilityItems: EligibilityItem[] = [
     icon: GraduationCap,
     title: 'ECZ Grade 12 certificate',
     description:
-      'We accept ECZ School Certificate and GCE. Specific grade requirements vary by program — full details show up inside your application.',
+      'We accept ECZ School Certificate and GCE. Specific grade requirements vary by programme — full details show up inside your application.',
   },
   {
     icon: FileCheck,
@@ -350,12 +350,12 @@ export const accommodationHighlights: AccommodationHighlight[] = [
 // ============================================================================
 
 export const quickLinks: QuickLinkItem[] = [
-  { name: 'About Us', href: '#features', eventName: 'landing_footer_about_click' },
-  { name: 'Programs', href: '#programs', eventName: 'landing_footer_programs_click' },
-  { name: 'How It Works', href: '#how-it-works' },
-  { name: 'International Students', href: '#international' },
+  { name: 'About us', href: '#features', eventName: 'landing_footer_about_click' },
+  { name: 'Programmes', href: '#programs', eventName: 'landing_footer_programs_click' },
+  { name: 'How it works', href: '#how-it-works' },
+  { name: 'International students', href: '#international' },
   { name: 'Accommodation', href: '#accommodation' },
-  { name: 'Track Application', href: '/track-application' },
+  { name: 'Track application', href: '/track-application' },
   { name: 'Contact', href: '/contact' },
 ];
 

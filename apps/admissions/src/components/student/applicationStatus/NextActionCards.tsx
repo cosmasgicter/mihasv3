@@ -151,7 +151,7 @@ export function NextActionCards({
                 disabled={enrollPending}
                 className="w-full sm:w-auto"
               >
-                {enrollPending ? 'Confirming\u2026' : 'Confirm Enrollment'}
+                {enrollPending ? 'Confirming\u2026' : 'Confirm enrollment'}
               </Button>
             )}
 

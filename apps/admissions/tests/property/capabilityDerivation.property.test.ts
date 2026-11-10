@@ -16,7 +16,7 @@
  * renders if and only if its governing capability is present:
  *   - Super_Admin                          → platform "Tenants" item;
  *   - Tenant_Admin holding tenant.profile.read (for the effective institution)
- *                                          → school-specific "My School" item;
+ *                                          → school-specific "My school" item;
  *   - anyone else                          → no tenant nav item.
  *
  * Strategy: drive the REAL provider (no mirror re-implementation) by rendering
@@ -207,8 +207,8 @@ describe('Feature: enterprise-tenant-authority, Property 21: Frontend capability
             ? instMap[effectiveId]!.includes(TENANT_PROFILE_READ)
             : false
           if (expectedTenantAdmin && canProfileRead) {
-            // R13.2: tenant-admin with tenant.profile.read sees "My School".
-            expect(navItem?.label).toBe('My School')
+            // R13.2: tenant-admin with tenant.profile.read sees "My school".
+            expect(navItem?.label).toBe('My school')
           } else {
             // R13.3: no governing capability → no tenant nav item.
             expect(navItem).toBeNull()

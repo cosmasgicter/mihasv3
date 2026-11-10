@@ -65,7 +65,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
             </div>
 
             <h1 className="mb-3 text-2xl font-bold tracking-tight text-slate-100">
-              Authentication Error
+              Authentication error
             </h1>
             
             <p className="mb-6 text-sm text-slate-400 leading-relaxed">
@@ -74,7 +74,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
 
             {this.state.error && (
               <div className="mb-6 rounded-lg bg-slate-950/80 p-4 text-left border border-slate-800/50">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Error Diagnostics</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Error diagnostics</p>
                 <code className="text-xs text-rose-300 break-words block font-mono">
                   {this.state.error.message || 'Unknown secure channel fault'}
                 </code>
@@ -87,7 +87,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
                 className="flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 active:scale-[0.98] transition-all duration-150 cursor-pointer"
               >
                 <RefreshCw className="h-4 w-4" />
-                Retry Connection
+                Retry connection
               </button>
 
               <button
@@ -100,7 +100,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
                 {this.state.clearedSession ? (
                   <>
                     <Key className="h-4 w-4" />
-                    Caches Cleared Successfully
+                    Caches cleared successfully
                   </>
                 ) : (
                   <>

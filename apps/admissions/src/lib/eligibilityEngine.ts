@@ -408,10 +408,10 @@ export function checkEligibility(programName: string, grades: SubjectGrade[], cu
 
   return {
     eligible: false,
-    message: 'Program requirements not configured',
+    message: 'Programme requirements not configured',
     score: 0,
     canProceed: true,
-    recommendations: ['Please consult with the institution for specific program requirements']
+    recommendations: ['Please consult with the institution for specific programme requirements']
   }
 }
 
@@ -490,8 +490,8 @@ export async function checkEnhancedEligibility(
     canProceed: true,
     regulatoryBody: result.regulatoryBody,
     alternativePathways: !result.eligible ? [
-      { name: 'Foundation Program' },
-      { name: 'Certificate Program' }
+      { name: 'Foundation Programme' },
+      { name: 'Certificate Programme' }
     ] : undefined
   }
 }
@@ -535,12 +535,12 @@ export class EligibilityEngine {
         missing_requirements: [
           {
             type: 'prerequisite',
-            description: 'Program not recognised in offline eligibility rules',
+            description: 'Programme not recognised in offline eligibility rules',
             severity: 'minor',
             suggestion: 'Please sync with the admissions portal to load the latest requirements',
           },
         ],
-        recommendations: ['Unable to determine eligibility without program configuration'],
+        recommendations: ['Unable to determine eligibility without programme configuration'],
       }
     }
 

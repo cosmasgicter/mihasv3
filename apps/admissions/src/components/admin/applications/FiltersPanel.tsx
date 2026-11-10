@@ -150,24 +150,24 @@ export function FiltersPanel({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
         <select value={reviewQueueFilter} onChange={(e) => onFilterChange('reviewQueueFilter', e.target.value)} className={selectClasses} aria-label="Review queue filter">
-          <option value="">Review Queue</option>
-          <option value="true">In Review Queue</option>
-          <option value="false">Outside Review Queue</option>
+          <option value="">Review queue</option>
+          <option value="true">In review queue</option>
+          <option value="false">Outside review queue</option>
         </select>
         <select value={overdueReviewFilter} onChange={(e) => onFilterChange('overdueReviewFilter', e.target.value)} className={selectClasses} aria-label="Overdue review filter">
           <option value="">Review SLA</option>
-          <option value="true">Overdue Reviews</option>
-          <option value="false">Not Overdue</option>
+          <option value="true">Overdue reviews</option>
+          <option value="false">Not overdue</option>
         </select>
         <select value={pendingDocumentsFilter} onChange={(e) => onFilterChange('pendingDocumentsFilter', e.target.value)} className={selectClasses} aria-label="Pending documents filter">
           <option value="">Documents</option>
-          <option value="true">Documents Pending</option>
-          <option value="false">No Pending Documents</option>
+          <option value="true">Documents pending</option>
+          <option value="false">No pending documents</option>
         </select>
         <select value={upcomingInterviewsFilter} onChange={(e) => onFilterChange('upcomingInterviewsFilter', e.target.value)} className={selectClasses} aria-label="Upcoming interviews filter">
           <option value="">Interviews</option>
-          <option value="true">Upcoming Interviews</option>
-          <option value="false">No Upcoming Interviews</option>
+          <option value="true">Upcoming interviews</option>
+          <option value="false">No upcoming interviews</option>
         </select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
@@ -208,7 +208,7 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('statusFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">All Statuses</option>
+            <option value="">All statuses</option>
             {STATUS_FILTER_OPTIONS.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -225,24 +225,24 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">All Payment States</option>
-            <option value="not_paid">Awaiting Payment</option>
-            <option value="pending_review">Awaiting Payment Review</option>
+            <option value="">All payment states</option>
+            <option value="not_paid">Awaiting payment</option>
+            <option value="pending_review">Awaiting payment review</option>
             <option value="verified">Verified</option>
-            <option value="rejected">Payment Rejected</option>
+            <option value="rejected">Payment rejected</option>
             <option value="deferred">Deferred</option>
           </select>
         </div>
         
         <div>
-          <label htmlFor={controlId('program-filter')} className="sr-only">Program filter</label>
+          <label htmlFor={controlId('program-filter')} className="sr-only">Programme filter</label>
           <select
             id={controlId('program-filter')}
             value={programFilter}
             onChange={(e) => onFilterChange('programFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">All Programs</option>
+            <option value="">All programmes</option>
             {/*
               The server's facet for this query, so an offering with no row on
               the loaded page is still offered, and each option carries its own
@@ -265,7 +265,7 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('institutionFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">All Institutions</option>
+            <option value="">All institutions</option>
             {institutionOptions.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
@@ -279,8 +279,8 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('lateSubmissionFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">Late Submission</option>
-            <option value="true">Late Only</option>
+            <option value="">Late submission</option>
+            <option value="true">Late only</option>
             <option value="false">On-time Only</option>
           </select>
         </div>
@@ -293,8 +293,8 @@ export function FiltersPanel({
             className={selectClasses}
           >
             <option value="">Amendments</option>
-            <option value="true">Has Pending Amendments</option>
-            <option value="false">No Pending Amendments</option>
+            <option value="true">Has pending amendments</option>
+            <option value="false">No pending amendments</option>
           </select>
         </div>
         <div>
@@ -305,9 +305,9 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('assignedReviewerFilter', e.target.value)}
             className={selectClasses}
           >
-            <option value="">All Reviewers</option>
-            <option value="assigned">Has Reviewer</option>
-            <option value="unassigned">No Reviewer</option>
+            <option value="">All reviewers</option>
+            <option value="assigned">Has reviewer</option>
+            <option value="unassigned">No reviewer</option>
           </select>
         </div>
         <div>

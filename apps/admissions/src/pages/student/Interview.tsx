@@ -73,12 +73,12 @@ function getModeIcon(mode: Interview['mode']) {
 function getModeLabel(mode: Interview['mode']): string {
   switch (mode) {
     case 'virtual':
-      return 'Virtual Meeting'
+      return 'Virtual meeting'
     case 'phone':
-      return 'Phone Call'
+      return 'Phone call'
     case 'in_person':
     default:
-      return 'In Person'
+      return 'In person'
   }
 }
 
@@ -232,13 +232,13 @@ export default function InterviewPage() {
     return (
       <>
       <Seo
-        title={brandedPageTitle('My Interview', brandName)}
+        title={brandedPageTitle('My interview', brandName)}
         description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
         siteName={brandName}
         noindex
       />
-      <PageShell title="Interview Schedule" subtitle="Loading interview information...">
+      <PageShell title="Interview schedule" subtitle="Loading interview information...">
         <div className="space-y-6" role="status" aria-label="Loading interview information">
           <div className="rounded-lg border border-primary/20 bg-card p-6">
             <div className="space-y-2">
@@ -272,14 +272,14 @@ export default function InterviewPage() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('My Interview', brandName)}
+        title={brandedPageTitle('My interview', brandName)}
         description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
         siteName={brandName}
         noindex
       />
     <PageShell
-      title="Interview Schedule"
+      title="Interview schedule"
       subtitle="View your scheduled interviews and prepare for your admission process."
       eyebrow="Interview"
       tone="student"
@@ -315,7 +315,7 @@ export default function InterviewPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  Upcoming Interviews
+                  Upcoming interviews
                 </CardTitle>
                 <CardDescription>
                   Interviews scheduled for the future
@@ -338,7 +338,7 @@ export default function InterviewPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5 text-muted-foreground" />
-                  Past Interviews
+                  Past interviews
                 </CardTitle>
                 <CardDescription>
                   Previously scheduled interviews
@@ -361,7 +361,7 @@ export default function InterviewPage() {
               <CardContent className="pt-6">
                 <EmptyState
                   icon={<Calendar className="h-12 w-12" />}
-                  heading="No Scheduled Interviews"
+                  heading="No scheduled interviews"
                   description="You don't have any interviews scheduled yet. Once your application is reviewed, you'll receive an interview invitation."
                   action={{
                     label: 'Return to Dashboard',
@@ -438,7 +438,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
         <div className="flex-1 min-w-0 space-y-3">
           {/* Program Name */}
           <p className="font-semibold text-foreground truncate">
-            {interview.program_name || 'Application Interview'}
+            {interview.program_name || 'Application interview'}
           </p>
           
           {/* Date, Time, Mode -- compact row */}
@@ -493,7 +493,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
                 rel="noopener noreferrer"
               >
                 <Video className="h-4 w-4 mr-2" />
-                Join Meeting
+                Join meeting
                 <ExternalLink className="h-3.5 w-3.5 ml-2" />
               </a>
             </Button>

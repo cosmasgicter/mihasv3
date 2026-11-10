@@ -49,7 +49,7 @@ export default function ContactPage() {
     <PublicLayout>
       <Seo
         title="Contact Admissions | Beanola"
-        description="Reach the Beanola admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
+        description="Reach the Beanola admissions team for application help, programme guidance, payment questions, and international student support. WhatsApp is fastest."
         path="/contact"
       />
       <div className="bg-muted">
@@ -68,7 +68,7 @@ export default function ContactPage() {
                 Reach the admissions team
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
+                Stuck on the application, not sure which programme to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
               </p>
             </div>
 
@@ -181,7 +181,7 @@ export default function ContactPage() {
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <Button asChild size="lg" className="min-h-touch w-full sm:w-auto">
-                      <a href={draftUrl}>Open Email App</a>
+                      <a href={draftUrl}>Open email app</a>
                     </Button>
                     <Button
                       type="button"
@@ -190,7 +190,7 @@ export default function ContactPage() {
                       className="min-h-touch w-full sm:w-auto"
                       onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
                     >
-                      Edit Message
+                      Edit message
                     </Button>
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function ContactPage() {
                   )}
                 </div>
                 <Button type="submit" size="lg" className="min-h-touch w-full">
-                  {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
+                  {submitState === 'draft_ready' ? 'Update email draft' : 'Prepare email draft'}
                 </Button>
               </form>
             </div>

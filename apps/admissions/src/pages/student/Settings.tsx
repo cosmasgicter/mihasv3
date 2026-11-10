@@ -396,7 +396,7 @@ export default function StudentSettings() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('My Settings', brandName)}
+        title={brandedPageTitle('My settings', brandName)}
         description="Manage your profile details, residence information, and security settings for your admissions account."
         path="/student/settings"
         siteName={brandName}

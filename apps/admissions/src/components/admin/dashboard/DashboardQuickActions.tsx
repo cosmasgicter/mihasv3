@@ -36,21 +36,21 @@ export function DashboardQuickActions({
       to: '/admin/applications',
       icon: FileText,
     },
-    { label: 'Programs', description: '', to: '/admin/programs', icon: GraduationCap },
+    { label: 'Programmes', description: '', to: '/admin/programs', icon: GraduationCap },
     {
       label: 'Users',
       description: staffAccounts === null ? '' : `${staffAccounts} accounts`,
       to: '/admin/users',
       icon: Users,
     },
-    { label: 'Audit Trail', description: 'System activity', to: '/admin/audit', icon: ScrollText },
+    { label: 'Audit trail', description: 'System activity', to: '/admin/audit', icon: ScrollText },
     { label: 'Settings', description: 'Configure platform', to: '/admin/settings', icon: Settings }
   ]
   const visibleQuickActions = quickActions.filter((action) => canSeeAdminNavPath(caps, action.to))
 
   return (
     <SectionCard
-      title="Quick Actions"
+      title="Quick actions"
       icon={<Zap className="h-5 w-5" aria-hidden="true" />}
     >
       <div className="space-y-2">

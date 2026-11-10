@@ -13,7 +13,7 @@ describe('application status canonical values', () => {
   })
 
   it('formats display labels without changing stored values', () => {
-    expect(formatApplicationStatus('under_review')).toBe('Under Review')
+    expect(formatApplicationStatus('under_review')).toBe('Under review')
     expect(formatApplicationStatus('waitlisted')).toBe('Waitlisted')
   })
 })
@@ -21,7 +21,7 @@ describe('application status canonical values', () => {
 describe('status filters, badges, and bulk actions', () => {
   it('builds status filter options from canonical values', () => {
     expect(STATUS_FILTER_OPTIONS.map(option => option.value)).toEqual(APPLICATION_STATUSES)
-    expect(STATUS_FILTER_OPTIONS.find(option => option.value === 'under_review')?.label).toBe('Under Review')
+    expect(STATUS_FILTER_OPTIONS.find(option => option.value === 'under_review')?.label).toBe('Under review')
   })
 
   it('maps all bulk actions to canonical status values', () => {

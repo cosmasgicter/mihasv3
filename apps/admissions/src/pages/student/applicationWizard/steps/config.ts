@@ -34,7 +34,7 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Programme and intake',
     description: 'Choose the programme and intake you are applying for.',
     icon: BookOpen,
-    nextButtonLabel: 'Next Step'
+    nextButtonLabel: 'Next step'
   },
   {
     id: 2,
@@ -43,7 +43,7 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Your assigned school',
     description: 'Review your assigned school, fee, and required documents before continuing.',
     icon: School,
-    nextButtonLabel: 'Next Step'
+    nextButtonLabel: 'Next step'
   },
   {
     id: 3,
@@ -52,7 +52,7 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Personal details',
     description: 'Confirm your personal and contact details.',
     icon: FileText,
-    nextButtonLabel: 'Next Step'
+    nextButtonLabel: 'Next step'
   },
   {
     id: 4,
@@ -61,7 +61,7 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Education',
     description: 'Add grades and upload documents.',
     icon: GraduationCap,
-    nextButtonLabel: 'Next Step'
+    nextButtonLabel: 'Next step'
   },
   {
     id: 5,
@@ -70,7 +70,7 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Payment',
     description: 'Pay the application fee.',
     icon: CreditCard,
-    nextButtonLabel: 'Next Step'
+    nextButtonLabel: 'Next step'
   },
   {
     id: 6,
@@ -79,11 +79,11 @@ export const wizardSteps: WizardStepConfig[] = [
     title: 'Review',
     description: 'Confirm and submit.',
     icon: Send,
-    nextButtonLabel: 'Submit Application'
+    nextButtonLabel: 'Submit application'
   }
 ]
 
-export const saveNowLabel = 'Save Now'
+export const saveNowLabel = 'Save now'
 export const previousButtonLabel = 'Previous'
 
 export const getStepIndexById = (stepId: number): number =>

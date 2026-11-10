@@ -445,7 +445,7 @@ export default function Applications() {
       // Handle advisory warning (no payment proof uploaded)
       if (isWarningResult(result)) {
         const confirmed = await confirmDialog.confirm({
-          title: 'Payment Warning',
+          title: 'Payment warning',
           message: result.message || 'No payment proof uploaded. Proceed anyway?',
           confirmText: 'Proceed',
           cancelText: 'Cancel',
@@ -574,7 +574,7 @@ export default function Applications() {
       />
     <PageShell
       title="Applications"
-      eyebrow="Admissions Review"
+      eyebrow="Admissions review"
       subtitle="Review intake volume, payment proof, and decision readiness from a single triage surface built for fast, accurate approvals."
       maxWidth="7xl"
       tone="admin"
@@ -759,7 +759,7 @@ export default function Applications() {
         {error && (
           <div className="mb-6">
             <ErrorDisplay
-              title="Error Loading Applications"
+              title="Error loading applications"
               message={error}
               onRetry={handleRefresh}
               variant="inline"

@@ -138,7 +138,7 @@ export class StudentErrorBoundary extends React.Component<
                     className="flex items-center gap-2"
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Try Again
+                    Try again
                   </Button>
                   <Button
                     onClick={this.handleReload}
@@ -146,7 +146,7 @@ export class StudentErrorBoundary extends React.Component<
                     className="flex items-center gap-2"
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Reload Page
+                    Reload page
                   </Button>
                   <Button
                     onClick={this.handleGoHome}

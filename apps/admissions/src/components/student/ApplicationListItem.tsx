@@ -158,7 +158,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
                 comes from `text-sm`/`sm:text-base`, not from the tag.
               */}
               <h3 className="text-sm font-bold text-foreground break-words leading-tight sm:text-base">
-                {application.program || 'Unknown Program'}
+                {application.program || 'Unknown programme'}
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 #{application.application_number}
@@ -285,7 +285,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-start">
           <Link to={studentApplicationWorkspacePath(application.id)} className="w-full sm:w-auto">
             <Button variant="outline" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
-              View Details
+              View details
             </Button>
           </Link>
           <div className="min-w-0 flex-1">

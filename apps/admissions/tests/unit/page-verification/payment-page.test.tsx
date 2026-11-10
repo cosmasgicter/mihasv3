@@ -517,7 +517,7 @@ describe('Payment page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('Unable to load your payments')
-    expect(text).toContain('Try Again')
+    expect(text).toContain('Try again')
   })
 
   // ── R13.1 / STU-24: support contact comes from tenant context ────────

@@ -65,7 +65,7 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
       <div className={animateClasses.slideUp}>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" aria-hidden="true" />
-          Current Status
+          Current status
         </h3>
         
         <div className={`rounded-lg border p-5 sm:p-6 ${getStatusStyles(application.status)}`}>

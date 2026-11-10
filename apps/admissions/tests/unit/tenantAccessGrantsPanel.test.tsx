@@ -97,7 +97,7 @@ describe('TenantAccessGrantsPanel scoped selectors (TEN-05)', () => {
     fireEvent.change(getByLabelText('Grant scope type'), { target: { value: 'program_offering' } })
     // The offering selector is populated from listOfferings (scoped), not raw entry.
     await findByRole('option', { name: 'Nursing' })
-    fireEvent.change(getByLabelText('Grant program offering'), { target: { value: 'off-7' } })
+    fireEvent.change(getByLabelText('Grant programme offering'), { target: { value: 'off-7' } })
 
     fireEvent.click(getByRole('button', { name: /add grant/i }))
 

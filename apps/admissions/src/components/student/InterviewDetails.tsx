@@ -43,7 +43,7 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="w-5 h-5" />
-          Interview Scheduled
+          Interview scheduled
         </h3>
         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor()}`}>
           {interview.status.toUpperCase()}
@@ -62,7 +62,7 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
         <div className="flex items-start gap-3">
           {getIcon()}
           <div>
-            <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting Link' : 'Location'}</p>
+            <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting link' : 'Location'}</p>
             {interview.mode === 'virtual' ? (
               meetingLink ? (
                 <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-base sm:text-sm text-primary hover:underline">
@@ -79,7 +79,7 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
 
         {interview.notes && (
           <div className="bg-muted p-3 rounded-lg">
-            <p className="text-base sm:text-sm font-medium mb-1">Additional Notes</p>
+            <p className="text-base sm:text-sm font-medium mb-1">Additional notes</p>
             <p className="text-base sm:text-sm text-muted-foreground">{interview.notes}</p>
           </div>
         )}

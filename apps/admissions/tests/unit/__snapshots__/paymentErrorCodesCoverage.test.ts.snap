@@ -83,7 +83,7 @@ exports[`PAYMENT_STABLE_CODES — coverage > PAYMENT_ERROR_COPY snapshot pins wo
     "title": "Fee not configured",
   },
   {
-    "body": "We could not look up the fee for this program. Please try again later.",
+    "body": "We could not look up the fee for this programme. Please try again later.",
     "code": "FEE_UNAVAILABLE",
     "title": "Fee not available",
   },

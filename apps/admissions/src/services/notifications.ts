@@ -171,25 +171,25 @@ export function normalizeNotificationsResponse(response: unknown): StudentNotifi
 
 const NOTIFICATION_TEMPLATES = {
   submitted: {
-    title: 'Application Submitted Successfully',
+    title: 'Application submitted successfully',
     content: (applicationNumber: string, program: string) =>
       `Your application #${applicationNumber} for ${program} has been submitted and is under review.`,
     type: 'success' as const,
   },
   approved: {
-    title: 'Application Approved',
+    title: 'Application approved',
     content: (applicationNumber: string, program: string) =>
       `Congratulations! Your application #${applicationNumber} for ${program} has been approved.`,
     type: 'success' as const,
   },
   rejected: {
-    title: 'Application Status Update',
+    title: 'Application status update',
     content: (applicationNumber: string, program: string) =>
       `Your application #${applicationNumber} for ${program} has been reviewed. Please check your email for feedback.`,
     type: 'error' as const,
   },
   pending_documents: {
-    title: 'Documents Required',
+    title: 'Documents required',
     content: (applicationNumber: string, _program: string) =>
       `Your application #${applicationNumber} requires additional documents.`,
     type: 'warning' as const,

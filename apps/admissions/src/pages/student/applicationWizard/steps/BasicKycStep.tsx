@@ -72,7 +72,7 @@ const BasicKycStep = ({
       )}
 
       <fieldset className="border-none p-0 m-0">
-        <legend className="sr-only">Personal Information</legend>
+        <legend className="sr-only">Personal information</legend>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
             <AnimatedInput
@@ -100,7 +100,7 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(2) : undefined}>
             <AnimatedInput
               {...register('passport_number')}
-              label="Passport Number"
+              label="Passport number"
               autoComplete="off"
               error={errors.passport_number?.message}
               helperText="NRC or Passport required"

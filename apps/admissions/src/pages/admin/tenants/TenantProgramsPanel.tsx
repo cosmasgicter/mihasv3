@@ -41,7 +41,7 @@ export function TenantProgramsPanel({ institutionId }: { institutionId: string }
 
   if (!canRead) {
     return (
-      <SectionCard title="Program offerings" description="Programs this school offers." icon={<GraduationCap className="h-5 w-5" />}>
+      <SectionCard title="Programme offerings" description="Programmes this school offers." icon={<GraduationCap className="h-5 w-5" />}>
         <PanelNoAccess />
       </SectionCard>
     )
@@ -64,28 +64,28 @@ function ReadOnlyOfferings({ institutionId, canRequest }: { institutionId: strin
 
   return (
     <SectionCard
-      title="Program offerings"
-      description="Programs your school offers. Canonical programs are assigned by your platform administrator."
+      title="Programme offerings"
+      description="Programmes your school offers. Canonical programmes are assigned by your platform administrator."
       icon={<GraduationCap className="h-5 w-5" />}
     >
       {offeringsQuery.isError ? (
         <PanelStateError
           error={offeringsQuery.error}
           onRetry={() => offeringsQuery.refetch()}
-          fallback="Could not load this school's program offerings."
+          fallback="Could not load this school's programme offerings."
         />
       ) : !offeringsQuery.isLoading && offerings.length === 0 ? (
         <EmptyState
           icon={<GraduationCap />}
           heading="No offerings yet"
-          description="Your school has no program offerings yet. Contact your platform administrator to have canonical programs assigned."
+          description="Your school has no programme offerings yet. Contact your platform administrator to have canonical programmes assigned."
         />
       ) : (
         <div className="space-y-3">
           {canRequest ? (
             <PanelReadOnlyNotice description="Offering changes for your school are requested through your platform administrator. This view is read-only." />
           ) : (
-            <PanelReadOnlyNotice description="Program assignment changes are managed by your platform administrator. This view is read-only." />
+            <PanelReadOnlyNotice description="Programme assignment changes are managed by your platform administrator. This view is read-only." />
           )}
           <ul className="space-y-2">
             {offerings.map((offering) => {

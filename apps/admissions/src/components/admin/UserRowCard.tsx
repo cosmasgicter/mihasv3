@@ -17,7 +17,7 @@ const AVAILABLE_ROLES = [
   { value: 'student', label: 'Student', description: 'Applicant with access to their own applications' },
   { value: 'reviewer', label: 'Reviewer', description: 'Reviews applications assigned within their institution' },
   { value: 'admin', label: 'Administrator', description: 'Scoped school operator; tenant access from memberships and grants' },
-  { value: 'super_admin', label: 'Super Admin', description: 'Beanola platform-wide administrative control' },
+  { value: 'super_admin', label: 'Super admin', description: 'Beanola platform-wide administrative control' },
 ]
 
 const getRoleLabel = (role: string) => {

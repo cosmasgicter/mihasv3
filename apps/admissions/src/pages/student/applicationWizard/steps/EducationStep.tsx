@@ -296,7 +296,7 @@ const EducationStep = ({
         )}
 
         <fieldset className="border-none p-0 m-0">
-          <legend className="sr-only">Education Details</legend>
+          <legend className="sr-only">Education details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             {/*
               Tokens, AA, and never colour alone (GATE-13.3-12, 13.6 §8.1 item L6).
@@ -538,7 +538,7 @@ const EducationStep = ({
         </fieldset>
 
         <fieldset className="border-none p-0 m-0">
-          <legend className="sr-only">Document Uploads</legend>
+          <legend className="sr-only">Document uploads</legend>
           <div className="mb-4">
             <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
             <p className="mt-1 text-base sm:text-sm text-muted-foreground">

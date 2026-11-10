@@ -190,7 +190,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <MessageSquare className="h-5 w-5 text-primary" />
-            <span>Contact Applicant</span>
+            <span>Contact applicant</span>
           </DialogTitle>
           <DialogDescription>
             Send a message to {applicant.full_name}
@@ -281,7 +281,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
 
           {/* Template Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Message Template</label>
+            <label className="text-sm font-medium">Message template</label>
             <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -357,7 +357,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                Send Message
+                Send message
               </>
             )}
           </Button>

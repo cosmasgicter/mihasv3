@@ -136,7 +136,7 @@ export const ROUTES = {
     aliases: ['/signin', '/login'],
     guard: 'public',
     skeletonType: 'auth',
-    nav: { label: 'Sign In', icon: User, mobile: true, order: 30, section: 'public' },
+    nav: { label: 'Sign in', icon: User, mobile: true, order: 30, section: 'public' },
   },
   authSignUp: {
     id: 'auth.signUp',
@@ -227,7 +227,7 @@ export const ROUTES = {
     guard: 'student',
     skeletonType: 'detail',
     nav: {
-      label: 'Application Status',
+      label: 'Application status',
       icon: BriefcaseBusiness,
       // Task 3.18 (R5-c, finding B-04): the documents card lives on this page, so
       // omitting it from the desktop sidebar left a desktop student with no
@@ -311,7 +311,7 @@ export const ROUTES = {
     path: '/student/history',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Activity History', icon: FileSearch, desktop: true, order: 26, section: 'student' },
+    nav: { label: 'Activity history', icon: FileSearch, desktop: true, order: 26, section: 'student' },
   },
   adminHome: {
     id: 'admin.home',
@@ -346,7 +346,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Programs', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
+    nav: { label: 'Programmes', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
   },
   adminTenants: {
     id: 'admin.tenants',
@@ -383,7 +383,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Audit Trail', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
+    nav: { label: 'Audit trail', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
   },
   adminProgramFees: {
     id: 'admin.programFees',
@@ -391,7 +391,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Program Fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
+    nav: { label: 'Programme fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
   },
   adminSettings: {
     id: 'admin.settings',

@@ -19,13 +19,13 @@ export type WizardIntake = Intake & {
 
 const createProgramValidator = (validProgramIds: string[]) =>
   z
-    .string({ error: 'Please select a program' })
-    .min(1, 'Please select a program')
+    .string({ error: 'Please select a programme' })
+    .min(1, 'Please select a programme')
     .refine(
       value =>
         value.trim().length > 0 && (validProgramIds.length === 0 || validProgramIds.includes(value)),
       {
-        message: 'Please select a valid program',
+        message: 'Please select a valid programme',
       }
     )
 

@@ -416,7 +416,7 @@ export const EnhancedProgressIndicator = ({
       {!compact && (
         <div className="md:hidden mt-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>Overall Progress</span>
+            <span>Overall progress</span>
             <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
           </div>
           <div className="h-2 bg-border rounded-full overflow-hidden">

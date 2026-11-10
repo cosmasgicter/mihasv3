@@ -221,7 +221,7 @@ describe('Admin users page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('User Management')
+    expect(text).toContain('User management')
   })
 
   it('renders the page subtitle', async () => {

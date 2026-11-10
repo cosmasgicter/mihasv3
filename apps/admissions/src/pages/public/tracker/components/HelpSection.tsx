@@ -46,7 +46,7 @@ export const HelpSection: React.FC = () => {
   return (
     <div className={animateClasses.slideUp} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
       <SectionCard
-        title="Need Help?"
+        title="Need help?"
         description="Where a tracking link comes from, and what each status means."
         icon={<HelpCircle className="h-5 w-5" />}
         headerVariant="tinted"

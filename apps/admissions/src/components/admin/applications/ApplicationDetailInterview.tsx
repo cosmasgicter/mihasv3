@@ -151,7 +151,7 @@ export function ApplicationDetailInterview({
       <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
-          Interview Overview
+          Interview overview
         </h3>
         {hasActive ? (
           <div className="space-y-4">
@@ -196,7 +196,7 @@ export function ApplicationDetailInterview({
         <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            Manage Interview Schedule
+            Manage interview schedule
           </h3>
           <p
             className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground"
@@ -210,7 +210,7 @@ export function ApplicationDetailInterview({
       <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          Manage Interview Schedule
+          Manage interview schedule
         </h3>
 
         {notice && (

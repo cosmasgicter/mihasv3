@@ -170,7 +170,7 @@ describe('Property 12: Payment form visibility matches server quote state', () =
     const markup = renderWithState({ quoteLoading: false, quote: SERVER_QUOTE })
     expect(markup).toContain('data-testid="payment-form"')
     expect(markup).toContain('data-testid="pay-momo-button"')
-    expect(markup).toContain('Mobile Money')
+    expect(markup).toContain('Mobile money')
     expect(markup).toContain('data-testid="pay-later-button"')
   })
 

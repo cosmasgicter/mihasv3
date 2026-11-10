@@ -85,8 +85,8 @@ afterEach(cleanup)
 
 describe('brandedPageTitle — the visible brand is resolved, never a literal', () => {
   it('appends the resolved brand a tenant host produced', () => {
-    expect(brandedPageTitle('Activity History', 'Mwenda School of Health')).toBe(
-      'Activity History | Mwenda School of Health',
+    expect(brandedPageTitle('Activity history', 'Mwenda School of Health')).toBe(
+      'Activity history | Mwenda School of Health',
     )
   })
 
@@ -94,20 +94,20 @@ describe('brandedPageTitle — the visible brand is resolved, never a literal', 
     // `usePortalBrand` already defaults to Beanola while context loads, on the
     // shared portal, and on any resolution failure. That default *is* R2.3's
     // fail-closed neutral context, so the helper needs no fallback of its own.
-    expect(brandedPageTitle('Activity History', 'Beanola Admissions')).toBe(
-      'Activity History | Beanola Admissions',
+    expect(brandedPageTitle('Activity history', 'Beanola Admissions')).toBe(
+      'Activity history | Beanola Admissions',
     )
   })
 
   it('renders the page alone rather than a dangling separator when no brand resolved', () => {
     for (const empty of [undefined, null, '', '   ']) {
-      expect(brandedPageTitle('Activity History', empty)).toBe('Activity History')
+      expect(brandedPageTitle('Activity history', empty)).toBe('Activity history')
     }
   })
 
   it('does not brand a title twice', () => {
-    expect(brandedPageTitle('Activity History | Beanola Admissions', 'Beanola Admissions')).toBe(
-      'Activity History | Beanola Admissions',
+    expect(brandedPageTitle('Activity history | Beanola Admissions', 'Beanola Admissions')).toBe(
+      'Activity history | Beanola Admissions',
     )
   })
 
@@ -436,7 +436,7 @@ describe('no card inside a card, and no raw palette step', () => {
     // alone" is enforced by the component rather than restated per call site.
     //
     // Read over the block's module set (task 12.1, MAINT-01): the payment half's
-    // three labels — "Awaiting Payment", "Deferred", "Verified" — moved into
+    // three labels — "Awaiting payment", "Deferred", "Verified" — moved into
     // `PaymentDecisionControls.tsx` together with the branches that render them.
     // The claim is about what the block states, not about which of its files holds
     // the line.
@@ -444,13 +444,13 @@ describe('no card inside a card, and no raw palette step', () => {
     for (const label of [
       'Approved',
       'Rejected',
-      'Conditionally Approved',
+      'Conditionally approved',
       'Waitlisted',
       'Enrolled',
       'Withdrawn',
       'Expired',
-      'Enrollment Expired',
-      'Awaiting Payment',
+      'Enrollment expired',
+      'Awaiting payment',
       'Deferred',
       'Verified',
     ]) {

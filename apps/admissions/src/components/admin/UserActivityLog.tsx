@@ -113,7 +113,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            User Activity Log
+            User activity log
           </DialogTitle>
         </DialogHeader>
 

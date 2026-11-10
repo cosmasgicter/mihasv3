@@ -205,10 +205,10 @@ describe('DocumentButtons at panel density — one primary action (STU-05)', () 
     fireEvent.click(trigger)
     const panel = screen.getByTestId('document-options-panel')
     expect(panel.textContent).toContain('Email acceptance letter to me')
-    // SJR task 3.20: the slip's Prepare label replaces the retired "Download Slip".
-    expect(panel.textContent).toContain('Prepare Application Slip')
+    // SJR task 3.20: the slip's Prepare label replaces the retired "Download slip".
+    expect(panel.textContent).toContain('Prepare application slip')
     expect(panel.textContent).toContain('Email application slip to me')
-    expect(panel.textContent).toContain('Payment Receipt')
+    expect(panel.textContent).toContain('payment receipt')
     expect(panel.textContent).toContain('Email payment receipt to me')
   })
 
@@ -363,11 +363,11 @@ describe('DocumentButtons at row density — live status stays out of dense rows
 
     fireEvent.click(trigger)
     const panel = screen.getByTestId('document-options-panel')
-    expect(panel.textContent).toContain('Acceptance Letter')
+    expect(panel.textContent).toContain('acceptance letter')
     expect(panel.textContent).toContain('Email acceptance letter to me')
-    // SJR task 3.20: the slip's Prepare label replaces the retired "Download Slip".
-    expect(panel.textContent).toContain('Prepare Application Slip')
-    expect(panel.textContent).toContain('Payment Receipt')
+    // SJR task 3.20: the slip's Prepare label replaces the retired "Download slip".
+    expect(panel.textContent).toContain('Prepare application slip')
+    expect(panel.textContent).toContain('payment receipt')
   })
 
   it('keeps its live region inside the collapsed sheet', () => {
@@ -472,6 +472,6 @@ describe('ApplicationListItem — status and next action first (R13.1, R16.1)', 
     // And the row contributes no prominent document button of its own.
     expect(prominentControls(documents)).toHaveLength(0)
     // The workspace link survives — de-densifying is not deleting.
-    expect(container.textContent).toContain('View Details')
+    expect(container.textContent).toContain('View details')
   })
 })

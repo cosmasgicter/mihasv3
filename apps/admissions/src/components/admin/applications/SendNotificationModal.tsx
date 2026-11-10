@@ -56,7 +56,7 @@ export function SendNotificationModal({
     <Dialog open={show} onOpenChange={handleOpenChange}>
       <DialogContent size="sm" className="z-[70]">
         <DialogHeader>
-          <DialogTitle>Send Notification</DialogTitle>
+          <DialogTitle>Send notification</DialogTitle>
         </DialogHeader>
 
         <div className="mb-4 p-3 bg-muted rounded-lg">
@@ -108,7 +108,7 @@ export function SendNotificationModal({
               className="flex items-center gap-2"
             >
               <Send className="h-4 w-4" />
-              Send Notification
+              Send notification
             </Button>
           </DialogFooter>
         </form>

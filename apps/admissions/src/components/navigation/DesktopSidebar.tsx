@@ -187,7 +187,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           <div className="space-y-1">
             {!collapsed && (
               <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/80">
-                Student Workspace
+                Student workspace
               </div>
             )}
             {studentLinks.map((item) => (

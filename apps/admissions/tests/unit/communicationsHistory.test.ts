@@ -91,7 +91,7 @@ describe('Navigation links', () => {
   })
 
   it('History link has a label', () => {
-    expect(routeById('student.history').nav?.label).toBe('Activity History')
+    expect(routeById('student.history').nav?.label).toBe('Activity history')
   })
 
   it('Communications link is in the studentLinks array', () => {

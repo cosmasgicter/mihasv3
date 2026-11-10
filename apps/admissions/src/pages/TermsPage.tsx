@@ -5,9 +5,9 @@ import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 
 const sections = [
-  { id: 'portal-use', title: 'Portal Use' },
-  { id: 'account-responsibility', title: 'Account Responsibility' },
-  { id: 'application-records', title: 'Application Records' },
+  { id: 'portal-use', title: 'Portal use' },
+  { id: 'account-responsibility', title: 'Account responsibility' },
+  { id: 'application-records', title: 'Application records' },
   { id: 'contact', title: 'Contact' },
 ] as const
 

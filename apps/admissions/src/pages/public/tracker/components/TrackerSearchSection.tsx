@@ -36,7 +36,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
 
   return (
     <SectionCard
-      title="Find Your Application"
+      title="Find your application"
       description="Paste the tracking link issued for your application to check its status."
       icon={<Search className="h-5 w-5" />}
       headerVariant="default"
@@ -107,7 +107,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Get Your Link</h3>
+              <h3 className="text-sm font-semibold text-foreground">Get your link</h3>
               <p className="mt-0.5 text-sm text-muted-foreground">Sign in and choose &ldquo;Get tracking link&rdquo; on your application</p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
+              <h3 className="text-sm font-semibold text-foreground">Format example</h3>
               <p className="mt-0.5 break-all text-sm font-mono text-muted-foreground">TRK-4KP2M9XT-9QW3RT7VZ2KDN8YH6JF4</p>
             </div>
           </div>

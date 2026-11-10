@@ -195,7 +195,7 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
                 value={form.program_id}
                 onChange={(event) => setForm((prev) => ({ ...prev, program_id: event.target.value }))}
                 className={TENANT_SELECT_CLASS}
-                aria-label="Program offering"
+                aria-label="Programme offering"
                 disabled={offeringsQuery.isLoading}
               >
                 <option value="">Any offering</option>
@@ -207,17 +207,17 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
               </select>
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="font-medium text-foreground">Canonical program</span>
+              <span className="font-medium text-foreground">Canonical programme</span>
               <select
                 value={form.canonical_program_id}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, canonical_program_id: event.target.value }))
                 }
                 className={TENANT_SELECT_CLASS}
-                aria-label="Canonical program"
+                aria-label="Canonical programme"
                 disabled={canonicalQuery.isLoading}
               >
-                <option value="">Any canonical program</option>
+                <option value="">Any canonical programme</option>
                 {canonicalPrograms.map((program) => (
                   <option key={program.id} value={program.id}>
                     {program.name}

@@ -147,7 +147,7 @@ export function useWizardStepAdvance({
     if (currentStepConfig.key === 'program') {
       const formData = watch()
       if (!formData.program || !programIds.includes(formData.program)) {
-        setError('Please select a valid program from the list provided')
+        setError('Please select a valid programme from the list provided')
         return
       }
       if (!formData.intake || !intakeIds.includes(formData.intake)) {
@@ -199,7 +199,7 @@ export function useWizardStepAdvance({
         return
       }
       if (formData.program && !programIds.includes(formData.program)) {
-        const errorMessage = 'Please select a valid program from the list provided'
+        const errorMessage = 'Please select a valid programme from the list provided'
         setError(errorMessage)
         return
       }
@@ -214,7 +214,7 @@ export function useWizardStepAdvance({
         setError('')
         const resolvedProgram = resolveProgramIdentity(formData.program)
         if (!resolvedProgram) {
-          const errorMessage = 'Please select a valid program from the list provided'
+          const errorMessage = 'Please select a valid programme from the list provided'
           setError(errorMessage)
           return
         }
@@ -291,7 +291,7 @@ export function useWizardStepAdvance({
         // Handle 404 for unavailable programs/intakes (Req 6.5)
         const errorStatus = (error as { status?: number })?.status
         if (errorStatus === 404 && !isApplicationMissingError(error)) {
-          errorMessage = 'The selected program or intake is no longer available. Please select a different option.'
+          errorMessage = 'The selected programme or intake is no longer available. Please select a different option.'
         } else if (errorMessage.includes('Bad Request')) {
           errorMessage = 'Connection issue - please try again'
         }

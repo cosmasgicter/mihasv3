@@ -182,7 +182,7 @@ function EligibilitySection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Simple list. If you have these, you qualify to apply. We will tell you the exact grades required for each program once you are in.
+            Simple list. If you have these, you qualify to apply. We will tell you the exact grades required for each programme once you are in.
           </p>
         </ScrollReveal>
 
@@ -280,7 +280,7 @@ function ProgramsSection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Pick the one that matches the work you want to do. You can only apply to one program at a time.
+            Pick the one that matches the work you want to do. You can only apply to one programme at a time.
           </p>
         </ScrollReveal>
 
@@ -464,7 +464,7 @@ function CTASection() {
             onFocus={warmAuthRoutes}
             onTouchStart={warmAuthRoutes}
           >
-            <span>Start Your Application</span>
+            <span>Start your application</span>
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </Link>
         </Button>

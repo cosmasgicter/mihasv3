@@ -88,7 +88,7 @@ describe('RoutingSimulatorPanel', () => {
 
     await findByRole('option', { name: 'Clinical Medicine' })
 
-    fireEvent.change(getByLabelText('Canonical program'), { target: { value: 'prog-1' } })
+    fireEvent.change(getByLabelText('Canonical programme'), { target: { value: 'prog-1' } })
     fireEvent.change(getByLabelText('Intake'), { target: { value: 'intake-1' } })
     fireEvent.click(getByRole('button', { name: /run simulation/i }))
 
@@ -114,7 +114,7 @@ describe('RoutingSimulatorPanel', () => {
     const { getByLabelText, getByRole, findByRole } = renderPanel()
     await findByRole('option', { name: 'Clinical Medicine' })
 
-    fireEvent.change(getByLabelText('Canonical program'), { target: { value: 'prog-1' } })
+    fireEvent.change(getByLabelText('Canonical programme'), { target: { value: 'prog-1' } })
     fireEvent.change(getByLabelText('Intake'), { target: { value: 'intake-1' } })
     fireEvent.click(getByLabelText(/Restrict to Mukuba/i))
     fireEvent.click(getByRole('button', { name: /run simulation/i }))
@@ -137,7 +137,7 @@ describe('RoutingSimulatorPanel', () => {
     const { getByLabelText, getByRole, findByText, findByRole } = renderPanel()
     await findByRole('option', { name: 'Clinical Medicine' })
 
-    fireEvent.change(getByLabelText('Canonical program'), { target: { value: 'prog-1' } })
+    fireEvent.change(getByLabelText('Canonical programme'), { target: { value: 'prog-1' } })
     fireEvent.change(getByLabelText('Intake'), { target: { value: 'intake-1' } })
     fireEvent.click(getByRole('button', { name: /run simulation/i }))
 

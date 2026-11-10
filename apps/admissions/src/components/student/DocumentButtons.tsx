@@ -125,7 +125,7 @@ function prepareStateLabel(uiState: OfficialDocumentUiState): string | null {
     case 'failed':
       return 'Retry'
     case 'setup_required':
-      return 'Setup Required'
+      return 'Setup required'
     default:
       return null
   }
@@ -313,7 +313,7 @@ function OfficialDocAction({
         >
           <a ref={openRef} href={href} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Open <span>{copy.label}</span>
+            Open <span>{copy.noun}</span>
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </Button>
@@ -329,7 +329,7 @@ function OfficialDocAction({
           {leadingIcon}
           {stateLabel ?? (
             <>
-              Prepare <span>{copy.label}</span>
+              Prepare <span>{copy.noun}</span>
             </>
           )}
         </Button>

@@ -55,7 +55,7 @@ export function collectWizardValidationErrors({
 
   if (stepKey === 'program') {
     if (!formData.program) {
-      errors.push({ field: 'program', label: 'Program', message: 'Please select a program' })
+      errors.push({ field: 'program', label: 'Programme', message: 'Please select a programme' })
     }
     if (!formData.intake) {
       errors.push({ field: 'intake', label: 'Intake', message: 'Please select an intake' })
@@ -72,7 +72,7 @@ export function collectWizardValidationErrors({
 
   if (stepKey === 'personal') {
     const fieldChecks: Array<{ field: string; label: string; check: () => boolean; message: string }> = [
-      { field: 'full_name', label: 'Full Name', check: () => !!formData.full_name, message: 'Full name is required' },
+      { field: 'full_name', label: 'Full name', check: () => !!formData.full_name, message: 'Full name is required' },
       { field: 'date_of_birth', label: 'Date of Birth', check: () => !!formData.date_of_birth, message: 'Date of birth is required' },
       { field: 'sex', label: 'Sex', check: () => !!formData.sex, message: 'Please select your sex' },
       { field: 'phone', label: 'Phone', check: () => !!formData.phone, message: 'Phone number is required' },
@@ -102,25 +102,25 @@ export function collectWizardValidationErrors({
       if (gradeCount < 5) {
         errors.push({
           field: 'grades',
-          label: 'Subject Grades',
+          label: 'Subject grades',
           message: `Minimum 5 unique subjects required (${gradeCount} selected)`,
         })
       }
       if (validGrades.length !== gradeCount) {
         errors.push({
           field: 'grades',
-          label: 'Subject Grades',
+          label: 'Subject grades',
           message: 'Each subject can only be selected once',
         })
       }
     }
     if (!resultSlipFile && !uploadedFiles.result_slip) {
-      errors.push({ field: 'result_slip', label: 'Result Slip', message: 'Result slip is required' })
+      errors.push({ field: 'result_slip', label: 'Result slip', message: 'Result slip is required' })
     }
     if (!extraKycFile && !uploadedFiles.extra_kyc) {
       errors.push({
         field: 'extra_kyc',
-        label: 'Identity Document',
+        label: 'Identity document',
         message: 'An NRC or Passport document is required before proceeding',
       })
     }

@@ -82,7 +82,7 @@ export function ApplicationsTableView({
     },
     {
       key: 'program',
-      header: 'Program',
+      header: 'Programme',
       sortable: true,
       filterable: true,
       render: (value: unknown, row: ApplicationSummary) => (

@@ -341,7 +341,7 @@ export function ApplicationDetailModal({
                             <Clock className="h-5 w-5 text-foreground" />
                           )}
                           <div>
-                            <p className="text-sm font-medium text-foreground">Application Status</p>
+                            <p className="text-sm font-medium text-foreground">Application status</p>
                             <p className="text-lg font-bold text-foreground">
                               {formatApplicationStatus(workspace.status)}
                             </p>
@@ -353,7 +353,7 @@ export function ApplicationDetailModal({
                         <div className="flex items-center gap-3">
                           <CreditCard className="h-5 w-5 text-accent-foreground" />
                           <div>
-                            <p className="text-sm font-medium text-foreground">Payment Status</p>
+                            <p className="text-sm font-medium text-foreground">Payment status</p>
                             <p className="text-lg font-bold text-foreground">
                               {getPaymentStatusLabel(
                                 workspace.payment.application_payment_status ?? undefined,
@@ -435,7 +435,7 @@ export function ApplicationDetailModal({
                             className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           >
                             <Tag className="h-3.5 w-3.5" aria-hidden="true" />
-                            Apply Fee Waiver
+                            Apply fee waiver
                           </button>
                         )
                       )}
@@ -459,7 +459,7 @@ export function ApplicationDetailModal({
                     <div className="rounded-lg border border-border bg-card p-6">
                       <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                         <User className="h-5 w-5 text-primary" />
-                        Personal Information
+                        Personal information
                       </h3>
                       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="space-y-4">
@@ -530,13 +530,13 @@ export function ApplicationDetailModal({
                     <div className="rounded-lg border border-border bg-card p-6">
                       <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                         <GraduationCap className="h-5 w-5 text-primary" />
-                        Program Information
+                        Programme information
                       </h3>
                       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="flex items-center gap-3">
                           <GraduationCap className="h-4 w-4 text-foreground" />
                           <div>
-                            <p className="text-sm text-foreground">Program</p>
+                            <p className="text-sm text-foreground">Programme</p>
                             <p className="font-medium text-foreground">
                               {workspace.assignment.program_offering_name ?? 'Not specified'}
                             </p>
@@ -567,7 +567,7 @@ export function ApplicationDetailModal({
                       <div className="rounded-lg border border-primary/20 bg-card p-6">
                         <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                           <AlertCircle className="h-5 w-5" />
-                          Admin Feedback
+                          Admin feedback
                         </h3>
                         <div className="space-y-4">
                           <label htmlFor="admin-feedback" className="sr-only">
@@ -597,7 +597,7 @@ export function ApplicationDetailModal({
                               disabled={!adminFeedback.trim() || savingFeedback}
                               variant="primary"
                             >
-                              Save Feedback
+                              Save feedback
                             </Button>
                           </div>
                         </div>
@@ -724,7 +724,7 @@ export function ApplicationDetailModal({
               <div className="rounded-lg bg-warning/10 p-2">
                 <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">Payment Not Verified</h3>
+              <h3 className="text-lg font-semibold text-foreground">Payment not verified</h3>
             </div>
             <p className="mb-6 text-sm text-foreground">
               Payment has not been verified for this application. Are you sure you want to approve
@@ -741,7 +741,7 @@ export function ApplicationDetailModal({
                   void handlePaymentWarningConfirm()
                 }}
               >
-                Approve Anyway
+                Approve anyway
               </Button>
             </div>
           </div>

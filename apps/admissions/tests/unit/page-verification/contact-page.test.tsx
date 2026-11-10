@@ -202,7 +202,7 @@ describe('Contact page verification', () => {
   it('renders the submit button', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Prepare Email Draft')
+    expect(text).toContain('Prepare email draft')
   })
 
   // ── Form accepts input ──────────────────────────────────────────────
@@ -289,8 +289,8 @@ describe('Contact page verification', () => {
 
     const text = container.textContent || ''
     expect(text).toContain('Your message draft is ready')
-    expect(text).toContain('Open Email App')
-    expect(text).toContain('Update Email Draft')
+    expect(text).toContain('Open email app')
+    expect(text).toContain('Update email draft')
 
     const emailLink = container.querySelector('a[href^="mailto:admissions@beanola.com?subject="]') as HTMLAnchorElement | null
     expect(emailLink).toBeTruthy()
@@ -326,7 +326,7 @@ describe('Contact page verification', () => {
     await new Promise((r) => setTimeout(r, 300))
 
     const text = container.textContent || ''
-    expect(text).toContain('Edit Message')
+    expect(text).toContain('Edit message')
     expect(text).not.toContain('Unable to open your email app')
   })
 

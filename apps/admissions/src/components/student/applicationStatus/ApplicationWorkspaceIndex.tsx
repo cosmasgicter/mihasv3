@@ -150,7 +150,7 @@ export function ApplicationWorkspaceIndex() {
 
   const seo = (
     <Seo
-      title={brandedPageTitle('Application Status', brandName)}
+      title={brandedPageTitle('Application status', brandName)}
       description="Track the status and progress of your admissions applications."
       path={pathFor('student.status')}
       siteName={brandName}
@@ -162,7 +162,7 @@ export function ApplicationWorkspaceIndex() {
     return (
       <>
         {seo}
-        <PageShell title="Application Status" eyebrow="Application Status" tone="student">
+        <PageShell title="Application status" eyebrow="Application status" tone="student">
           <div className="space-y-6" role="status" aria-label="Loading your applications">
             <Skeleton className="h-8 w-40 rounded-full" />
             <SkeletonCard />
@@ -177,7 +177,7 @@ export function ApplicationWorkspaceIndex() {
     return (
       <>
         {seo}
-        <PageShell title="Application Status" eyebrow="Application Status" tone="student">
+        <PageShell title="Application status" eyebrow="Application status" tone="student">
           <ErrorDisplay
             variant="section"
             title="We could not load your applications"
@@ -195,8 +195,8 @@ export function ApplicationWorkspaceIndex() {
       <>
         {seo}
         <PageShell
-          title="Application Status"
-          eyebrow="Application Status"
+          title="Application status"
+          eyebrow="Application status"
           subtitle="You have not started an application yet."
           tone="student"
         >
@@ -225,8 +225,8 @@ export function ApplicationWorkspaceIndex() {
     <>
       {seo}
       <PageShell
-        title="Application Status"
-        eyebrow="Application Status"
+        title="Application status"
+        eyebrow="Application status"
         subtitle={`You have ${choices.length} applications. Choose the one you want to open.`}
         tone="student"
       >

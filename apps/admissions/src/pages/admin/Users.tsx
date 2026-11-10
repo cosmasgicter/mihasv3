@@ -296,7 +296,7 @@ export default function AdminUsers() {
         noindex
       />
       <PageShell
-        title="User Management"
+        title="User management"
         eyebrow="People & Access"
         subtitle="Create accounts, adjust platform roles, review backend-derived effective access, and review account activity."
         maxWidth="7xl"

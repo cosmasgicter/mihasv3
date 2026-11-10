@@ -130,7 +130,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         throw new Error('SMS delivery is not available yet')
       }
 
-      showSuccess('Message Sent', 'Your message has been sent successfully')
+      showSuccess('Message sent', 'Your message has been sent successfully')
     } catch {
       throw new Error('Failed to send message')
     }
@@ -236,7 +236,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-              <span className="min-w-0 break-words text-sm font-medium text-warning">Draft Application</span>
+              <span className="min-w-0 break-words text-sm font-medium text-warning">Draft application</span>
             </div>
             <div className="min-w-0 break-words text-xs text-muted-foreground">
               Last updated: {formatDate(app.lastUpdated)}
@@ -309,7 +309,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {/* Payment & Grades */}
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
+          <div className="text-xs text-muted-foreground mb-1">Payment status</div>
           {getPaymentBadge(app.payment_status)}
           {/*
             The amounts are printed only when the server sent them. The scoped
@@ -331,7 +331,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           {normalizePaymentStatus(app.payment_status) === 'deferred' && (
             <div className="mt-1 flex items-center gap-1 text-xs text-warning">
               <Phone className="h-3 w-3" />
-              <span>Contact Student</span>
+              <span>Contact student</span>
             </div>
           )}
         </div>
@@ -360,7 +360,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {app.last_payment_audit_notes && (
         <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
           <div className="mb-1 text-xs font-medium uppercase tracking-wide text-warning">
-            Latest Payment Review Note
+            Latest payment review note
           </div>
           <div className="text-sm text-foreground break-words">
             {app.last_payment_audit_notes}
@@ -371,7 +371,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {app.grades_summary && (
         <div className="mb-4 rounded-lg border border-border bg-muted p-3">
           <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
-            Grades Summary
+            Grades summary
           </div>
           <div className="text-sm text-foreground whitespace-pre-line break-words">
             {app.grades_summary}

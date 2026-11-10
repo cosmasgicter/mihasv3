@@ -119,7 +119,7 @@ const STEPS: StepDef[] = [
   { key: 'domains', label: 'Domains', icon: Globe2 },
   { key: 'templates', label: 'Application templates', icon: LayoutTemplate },
   { key: 'documents', label: 'Required documents', icon: ListChecks },
-  { key: 'programs', label: 'Program offerings', icon: GraduationCap },
+  { key: 'programs', label: 'Programme offerings', icon: GraduationCap },
   { key: 'intakes', label: 'Intake & capacity', icon: ScrollText },
   { key: 'fees', label: 'Fees', icon: Coins },
   { key: 'routing', label: 'Routing simulation', icon: Route },
@@ -690,7 +690,7 @@ export function TenantOnboardingWizard() {
     { icon: ImageIcon, label: 'Logo asset', value: hasActiveLogo ? 'Active logo configured' : 'Upload an active logo', ok: hasActiveLogo, required: true },
     { icon: ImageIcon, label: 'Signature asset', value: hasActiveSignature ? 'Active signature configured' : 'Upload an active signature', ok: hasActiveSignature, required: true },
     { icon: FileStack, label: 'Document profile', value: hasDocumentProfile ? `${documentProfiles.length} profile version${documentProfiles.length === 1 ? '' : 's'}` : 'Configure at least one document profile', ok: hasDocumentProfile, required: true },
-    { icon: GraduationCap, label: 'Program offerings', value: hasOffering ? `${offerings.length} active` : 'Assign at least one active offering', ok: hasOffering, required: true },
+    { icon: GraduationCap, label: 'Programme offerings', value: hasOffering ? `${offerings.length} active` : 'Assign at least one active offering', ok: hasOffering, required: true },
     { icon: UserPlus, label: 'Tenant admin', value: hasTenantAdmin ? 'Scoped admin available' : 'Invite or scope a tenant admin', ok: hasTenantAdmin, required: true },
   ]
   const backendReadiness = readinessQuery.data
@@ -993,7 +993,7 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'programs' && (
                     <>
-                      <StepHeading title="Program offerings" description="Assign canonical Beanola programs to this school as offerings. This is a real canonical mutation saved to this tenant — no manual database edit and no legacy string identifiers." />
+                      <StepHeading title="Programme offerings" description="Assign canonical Beanola programmes to this school as offerings. This is a real canonical mutation saved to this tenant — no manual database edit and no legacy string identifiers." />
                       <WizardProgramsStep institutionId={institutionId!} />
                     </>
                   )}
@@ -1014,7 +1014,7 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'routing' && (
                     <>
-                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a program + intake. Read-only — no application is created." />
+                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a programme + intake. Read-only — no application is created." />
                       <RoutingSimulatorBody institutionId={institutionId!} institutionName={tenantName} />
                     </>
                   )}

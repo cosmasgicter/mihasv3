@@ -220,9 +220,9 @@ export default function AdminDashboard() {
         />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication required</h2>
             <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
-            <Button onClick={() => { window.location.href = '/auth/signin' }}>Sign In</Button>
+            <Button onClick={() => { window.location.href = '/auth/signin' }}>Sign in</Button>
           </div>
         </div>
       </>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
         />
         <PageShell
           title="Admin dashboard"
-          eyebrow="Operations Overview"
+          eyebrow="Operations overview"
           subtitle="Your account is not yet linked to a school."
           maxWidth="4xl"
           tone="admin"
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
       />
       <PageShell
         title={`Welcome back, ${adminFirstName}`}
-        eyebrow={isGlobal ? 'Cross-school Overview' : 'Your School Overview'}
+        eyebrow={isGlobal ? 'Cross-school Overview' : 'Your school overview'}
         subtitle={overviewSubtitle}
         maxWidth="7xl"
         tone="admin"

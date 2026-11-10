@@ -252,7 +252,7 @@ export function WizardActionBar({
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" aria-hidden="true" />
-                  Submit Application
+                  Submit application
                 </>
               )}
             </Button>

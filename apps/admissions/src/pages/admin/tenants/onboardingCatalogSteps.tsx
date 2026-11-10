@@ -122,15 +122,15 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
       setCode('')
       invalidate()
       offeringsQuery.refetch()
-      toast.success('Program assigned to this school')
+      toast.success('Programme assigned to this school')
     },
-    onError: (error) => toast.error(tenantErrorMessage(error, 'Program was not assigned')),
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Programme was not assigned')),
   })
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
     if (!canonicalId) {
-      toast.error('Choose a canonical program to assign')
+      toast.error('Choose a canonical programme to assign')
       return
     }
     if (!name.trim() || !code.trim()) {
@@ -143,25 +143,25 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
   return (
     <div className="space-y-5">
       <StepIntro>
-        Assign a canonical Beanola program to this school. That creates the school&apos;s own
-        offering — routing, fees, and required documents attach to it. The canonical program is
+        Assign a canonical Beanola programme to this school. That creates the school&apos;s own
+        offering — routing, fees, and required documents attach to it. The canonical programme is
         the only write authority; pick it from the list rather than pasting an identifier.
       </StepIntro>
 
       {canonicalQuery.isError ? (
-        <ErrorDisplay message="Could not load canonical programs." onRetry={() => canonicalQuery.refetch()} />
+        <ErrorDisplay message="Could not load canonical programmes." onRetry={() => canonicalQuery.refetch()} />
       ) : (
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
           <label className="space-y-1.5 text-sm sm:col-span-2">
-            <span className="font-medium text-foreground">Canonical program</span>
+            <span className="font-medium text-foreground">Canonical programme</span>
             <select
               value={canonicalId}
               onChange={(e) => setCanonicalId(e.target.value)}
               className={TENANT_SELECT_CLASS}
-              aria-label="Canonical program"
+              aria-label="Canonical programme"
               disabled={canonicalQuery.isLoading}
             >
-              <option value="">Select a canonical program…</option>
+              <option value="">Select a canonical programme…</option>
               {canonicalPrograms.map((program) => {
                 const assigned = assignedCanonicalIds.has(program.id)
                 return (
@@ -176,7 +176,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Offering name</span>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="School-facing program name" aria-label="Offering name" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="School-facing programme name" aria-label="Offering name" />
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Offering code</span>
@@ -184,7 +184,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           </label>
           <div className="sm:col-span-2 flex justify-end">
             <Button type="submit" loading={assignMutation.isPending} disabled={!canonicalId}>
-              <Plus className="h-4 w-4" aria-hidden="true" /> Assign program
+              <Plus className="h-4 w-4" aria-hidden="true" /> Assign programme
             </Button>
           </div>
         </form>
@@ -310,7 +310,7 @@ export function WizardIntakesStep({ institutionId }: { institutionId: string }) 
           }}
         />
       ) : !hasOfferings ? (
-        <StepIntro>Assign at least one program offering first, then return here to link intakes.</StepIntro>
+        <StepIntro>Assign at least one programme offering first, then return here to link intakes.</StepIntro>
       ) : (
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
           <label className="space-y-1.5 text-sm">
@@ -463,7 +463,7 @@ export function WizardFeesStep({ institutionId }: { institutionId: string }) {
       {offeringsQuery.isError ? (
         <ErrorDisplay message="Could not load offerings." onRetry={() => offeringsQuery.refetch()} />
       ) : !hasOfferings ? (
-        <StepIntro>Assign at least one program offering first, then return here to price it.</StepIntro>
+        <StepIntro>Assign at least one programme offering first, then return here to price it.</StepIntro>
       ) : (
         <>
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>

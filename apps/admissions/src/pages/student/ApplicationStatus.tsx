@@ -164,8 +164,8 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
   if (loading) {
     return (
       <>
-      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
-      <PageShell title="Application Status" subtitle="Loading...">
+      <Seo title={brandedPageTitle('Application status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
+      <PageShell title="Application status" subtitle="Loading...">
         <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
           <Skeleton className="h-8 w-40 rounded-full" />
           <SkeletonCard />
@@ -189,9 +189,9 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
   if (error || !application) {
     return (
       <>
-      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
-      <PageShell title="Application Status">
-        <ErrorDisplay variant="section" title="Application Not Found" message={error || 'Application not found or access denied'} onRetry={() => loadApplicationDetails()} className="max-w-2xl" />
+      <Seo title={brandedPageTitle('Application status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
+      <PageShell title="Application status">
+        <ErrorDisplay variant="section" title="Application not found" message={error || 'Application not found or access denied'} onRetry={() => loadApplicationDetails()} className="max-w-2xl" />
       </PageShell>
       </>
     )
@@ -205,10 +205,10 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
 
   return (
     <>
-      <Seo title={brandedPageTitle('Application Status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
+      <Seo title={brandedPageTitle('Application status', brandName)} description="Track the status and progress of your admissions application." path={id ? studentApplicationWorkspacePath(id) : pathFor('student.status')} siteName={brandName} noindex />
     <PageShell
       title={presentation.applicationTitle}
-      eyebrow="Application Status"
+      eyebrow="Application status"
       subtitle={presentation.applicationSubtitle}
       maxWidth="7xl"
       tone="student"

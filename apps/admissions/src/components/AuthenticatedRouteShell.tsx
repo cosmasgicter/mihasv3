@@ -98,7 +98,7 @@ function renderRoute(route: RouteConfig) {
     routeElement = (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center p-8">
-          <h2 className="mb-4 text-xl font-semibold text-foreground">Page Not Found</h2>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">Page not found</h2>
           <p className="text-muted-foreground">The requested page could not be loaded.</p>
         </div>
       </div>

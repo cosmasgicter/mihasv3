@@ -52,7 +52,7 @@ export function AdvancedKeysSection({
         aria-expanded={showAdvancedSettings}
       >
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Advanced Keys</h2>
+          <h2 className="text-lg font-semibold text-foreground">Advanced keys</h2>
           <p className="text-sm text-muted-foreground">
             Use this section for non-standard keys not covered by the guided configuration above.
           </p>
@@ -66,7 +66,7 @@ export function AdvancedKeysSection({
             <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-5">
               <div className="mb-4 flex items-center gap-2">
                 <Plus className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-foreground">Create Advanced Key</h3>
+                <h3 className="font-semibold text-foreground">Create advanced key</h3>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -119,7 +119,7 @@ export function AdvancedKeysSection({
               <div className="mt-4 flex gap-3">
                 <Button onClick={onAddNew} loading={saving}>
                   <Save className="h-4 w-4 mr-2" />
-                  Save Advanced Key
+                  Save advanced key
                 </Button>
                 <Button variant="outline" onClick={onCancelAdd}>
                   <X className="h-4 w-4 mr-2" />
