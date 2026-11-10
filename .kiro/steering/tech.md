@@ -542,6 +542,7 @@ isolation proven by deleting the other product is not isolation.
 - Decision D1 is confirmed as a freeze (2026-11-08) and is not yet implemented (platform-simplification task 12.1).
 - Search and recommendation filtering exist in the jobs inbox, and the major views have loading states.
 - Backend jobs-ops domains exist for jobs, outreach, automation, integrations, analytics, and reports.
+- Several jobs-ops reads need a session: analytics views use `IsAdmin` (`apps/analytics/views.py`) and the email thread and message reads use `IsAuthenticated` (`apps/integrations/email_views.py`). `apps/jobs-ops/src/auth/` holds only `AuthContext.tsx` and `ProtectedRoute.tsx` (a no-op passthrough) and the app has no sign-in page, so without a session from the admissions app those requests answer 401. How each page renders that 401 was not re-checked in task 9.3.
 
 ## Verification Expectations
 
