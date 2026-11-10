@@ -42,6 +42,9 @@ PLACEHOLDERS = {
     "LENCO_API_SECRET_KEY": "ph-lenco-secret-3333",
     "LENCO_PUBLIC_KEY": "ph-lenco-public-4444",
     "AUDIT_LOG_ENCRYPTION_KEY": "ph-audit-key-5555",
+    # Task 4.1: staging now requires both (R9.5); production reads them with its own defaults.
+    "FRONTEND_URL": "https://ph-frontend.example.test",
+    "HEALTH_CHECK_URL": "https://ph-health.example.test/health/ready/",
     "COOKIE_DOMAIN": ".example.test",
     "AUTH_COOKIE_DOMAIN": ".example.test",
 }

@@ -18,7 +18,7 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.test import SimpleTestCase  # noqa: E402
+from django.test import SimpleTestCase, override_settings  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
@@ -53,6 +53,9 @@ class TestUptimeStateTransitions(SimpleTestCase):
 
     @given(health_results=_health_sequences)
     @settings(max_examples=5, deadline=None)
+    # Task 4.2: the task returns early when HEALTH_CHECK_URL is empty, which is the
+    # base default now, so the test names a URL (requests.get is patched below).
+    @override_settings(HEALTH_CHECK_URL="http://health-check.invalid/health/ready/")
     def test_uptime_state_transitions(self, health_results):
         """Alert on healthy→unhealthy, recovery on unhealthy→healthy,
         no duplicates for repeated failures."""
