@@ -12,7 +12,7 @@ import { FeeQuoteRefusal } from '@/components/student/FeeQuoteRefusal'
 import { isPaymentResolvedForProgress, type PaymentPhase } from '@/lib/paymentStatus'
 import { PAYMENT_ERROR_COPY } from '@/lib/paymentErrorCodes'
 import { PAYMENT_NEXT_ACTION_COPY } from '@/lib/paymentNextActions'
-import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount } from '@/lib/serverAmount'
+import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount, residencyRateLabel } from '@/lib/serverAmount'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
 interface PaymentStepProps {
@@ -190,13 +190,13 @@ const PaymentStep = ({
  /* No quote yet, and therefore no price. The step says so rather
  than showing a placeholder amount (finding STU-08). */
  <p className="mt-1 text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
- Save your a pplication to see the fee for your programme.
+ Save your application to see the fee for your programme.
  </p>
               )}
             </div>
-            {quote?.residency_category && (
-              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1 text-sm sm:text-xs font-medium capitalize text-muted-foreground">
-                {quote.residency_category}
+            {residencyRateLabel(quote?.residency_category) && (
+              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1 text-sm sm:text-xs font-medium text-muted-foreground">
+                {residencyRateLabel(quote?.residency_category)}
               </span>
             )}
           </div>

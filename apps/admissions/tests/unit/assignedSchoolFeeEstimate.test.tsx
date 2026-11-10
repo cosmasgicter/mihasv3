@@ -67,3 +67,27 @@ describe('assigned-school fee estimate (task 26.4)', () => {
     expect(markup).not.toContain('Total you will pay')
   })
 })
+
+describe('plain labels for raw values (task 28.2)', () => {
+  it('maps the residency code to the applicant-rate wording and never prints the code', async () => {
+    const { residencyRateLabel } = await import('@/lib/serverAmount')
+    expect(residencyRateLabel('local')).toBe('Zambian applicant rate')
+    expect(residencyRateLabel('International')).toBe('International applicant rate')
+    expect(residencyRateLabel('something_else')).toBe('')
+    expect(residencyRateLabel(undefined)).toBe('')
+  })
+
+  it('names how a payment was made, not the provider that carried it', async () => {
+    const { PAYMENT_CHANNEL_LABEL } = await import('@/lib/paymentStatus')
+    expect(PAYMENT_CHANNEL_LABEL).toBe('Mobile money or card')
+    const { readFileSync } = await import('node:fs')
+    for (const file of [
+      'src/pages/student/applicationWizard/steps/SubmitStep.tsx',
+      'src/components/student/applicationStatus/PaymentStatusBlock.tsx',
+    ]) {
+      const source = readFileSync(file, 'utf8')
+      expect(source).not.toContain('Processed via Lenco')
+      expect(source).not.toContain('Lenco Payment Gateway')
+    }
+  })
+})

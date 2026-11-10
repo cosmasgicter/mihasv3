@@ -102,6 +102,13 @@ export function isPaymentResolvedForApproval(paymentStatus?: string | null) {
   return (APPROVAL_PAYMENT_STATUSES as readonly string[]).includes(paymentStatus ?? '')
 }
 
+/**
+ * How a settled payment is described to a student (task 28.2, R13.4): the ways they
+ * can pay, not the name of the provider that carries it. The one place this label
+ * lives, so no screen prints "Processed via Lenco".
+ */
+export const PAYMENT_CHANNEL_LABEL = 'Mobile money or card'
+
 export function getPaymentStatusLabel(paymentStatus?: string | null) {
   switch (normalizePaymentStatus(paymentStatus)) {
     case 'verified':

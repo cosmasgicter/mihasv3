@@ -1,6 +1,7 @@
 import React from 'react'
 import { CreditCard } from 'lucide-react'
 import { formatDate } from '@/lib/dateFormat'
+import { PAYMENT_CHANNEL_LABEL } from '@/lib/paymentStatus'
 import { formatServerAmount } from '@/lib/serverAmount'
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -46,7 +47,7 @@ export function PaymentStatusBlock({
           label="Application fee"
           value={feeLabel || 'Shown on the payment step'}
         />
-        <DetailRow label="Payment method" value="Lenco Payment Gateway" />
+        <DetailRow label="Payment method" value={PAYMENT_CHANNEL_LABEL} />
         {paymentVerifiedAt && (
           <DetailRow label="Verified" value={formatDate(paymentVerifiedAt)} />
         )}

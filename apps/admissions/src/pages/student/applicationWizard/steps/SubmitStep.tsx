@@ -32,7 +32,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
-import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import { PAYMENT_CHANNEL_LABEL, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import { cn } from '@/lib/utils'
 
@@ -151,12 +151,12 @@ const SubmitStep = ({
     })),
     {
       label: isSuccessfulPayment
-        ? 'Payment completed via Lenco'
+        ? 'Payment completed'
         : isDeferredPayment
           ? 'Payment deferred'
           : 'Payment still required',
       detail: isSuccessfulPayment
-        ? 'Payment confirmed through the secure Lenco gateway.'
+        ? `Paid by ${PAYMENT_CHANNEL_LABEL.toLowerCase()}.`
         : isDeferredPayment
           ? 'You chose to pay later. You can pay from the payment page after submission.'
           : 'Please complete payment in the payment step before submitting.',
@@ -303,7 +303,7 @@ const SubmitStep = ({
                 <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   {isSuccessfulPayment
-                    ? 'Processed via Lenco payment gateway'
+                    ? PAYMENT_CHANNEL_LABEL
                     : isDeferredPayment
                       ? 'Deferred for later payment from the dashboard'
                       : 'Awaiting payment action'}
