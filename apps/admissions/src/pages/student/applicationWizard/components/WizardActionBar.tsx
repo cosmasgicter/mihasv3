@@ -41,6 +41,7 @@
  * colour alone. A conflict offers the two resolutions design §8.2 names — reload
  * the newer version, or explicitly keep the student's own changes on top of it.
  */
+import { useId } from 'react'
 import { ArrowLeft, ArrowRight, HardDrive, RefreshCw, Save, Send, WifiOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
@@ -51,7 +52,7 @@ import type { WizardDraftSaveStatus } from '@/lib/wizardDraftController'
 import { previousButtonLabel, saveNowLabel } from '../steps/config'
 
 export interface WizardActionBarProps {
-  /** Label of the previous step, for the back control's accessible name. */
+  /** Title of the previous step, for the back control's description. */
   previousStepTitle: string | null
   /** Label of the next step, for the forward control's accessible name. */
   nextStepTitle: string | null
@@ -97,6 +98,10 @@ export function WizardActionBar({
   isOnline,
   keyboardOpen,
 }: WizardActionBarProps) {
+  // The visible text is each button's name (WCAG 2.5.3); where it goes is the description.
+  const idBase = useId()
+  const previousTargetId = `${idBase}-previous-target`
+  const nextTargetId = `${idBase}-next-target`
   const indicatorStatus: 'idle' | 'saving' | 'saved' | 'error' =
     saveStatus === 'conflict' || saveStatus === 'error'
       ? 'error'
@@ -230,11 +235,16 @@ export function WizardActionBar({
               onClick={onPrev}
               disabled={loading}
               className="min-h-touch"
-              aria-label={`Go back to ${previousStepTitle}`}
+              aria-describedby={previousTargetId}
             >
-              <ArrowLeft className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-              <span className="hidden sm:inline">{previousButtonLabel}</span>
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>{previousButtonLabel}</span>
             </Button>
+          )}
+          {previousStepTitle && (
+            <span id={previousTargetId} className="sr-only">
+              Goes to {previousStepTitle}
+            </span>
           )}
         </div>
 
@@ -264,7 +274,7 @@ export function WizardActionBar({
               loading={loading}
               disabled={loading || nextDisabled}
               className="min-h-touch max-w-full whitespace-normal text-left"
-              aria-label={`Continue to ${nextStepTitle ?? 'next step'}`}
+              aria-describedby={nextStepTitle ? nextTargetId : undefined}
             >
               {loading ? (
                 nextLabel
@@ -275,6 +285,11 @@ export function WizardActionBar({
                 </>
               )}
             </Button>
+          )}
+          {!isLastStep && nextStepTitle && (
+            <span id={nextTargetId} className="sr-only">
+              Goes to {nextStepTitle}
+            </span>
           )}
         </div>
       </div>

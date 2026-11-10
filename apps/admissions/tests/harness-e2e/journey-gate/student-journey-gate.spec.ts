@@ -166,10 +166,10 @@ test('student registers, uploads, reopens a document after expiry, submits and d
   });
 
   await test.step('9. defer payment: Next is enabled and nothing says a payment is in progress', async () => {
-    await page.getByRole('button', { name: /Continue to Payment/ }).click();
+    await page.getByRole('button', { name: /^Next step$/ }).click();
     await page.locator('button:has-text("Pay Later")').click();
     await page.getByRole('button', { name: 'Yes, pay later' }).click();
-    const toReview = page.getByRole('button', { name: /Continue to Review/ });
+    const toReview = page.getByRole('button', { name: /^Next step$/ });
     await expect(toReview).toBeEnabled({ timeout: 60_000 });
     await expect(page.getByText(/Payment in progress/i)).toHaveCount(0);
     await toReview.click();

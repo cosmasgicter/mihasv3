@@ -119,7 +119,7 @@ async function openPersonalStep(page: Page): Promise<void> {
     await expect(summary).toContainText(/Step [234] of 6/, { timeout: 60_000 });
     const currentStep = await summary.locator('p').first().textContent();
     if (currentStep?.includes('Step 2 of 6')) {
-      const continueToPersonal = page.getByRole('button', { name: /continue to personal/i });
+      const continueToPersonal = page.getByRole('button', { name: /^next step$/i });
       await expect(continueToPersonal).toBeEnabled({ timeout: 60_000 });
       await continueToPersonal.click();
     } else if (!currentStep?.includes('Step 3 of 6')) {

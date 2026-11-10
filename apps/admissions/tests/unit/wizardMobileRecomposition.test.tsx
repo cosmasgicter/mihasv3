@@ -230,7 +230,7 @@ describe('wizard recomposition: one bottom action surface (R16.3)', () => {
     loading: false,
     nextDisabled: false,
     submitDisabled: false,
-    nextLabel: 'Next Step',
+    nextLabel: 'Next step',
     onPrev: () => {},
     onNext: () => {},
     onSaveNow: () => {},
@@ -244,8 +244,8 @@ describe('wizard recomposition: one bottom action surface (R16.3)', () => {
   it('carries the step controls, manual save and draft state in one surface', () => {
     render(<WizardActionBar {...barProps} />)
     const bar = screen.getByTestId('wizard-action-bar')
-    expect((within(bar).getByRole('button', { name: 'Continue to Payment' }) as HTMLButtonElement).disabled).toBe(false)
-    expect((within(bar).getByRole('button', { name: 'Go back to Personal' }) as HTMLButtonElement).disabled).toBe(false)
+    expect((within(bar).getByRole('button', { name: 'Next step' }) as HTMLButtonElement).disabled).toBe(false)
+    expect((within(bar).getByRole('button', { name: 'Previous' }) as HTMLButtonElement).disabled).toBe(false)
     expect((within(bar).getByRole('button', { name: /save now/i }) as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -270,12 +270,30 @@ describe('wizard recomposition: one bottom action surface (R16.3)', () => {
     )
   })
 
+  /**
+   * WCAG 2.5.3 (task 25.3): the visible text is the accessible name, and where the
+   * button goes is its description, not part of the name.
+   */
+  it('names each step control by its visible text and describes the destination', () => {
+    render(<WizardActionBar {...barProps} />)
+    const next = screen.getByRole('button', { name: 'Next step' })
+    expect(next.textContent).toContain('Next step')
+    expect(next.getAttribute('aria-label')).toBeNull()
+    expect(document.getElementById(next.getAttribute('aria-describedby')!)?.textContent).toBe(
+      'Goes to Payment',
+    )
+    const previous = screen.getByRole('button', { name: 'Previous' })
+    expect(previous.getAttribute('aria-label')).toBeNull()
+    expect(document.getElementById(previous.getAttribute('aria-describedby')!)?.textContent).toBe(
+      'Goes to Personal',
+    )
+  })
   it('offers submit instead of continue on the last step, and refuses when readiness is unmet', () => {
     render(<WizardActionBar {...barProps} isLastStep submitDisabled />)
     const submit = screen.getByRole('button', { name: /submit application/i })
     expect((submit as HTMLButtonElement).disabled).toBe(true)
     expect(submit.getAttribute('type')).toBe('submit')
-    expect(screen.queryByRole('button', { name: /^continue to/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^next step/i })).toBeNull()
   })
 
   it('never hides the manual save behind a failing autosave', () => {
@@ -284,7 +302,7 @@ describe('wizard recomposition: one bottom action surface (R16.3)', () => {
     )
     expect(screen.getByText('We could not reach the server.')).toBeTruthy()
     expect((screen.getByRole('button', { name: /save now/i }) as HTMLButtonElement).disabled).toBe(false)
-    expect((screen.getByRole('button', { name: 'Continue to Payment' }) as HTMLButtonElement).disabled).toBe(false)
+    expect((screen.getByRole('button', { name: 'Next step' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('blocks saving a stale draft and lets the student reload the latest version', () => {

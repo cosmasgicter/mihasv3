@@ -121,7 +121,7 @@ async function openPersonalStep(page: Page): Promise<void> {
     await expect(summary).toContainText(/Step [234] of 6/, { timeout: 60_000 });
     const currentStep = await summary.locator('p').first().textContent();
     if (currentStep?.includes('Step 2 of 6')) {
-      const continueToPersonal = page.getByRole('button', { name: /continue to personal/i });
+      const continueToPersonal = page.getByRole('button', { name: /^next step$/i });
       await expect(continueToPersonal).toBeEnabled({ timeout: 60_000 });
       await continueToPersonal.click();
     } else if (!currentStep?.includes('Step 3 of 6')) {
@@ -320,8 +320,8 @@ test('a refresh right after a new application is saved reopens that application,
   };
   await pick(/programme/i, offering.programName);
   await pick(/intake/i, offering.intakeName);
-  await page.getByRole('button', { name: /continue to assigned school/i }).click();
-  const toPersonal = page.getByRole('button', { name: /continue to personal/i });
+  await page.getByRole('button', { name: /^next step$/i }).click();
+  const toPersonal = page.getByRole('button', { name: /^next step$/i });
   await expect(toPersonal).toBeEnabled({ timeout: 60_000 });
   await toPersonal.click();
 
@@ -340,7 +340,7 @@ test('a refresh right after a new application is saved reopens that application,
     (response) =>
       response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/v1/applications/drafts/',
   );
-  await page.getByRole('button', { name: /continue to education/i }).click();
+  await page.getByRole('button', { name: /^next step$/i }).click();
   const startResponse = await started;
   expect(startResponse.status(), 'Continue starts the application on the server').toBe(201);
   const applicationId = String(unwrap(await startResponse.json()).id);

@@ -47,7 +47,7 @@ export async function chooseProgrammeAndIntake(page: Page): Promise<void> {
   await page.getByRole('option').first().click();
   await page.locator('button:has-text("Select intake")').click();
   await page.getByRole('option', { name: /MIHAS January 2027/ }).click();
-  await page.getByRole('button', { name: /Continue to/ }).click();
+  await page.getByRole('button', { name: /^Next step$/ }).click();
 }
 
 /** Step 2b: the assigned school is confirmed, then personal details are filled in. */
@@ -55,7 +55,7 @@ export async function confirmSchoolAndFillPersonal(page: Page): Promise<void> {
   await expect(page.getByText('Mikango Institute of Health & Allied Sciences').first()).toBeVisible({
     timeout: 60_000,
   });
-  await page.getByRole('button', { name: /Continue to/ }).click();
+  await page.getByRole('button', { name: /^Next step$/ }).click();
   const fill = async (name: string, value: string) => {
     const input = page.locator(`input[name=${name}]`);
     await expect(input).toBeVisible({ timeout: 60_000 });
@@ -69,7 +69,7 @@ export async function confirmSchoolAndFillPersonal(page: Page): Promise<void> {
   await fill('residence_town', 'Lusaka');
   await page.locator('button:has-text("Select sex")').click();
   await page.getByRole('option', { name: 'Male', exact: true }).first().click();
-  await page.getByRole('button', { name: /Continue to Education/ }).click();
+  await page.getByRole('button', { name: /^Next step$/ }).click();
   await expect(page.locator('input[type=file]').first()).toBeAttached({ timeout: 60_000 });
 }
 

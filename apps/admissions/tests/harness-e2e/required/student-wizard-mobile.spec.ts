@@ -402,7 +402,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
       // diagnosing §9, and it is why the wait below is 500 ms rather than nothing:
       // the shell sets `scroll-behavior: smooth`, so a point read during the
       // animation is a point the control has already left.
-      const primary = page.getByRole('button', { name: /^continue to /i }).first();
+      const primary = page.getByRole('button', { name: /^next step$/i }).first();
       await expect(primary).toBeVisible();
       await primary.scrollIntoViewIfNeeded();
       await page.waitForTimeout(500);
@@ -611,7 +611,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('alertdialog')).toHaveCount(0);
     // And the primary control is still offered: an offline student is not locked out.
-    await expect(page.getByRole('button', { name: /^continue to /i }).first()).toBeEnabled();
+    await expect(page.getByRole('button', { name: /^next step$/i }).first()).toBeEnabled();
 
     await page.screenshot({ path: join(SHOT_DIR, 'wizard-390-offline.png'), fullPage: true });
 
@@ -740,7 +740,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible();
     expect((await heading.boundingBox())!.width, 'the heading keeps usable line width').toBeGreaterThan(40);
-    await expect(page.getByRole('button', { name: /^continue to /i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /^next step$/i }).first()).toBeVisible();
 
     await page.screenshot({ path: join(SHOT_DIR, 'wizard-320-text200.png'), fullPage: true });
   });

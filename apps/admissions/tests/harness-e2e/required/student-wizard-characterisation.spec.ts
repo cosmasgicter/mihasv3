@@ -158,7 +158,7 @@ async function resumeDraftAtEducation(page: Page, applicationId: string) {
 
 /** The control that advances the wizard, whatever surface currently holds it. */
 function nextControl(page: Page) {
-  return page.getByRole('button', { name: /^continue to /i }).first();
+  return page.getByRole('button', { name: /^next step$/i }).first();
 }
 
 /** The control that steps back, whatever surface currently holds it. */
@@ -223,7 +223,7 @@ test.describe('Wizard behaviour characterisation (R10.2, MAINT-01)', () => {
       timeout: 90_000,
     });
 
-    const toPersonal = page.getByRole('button', { name: /continue to personal/i });
+    const toPersonal = page.getByRole('button', { name: /^next step$/i });
     await expect(toPersonal).toBeEnabled({ timeout: 90_000 });
     await toPersonal.click();
     await expect(page.getByRole('heading', { name: STEP_HEADINGS[2]! }).first()).toBeVisible({
@@ -321,7 +321,7 @@ test.describe('Wizard behaviour characterisation (R10.2, MAINT-01)', () => {
     // What *is* asserted about the next visit is the part this task owns: the
     // resume lands on a real step and the wizard is usable.
     await resumeDraftAtEducation(page, applicationId);
-    await expect(page.getByRole('button', { name: /^continue to /i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /^next step$/i }).first()).toBeVisible();
   });
 
   // ---------------------------------------------------------------------------
