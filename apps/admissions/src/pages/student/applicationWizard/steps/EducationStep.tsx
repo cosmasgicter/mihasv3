@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, GraduationCap, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
+import { buildSubjectOptions } from '../lib/subjectOptions'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { ExtractedResultsCard } from '@/components/student/ExtractedResultsCard'
 import { RequiredDocumentsPanel } from '@/components/student/RequiredDocumentsPanel'
@@ -141,77 +142,8 @@ const EducationStep = ({
   const diagnosticsByIndex: RowDiagnostic[] = liveValidation.diagnostics
 
   // Subject options for CanonicalSelect
-  const getSubjectOptions = (currentSubjectId: string) => {
-    const usedSubjects = getUsedSubjects()
-
-    // Group subjects by level, then by category within each level
-    const grade12 = subjects.filter(s => !s.level || s.level === 'grade12')
-    const alevel = subjects.filter(s => s.level === 'alevel')
-
-    const categoryOrder = ['core', 'sciences', 'commercial', 'humanities', 'technology', 'practical', 'languages']
-    // Plain-text category labels. Emoji are not used as structural icons
-    // (DESIGN.md §5 / R7.5); these are option-group headings inside a native
-    // select where Lucide JSX cannot render, so plain text is the canonical fix.
-    const categoryLabels: Record<string, string> = {
-      core: 'Core Subjects',
-      sciences: 'Sciences',
-      commercial: 'Commercial',
-      humanities: 'Humanities',
-      technology: 'Technology & Technical',
-      practical: 'Practical & Creative',
-      languages: 'Languages',
-    }
-
-    const buildGroupedOptions = (list: typeof subjects) => {
-      const grouped = new Map<string, typeof subjects>()
-      for (const s of list) {
-        const cat = s.category || 'other'
-        if (!grouped.has(cat)) grouped.set(cat, [])
-        grouped.get(cat)!.push(s)
-      }
-
-      const options: Array<{ value: string; label: string; disabled?: boolean }> = []
-      // R11.5: every server subject must be reachable. Known categories keep their
-      // curated order; anything else (a tenant category, a new ECZ grouping) lands
-      // in a trailing group rather than disappearing from the selector.
-      const orderedCategories = [
-        ...categoryOrder.filter(cat => grouped.has(cat)),
-        ...Array.from(grouped.keys()).filter(cat => !categoryOrder.includes(cat)).sort(),
-      ]
-      for (const cat of orderedCategories) {
-        const items = grouped.get(cat)
-        if (!items || items.length === 0) continue
-        options.push({
-          value: `__cat_${cat}`,
-          label: categoryLabels[cat] || 'Other Subjects',
-          disabled: true,
-        })
-        for (const subject of items.sort((a, b) => a.name.localeCompare(b.name))) {
-          const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
-          options.push({
-            value: subject.id,
-            label: `  ${subject.name}${isUsed ? ' (Already selected)' : ''}`,
-            disabled: isUsed,
-          })
-        }
-      }
-      return options
-    }
-
-    const options: Array<{ value: string; label: string; disabled?: boolean }> = []
-
-    if (grade12.length > 0) {
-      options.push({ value: '__header_grade12', label: '━━ Grade 12 (ECZ) ━━', disabled: true })
-      options.push(...buildGroupedOptions(grade12))
-    }
-    if (alevel.length > 0) {
-      options.push({ value: '__header_alevel', label: '━━ A-Level (GCE Advanced) ━━', disabled: true })
-      options.push(...buildGroupedOptions(alevel))
-    }
-
-    return options
-  }
-
+  const getSubjectOptions = (currentSubjectId: string) =>
+    buildSubjectOptions(subjects, getUsedSubjects(), currentSubjectId)
   // Grade options for CanonicalSelect
   const gradeOptions = [
     { value: '1', label: '1 (A+)' },

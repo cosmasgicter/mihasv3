@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { buildSubjectOptions } from '@/pages/student/applicationWizard/lib/subjectOptions'
 
 import EducationStep from '@/pages/student/applicationWizard/steps/EducationStep'
 import type { UseRequiredDocumentsResult } from '@/hooks/useRequiredDocuments'
@@ -80,6 +81,23 @@ const baseProps = {
   updateGrade: () => undefined,
   getUsedSubjects: () => [],
 }
+
+describe('EducationStep subject options (task 25.7)', () => {
+  it('gives the ECZ and A-Level category headers different values', () => {
+    const options = buildSubjectOptions(
+      [
+        { id: 'm1', name: 'Mathematics', code: 'MATH', category: 'core', level: 'grade12' },
+        { id: 'm2', name: 'Mathematics A', code: 'MATHA', category: 'core', level: 'alevel' },
+      ] as never,
+      [],
+      '',
+    )
+    const values = options.map(option => option.value)
+    expect(values).toContain('__cat_grade12_core')
+    expect(values).toContain('__cat_alevel_core')
+    expect(new Set(values).size).toBe(values.length)
+  })
+})
 
 describe('EducationStep headings (task 25.4)', () => {
   it('starts its content headings at H2 under the page H1, skipping no level', () => {
