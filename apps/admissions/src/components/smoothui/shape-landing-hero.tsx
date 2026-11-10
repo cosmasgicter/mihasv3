@@ -79,7 +79,7 @@ export function ShapeLandingHero({
               className="mt-8 flex flex-col gap-3 motion-safe:animate-hero-enter sm:flex-row"
               style={revealStyle(0.5)}
             >
-              <div className="transition-transform duration-150 ease-smooth-out motion-safe:hover:scale-[1.03] motion-safe:active:scale-[0.97]">
+              <div className="w-full transition-transform duration-150 ease-smooth-out motion-safe:hover:scale-[1.03] motion-safe:active:scale-[0.97] sm:w-auto">
                 <Link
                   to={primaryCta.href}
                   data-landing-action="primary"
@@ -87,7 +87,7 @@ export function ShapeLandingHero({
                   onFocus={warmPrimaryRoute}
                   onTouchStart={warmPrimaryRoute}
                   className={cn(
-                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
+                    'inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg font-semibold sm:w-auto',
                     'bg-primary px-6 text-primary-foreground shadow-sm',
                     'hover:bg-primary/90 active:bg-primary/85 active:scale-[0.98]',
                     'transition-colors duration-150 touch-manipulation',
@@ -105,7 +105,7 @@ export function ShapeLandingHero({
                   data-landing-action="secondary"
                   aria-label={secondaryCta.label}
                   className={cn(
-                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
+                    'inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg font-medium sm:w-auto',
                     'border border-border bg-transparent px-6 text-foreground',
                     'hover:bg-muted hover:border-foreground/40',
                     'transition-colors duration-150 touch-manipulation',
@@ -121,7 +121,7 @@ export function ShapeLandingHero({
                   data-landing-action="secondary"
                   aria-label={secondaryCta.label}
                   className={cn(
-                    'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
+                    'inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg font-medium sm:w-auto',
                     'border border-border bg-transparent px-6 text-foreground',
                     'hover:bg-muted hover:border-foreground/40',
                     'transition-colors duration-150 touch-manipulation',

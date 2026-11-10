@@ -62,6 +62,14 @@ export const contactInfo = {
 };
 
 // ============================================================================
+// Call-to-action labels (one source, task 29.3)
+// ============================================================================
+/** Each label is written once and names no count or date the page does not show. */
+export const LANDING_ACTIONS = {
+  start: 'Start your application',
+  explore: 'Explore programmes',
+} as const;
+// ============================================================================
 // Features
 // ============================================================================
 
@@ -154,13 +162,13 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 1,
     title: 'Create your account',
     description:
-      'Takes 2 minutes and you are in. You can start the application and come back later. Your progress is saved automatically.',
+      'Create an account to start. You can leave and come back later. Your progress is saved automatically.',
   },
   {
     step: 2,
     title: 'Fill in your details and upload documents',
     description:
-      'Personal details, education history, NRC or passport, your ECZ or Cambridge results. You can do this in pieces over a few days.',
+      'Personal details, education history, NRC or passport, and your ECZ or Cambridge results. You can do this over several visits.',
   },
   {
     step: 3,
@@ -172,7 +180,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 4,
     title: 'Submit and track your status',
     description:
-      'We review within a few working days. You see every update in the portal. Under review, interview scheduled, decision. You also get an email and an SMS.',
+      'Submit when everything is complete. You see every update in the portal, from under review to a decision, and you get an email when something changes.',
   },
 ];
 
@@ -197,7 +205,7 @@ export const eligibilityItems: EligibilityItem[] = [
     icon: FileCheck,
     title: 'Cambridge certificate accepted',
     description:
-      "If you sat Cambridge IGCSE or A-Levels instead of ECZ, that is fine. Our system supports both. Just upload your certificate and we will convert.",
+      "If you sat Cambridge IGCSE or A-Levels instead of ECZ, you can enter those grades. The application's eligibility check accepts both.",
   },
   {
     icon: FileCheck,
@@ -234,7 +242,7 @@ export const internationalHighlights: InternationalHighlight[] = [
     icon: Award,
     title: 'Pay in USD from anywhere',
     description:
-      'International applicants pay by card, and your exact application fee is shown before you pay. Tuition and accommodation invoices are issued in USD for international students.',
+      'International applicants pay by card, and your exact application fee is shown before you pay.',
   },
   {
     icon: GraduationCap,
@@ -244,9 +252,9 @@ export const internationalHighlights: InternationalHighlight[] = [
   },
   {
     icon: Users,
-    title: 'Help with the practical stuff',
+    title: 'Ask before you apply',
     description:
-      'Visa letters, arrival logistics, accommodation booking. We have done this many times. Email admissions and we will walk you through it.',
+      'If you have questions about documents or arrival, use the contact page to reach admissions.',
   },
 ];
 
@@ -263,15 +271,9 @@ export interface AccommodationHighlight {
 export const accommodationHighlights: AccommodationHighlight[] = [
   {
     icon: Home,
-    title: 'School housing details in one place',
+    title: 'Housing is arranged by the school',
     description:
-      'Partner institutions can publish accommodation options, pricing, and booking rules directly in the application flow.',
-  },
-  {
-    icon: FileCheck,
-    title: 'Book during your application',
-    description:
-      'Once your admission is confirmed, you can request a room through the portal. Early confirmation gets first pick.',
+      'Contact the school you are applying to about accommodation options and fees.',
   },
   {
     icon: BookOpen,

@@ -15,6 +15,7 @@ import {
   features,
   howItWorksSteps,
   internationalHighlights,
+  LANDING_ACTIONS,
 } from '@/lib/constants/landing'
 
 import { StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion/stagger'
@@ -91,7 +92,7 @@ function HowItWorksSection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Four steps, about 30 minutes end-to-end if your documents are ready. You can pause anywhere.
+            Four steps. You can pause anywhere and come back.
           </p>
         </ScrollReveal>
 
@@ -331,7 +332,7 @@ function AccommodationSection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Partner institutions can publish accommodation availability, fees, and booking requirements directly in the application flow.
+            Housing is arranged by the school, not through this portal.
           </p>
         </ScrollReveal>
 
@@ -415,7 +416,7 @@ function CTASection() {
         <TextEffect effect="fadeUp">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              Start your application
+              {LANDING_ACTIONS.start}
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-accent sm:text-lg">
               Your application fee is shown before you pay. You can pay by mobile money or card.
@@ -433,7 +434,7 @@ function CTASection() {
             onFocus={warmAuthRoutes}
             onTouchStart={warmAuthRoutes}
           >
-            <span>Start your application</span>
+            <span>{LANDING_ACTIONS.start}</span>
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </Link>
         </Button>

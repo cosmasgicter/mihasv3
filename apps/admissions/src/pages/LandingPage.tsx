@@ -13,6 +13,7 @@ import {
   ArrowRight, BookOpen,
 } from '@/components/icons';
 import { Seo } from '@/components/seo/Seo';
+import { LANDING_ACTIONS } from '@/lib/constants/landing';
 import { prefersReducedMotion } from '@/lib/animation-config';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 import { onLandingMount } from '@/lib/speculativePrefetch';
@@ -125,12 +126,12 @@ export default function LandingPage() {
         description="Beanola lets students choose a programme and intake first, then routes the application to the configured school before payment and submission."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
-          label: 'Start your application',
+          label: LANDING_ACTIONS.start,
           href: '/auth/signup',
           icon: <ArrowRight className="w-5 h-5" />,
         }}
         secondaryCta={{
-          label: 'Explore programmes',
+          label: LANDING_ACTIONS.explore,
           href: '#programs',
           icon: <BookOpen className="w-5 h-5" />,
         }}
