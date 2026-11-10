@@ -1,104 +1,45 @@
 # Local Parity Runbook
 
-Date: 2026-04-21
-Scope: Run the backend against local Postgres and Redis so development is closer to production than SQLite-only or external-service-only setups.
+Date: 2026-11-09
+Scope: how to run the backend and its tests against a local Postgres and Redis so development matches production behaviour. The supported local stack is the isolated harness under `harness/`; `LOCAL-TESTING.md` is its guide.
 
-## Purpose
+## The supported stack
 
-This setup gives you:
-- local Postgres on `localhost:5432`
-- local Redis on `localhost:6379`
-- optional local Celery Beat for scheduled-task parity
-- fewer surprises compared with debugging only against remote Neon/Redis
-
-## Default Compose Behavior
-
-[backend/docker-compose.yml](/home/cosmas/Downloads/mihasv3/backend/docker-compose.yml) now defaults to:
-- Postgres service: `postgres:16-alpine`
-- Redis service: `redis:7-alpine`
-- web service using local Postgres when `DATABASE_URL` is not set
-- celery worker using local Postgres when `DATABASE_URL` is not set
-
-Optional parity service:
-- `celery-beat` under the `parity` profile
-
-## Start The Stack
-
-From `backend/`:
+Bring it up with one command from the repository root:
 
 ```bash
-docker compose up --build
+bash harness/bin/local-setup.sh
 ```
 
-This starts:
-- `postgres`
-- `redis`
-- `web`
-- `celery`
+It runs Postgres 17, Redis, MinIO (S3-compatible storage), Mailpit (captured email), a Lenco-shaped payment adapter, the web process, a Celery worker and Celery beat, behind Caddy at `http://localhost:8090`. It starts from an empty database and seeds the example tenants. See `LOCAL-TESTING.md` for the prerequisites, the seeded sign-ins, the table of where each concern goes (nothing contacts an outside host) and `bash harness/bin/harness down` to wipe it.
 
-To include beat:
+Do not point a local process at `backend/.env`: its `DATABASE_URL` names the Neon authoring database.
 
-```bash
-docker compose --profile parity up --build
-```
+## Run the backend tests on your machine
 
-## Default Local Credentials
-
-If you do not override env vars:
-
-- database name: `mihas_local`
-- database user: `postgres`
-- database password: `postgres`
-- database URL used by containers: `postgresql://postgres:postgres@postgres:5432/mihas_local`
-
-## Common Flows
-
-Run migrations against local Postgres:
-
-```bash
-docker compose exec web python3 manage.py migrate
-```
-
-Run backend checks:
-
-```bash
-docker compose exec web python3 manage.py check
-```
-
-Run the host-side production-parity check with Redis/Postgres-backed settings:
-
-```bash
-cd ..
-REDIS_URL=redis://localhost:6379/1 \
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mihas_local \
-scripts/check-backend-production-parity.sh
-```
-
-Do not set `TESTING=1` for readiness checks. That mode is for selected tests
-only and is not acceptable evidence for Redis-backed auth, cache, or rate-limit
-readiness.
-
-Run tests from the host against local Postgres:
+Tests run against a throwaway Postgres you start yourself, never against Neon or production. Start a Postgres 16 container on a free local port, then:
 
 ```bash
 cd backend
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mihas_local
-export REDIS_URL=redis://localhost:6379/0
+export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/test_mihas
+export REDIS_URL=redis://127.0.0.1:6379/0
 python3 -m pytest
+python3 manage.py check
 ```
 
-## Override For Remote Services
+The host-side production-parity check uses Redis- and Postgres-backed settings:
 
-If you want to keep using Neon or hosted Redis, set `DATABASE_URL` or `REDIS_URL` in `backend/.env`.
+```bash
+REDIS_URL=redis://localhost:6379/1 \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/test_mihas \
+scripts/check-backend-production-parity.sh
+```
 
-Compose will still start the local services, but the app will use your explicit external URLs instead of the defaults.
+Do not set `TESTING=1` for readiness checks. That mode is for selected tests only and is not acceptable evidence for Redis-backed auth, cache, or rate-limit readiness.
 
-## When To Use This
+## When to use which
 
-Use this parity mode when debugging:
-- ORM/schema drift
-- Celery queue behavior
-- Redis-backed auth/rate-limit behavior
-- contract tests that should behave like production storage
+- Reproducing what a student sees (uploads, signed document links, mail, payment states, scheduled sweeps): the harness stack above.
+- ORM or schema drift, Celery queue behaviour, Redis-backed auth and rate-limit behaviour, contract tests: the pytest run above.
 
-The local-test stack ships a private MinIO bucket so uploads and signed document URLs work; verify it with `manage.py storage_roundtrip_check --expect-private` (see `LOCAL-TESTING.md` Part 1).
+Verify object storage on the harness with `docker compose -f harness/docker-compose.harness.yml exec web python manage.py storage_roundtrip_check --expect-private` (the journey gate runs it too).

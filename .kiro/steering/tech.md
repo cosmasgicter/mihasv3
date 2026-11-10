@@ -74,6 +74,10 @@ inclusion: always
 | `bun run type-check:jobs-ops` | Type-check the jobs-ops app |
 | `bun run lint:jobs-ops` | Lint the jobs-ops app |
 
+### Local stack
+
+The documented local stack is the isolated harness under `harness/` (decision D2). `bash harness/bin/local-setup.sh` is the one bring-up path: it checks Docker with Compose v2, Bun, Git, curl and python3 3.8 or later (exit 3 naming a missing tool), installs from the lockfile, and starts the stack from an empty database. `LOCAL-TESTING.md` is its guide, `bash harness/bin/harness down` wipes it, and `bash harness/bin/harness journey-gate` brings up the same stack through the same script.
+
 ### Admissions App
 
 | Command | Purpose |

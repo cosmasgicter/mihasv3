@@ -297,9 +297,9 @@ case "${cmd}" in
   e2e)   ensure_browser; run_required; run_gatecheck; drain_check ;;
   journey-gate)
     export_gate_switches
-    build_spa
-    compose_up
-    wait_healthy
+    # The documented bring-up (task 11.1, D2): the stack the gate tests is the stack
+    # LOCAL-TESTING.md builds. The four gate values above reach it through the environment.
+    bash "${HARNESS_DIR}/bin/local-setup.sh"
     ensure_browser
     storage_check
     edge_check

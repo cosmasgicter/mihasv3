@@ -633,6 +633,10 @@ jobs:
       # that deletes a file a doc names fails in that same change.
       - name: Doc and skill paths
         run: python3 scripts/check_doc_paths.py
+      - name: Local setup document and prerequisite check
+        run: |
+          python3 scripts/tests/test_local_setup_doc.py
+          python3 scripts/tests/test_local_setup_prereqs.py
       - name: Brand_Scan_Gate (Gate 7, blocking)
         run: python3 scripts/launch-verification/run-brand-scan.py
       - name: Upload Brand_Scan_Gate evidence (Gate 7)
