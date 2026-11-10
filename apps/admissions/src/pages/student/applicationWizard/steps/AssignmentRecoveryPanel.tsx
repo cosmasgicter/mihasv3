@@ -62,7 +62,7 @@ const AssignmentRecoveryPanel = ({
         return interestRecorded ? (
           <p
             key="interest-list"
-            className="inline-flex items-center gap-2 text-sm font-medium text-success"
+            className="inline-flex items-center gap-2 text-base sm:text-sm font-medium text-success"
             role="status"
           >
             <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -112,7 +112,7 @@ const AssignmentRecoveryPanel = ({
           <h3 id="assignment-recovery-heading" className="text-base font-semibold text-foreground">
             {guidance.title}
           </h3>
-          <p className="text-sm text-muted-foreground">{guidance.message}</p>
+          <p className="text-base sm:text-sm text-muted-foreground">{guidance.message}</p>
         </div>
       </div>
 

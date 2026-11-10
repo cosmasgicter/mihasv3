@@ -225,10 +225,10 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
         removed from the dashboard, on a second surface. The platform's own next
         action is now the first thing on the page.
       */
-      actions={<div className="flex items-center gap-2">{getStatusIcon(application.status)}<span className="text-sm font-bold">{presentation.statusLabel}</span></div>}
+      actions={<div className="flex items-center gap-2">{getStatusIcon(application.status)}<span className="text-base sm:text-sm font-bold">{presentation.statusLabel}</span></div>}
     >
       <div className="space-y-6 sm:space-y-8">
-        <Link to="/student/dashboard" className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
+        <Link to="/student/dashboard" className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
           <ArrowLeft className="h-4 w-4" />
           Back to dashboard
         </Link>
@@ -288,7 +288,7 @@ function ApplicationWorkspaceView({ id }: { id: string }) {
 
         {!hasActiveInterview && (
           <SectionCard title="Interview status" description="Our admissions team will contact you if a new interview is required." icon={<Calendar className="h-5 w-5" />}>
-            <p className="text-sm text-foreground">If you have questions, please reach out to admissions support.</p>
+            <p className="text-base sm:text-sm text-foreground">If you have questions, please reach out to admissions support.</p>
           </SectionCard>
         )}
 

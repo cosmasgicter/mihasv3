@@ -43,7 +43,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           <label
             htmlFor={inputId}
             className={cn(
-              'block text-sm font-medium text-foreground mb-2',
+              'block text-base sm:text-sm font-medium text-foreground mb-2',
               error && 'text-destructive'
             )}
           >
@@ -96,7 +96,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         {error && (
           <p 
             id={`${inputId}-error`}
-            className="mt-1.5 text-xs text-destructive motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1 motion-safe:duration-150"
+            className="mt-1.5 text-base sm:text-sm text-destructive motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1 motion-safe:duration-150"
             role="alert"
           >
             {error}
@@ -107,7 +107,8 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         {helperText && !error && (
           <p 
             id={`${inputId}-helper`}
-            className="mt-1.5 text-xs text-muted-foreground"
+            data-text-role="caption"
+            className="mt-1.5 text-sm text-muted-foreground"
           >
             {helperText}
           </p>

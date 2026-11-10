@@ -166,7 +166,7 @@ export function ApplicationsGrid({
                 key={intake.id}
                 className="flex flex-col gap-1 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
               >
-                <span className="break-words text-sm font-medium text-foreground">
+                <span className="break-words text-base sm:text-sm font-medium text-foreground">
                   {intake.name}
                 </span>
                 <span className="text-xs text-muted-foreground">
@@ -221,7 +221,7 @@ function ProfileFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-foreground">{value}</dd>
+      <dd className="mt-0.5 break-words text-base sm:text-sm font-medium text-foreground">{value}</dd>
     </div>
   )
 }

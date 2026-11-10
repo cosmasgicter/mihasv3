@@ -162,7 +162,7 @@ export function ConditionsTimeline({
           >
             <div className="flex-shrink-0 mt-0.5">{iconFor(condition)}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{condition.description}</p>
+              <p className="text-base sm:text-sm font-medium text-foreground">{condition.description}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Deadline: {formatDate(condition.deadline ?? '')}
                 {condition.met_at && ` \u2022 Fulfilled: ${formatDate(condition.met_at)}`}

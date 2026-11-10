@@ -41,7 +41,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
       <button
         type="button"
         onClick={hasMissing ? () => setExpanded(!expanded) : undefined}
-        className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium animate-fade-in ${getColor()} ${hasMissing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+        className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-base sm:text-sm font-medium animate-fade-in ${getColor()} ${hasMissing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
         aria-expanded={hasMissing ? expanded : undefined}
         aria-label={`Profile ${completionPercentage}% complete${hasMissing ? `. ${missingFields.length} field${missingFields.length === 1 ? '' : 's'} missing. Click to see details.` : ''}`}
       >
@@ -64,7 +64,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
           </p>
           <ul className="space-y-1">
             {missingFields.map(({ key, label }) => (
-              <li key={key} className="flex items-center gap-2 text-sm text-foreground">
+              <li key={key} className="flex items-center gap-2 text-base sm:text-sm text-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
                 {label}
               </li>

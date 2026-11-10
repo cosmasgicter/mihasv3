@@ -73,7 +73,7 @@ export function WizardProgressSummary({
       <h2 id="wizard-step-heading" className="mt-1 break-words text-lg font-semibold text-foreground sm:text-xl">
         {stepTitle}
       </h2>
-      <p className="mt-1 break-words text-sm text-muted-foreground">{stepDescription}</p>
+      <p className="mt-1 break-words text-base sm:text-sm text-muted-foreground">{stepDescription}</p>
 
       <div className="mt-3 flex items-center gap-3">
         <div
@@ -96,14 +96,14 @@ export function WizardProgressSummary({
 
       <div className="mt-3" data-testid="wizard-current-blockers">
         {notEvaluatedYet ? (
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <p className="flex items-start gap-2 text-base sm:text-sm text-muted-foreground">
             <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="break-words">
               Choose your programme and intake, and we will check what is still needed.
             </span>
           </p>
         ) : readinessLoading ? (
-          <p className="flex items-start gap-2 text-sm text-muted-foreground" aria-live="polite">
+          <p className="flex items-start gap-2 text-base sm:text-sm text-muted-foreground" aria-live="polite">
             <Loader2
               className="mt-0.5 h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none"
               aria-hidden="true"
@@ -112,7 +112,7 @@ export function WizardProgressSummary({
           </p>
         ) : readinessUnavailable ? (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="flex items-start gap-2 text-sm text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm text-foreground">
               <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <span className="break-words">
                 We could not check your application just now. Everything you have entered is saved.
@@ -121,14 +121,14 @@ export function WizardProgressSummary({
             <button
               type="button"
               onClick={onRetryReadiness}
-              className="inline-flex min-h-touch shrink-0 items-center rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-primary/5"
+              className="inline-flex min-h-touch shrink-0 items-center rounded-lg border border-border px-3 text-base sm:text-sm font-medium text-primary hover:bg-primary/5"
             >
               Check again
             </button>
           </div>
         ) : blockers.length === 0 ? (
           <p
-            className="flex items-start gap-2 text-sm font-medium text-success"
+            className="flex items-start gap-2 text-base sm:text-sm font-medium text-success"
             data-testid="wizard-no-blockers"
           >
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
@@ -140,7 +140,7 @@ export function WizardProgressSummary({
           </p>
         ) : (
           <div>
-            <p className="flex items-start gap-2 text-sm font-semibold text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-semibold text-foreground">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               <span className="min-w-0 break-words">
                 {blockers.length === 1 ? '1 thing is still needed' : `${blockers.length} things are still needed`}
@@ -150,7 +150,7 @@ export function WizardProgressSummary({
               {named.map(blocker => (
                 <li
                   key={blocker.code}
-                  className="break-words text-sm text-muted-foreground"
+                  className="break-words text-base sm:text-sm text-muted-foreground"
                   data-testid="wizard-blocker"
                   data-blocker-code={blocker.code}
                 >
@@ -159,7 +159,7 @@ export function WizardProgressSummary({
               ))}
             </ul>
             {remaining > 0 && (
-              <p className="mt-1.5 text-sm text-muted-foreground">
+              <p className="mt-1.5 text-base sm:text-sm text-muted-foreground">
                 and {remaining} more, listed in the requirements below.
               </p>
             )}

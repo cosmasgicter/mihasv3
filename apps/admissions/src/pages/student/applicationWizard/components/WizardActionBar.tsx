@@ -132,7 +132,7 @@ export function WizardActionBar({
           )}
           {!showOfflineBadge && saveStatus === 'retrying' && (
             <span
-              className="inline-flex min-h-[24px] items-center gap-1.5 text-sm text-warning"
+              className="inline-flex min-h-[24px] items-center gap-1.5 text-base sm:text-sm text-warning"
               data-testid="wizard-save-retrying"
               role="status"
               aria-live="polite"
@@ -146,7 +146,7 @@ export function WizardActionBar({
           )}
           {!showOfflineBadge && saveStatus === 'saved-local' && (
             <span
-              className="inline-flex min-h-[24px] items-center gap-1.5 text-sm text-muted-foreground"
+              className="inline-flex min-h-[24px] items-center gap-1.5 text-base sm:text-sm text-muted-foreground"
               data-testid="wizard-save-local"
               role="status"
               aria-live="polite"

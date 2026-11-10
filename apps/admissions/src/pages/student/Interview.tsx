@@ -288,7 +288,7 @@ export default function InterviewPage() {
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
@@ -377,7 +377,7 @@ export default function InterviewPage() {
           <Card className="bg-muted/30">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="text-base sm:text-sm text-muted-foreground mb-2">
                   Need to reschedule your interview?
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -442,7 +442,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
           </p>
           
           {/* Date, Time, Mode -- compact row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base sm:text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-4 w-4 flex-shrink-0" />
               {date}
@@ -459,7 +459,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
           {/* Location / link detail */}
           {modeDetail && (
-            <p className="text-sm text-muted-foreground flex items-start gap-1.5 break-words">
+            <p className="text-base sm:text-sm text-muted-foreground flex items-start gap-1.5 break-words">
               <span className="shrink-0 mt-0.5">{modeDetail.icon}</span>
               <span className="min-w-0 break-words">{modeDetail.text}</span>
             </p>

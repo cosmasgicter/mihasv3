@@ -157,7 +157,7 @@ function SupportContact() {
   })
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">{support.description}</p>
+      <p className="text-base sm:text-sm text-muted-foreground">{support.description}</p>
       <Button asChild variant="ghost" className="min-h-touch gap-2">
         {support.isExternal ? (
           <a href={support.href}>
@@ -214,7 +214,7 @@ export default function DocumentOpen() {
       <Seo title="Opening your document" description="Opening your document." path="/student/documents/open" noindex />
       <div className="space-y-4" data-testid="document-open">
         {state.kind === 'opening' && (
-          <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-foreground">
+          <p role="status" aria-live="polite" className="flex items-center gap-2 text-base sm:text-sm text-foreground">
             <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
             Opening your document…
           </p>
@@ -222,7 +222,7 @@ export default function DocumentOpen() {
 
         {state.kind === 'invalid' && (
           <div className="space-y-3" role="alert">
-            <p className="flex items-start gap-2 text-sm font-medium text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               This link isn&apos;t valid.
             </p>
@@ -232,7 +232,7 @@ export default function DocumentOpen() {
 
         {state.kind === 'not_found' && (
           <div className="space-y-3" role="alert">
-            <p className="flex items-start gap-2 text-sm font-medium text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               This document isn&apos;t available. It may have been replaced or removed.
             </p>
@@ -242,7 +242,7 @@ export default function DocumentOpen() {
 
         {state.kind === 'unavailable' && (
           <div className="space-y-3" role="alert">
-            <p className="flex items-start gap-2 text-sm font-medium text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               This file can&apos;t be opened right now.
             </p>
@@ -259,7 +259,7 @@ export default function DocumentOpen() {
 
         {state.kind === 'rate_limited' && (
           <div className="space-y-3" role="alert">
-            <p className="flex items-start gap-2 text-sm font-medium text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               {state.message}
             </p>
@@ -275,7 +275,7 @@ export default function DocumentOpen() {
 
         {state.kind === 'not_prepared' && (
           <div className="space-y-3" role="alert">
-            <p className="flex items-start gap-2 text-sm font-medium text-foreground">
+            <p className="flex items-start gap-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
               {state.message}
             </p>

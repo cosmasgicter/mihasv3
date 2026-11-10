@@ -125,7 +125,7 @@ export class StudentErrorBoundary extends React.Component<
                     <h3 className="text-sm font-semibold text-red-800 mb-2">
                       Error Details (Development Only)
                     </h3>
-                    <p className="text-sm text-red-700 font-mono mb-2">
+                    <p className="text-base sm:text-sm text-red-700 font-mono mb-2">
                       {this.state.error.message}
                     </p>
                   </div>
@@ -162,7 +162,7 @@ export class StudentErrorBoundary extends React.Component<
                   <h3 className="text-sm font-semibold text-blue-800 mb-2">
                     Your data is safe
                   </h3>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-base sm:text-sm text-blue-700">
                     Your application progress is automatically saved every 8 seconds.
                     If you were filling out a form, your data should still be there
                     when you reload the page.

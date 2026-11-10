@@ -128,9 +128,9 @@ export function WizardDraftPicker({
       {error && <ErrorDisplay message={error} />}
 
       {loading && drafts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Loading your saved applications…</p>
+        <p className="text-base sm:text-sm text-muted-foreground">Loading your saved applications…</p>
       ) : visible.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base sm:text-sm text-muted-foreground">
           You have no saved applications yet. Starting a new one will save as you go.
         </p>
       ) : (
@@ -194,7 +194,7 @@ export function WizardDraftPicker({
                     <div className="mt-3 flex flex-wrap gap-2">
                       {isCurrent ? (
                         <span
-                          className="inline-flex min-h-touch items-center rounded-lg border border-primary/30 bg-primary/5 px-3 text-sm font-semibold text-primary"
+                          className="inline-flex min-h-touch items-center rounded-lg border border-primary/30 bg-primary/5 px-3 text-base sm:text-sm font-semibold text-primary"
                           data-testid="wizard-draft-current"
                         >
                           Open now

@@ -126,7 +126,7 @@ export function ExtractedResultsCard({
     >
       <div className="flex items-center gap-2 mb-1">
         <ScanLine className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-base sm:text-sm font-semibold text-foreground">
           We read {valid.length} subject{valid.length > 1 ? 's' : ''} from your slip
         </span>
       </div>
@@ -154,8 +154,8 @@ export function ExtractedResultsCard({
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-sm font-medium text-foreground">{candidate.subject_name}</span>
-                    <span className="text-sm text-foreground">grade {candidate.grade}</span>
+                    <span className="text-base sm:text-sm font-medium text-foreground">{candidate.subject_name}</span>
+                    <span className="text-base sm:text-sm text-foreground">grade {candidate.grade}</span>
                   </span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
                     {confidenceLabel(candidate.confidence)} ({Math.round(candidate.confidence * 100)}%)

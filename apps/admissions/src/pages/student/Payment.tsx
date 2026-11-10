@@ -313,7 +313,7 @@ export default function PaymentPage() {
                 )}
               </Button>
               {support.email && (
-                <span className="font-mono text-sm text-muted-foreground">{support.email}</span>
+                <span className="font-mono text-base sm:text-sm text-muted-foreground">{support.email}</span>
               )}
             </div>
           </SectionCard>

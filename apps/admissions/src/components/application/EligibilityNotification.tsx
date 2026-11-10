@@ -49,7 +49,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             )}
           </div>
           
-          <p className={`text-sm mb-2 ${
+          <p className={`text-base sm:text-sm mb-2 ${
             eligible ? 'text-accent-foreground' : 'text-yellow-700'
           }`}>
             {message}

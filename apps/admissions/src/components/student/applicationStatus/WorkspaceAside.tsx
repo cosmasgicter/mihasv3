@@ -54,12 +54,12 @@ export function WorkspaceAside({
 
       {paymentReviewNote && (
         <SectionCard title="Latest payment review note" description="Use this guidance if you need to correct or complete payment." icon={<CreditCard className="h-5 w-5" />}>
-          <p className="text-sm text-foreground">{paymentReviewNote}</p>
+          <p className="text-base sm:text-sm text-foreground">{paymentReviewNote}</p>
         </SectionCard>
       )}
 
       <SectionCard title="Quick information" description="Essential application details at a glance." icon={<User className="h-5 w-5" />}>
-        <dl className="space-y-3 text-sm">
+        <dl className="space-y-3 text-base sm:text-sm">
           <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
           <DetailRow label="Program" value={application.program || 'Not provided'} />
           {/* Task 10.6 parity: the retired workspace named the institution. */}

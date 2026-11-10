@@ -261,12 +261,12 @@ export default function Communications() {
             padding="sm"
           >
             <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col gap-1 text-sm">
+              <label className="flex flex-col gap-1 text-base sm:text-sm">
                 <span className="font-medium text-muted-foreground">Type</span>
                 <select
                   value={typeFilter}
                   onChange={handleTypeChange}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -275,12 +275,12 @@ export default function Communications() {
                   ))}
                 </select>
               </label>
-              <label className="flex flex-col gap-1 text-sm">
+              <label className="flex flex-col gap-1 text-base sm:text-sm">
                 <span className="font-medium text-muted-foreground">Status</span>
                 <select
                   value={readFilter}
                   onChange={handleReadChange}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {READ_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -385,14 +385,14 @@ export default function Communications() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
+                          <p className={`text-base sm:text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
                             {title}
                           </p>
                           {!isRead && (
                             <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Unread" />
                           )}
                         </div>
-                        <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
+                        <p className="mt-0.5 text-base sm:text-sm text-muted-foreground line-clamp-2">
                           {message}
                         </p>
                         <div className="mt-1 flex items-center gap-3">
@@ -446,7 +446,7 @@ export default function Communications() {
           {/* Pagination */}
           {!isLoading && !error && totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm text-muted-foreground">
                 Page {pagination.page} of {totalPages}
               </p>
               <div className="flex gap-2">

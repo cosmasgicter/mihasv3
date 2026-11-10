@@ -58,7 +58,7 @@ export function Modal({
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription className="mt-1 text-sm text-foreground">
+              <DialogDescription className="mt-1 text-base sm:text-sm text-foreground">
                 {description}
               </DialogDescription>
             )}

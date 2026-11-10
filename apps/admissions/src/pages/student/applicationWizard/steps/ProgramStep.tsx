@@ -75,7 +75,7 @@ const ProgramStep = ({
     >
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-base sm:text-sm text-muted-foreground">
           Choose your programme and intake. We will then confirm the school assigned to you.
         </p>
       </div>

@@ -34,7 +34,7 @@ const SelectTrigger = React.forwardRef<
       // Border color - normal vs error state
       error ? "border-destructive" : "border-input",
       // Typography
-      "text-sm text-foreground sm:text-base",
+      "text-base text-foreground",
       // Placeholder styling
       "data-[placeholder]:text-muted-foreground",
       // Focus styles — keyboard only
@@ -152,7 +152,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    className={cn("py-1.5 pl-8 pr-2 text-base sm:text-sm font-semibold", className)}
     {...props}
   />
 ))
@@ -177,7 +177,7 @@ const SelectItem = React.forwardRef<
       // Padding and spacing
       "rounded-md py-2 pl-10 pr-3",
       // Typography
-      "text-sm sm:text-base",
+      "text-base",
       // Long-label handling on mobile
       "[&_[data-slot='select-item-text']]:block [&_[data-slot='select-item-text']]:min-w-0",
       "[&_[data-slot='select-item-text']]:break-words [&_[data-slot='select-item-text']]:whitespace-normal",

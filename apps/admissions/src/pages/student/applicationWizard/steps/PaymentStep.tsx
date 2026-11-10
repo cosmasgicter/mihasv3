@@ -176,11 +176,11 @@ const PaymentStep = ({
  </div>
  {quoteExpired ? (
  <div className="mt-3 space-y-1" role="status">
- <p className="text-sm text-foreground" data-testid="fee-quote-expired">
+ <p className="text-base sm:text-sm text-foreground" data-testid="fee-quote-expired">
  {PAYMENT_ERROR_COPY.QUOTE_EXPIRED.body}
  </p>
  <button
- type="button" className="min-h-touch text-sm font-medium text-primary underline" onClick={refreshQuote}
+ type="button" className="min-h-touch text-base sm:text-sm font-medium text-primary underline" onClick={refreshQuote}
  data-testid="fee-quote-refresh">
  {PAYMENT_NEXT_ACTION_COPY.refresh_quote.label}
  </button>
@@ -194,7 +194,7 @@ const PaymentStep = ({
               ) : (
  /* No quote yet, and therefore no price. The step says so rather
  than showing a placeholder amount (finding STU-08). */
- <p className="mt-1 text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
+ <p className="mt-1 text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
  Save your a pplication to see the fee for your programme.
  </p>
               )}
@@ -241,7 +241,7 @@ const PaymentStep = ({
         {/* Pay Later — visible card option */}
         {!isPaymentSettledForWizard && !deferred && quote && applicationId && (
           <div className="space-y-2">
-            {deferError && <p className="text-sm text-destructive text-center">{deferError}</p>}
+            {deferError && <p className="text-base sm:text-sm text-destructive text-center">{deferError}</p>}
 
             {!deferConfirm ? (
               <button
@@ -255,25 +255,25 @@ const PaymentStep = ({
                     <Clock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Pay Later</p>
+                    <p className="text-base sm:text-sm font-semibold text-foreground">Pay Later</p>
                     <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
                   </div>
                 </div>
               </button>
             ) : (
               <div className={`rounded-lg border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
-                <p className="text-sm text-foreground">You can submit now and pay anytime from the payment page.</p>
+                <p className="text-base sm:text-sm text-foreground">You can submit now and pay anytime from the payment page.</p>
                 <div className="mt-3 flex items-center gap-3">
                   <button
                     type="button"
-                    className="min-h-touch rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                    className="min-h-touch rounded-lg border border-border px-4 py-2 text-base sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                     onClick={() => setDeferConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="min-h-touch rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                    className="min-h-touch rounded-lg bg-primary px-4 py-2 text-base sm:text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                     disabled={deferring}
                     onClick={handleDefer}
                   >
@@ -287,7 +287,7 @@ const PaymentStep = ({
  {/* Dev payment bypass — only in development with VITE_PAYMENT_DEV_BYPASS=true */}
         {showDevBypass && applicationId && (
           <div className="space-y-2">
-            {devBypassError && <p className="text-sm text-destructive text-center">{devBypassError}</p>}
+            {devBypassError && <p className="text-base sm:text-sm text-destructive text-center">{devBypassError}</p>}
             <button
               type="button"
               className="w-full rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50"
@@ -300,7 +300,7 @@ const PaymentStep = ({
                   <Zap className="h-5 w-5 text-orange-700" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-orange-700">
+                  <p className="text-base sm:text-sm font-semibold text-orange-700">
                     {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
                   <p className="text-xs text-orange-600/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>

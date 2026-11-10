@@ -55,7 +55,7 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
           <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
           <div>
             <p className="font-medium">Date & Time</p>
-            <p className="text-sm text-muted-foreground">{formatDate(interview.scheduled_at)}</p>
+            <p className="text-base sm:text-sm text-muted-foreground">{formatDate(interview.scheduled_at)}</p>
           </div>
         </div>
 
@@ -65,22 +65,22 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
             <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting Link' : 'Location'}</p>
             {interview.mode === 'virtual' ? (
               meetingLink ? (
-                <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-base sm:text-sm text-primary hover:underline">
                   {meetingLink}
                 </a>
               ) : (
-                <p className="text-sm text-muted-foreground">Meeting link will be shared by admissions.</p>
+                <p className="text-base sm:text-sm text-muted-foreground">Meeting link will be shared by admissions.</p>
               )
             ) : (
-              <p className="text-sm text-muted-foreground">{interview.location || 'Location to be confirmed'}</p>
+              <p className="text-base sm:text-sm text-muted-foreground">{interview.location || 'Location to be confirmed'}</p>
             )}
           </div>
         </div>
 
         {interview.notes && (
           <div className="bg-muted p-3 rounded-lg">
-            <p className="text-sm font-medium mb-1">Additional Notes</p>
-            <p className="text-sm text-muted-foreground">{interview.notes}</p>
+            <p className="text-base sm:text-sm font-medium mb-1">Additional Notes</p>
+            <p className="text-base sm:text-sm text-muted-foreground">{interview.notes}</p>
           </div>
         )}
       </div>

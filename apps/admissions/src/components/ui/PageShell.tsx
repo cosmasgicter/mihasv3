@@ -98,7 +98,7 @@ export function PageShell({
                     {title}
                   </h1>
                   {subtitle && (
-                    <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-muted-foreground">
+                    <p className="mt-2 max-w-2xl break-words text-base sm:text-sm leading-6 text-muted-foreground">
                       {subtitle}
                     </p>
                   )}

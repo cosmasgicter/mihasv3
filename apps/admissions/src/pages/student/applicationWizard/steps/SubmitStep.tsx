@@ -181,7 +181,7 @@ const SubmitStep = ({
               <h3 id="submit-readiness-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Submission readiness
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                 Each item below should be complete before you submit.
               </p>
             </div>
@@ -202,8 +202,8 @@ const SubmitStep = ({
                       <AlertTriangle className="mt-0.5 h-5 w-5 text-warning" aria-hidden="true" />
                     )}
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                      <p className="text-sm text-muted-foreground">{item.detail}</p>
+                      <p className="text-base sm:text-sm font-semibold text-foreground">{item.label}</p>
+                      <p className="text-base sm:text-sm text-muted-foreground">{item.detail}</p>
                     </div>
                     {!item.completed && onNavigateToStep && (
                       <button
@@ -224,12 +224,12 @@ const SubmitStep = ({
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-base sm:text-sm font-semibold text-foreground">
                       Complete these {wizardReadiness.missingItems.length} item{wizardReadiness.missingItems.length === 1 ? '' : 's'} to enable submission
                     </p>
                     <ul className="space-y-1.5">
                       {wizardReadiness.missingItems.map(item => (
-                        <li key={`${item.stepKey}-${item.field}`} className="flex items-start justify-between gap-3 text-sm">
+                        <li key={`${item.stepKey}-${item.field}`} className="flex items-start justify-between gap-3 text-base sm:text-sm">
                           <span className="text-muted-foreground">
                             <span className="font-medium text-foreground">{item.label}:</span> {item.message}
                           </span>
@@ -257,7 +257,7 @@ const SubmitStep = ({
                 <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Application summary
                 </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                   Confirm the record exactly as admissions should review it.
                 </p>
               </div>
@@ -275,31 +275,31 @@ const SubmitStep = ({
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
               </div>
               {institutionLabel && (
                 <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
-                  <dd className="mt-1 text-sm font-medium text-foreground">{institutionLabel}</dd>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{institutionLabel}</dd>
                 </div>
               )}
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
               <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   {isSuccessfulPayment
                     ? 'Processed via Lenco payment gateway'
                     : isDeferredPayment
@@ -310,8 +310,8 @@ const SubmitStep = ({
             </dl>
 
             <div className="rounded-lg border border-border/70 bg-card px-4 py-4">
-              <p className="text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
-              <ul className="mt-3 space-y-2 text-sm text-foreground">
+              <p className="text-base sm:text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
+              <ul className="mt-3 space-y-2 text-base sm:text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {
                   const subject = subjects.find(subjectItem => subjectItem.id === grade.subject_id)
                   const subjectName = subject?.name || grade.subject_id || 'Loading...'

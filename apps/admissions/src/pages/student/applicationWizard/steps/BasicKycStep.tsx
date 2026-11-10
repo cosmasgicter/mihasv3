@@ -61,7 +61,7 @@ const BasicKycStep = ({
         <div
           className={`mb-4 p-3 bg-accent/10 border border-accent rounded-lg ${shouldAnimate ? animateClasses.slideUp : ''}`}
         >
-          <div className="flex items-center space-x-2 text-sm text-accent-foreground">
+          <div className="flex items-center space-x-2 text-base sm:text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile details pre-filled</span>
           </div>

@@ -96,7 +96,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
           <IconComponent className={cn('h-4 w-4', style.text)} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={cn('text-sm truncate', !notification.read ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground')}>
+          <p className={cn('text-base sm:text-sm truncate', !notification.read ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground')}>
             {sanitizeText(notification.title)}
           </p>
           <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">

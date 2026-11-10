@@ -176,7 +176,7 @@ export default function NotificationSettings() {
           <div className="flex min-w-0 items-start gap-3">
             {showIcon && <ChannelIcon channelKey={row.key} />}
             <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-base sm:text-sm font-medium text-foreground">
                 {PREFERENCE_LABELS[row.key] ?? row.key}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">{row.definition}</p>
@@ -330,7 +330,7 @@ export default function NotificationSettings() {
               )}
 
               <SectionCard title="Need something changed?" padding="sm">
-                <p className="text-sm text-muted-foreground">{SUPPORT_SENTENCE}</p>
+                <p className="text-base sm:text-sm text-muted-foreground">{SUPPORT_SENTENCE}</p>
                 <div className="mt-3">
                   {support.isExternal ? (
                     <Button asChild variant="outline" size="sm" className="min-h-touch">

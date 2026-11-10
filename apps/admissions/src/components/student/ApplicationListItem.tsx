@@ -182,7 +182,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           >
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next action</p>
-              <p className="break-words text-sm font-medium text-foreground">{nextAction.label}</p>
+              <p className="break-words text-base sm:text-sm font-medium text-foreground">{nextAction.label}</p>
               {nextAction.blockerMessage && (
                 <p className="break-words text-xs text-muted-foreground">{nextAction.blockerMessage}</p>
               )}
@@ -221,7 +221,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           vocabulary now, and the palette step cannot drift from the theme.
         */}
         {application.status === 'waitlisted' && waitlistData && (
-          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-base sm:text-sm">
             <ListOrdered className="h-4 w-4 flex-shrink-0 text-warning" aria-hidden="true" />
             <span className="font-medium text-warning">
               Waitlist position: {waitlistData.position} of {waitlistData.total}
@@ -233,7 +233,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         {showEnrollment && (
           <div
             data-testid="enrollment-confirmable"
-            className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-sm"
+            className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-base sm:text-sm"
           >
             <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" aria-hidden="true" />
             <span className="font-medium text-success">
@@ -248,11 +248,11 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         {/* Pending conditions list (Req 5.9) */}
         {application.status === 'conditionally_approved' && conditionsData && conditionsData.length > 0 && (
           <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-3">
-            <div className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground">
+            <div className="flex items-center gap-2 mb-2 text-base sm:text-sm font-medium text-foreground">
               <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
               <span>Pending conditions</span>
             </div>
-            <ul className="space-y-1 pl-6 text-sm text-foreground">
+            <ul className="space-y-1 pl-6 text-base sm:text-sm text-foreground">
               {conditionsData.filter(c => c.status === 'pending').map(condition => (
                 <li key={condition.id} className="list-disc">
                   {condition.description}
@@ -265,7 +265,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
         {/* Interview details */}
         {interviewData && (
-          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-base sm:text-sm">
             <Video className="h-4 w-4 text-primary flex-shrink-0" />
             <span className="font-medium text-primary">
               Interview {interviewData.status === 'rescheduled' ? '(rescheduled)' : 'scheduled'}: {interviewData.scheduled_at ? new Date(interviewData.scheduled_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'TBC'}

@@ -71,7 +71,7 @@ export function StatusTimeline({ timeline }: StatusTimelineProps) {
               {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`}>
+              <p className={`text-base sm:text-sm font-semibold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`}>
                 {step.description}
               </p>
               {step.date && (

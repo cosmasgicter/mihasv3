@@ -68,7 +68,7 @@ export const KeyboardShortcutsHelp = () => {
             <div className="space-y-3">
               {shortcuts.map((shortcut, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-foreground">{shortcut.description}</span>
+                  <span className="text-base sm:text-sm text-foreground">{shortcut.description}</span>
                   <div className="flex items-center gap-1">
                     {shortcut.keys.map((key, i) => (
                       <span key={i}>

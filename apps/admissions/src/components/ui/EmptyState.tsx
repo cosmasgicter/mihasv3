@@ -40,7 +40,7 @@ export function EmptyState({
       <div className="space-y-1.5">
         <Heading className="text-base font-semibold text-foreground">{heading}</Heading>
         {description && (
-          <p className="mx-auto max-w-xs text-sm text-muted-foreground">{description}</p>
+          <p className="mx-auto max-w-xs text-base sm:text-sm text-muted-foreground">{description}</p>
         )}
       </div>
       {action && (

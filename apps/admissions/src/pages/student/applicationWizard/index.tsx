@@ -915,7 +915,7 @@ const ApplicationWizardContent = () => {
               onClick={() => {
                 void handleBackToDashboard();
               }}
-              className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
+              className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-base sm:text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Dashboard
@@ -934,7 +934,7 @@ const ApplicationWizardContent = () => {
           {!isOnline && (
             <div
               role="alert"
-              className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground"
+              className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-base sm:text-sm text-foreground"
             >
               You appear to be offline. Your progress is saved on this device
               and will sync when you reconnect.
@@ -1106,7 +1106,7 @@ const ApplicationWizardContent = () => {
                 >
                   {uploading && currentStepConfig.key !== "education" && (
                     <div
-                      className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary"
+                      className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-base sm:text-sm text-primary"
                       role="status"
                     >
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/40 border-t-primary motion-reduce:animate-none" />
@@ -1213,7 +1213,7 @@ const ApplicationWizardContent = () => {
                   beside it.
                 */}
                 <SectionCard title="Your applications" padding="sm">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base sm:text-sm text-muted-foreground">
                     Your other saved applications are untouched while you work
                     on this one.
                   </p>

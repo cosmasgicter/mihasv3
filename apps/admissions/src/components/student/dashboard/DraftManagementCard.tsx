@@ -120,7 +120,7 @@ export function DraftManagementCard({
             className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="min-w-0">
-              <p className="break-words text-sm font-semibold text-foreground">
+              <p className="break-words text-base sm:text-sm font-semibold text-foreground">
                 {draftLabel(draft)}
               </p>
               {/*
@@ -163,7 +163,7 @@ export function DraftManagementCard({
             className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">Unsaved application</p>
+              <p className="text-base sm:text-sm font-semibold text-foreground">Unsaved application</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Saved on this device only. Continue it to save it to your account.
               </p>

@@ -418,7 +418,7 @@ export default function StudentSettings() {
         <button
           type="button"
           onClick={() => handleNavigate('/student/dashboard')}
-          className="inline-flex min-h-touch items-center rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-link-hover hover:bg-primary/5"
+          className="inline-flex min-h-touch items-center rounded-lg px-3 py-2 text-base sm:text-sm font-medium text-primary transition-colors hover:text-link-hover hover:bg-primary/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
@@ -459,7 +459,7 @@ export default function StudentSettings() {
             <div
               role="alert"
               aria-live="assertive"
-              className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-base sm:text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -480,7 +480,7 @@ export default function StudentSettings() {
             <div
               role="status"
               aria-live="polite"
-              className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning"
+              className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-base sm:text-sm text-warning"
             >
               <CloudOff className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
               You are offline. Your edits are kept on this device and will save automatically when you reconnect.
@@ -668,7 +668,7 @@ export default function StudentSettings() {
               </Button>
             }
           >
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base sm:text-sm text-muted-foreground">
               SMS delivery phone: <span className="font-semibold text-foreground">{getDisplayValue(notificationPhone, 'No phone number on file')}</span>
             </p>
           </SectionCard>
@@ -678,7 +678,7 @@ export default function StudentSettings() {
             description="Review every device currently signed in to your account and revoke any session you do not recognize."
             icon={<Shield className="h-5 w-5" />}
           >
-            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground">
               Terminating another session signs that device out without affecting the current page. Use this after shared-device access or if you notice an unfamiliar browser or IP address.
             </div>
             <ActiveSessions />

@@ -189,7 +189,7 @@ function RequirementRow({
       </div>
 
       {showStoredSummary ? (
-        <div className="flex flex-1 flex-col gap-2 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
+        <div className="flex flex-1 flex-col gap-2 rounded-lg border border-success/30 bg-success/5 p-4 text-base sm:text-sm text-success">
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <div className="min-w-0">
@@ -423,7 +423,7 @@ export function RequiredDocumentsPanel({
   if (loading) {
     return (
       <div className={cn('space-y-3', className)} aria-busy="true">
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2 text-base sm:text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           Loading the documents this application needs…
         </p>
@@ -444,7 +444,7 @@ export function RequiredDocumentsPanel({
       >
         <div className="flex items-start gap-2.5">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
-          <p className="text-sm text-destructive">{contractError}</p>
+          <p className="text-base sm:text-sm text-destructive">{contractError}</p>
         </div>
         {contractErrorRetryable && onReload && (
           <Button
@@ -464,7 +464,7 @@ export function RequiredDocumentsPanel({
 
   if (requirements.length === 0) {
     return (
-      <p className={cn('text-sm text-muted-foreground', className)}>
+      <p className={cn('text-base sm:text-sm text-muted-foreground', className)}>
         No documents are required for this application.
       </p>
     )
@@ -483,7 +483,7 @@ export function RequiredDocumentsPanel({
           aria-live="assertive"
           className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+          <p className="flex items-center gap-2 text-base sm:text-sm font-medium text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             {failures.length === 1
               ? '1 document needs your attention'

@@ -99,7 +99,7 @@ const SubmissionSuccess = ({
               <X className="h-4 w-4 text-foreground" />
             </button>
             <Skeleton className="mx-auto h-12 w-12 rounded-full" />
-            <p className="mt-4 text-sm font-medium text-foreground">
+            <p className="mt-4 text-base sm:text-sm font-medium text-foreground">
               {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -131,7 +131,7 @@ const SubmissionSuccess = ({
         </div>
 
         <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application Submitted</h2>
-        <p className="text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
+        <p className="text-base sm:text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
 
         {/*
           admissions-v2 task 10.5 (R13.12, STU-22): this block used to print the
@@ -158,7 +158,7 @@ const SubmissionSuccess = ({
         <div className={`rounded-lg border border-border/70 bg-muted/30 p-4 mb-6 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold text-foreground mb-3">Application Details</h3>
           {/* The application number is the headline above; not repeated here. */}
-          <dl className="space-y-2 text-sm">
+          <dl className="space-y-2 text-base sm:text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Program</dt>
               <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
@@ -196,7 +196,7 @@ const SubmissionSuccess = ({
         {/* Next steps list */}
         <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">What happens next</h3>
-          <ol className="space-y-3 text-sm">
+          <ol className="space-y-3 text-base sm:text-sm">
             <li className="flex items-start gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">1</span>
               <span className="text-foreground">A confirmation email will be sent to your registered address.</span>

@@ -60,7 +60,7 @@ interface AmendmentHistoryProps {
 export function AmendmentHistory({ amendments, totalCount, isLoading }: AmendmentHistoryProps) {
   if (isLoading) {
     return (
-      <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+      <p className="text-base sm:text-sm text-muted-foreground" role="status" aria-live="polite">
         Loading your amendment requests…
       </p>
     )
@@ -86,7 +86,7 @@ export function AmendmentHistory({ amendments, totalCount, isLoading }: Amendmen
           >
             <div className="mt-0.5 flex-shrink-0">{statusIcon(amendment)}</div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-base sm:text-sm font-medium text-foreground">
                 {amendmentFieldLabel(amendment.field_name)}
                 <span className="font-normal text-muted-foreground"> to </span>
                 <span className="break-words">{amendment.new_value}</span>

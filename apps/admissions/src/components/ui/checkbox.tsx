@@ -94,12 +94,12 @@ const CheckboxWithLabel = React.forwardRef<
       <div className="flex flex-col">
         <label
           htmlFor={checkboxId}
-          className="text-sm font-medium text-foreground cursor-pointer select-none leading-tight"
+          className="text-base sm:text-sm font-medium text-foreground cursor-pointer select-none leading-tight"
         >
           {label}
         </label>
         {description && (
-          <span className="text-sm text-muted-foreground mt-0.5">
+          <span className="text-base sm:text-sm text-muted-foreground mt-0.5">
             {description}
           </span>
         )}

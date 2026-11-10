@@ -78,7 +78,7 @@ export function DownloadReceiptButton({
   if (uiState === 'setup_required') {
     return (
       <div className="space-y-2" role="status" data-testid="receipt-unavailable">
-        <p className="flex items-start gap-2 text-sm text-foreground">
+        <p className="flex items-start gap-2 text-base sm:text-sm text-foreground">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
           <span>
             Your payment is confirmed. The receipt document is not available to download yet —

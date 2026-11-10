@@ -37,7 +37,7 @@ export const StepChecklist = ({ items, title = 'Step Checklist' }: StepChecklist
             ) : (
               <Circle className="h-4 w-4 text-caption flex-shrink-0" />
             )}
-            <span className={`text-sm ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <span className={`text-base sm:text-sm ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
               {item.label}
             </span>
           </div>

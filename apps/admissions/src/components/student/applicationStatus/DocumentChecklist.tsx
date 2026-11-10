@@ -158,7 +158,7 @@ export function DocumentChecklist({ applicationId }: DocumentChecklistProps) {
                 <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div className="min-w-0 space-y-1">
-                <p className="break-words text-sm font-semibold text-foreground">{label}</p>
+                <p className="break-words text-base sm:text-sm font-semibold text-foreground">{label}</p>
                 {row.documentName && (
                   <p className="truncate text-xs text-muted-foreground">{row.documentName}</p>
                 )}

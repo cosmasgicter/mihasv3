@@ -93,7 +93,7 @@ interface ApplicationHistoryProps {
 export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps) {
   if (isLoading) {
     return (
-      <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+      <p className="text-base sm:text-sm text-muted-foreground" role="status" aria-live="polite">
         Loading this application&rsquo;s history&hellip;
       </p>
     )
@@ -114,7 +114,7 @@ export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps)
     <ol className="space-y-3" data-testid="application-status-history">
       {rows.map((row) => (
         <li key={row.id} className="rounded-lg border border-border px-4 py-3">
-          <p className="text-sm font-semibold text-foreground">{transitionLabel(row)}</p>
+          <p className="text-base sm:text-sm font-semibold text-foreground">{transitionLabel(row)}</p>
           {/*
             The server's own timestamp, rendered through the repo's single
             formatter. `formatTimestamp` answers "Not available" for a null,
@@ -131,7 +131,7 @@ export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps)
             </p>
           )}
           {row.notes && (
-            <p className="mt-2 break-words rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+            <p className="mt-2 break-words rounded-md bg-muted px-3 py-2 text-base sm:text-sm text-foreground">
               {row.notes}
             </p>
           )}

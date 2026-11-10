@@ -238,7 +238,7 @@ const EducationStep = ({
       <div className="space-y-6">
         {/* OCR progress indicator */}
         {ocrStatus === 'polling' && (
-          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary animate-in fade-in duration-300">
+          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-base sm:text-sm text-primary animate-in fade-in duration-300">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             <span>Scanning your result slip for grades…</span>
           </div>
@@ -260,18 +260,18 @@ const EducationStep = ({
           />
         )}
         {ocrStatus === 'applied' && ocrAppliedCount && ocrAppliedCount > 0 && (
-          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
+          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-base sm:text-sm text-green-600 animate-in fade-in duration-300" role="status">
             <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             <span>Added {ocrAppliedCount} confirmed subject{ocrAppliedCount > 1 ? 's' : ''}. Check each grade below and edit anything that is wrong.</span>
           </div>
         )}
         {ocrStatus === 'dismissed' && (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
             <span>Suggestions dismissed. Add your subjects below — your upload is still saved.</span>
           </div>
         )}
         {ocrStatus === 'failed' && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-base sm:text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
             <span>
               {ocrFailureReason === 'server_failed'
                 ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually — your upload is still saved.'
@@ -324,7 +324,7 @@ const EducationStep = ({
               */}
               <p
                 className={cn(
-                  'mt-1 inline-flex items-center gap-1.5 text-sm font-semibold',
+                  'mt-1 inline-flex items-center gap-1.5 text-base sm:text-sm font-semibold',
                   uniqueValidSubjectCount < 5 ? 'text-destructive' : 'text-success',
                 )}
               >
@@ -353,7 +353,7 @@ const EducationStep = ({
             <div className={`mb-6 flex flex-col items-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
               <GraduationCap className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <p className="mt-4 text-base font-semibold text-foreground">Add your Grade 12 subjects to continue</p>
-              <p className="mt-1 text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
               <Button
                 type="button"
                 onClick={event => {
@@ -541,7 +541,7 @@ const EducationStep = ({
           <legend className="sr-only">Document Uploads</legend>
           <div className="mb-4">
             <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">
               {uploadIntro}
             </p>
           </div>

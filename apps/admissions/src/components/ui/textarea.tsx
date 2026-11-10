@@ -33,7 +33,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label 
             htmlFor={textareaId}
-            className="block text-sm font-medium text-foreground mb-2"
+            className="block text-base sm:text-sm font-medium text-foreground mb-2"
           >
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
@@ -84,7 +84,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p
             id={errorId}
             className={cn(
-              'mt-1 text-sm text-destructive',
+              'mt-1 text-base sm:text-sm text-destructive',
               // CSS animation for error appearance
               'animate-in fade-in-0 slide-in-from-top-1 duration-150',
               'motion-reduce:animate-none'
@@ -97,6 +97,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {helperText && !error && (
           <p 
             id={helperId} 
+            data-text-role="caption"
             className="mt-1 text-sm text-muted-foreground"
           >
             {helperText}

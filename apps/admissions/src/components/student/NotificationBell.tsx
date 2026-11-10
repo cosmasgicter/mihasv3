@@ -152,12 +152,12 @@ export function NotificationBell() {
               {loading ? (
                 <div className="p-6 text-center" role="status" aria-label="Loading notifications">
                   <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-muted animate-pulse" aria-hidden="true" />
-                  <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
+                  <p className="text-muted-foreground text-base sm:text-sm mt-2">Loading notifications...</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
                   <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-                  <p className="font-medium text-foreground text-sm">No new notifications</p>
+                  <p className="font-medium text-foreground text-base sm:text-sm">No new notifications</p>
                   <p className="text-xs mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
                 </div>
               ) : (

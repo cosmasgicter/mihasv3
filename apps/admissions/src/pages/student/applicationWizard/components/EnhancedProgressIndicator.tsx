@@ -83,7 +83,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'relative rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-out z-10',
+          'text-base sm:text-sm font-semibold border-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-out z-10',
           isCompleted
             ? 'bg-success/90 border-success/70 text-white shadow-sm'
             : isCurrent
@@ -179,7 +179,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'w-11 h-11 rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 flex-shrink-0 transition-[color,background-color,border-color] duration-200',
+          'text-base sm:text-sm font-semibold border-2 flex-shrink-0 transition-[color,background-color,border-color] duration-200',
           isCompleted
             ? 'bg-success border-success text-white'
             : isCurrent
@@ -193,7 +193,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       {/* Step info */}
       <div className="flex-1 min-w-0 text-left">
         <div className={cn(
-          'text-sm font-semibold truncate',
+          'text-base sm:text-sm font-semibold truncate',
           isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
         )}>
           {step.progressTitle}
@@ -403,7 +403,7 @@ export const EnhancedProgressIndicator = ({
         </div>
         {/* Current step label */}
         {!compact && (
-          <p className="text-center text-sm font-semibold text-primary mt-2">
+          <p className="text-center text-base sm:text-sm font-semibold text-primary mt-2">
             {steps[currentStepIndex]?.progressTitle}
             <span className="text-muted-foreground font-normal ml-1.5">
               — Step {currentStepIndex + 1} of {steps.length}

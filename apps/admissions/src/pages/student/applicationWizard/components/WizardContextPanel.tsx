@@ -81,7 +81,7 @@ export function WizardContextPanel({
           aria-expanded={openOnMobile}
           aria-controls="wizard-context-region"
           data-testid="wizard-context-toggle"
-          className="flex min-h-touch w-full items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left text-sm font-semibold text-foreground hover:bg-accent"
+          className="flex min-h-touch w-full items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left text-base sm:text-sm font-semibold text-foreground hover:bg-accent"
         >
           <span className="flex min-w-0 items-center gap-2">
             <ClipboardList className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

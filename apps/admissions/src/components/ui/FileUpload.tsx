@@ -204,7 +204,7 @@ function FileUpload({
           <div className="flex items-center gap-3 mb-3">
             <Upload className="h-6 w-6 text-primary flex-shrink-0 animate-pulse" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-base sm:text-sm font-medium text-foreground truncate">
                 {primaryFile?.name ?? 'Uploading...'}
               </p>
               {primaryFile && (
@@ -281,7 +281,7 @@ function FileUpload({
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-medium text-foreground truncate">
+                <p className="text-base sm:text-sm font-medium text-foreground truncate">
                   {primaryFile?.name ?? 'File uploaded'}
                 </p>
                 <CheckCircle className="h-4 w-4 text-success flex-shrink-0" aria-hidden="true" />
@@ -319,7 +319,7 @@ function FileUpload({
               <FileIcon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-base sm:text-sm font-medium text-foreground truncate">
                 {primaryFile?.name}
               </p>
               {primaryFile && (
@@ -343,7 +343,7 @@ function FileUpload({
           <div className="mt-2 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" aria-hidden="true" />
-              <p id={errorId} className="text-sm text-destructive truncate" role="alert">
+              <p id={errorId} className="text-base sm:text-sm text-destructive truncate" role="alert">
                 {error}
               </p>
             </div>
@@ -377,7 +377,7 @@ function FileUpload({
                 <FileIcon className="h-8 w-8 text-primary" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground truncate" title={primaryFile?.name}>
+                <p className="text-base sm:text-sm font-medium text-foreground truncate" title={primaryFile?.name}>
                   {primaryFile?.name}
                 </p>
                 {primaryFile && (
@@ -438,7 +438,7 @@ function FileUpload({
           )}
           aria-hidden="true"
         />
-        <p className="text-sm font-medium text-foreground mb-1">
+        <p className="text-base sm:text-sm font-medium text-foreground mb-1">
           {isDragActive ? 'Drop file here' : 'Drop file here or click to browse'}
         </p>
         <p className="text-xs text-muted-foreground">
@@ -449,7 +449,7 @@ function FileUpload({
       {error && !hasFile && (
         <div className="mt-2 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" aria-hidden="true" />
-          <p id={errorId} className="text-sm text-destructive" role="alert">
+          <p id={errorId} className="text-base sm:text-sm text-destructive" role="alert">
             {error}
           </p>
         </div>

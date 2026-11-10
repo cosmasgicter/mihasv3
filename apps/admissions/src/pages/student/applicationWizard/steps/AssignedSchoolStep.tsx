@@ -79,14 +79,14 @@ const AssignedSchoolStep = ({
     >
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-base sm:text-sm text-muted-foreground">
           Confirm the school assigned to you, the application fee, and the documents you will need before you pay.
         </p>
       </div>
 
       {isLoading && (
         <div
-          className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/40 px-4 py-6 text-sm text-muted-foreground"
+          className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/40 px-4 py-6 text-base sm:text-sm text-muted-foreground"
           role="status"
           aria-live="polite"
         >
@@ -131,7 +131,7 @@ const AssignedSchoolStep = ({
                 <h3 id="assigned-school-heading" className="text-base font-semibold text-foreground">
                   {preview.assigned_school.full_name || preview.assigned_school.name}
                 </h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                   {preview.program_name} — {preview.intake_name}
                 </p>
               </div>
@@ -149,7 +149,7 @@ const AssignedSchoolStep = ({
                 {feeLabel ? (
                   <p className="font-mono text-base font-semibold text-foreground">{feeLabel}</p>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base sm:text-sm text-muted-foreground">
                     The fee will be confirmed at the payment step.
                   </p>
                 )}
@@ -166,7 +166,7 @@ const AssignedSchoolStep = ({
             {requiredDocs.length > 0 ? (
               <ul className="space-y-2">
                 {requiredDocs.map((doc, index) => (
-                  <li key={`${doc.document_type}-${index}`} className="flex items-start gap-2 text-sm text-foreground">
+                  <li key={`${doc.document_type}-${index}`} className="flex items-start gap-2 text-base sm:text-sm text-foreground">
                     <FileCheck2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" aria-hidden="true" />
                     <span>
                       {doc.label}
@@ -176,7 +176,7 @@ const AssignedSchoolStep = ({
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm text-muted-foreground">
                 Standard documents apply: your result slip and an NRC or passport.
               </p>
             )}
@@ -186,7 +186,7 @@ const AssignedSchoolStep = ({
           {contact && (contact.email || contact.phone || contact.website) && (
             <section aria-labelledby="assigned-contact-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
               <h3 id="assigned-contact-heading" className="mb-3 text-sm font-medium text-foreground">School contact</h3>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-base sm:text-sm">
                 {contact.email && (
                   <li className="flex items-center gap-2">
                     <Mail className="h-4 w-4 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
