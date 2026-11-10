@@ -30,6 +30,23 @@ journey-gate`) is its answer to R9; making its two jobs required checks on `main
 is an operator step in repository settings. Spec B is a separate spec and is not
 registered here.
 
+### Platform simplification and polish (Spec B, decision D12)
+`.kiro/specs/platform-simplification-and-polish/` (Spec B) is registered as a
+second, separate spec beside Spec A. It simplifies the platform (removals,
+freezes, truthful docs and defaults) and polishes the rendered student and admin
+surfaces. Decision D12 (confirmed 2026-11-08, two specs with supersession)
+states the relationship to the specs already in flight:
+- It **supersedes** `.kiro/specs/student-ui-ux-mobile-remediation/` for the
+  student surfaces only. Where that spec and Spec B name the same student
+  behaviour, Spec B is authoritative.
+- Record-only overlaps, not superseded and never edited by Spec B:
+  `admin-dashboard-overhaul` (admin dashboard and navigation),
+  `profile-updates` (student settings), and
+  `admissions-v2-canonical-rebuild` (the V2 authority, unchanged).
+- `scripts/spec-status-exceptions.json` lists those four specs, so the blocking
+  spec-status check does not require their `.config.kiro` to change.
+- Spec B adds no `status` to its own `.config.kiro` (its brief forbids it).
+
 The archived `canonical-multi-tenant-alignment` spec and other earlier active or
 archived specs remain historical design and evidence inputs. When an
 admissions-specific implementation choice conflicts with the V2 spec, the V2
