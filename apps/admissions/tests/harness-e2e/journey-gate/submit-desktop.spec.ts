@@ -31,8 +31,8 @@ test('a ready draft is submitted from the desktop interface', async ({ page, gat
     waitUntil: 'domcontentloaded',
   });
   await page.getByText('I confirm that all information provided is accurate and complete.').click();
-  await page.getByRole('button', { name: /^Submit Application/ }).click();
+  await page.getByRole('button', { name: /^Submit application/ }).click();
   await expect(page.getByRole('heading', { name: /Application Submitted/i })).toBeVisible({ timeout: 90_000 });
   expect(submits, 'one submit request, and it succeeded').toEqual([200]);
-  await expect(page.getByRole('button', { name: /Download Slip/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Download slip/ })).toBeVisible();
 });

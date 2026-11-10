@@ -190,7 +190,7 @@ test.describe("Onboarding wizard renders the real canonical steps (TEN-02, R7.3)
       // now real steps; assert each label is present (the operator can reach the
       // program-offering, intake+capacity, fee, and routing mutations).
       await expect(
-        page.getByText("Program offerings", { exact: false }).first(),
+        page.getByText("Programme offerings", { exact: false }).first(),
       ).toBeVisible();
       await expect(
         page.getByText("Intake & capacity", { exact: false }).first(),

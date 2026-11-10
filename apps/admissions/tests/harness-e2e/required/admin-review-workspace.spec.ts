@@ -434,7 +434,7 @@ test('a Tenant_Admin opens an application with one read and none of the six reti
 
   // The sections the six retired calls used to supply are all on screen.
   await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Program Information' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Programme information' })).toBeVisible();
   await page.getByRole('tab', { name: /documents/i }).click();
   await expect(page.getByRole('tab', { name: /documents/i })).toHaveAttribute(
     'aria-selected',
