@@ -66,7 +66,7 @@ const AssignmentRecoveryPanel = ({
             role="status"
           >
             <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            You&apos;re on the interest list. We&apos;ll be in touch if a place opens.
+            Reminder saved on this device. It does not tell admissions, so contact them to ask about a place.
           </p>
         ) : (
           <Button
@@ -78,7 +78,7 @@ const AssignmentRecoveryPanel = ({
             className="w-full justify-start sm:w-auto"
           >
             <BellRing className="mr-2 h-4 w-4" aria-hidden="true" />
-            Join the interest list
+            Remind me on this device
           </Button>
         )
       case 'contact-admissions':

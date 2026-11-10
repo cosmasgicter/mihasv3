@@ -187,10 +187,6 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
   )
 }
 
-function getDisplayValue(value: string | null | undefined, fallback: string) {
-  return value && value.trim().length > 0 ? value : fallback
-}
-
 export default function StudentSettings() {
   const navigate = useNavigate()
   const { brandName } = usePortalBrand()
@@ -361,12 +357,6 @@ export default function StudentSettings() {
     })
   }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
-  const notificationPhone =
-    currentPhone?.trim() ||
-    profile?.phone?.trim() ||
-    metadata?.phone?.trim() ||
-    ''
-
   const handleNavigate = React.useCallback((path: string) => {
     // Autosave is canonical: flush any queued edits, then navigate. No blocking
     // confirm dialog — the autosave hook owns unload protection.
@@ -524,7 +514,7 @@ export default function StudentSettings() {
                 label="Phone number"
                 autoComplete="tel"
                 placeholder="+260970000000"
-                helperText="Zambian format (+260 and 9 digits). Reused for SMS notification delivery."
+                helperText="Zambian format (+260 and 9 digits)."
                 error={errors.phone?.message}
                 disabled={!profileEditingEnabled}
               />
@@ -660,18 +650,14 @@ export default function StudentSettings() {
 
           <SectionCard
             title="Notification delivery"
-            description="Portal inbox notifications stay available in-app. SMS delivery uses the phone number stored on this profile."
+            description="Notices appear in your portal inbox and are sent to your account email."
             icon={<Bell className="h-5 w-5" />}
             actions={
               <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => handleNavigate('/student/notifications')}>
                 Open notification preferences
               </Button>
             }
-          >
-            <p className="text-base sm:text-sm text-muted-foreground">
-              SMS delivery phone: <span className="font-semibold text-foreground">{getDisplayValue(notificationPhone, 'No phone number on file')}</span>
-            </p>
-          </SectionCard>
+          />
 
           <SectionCard
             title="Security and active sessions"

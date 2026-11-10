@@ -83,7 +83,7 @@ export function resolveAssignmentRecovery({
       return {
         code,
         title: 'No school is assigned for this choice yet',
-        message: `We could not find a school accepting ${program} for ${intake} based on your details. You can choose a different intake, join the interest list so we can notify you when a place opens, or contact admissions for help.`,
+        message: `We could not find a school accepting ${program} for ${intake} based on your details. You can choose a different intake, save a reminder on this device, or contact admissions for help.`,
         actions: ['change-intake', 'interest-list', 'contact-admissions'],
       }
     case 'OFFERING_NO_LONGER_AVAILABLE':
@@ -97,7 +97,7 @@ export function resolveAssignmentRecovery({
       return {
         code,
         title: 'Your assigned school is now full',
-        message: `The school assigned for ${program} (${intake}) filled its remaining places before your application was submitted. Your details are saved. Choose another intake to continue, join the interest list for the next opening, or contact admissions.`,
+        message: `The school assigned for ${program} (${intake}) filled its remaining places before your application was submitted. Your details are saved. Choose another intake to continue, save a reminder on this device, or contact admissions.`,
         actions: ['change-intake', 'interest-list', 'contact-admissions'],
       }
     default:
@@ -143,7 +143,8 @@ export function buildAdmissionsMailto({
 // There is no backend interest-list endpoint yet. To avoid fabricating an API
 // (and to keep the recovery path real and honest), interest is recorded
 // client-side in localStorage as an intent marker. The UI clearly labels this
-// as a notification request and still points the student at contact admissions.
+// as a reminder on this device (it tells admissions nothing) and still points
+// the student at contact admissions.
 
 const INTEREST_STORE_KEY = BROWSER_KEYS.assignmentInterest
 const LEGACY_INTEREST_STORE_KEY = LEGACY_BROWSER_KEYS.assignmentInterest

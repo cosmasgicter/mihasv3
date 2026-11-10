@@ -44,7 +44,7 @@ describe('AssignmentRecoveryPanel', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /join the interest list/i }))
+    fireEvent.click(screen.getByRole('button', { name: /remind me on this device/i }))
     expect(onJoin).toHaveBeenCalledTimes(1)
   })
 
@@ -59,8 +59,8 @@ describe('AssignmentRecoveryPanel', () => {
       />,
     )
 
-    expect(screen.queryByRole('button', { name: /join the interest list/i })).toBeNull()
-    expect(screen.getByText(/on the interest list/i)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /remind me on this device/i })).toBeNull()
+    expect(screen.getByText(/reminder saved on this device/i)).toBeTruthy()
   })
 
   it('routes contact admissions to a mailto link when available, else the contact page', () => {
