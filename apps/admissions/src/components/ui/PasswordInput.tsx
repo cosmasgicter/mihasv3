@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 
 export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string
   error?: string
   helperText?: string
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, label, error, helperText, id, ...props }, ref) => {
+  ({ className, label, error, helperText, optional, id, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
     const generatedId = React.useId()
     const inputId = id ?? generatedId
@@ -21,7 +24,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         {label && (
           <label htmlFor={inputId} className="block text-base sm:text-sm font-medium text-foreground mb-2">
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         <div className="relative">

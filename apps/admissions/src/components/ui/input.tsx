@@ -1,16 +1,19 @@
 import React from 'react'
 import { AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   helperText?: string
   icon?: React.ReactNode
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, helperText, icon, optional, type = 'text', ...props }, ref) => {
     const generatedId = React.useId()
     const inputId = props.id ?? generatedId
 
@@ -24,7 +27,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="block text-base sm:text-sm font-medium text-foreground mb-2">
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         <div className="relative">

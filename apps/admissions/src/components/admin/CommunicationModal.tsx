@@ -246,7 +246,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
             honest `N/A` badge.
           */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Communication Channel *</label>
+            <label className="text-sm font-medium">Communication channel</label>
             <div className="grid grid-cols-2 gap-2">
               {(['email', 'in-app'] as const).map((channelType) => {
                 const isAvailable = getChannelAvailability(channelType)
@@ -299,7 +299,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
           {/* Subject (Email only) */}
           {channel === 'email' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Subject *</label>
+              <label className="text-sm font-medium">Subject</label>
               <input
                 type="text"
                 value={subject}
@@ -313,7 +313,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
           {/* Message */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Message *</label>
+              <label className="text-sm font-medium">Message</label>
               <span
                 className={cn(
                   'text-xs',

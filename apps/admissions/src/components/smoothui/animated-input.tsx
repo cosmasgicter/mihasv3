@@ -12,17 +12,20 @@
 
 import { forwardRef, useState, useId } from 'react';
 import { cn } from '@/lib/utils';
+import { OptionalMarker } from '@/components/ui/OptionalMarker';
 
 interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean;
   /** Additional aria-describedby ids to merge with the component's own (Req 17.2) */
   extraDescribedBy?: string;
 }
 
 export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
-  ({ label, error, helperText, extraDescribedBy, className, id, ...props }, ref) => {
+  ({ label, error, helperText, optional, extraDescribedBy, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const generatedId = useId();
     const inputId = id || generatedId;
@@ -48,7 +51,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             )}
           >
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         

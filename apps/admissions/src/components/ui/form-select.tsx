@@ -36,6 +36,8 @@ export interface FormSelectProps<T extends FieldValues> {
   triggerClassName?: string
   /** Whether the field is required */
   required?: boolean
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
   /** Callback when value changes */
   onValueChange?: (value: string) => void
   /** Additional aria-describedby ids to merge (Req 17.2) */
@@ -76,6 +78,7 @@ export function FormSelect<T extends FieldValues>({
   className,
   triggerClassName,
   required = false,
+  optional = false,
   onValueChange,
   extraDescribedBy,
 }: FormSelectProps<T>) {
@@ -99,6 +102,7 @@ export function FormSelect<T extends FieldValues>({
           className={className}
           triggerClassName={triggerClassName}
           required={required}
+          optional={optional}
           extraDescribedBy={extraDescribedBy}
         />
       )}

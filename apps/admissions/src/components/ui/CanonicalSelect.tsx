@@ -12,6 +12,7 @@
  * Requirements: 2.3, 9.1, 9.5
  */
 
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 import * as React from 'react'
 import {
   Select as RadixSelect,
@@ -51,6 +52,8 @@ export interface CanonicalSelectProps {
   helperText?: string
   /** Whether the field is required */
   required?: boolean
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
   'aria-label'?: string
   'aria-describedby'?: string
   /** Additional aria-describedby ids to merge with the component's own (Req 17.2) */
@@ -71,6 +74,7 @@ export function CanonicalSelect({
   label,
   helperText,
   required = false,
+  optional = false,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
   extraDescribedBy,
@@ -154,7 +158,7 @@ export function CanonicalSelect({
           className="block text-base sm:text-sm font-medium text-foreground"
         >
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {optional && !required && <OptionalMarker />}
         </label>
       )}
 

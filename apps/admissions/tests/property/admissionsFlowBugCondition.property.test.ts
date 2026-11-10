@@ -104,7 +104,7 @@ describe('[PBT] Bug 2 — Phone with spaces normalized, placeholder no spaces', 
       __dirname, '../../src/pages/student/applicationWizard/steps/BasicKycStep.tsx'
     )
     const source = fs.readFileSync(basicKycPath, 'utf-8')
-    const placeholderMatch = source.match(/label="Phone Number \*"[\s\S]*?placeholder="([^"]+)"/)
+    const placeholderMatch = source.match(/label="Phone number"[\s\S]*?placeholder="([^"]+)"/)
     expect(placeholderMatch).toBeTruthy()
     const placeholder = placeholderMatch![1]
     const phoneInPlaceholder = placeholder.replace(/^e\.g\.,?\s*/, '')

@@ -233,7 +233,7 @@ export function ResidenceLocationFields({
               <AnimatedInput
                 {...field}
                 value={field.value || ''}
-                label={`${RESIDENCE_TOWN_LABEL} *`}
+                label={RESIDENCE_TOWN_LABEL}
                 autoComplete="address-level2"
                 placeholder="Start typing your town"
                 required

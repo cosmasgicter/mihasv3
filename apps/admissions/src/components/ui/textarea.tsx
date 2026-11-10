@@ -1,5 +1,6 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 
 /**
  * Textarea Component - shadcn/ui pattern
@@ -19,10 +20,12 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   label?: string
   error?: string
   helperText?: string
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, helperText, id, ...props }, ref) => {
+  ({ className, label, error, helperText, optional, id, ...props }, ref) => {
     const generatedId = React.useId()
     const textareaId = id || generatedId
     const errorId = `${textareaId}-error`
@@ -36,7 +39,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             className="block text-base sm:text-sm font-medium text-foreground mb-2"
           >
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         <textarea

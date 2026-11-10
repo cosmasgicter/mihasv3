@@ -82,7 +82,7 @@ export function CreateUserDialog({
             />
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Role <span className="text-destructive">*</span>
+                Role
               </label>
               <select
                 {...form.register('role')}

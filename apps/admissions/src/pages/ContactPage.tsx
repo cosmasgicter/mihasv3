@@ -221,7 +221,7 @@ export default function ContactPage() {
                 />
                 <div className="w-full">
                   <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
-                    Message <span className="text-destructive ml-1">*</span>
+                    Message
                   </label>
                   <textarea
                     id="contact-message"
