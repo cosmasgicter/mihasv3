@@ -2843,6 +2843,20 @@
   },
   {
     "rule": "impeccable/single-font",
+    "page": "/student/application-wizard#assignedSchool",
+    "viewport": "1440x900",
+    "selector": "body",
+    "reason": "Inter is the single documented product font (DESIGN.md; tech steering fixes its fallback chain)."
+  },
+  {
+    "rule": "impeccable/single-font",
+    "page": "/student/application-wizard#assignedSchool",
+    "viewport": "390x844",
+    "selector": "body",
+    "reason": "Inter is the single documented product font (DESIGN.md; tech steering fixes its fallback chain)."
+  },
+  {
+    "rule": "impeccable/single-font",
     "page": "/student/application-wizard#education",
     "viewport": "1440x900",
     "selector": "body",

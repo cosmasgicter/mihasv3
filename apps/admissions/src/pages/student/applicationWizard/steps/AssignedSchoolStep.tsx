@@ -161,7 +161,7 @@ const AssignedSchoolStep = ({
                 <h2 id="assigned-fee-heading" className="text-sm font-medium text-foreground">Application fee</h2>
                 {estimate ? (
                   <div data-testid="assigned-fee-estimate">
-                    <p className="font-mono text-base font-semibold text-foreground">
+                    <p className="text-base font-semibold text-foreground">
                       Total you will pay: {estimate.total}
                     </p>
                     <p className="text-base sm:text-sm text-foreground">

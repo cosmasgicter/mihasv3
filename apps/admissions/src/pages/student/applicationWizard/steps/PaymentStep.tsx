@@ -135,8 +135,8 @@ const PaymentStep = ({
 
         {/* Fee display — every value below is rendered exactly as the server sent it */}
         <div className="rounded-lg border border-border bg-card p-5" data-testid="fee-quote-panel">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
+          <div className="flex flex-wrap-reverse items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 basis-56">
               <p className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
               {quoteLoading ? (
                 <div className="mt-2 space-y-2" role="status" aria-label="Preparing fee">
