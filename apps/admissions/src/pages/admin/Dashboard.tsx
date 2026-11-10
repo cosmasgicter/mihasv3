@@ -270,8 +270,8 @@ export default function AdminDashboard() {
 
   const isGlobal = scope === 'global'
   const overviewSubtitle = isGlobal
-    ? 'Admissions volume and queue pressure across every school. Each number states what it counts.'
-    : 'Applications and queue pressure for your school. Each number states what it counts.'
+    ? 'Admissions volume and queue pressure across every school.'
+    : 'Applications and queue pressure for your school.'
 
   // Every number the page renders comes from the registry. `metrics[key]` is
   // `undefined` until a read lands and absent whenever its source failed, and

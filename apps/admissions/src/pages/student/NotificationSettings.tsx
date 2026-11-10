@@ -309,7 +309,7 @@ export default function NotificationSettings() {
               {schema.unsupported_fields.length > 0 && (
                 <SectionCard
                   title="What this platform does not do"
-                  description="These are named so their absence is explained rather than assumed."
+                  description="Settings you might look for that are not available here."
                   icon={<Info className="h-5 w-5" />}
                   padding="sm"
                 >

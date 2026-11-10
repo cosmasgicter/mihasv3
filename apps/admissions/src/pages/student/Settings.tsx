@@ -542,7 +542,7 @@ export default function StudentSettings() {
 
           <SectionCard
             title={SECTION_LABELS.residence}
-            description="These details feed the application wizard so your residence data does not drift from your student profile."
+            description="These details feed the application wizard, so your residence is the same in both places."
             icon={<MapPin className="h-5 w-5" />}
             actions={<SaveIndicator status={sections.residence.status} error={sections.residence.error} />}
           >
