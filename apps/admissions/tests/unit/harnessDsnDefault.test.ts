@@ -17,7 +17,7 @@ function harnessDefaultDsn(): string {
   expect(line, 'harness must export VITE_GLITCHTIP_DSN').toBeTruthy();
   const match = /\$\{VITE_GLITCHTIP_DSN:-([^}]+)\}/.exec(line as string);
   expect(match, 'the default keeps the ${VAR:-default} form so a caller value wins').not.toBeNull();
-  return (match as RegExpExecArray)[1];
+  return (match as RegExpExecArray)[1] ?? '';
 }
 
 afterEach(() => {
