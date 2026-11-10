@@ -142,5 +142,9 @@ export type PlatformMeta = {
     url: string
   }
   apiVersion: string
-  status: string
+  features: {
+    jobsOps: boolean
+  }
+  /** `backend` when the metadata endpoint answered, `demo` for the offline demo fallback. */
+  source: 'backend' | 'demo'
 }

@@ -7,7 +7,7 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/lib/env'
 import { labelize } from '@/lib/format'
-import { getPlatformMeta } from '@/services/api/platform'
+import { describePlatformStatus, getPlatformMeta } from '@/services/api/platform'
 
 const providers = [
   {
@@ -58,7 +58,9 @@ export function IntegrationsPage() {
         actions={
           <>
             <StatusBadge tone="insight">{platform?.apiVersion ?? 'v1'}</StatusBadge>
-            <StatusBadge tone="success">{platform?.status ?? 'ready'}</StatusBadge>
+            <StatusBadge tone={platform?.source === 'demo' ? 'warning' : platform?.features.jobsOps ? 'success' : 'insight'}>
+              {describePlatformStatus(platform)}
+            </StatusBadge>
           </>
         }
       />

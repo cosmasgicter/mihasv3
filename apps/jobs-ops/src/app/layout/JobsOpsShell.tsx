@@ -11,7 +11,7 @@ import { labelize } from '@/lib/format'
 import { listAutomationRuns } from '@/services/api/automation'
 import { listEmailThreads } from '@/services/api/email'
 import { listJobApplications } from '@/services/api/job-applications'
-import { getPlatformMeta } from '@/services/api/platform'
+import { describePlatformStatus, getPlatformMeta } from '@/services/api/platform'
 import { useUiStore } from '@/stores/ui-store'
 
 function toneFromRunStatus(status: string) {
@@ -238,14 +238,6 @@ export function JobsOpsShell() {
             })}
           </nav>
 
-          {!sidebarCollapsed ? (
-            <div className="mt-auto rounded-[24px] border border-line/70 bg-panel/75 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Live backend</p>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Read models pull from the seeded `/api/v1/...` contracts. Write actions stay policy-gated.
-              </p>
-            </div>
-          ) : null}
         </nav>
 
         <div className="grid min-h-[calc(100vh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-4">
@@ -259,7 +251,9 @@ export function JobsOpsShell() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <StatusBadge tone="success">{platformQuery.data?.status ?? 'loading'}</StatusBadge>
+              <StatusBadge tone={platformQuery.data?.source === 'demo' ? 'warning' : platformQuery.data?.features.jobsOps ? 'success' : 'insight'}>
+                {describePlatformStatus(platformQuery.data)}
+              </StatusBadge>
               <StatusBadge tone="warning">{reviewCount} awaiting approval</StatusBadge>
               <StatusBadge tone={blockedRuns.length > 0 ? 'danger' : 'insight'}>
                 {blockedRuns.length} blocked runs
