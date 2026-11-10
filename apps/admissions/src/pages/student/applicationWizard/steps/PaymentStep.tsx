@@ -195,7 +195,7 @@ const PaymentStep = ({
               )}
             </div>
             {residencyRateLabel(quote?.residency_category) && (
-              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1 text-sm sm:text-xs font-medium text-muted-foreground">
+              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1.5 text-sm sm:text-xs font-medium text-muted-foreground">
                 {residencyRateLabel(quote?.residency_category)}
               </span>
             )}
