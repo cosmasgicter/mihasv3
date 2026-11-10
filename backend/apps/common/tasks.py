@@ -326,7 +326,10 @@ def keep_alive_task(self):
     """
     import requests as http_requests
 
-    live_url = getattr(settings, "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/")
+    live_url = getattr(settings, "KEEP_ALIVE_URL", "")
+    if not live_url:
+        logger.info("Keep-alive ping skipped: KEEP_ALIVE_URL is empty")
+        return
 
     try:
         resp = http_requests.get(live_url, timeout=10)
@@ -355,7 +358,10 @@ def check_uptime_task(self):
     """
     from apps.common.outbox import queue_email
 
-    health_url = getattr(settings, "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/")
+    health_url = getattr(settings, "HEALTH_CHECK_URL", "")
+    if not health_url:
+        logger.info("Uptime check skipped: HEALTH_CHECK_URL is empty")
+        return
     alert_email = settings.ERROR_ALERT_EMAIL
     email_from = getattr(settings, "EMAIL_FROM", "noreply@beanola.com")
 
