@@ -61,6 +61,27 @@ function buildSteps(count: number): WizardStepConfig[] {
   }))
 }
 
+/**
+ * Step states as the wizard now supplies them (task 26.1): the caller says which steps
+ * pass. These properties exercise the indicator's rendering, so the states here are
+ * the old shortcut written out by the test, with `extraComplete` for the override case.
+ */
+function statesFor(
+  steps: WizardStepConfig[],
+  currentIndex: number,
+  extraComplete: number[] = [],
+): Record<any, 'complete' | 'incomplete' | 'current' | 'upcoming'> {
+  return Object.fromEntries(
+    steps.map((step, i) => [
+      step.key,
+      i < currentIndex || extraComplete.includes(i)
+        ? 'complete'
+        : i === currentIndex
+          ? 'current'
+          : 'upcoming',
+    ]),
+  )
+}
 /** Extract all aria-label values from buttons in HTML */
 function getButtonAriaLabels(html: string): string[] {
   const labels: string[] = []
@@ -109,6 +130,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
+            stepStates: statesFor(steps, currentIndex),
           })
         )
         const labels = getButtonAriaLabels(html)
@@ -134,6 +156,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
+            stepStates: statesFor(steps, currentIndex),
           })
         )
         const currentValues = getAriaCurrentValues(html)
@@ -165,6 +188,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
+            stepStates: statesFor(steps, currentIndex),
           })
         )
         const labels = getButtonAriaLabels(html)
@@ -181,7 +205,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
     )
   })
 
-  it('completedSteps set overrides default completion logic', () => {
+  it('a step the caller reports complete renders as completed, wherever it sits', () => {
     fc.assert(
       fc.property(stepScenarioArb, ({ stepCount, currentIndex }) => {
         // Mark a step after currentIndex as completed via the set
@@ -193,7 +217,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
-            completedSteps: new Set([extraCompleted]),
+            stepStates: statesFor(steps, currentIndex, [extraCompleted]),
           })
         )
         const labels = getButtonAriaLabels(html)
@@ -216,6 +240,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
+            stepStates: statesFor(steps, currentIndex),
           })
         )
         const expectedPct = Math.round(((currentIndex + 1) / stepCount) * 100)
@@ -234,6 +259,7 @@ describe('Property 13: Wizard Progress Indicator Correctness', () => {
           React.createElement(EnhancedProgressIndicator, {
             steps,
             currentStepIndex: currentIndex,
+            stepStates: statesFor(steps, currentIndex),
           })
         )
         for (let i = 0; i < stepCount; i++) {

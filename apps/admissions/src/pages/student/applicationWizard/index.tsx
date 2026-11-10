@@ -88,7 +88,6 @@ import { WizardProgressSummary } from "./components/WizardProgressSummary";
 import { WizardStepRenderer } from "./components/WizardStepRenderer";
 import useWizardController from "./hooks/useWizardController";
 import { useStepValidation } from "./hooks/useStepValidation";
-import { useOverallProgress } from "./hooks/useOverallProgress";
 import { useSmartAutoSave } from "./hooks/useSmartAutoSave";
 import { deriveWizardPageSaveView } from "./lib/pageSaveView";
 import { useWizardReadiness } from "./hooks/useWizardReadiness";
@@ -107,6 +106,7 @@ import {
   documentValidationFields,
 } from "./lib/requiredDocumentSurfaces";
 import { focusWizardField } from "./lib/wizardFieldFocus";
+import { buildStepStates, progressPercent as progressPercentOf } from "./lib/wizardProgress";
 import { collectWizardValidationErrors } from "./lib/wizardValidationErrors";
 import { resolveWizardDeepLinkStep } from "./lib/wizardStepDeepLink";
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
@@ -226,14 +226,6 @@ const ApplicationWizardContent = () => {
     uploading,
     assignmentResolved,
   });
-  const overallProgress = useOverallProgress(form, {
-    selectedGrades,
-    uploadedFiles,
-    hasResultSlipFile: Boolean(resultSlipFile),
-    hasIdentityFile: Boolean(extraKycFile),
-    paymentStatus,
-    confirmSubmission,
-  });
   const { shouldAnimate } = useOptimizedAnimation();
   const isOnline = useIsOnline();
   const keyboardOpen = useKeyboardOpen();
@@ -318,7 +310,18 @@ const ApplicationWizardContent = () => {
     void draftMachine.flush();
   }, [draftMachine]);
 
-  const progressPercent = overallProgress.percentage;
+  // One readiness drives the percentage and the stepper (task 26.1, R14.1, R14.2).
+  const progressPercent = progressPercentOf(wizardReadiness);
+  const [highestStepIndex, setHighestStepIndex] = useState(currentStepIndex);
+  useEffect(() => {
+    setHighestStepIndex((highest) => Math.max(highest, currentStepIndex));
+  }, [currentStepIndex]);
+  const stepStates = buildStepStates(
+    wizardReadiness,
+    wizardSteps.map((step) => step.key),
+    currentStepIndex,
+    highestStepIndex,
+  );
 
   /**
    * The platform's current blockers (task 6.5, R16.1).
@@ -917,6 +920,7 @@ const ApplicationWizardContent = () => {
             steps={wizardSteps}
             currentStepIndex={currentStepIndex}
             onStepClick={handleProgressStepClick}
+            stepStates={stepStates}
             progressPercentage={progressPercent}
             compact
           />
