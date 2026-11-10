@@ -14,7 +14,6 @@ import {
 } from '@/components/icons';
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
-import { PROOF_HIGHLIGHTS } from '@/lib/institutionFacts';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 import { onLandingMount } from '@/lib/speculativePrefetch';
 import { scheduleLikelyAuthRoutePreload } from '@/lib/routePreload';
@@ -66,16 +65,6 @@ const heroRotatingPhrases = [
 function LandingSectionsFallback() {
   return (
     <div aria-hidden="true">
-      <section className="scroll-mt-24 bg-card py-12 sm:scroll-mt-28 sm:py-16 lg:py-20">
-        <div className="container-responsive grid grid-cols-1 gap-6 px-4 xs:grid-cols-2 sm:gap-8 sm:px-6 lg:grid-cols-4 lg:gap-12 lg:px-8">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="space-y-3 text-center">
-              <div className="mx-auto h-10 w-28 animate-pulse rounded bg-muted sm:h-12 sm:w-32" />
-              <div className="mx-auto h-4 w-36 animate-pulse rounded bg-muted/80" />
-            </div>
-          ))}
-        </div>
-      </section>
       <section className="bg-muted py-12 sm:py-16 lg:py-20">
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="mx-auto mb-12 max-w-3xl space-y-4 text-center">
@@ -149,8 +138,6 @@ export default function LandingPage() {
           eyebrow: 'Programme first. School assigned clearly.',
           title: 'Start now. Finish when your documents are ready.',
           description: 'Save your progress, upload documents, confirm payment, and review the assigned school before submission.',
-          badges: ['Schools', 'Programs', 'Payments', 'Documents'],
-          highlights: [...PROOF_HIGHLIGHTS],
           checklist: [
             'One shared application form across configured schools and offerings.',
             'White-label school portals can filter choices to that school.',

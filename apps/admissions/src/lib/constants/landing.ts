@@ -9,9 +9,6 @@ import {
   Users,
   Award,
   BookOpen,
-  Facebook,
-  Twitter,
-  Linkedin,
   Home,
   Globe,
   FileCheck,
@@ -23,11 +20,6 @@ import type { LucideIcon } from 'lucide-react';
 // Types
 // ============================================================================
 
-export interface StatItem {
-  value: number;
-  suffix: string;
-  label: string;
-}
 
 export interface FeatureItem {
   icon: LucideIcon;
@@ -37,7 +29,6 @@ export interface FeatureItem {
 }
 
 export interface AccreditationItem {
-  logo: string;
   title: string;
   org: string;
   desc: string;
@@ -78,17 +69,6 @@ export const contactInfo = {
 };
 
 // ============================================================================
-// Stats
-// ============================================================================
-
-export const stats: StatItem[] = [
-  { value: 300, suffix: '+', label: 'Applications processed through partner schools' },
-  { value: 92, suffix: '%', label: 'Configured workflows completed without manual follow-up' },
-  { value: 25, suffix: '+', label: 'Programmes ready for institution assignment' },
-  { value: 6, suffix: '+', label: 'Years building admissions operations software' },
-];
-
-// ============================================================================
 // Features
 // ============================================================================
 
@@ -122,25 +102,21 @@ export const features: FeatureItem[] = [
 
 export const accreditations: AccreditationItem[] = [
   {
-    logo: 'GNCLogo.webp',
     title: 'Tenant-managed accreditation',
     org: 'Institution profile configuration',
     desc: 'Accreditation labels are configured per school and programme instead of being hardcoded into the platform.',
   },
   {
-    logo: 'hpc_logobig.webp',
     title: 'Programme-specific rules',
     org: 'Programme and intake catalogue',
     desc: 'Shared programmes can be assigned to one school or many schools while keeping each offer tied to the correct tenant.',
   },
   {
-    logo: 'eczlogo.webp',
     title: 'Applicant document checks',
     org: 'Eligibility and admissions workflow',
     desc: 'Schools can define the documents, grades, and review steps needed for each intake.',
   },
   {
-    logo: 'unza.webp',
     title: 'Official document automation',
     org: 'Beanola document profiles',
     desc: 'Offer letters, slips, and receipts use the selected school profile, logo, signature, and approved template.',
@@ -286,7 +262,7 @@ export const internationalHighlights: InternationalHighlight[] = [
     icon: Globe,
     title: 'Open to SADC and beyond',
     description:
-      'We enroll students from Namibia, Botswana, Zimbabwe, Malawi, DRC, and further afield. The application is the same. We just verify your documents differently.',
+      'Applicants from outside Zambia use the same application. International applicants upload a passport instead of an NRC.',
   },
   {
     icon: Award,
@@ -337,12 +313,6 @@ export const accommodationHighlights: AccommodationHighlight[] = [
     description:
       'Lecture venues, labs, libraries, dining, and placement information are published by the institution offering the programme.',
   },
-  {
-    icon: Users,
-    title: 'Safe and supervised',
-    description:
-      'Campus security, hostel matrons, and a student affairs office. Our staff treat your safety as part of the job, not an afterthought.',
-  },
 ];
 
 // ============================================================================
@@ -363,8 +333,8 @@ export const quickLinks: QuickLinkItem[] = [
 // Social Links
 // ============================================================================
 
-export const socialLinks: SocialLinkItem[] = [
-  { name: 'Facebook', href: 'https://beanola.com', icon: Facebook },
-  { name: 'Twitter', href: 'https://beanola.com', icon: Twitter },
-  { name: 'LinkedIn', href: 'https://beanola.com', icon: Linkedin },
-];
+/**
+ * Social profiles render only for entries with a real profile URL. None exists
+ * today, so the footer shows no social block (task 29.1, R12.1).
+ */
+export const socialLinks: SocialLinkItem[] = [];

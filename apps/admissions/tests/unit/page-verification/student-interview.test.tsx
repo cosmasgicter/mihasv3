@@ -236,7 +236,10 @@ describe('Student interview page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('Need to reschedule your interview?')
-    expect(text).toContain('admissions@beanola.com')
+    // The contact comes from the resolved tenant (task 27.2): on the neutral portal
+    // that is the in-app contact route, never an address typed into the page.
+    expect(text).toContain('Contact admissions')
+    expect(text).not.toContain('admissions@beanola.com')
   })
 
   // ── Empty state ─────────────────────────────────────────────────────

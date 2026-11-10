@@ -142,7 +142,8 @@ export function SharedFooter({ className }: SharedFooterProps) {
             </ul>
           </div>
 
-          {/* Social Links */}
+          {/* Social profiles: only entries with a real profile URL (task 29.1) */}
+          {socialLinks.length > 0 && (
           <div>
             <h3 className="text-lg sm:text-xl font-semibold mb-6 text-white">Follow us</h3>
             <div className="flex flex-wrap gap-2 sm:gap-4">
@@ -161,6 +162,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
               ))}
             </div>
           </div>
+          )}
         </div>
 
         {/* Copyright */}

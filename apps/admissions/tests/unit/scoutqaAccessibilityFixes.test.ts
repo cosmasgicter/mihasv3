@@ -283,23 +283,16 @@ describe('11.3 Landing page contrast verification', () => {
     cleanup()
   })
 
-  it('accreditation badge labels use semantic primary contrast classes', () => {
+  it('claims no recognition: no accreditation chip, no Recognized by strip, no metric row (task 29.1, R12.1)', () => {
     const { container, cleanup } = renderToDOM(
       React.createElement(ShapeLandingHero, mockHeroProps),
     )
-    const badges = container.querySelectorAll('span')
-    const badgeLabels = ['NMCZ', 'HPCZ', 'ECZ', 'UNZA']
-    let foundBadges = 0
-
-    for (const span of badges) {
-      if (badgeLabels.includes(span.textContent?.trim() ?? '')) {
-        expect(span.className).toContain('bg-primary/10')
-        expect(span.className).toContain('text-primary')
-        foundBadges++
-      }
+    const text = container.textContent ?? ''
+    expect(text).not.toContain('Government accredited')
+    expect(text).not.toContain('Recognized by')
+    for (const label of ['NMCZ', 'HPCZ', 'ECZ', 'UNZA']) {
+      expect(text).not.toContain(label)
     }
-
-    expect(foundBadges).toBe(4)
     cleanup()
   })
 })

@@ -8,6 +8,18 @@
     {
       "module": "apps/admissions/src/types/__fixtures__/lifecycleStatusBackendMirror.ts",
       "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
+    },
+    {
+      "module": "apps/admissions/src/components/smoothui/animated-counter.tsx",
+      "reason": "Only the landing's stats section used it; task 29.1 removed that section. Kept, not deleted, until D10 decides the landing (task 33.2 deletes it with the barrel exports)."
+    },
+    {
+      "module": "apps/admissions/src/components/smoothui/index.ts",
+      "reason": "Its only landing importer was the stats section (task 29.1). Kept until D10 decides the landing; task 33.2 deletes the barrel exports after a git grep finds no product import."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/OptimizedImage.tsx",
+      "reason": "The steering primitive for content images (tech.md). Its only product importer was the landing's accreditation logo tiles, which task 29.1 removed; tests still exercise it. The next content image uses it again."
     }
   ]
 }

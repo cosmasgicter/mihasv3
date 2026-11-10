@@ -1,10 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardTitle, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { OptimizedImage } from '@/components/ui/OptimizedImage'
-import {
-  AnimatedCounter,
-} from '@/components/smoothui'
 import { ArrowRight, CheckCircle } from '@/components/icons'
 import { preloadAuthRoutes } from '@/lib/routePreload'
 import {
@@ -16,7 +12,6 @@ import {
   howItWorksSteps,
   internationalHighlights,
   programs,
-  stats,
 } from '@/lib/constants/landing'
 
 import { StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion/stagger'
@@ -36,32 +31,6 @@ function warmAuthRoutes() {
   void preloadAuthRoutes('landing-section-cta')
 }
 
-function StatsSection() {
-  return (
-    <section
-      id="stats"
-      aria-label="Key statistics"
-      className="scroll-mt-24 border-b border-border bg-card py-10 sm:scroll-mt-28 sm:py-12 lg:py-14"
-      style={deferredSectionStyle}
-    >
-      <div className="container-responsive px-4 sm:px-6 lg:px-8">
-        <StaggerReveal className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-muted lg:grid-cols-4" staggerDelay={0.15}>
-          {stats.map((stat) => (
-            <StaggerItem key={stat.label}>
-              <div className="bg-card p-5 sm:p-6">
-                <div className="text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={2} />
-                </div>
-                <p className="mt-2 text-sm font-medium text-muted-foreground">{stat.label}</p>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerReveal>
-      </div>
-    </section>
-  )
-}
-
 function FeaturesSection() {
   return (
     <section
@@ -77,9 +46,6 @@ function FeaturesSection() {
               Why students pick Beanola
             </h2>
           </TextEffect>
-          <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Because we teach the job, not just the theory.
-          </p>
         </ScrollReveal>
 
         <StaggerReveal className="grid grid-cols-1 gap-4 md:grid-cols-3" staggerDelay={0.1}>
@@ -238,15 +204,6 @@ function AccreditationSection() {
             <StaggerItem key={accred.title}>
               <Card className="h-full rounded-lg border border-border bg-card shadow-sm">
                 <CardContent className="p-5">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-primary/15 bg-primary/5 p-2">
-                    <OptimizedImage
-                      src={`/images/accreditation/${accred.logo}`}
-                      alt={`${accred.title} logo`}
-                      className="h-full w-full object-contain"
-                      width={64}
-                      height={64}
-                    />
-                  </div>
                   <CardTitle className="mb-1 text-base font-semibold text-foreground">
                     {accred.title}
                   </CardTitle>
@@ -446,10 +403,10 @@ function CTASection() {
         <TextEffect effect="fadeUp">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              The current intake is open. You can start tonight.
+              Start your application
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-accent sm:text-lg">
-              Takes about 30 minutes if your documents are ready. Your application fee is shown before you pay, in your own currency. Mobile money or card. Either works.
+              Your application fee is shown before you pay. You can pay by mobile money or card.
             </p>
           </div>
         </TextEffect>
@@ -476,7 +433,6 @@ function CTASection() {
 export function LandingPageSections() {
   return (
     <>
-      <StatsSection />
       <FeaturesSection />
       <HowItWorksSection />
       <EligibilitySection />
