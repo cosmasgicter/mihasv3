@@ -23,9 +23,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { useForm } from 'react-hook-form'
 
-import { WizardContextPanel } from '@/pages/student/applicationWizard/components/WizardContextPanel'
+import { WizardStillNeeded } from '@/pages/student/applicationWizard/components/WizardStillNeeded'
 import { WizardProgressSummary } from '@/pages/student/applicationWizard/components/WizardProgressSummary'
 import { WizardActionBar } from '@/pages/student/applicationWizard/components/WizardActionBar'
 import {
@@ -63,99 +62,104 @@ const blocker = (code: string, message: string): ReadinessBlocker => ({
   details: {},
 })
 
-const ContextHarness = ({ stepKey = 'personal' as const }) => {
-  const form = useForm<WizardFormData>({
-    defaultValues: { full_name: 'Mobile Student', program: 'p1', intake: 'i1' } as WizardFormData,
-  })
-  return (
-    <WizardContextPanel
-      form={form}
-      stepKey={stepKey}
-      checklistItems={[
-        { label: 'Personal details complete', completed: true },
-        { label: 'NRC or Passport provided', completed: false },
-      ]}
-      programName="Diploma in Registered Nursing"
-      intakeName="January 2027"
-    />
-  )
+const stillNeededProps = {
+  items: [
+    { field: 'nrc_number', label: 'NRC or passport', message: 'Enter either your NRC or passport number.' },
+    { field: 'date_of_birth', label: 'Date of birth', message: 'Enter your date of birth.' },
+  ],
+  onGoToField: () => {},
+  onSwitchApplication: () => {},
+  onStartNew: () => {},
+  blockers: [] as ReadinessBlocker[],
+  readinessLoading: false,
+  readinessUnavailable: false,
+  canSubmit: null as boolean | null,
+  notEvaluatedYet: false,
+  onRetryReadiness: () => {},
 }
-
-describe('wizard recomposition: the context and checklist reach a phone (R16.1, STU-03)', () => {
+describe('wizard recomposition: the still-needed list reaches a phone (R16.1, STU-03; task 25.2)', () => {
   const originalWidth = window.innerWidth
-
   afterEach(() => {
     setViewportWidth(originalWidth)
   })
-
-  it('offers the checklist behind a real disclosure at 320 px', () => {
+  it('offers the list behind a real disclosure at 320 px, named by its count', () => {
     setViewportWidth(320)
-    render(<ContextHarness />)
-
+    render(<WizardStillNeeded {...stillNeededProps} />)
     const toggle = screen.getByTestId('wizard-context-toggle')
-    // The control names the outstanding count, so the value is legible closed.
-    expect(toggle.textContent).toContain('This step needs 1 of 2')
+    expect(toggle.textContent).toContain('2 still needed')
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     expect(toggle.getAttribute('aria-controls')).toBe('wizard-context-region')
     expect(screen.queryByTestId('wizard-context-region')).toBeNull()
-
     fireEvent.click(toggle)
-
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
     const region = screen.getByTestId('wizard-context-region')
-    expect(within(region).getByText('Personal details complete')).toBeTruthy()
-    expect(within(region).getByText('NRC or Passport provided')).toBeTruthy()
+    expect(within(region).getByText('NRC or passport')).toBeTruthy()
+    expect(within(region).getByText('Date of birth')).toBeTruthy()
   })
-
   it('is open with no disclosure control on a desktop width', () => {
     setViewportWidth(1280)
-    render(<ContextHarness />)
-
+    render(<WizardStillNeeded {...stillNeededProps} />)
     expect(screen.queryByTestId('wizard-context-toggle')).toBeNull()
     expect(screen.getByTestId('wizard-context-region')).toBeTruthy()
-    expect(screen.getByText('NRC or Passport provided')).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Still needed' })).toBeTruthy()
   })
-
   it('renders exactly one instance of the panel, so a screen reader meets it once', () => {
     setViewportWidth(320)
-    render(<ContextHarness />)
+    render(<WizardStillNeeded {...stillNeededProps} />)
     expect(screen.getAllByTestId('wizard-context-panel')).toHaveLength(1)
   })
-
-  it('drops the application preview on the review step, where the review is the preview', () => {
+  it('replaces the four old rails: no checklist, preview, step notes or applications card', () => {
     setViewportWidth(1280)
-    const { rerender } = render(<ContextHarness stepKey="personal" />)
-    expect(screen.getByText(/application preview/i)).toBeTruthy()
-    rerender(<ContextHarness stepKey="submit" />)
+    render(<WizardStillNeeded {...stillNeededProps} />)
+    expect(screen.queryByText(/step checklist/i)).toBeNull()
     expect(screen.queryByText(/application preview/i)).toBeNull()
+    expect(screen.queryByText(/step notes/i)).toBeNull()
+    expect(screen.queryByText(/^your applications$/i)).toBeNull()
   })
-})
-
-describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', () => {
-  const summaryProps = {
-    stepNumber: 4,
-    totalSteps: 6,
-    percentComplete: 62,
-    blockers: [] as ReadinessBlocker[],
-    readinessLoading: false,
-    readinessUnavailable: false,
-    canSubmit: null as boolean | null,
-    notEvaluatedYet: false,
-    onRetryReadiness: () => {},
-  }
-
-  it('prints the server\u2019s blocker messages verbatim, in the server\u2019s order', () => {
+  it('gives each item a Go to field link and carries both draft commands', () => {
+    setViewportWidth(1280)
+    const onGoToField = vi.fn()
+    const onSwitchApplication = vi.fn()
+    const onStartNew = vi.fn()
     render(
-      <WizardProgressSummary
-        {...summaryProps}
-        blockers={[
-          blocker('MINIMUM_GRADES_REQUIRED', 'Add at least 5 Grade 12 subjects.'),
-          blocker('IDENTITY_DOCUMENT_REQUIRED', 'Upload your NRC or passport.'),
-          blocker('PAYMENT_REQUIRED', 'Pay or defer the application fee.'),
-        ]}
+      <WizardStillNeeded
+        {...stillNeededProps}
+        onGoToField={onGoToField}
+        onSwitchApplication={onSwitchApplication}
+        onStartNew={onStartNew}
       />,
     )
-
+    const links = screen.getAllByRole('button', { name: 'Go to field' })
+    expect(links).toHaveLength(2)
+    // The visible name is the whole accessible name; the item it belongs to is the description.
+    expect(links[0]!.getAttribute('aria-describedby')).toBeTruthy()
+    fireEvent.click(links[1]!)
+    expect(onGoToField).toHaveBeenCalledWith('date_of_birth')
+    fireEvent.click(screen.getByRole('button', { name: 'Switch application' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Start a new application' }))
+    expect(onSwitchApplication).toHaveBeenCalledTimes(1)
+    expect(onStartNew).toHaveBeenCalledTimes(1)
+  })
+  it('says the step is complete when nothing on it is outstanding', () => {
+    setViewportWidth(1280)
+    render(<WizardStillNeeded {...stillNeededProps} items={[]} />)
+    expect(screen.getByText('This step is complete.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Go to field' })).toBeNull()
+  })
+})
+describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', () => {
+  const renderPanel = (overrides: Partial<typeof stillNeededProps> = {}) => {
+    setViewportWidth(1280)
+    return render(<WizardStillNeeded {...stillNeededProps} {...overrides} />)
+  }
+  it('prints the server\u2019s blocker messages verbatim, in the server\u2019s order', () => {
+    renderPanel({
+      blockers: [
+        blocker('MINIMUM_GRADES_REQUIRED', 'Add at least 5 Grade 12 subjects.'),
+        blocker('IDENTITY_DOCUMENT_REQUIRED', 'Upload your NRC or passport.'),
+        blocker('PAYMENT_REQUIRED', 'Pay or defer the application fee.'),
+      ],
+    })
     const rendered = screen.getAllByTestId('wizard-blocker').map(node => node.textContent)
     expect(rendered).toEqual([
       'Add at least 5 Grade 12 subjects.',
@@ -163,12 +167,10 @@ describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', (
     ])
     expect(screen.getByText('3 things are still needed')).toBeTruthy()
     expect(screen.getByText(/and 1 more/)).toBeTruthy()
-    // Blocker codes travel with the rows, so a browser test can address one.
     expect(screen.getAllByTestId('wizard-blocker')[0]?.getAttribute('data-blocker-code')).toBe(
       'MINIMUM_GRADES_REQUIRED',
     )
   })
-
   /**
    * The distinction task 11.1 established on the dashboard, kept here: a readiness
    * that could not be read is *unknown*, and saying "nothing is outstanding" would
@@ -176,52 +178,50 @@ describe('wizard recomposition: the blockers are the platform\u2019s (R16.1)', (
    */
   it('keeps \u201cwe could not check\u201d apart from \u201cnothing is outstanding\u201d', () => {
     const retry = vi.fn()
-    const { unmount } = render(
-      <WizardProgressSummary {...summaryProps} readinessUnavailable onRetryReadiness={retry} />,
-    )
+    const { unmount } = renderPanel({ readinessUnavailable: true, onRetryReadiness: retry })
     expect(screen.getByText(/could not check your application/i)).toBeTruthy()
     expect(screen.queryByTestId('wizard-no-blockers')).toBeNull()
     expect(screen.getByRole('button', { name: /check again/i })).toBeTruthy()
     unmount()
-
-    render(<WizardProgressSummary {...summaryProps} canSubmit={false} />)
+    renderPanel({ canSubmit: false })
     expect(screen.getByTestId('wizard-no-blockers').textContent).toContain(
       'Nothing is outstanding on your application right now.',
     )
     expect(screen.queryByText(/could not check/i)).toBeNull()
   })
-
   it('says nothing about blockers before a draft exists to evaluate', () => {
-    render(<WizardProgressSummary {...summaryProps} notEvaluatedYet />)
+    renderPanel({ notEvaluatedYet: true })
     expect(screen.getByText(/choose your programme and intake/i)).toBeTruthy()
     expect(screen.queryByTestId('wizard-no-blockers')).toBeNull()
   })
-
   it('reports one progress number, once, with an accessible progressbar', () => {
-    render(<WizardProgressSummary {...summaryProps} />)
+    render(
+      <WizardProgressSummary stepNumber={4} totalSteps={6} percentComplete={62} modeLabel="Draft in progress" />,
+    )
     expect(screen.getByTestId('wizard-progress-percent').textContent).toBe('62%')
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('62')
     expect(screen.getByText('Step 4 of 6')).toBeTruthy()
+    expect(screen.getByTestId('wizard-mode-summary').textContent).toBe('Draft in progress')
   })
-
   /**
-   * The source claim behind the behavioural ones: this surface reads no form field
-   * and derives no requirement. A progress summary that starts computing blockers is
-   * back to the defect (`Missing: Assigned school, NRC or passport +8 more`) that
-   * 11.1 removed from the dashboard.
+   * The source claim behind the behavioural ones: these surfaces read no form field
+   * and derive no requirement. A panel that starts computing blockers is back to
+   * the defect (`Missing: Assigned school, NRC or passport +8 more`) that 11.1
+   * removed from the dashboard.
    */
   it('derives no blocker of its own', () => {
-    // Comments stripped first: the file documents the browser-derived line it
-    // replaced, so a naive scan trips on the explanation of the very thing it checks.
-    const source = readSrc('pages/student/applicationWizard/components/WizardProgressSummary.tsx')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|[^:])\/\/.*$/gm, '$1')
-    expect(source).not.toContain('buildWizardReadiness')
-    expect(source).not.toContain('missingItems')
-    expect(source).not.toContain('Missing:')
+    for (const file of [
+      'pages/student/applicationWizard/components/WizardProgressSummary.tsx',
+      'pages/student/applicationWizard/components/WizardStillNeeded.tsx',
+    ]) {
+      const source = readSrc(file)
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/(^|[^:])\/\/.*$/gm, '$1')
+      expect(source).not.toContain('buildWizardReadiness')
+      expect(source).not.toContain('Missing:')
+    }
   })
 })
-
 describe('wizard recomposition: one bottom action surface (R16.3)', () => {
   const barProps = {
     previousStepTitle: 'Personal',

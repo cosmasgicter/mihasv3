@@ -14,9 +14,9 @@
  *
  * | View | Owns |
  * |---|---|
- * | `WizardProgressSummary` | where the student is, and the **platform's** current blockers (task 6.5) |
+ * | `WizardProgressSummary` | where the student is: one row, "Step 4 of 6 · 62%" |
  * | `WizardStepRenderer` | the current step, one branch per state of the machine |
- * | `WizardContextPanel` | the checklist and context — on **every** viewport, not only `lg` |
+ * | `WizardStillNeeded` | the one "Still needed" list and the **platform's** current blockers (task 6.5) — on **every** viewport |
  * | `WizardActionBar` | the one anchored bottom surface: back, forward/submit, and draft state |
  * | `WizardDraftPicker` | one draft list with continue / rename / delete, used by the choice screen and by "switch draft" |
  *
@@ -51,7 +51,7 @@
  * it. See `lib/wizardStepDeepLink.ts` for why an out-of-reach request lands on the
  * checkpoint and says so rather than being followed or silently dropped.
  */
-import { AlertCircle, ArrowLeft, FilePlus2, FileText } from "lucide-react";
+import { AlertCircle, ArrowLeft, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   useEffect,
@@ -82,7 +82,7 @@ import {
   type WizardValidationError,
 } from "./components/WizardErrorSummary";
 import { WizardActionBar } from "./components/WizardActionBar";
-import { WizardContextPanel } from "./components/WizardContextPanel";
+import { WizardStillNeeded } from "./components/WizardStillNeeded";
 import { WizardDraftPicker } from "./components/WizardDraftPicker";
 import { WizardProgressSummary } from "./components/WizardProgressSummary";
 import { WizardStepRenderer } from "./components/WizardStepRenderer";
@@ -106,7 +106,7 @@ import {
   documentReviewChecks,
   documentValidationFields,
 } from "./lib/requiredDocumentSurfaces";
-import { buildWizardChecklist } from "./lib/wizardChecklist";
+import { focusWizardField } from "./lib/wizardFieldFocus";
 import { collectWizardValidationErrors } from "./lib/wizardValidationErrors";
 import { resolveWizardDeepLinkStep } from "./lib/wizardStepDeepLink";
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
@@ -647,38 +647,9 @@ const ApplicationWizardContent = () => {
     );
   }, [validationErrors, currentStepIndex, currentStepConfig.title]);
 
-  const checklistItems = useMemo(
-    () =>
-      buildWizardChecklist({
-        stepKey: currentStepConfig.key,
-        values: (() => {
-          try {
-            return typeof form?.watch === "function"
-              ? ((form.watch() as Record<string, unknown>) ?? {})
-              : {};
-          } catch {
-            return {};
-          }
-        })(),
-        selectedGrades,
-        assignmentResolved,
-        confirmSubmission,
-        paymentStatus,
-        requiredDocumentsContract: requiredDocuments.contract,
-        legacyDocumentState,
-      }),
-    [
-      currentStepConfig.key,
-      form,
-      selectedGrades,
-      assignmentResolved,
-      confirmSubmission,
-      paymentStatus,
-      requiredDocuments.contract,
-      legacyDocumentState,
-    ],
-  );
-
+  // The current step's failing items from the wizard's one readiness (task 25.2).
+  const stillNeededItems =
+    wizardReadiness.stepProgressByKey[currentStepConfig.key]?.missingItems ?? [];
   // Keyboard shortcuts
   useEffect(() => {
     if (success) {
@@ -940,12 +911,6 @@ const ApplicationWizardContent = () => {
             modeLabel={wizardModeSummary.label}
             modeDescription={wizardModeSummary.description}
             percentComplete={progressPercent}
-            blockers={serverReadiness.blockers}
-            readinessLoading={serverReadiness.isLoading}
-            readinessUnavailable={serverReadiness.unavailable}
-            canSubmit={serverReadiness.canSubmit}
-            notEvaluatedYet={!applicationId}
-            onRetryReadiness={serverReadiness.refetch}
           />
 
           <EnhancedProgressIndicator
@@ -1151,82 +1116,36 @@ const ApplicationWizardContent = () => {
             </div>
 
             {/*
-              One instance, two placements (R16.1, STU-03). CSS grid puts this column
-              beside the form at `lg` and after it on a phone, so the checklist,
-              the application preview and the draft list are in the DOM at **every**
-              width — where before they were inside `hidden lg:block` and a phone had
-              no way to reach them at all. Rendering the panel twice (`lg:hidden` plus
-              `hidden lg:block`) would duplicate every heading for a screen reader,
-              which is why the mobile/desktop difference lives inside the panel as a
-              disclosure rather than out here as two copies.
+              One instance, two placements (R16.1, STU-03; task 25.2). CSS grid puts
+              this column beside the form at `lg` and after it on a phone. It is one
+              "Still needed" list (the current step's failing readiness items, the
+              platform's own check, and the two draft commands), not four rails.
+
+              Switching applications stays a **navigation**, not a second draft
+              subscription (R10.2): embedding `WizardDraftPicker` here put a second
+              reader of draft state next to the one machine that owns it
+              (`docs/v2-evidence/11.2/raw/harness-experiment-no-picker.txt`). The
+              commands are links to the chooser, where the full picker lives with no
+              wizard form mounted beside it.
             */}
-            <aside
-              className="space-y-4 lg:col-span-1"
-              aria-label="Application context"
-            >
+            <aside className="space-y-4 lg:col-span-1" aria-label="Still needed">
               <div className="space-y-4 lg:sticky lg:top-6">
-                <WizardContextPanel
-                  form={form}
-                  stepKey={currentStepConfig.key}
-                  checklistItems={checklistItems}
-                  programName={selectedProgramDetails?.name}
-                  intakeName={
-                    intakes.find((intake) => intake.id === form.watch("intake"))
-                      ?.name
-                  }
+                <WizardStillNeeded
+                  items={stillNeededItems}
+                  onGoToField={focusWizardField}
+                  onSwitchApplication={() => {
+                    void handleSwitchApplication();
+                  }}
+                  onStartNew={() => {
+                    void handleStartAnother();
+                  }}
+                  blockers={serverReadiness.blockers}
+                  readinessLoading={serverReadiness.isLoading}
+                  readinessUnavailable={serverReadiness.unavailable}
+                  canSubmit={serverReadiness.canSubmit}
+                  notEvaluatedYet={!applicationId}
+                  onRetryReadiness={serverReadiness.refetch}
                 />
-                {/*
-                  Switching applications is a **navigation**, not a second draft
-                  subscription (R10.2).
-
-                  The first version of this recomposition embedded the whole
-                  `WizardDraftPicker` here, and the browser characterisation caught
-                  what that costs: `useMultiDraft` re-lists the student's drafts on
-                  every draft-store revision, so mounting it *inside* the wizard put a
-                  second reader of draft state next to the one state machine that owns
-                  it — and on the mobile project a manual save then came back with the
-                  profile's town instead of the one the student had just typed, with
-                  two other typed fields wiped. A controlled run with this block
-                  removed passed the same journey in 19 s
-                  (`docs/v2-evidence/11.2/raw/harness-experiment-no-picker.txt`).
-                  R10.2 already names the rule this broke: one state machine owns
-                  hydration and edits, and everything else is a pure adapter or view.
-
-                  So the command survives on every viewport — which is what R16.1
-                  requires — as a link to the chooser, where the full picker
-                  (continue / rename / delete) lives with no wizard form mounted
-                  beside it.
-                */}
-                <SectionCard title="Your applications" padding="sm">
-                  <p className="text-base sm:text-sm text-muted-foreground">
-                    Your other saved applications are untouched while you work
-                    on this one.
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-touch w-full justify-start"
-                      onClick={() => {
-                        void handleSwitchApplication();
-                      }}
-                    >
-                      <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
-                      Switch application
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="min-h-touch w-full justify-start"
-                      onClick={() => {
-                        void handleStartAnother();
-                      }}
-                    >
-                      <FilePlus2 className="h-4 w-4 mr-2" aria-hidden="true" />
-                      Start a new application
-                    </Button>
-                  </div>
-                </SectionCard>
               </div>
             </aside>
           </div>
