@@ -1,5 +1,7 @@
 # Task 4.2 — Atomic tenant-admin invitation and membership handoff
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · Requirements **R4.3, R4.4,
 R6.3** · Findings **TEN-01, TEN-05** · Design §5.3 (People And Access), §6.1
 (Tenant Aggregate), §17 (durable committed outbox).

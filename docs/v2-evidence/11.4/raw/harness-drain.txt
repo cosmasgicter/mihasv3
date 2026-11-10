@@ -1,4 +1,0 @@
-[36m[harness][0m asserting required background jobs drained
-  queue-depth: {"broker_queue_depth": 0, "celery_queues": ["celery"], "unsettled_payment_collections": 0, "unsettled_references": []}
-[harness] ✓ no undrained required jobs
-EXIT=0

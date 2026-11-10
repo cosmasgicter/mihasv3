@@ -1,6 +1,0 @@
-]633;E;echo "=== bun run type-check ===";1f8ba98f-9b68-4429-987d-00002cb0af9b]633;C=== bun run type-check ===
-$ tsc -p tsconfig.build.json --noEmit
-type-check EXIT=0
-
-=== eslint (changed files) ===
-eslint EXIT=0 (clean)

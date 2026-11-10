@@ -1,6 +1,0 @@
-]633;E;echo '$ cd backend && python3 manage.py check';29f268a8-d9d0-4024-83f8-c34a240d3a33]633;C$ cd backend && python3 manage.py check
-/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
-  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
-LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
-System check identified no issues (1 silenced).
-CHECK_EXIT=0

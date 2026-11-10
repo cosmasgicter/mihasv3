@@ -1,3 +1,0 @@
-config/settings/base.py:29
-
-2 skipped, 1 warning in 0.23s

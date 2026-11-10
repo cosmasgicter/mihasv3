@@ -1,5 +1,7 @@
 # Task 10.1 — Consolidate notifications and communications (slice 2: frontend)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Evidence index for the **frontend half** of task **10.1** of
 `.kiro/specs/admissions-v2-canonical-rebuild/`, closing the four items
 [slice 1 §11](slice-1-backend.md) left owed.

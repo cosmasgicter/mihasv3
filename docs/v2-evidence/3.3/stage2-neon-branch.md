@@ -1,5 +1,7 @@
 # Task 3.3 — Stage 2: expand rehearsal + introspection (isolated Neon branch)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 **Spec:** `.kiro/specs/admissions-v2-canonical-rebuild/` — task **3.3**
 **Branch used:** `br-jolly-pine-ahybtg2e` (name `v2-task-3.2-rehearsal`), a **ready,
 non-default, non-protected** branch forked from the default `br-floral-scene-aha2ybfd`.

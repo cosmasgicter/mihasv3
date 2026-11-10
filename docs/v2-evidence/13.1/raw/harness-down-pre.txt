@@ -1,5 +1,0 @@
-]633;E;echo "=== pre-teardown: prove the stack is fully wiped before measuring 'freshly seeded' ===";315f057f-3d4a-4a21-a7a7-69f4a1b81a1c]633;C=== pre-teardown: prove the stack is fully wiped before measuring 'freshly seeded' ===
-[32m[harness] ✓ harness down (volumes wiped)[0m
-
-harness containers remaining: 0
-harness volumes remaining   : 0

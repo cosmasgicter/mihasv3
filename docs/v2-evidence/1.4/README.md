@@ -1,5 +1,7 @@
 # Task 1.4 Evidence — Unify `ApiClient` request, refresh, CSRF, retry, abort, and error handling
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R9.1-R9.2, R14.4, R17.1 · Findings: API-01, API-03_
 _Required_Evidence: client unit/property test outputs and (where the task-0.4 harness supports it) an expired-session browser journey._
 

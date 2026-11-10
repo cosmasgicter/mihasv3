@@ -1,5 +1,7 @@
 # Task 7.4 — remove admissions generative AI and generated summaries
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 > ## THIS IS A RETROSPECTIVE EVIDENCE PACK
 >
 > **Created 2026-08-14**, during task 13.6's remediation batch **L9-L11**

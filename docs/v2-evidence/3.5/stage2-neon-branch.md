@@ -1,5 +1,7 @@
 # Task 3.5 — Stage 2: expand/backfill/validate + rollback rehearsal (Neon branch)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 **Branch:** `br-jolly-pine-ahybtg2e` (name `v2-task-3.2-rehearsal`), **reused** per
 the dispatch (Neon branch limit reached — `create_branch` returns 422; no new
 branch created). Parent: `br-floral-scene-aha2ybfd`. Applied via the Neon MCP

@@ -1,2 +1,0 @@
-$ tsc -p tsconfig.build.json --noEmit
-TYPECHECK_EXIT=0

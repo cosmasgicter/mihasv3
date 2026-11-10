@@ -1,5 +1,7 @@
 # Task 3.3 — Add catalog, fee, grant, template, waitlist, and capacity constraints (evidence index)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 **Spec:** `.kiro/specs/admissions-v2-canonical-rebuild/` — task **3.3**
 **Requirements:** R5.6, R6.7, R7.4–R7.7, R15.5
 **Findings:** TEN-08, DATA-02, DATA-03, DATA-05, DATA-06

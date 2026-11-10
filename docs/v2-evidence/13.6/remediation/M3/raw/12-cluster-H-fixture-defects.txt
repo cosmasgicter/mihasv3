@@ -1,5 +1,0 @@
-]633;E;echo "# M3 — cluster H (fixture defects) + the one setup error";8386d2e9-d6c7-4b37-a425-11ef5d36f9f9]633;C# M3 — cluster H (fixture defects) + the one setup error
-
-### the 1 error: property/test_ip_address_column.py::setUpClass
-....                                                                     [100%]
-4 passed in 0.52s

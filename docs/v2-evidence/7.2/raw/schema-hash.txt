@@ -1,1 +1,0 @@
-3b8643d7defd2ee68dce91b9417a52e2455cf8e60089bd4be3154bfa5513e436  backend/schema/openapi.v2.candidate.yaml

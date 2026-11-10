@@ -1,8 +1,0 @@
-$ cd apps/admissions && bun run build
-  CSP script-src 'unsafe-inline': NO
-  CSP style-src 'unsafe-inline':  YES
-  inline <style> total bytes:     15038
-  main <link rel=stylesheet>:     present
-
-✓ check-html-csp: HTML is compatible with the production CSP.
-exit=0

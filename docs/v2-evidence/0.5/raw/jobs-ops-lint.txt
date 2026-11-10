@@ -1,2 +1,0 @@
-$ bun x eslint . --ext ts,tsx --max-warnings 0
-EXIT=0

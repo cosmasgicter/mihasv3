@@ -1,5 +1,7 @@
 # Task 13.6 remediation — M11: review of the out-of-batch session
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec `.kiro/specs/admissions-v2-canonical-rebuild/` · reviews the edits made outside
 the planned batches on **2026-08-15 22:04 → 2026-08-16 00:49** (129 paths by mtime,
 including caches and reports; self-reported as `remediation/M9/`) and on **2026-08-25** (16 source/spec files;

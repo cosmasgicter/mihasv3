@@ -1,5 +1,7 @@
 # Task 2.5 — Repair reviewer membership, queue, assignment, and workload rules
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `admissions-v2-canonical-rebuild`
 Requirements: **R3, R8.2-R8.4** · Findings: **AUTH-01, AUTH-03**
 Design: §5.2 (Reviewer = named membership PLUS application assignment), §5.3

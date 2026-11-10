@@ -1,3 +1,0 @@
-candidate commit: bae29a28d9657f288b3339062adb31285959c966
-branch: main
-task 3.5 artifacts (6 SQL scripts + rollbacks, model edits, test, evidence) are untracked/unstaged working-tree changes on top of this commit, pending commit.

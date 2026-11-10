@@ -1,5 +1,7 @@
 # M9 — Admissions V2 canonical rebuild handoff
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Measured on **2026-08-15 UTC** against `main` at
 `bae29a28d9657f288b3339062adb31285959c966`, plus the inherited dirty worktree.
 

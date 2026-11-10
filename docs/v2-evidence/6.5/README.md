@@ -1,5 +1,7 @@
 # Task 6.5 Evidence — Add authoritative server readiness and locked submission
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R10.6, R11.2-R11.6, R12.3_
 _Findings: DATA-03, DATA-04, STU-11, STU-13_
 _Design: design.md §8.3 (Readiness — "`GET /api/v2/student/applications/{id}/readiness/`

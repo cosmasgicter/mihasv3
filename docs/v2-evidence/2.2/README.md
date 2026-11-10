@@ -1,5 +1,7 @@
 # Task 2.2 — Capability/Ownership/Assignment Policies (Required_Evidence)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `admissions-v2-canonical-rebuild` · Requirements: **R3.1–R3.6** ·
 Findings: **AUTH-01, AUTH-02, AUTH-05, AUTH-07, ADM-05, ADM-06**
 

@@ -1,5 +1,7 @@
 # Task 6.3 Evidence — Consolidate draft persistence into one state machine
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R10.1-R10.4, R10.7-R10.10_
 _Findings: STU-02, STU-03, STU-12 (4th clause), MAINT-01_
 _Design: design.md §8.2 (Frontend Draft Machine — one machine owns hydration/edit/

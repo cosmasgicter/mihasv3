@@ -1,5 +1,7 @@
 # Task 8.1 — Slice 1 (backend): expiring server-authored fee quotes
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R12.1, R12.2, R12.6_
 _Findings: STU-08, DATA-05_
 _Design: design.md §10.1 (Fee Quote), §10.2 (provider routing is server-authored)_

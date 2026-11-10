@@ -1,5 +1,7 @@
 # Task 7.5 Evidence — Make deterministic OCR optional assistance only
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R11.4, R11.7, R11.9-R11.10_
 _Findings: STU-06, STU-07_
 _Design: design.md §9.2 (Grades — "Optional server OCR is deterministic assistance

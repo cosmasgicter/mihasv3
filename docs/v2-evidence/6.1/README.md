@@ -1,5 +1,7 @@
 # Task 6.1 Evidence — Make profile/settings autosave canonical
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R9.3-R9.5, R9.8, R16.5-R16.8_
 _Findings: STU-20, STU-10, MAINT-02_
 _Design: design.md §8.2 (Frontend Draft Machine — states dirty/saving/saved/offline/conflict; events EDIT/SAVE_DUE/SAVE_NOW/NETWORK_LOST/RESTORED/SERVER_CONFLICT; local records addressed by (user_id, application_id, assignment_id), never authentication secrets); §14.1/§14.2 (envelopes; mutable aggregates expose a version, conflicts surface the current version + safe recovery); §13.1/§13.3 (student IA, light-only visual rules, 44px targets, status colour always paired with icon/label)._
