@@ -35,36 +35,6 @@
       "decision": "D1"
     },
     {
-      "route": "/api/v2/admin/change-requests/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/admin/change-requests/*/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/admin/change-requests/*/approve/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/admin/change-requests/*/cancel/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/admin/change-requests/*/reject/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/admin/change-requests/*/submit/",
-      "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
-      "decision": "D5"
-    },
-    {
       "route": "/api/v2/admin/onboarding/",
       "reason": "v2 onboarding workflow route with no first-party caller (the tenant onboarding wizard does not call it). Kept; the D5 option B removal would have taken it, and D5 was confirmed as option C."
     },
