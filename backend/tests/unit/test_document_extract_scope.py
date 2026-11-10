@@ -44,6 +44,7 @@ from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
 from apps.documents.models import ApplicationDocument
+from tests.ocr_fixtures import opt_in_ocr
 from tests.tenant_fixtures import (
     build_document,
     build_profile,
@@ -122,6 +123,7 @@ class TestOcrExtractScope:
         """R3.4/R3.8: a School A admin extracting a School A document is
         authorized through scope and enqueues exactly one OCR task."""
         world = build_tenant_world()
+        opt_in_ocr(world.institution)
         document = build_document(application=world.application)
 
         response, delay = _post_extract(_client_for(world.staff), document.id)
@@ -138,6 +140,7 @@ class TestOcrExtractScope:
         receive a 404 not-found mask byte-identical to a genuine not-found, and
         must enqueue no OCR task and mutate no document state."""
         world_a, world_b = build_two_tenant_worlds()
+        opt_in_ocr(world_a.institution, world_b.institution)
         document_b = build_document(application=world_b.application)
         before_status = document_b.verification_status
         client = _client_for(world_a.staff)
@@ -168,6 +171,7 @@ class TestOcrExtractScope:
         """R3.4: a super-admin is authorized for any document and enqueues
         exactly one OCR task."""
         world = build_tenant_world()
+        opt_in_ocr(world.institution)
         document = build_document(application=world.application)
         super_admin = build_profile(role="super_admin")
 
@@ -181,6 +185,7 @@ class TestOcrExtractScope:
         """R3.5: a student extracting a document they own is authorized and
         enqueues exactly one OCR task."""
         world = build_tenant_world()
+        opt_in_ocr(world.institution)
         document = build_document(application=world.application)
 
         response, delay = _post_extract(_client_for(world.student), document.id)
@@ -193,6 +198,7 @@ class TestOcrExtractScope:
         """R3.6: a student extracting a document they do not own receives the
         404 not-found mask and enqueues no OCR task."""
         world = build_tenant_world()
+        opt_in_ocr(world.institution)
         document = build_document(application=world.application)
         before_status = document.verification_status
         other_student = build_profile(role="student")
@@ -218,6 +224,7 @@ class TestOcrExtractScope:
         """R3.2: a genuine not-found returns the 404 ``{"success": false}``
         envelope and enqueues no OCR task (no side effect)."""
         world = build_tenant_world()
+        opt_in_ocr(world.institution)
 
         response, delay = _post_extract(_client_for(world.student), _MISSING_ID)
 
@@ -269,11 +276,13 @@ class TestOcrExtractAuthorizeBeforeSideEffectProperty:
     def test_authorize_before_side_effect(self, actor_kind):
         if actor_kind == "out_of_scope_admin":
             world_a, world_b = build_two_tenant_worlds()
+            opt_in_ocr(world_a.institution, world_b.institution)
             document = build_document(application=world_b.application)
             actor = world_a.staff
             authorized = False
         else:
             world = build_tenant_world()
+            opt_in_ocr(world.institution)
             document = build_document(application=world.application)
             if actor_kind == "owning_student":
                 actor = world.student

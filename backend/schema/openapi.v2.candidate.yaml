@@ -818,6 +818,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve api v1 admin dashboard
+  /api/v1/admin/documents/ocr-opt-in/:
+    get:
+      operationId: admin_documents_ocr_opt_in_retrieve
+      description: Read or replace the set of institutions that have opted in to OCR.
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcrOptInResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve admin documents ocr opt in
+    put:
+      operationId: admin_documents_ocr_opt_in_update
+      description: Read or replace the set of institutions that have opted in to OCR.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcrOptInResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update admin documents ocr opt in
   /api/v1/admin/fees/:
     get:
       operationId: admin_fees_list
@@ -11290,6 +11389,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: 'OCR_NOT_ENABLED: the document''s institution has not opted
+            in to OCR.'
         '400':
           description: Bad request — validation error. Response body follows the platform
             error envelope.
@@ -19271,6 +19377,27 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/IdMessage'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
+    OcrOptIn:
+      type: object
+      description: 'The opt-in set: the institutions whose students get OCR suggestions.'
+      properties:
+        institution_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - institution_ids
+    OcrOptInResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OcrOptIn'
         success:
           type: boolean
           default: true

@@ -19,6 +19,7 @@ from apps.documents.fee_admin_views import AdminFeeListView
 from apps.documents.fee_quote_views import FeeQuoteView
 from apps.documents.lenco_webhook_views import LencoWebhookView
 from apps.documents.mobile_money_views import MobileMoneyInitiateView
+from apps.documents.ocr_opt_in_views import OcrOptInView
 from apps.documents.payment_admin_views import SuperAdminPaymentCorrectionView
 from apps.documents.payment_query_views import (
     FeeResolveView,
@@ -169,6 +170,16 @@ fee_admin_urlpatterns = [
         "fees/",
         AdminFeeListView.as_view(),
         name="admin-fee-list",
+    ),
+]
+
+# OCR opt-in command: /api/v1/admin/documents/ocr-opt-in/ (platform-simplification
+# task 18.1, decision D4). The only reader and writer of the opt-in setting.
+ocr_admin_urlpatterns = [
+    path(
+        "documents/ocr-opt-in/",
+        OcrOptInView.as_view(),
+        name="admin-documents-ocr-opt-in",
     ),
 ]
 

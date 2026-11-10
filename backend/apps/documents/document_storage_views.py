@@ -679,6 +679,10 @@ class DocumentUploadView(APIView):
             202: OpenApiResponse(response=TaskQueuedResponseSerializer),
             403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description="OCR_NOT_ENABLED: the document's institution has not opted in to OCR.",
+            ),
         },
     )
 )
@@ -703,6 +707,24 @@ class DocumentExtractView(APIView):
             # Return the loader error unchanged; no OCR task is enqueued and no
             # document state is mutated (R3.1, R3.2).
             return error_response
+
+        # OCR is opt-in per institution (platform-simplification task 18.1,
+        # decision D4 option B). The check runs only after the scoped
+        # authorization above, so a non-owner still gets the masked 404 first.
+        # Nothing has been written yet: upload validation and its staged write
+        # order are untouched (R22.12), and no task is enqueued here.
+        from apps.documents.ocr_policy import (
+            OCR_NOT_ENABLED,
+            OCR_NOT_ENABLED_MESSAGE,
+            is_ocr_enabled_for_application,
+        )
+
+        if not is_ocr_enabled_for_application(getattr(document, "application", None)):
+            emit_metric("ocr.extract.not_enabled")
+            return Response(
+                {"success": False, "error": OCR_NOT_ENABLED_MESSAGE, "code": OCR_NOT_ENABLED},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         # Enqueue OCR task only after authorization succeeds (R3.4, R3.5, R3.7).
         from apps.documents.tasks import extract_document_text_task

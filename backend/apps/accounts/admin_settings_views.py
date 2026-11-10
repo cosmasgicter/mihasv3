@@ -79,6 +79,34 @@ def _settings_write_forbidden(request) -> Response | None:
     )
 
 
+def _managed_elsewhere_keys() -> frozenset[str]:
+    # Function-local: a module-level import would add an accounts -> documents
+    # edge to the package graph (scripts/check_circular_imports.py).
+    from apps.documents.ocr_policy import MANAGED_ELSEWHERE_SETTING_KEYS
+
+    return MANAGED_ELSEWHERE_SETTING_KEYS
+
+
+def _key_managed_elsewhere(key) -> Response | None:
+    """403 for a key a dedicated command owns (platform-simplification task 18.1).
+
+    The OCR opt-in (``documents.ocr_enabled_institution_ids``) is read and changed
+    only through ``/api/v1/admin/documents/ocr-opt-in/`` (``platform.settings.manage``
+    plus an audit event). The reads here accept any ``admin`` role, so they must
+    not show it either.
+    """
+    if key in _managed_elsewhere_keys():
+        return Response(
+            {
+                "success": False,
+                "error": "This setting is changed through its own command.",
+                "code": "KEY_MANAGED_ELSEWHERE",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    return None
+
+
 def _role_level(role: str | None) -> int:
     return ROLE_HIERARCHY.get(role or "", 0)
 
@@ -225,7 +253,7 @@ class AdminSettingsListView(APIView):
     serializer_class = SettingSerializer
 
     def get(self, request):
-        queryset = Setting.objects.all().order_by("key")
+        queryset = Setting.objects.exclude(key__in=_managed_elsewhere_keys()).order_by("key")
 
         category = request.query_params.get("category")
         if category:
@@ -240,6 +268,9 @@ class AdminSettingsListView(APIView):
         forbidden = _settings_write_forbidden(request)
         if forbidden is not None:
             return forbidden
+        managed = _key_managed_elsewhere(request.data.get("key") if hasattr(request.data, "get") else None)
+        if managed is not None:
+            return managed
         serializer = SettingSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -318,6 +349,9 @@ class AdminSettingDetailView(APIView):
         try:
             setting = Setting.objects.get(pk=pk)
         except Setting.DoesNotExist:
+            setting = None
+        # A key a dedicated command owns answers like any missing key (task 18.1).
+        if setting is None or setting.key in _managed_elsewhere_keys():
             return Response(
                 {"success": False, "error": "Setting not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -335,6 +369,9 @@ class AdminSettingDetailView(APIView):
                 {"success": False, "error": "Setting not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        managed = _key_managed_elsewhere(setting.key)
+        if managed is not None:
+            return managed
 
         serializer = SettingUpdateSerializer(data=request.data, context={"setting_key": setting.key})
         if not serializer.is_valid():
@@ -365,6 +402,9 @@ class AdminSettingDetailView(APIView):
                 {"success": False, "error": "Setting not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        managed = _key_managed_elsewhere(setting.key)
+        if managed is not None:
+            return managed
 
         setting.delete()
         return Response(
@@ -411,6 +451,9 @@ class AdminSettingsImportView(APIView):
             if not key:
                 errors.append("Missing key in entry")
                 continue
+            if key in _managed_elsewhere_keys():
+                errors.append(f"{key}: KEY_MANAGED_ELSEWHERE - this setting is changed through its own command")
+                continue
 
             try:
                 serializer = SettingSerializer(data={
@@ -454,9 +497,27 @@ class AdminSettingsResetView(APIView):
         if forbidden is not None:
             return forbidden
         with transaction.atomic():
+            # Keep rows a dedicated command owns: deleting the OCR opt-in here
+            # would silently turn OCR off for every school (task 18.1). They are
+            # re-created unchanged (same id, value and timestamps).
+            preserved = [
+                Setting(
+                    id=row.id,
+                    key=row.key,
+                    value=row.value,
+                    description=row.description,
+                    category=row.category,
+                    is_public=row.is_public,
+                    updated_by=row.updated_by,
+                    created_at=row.created_at,
+                    updated_at=row.updated_at,
+                )
+                for row in Setting.objects.filter(key__in=_managed_elsewhere_keys())
+            ]
             deleted_count, _ = Setting.objects.all().delete()
+            deleted_count -= len(preserved)
             created_settings = [Setting(**setting) for setting in DEFAULT_GUIDED_SETTINGS]
-            Setting.objects.bulk_create(created_settings)
+            Setting.objects.bulk_create(created_settings + preserved)
 
         return Response({
             "success": True,

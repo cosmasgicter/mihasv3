@@ -454,6 +454,7 @@ _register("/api/v1/admin/users/export/", tenant(cap="tenant.staff.read", compose
 _register("/api/v1/admin/settings/", platform(cap="platform.settings.manage", tenant_object_path=None, audit_event="settings.change", notes="Platform settings list/create."))
 _register("/api/v1/admin/settings/<uuid:pk>/", platform(cap="platform.settings.manage", tenant_object_path=None, audit_event="settings.change", notes="Platform setting detail/update/delete."))
 _register("/api/v1/admin/settings/import/", platform(cap="platform.settings.manage", tenant_object_path=None, audit_event="settings.import", notes="Settings import."))
+_register("/api/v1/admin/documents/ocr-opt-in/", platform(cap="platform.settings.manage", tenant_object_path=None, audit_event="settings.change", notes="OCR opt-in command (platform-simplification task 18.1, D4): the only reader and writer of documents.ocr_enabled_institution_ids."))
 _register("/api/v1/admin/settings/reset/", platform(cap="platform.settings.manage", tenant_object_path=None, audit_event="settings.reset", notes="Settings reset."))
 
 # --- Tenant staff invitations (apps.catalog.staff_invitation_views; task 4.2) -

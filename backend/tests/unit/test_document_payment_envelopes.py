@@ -34,8 +34,13 @@ class TestDocumentExtractEnvelope(SimpleTestCase):
             # directly (via ``select_related``); wire the owning application
             # onto the document so the owner check passes.
             mock_doc.application = mock_app
+            # OCR is opt-in per institution (platform-simplification task 18.1).
+            mock_app.institution_ref_id = uuid.uuid4()
 
-            with patch("apps.documents.tasks.extract_document_text_task") as mock_task:
+            with patch("apps.documents.tasks.extract_document_text_task") as mock_task, patch(
+                "apps.documents.ocr_policy.opted_in_institution_ids",
+                return_value=[str(mock_app.institution_ref_id)],
+            ):
                 mock_task.delay.return_value = MagicMock(id="task-123")
 
                 request = factory.post(f"/api/v1/documents/{doc_id}/extract/")

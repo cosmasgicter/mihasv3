@@ -208,6 +208,33 @@ Evidence:
 - Renderer log excerpt without PII.
 - Asset/profile ids used by the renderer.
 
+### OCR grade suggestions are opt-in per school (D4, task 18.1)
+
+Server-side OCR runs only for institutions in the opt-in list. The list starts
+empty, so every school starts with manual grade entry only. Students of a school
+that has not opted in never trigger an extract call; a direct call answers
+409 `OCR_NOT_ENABLED` and queues nothing. The OCR output stays a suggestion the
+student confirms row by row.
+
+Only a super admin (`platform.settings.manage`) can read or change the list, and
+each change writes one `settings.change` audit event with the ids before and
+after. The generic settings page does not show this key. Use the API, with your
+own session cookie and CSRF token (`$API_ORIGIN` is the API origin of the
+environment you operate):
+
+```bash
+# Read the opted-in institution ids
+curl -sS -b cookies.txt "$API_ORIGIN/api/v1/admin/documents/ocr-opt-in/"
+
+# Replace the list (send the full list; [] turns OCR off everywhere)
+curl -sS -b cookies.txt -X PUT "$API_ORIGIN/api/v1/admin/documents/ocr-opt-in/" \
+  -H "Content-Type: application/json" -H "X-CSRF-Token: $CSRF_TOKEN" \
+  -d '{"institution_ids": ["<institution-uuid>"]}'
+```
+
+The body must be a list of existing institution UUIDs with no repeats; anything
+else is a 400 `VALIDATION_ERROR` and nothing is written.
+
 ## 4. Draft And Application Support
 
 Use when a student cannot start a new application, sees the wrong draft, cannot

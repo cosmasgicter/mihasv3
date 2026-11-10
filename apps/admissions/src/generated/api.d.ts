@@ -240,6 +240,30 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/admin/documents/ocr-opt-in/": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Retrieve admin documents ocr opt in
+         * @description Read or replace the set of institutions that have opted in to OCR.
+         */
+        readonly get: operations["admin_documents_ocr_opt_in_retrieve"];
+        /**
+         * Update admin documents ocr opt in
+         * @description Read or replace the set of institutions that have opted in to OCR.
+         */
+        readonly put: operations["admin_documents_ocr_opt_in_update"];
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/admin/fees/": {
         readonly parameters: {
             readonly query?: never;
@@ -6378,6 +6402,15 @@ export interface components {
             /** @default true */
             readonly success: boolean;
         };
+        /** @description The opt-in set: the institutions whose students get OCR suggestions. */
+        readonly OcrOptIn: {
+            readonly institution_ids: readonly string[];
+        };
+        readonly OcrOptInResponse: {
+            readonly data: components["schemas"]["OcrOptIn"];
+            /** @default true */
+            readonly success: boolean;
+        };
         /** @description Optional recipient override for the official-document email (R13.5). */
         readonly OfficialDocumentEmailRequest: {
             readonly email?: string;
@@ -8223,6 +8256,128 @@ export interface operations {
                 };
             };
             /** @description Forbidden — the authenticated user lacks permission for this action. */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Resource not found. */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error. Logged to GlitchTip. */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    readonly admin_documents_ocr_opt_in_retrieve: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["OcrOptInResponse"];
+                };
+            };
+            /** @description Authentication required — missing or invalid credentials. */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Resource not found. */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error. Logged to GlitchTip. */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    readonly admin_documents_ocr_opt_in_update: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["OcrOptIn"];
+                readonly "application/x-www-form-urlencoded": components["schemas"]["OcrOptIn"];
+                readonly "multipart/form-data": components["schemas"]["OcrOptIn"];
+            };
+        };
+        readonly responses: {
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["OcrOptInResponse"];
+                };
+            };
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required — missing or invalid credentials. */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             readonly 403: {
                 headers: {
                     readonly [name: string]: unknown;
@@ -18963,6 +19118,15 @@ export interface operations {
                 };
             };
             readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description OCR_NOT_ENABLED: the document's institution has not opted in to OCR. */
+            readonly 409: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

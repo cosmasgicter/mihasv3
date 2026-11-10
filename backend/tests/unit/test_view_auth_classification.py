@@ -397,6 +397,7 @@ _PROTECTED = {
     "apps.documents.views.FeeResolveView",
     "apps.documents.views.ProgramFeeViewSet",
     "apps.documents.fee_admin_views.AdminFeeListView",
+    "apps.documents.ocr_opt_in_views.OcrOptInView",
     "apps.documents.fee_quote_views.FeeQuoteView",
     # documents — job views
     "apps.documents.job_views.ResumeListView",

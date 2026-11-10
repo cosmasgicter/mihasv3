@@ -189,6 +189,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   DASHBOARD_ERROR: 'Dashboard data could not be loaded. Please try again.',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
   OCR_QUEUE_UNAVAILABLE: 'Automatic grade scanning is unavailable right now. You can enter your grades manually.',
+  OCR_NOT_ENABLED: 'Automatic grade reading is not turned on for this school. Enter your grades by hand.',
+  KEY_MANAGED_ELSEWHERE: 'This setting is changed through its own command.',
 
   // Security hardening
   BLACKLIST_UNAVAILABLE: 'Token service temporarily unavailable. Please try again.',

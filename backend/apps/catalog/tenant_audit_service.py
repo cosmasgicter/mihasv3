@@ -61,6 +61,10 @@ ACTION_OFFICIAL_DOCUMENT_DOWNLOADED = "official_document.downloaded"
 ACTION_OFFICIAL_DOCUMENT_EMAILED = "official_document.emailed"
 
 #: A non-super-admin actor's out-of-scope read was masked as not-found.
+# A platform setting changed through a dedicated command (platform-simplification
+# task 18.1: the OCR opt-in). One action name for settings writes, the one the
+# authority matrix registers for the settings routes.
+ACTION_SETTINGS_CHANGED = "settings.change"
 ACTION_SCOPE_DENIED = "scope.denied"
 
 #: An application review decision was made (status transition by an admin),

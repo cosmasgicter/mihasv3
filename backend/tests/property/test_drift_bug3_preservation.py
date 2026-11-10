@@ -162,12 +162,19 @@ class TestExtractEndpointPreservation(SimpleTestCase):
         # (via ``select_related``) rather than issuing a separate Application
         # query, so wire the owning application onto the document.
         mock_doc.application = mock_app
+        # OCR is opt-in per institution (platform-simplification task 18.1, D4):
+        # this application's institution is in the opt-in list.
+        mock_app.institution_ref_id = uuid.uuid4()
 
         mock_task = MagicMock()
         mock_task.id = "celery-task-id-123"
 
         with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs, \
              patch("apps.applications.models.Application.objects") as mock_app_qs, \
+             patch(
+                 "apps.documents.ocr_policy.opted_in_institution_ids",
+                 return_value=[str(mock_app.institution_ref_id)],
+             ), \
              patch("apps.documents.tasks.extract_document_text_task") as mock_extract:
             # SJR task 3.19: the loader's owner lookup is
             # ``queryset.filter(application__user_id=...).get(...)``.

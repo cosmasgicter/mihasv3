@@ -16,6 +16,7 @@ from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
 from apps.documents.models import ApplicationDocument
+from tests.ocr_fixtures import opt_in_ocr
 from tests.tenant_fixtures import build_document, build_tenant_world
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -41,6 +42,7 @@ def _client(profile, **kwargs) -> APIClient:
 @pytest.fixture()
 def owned_document():
     world = build_tenant_world(application_status="draft")
+    opt_in_ocr(world.institution)  # OCR is opt-in per institution (task 18.1, D4)
     document = build_document(application=world.application, document_type="result_slip")
     return world, document
 

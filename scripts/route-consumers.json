@@ -72,6 +72,12 @@
       "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
       "owner": "platform tenant-authority owner",
       "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v1/admin/documents/ocr-opt-in/",
+      "consumer": "operator, through the API",
+      "owner": "platform documents owner",
+      "reason": "D4 opt-in command; no UI in this spec"
     }
   ]
 }

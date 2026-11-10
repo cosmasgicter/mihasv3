@@ -964,6 +964,7 @@ unchanged. **Never** restore an ungated write path on these views.
 | Drift guards | `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts` + `backend/tests/unit/test_error_codes_canonical.py` |
 | `RATE_LIMITED` (429) | Carries `Retry-After`, exposed cross-origin through `CORS_EXPOSE_HEADERS`. `apps/admissions/src/services/client.ts` sets `retryAfterSeconds` (clamped 0-3600) and `code: 'RATE_LIMITED'`; `apps/admissions/src/lib/rateLimitCopy.ts:rateLimitMessage` is the one copy source (SJR R3-d) | wizard programme/intake selects, student dashboard lists, upload rows, sign-in/sign-up banners |
 | V2 envelope codes | `backend/apps/common/v2/error_codes.py:V2_ERROR_CODES` | `/api/v2` views, `backend/tests/contract/test_v2_*` |
+| `OCR_NOT_ENABLED` (409), `KEY_MANAGED_ELSEWHERE` (403) — platform-simplification task 18.1 | `backend/apps/common/error_codes.py`; raised by `apps/documents/document_storage_views.py:DocumentExtractView` and `apps/accounts/admin_settings_views.py` | `apps/admissions/src/lib/errorMessages.ts` + `tests/unit/__fixtures__/errorCodesBackendMirror.ts` |
 
 ### Catalog integrity 409 codes (Admissions V2 task 3.3)
 
@@ -1143,6 +1144,12 @@ Invariants clients may rely on:
 - **No browser OCR ships.** `tesseract.js`/`tesseract.js-core`, the asset-copy
   step, and the `vendor-ocr` chunk are removed; guarded by
   `apps/admissions/tests/unit/ocrAssetRemoval.test.ts` plus the entry-chunk guard.
+
+### OCR opt-in (platform-simplification task 18, decision D4 option B)
+| Concept | Source of truth | Consumers |
+|---------|-----------------|-----------|
+| **Which institutions have OCR** — the `settings` row `documents.ocr_enabled_institution_ids` (JSON array of institution UUIDs; missing or malformed = empty = OCR off) | `backend/apps/documents/ocr_policy.py` — `is_ocr_enabled_for_institution`, `is_ocr_enabled_for_application`, `MANAGED_ELSEWHERE_SETTING_KEYS` | `DocumentExtractView` (409 `OCR_NOT_ENABLED` after scoped authorization, nothing queued), `extract_document_text_task` (run-time re-check, returns `not_enabled`), `required_documents.build_contract` (`ocr_available`) |
+| **The only reader/writer of the opt-in** | `GET`/`PUT /api/v1/admin/documents/ocr-opt-in/` — `backend/apps/documents/ocr_opt_in_views.py:OcrOptInView` (`HasPlatformCapability`, `platform.settings.manage`; one `settings.change` audit event per write) | operators through the API (`docs/runbooks/multi-tenant-operations.md`); the generic `/api/v1/admin/settings/` endpoints omit the key, refuse writes with 403 `KEY_MANAGED_ELSEWHERE`, report it as an import entry error and keep its row on reset |
 
 ### Required-document upload contract (Admissions V2 task 7.2, R11.6-R11.8)
 
