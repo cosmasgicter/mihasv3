@@ -523,7 +523,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - _Requirements: 1.1, 2.2, 6.2, 7.1, 7.2, 7.5_
 
 - [ ] 22. Rendered design gate (built first, with a baseline of today's findings)
-  - [ ] 22.1 Set up the rendered-gate runner and the Audited_Page_Set
+  - [x] 22.1 Set up the rendered-gate runner and the Audited_Page_Set
     - Start after tasks 1.3 and 3.7: the payment pages load the card widget on mount, so without task 3.7's stub and outside-host gate, and task 1.3's parseable DSN, the console gate fails pages for reasons this gate does not measure (design §12.7).
     - Create `apps/admissions/playwright.rendered-gate.config.ts` with `desktop` (1440×900) and `mobile` (390×844) projects, reusing the harness fixtures.
     - On each page: wait for the network to go idle, take the screenshot, run axe, run the measurements, and run the impeccable detector last.
@@ -531,17 +531,17 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Build each state of Requirement 19.2 in the gate's own setup with the helpers in `apps/admissions/tests/harness-e2e/helpers/api.ts` (design §12.7), so no state depends on seed data that may not hold it.
     - _Requirements: 19.2_
 
-  - [ ] 22.2 Run impeccable's browser detector inside the Playwright pages
+  - [x] 22.2 Run impeccable's browser detector inside the Playwright pages
     - Create `apps/admissions/tests/harness-e2e/rendered-gate/impeccable.ts` (design §12.7): read `cli/engine/detect-antipatterns-browser.js` from the global `impeccable@2.1.9` install (`npm root -g`), evaluate it in the page with `page.evaluate`, call `window.impeccableScan()`, and map each `{el, findings}` to `{rule: "impeccable/" + f.type, detail: f.detail, selector: selectorFor(el)}`. Fail, naming the path, if the engine file is missing. Do not use the CLI or any snapshot or static server for these scans.
     - Create `selectorFor` in `apps/admissions/tests/harness-e2e/rendered-gate/selector.ts` with the order `data-testid`, then an `id` that contains no `:`, then a `tag:nth-of-type` path from the nearest such ancestor or `body`; inject it into the page as source text, and key axe and measurement findings with it too. Add `apps/admissions/tests/unit/renderedGateSelector.test.ts` under jsdom for the order, including a React-style `:r1:` id and a Radix `radix-:r1:` id that must be skipped.
     - Run the detector last on each page, because it draws overlays and schedules one more scan 100 ms later.
     - _Requirements: 19.1, 19.4_
 
-  - [ ] 22.3 Run axe on the same pages and states
+  - [x] 22.3 Run axe on the same pages and states
     - Use `AxeBuilder` with the tags in Requirement 19.3, one test per page and viewport, recording each scan's duration (the pattern of `axe-viewport-sweep.spec.ts`).
     - _Requirements: 19.3, 18.1_
 
-  - [ ] 22.4 Measure type size, hit areas, overflow and clipped text
+  - [x] 22.4 Measure type size, hit areas, overflow and clipped text
     - Add an in-page measurement script, plus the pure classifier `scripts/rendered-gate-rules.ts` (design §12.7), with the rules of Requirement 19.7:
       - font size on student routes, by role, with the precedence caption, navigation, control, body, other, plus each text-entry `input`, `select` and `textarea` measured as a control by its own computed size;
       - hit area, the union of an element's box and its associated label's box, with skip links measured focused and links in running text measured like any control. Record an `inRunningText` flag on every anchor: its computed `display` is `inline` and its nearest block-level ancestor has a non-empty text node outside the anchor (design §12.7). Tasks 24.6 and 24.8 partition the hit-area findings by that flag;
@@ -562,56 +562,56 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Operator step (repository settings): after two green runs on `main`, make `rendered-design-gate` a required check, as Spec A does for its own jobs (Spec A task 4.5). A failing job that branch protection does not require still lets a pull request merge. The workflow has no `paths:` filter, so requiring the job cannot leave a check pending.
     - _Requirements: 19.4, 19.5, 19.6_
 
-  - [ ] 22.6 Fail the gate on the build badge outside diagnostics
+  - [x] 22.6 Fail the gate on the build badge outside diagnostics
     - Fail when the badge's own element, matched by its `aria-label` or `title` starting with "Frontend build" (`BuildVersionBadge.tsx:45,50,71,74`), is present on an audited page of the harness's production build. Do not match visible text.
     - _Requirements: 13.2_
 
-  - [ ] 22.7 Write the classifier property test
+  - [x] 22.7 Write the classifier property test
     - **Property 11: Rendered size rules classify correctly**
     - **Validates: Requirements 12.8, 15.2, 16.1, 16.10, 17.4, 17.12, 19.7, 21.2**
     - Test in `apps/admissions/tests/property/platformSimplificationPolish.property.test.ts` using fast-check, with generated roles, label boxes, hidden, zero-area and `aria-hidden` records, scroll-container and clipping ancestors, clipped and spilling text records with every `overflow-x` value, landing action boxes and widths, and inline links.
 
-- [ ] 23. Contrast (Impeccable `audit`, a11y-audit)
-  - [ ] 23.1 Create one status-tone map and adopt it
+- [x] 23. Contrast (Impeccable `audit`, a11y-audit)
+  - [x] 23.1 Create one status-tone map and adopt it
     - Create `apps/admissions/src/lib/statusTone.ts` from `StatusPill`'s `TONE_CLASSES` (`components/ui/StatusPill.tsx:36-43`), keeping its rule (Requirement 18.2). For each tone: the tint, the border, the text class (`text-foreground`, and `text-muted-foreground` for `muted`) and an icon class: the base colour for `info`, `warning`, `success` and `danger`; `text-muted-foreground` for `neutral` and `muted`, which have no base colour (9.41:1 on `bg-muted`, 9.77:1 on `bg-muted/60` over white); and `text-accent-foreground` for `accent`. `StatusPill` has no `accent` tone, so that row comes from the identity-document icon tile (`components/student/applicationStatus/DocumentChecklist.tsx:51-52`, `bg-accent/10`). Use the token pairs in design §12, Phase 5.
     - Adopt it in `StatusPill` with no change to its colours or icons: it takes the tint, border and text classes, and its icons keep inheriting the text colour, which Requirement 18.2 allows. Adopt the whole map, icon class included, in `Alert` (whose tone-coloured text on 5% tints it replaces, `components/ui/Alert.tsx:12-16`; its icons keep the tone colour), the admin chips and the student document rows.
     - Delete each axe and impeccable baseline entry this fixes.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 18.2, 18.1, 22.8_
 
-  - [ ] 23.2 Remove alpha modifiers from text tokens
+  - [x] 23.2 Remove alpha modifiers from text tokens
     - Replace every `text-<token>/<NN>` use, for any `--color-*` token in `apps/admissions/src/styles/design-tokens.css` and with any variant prefix (`hover:`, `focus:`, `placeholder:` and the rest). At HEAD there are 23: 10 `text-muted-foreground/NN`, 5 `text-foreground/80` or `/60`, 6 `hover:text-primary/80`, `text-destructive/70` and `hover:text-destructive/80`. Use the replacements in design §12, Phase 5.
     - Add `apps/admissions/tests/unit/textTokenAlpha.test.ts`: a source scan of `apps/admissions/src/` that reads the token names from `design-tokens.css` (not the `-rgb` channel variables) and fails, naming file and line, on any match. Include fixtures for a variant prefix, which must match, and for `text-white/80`, which must not.
     - Leave the 25 `text-white/NN` uses: they are Tailwind palette colours, not tokens, and axe's `color-contrast` measures their composited contrast (design §12, Phase 5). Record that decision in the evidence summary.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 18.3_
 
-  - [ ] 23.3 Fix the solid-fill and dark-surface misuses
+  - [x] 23.3 Fix the solid-fill and dark-surface misuses
     - Give the review step's "Go to step" buttons (`SubmitStep.tsx:212,240`) `text-foreground` on the warning tint.
     - Give the landing's closing paragraph (`LandingPageSections.tsx:451`) `text-accent` on `bg-foreground`.
     - Fix any other solid-fill foreground on a tint that axe lists.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 18.4, 18.5_
 
-  - [ ] 23.4 Make meaningful icons readable
+  - [x] 23.4 Make meaningful icons readable
     - Give the identity-document icon (`DocumentChecklist.tsx:51-52`), or its successor in Spec A's list, `text-accent-foreground`, and check other status icons against 3:1.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 18.6_
 
-  - [ ] 23.5 Write the status-tone property test
+  - [x] 23.5 Write the status-tone property test
     - **Property 6: Every status tone is readable**
     - **Validates: Requirements 18.2, 18.4, 18.6**
     - Test in `apps/admissions/tests/property/platformSimplificationPolish.property.test.ts` using fast-check, computing ratios from the token hex values over white, `--color-card` and `--color-muted`, asserting that every tone's text token is `--color-foreground`, or `--color-muted-foreground` for `muted`, and checking both icon options (the tone's icon class and the inherited text colour) against 3:1.
 
 - [ ] 24. Typography and copy (Impeccable `typeset`, `clarify`; copy-editing)
-  - [ ] 24.1 Bring student mobile text to 16 px
+  - [x] 24.1 Bring student mobile text to 16 px
     - Use `text-base` below `sm` for student paragraphs, labels and buttons, and on the input, select and textarea primitives.
     - Make `Button` set `data-text-role="control"` on what it renders, so a `Button asChild` link is measured as a control, and mark the helper-text paragraphs of `components/ui/input.tsx` (`:71-75`) and `textarea.tsx` with `data-text-role="caption"` (design §12.5 "Roles").
     - Before editing a file, check the open tasks of `student-ui-ux-mobile-remediation` for it if D12 kept that plan live.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.1, 16.8, 19.7_
 
-  - [ ] 24.2 Remove arbitrary font sizes
+  - [x] 24.2 Remove arbitrary font sizes
     - Replace the 31 `text-[Npx]` uses in 13 files outside `BuildVersionBadge.tsx`, which is Spec A's, by where each renders and what it is (the table in design §12.5):
       - on student routes, the badges and metadata become `text-sm` with `data-text-role="caption"`: `MessageDeliveryState.tsx:119,142,166`, `NotificationItem.tsx:105`, and the count badges `NotificationBell.tsx:87` and `BottomNavigation.tsx:195,232`, whose circles grow from 18 px to 20 px (`h-5 min-w-5`) so the count fits;
       - on student routes, the paragraphs `MessageDeliveryState.tsx:174,179` become `text-base`;
@@ -621,22 +621,22 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.1, 16.2_
 
-  - [ ] 24.3 Use one spelling and sentence case
+  - [x] 24.3 Use one spelling and sentence case
     - Change user-facing "Program" and "Programs" to "Programme" and "Programmes", and change title-case headings, buttons, labels and navigation items to sentence case. Leave identifiers alone.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.3, 16.4_
 
-  - [ ] 24.4 Use one optional-field marker
+  - [x] 24.4 Use one optional-field marker
     - Implement "(optional)" in the shared label or field primitive, remove the required-field asterisks, and keep `required` and `aria-required`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.5_
 
-  - [ ] 24.5 Fix the copy mechanics
+  - [x] 24.5 Fix the copy mechanics
     - Replace em dashes in UI strings, use "…" in progress text, put `max-w-prose` on running text, and set the payment-step total in `font-mono` (`PaymentStep.tsx:148`).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.6, 16.7, 16.9_
 
-  - [ ] 24.6 Give every control on the audited pages a 44 px hit area
+  - [x] 24.6 Give every control on the audited pages a 44 px hit area
     - Start after task 22.5's first baseline, and record its number of `measure/hit-area` entries.
     - Fix every `measure/hit-area` entry on the Audited_Page_Set (design §12.5), public, authentication, student and admin pages alike, except the admin queue's rows and checkboxes, which task 30.4 fixes, and the findings that task 22.4's measurement flags `inRunningText`, which wait for D17 (task 24.8). Partition by that flag, so the two scopes are disjoint and together complete:
       - standalone links and buttons get `min-h-touch` and `min-w-touch` with centred content. Start with `AuthShellLink` (`components/auth/AuthShell.tsx:132-154`), a link with no minimum height that every authentication page renders inside the `text-sm` `AuthShellFooter` (`:117-126`);
@@ -647,7 +647,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.10, 19.9, 22.8_
 
-  - [ ] 24.7 Bring student captions and badges to 14 px on mobile
+  - [x] 24.7 Bring student captions and badges to 14 px on mobile
     - Record the rendered gate's count of student-route `measure/font-size` findings before starting.
     - Give `StatusPill`'s `sm` size (`components/ui/StatusPill.tsx:72`) and `Badge`'s default `text-sm sm:text-xs`, so desktop is unchanged, and mark both roots with `data-text-role="caption"`. Their colours and icons do not change (task 23.1).
     - Walk the 143 `text-xs` uses in 44 files under `src/pages/student/` and `src/components/student/` (count at HEAD): a caption, badge or piece of metadata becomes `text-sm sm:text-xs` and gets `data-text-role="caption"`; a paragraph, list item, label or button label becomes `text-base sm:text-sm`; anything else stays `text-xs` and is listed in the evidence summary as "other" with a one-line reason.

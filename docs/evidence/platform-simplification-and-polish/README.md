@@ -281,3 +281,46 @@ Removal safety for every task below: `git grep` of each removed name across apps
 ### 21 Checkpoint: P1 exit
 - Documented_Local_Stack passes the Journey_Gate (see g5-evidence.md for the run); routes and doc-path checks green; backend `-n 6` on the SQL-built test database shows only the 3 known baseline failures.
 - Still waiting: 6.8, 16.1, 16.2 (live host, D14); 12.1 webhook step (D1.b); 17.2 (D3/D5 answer); 17.3 (merge table approval); 11.2 hand-over (operator drops `local-stack-storage` from required checks). Requirement 7.2's production comparison stays open until 6.8 runs. Open questions: D17, D1.b, D3/D5, merge table, C-15.
+
+## G6 (P2): rendered design gate, contrast, typography and copy
+
+Run with a fresh harness stack per comparison (the admin queue's row positions depend on how many applications exist, so a reused stack gives different selectors). Screenshots are viewport-only at device scale factor 1 and are not committed; they are in the run directory.
+
+### 22.1 to 22.4, 22.6, 22.7 Rendered gate (R19.1 to 19.7, 12.8, 15.2, 13.2): 18d10ad3c, 5dd632151, c9427d181, 6a864f233
+- `playwright.rendered-gate.config.ts` (desktop 1440x900, mobile 390x844, no retries, one worker) over 19 audited pages x 2 viewports = 38 visits, each state built by `buildGateWorld` through the harness API helpers. Per page: network idle, screenshot, axe (wcag2a/aa/21/22), measurements (390 only), impeccable's browser detector last. The build-badge check fails a visit by itself (0 hits in 38).
+- `scripts/rendered-gate-rules.ts` is the pure classifier; units: `renderedGateSelector.test.ts`, `renderedGateRoles.test.ts` (role precedence on DOM fixtures, spill and truncate cases); Property 11 in `platformSimplificationPolish.property.test.ts` (6 tests).
+- Diagnostics: font-size and hit-area findings carry the element text or accessible name in `detail` (not part of the key).
+### 22.5 Baseline and blocking job (R19.4 to 19.6): 824e4c6f1
+- First run: 946 entries, each with a reason and an `impeccable/`, `axe/` or `measure/` prefix. `rendered-design-gate` added to `student-journey-gate.yml` (45 min, no `continue-on-error`, `impeccable@2.1.9` with `PUPPETEER_SKIP_DOWNLOAD=1`, Chromium via `bunx playwright install`, relevance prefix `scripts/rendered-`, artefact upload). No new third-party action.
+- Test changed: `test_journey_gate_configuration_sjr.py` asserted exactly one job; it now expects both and covers the new prefix. Assertion of the first job is unchanged.
+- OPERATOR STEP PENDING: after two green runs on `main`, make `rendered-design-gate` a required check. Task left open for that reason.
+### 23.1 Status-tone map (R18.2, 18.1): 73ae7a356 (see 0e08bfdca, e13ee0b8b)
+- `lib/statusTone.ts`; `StatusPill`, `StatusBadge` and `Alert` adopt it (StatusPill colours and icons unchanged; Alert's tone text on 5% tints becomes `text-foreground` on 10% tints, icon keeps the base colour). The "admin chips and student document rows" use `StatusBadge`.
+- Tests changed: `productDesignDeFluff` (primitives now read the tone classes from the map; same fill/border/label rule), the Alert colour-consistency property test (reads the tone map).
+### 23.2 Alpha text tokens (R18.3): after 0e08bfdca
+- 20 uses at this HEAD (the 23 in the spec predates the task 14 deletions) replaced per design section 12 Phase 5. `textTokenAlpha.test.ts` scans `src/`. `text-white/NN` (25 in the spec's count) left as decided.
+### 23.3 Solid fills on tints (R18.4, 18.5)
+- SubmitStep "Go to step" and "Fix" buttons, and the landing closing paragraph (`text-accent`) as specified. Also fixed, same defect class: the landing closing heading was `#0f172a` on `#0f172a` (1.0:1, found by the detector), and `text-warning-foreground` / `text-destructive-foreground` / `text-success-foreground` / `text-primary-foreground` (all white) on 5-10% tints in six more places (profile badge, eligibility chips, advanced keys, conditions list, next-action card, sessions notice). All now `text-foreground`.
+### 23.4 Meaningful icons (R18.6)
+- `text-accent` (1.2:1) icons and text on light surfaces became `text-accent-foreground` in 11 files. The identity-document tile named in the spec no longer exists at HEAD; no other tile uses `text-accent` for a status icon.
+### 23.5 Property 6 (R18.2, 18.4, 18.6)
+- Computes ratios from the hex values in `design-tokens.css` over white, card and muted for all 7 tones: labels >= 4.5:1, both icon options >= 3:1.
+- Baseline: the 8 `axe/color-contrast` and `impeccable/low-contrast` entries these tasks fixed were deleted (payment method sub-labels, landing closing section).
+### 24.1 Student mobile text 16 px (R16.1, 16.8, 19.7)
+- `text-base sm:text-sm` on paragraphs, labels, buttons and the form primitives; `Button` sets `data-text-role="control"`; the helper-text paragraphs are captions. Measured on 390 px: student `measure/font-size` findings 369 to 19 after 24.1 and the 24.7 walk, to 0.
+### 24.2 Arbitrary sizes (R16.1, 16.2)
+- 31 `text-[Npx]` uses removed per the design table; count circles 18 to 20 px.
+### 24.3 Spelling and case (R16.3, 16.4)
+- User-facing "Program(s)" to "Programme(s)" (identifiers, routes, `{{program}}` tokens, CSV headers and backend-sourced strings untouched) and title case to sentence case on headings, buttons, labels, navigation, status labels (`formatApplicationStatus` fallback too). Data values (subject names, nationalities, eligibility enums) left. `DocumentButtons` says "Prepare acceptance letter" (noun after the verb).
+- Existing tests whose old assertion encoded the old copy were updated (about 30 assertions across 20 files: admin pages, tracker, contact, nav, error display, document UI states); journey-gate and harness specs updated: `/^Submit Application/` to `/^Submit application/`, `/Download Slip/` to `/Download slip/`, "Programme information", "Programme offering(s)".
+- Left for the user: CSV export headers (`exportUtils.ts`, "Program", "Application Number") and email template subjects are user-visible but are data/integration surfaces; not changed.
+### 24.4 Optional marker (R16.5)
+- `OptionalMarker` in the shared label of Input, Textarea, PasswordInput, CanonicalSelect/FormSelect and AnimatedInput via an `optional` prop; asterisks removed everywhere (including admin dialogs and the contact page); `required` and `aria-required` kept. `optionalFieldMarker.test.ts` includes a source scan for asterisk markers.
+### 24.5 Copy mechanics (R16.6, 16.7, 16.9)
+- 92 em dashes in UI prose replaced (full stop or colon); lone "-" placeholders for empty values left for 26.5; 64 `...` to the ellipsis character (the wizard-draft-slow-network spec updated); `max-w-prose` on SectionCard, PageHeader, tracker hint and the review summary; payment total in `font-mono`.
+### 24.6 Hit areas (R16.10, 19.9, 22.8): 61d996bd4
+- Hit-area findings 57 (incl. 4 inRunningText) to 14: password toggle, auth back link and footer links, profile badge, school contact links, review tabs, review close button, filter and refresh icon buttons. Remaining 14 are the 4 running-text links (D17, task 24.8) and 10 admin queue checkboxes (task 30.4).
+### 24.7 Captions and badges (R16.1, 19.7)
+- `StatusPill`, `StatusBadge`, `Badge` captions `text-sm sm:text-xs` with `data-text-role="caption"`; walk of `text-xs` in student pages and components (139 edits by element: paragraph, list item, label or button to `text-base sm:text-sm`; other intrinsic elements to caption). No "other" exceptions were needed. Also a 390 px overflow regression from 24.1 on the super-admin school list fixed (`grid-cols-[minmax(0,1fr)]`, wrapping header row); the one remaining clipped long school name is a baseline entry for 30.6.
+### 24.8 BLOCKED (D17)
+- Not touched. The 44 px guardrail is unchanged; the four D17 entries stay with their reason.
