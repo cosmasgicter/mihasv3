@@ -130,60 +130,44 @@ Active / pressed states use `active:scale-[0.98]` on buttons (subtle scale,
 no shadow change).
 
 ## 4. Components
-
-78 canonical UI primitives in `apps/admissions/src/components/ui/`. Use these
-before building anything new. Every primitive is keyboard-accessible,
-focus-trap-aware where modal, and respects reduced motion.
-
+These are the primitives the app renders: each one is reachable from
+`apps/admissions/src/main.tsx` in the import graph of
+`scripts/unreferenced-modules.ts`. Use them before building anything new. Every
+primitive is keyboard-accessible, focus-trap-aware where modal, and respects
+reduced motion. A component that file exists for but no page renders is not
+listed; do not build on it.
 ### Layout / shell
-
 `PageShell`, `PageHeader`, `MobilePageHeader`, `Container`, `Grid`, `Stack`,
 `Section`, `SectionCard`, `ResponsiveLayout`, `SafeAreaProvider`,
-`AppShellSkeleton`, `AuthenticatedRouteShell`, `BottomNavigation`.
-
+`AuthenticatedRouteShell`, `BottomNavigation`.
 ### Inputs
-
 `Button` (variants: default / primary / secondary / outline / ghost / link /
-destructive / danger / success / warning / gradient), `LoadingButton`,
-`PasswordInput`, `Radio`, `radio-group`, `form-radio-group`, `select`,
-`form-select`, `CanonicalSelect`, `checkbox`, `switch`, `input`, `textarea`,
-`label`, `FileUpload`.
-
+destructive / danger / success / warning / gradient), `PasswordInput`,
+`radio-group`, `select`, `form-select`, `CanonicalSelect`, `checkbox`,
+`switch`, `input`, `textarea`, `label`, `FileUpload`.
 ### Feedback
-
 `Alert`, `Banner`, `ErrorBoundary`, `ErrorDisplay` *(returns null on empty
-message — never renders empty `role="alert"`)*, `EmptyState`, `FormError`,
-`FormErrorAnnouncer`, `FormFeedback`, `Toast`, `InfoCallout`,
-`InlineLoader`, `LoadingFallback`, `LoadingOverlay`, `LoadingSpinner`,
-`PageLoadingFallback`, `SaveStatusIndicator`, `AutoSaveIndicator`,
-`ProgressIndicator`, `Progress`, `ButtonSpinner`, `Spinner`, `Skeleton`.
-
+message — never renders empty `role="alert"`)*, `EmptyState`,
+`FormErrorAnnouncer`, `Toast`, `InfoCallout`, `AutoSaveIndicator`, `Progress`,
+`ButtonSpinner`, `Skeleton`.
+The wizard's step indicator is `EnhancedProgressIndicator`
+(`apps/admissions/src/pages/student/applicationWizard/components/`), not a
+`components/ui` primitive.
 ### Display
-
-`Card`, `Badge`, `Table`, `ResponsiveTable`, `Pagination`, `Stepper`,
-`Tabs`, `Accordion`, `Separator`, `Tooltip`, `OptimizedImage` *(WebP/AVIF +
-`onError` fallback required for content images)*, `StatusIcon`, `Modal`,
-`Dialog`, `alert-dialog`, `dropdown-menu`, `ConfirmDialog`,
-`DataPopulationConfirmation`, `ProfileAutoPopulationIndicator`.
-
+`Card`, `Badge`, `Table`, `ResponsiveTable`, `Pagination`, `Tabs`, `Accordion`,
+`Separator`, `Tooltip`, `OptimizedImage` *(WebP/AVIF + `onError` fallback
+required for content images)*, `StatusIcon`, `Modal`, `Dialog`, `alert-dialog`,
+`dropdown-menu`, `ConfirmDialog`, `ProfileAutoPopulationIndicator`.
 ### A11y / focus
-
-`SkipLink`, `FocusTrap`, `ScreenReaderAnnouncer` (via `FormErrorAnnouncer`),
-`SafeHtml`.
-
+`SkipLink`, `FormErrorAnnouncer` (announces form errors to screen readers).
 ### Auth / account
-
-`UserMenu`, `ActiveSessions`, `AuthLoadingOverlay`.
-
+`UserMenu`, `ActiveSessions`.
 Development diagnostics only: `BuildVersionBadge` renders on the development server
 and is removed from production builds (no badge, no `/health/live/` version
 probe). Support reads the backend version from the `X-Backend-Version` header.
-
 ### Skeletons
-
-`AppShellSkeleton`, `GuardInlineSkeleton`, plus `components/ui/skeletons/`
-folder for view-specific skeleton screens.
-
+`GuardInlineSkeleton`, plus `components/ui/skeletons/` folder for view-specific
+skeleton screens.
 ### Composition rules
 
 - One container deep. `SectionCard > content`, never `SectionCard > Card > Card`.
@@ -204,7 +188,7 @@ folder for view-specific skeleton screens.
 - Pair every animation with `prefers-reduced-motion` (already enforced globally).
 - Use `font-mono` (JetBrains Mono on PDF, system mono on web) for reference numbers, receipt totals, timer countdowns, and tabular figures.
 - Validate forms `onBlur`, not on every keystroke. Show error inline + auto-focus the first invalid field on submit.
-- Auto-save drafts on the wizard and on Settings. Show a `SaveStatusIndicator` (idle / saving / saved / error / offline / conflict).
+- Auto-save drafts on the wizard and on Settings. Show an `AutoSaveIndicator` for the save state (idle / saving / saved / error).
 - Use the right register: `product` for the wizard and admin tools, `brand` for landing and PDFs.
 
 ### Don't
@@ -219,7 +203,7 @@ folder for view-specific skeleton screens.
 - Don't ship animations that exceed 400 ms. Keep micro-interactions in 150–300 ms.
 - Don't animate `width` / `height` / `top` / `left`. Use `transform` and `opacity`.
 - Don't disable `prefers-reduced-motion` overrides.
-- Don't break the `ProgressIndicator` / `Stepper` for the wizard. The 6-step wizard is the student's mental map.
+- Don't break the wizard's `EnhancedProgressIndicator`. The 6-step wizard is the student's mental map.
 - Don't return raw lists from authenticated endpoints. Always wrap in `{ "success": true, "data": [...] }` (backend rule, surfaces in UI as a typed envelope).
 
 ### Hardline rules (will fail CI)
