@@ -2,10 +2,13 @@
  * Property tests for platform-simplification-and-polish (Spec B).
  *
  * Property 11 (task 22.7): rendered size rules classify correctly.
- * Property 6 (task 23.5) is appended by that task.
+ * Property 6 (task 23.5): every status tone is readable.
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import * as fc from 'fast-check';
+import { STATUS_TONES, type StatusTone } from '../../src/lib/statusTone';
 import {
   FONT_FLOORS,
   HIT_AREA_MIN,
@@ -113,5 +116,78 @@ describe('Property 11: rendered size rules classify correctly', () => {
         expect(out.length === 0).toBe(Math.abs(a - b) <= 1);
       }),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Property 6: every status tone is readable (task 23.5, Requirements 18.2, 18.4, 18.6)
+// ---------------------------------------------------------------------------
+const CSS = readFileSync(join(__dirname, '..', '..', 'src', 'styles', 'design-tokens.css'), 'utf8');
+type Rgb = [number, number, number];
+
+function token(name: string): Rgb {
+  const m = new RegExp(`--color-${name}\\s*:\\s*#([0-9a-fA-F]{6})`).exec(CSS);
+  if (!m) throw new Error(`token --color-${name} not found`);
+  const h = m[1]!;
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function luminance([r, g, b]: Rgb): number {
+  const lin = (c: number) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function ratio(a: Rgb, b: Rgb): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}
+function over(fg: Rgb, alpha: number, bg: Rgb): Rgb {
+  return [0, 1, 2].map((i) => Math.round(fg[i]! * alpha + bg[i]! * (1 - alpha))) as Rgb;
+}
+
+/** Tint colour and alpha for each tone, read from the class the map returns (bg-<token>[/NN]). */
+function tintOf(tone: StatusTone, surface: Rgb): Rgb {
+  const m = /^bg-([a-z-]+?)(?:\/(\d+))?$/.exec(STATUS_TONES[tone].tint);
+  if (!m) throw new Error(`unparsable tint ${STATUS_TONES[tone].tint}`);
+  return over(token(m[1]!), m[2] ? Number(m[2]) / 100 : 1, surface);
+}
+function tokenOfClass(cls: string): Rgb {
+  const m = /^text-([a-z-]+)$/.exec(cls);
+  if (!m) throw new Error(`unparsable text class ${cls}`);
+  return token(m[1]!);
+}
+
+describe('Property 6: every status tone is readable', () => {
+  const tones = Object.keys(STATUS_TONES) as StatusTone[];
+  const surfaces: Record<string, Rgb> = {
+    white: token('background'),
+    card: token('card'),
+    muted: token('muted'),
+  };
+
+  it('every tone label is --color-foreground (--color-muted-foreground for muted)', () => {
+    for (const tone of tones) {
+      expect(STATUS_TONES[tone].text).toBe(tone === 'muted' ? 'text-muted-foreground' : 'text-foreground');
+    }
+  });
+
+  it('label text clears 4.5:1 and the icon clears 3:1 on every tint over every surface', () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...tones), fc.constantFrom(...Object.keys(surfaces)), (tone, surfaceName) => {
+        const tint = tintOf(tone, surfaces[surfaceName]!);
+        const label = tokenOfClass(STATUS_TONES[tone].text);
+        expect(ratio(label, tint), `${tone} label on ${surfaceName}`).toBeGreaterThanOrEqual(4.5);
+        // Both icon options: the tone's own icon class, and the inherited label colour.
+        const icon = tokenOfClass(STATUS_TONES[tone].icon);
+        expect(ratio(icon, tint), `${tone} icon on ${surfaceName}`).toBeGreaterThanOrEqual(3);
+        expect(ratio(label, tint), `${tone} inherited icon on ${surfaceName}`).toBeGreaterThanOrEqual(3);
+      }),
+    );
+  });
+
+  it('the accent tone icon is text-accent-foreground, not the 1.2:1 text-accent', () => {
+    expect(STATUS_TONES.accent.icon).toBe('text-accent-foreground');
+    expect(ratio(token('accent'), token('background'))).toBeLessThan(3);
   });
 });
