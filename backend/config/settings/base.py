@@ -597,7 +597,7 @@ Protected endpoints accept either:
 # ---------------------------------------------------------------------------
 
 # Zoho SMTP (primary outbound email)
-EMAIL_HOST = os.environ.get('ZOHO_SMTP_HOST', 'smtp.zoho.com')
+EMAIL_HOST = os.environ.get('ZOHO_SMTP_HOST', 'localhost')
 EMAIL_PORT = int(os.environ.get('ZOHO_SMTP_PORT', '465'))
 EMAIL_HOST_USER = os.environ.get('ZOHO_SMTP_USERNAME', '')
 EMAIL_HOST_PASSWORD = os.environ.get('ZOHO_SMTP_PASSWORD', '')
@@ -614,13 +614,12 @@ ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@beanola.com")
 # Uptime monitoring — internal health check URL
 # ---------------------------------------------------------------------------
 
-HEALTH_CHECK_URL = os.environ.get(
-    "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"
-)
+# Empty by default: no non-production settings module may ping a production host.
+# ``prod.py`` sets today's production values explicitly; the scheduled tasks
+# return early when the value is empty.
+HEALTH_CHECK_URL = os.environ.get("HEALTH_CHECK_URL", "")
 
-KEEP_ALIVE_URL = os.environ.get(
-    "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"
-)
+KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "")
 
 # ---------------------------------------------------------------------------
 # Password hashing
@@ -724,7 +723,7 @@ JOBS_OPS_AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flas
 JOBS_OPS_AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
 # deepseek-v3: complex reasoning
 JOBS_OPS_AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
     "true",

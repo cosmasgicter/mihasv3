@@ -22,6 +22,9 @@ from .staging import *  # noqa: F401,F403  (inherits prod-parity hardening flags
 # A local stack, not a deployment: staging turns startup validation on, this turns it off.
 STARTUP_ENV_VALIDATION = False
 
+# Local defaults: staging reads these with no default (task 4.1).
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")  # noqa: F405
+HEALTH_CHECK_URL = os.environ.get("HEALTH_CHECK_URL", "")  # noqa: F405
 # --- Transport: localhost is plain HTTP, so disable HTTPS-only behaviours ---
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0

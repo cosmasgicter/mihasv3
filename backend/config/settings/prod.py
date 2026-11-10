@@ -20,6 +20,17 @@ ALLOWED_HOSTS = [
 ]
 validate_debug_not_serving_production_hosts()  # noqa: F405
 
+# Outbound defaults. ``base.py`` defaults these to local or empty values so no
+# other settings module can reach a production host; production keeps today's
+# values here (task 4.1). Env vars still win.
+HEALTH_CHECK_URL = os.environ.get(  # noqa: F405
+    "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"
+)
+KEEP_ALIVE_URL = os.environ.get(  # noqa: F405
+    "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"
+)
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")  # noqa: F405
+EMAIL_HOST = os.environ.get("ZOHO_SMTP_HOST", "smtp.zoho.com")  # noqa: F405
 # Full security with SSL redirect
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000
