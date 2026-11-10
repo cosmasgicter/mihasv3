@@ -601,6 +601,9 @@ class RequiredDocumentsContractSerializer(serializers.Serializer):
     missing_required = serializers.ListField(child=serializers.DictField())
     satisfied = serializers.BooleanField()
     policy = serializers.DictField()
+    ocr_available = serializers.BooleanField(
+        help_text="True when the application's institution has opted in to OCR grade suggestions (decision D4)."
+    )
 
 
 # ---------------------------------------------------------------------------

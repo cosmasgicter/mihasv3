@@ -99,6 +99,12 @@ export interface RequiredDocumentsContract {
   requirements: RequiredDocumentRequirement[]
   missingRequired: Array<{ documentType: string; label: string }>
   satisfied: boolean
+  /**
+   * The application's institution has opted in to OCR grade suggestions
+   * (platform-simplification task 18.2, decision D4). `false` unless the server
+   * says `true`: the wizard calls extract and polls only when this is set.
+   */
+  ocrAvailable: boolean
 }
 
 /**
@@ -307,6 +313,7 @@ export function parseRequiredDocumentsContract(raw: unknown): RequiredDocumentsC
     requirements,
     missingRequired,
     satisfied: missingRequired.length === 0,
+    ocrAvailable: payload.ocr_available === true,
   }
 }
 

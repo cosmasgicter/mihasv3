@@ -7246,6 +7246,8 @@ export interface components {
             readonly policy: {
                 readonly [key: string]: unknown;
             };
+            /** @description True when the application's institution has opted in to OCR grade suggestions (decision D4). */
+            readonly ocr_available: boolean;
         };
         /** @description Documents the workspace payload shape (design §11.1) for the schema. */
         readonly ReviewWorkspaceResponse: {

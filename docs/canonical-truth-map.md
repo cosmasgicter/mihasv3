@@ -1150,6 +1150,7 @@ Invariants clients may rely on:
 |---------|-----------------|-----------|
 | **Which institutions have OCR** — the `settings` row `documents.ocr_enabled_institution_ids` (JSON array of institution UUIDs; missing or malformed = empty = OCR off) | `backend/apps/documents/ocr_policy.py` — `is_ocr_enabled_for_institution`, `is_ocr_enabled_for_application`, `MANAGED_ELSEWHERE_SETTING_KEYS` | `DocumentExtractView` (409 `OCR_NOT_ENABLED` after scoped authorization, nothing queued), `extract_document_text_task` (run-time re-check, returns `not_enabled`), `required_documents.build_contract` (`ocr_available`) |
 | **The only reader/writer of the opt-in** | `GET`/`PUT /api/v1/admin/documents/ocr-opt-in/` — `backend/apps/documents/ocr_opt_in_views.py:OcrOptInView` (`HasPlatformCapability`, `platform.settings.manage`; one `settings.change` audit event per write) | operators through the API (`docs/runbooks/multi-tenant-operations.md`); the generic `/api/v1/admin/settings/` endpoints omit the key, refuse writes with 403 `KEY_MANAGED_ELSEWHERE`, report it as an import entry error and keep its row on reset |
+| **`ocr_available`** on the required-documents contract | `backend/apps/applications/required_documents.py:build_contract` | `apps/admissions/src/lib/requiredDocuments.ts` (`ocrAvailable`); the wizard calls extract and polls only when it is true (`useWizardController.ts`); drift guard `apps/admissions/tests/unit/ocrAvailableContract.test.ts` |
 
 ### Required-document upload contract (Admissions V2 task 7.2, R11.6-R11.8)
 

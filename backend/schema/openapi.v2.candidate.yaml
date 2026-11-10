@@ -21437,11 +21437,16 @@ components:
         policy:
           type: object
           additionalProperties: {}
+        ocr_available:
+          type: boolean
+          description: True when the application's institution has opted in to OCR
+            grade suggestions (decision D4).
       required:
       - application_id
       - application_status
       - configuration_version
       - missing_required
+      - ocr_available
       - policy
       - requirements
       - satisfied
