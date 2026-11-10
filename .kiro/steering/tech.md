@@ -500,7 +500,7 @@ integration on the platform belongs to **jobs-ops**.
 | Surface | Where | Model | Boundary |
 |---------|-------|-------|----------|
 | Jobs-ops match scoring, resume tailoring, outreach drafting, posting analysis | `backend/apps/jobs/ai_service.py` | Vercel AI Gateway (`JOBS_OPS_AI_MODEL_*`) | jobs-ops only |
-| Admissions grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` → `apps/documents/grade_extraction.py` | **server-side Tesseract**, no model | admissions; deterministic |
+| Admissions grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` → `apps/documents/grade_extraction.py` | **server-side Tesseract**, no model | admissions; deterministic; **opt-in per institution** (D4, task 18): runs only for schools in `documents.ocr_enabled_institution_ids` (`apps/documents/ocr_policy.py`), changed through `/api/v1/admin/documents/ocr-opt-in/`; elsewhere extract answers 409 `OCR_NOT_ENABLED` and the wizard offers manual entry only |
 | Admissions review readiness | `apps/applications` review-workspace query | none — deterministic evaluator | admissions |
 | Student submission summary | wizard review step | none — composed from stored fields + validation | admissions |
 
