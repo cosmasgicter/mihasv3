@@ -154,20 +154,12 @@
       "reason": "No importer reachable from main.tsx; named only by tests (3 files, e.g. uploadPathSingleSource.test.ts). Deletion is part of D15 item (d), task 14.4."
     },
     {
-      "module": "apps/admissions/src/lib/applicationSlipStorage.ts",
-      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. uploadPathSingleSource.test.ts). Deletion is part of D15 item (d), task 14.4."
-    },
-    {
       "module": "apps/admissions/src/lib/applicationStats.ts",
       "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. applicationStats.property.test.ts). Deletion is part of D15 item (d), task 14.4."
     },
     {
       "module": "apps/admissions/src/lib/gradeValidation.ts",
       "reason": "No importer reachable from main.tsx and no test names it. Deletion is part of D15 item (d), task 14.4."
-    },
-    {
-      "module": "apps/admissions/src/lib/slipService.ts",
-      "reason": "No importer reachable from main.tsx; named only by tests (6 files, e.g. test_bug5_slip_service.test.ts). Deletion is part of D15 item (d), task 14.4."
     },
     {
       "module": "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
@@ -184,10 +176,6 @@
     {
       "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts",
       "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. test_bug3_hydration_race.test.ts). Deletion is part of D15 item (d), task 14.4."
-    },
-    {
-      "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts",
-      "reason": "No importer reachable from main.tsx; named only by tests (2 files, e.g. architectureEnforcement.test.ts). Deletion is part of D15 item (d), task 14.4."
     },
     {
       "module": "apps/admissions/src/pages/student/applicationWizard/hooks/wizard/utils/wizardUtils.ts",

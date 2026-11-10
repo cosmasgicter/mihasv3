@@ -1682,7 +1682,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                     "applicationWizard/hooks/useWizardController.ts",
                     "applicationWizard/hooks/useApplicationFileUploads.ts",
                     "applicationWizard/hooks/wizard/wizardControllerUtils.ts",
-                    "applicationWizard/hooks/wizard/useWizardFileUploads.ts",
                     "applicationWizard/steps/PaymentStep.tsx",
                     "src/pages/student/PaymentCallback.tsx",
                 ),
@@ -1749,7 +1748,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                 paths=(
                     "apps/admissions/src/pages/dev/DocumentPreview.tsx",
                     "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
-                    "apps/admissions/src/lib/slipService.ts",
                     "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
                     "apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts",
                 ),

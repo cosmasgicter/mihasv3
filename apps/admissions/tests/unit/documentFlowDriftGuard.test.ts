@@ -130,13 +130,6 @@ const PREVIEW_ALLOWLIST: readonly AllowlistEntry[] = [
     removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
   },
   {
-    path: 'apps/admissions/src/lib/slipService.ts',
-    reason:
-      'Legacy/manual slip preview helper (non-official draft preview, R7.6). Not wired into production student or public document actions.',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-  {
     path: 'apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts',
     reason:
       'Dev-only client-generation hook retained for local PDF preview tests. Not wired into the student official-download components (those use useOfficialDocument).',

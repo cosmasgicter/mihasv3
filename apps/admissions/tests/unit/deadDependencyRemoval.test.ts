@@ -158,7 +158,7 @@ describe('dev-only PDF preview payload (task 12.4, R11.9 / R16.5)', () => {
     // backend pipeline through `@/services/officialDocuments`, never a client
     // render. `@/lib/pdf` may be imported only by a dev preview, its own
     // internals, the sample renderer script, or a test.
-    const allowedPrefixes = ['src/pages/dev/', 'src/lib/pdf/', 'src/lib/slipService.ts']
+    const allowedPrefixes = ['src/pages/dev/', 'src/lib/pdf/']
     const offenders = sourceFiles(path.join(ADMISSIONS_ROOT, 'src'))
       .map((file) => path.relative(ADMISSIONS_ROOT, file))
       .filter((relative) => !allowedPrefixes.some((prefix) => relative.startsWith(prefix)))

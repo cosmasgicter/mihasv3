@@ -30,6 +30,10 @@
       "reason": "No first-party caller of the detail route: only the list is read (services/catalog.ts). Legacy catalog read, public GET preserved by steering."
     },
     {
+      "route": "/api/v1/documents/*/download/",
+      "reason": "No first-party caller since task 14.9 removed lib/storage.ts downloadFile, which itself had no caller. Students open documents through /documents/{id}/signed-url/ (DocumentOpen.tsx). The route stays mounted: removing it is not in any D15 item and needs its own decision."
+    },
+    {
       "route": "/api/v1/documents/*/versions/",
       "reason": "Jobs-ops document route with no caller in apps/jobs-ops; frozen by the jobs-ops decision.",
       "decision": "D1"

@@ -408,7 +408,6 @@ const useWizardController = (): UseWizardControllerResult => {
       setValue('program', resolvedId, { shouldValidate: true })
     }
   }, [programs, selectedProgram, findProgramId, setValue])
-  const clearValidationError = useCallback(() => setError(''), [])
 
   const {
     wizardCatalogContext,
@@ -445,12 +444,7 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadStates,
     uploadedFiles,
     markUploadedFile,
-  } = useApplicationFileUploads({
-    userId: user?.id,
-    applicationId,
-    onValidationError: setError,
-    onValidationClear: clearValidationError
-  })
+  } = useApplicationFileUploads()
 
   const clearStaleApplicationReference = useCallback((staleApplicationId: string, message?: string) => {
     clearStaleApplicationDraftReference(staleApplicationId)

@@ -110,7 +110,6 @@ const LEGACY_EXCEPTION_REMOVE_BY = '2027-02-07'
  * | `…/applicationWizard/steps/PaymentStep.tsx` | `deferPayment` / `devBypassPayment` (`services/payments`) |
  * | `…/hooks/useApplicationFileUploads.ts` | `services/sessionProbe` (the probe moved there whole) |
  * | `…/hooks/useWizardController.ts` | `documentService.extract({force})` |
- * | `…/hooks/wizard/useWizardFileUploads.ts` | `documentService.extract` + `listByApplication` |
  * | `…/hooks/useSmartAutoSave.ts` | `AuthenticationError` from `services/errors` |
  * | `…/hooks/wizard/wizardControllerUtils.ts` | the same |
  *
