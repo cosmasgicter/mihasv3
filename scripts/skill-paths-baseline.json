@@ -1,15 +1,4 @@
 {
   "description": "Dangling skill links and skills.json paths that are known and owned by a decision. An entry fails the check when the item resolves or is gone.",
-  "entries": [
-    {
-      "path": ".kiro/skills/playwright",
-      "reason": "Symlink whose target is not in the repository. Pruning .kiro/skills is decision D6 (task 15.1).",
-      "decision": "D6"
-    },
-    {
-      "path": ".kiro/skills/playwright-best-practices",
-      "reason": "Symlink whose target is not in the repository. Pruning .kiro/skills is decision D6 (task 15.1).",
-      "decision": "D6"
-    }
-  ]
+  "entries": []
 }
