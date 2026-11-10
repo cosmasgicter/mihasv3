@@ -325,21 +325,7 @@
     "rule": "impeccable/all-caps-body",
     "page": "/",
     "viewport": "1440x900",
-    "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/all-caps-body",
-    "page": "/",
-    "viewport": "1440x900",
     "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/all-caps-body",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -640,20 +626,6 @@
     "rule": "impeccable/icon-tile-stack",
     "page": "/",
     "viewport": "1440x900",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/icon-tile-stack",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/icon-tile-stack",
-    "page": "/",
-    "viewport": "1440x900",
     "selector": "#features > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
@@ -717,20 +689,6 @@
     "rule": "impeccable/icon-tile-stack",
     "page": "/",
     "viewport": "390x844",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/icon-tile-stack",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/icon-tile-stack",
-    "page": "/",
-    "viewport": "390x844",
     "selector": "#features > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > h3:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
@@ -800,22 +758,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#assignedSchool",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#assignedSchool",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#assignedSchool",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -828,22 +772,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#education",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#education",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#education",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -856,22 +786,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#payment",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#payment",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -884,22 +800,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#personal",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#personal",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#personal",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -912,22 +814,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#program",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#program",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#program",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -940,22 +828,8 @@
   {
     "rule": "impeccable/layout-transition",
     "page": "/student/application-wizard#submit",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#submit",
     "viewport": "390x844",
     "selector": "#main-content > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/layout-transition",
-    "page": "/student/application-wizard#submit",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"wizard-progress-summary\"] > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
@@ -971,13 +845,6 @@
     "viewport": "390x844",
     "selector": "#public-mobile-menu",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "impeccable/line-length",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
   },
   {
     "rule": "impeccable/line-length",
@@ -991,13 +858,6 @@
     "page": "/",
     "viewport": "1440x900",
     "selector": "#eligibility > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
-  },
-  {
-    "rule": "impeccable/line-length",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#how-it-works > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
     "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
   },
   {
@@ -1022,20 +882,6 @@
     "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
   },
   {
-    "rule": "impeccable/line-length",
-    "page": "/admin/applications",
-    "viewport": "1440x900",
-    "selector": "#app-main-content > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(2)",
-    "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
-  },
-  {
-    "rule": "impeccable/line-length",
-    "page": "/admin/applications#review",
-    "viewport": "1440x900",
-    "selector": "#app-main-content > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(2)",
-    "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
-  },
-  {
     "rule": "impeccable/nested-cards",
     "page": "/",
     "viewport": "1440x900",
@@ -1047,20 +893,6 @@
     "page": "/",
     "viewport": "1440x900",
     "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1089,13 +921,6 @@
     "page": "/",
     "viewport": "1440x900",
     "selector": "#accreditation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1157,13 +982,6 @@
   {
     "rule": "impeccable/nested-cards",
     "page": "/",
-    "viewport": "1440x900",
-    "selector": "#stats > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
     "viewport": "390x844",
     "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
@@ -1173,20 +991,6 @@
     "page": "/",
     "viewport": "390x844",
     "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#accommodation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1215,13 +1019,6 @@
     "page": "/",
     "viewport": "390x844",
     "selector": "#accreditation > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1278,13 +1075,6 @@
     "page": "/",
     "viewport": "390x844",
     "selector": "#how-it-works > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(2)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#stats > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1299,13 +1089,6 @@
     "page": "/admin/applications",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/admin/applications",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1383,13 +1166,6 @@
     "page": "/admin/applications#review",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/admin/applications#review",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1613,13 +1389,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/admin/tenants#superAdmin",
     "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/admin/tenants#superAdmin",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -1732,13 +1501,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/admin/tenants#tenantAdmin",
     "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/admin/tenants#tenantAdmin",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -1767,21 +1529,7 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#assignedSchool",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#assignedSchool",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1795,70 +1543,56 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "1440x900",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(1)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "1440x900",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(2)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(2)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "1440x900",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(3)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(3)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "1440x900",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(4)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(4)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "390x844",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(1)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(2)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "390x844",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(2)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(3)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#assignedSchool",
     "viewport": "390x844",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(3)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#assignedSchool",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(2) > section:nth-of-type(4)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#education",
-    "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
+    "selector": "[data-testid=\"assigned-school-step\"] > div:nth-of-type(1) > section:nth-of-type(4)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1866,13 +1600,6 @@
     "page": "/student/application-wizard#education",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#education",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -1921,13 +1648,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#education",
     "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#education",
-    "viewport": "390x844",
     "selector": "[data-testid=\"education-step\"] > div:nth-of-type(1) > fieldset:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -1963,21 +1683,7 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#payment",
     "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2004,20 +1710,6 @@
   {
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#payment",
-    "viewport": "1440x900",
-    "selector": "[data-testid=\"payment-step\"] > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#payment",
-    "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#payment",
     "viewport": "390x844",
     "selector": "[data-testid=\"fee-quote-panel\"]",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
@@ -2031,30 +1723,9 @@
   },
   {
     "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#payment",
-    "viewport": "390x844",
-    "selector": "[data-testid=\"payment-step\"] > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#personal",
-    "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#personal",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#personal",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2075,13 +1746,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#personal",
     "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#personal",
-    "viewport": "390x844",
     "selector": "[data-testid=\"basic-kyc-step\"] > div:nth-of-type(2)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -2089,21 +1753,7 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#program",
     "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#program",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#program",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2115,30 +1765,9 @@
   },
   {
     "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#program",
-    "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#submit",
-    "viewport": "1440x900",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
     "page": "/student/application-wizard#submit",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#submit",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2230,13 +1859,6 @@
     "page": "/student/application-wizard#submit",
     "viewport": "1440x900",
     "selector": "[data-testid=\"submit-step\"] > fieldset:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(3)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application-wizard#submit",
-    "viewport": "390x844",
-    "selector": "#main-content > div:nth-of-type(3) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2439,13 +2061,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/application/:id/status",
     "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/application/:id/status",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -2586,13 +2201,6 @@
     "rule": "impeccable/nested-cards",
     "page": "/student/dashboard#draft",
     "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/dashboard#draft",
-    "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
@@ -2657,13 +2265,6 @@
     "page": "/student/dashboard#empty",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/dashboard#empty",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2713,13 +2314,6 @@
     "page": "/student/payment",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/payment",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -2797,13 +2391,6 @@
     "page": "/student/settings",
     "viewport": "1440x900",
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
-  },
-  {
-    "rule": "impeccable/nested-cards",
-    "page": "/student/settings",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)",
     "reason": "Today's finding; fixed by task 31.3 (landing: task 33.1)."
   },
   {
@@ -3442,13 +3029,6 @@
     "viewport": "390x844",
     "selector": "[data-testid=\"submit-step\"] > fieldset:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > label:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "measure/action-width",
-    "page": "/",
-    "viewport": "390x844",
-    "selector": "#hero > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Today's finding; fixed by task 29.3."
   },
   {
     "rule": "measure/clipped-text",
