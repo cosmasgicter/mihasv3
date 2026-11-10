@@ -120,8 +120,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: only the frontend image's `index.html` hints change. Precondition: production's `VITE_API_BASE_URL` Actions variable names the API origin; if it does not, the only effect is a missing API preconnect.
     - _Requirements: 1.11_
 
-- [ ] 4. Outbound defaults
-  - [ ] 4.1 Move production defaults out of base settings
+- [x] 4. Outbound defaults
+  - [x] 4.1 Move production defaults out of base settings
     - In `backend/config/settings/base.py`, default `HEALTH_CHECK_URL` and `KEEP_ALIVE_URL` to `""`, `FRONTEND_URL` to `http://localhost:5173` and `EMAIL_HOST` to `localhost`.
     - In `prod.py`, set today's production values explicitly.
     - In `staging.py`, read `FRONTEND_URL` and `HEALTH_CHECK_URL` with an empty default, and add both names to its `REQUIRED_ENV_VARS`, which Spec A's startup validation enforces only when `STARTUP_ENV_VALIDATION` is true (design §9).
@@ -130,14 +130,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: production takes `HEALTH_CHECK_URL`, `KEEP_ALIVE_URL`, `FRONTEND_URL` and `EMAIL_HOST` from `prod.py` instead of the base defaults. Precondition: task 4.3's assertion that `prod.py` keeps today's values passes.
     - _Requirements: 9.1, 9.5, 9.7_
 
-  - [ ] 4.2 Make scheduled tasks and link helpers stop falling back to production
+  - [x] 4.2 Make scheduled tasks and link helpers stop falling back to production
     - In `backend/apps/common/tasks.py`, change the production fallbacks in `keep_alive_task` (`:329`) and `check_uptime_task` (`:358`) to `""`, and make both tasks return early with one INFO log naming the empty setting.
     - In `backend/apps/common/email_links.py:75`, remove the `or "https://apply.beanola.com"` fallback: with an empty `FRONTEND_URL`, `_get_platform_base_url()` logs one WARNING per process naming the setting and returns `""`. In `backend/apps/common/outbox.py:96`, change the `getattr` default to `""` (design §9).
     - Add unit tests: an empty `FRONTEND_URL` gives path-only email links and one WARNING with no value in it, and `_safe_action_url` returns no URL for an absolute action URL.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: none while production sets the values, which task 4.1's `prod.py` does.
     - _Requirements: 9.2, 9.8_
 
-  - [ ] 4.3 Write the outbound-defaults tests
+  - [x] 4.3 Write the outbound-defaults tests
     - Create `backend/tests/unit/test_settings_outbound_defaults.py`. It imports settings modules in subprocesses with `TESTING` and `PYTEST_CURRENT_TEST` removed from the child environment, and asserts:
       - under `config.settings.staging`, with every other required variable set to a placeholder and both variables unset, `django.setup()` raises `ImproperlyConfigured` naming `FRONTEND_URL` and `HEALTH_CHECK_URL`, and stderr holds no placeholder value;
       - `config.settings.local_real` and `config.settings.harness` start with both variables unset;
@@ -146,24 +146,24 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
       - the tasks' early return makes no request, with `requests.get` patched to fail if called.
     - _Requirements: 9.1, 9.2, 9.5, 9.7_
 
-  - [ ] 4.4 Pin the steering beat table to the schedule
+  - [x] 4.4 Pin the steering beat table to the schedule
     - Create `backend/tests/unit/test_steering_beat_table.py`. It compares the task names in `.kiro/steering/tech.md`'s beat table with the last dotted segment of each `CELERY_BEAT_SCHEDULE` entry's `task` value. Correct the table until it passes; its `cleanup_idempotency_keys` row becomes `cleanup_idempotency_keys_task`.
     - _Requirements: 9.4_
 
-  - [ ] 4.5 Stop the CI admissions build defaulting to the production API
+  - [x] 4.5 Stop the CI admissions build defaulting to the production API
     - In `.github/workflows/ci.yml:333`, change the `VITE_API_BASE_URL` fallback from the production API host to `http://localhost:8000`. Leave `deploy.yml` unchanged.
     - Confirm that the admissions job's type check, tests, build, bundle guard and PDF chunk check still pass.
     - _Requirements: 9.6_
 
 - [ ] 5. Reproducible backend builds
-  - [ ] 5.1 Split and lock the requirements
+  - [x] 5.1 Split and lock the requirements
     - Create `backend/requirements.in` for runtime packages, keeping the jobs-ops `openai` section and its comment. `cryptography` goes here, not with the test packages: it sits under the "# Testing" comment today (`requirements.txt:59`), but `apps/common/audit_network.py:8` imports it at runtime.
     - Create `backend/requirements-dev.in` with `-r requirements.in`, `-c requirements.txt` and the test packages, so shared pins match the runtime lock.
     - Compile both with the pinned pip-tools inside `python:3.12-slim`, with `--generate-hashes` (design §10), producing `requirements.txt` and `requirements-dev.txt`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the backend image installs the exact locked versions, which can differ from those today's version ranges resolved to in the running image (`backend/requirements.txt` uses ranges at HEAD). Precondition: the backend suite passes on the locked versions.
     - _Requirements: 10.1, 10.4, 10.6_
 
-  - [ ] 5.2 Install only runtime packages in the image
+  - [x] 5.2 Install only runtime packages in the image
     - Change `backend/Dockerfile` to `pip install --no-cache-dir --require-hashes -r requirements.txt`.
     - Add a CI step that builds the image and fails if `pytest`, `pytest_django`, `xdist`, `pytest_timeout`, `hypothesis`, `factory` (factory-boy), `freezegun` or `fakeredis` is importable inside it. The same step fails if any package that `requirements.in` names is not installed (`importlib.metadata.version` on each line's distribution name) or if `cryptography.fernet` does not import (design §10).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the image no longer carries the test packages. Precondition: the image check passes on the commit that deploys.
@@ -174,7 +174,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Add the freshness step (design §10): copy the two `.in` files and both locks into a temporary directory, run there the exact compile command recorded in `tech.md` and the `.in` headers (same image, pip-tools pin and file names), and fail on any diff with the committed locks. Do not compile to a different output file name: pip-compile writes its command line, `--output-file` included, into the lock's header (Likely; pip-tools is not installed where this was written), so that diff would never be empty. Also fail, naming the package, if a package pinned in both locks has two versions.
     - _Requirements: 10.3, 10.5_
 
-  - [ ] 5.4 Document the lock workflow
+  - [x] 5.4 Document the lock workflow
     - Update `.kiro/steering/tech.md` (Backend table and Commands) with the compile command, the hash-checked install, and the rule that host virtual environments use Python 3.12.
     - _Requirements: 10.1, 10.4_
 
@@ -206,7 +206,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Record in the evidence summary that local backend test runs now need a Postgres 17 server, which the three backend compose files provide since task 6.1 (design §7, edge cases).
     - _Requirements: 7.1, 7.6_
 
-  - [ ] 6.3 Isolate workers and clean up after transactional tests
+  - [x] 6.3 Isolate workers and clean up after transactional tests
     - Add `JTI_REDIS_URL = os.environ.get("JTI_REDIS_URL", CELERY_BROKER_URL)` next to `CELERY_BROKER_URL` in `backend/config/settings/base.py` (`:171`), and make `apps/accounts/tokens.py:_get_redis` read it.
     - Set the test values in settings, not in `conftest.py`, because pytest-django loads the settings and calls `django.setup()` before any `conftest.py` is imported (design §7 point 5). Inside `base.py`'s existing `_is_testing` block (`:818-830`): set `CELERY_BROKER_URL` to `memory://` and `CELERY_RESULT_BACKEND` to `cache+memory://`, because today's result backend is `REDIS_URL` (`base.py:172`) and subscribes over Redis pubsub for every `apply_async` that does not ignore its result; raise `ImproperlyConfigured` naming the limit when `PYTEST_XDIST_WORKER_COUNT` is above 7; and build `JTI_REDIS_URL` from `REDIS_URL` with `urlsplit(...)._replace(path=...)`, with database 8 when `PYTEST_XDIST_WORKER` is unset and 9 + N for worker `gwN`.
     - Add a session-scoped autouse fixture to `backend/tests/conftest.py` that asserts the broker, the result backend and `JTI_REDIS_URL` are in effect, naming the setting and, for the JTI database, the expected number on failure, never the URL.
