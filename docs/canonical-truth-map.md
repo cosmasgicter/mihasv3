@@ -779,17 +779,17 @@ pinning the one hard-coded capability string it needs for navigation
 
 | Concept | Source of truth | Consumers / drift guard |
 |---------|-----------------|--------------------------|
-| Capability catalogue (17 `platform.*` + 17 `tenant.*`) | `backend/apps/catalog/services.py:AdminCapabilityService.PLATFORM_CAPABILITIES` / `TENANT_CAPABILITIES` | Frontend mirror: `apps/admissions/src/contexts/CapabilityContext.tsx` + `apps/admissions/src/services/admin/capabilities.ts` (consume strings opaquely); `apps/admissions/src/components/navigation/tenantNav.ts` pins `tenant.profile.read`. Drift guards: `backend/tests/property/test_capability_endpoint_shape.py` (Property 2 — endpoint exposes the catalogue), `apps/admissions/tests/property/capabilityDerivation.property.test.ts` (Property 21 — frontend derivation), `apps/admissions/tests/unit/tenantNav.test.ts` (pins `tenant.profile.read`). A new capability string must be added here **and** to the backend catalogue together. |
+| Capability catalogue (16 `platform.*` + 17 `tenant.*`) | `backend/apps/catalog/services.py:AdminCapabilityService.PLATFORM_CAPABILITIES` / `TENANT_CAPABILITIES` | Frontend mirror: `apps/admissions/src/contexts/CapabilityContext.tsx` + `apps/admissions/src/services/admin/capabilities.ts` (consume strings opaquely); `apps/admissions/src/components/navigation/tenantNav.ts` pins `tenant.profile.read`. Drift guards: `backend/tests/property/test_capability_endpoint_shape.py` (Property 2 — endpoint exposes the catalogue), `apps/admissions/tests/property/capabilityDerivation.property.test.ts` (Property 21 — frontend derivation), `apps/admissions/tests/unit/tenantNav.test.ts` (pins `tenant.profile.read`). A new capability string must be added here **and** to the backend catalogue together. |
 | `CapabilitySet` shape | `backend/apps/catalog/services.py:CapabilitySet` (`role`, `is_super_admin`, `all_access`, `platform_capabilities`, `institution_capabilities`) | Capability endpoint payload; frontend `AdminCapabilitySet` type in `capabilities.ts` |
 | Domain status machine | `backend/apps/catalog/services.py:DomainStatusMachine` (9 edges over 7 statuses incl. `rejected`) | `verify_institution_domain_task`, `sweep_pending_domain_verifications_task` + `enqueue_domain_verification` (`backend/apps/catalog/tasks.py`), and the domain create/retry/approve/reject/activate/reactivate views (`backend/apps/catalog/admin_views.py`); frontend mirror `apps/admissions/src/services/admin/tenants.ts:TenantDomainStatus` + `pages/admin/tenants/domainStatus.ts`; drift via `backend/tests/property/test_domain_status_machine.py` (Property 11) and `backend/tests/unit/test_domain_lifecycle_endpoints.py` (task 4.4, R5.1). The `rejected` state + its two edges are admissions-v2 task 4.4; `pending_dns`/`failed` are design §6.3's `pending_verification`/`verification_failed`. |
 | Fail-closed domain resolver | `backend/apps/catalog/services.py:InstitutionContextService.resolve` | `GET /api/v1/catalog/context/`; `backend/tests/property/test_domain_resolution_fail_closed.py` (Property 14) |
 
-**The 17 `platform.*` capabilities** (Super_Admin only):
+**The 16 `platform.*` capabilities** (Super_Admin only; `platform.user.create_global` was removed by platform-simplification task 17.1, decision D3):
 `platform.tenant.read_all`, `platform.tenant.create`, `platform.tenant.update`,
 `platform.tenant.deactivate`, `platform.domain.manage`, `platform.asset.manage`,
 `platform.template.manage`, `platform.document.manage`,
 `platform.canonical_program.manage`, `platform.program_assignment.manage`,
-`platform.intake.manage`, `platform.user.create_global`,
+`platform.intake.manage`,
 `platform.user.manage_all`, `platform.access_grant.manage`,
 `platform.audit.read_all`, `platform.routing.simulate_all`,
 `platform.settings.manage`.

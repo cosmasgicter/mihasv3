@@ -196,7 +196,7 @@ class TestCapabilitySetDerivation:
             assert result.is_super_admin is True
             assert result.all_access is True
             assert result.platform_capabilities == AdminCapabilityService.PLATFORM_CAPABILITIES
-            assert len(result.platform_capabilities) == 17
+            assert len(result.platform_capabilities) == 16  # 17.1 removed platform.user.create_global
             # Super-admin authority subsumes tenants without deriving per-
             # institution tenant caps, and never leaks a platform cap as tenant.
             assert result.institution_capabilities == {}

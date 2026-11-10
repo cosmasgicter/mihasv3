@@ -83,14 +83,14 @@ class MergeCandidates(unittest.TestCase):
 
 
 class RealRepository(unittest.TestCase):
-    def test_current_catalogue_has_17_and_17_and_create_global_has_no_enforcement_site(self):
+    def test_current_catalogue_has_16_and_17_after_create_global_was_removed(self):
+        # Task 8.1 measured 17 + 17 and found no enforcement site for
+        # platform.user.create_global; task 17.1 removed it (D3 option B).
         data = ci.build()
         caps = data["capabilities"]
-        self.assertEqual(sum(c.startswith("platform.") for c in caps), 17)
+        self.assertEqual(sum(c.startswith("platform.") for c in caps), 16)
         self.assertEqual(sum(c.startswith("tenant.") for c in caps), 17)
-        create_global = caps["platform.user.create_global"]
-        self.assertEqual(create_global["backend"], [])
-        self.assertEqual(create_global["frontend"], [])
+        self.assertNotIn("platform.user.create_global", caps)
 
 
 if __name__ == "__main__":

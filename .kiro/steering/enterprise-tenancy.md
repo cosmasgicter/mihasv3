@@ -44,7 +44,7 @@ Rules:
 ## Capability Model
 
 Capabilities — not role strings — drive frontend and backend authorization.
-There are **17 `platform.*`** capabilities (held by Super_Admins) and **17
+There are **16 `platform.*`** capabilities (held by Super_Admins) and **17
 `tenant.*`** capabilities (derived per institution for non-super-admins). The
 authoritative catalogue lives in
 `backend/apps/catalog/services.py:AdminCapabilityService` (`PLATFORM_CAPABILITIES`
@@ -53,7 +53,7 @@ and `TENANT_CAPABILITIES`) and is registered in `docs/canonical-truth-map.md`.
 - **Platform (`platform.*`)**: tenant read_all/create/update/deactivate,
   domain.manage, asset.manage, template.manage, document.manage,
   canonical_program.manage, program_assignment.manage, intake.manage,
-  user.create_global, user.manage_all, access_grant.manage, audit.read_all,
+  user.manage_all, access_grant.manage, audit.read_all,
   routing.simulate_all, settings.manage.
 - **Tenant (`tenant.*`)**: profile read/request_change, application
   read/review/export, document read/verify, payment read/verify, staff

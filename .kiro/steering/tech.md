@@ -219,7 +219,7 @@ conventions every backend and frontend change must follow. Spec of record:
 - **Tenant-sensitive writes and failed authorizations are audited** via
   `TenantAuditService` (`backend/apps/catalog/tenant_audit_service.py`), with
   SHA-256-redacted IP/user-agent and no raw PII.
-- **Capability catalogue + routes are canonical.** The 17 `platform.*` / 17
+- **Capability catalogue + routes are canonical.** The 16 `platform.*` / 17
   `tenant.*` strings and the canonical admin/onboarding/school-console routes,
   backend tenant API paths, deprecated legacy catalog write paths, and the domain
   context endpoint are registered in `docs/canonical-truth-map.md`. Register new

@@ -17,7 +17,6 @@
       "platform.tenant.deactivate",
       "platform.tenant.read_all",
       "platform.tenant.update",
-      "platform.user.create_global",
       "platform.user.manage_all"
     ],
     "institutions": [

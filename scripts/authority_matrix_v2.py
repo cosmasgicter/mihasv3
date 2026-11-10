@@ -79,7 +79,6 @@ PLATFORM_CAPABILITIES = frozenset(
         "platform.canonical_program.manage",
         "platform.program_assignment.manage",
         "platform.intake.manage",
-        "platform.user.create_global",
         "platform.user.manage_all",
         "platform.access_grant.manage",
         "platform.audit.read_all",
