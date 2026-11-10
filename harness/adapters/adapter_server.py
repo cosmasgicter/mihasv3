@@ -15,6 +15,9 @@ Playwright gates can assert that background work drained:
     POST /dns/publish {hostname,records}-> publish records (make verify pass)
     POST /dns/reset                     -> clear all published records
 
+  Card widget stub (task 3.7)
+    GET  /js/v1/inline.js               -> a script that defines window.LencoPay.getPaid
+                                           and reports a closed widget, charging nothing
   Operational observer (the "undrained required jobs" gate reads this)
     GET  /__/queue-depth                -> Celery broker depth (via raw Redis) +
                                            count of unsettled payment collections
@@ -43,6 +46,21 @@ REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 # Celery broker queues to inspect for the drain gate (comma-separated).
 CELERY_QUEUES = [q.strip() for q in os.environ.get("CELERY_QUEUES", "celery").split(",") if q.strip()]
 
+# The card-widget stub. The harness serves it same-origin (Caddy proxies
+# /__lenco/* here) so the card option opens without loading the live widget from
+# an outside host. It charges nothing: it reports the widget closed, which is what
+# a student who dismisses the real widget produces.
+_WIDGET_STUB = """\
+(function () {
+  window.LencoPay = {
+    getPaid: function (config) {
+      if (config && typeof config.onClose === 'function') {
+        window.setTimeout(function () { config.onClose(); }, 0);
+      }
+    }
+  };
+})();
+"""
 _LOCK = threading.Lock()
 
 # reference -> {"final","pending_polls","polls","amount","currency","phone","status"}
@@ -124,6 +142,15 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_text(self, code: int, text: str, content_type: str) -> None:
+        body = text.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _read_json(self) -> dict:
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
@@ -144,6 +171,8 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/__/health", "/health"):
             return self._send(200, {"ok": True, "service": "harness-adapters", "at": _now()})
 
+        if path == "/js/v1/inline.js":
+            return self._send_text(200, _WIDGET_STUB, "application/javascript; charset=utf-8")
         if path == "/dns/records":
             hostname = (parse_qs(parsed.query).get("hostname") or [""])[0].strip().lower()
             with _LOCK:

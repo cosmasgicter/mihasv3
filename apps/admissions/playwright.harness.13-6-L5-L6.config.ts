@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { harnessLaunchOptions } from './tests/harness-e2e/helpers/host-resolver';
 
 /**
  * Admissions V2 — task **13.6 remediation L5 + L6** re-measurement profile.
@@ -100,6 +101,8 @@ export default defineConfig({
     trace: 'on',
     screenshot: 'on',
     ignoreHTTPSErrors: true,
+    // Outside host names do not resolve in the browser (task 3.7, R1.11).
+    launchOptions: harnessLaunchOptions,
   },
   projects: [
     {

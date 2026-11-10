@@ -22,10 +22,9 @@
     <meta name="twitter:description" content="Apply online through Beanola, the shared admissions platform for partner institutions." />
     <meta name="twitter:image" content="https://apply.beanola.com/images/og-image.png" />
 
-    <!-- Performance: Preconnect to critical origins -->
-    <link rel="preconnect" href="https://api.beanola.com" crossorigin />
-    <link rel="preconnect" href="https://pay.lenco.co" />
-    <link rel="preconnect" href="https://pay.sandbox.lenco.co" />
+    <!-- Performance: preconnect hints are emitted at build time by the
+         beanola-resource-hints plugin (vite.config.ts) from VITE_API_BASE_URL
+         and the payment widget URL, so a local build names no outside host. -->
     <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
 
     <!--

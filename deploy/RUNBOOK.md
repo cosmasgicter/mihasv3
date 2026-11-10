@@ -39,6 +39,7 @@ Secrets:
 
 Variables (public, baked into the frontend bundle at build time):
 - `VITE_API_BASE_URL` = `https://api.mihas.edu.zm`
+  (the API origin: the frontend build emits its `preconnect` hint from this value, and the client appends `/api/v1` itself. See `apps/admissions/scripts/resourceHints.ts`.)
 - `VITE_APP_BASE_URL` = `https://apply.mihas.edu.zm`
 - `VITE_SITE_URL` = `https://apply.mihas.edu.zm`
 - `VITE_GLITCHTIP_DSN` = your frontend DSN

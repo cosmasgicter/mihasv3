@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'node:fs/promises'
 import Critters from 'critters'
+import { resolveResourceHints } from './scripts/resourceHints'
 
 /**
  * Build-time validation for required VITE_* environment variables.
@@ -66,6 +67,38 @@ function envValidationPlugin(): Plugin {
   }
 }
 
+/**
+ * Preconnect hints from configuration (task 3.7, Requirements 1.9, 1.11).
+ *
+ * Emits a `<link rel="preconnect">` to the API origin and to the payment widget's
+ * origin, and to nothing else. A local build (the harness) gets none, because its
+ * API origin is the app's own and its widget is a same-origin stub.
+ *
+ * Assumption: production sets `VITE_API_BASE_URL` to the API origin, as the deploy
+ * documentation says. If it is set to the app origin instead, there is no API
+ * preconnect and the only effect is one later TLS handshake. See
+ * `scripts/resourceHints.ts` for the rules.
+ */
+function resourceHintsPlugin(env: Record<string, string | undefined>): Plugin {
+  let isProduction = false
+  return {
+    name: 'beanola-resource-hints',
+    configResolved(config) {
+      isProduction = config.isProduction
+    },
+    transformIndexHtml() {
+      return resolveResourceHints({
+        apiBaseUrl: env.VITE_API_BASE_URL,
+        widgetUrl: env.VITE_LENCO_WIDGET_URL,
+        isProduction,
+      }).map((hint) => ({
+        tag: 'link',
+        attrs: { rel: 'preconnect', href: hint.href, ...(hint.crossorigin ? { crossorigin: true } : {}) },
+        injectTo: 'head' as const,
+      }))
+    },
+  }
+}
 function normalizeProxyTarget(value: string): string {
   return value.replace(/\/$/, '').replace(/\/api\/v1$/, '')
 }
@@ -217,6 +250,7 @@ export default defineConfig(({ mode, command }) => {
   return {
     plugins: [
       envValidationPlugin(),
+      resourceHintsPlugin(env),
       react(),
       // Single post-build plugin: injects a modulepreload hint for the
       // LandingPage chunk. CSS rewrite is deliberately not done here —

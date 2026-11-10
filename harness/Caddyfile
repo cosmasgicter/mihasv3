@@ -19,9 +19,14 @@
 :80 {
 	encode zstd gzip
 
-	# Relaxed local CSP (harness only — never production).
+	# Local CSP (harness only, never production). Same-origin /api calls, inline
+	# styles and local assets stay quiet, and the connect/img/font/frame sources are
+	# limited to the stack: a request to any other host is refused by the browser and
+	# logged as a CSP violation, which the Playwright outside-host gate records
+	# (task 3.7). Stack hosts: this origin, loopback, *.localhost and the compose
+	# service names.
 	header {
-		Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *; img-src * data: blob:; font-src * data:; frame-src *;"
+		Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' http://localhost:* http://127.0.0.1:* http://*.localhost:* http://minio:* http://mailpit:* http://adapters:*; img-src 'self' data: blob: http://localhost:* http://127.0.0.1:* http://*.localhost:* http://minio:* http://mailpit:* http://adapters:*; font-src 'self' data: http://localhost:* http://127.0.0.1:* http://*.localhost:*; frame-src 'self' blob: http://localhost:* http://127.0.0.1:* http://*.localhost:* http://minio:* http://mailpit:* http://adapters:*;"
 		-Server
 	}
 
@@ -40,6 +45,12 @@
 	}
 	handle /health/* {
 		reverse_proxy web:8000
+	}
+	# The card-widget stub. handle_path strips the /__lenco prefix, so
+	# /__lenco/js/v1/inline.js reaches the adapter as /js/v1/inline.js and the
+	# script is same-origin (passes `default-src 'self'`).
+	handle_path /__lenco/* {
+		reverse_proxy adapters:9099
 	}
 
 	# Everything else: SPA build output + client-side routing fallback.
