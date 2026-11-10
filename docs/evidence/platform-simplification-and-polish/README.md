@@ -205,3 +205,42 @@ Each row of the critique's §6 table, re-read at this commit:
 - **Still open, to ask the user (not blocking):** D17 (links inside running text versus the 44 px rule; recommendation: keep the guardrail and fix the link; task 24.8); D1.b (`webhooks/delivery/`; task 12.1); the D3/D5 conflict over the three `*.request_change` capabilities (task 17.2); the D3 merge table above, which proposes no merge (task 17.3); finding C-15 (add to Spec A or leave open).
 - **Waiting for a live production host (D14):** 6.8, 16.1, 16.2. **Operator-gated:** 6.1 (Neon capture), 6.7 and 22.5 (required checks), 11.2 hand-over.
 - Open from earlier groups, unchanged: 2 (operator steps), 6.1, 6.2, 6.4, 6.5, 6.6, 6.7.
+
+## G4: tasks 11, 12, 13 (local stack, jobs-ops freeze, demo views)
+
+### 11.1 One documented local stack (R1.1-1.4, 1.6-1.10)
+- `harness/bin/local-setup.sh` checks Docker with Compose v2, Bun, Git, curl and python3 3.8+ (exit 3 naming the tool), runs `bun install --frozen-lockfile`, then `harness up`. `LOCAL-TESTING.md` and `docs/runbooks/local-parity.md` are rewritten around it, with the outside-host table. `tech.md` Commands names it.
+- Tests: `scripts/tests/test_local_setup_doc.py` (document block equals script), `test_local_setup_prereqs.py` (stub PATH lacking one tool at a time, exit 3). Both run in `ci.yml` `backend-drift-guards` beside the doc-path check.
+- `harness journey-gate` now exports its four values and calls `local-setup.sh` in place of `build_spa`/`compose_up`/`wait_healthy`. Spec A tasks 4.1-4.5 were present in the base (84b72f853). Run log shows the stack brought up once (one "starting the harness stack", one SPA build) and the four values inside the web container. Spec A's workflow is not edited for this. Existing-test change: `test_journey_gate_configuration_sjr.py` stage order (old assertion encoded the bring-up this task replaces).
+- Not verified: a fresh machine, an ARM machine.
+
+### 11.2 Retire other local stacks (R1.7): code side done, OPERATOR-GATED
+- Removed: `local-stack-storage` job, the compose assertions in `test_storage_settings_contract.py` (settings assertions kept), `.env.local.test.example` with its `.gitignore` exception, allowlist entry and env-template entry, and `backend/docker-compose.local-test.yml`, `docker-compose.local-real.yml`, `docker-compose.yml`. Removal safety: `git grep` shows no remaining reachable consumer (CI, harness, docs, steering); doc-path check green.
+- Spec A clause 2.1 (storage round trip on the documented stack) is met on the harness by `storage_roundtrip_check --expect-private` in `journey-gate`. Not ticked: the operator must first remove `local-stack-storage` from the required checks on `main`; the PR must not merge before that. Pending, not done by me.
+
+### 11.3 Untrack raw evidence (R4.1-4.3, 4.9)
+- 2,274 of 2,585 tracked files under `docs/v2-evidence/` removed from the index (`git rm --cached`, no history rewrite); `.gitignore` rules added; `docs/v2-evidence` is 17 MB tracked. `scripts/evidence_refs.py` found 88 editable Markdown files naming them; each has a dated note with the permalink to f19289a4d. Three references sit in spec files (`admissions-v2-canonical-rebuild/findings.md`, `tasks.md`, this spec's `design.md`) and were listed, not edited.
+- `v2-harness-smoke.yml` uploads the run-scoped directory only. Existing-test change: `test_evidence_dir_convention_l8.py::test_ci_still_publishes_task_0_4s_evidence_deliberately` replaced by an artefact-only assertion (the old one pinned the opposite behaviour).
+- Both validators pass in the working tree and in a fresh `git worktree` of the commit (raw files absent).
+
+### 11.4 Cut the launch-verdict rollup (R4.5, 6.1)
+- Removed: Gate 12 job and verdict step, the three `collect-suite-results.py` steps and uploads, `rollup.py`, `collect-suite-results.py`, `rollup.json`, `launch-readiness.md`, the migration/performance/operational/onboarding evaluators and recorders, Lighthouse, timings and mobile-UI scripts, and their eleven tests. Proof: `git grep` for each removed script name finds no import in kept code. Kept and still passing: contract-sync, brand-scan, scope, `version_eval.py`, smoke evaluator. `launch-verification.md` rewritten for the kept gates; three runbooks carry a dated note.
+
+### 12.1 Seven routes behind the flag (R3.3, 3.5, 3.7): PARTIAL, left unticked
+- `email_urls.py` and `documents/urls.py` add the seven routes only when `ENABLE_JOBS_OPS_ROUTES` is on; `send/` always mounted. The scope gate lists the seven (14 stubs probed, 0 reachable; with the flag on it correctly fails). Schemas, lint baseline untouched (api-quality OK), `api.d.ts` regenerated, routes-report baseline cleaned. `tests/jobs_ops_urls.py` reloads the modules in the right order; seven existing tests use it. Tests for both flag values: `test_jobs_ops_route_gating_12_1.py`. Existing-test change: the Zoho envelope test turns the flag on (assertion unchanged).
+- Waiting on D1.b: `webhooks/delivery/` stays mounted, entry "pending D1.b". Production effect: the seven routes answer 404 while the flag is off. Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
+
+### 12.2 Jobs-ops UI state (R3.6, 13.3)
+- `FeatureGate` and `JobsOpsNotEnabled` at the router root, error state with Retry. `featureGate.test.tsx` proves no feature request fires while disabled or on metadata failure. `router.test.ts` wraps routes in the gate (setup only). jobs-ops: type-check, lint, build, 41 tests pass.
+
+### 12.3 Steering wording (R6.1, 6.5)
+- `tech.md`, `product.md`, `structure.md` and the truth-map attribution row state the decided freeze.
+
+### 13.1 Remove v2 demo views (R2.6, 2.9)
+- Removed `demo_views.py`, five routes, public-policy and authority-matrix entries, baseline entries and the per-view contract tests (cross-cutting envelope tests kept). Proof: routes report showed no first-party caller; `git grep` finds no import. Schema candidate and `api.d.ts` regenerated. Production effect: the v2 demo routes answer 404.
+
+### 13.2 Change requests, option C (R2.7, 2.9, 6.5)
+- Six routes added to `route-consumers.json` as "dormant by decision D5" and removed from the baseline. Workflow, service, state machine and the three `*.request_change` capabilities untouched.
+
+### G4 results
+- Backend pytest -n 6: 3 failed (baseline `test_legacy_column_contraction_12_3.py`), 5620 passed. Admissions: 5004 passed/1 skipped, lint, build, type-check pass. jobs-ops pass. manage.py check pass; circular imports unchanged (3 known); routes, unreachable-module, doc-path, spec validators pass.

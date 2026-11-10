@@ -312,7 +312,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - _Requirements: 1.11, 1.12, 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.12, 22.13_
 
 - [ ] 11. Local stack and evidence (D2)
-  - [ ] 11.1 [Decision D2 confirmed 2026-11-08 (option A + B); the change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks (Spec A tasks 4.1 to 4.5) to merge] Make one stack the documented local stack
+  - [x] 11.1 [Decision D2 confirmed 2026-11-08 (option A + B); the change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks (Spec A tasks 4.1 to 4.5) to merge] Make one stack the documented local stack
     - The harness's own isolation (the widget stub, the resource hints and both outside-host checks) is task 3.7's and the DSN is task 1.3's; both are done before this task, under every option.
     - Options A, B or C:
       - Write `harness/bin/local-setup.sh` as the one bring-up path (design §1): the prerequisite check (Docker with Compose v2, Bun, Git, curl, python3 3.8 or later; exit 3 naming the missing tool), then `bun install --frozen-lockfile` at the repository root, then `bash harness/bin/harness up`, passing the caller's environment through.
@@ -332,7 +332,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Option D: retire nothing.
     - _Requirements: 1.7_
 
-  - [ ] 11.3 [Decision D2 confirmed 2026-11-08 (option A + B)] Untrack raw evidence artefacts (option B or C)
+  - [x] 11.3 [Decision D2 confirmed 2026-11-08 (option A + B)] Untrack raw evidence artefacts (option B or C)
     - Run both spec validators first.
     - `git rm --cached` every raw artefact type of Requirement 4.1 under `docs/v2-evidence/` (design §4) and add the `.gitignore` rules.
     - Add the dated note and commit permalinks to every tracked Markdown file that references an untracked file, links and backticked paths alike: the READMEs under `docs/v2-evidence/` and every Markdown file outside it (at HEAD, `docs/runbooks/legacy-column-deprecation.md:233,291`). List, and do not edit, any reference in a D12 spec (Requirement 22.11).
@@ -341,7 +341,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Make no history rewrite (D2 option C waits for D11).
     - _Requirements: 4.1, 4.2, 4.3, 4.9_
 
-  - [ ] 11.4 [Decision D2 confirmed 2026-11-08 (option A + B)] Cut the launch-verdict rollup (option A, B or C), or annotate it (option D)
+  - [x] 11.4 [Decision D2 confirmed 2026-11-08 (option A + B)] Cut the launch-verdict rollup (option A, B or C), or annotate it (option D)
     - Remove the Gate 12 job and its verdict step, the `collect-suite-results.py` steps, `rollup.py`, the verdict documents, and each operator-gate script that only feeds the verdict. Prove with `git grep` that no kept gate imports a removed script.
     - Keep the contract-sync, brand-scan, scope and `version_eval.py` gates blocking.
     - Rewrite `docs/runbooks/launch-verification.md` to describe only the kept gates.
@@ -357,26 +357,26 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: while the flag is off, the seven seed and scaffold routes answer 404.
     - _Requirements: 3.3, 3.5, 3.7_
 
-  - [ ] 12.2 [Decision D1 confirmed 2026-11-08 (option B)] Show the decided jobs-ops UI state
+  - [x] 12.2 [Decision D1 confirmed 2026-11-08 (option B)] Show the decided jobs-ops UI state
     - Option B: add `FeatureGate` and `JobsOpsNotEnabled` at the router root (design §3), including the metadata error state with Retry. Assert in a test that no feature request fires while jobs-ops is disabled.
     - Option A: remove the right rail from `JobsOpsShell.tsx` instead (API base, creator, pinned references).
     - Option C: replaced by the move-out described in D1's register entry.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 3.6, 13.3_
 
-  - [ ] 12.3 [Decision D1 confirmed 2026-11-08 (option B)] Write the decided jobs-ops wording into the steering
+  - [x] 12.3 [Decision D1 confirmed 2026-11-08 (option B)] Write the decided jobs-ops wording into the steering
     - Update `tech.md`, `product.md`, `structure.md` and the canonical truth map's attribution row to the decided state.
     - _Requirements: 6.1, 6.5_
 
-- [ ] 13. Demo views and change requests (D5)
-  - [ ] 13.1 [Decision D5 confirmed 2026-11-08 (demo views cut)] Remove the v2 demo views
+- [x] 13. Demo views and change requests (D5)
+  - [x] 13.1 [Decision D5 confirmed 2026-11-08 (demo views cut)] Remove the v2 demo views
     - Remove their routes from `backend/apps/common/v2/urls.py`, then `demo_views.py` and its tests.
     - Regenerate the schema baselines and `apps/admissions/src/generated/api.d.ts`, and update the truth-map rows.
     - Delete their entries from the routes-report baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the v2 demo routes answer 404.
     - _Requirements: 2.6, 2.9_
 
-  - [ ] 13.2 [Decision D5 confirmed 2026-11-08 (change-request workflow left dormant, option C)] Apply the decided change-request outcome
+  - [x] 13.2 [Decision D5 confirmed 2026-11-08 (change-request workflow left dormant, option C)] Apply the decided change-request outcome
     - Option B:
       - Remove the six routes, the service, the state machine, the outbox emitters, their tests, the v2 onboarding views and the tenant console's request-change affordances.
       - Keep the table and `canonical_config_commands.py`.
