@@ -103,7 +103,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
                   <p className="font-medium text-foreground">{contactInfo.admissionsPhone}</p>
                 </div>
               </a>
@@ -116,7 +116,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
                   <p className="font-medium text-foreground">{contactInfo.supportPhone}</p>
                 </div>
               </a>
@@ -129,7 +129,7 @@ export default function ContactPage() {
                   <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</p>
                   <p className="font-medium text-foreground truncate">{contactInfo.email}</p>
                 </div>
               </a>
@@ -139,7 +139,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.admissionsAddress}</p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.supportAddress}</p>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function ContactPage() {
                   <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Hours of operation</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Hours of operation</p>
                   <p className="text-sm font-medium text-foreground">Mon–Fri: 08:00–17:00</p>
                   <p className="text-sm text-muted-foreground">Sat: 08:00–12:00</p>
                 </div>
@@ -228,7 +228,7 @@ export default function ContactPage() {
                     autoComplete="off"
                     placeholder="How can we help?"
                     rows={5}
-                    className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
+                    className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
                     aria-invalid={!!errors.message}
                     aria-describedby={errors.message ? 'contact-message-error' : undefined}
                     {...register('message')}

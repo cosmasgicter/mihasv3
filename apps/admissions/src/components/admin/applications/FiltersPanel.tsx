@@ -132,7 +132,7 @@ export function FiltersPanel({
           <Search className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+            <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md bg-primary px-1.5 text-xs font-bold text-primary-foreground">
               {activeFilterCount}
             </span>
           )}

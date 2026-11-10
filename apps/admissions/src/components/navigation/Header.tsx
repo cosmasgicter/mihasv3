@@ -46,7 +46,7 @@ export const Header = React.memo(function Header() {
               {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 {isAdmin ? 'Admin workspace' : 'Student workspace'}
               </p>
               <h2 className="truncate text-sm font-semibold text-foreground">{fullName}</h2>

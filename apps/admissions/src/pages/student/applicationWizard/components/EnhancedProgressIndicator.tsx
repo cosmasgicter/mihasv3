@@ -125,7 +125,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       {/* Step number badge */}
       <div
         className={cn(
-          'mt-1 text-[10px] font-medium transition-opacity duration-300',
+          'mt-1 text-xs font-medium transition-opacity duration-300',
           isCurrent ? 'text-primary' : 'text-muted-foreground'
         )}
       >

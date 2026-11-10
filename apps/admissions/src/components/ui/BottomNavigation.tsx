@@ -188,11 +188,12 @@ function BottomNavLink({
           {item.badge !== undefined && item.badge > 0 && (
             <span
               aria-hidden="true"
+              data-text-role="caption"
               className={cn(
                 'absolute -top-1 -right-1',
-                'min-w-[18px] h-[18px] px-1',
+                'h-5 min-w-5 px-1',
                 'flex items-center justify-center',
-                'text-[10px] font-bold',
+                'text-sm font-bold leading-none',
                 'bg-destructive text-destructive-foreground',
                 'rounded-full'
               )}
@@ -225,11 +226,12 @@ function BottomNavLink({
         {item.badge !== undefined && item.badge > 0 && (
           <span
             aria-hidden="true"
+            data-text-role="caption"
             className={cn(
               'absolute -top-1 -right-1',
-              'min-w-[18px] h-[18px] px-1',
+              'h-5 min-w-5 px-1',
               'flex items-center justify-center',
-              'text-[10px] font-bold',
+              'text-sm font-bold leading-none',
               'bg-destructive text-destructive-foreground',
               'rounded-full'
             )}

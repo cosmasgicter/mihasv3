@@ -23,7 +23,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index =
   >
     <div className={`flex-shrink-0 rounded-lg p-2.5 ${iconBg}`}>{icon}</div>
     <div className="flex-1 min-w-0">
-      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
       <div className="text-sm font-semibold text-foreground mt-1 break-words">{value}</div>
     </div>
   </div>

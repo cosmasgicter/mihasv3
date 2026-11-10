@@ -644,9 +644,9 @@ export default function Applications() {
               <div className="absolute right-0 top-full mt-2 z-50 w-52 rounded-lg border border-border bg-card p-3 shadow-md text-xs">
                 <p className="font-semibold text-foreground mb-2">Keyboard shortcuts</p>
                 <div className="space-y-1.5 text-muted-foreground">
-                  <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">R</kbd></div>
-                  <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">/</kbd></div>
-                  <div className="flex justify-between"><span>Close modal</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd></div>
+                  <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">R</kbd></div>
+                  <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">/</kbd></div>
+                  <div className="flex justify-between"><span>Close modal</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Esc</kbd></div>
                 </div>
               </div>
             )}

@@ -115,8 +115,9 @@ export function MessageDeliveryState({
           return (
             <li key={channel.channel}>
               <span
+                data-text-role="caption"
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium',
+                  'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-sm font-medium',
                   TONE_STYLES[tone],
                 )}
                 title={definition || undefined}
@@ -139,7 +140,8 @@ export function MessageDeliveryState({
           {statedFacts.map(({ channel, fact }) => (
             <li
               key={channel.channel}
-              className="text-[11px] text-muted-foreground"
+              data-text-role="caption"
+              className="text-sm text-muted-foreground"
               data-testid={`delivery-${message.id}-${channel.channel}-fact`}
               data-state={channel.state}
             >
@@ -163,7 +165,7 @@ export function MessageDeliveryState({
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
             Try sending again
           </Button>
-          <span className="text-[11px] text-muted-foreground">
+          <span data-text-role="caption" className="text-sm text-muted-foreground">
             {schema?.delivery_state_definitions?.failed ??
               'The platform will queue another attempt.'}
           </span>
@@ -171,12 +173,12 @@ export function MessageDeliveryState({
       )}
 
       {retryNotice && (
-        <p className="text-[11px] font-medium text-success" role="status">
+        <p className="text-base font-medium text-success" role="status">
           {retryNotice}
         </p>
       )}
       {retryError && (
-        <p className="text-[11px] font-medium text-destructive" role="alert">
+        <p className="text-base font-medium text-destructive" role="alert">
           {retryError}
         </p>
       )}

@@ -102,7 +102,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
           <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
             {sanitizeText(notification.content)}
           </p>
-          <span className="text-[11px] text-muted-foreground mt-1 block">
+          <span data-text-role="caption" className="text-sm text-muted-foreground mt-1 block">
             {compactRelativeTime(notification.created_at)}
           </span>
         </div>

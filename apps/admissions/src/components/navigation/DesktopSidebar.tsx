@@ -126,7 +126,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
               <span className="block truncate text-base font-bold text-white transition-opacity duration-200 motion-reduce:transition-none">
                 {isAdmin ? 'Beanola Admin' : 'Beanola Student'}
               </span>

@@ -173,7 +173,7 @@ export function ShapeLandingHero({
                   </span>
                   <figcaption className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">Choose a program</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Pick a program and intake first</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Pick a program and intake first</p>
                   </figcaption>
                 </figure>
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
@@ -182,7 +182,7 @@ export function ShapeLandingHero({
                   </span>
                   <figcaption className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">School assigned</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Reviewed before you pay</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Reviewed before you pay</p>
                   </figcaption>
                 </figure>
               </div>
