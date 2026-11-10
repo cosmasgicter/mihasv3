@@ -1089,6 +1089,13 @@ sees a code the backend cannot produce.
   (stored + live version, drift), `profile`, `identity`, `grades`, `eligibility`,
   `documents`, `payment` (incl. fee quote), `capacity`, `duplicates`, `intake`,
   `declarations`, `blockers`, `can_submit`, `allowed_next_actions`, `summary`.
+- Order of `allowed_next_actions` (platform-simplification task 26.3, R14.3):
+  `submit-application` first when `can_submit`; the blocker-derived actions
+  follow in wizard step order, `STEP_RANK` in `readiness_service.py`
+  (`program`, `school`, `personal`, `education`, `payment`, `submit`; an unknown
+  step ranks with `submit`), stable within a step. The frontend renders the
+  server's order and adds no rule (`lib/studentNextAction.ts`). Pinned by
+  `tests/property/test_platform_simplification_properties.py` Property 3.
 - Invariant clients may rely on:
   `can_submit == (status == "draft" and blockers == [])`. An un-ticked
   declaration is **not** a blocker (it is the submit action itself); its state

@@ -85,3 +85,45 @@ def test_property_9_ocr_runs_only_for_opted_in_institutions(opted_in, owner_inde
         assert response.status_code == 409
         assert response.json()["code"] == "OCR_NOT_ENABLED"
         task.delay.assert_not_called()
+
+
+# Feature: platform-simplification-and-polish, Property 3: Next actions follow the wizard's step order
+# Validates: Requirements 14.3
+@settings(max_examples=60, deadline=None)
+@given(
+    codes=st.lists(
+        st.sampled_from(
+            [
+                "PROFILE_INCOMPLETE",
+                "MINIMUM_GRADES_REQUIRED",
+                "PROGRAM_ELIGIBILITY_NOT_MET",
+                "IDENTITY_DOCUMENT_REQUIRED",
+                "REQUIRED_DOCUMENT_MISSING",
+                "PAYMENT_REQUIRED",
+                "FEE_NOT_CONFIGURED",
+                "PROGRAM_CAPACITY_REACHED",
+                "INTAKE_DEADLINE_PASSED",
+                "DUPLICATE_SUBMITTED_APPLICATION",
+                "CONFIRM_SUBMISSION_REQUIRED",
+                "SOMETHING_UNREGISTERED",
+            ]
+        ),
+        min_size=1,
+        max_size=12,
+    ),
+    can_submit=st.booleans(),
+)
+def test_property_3_next_actions_follow_the_wizard_step_order(codes, can_submit):
+    from apps.applications.readiness_service import STEP_RANK, ReadinessBlocker, build_next_actions
+
+    blockers = [ReadinessBlocker(code, "test", f"blocked by {code}") for code in codes]
+    actions = build_next_actions(blockers, can_submit=can_submit, status="draft")
+    assert actions, "the student is never dead-ended"
+    derived = actions[1:] if can_submit else actions
+    if can_submit:
+        assert actions[0]["action"] == "submit-application"
+    ranks = [STEP_RANK.get(action["step"], STEP_RANK["submit"]) for action in derived]
+    assert ranks == sorted(ranks)
+    # Each action appears once, whatever the number of blockers that map to it.
+    names = [action["action"] for action in actions]
+    assert len(names) == len(set(names))

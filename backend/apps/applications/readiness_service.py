@@ -1228,8 +1228,31 @@ def _blockers_from_sections(
     return blockers
 
 
+#: The wizard's step order (task 26.3, design §12.3). Blocker-derived actions are
+#: listed in this order so the first action is the earliest thing the student can
+#: still do, not whichever gate the evaluator checked first. An unknown step ranks
+#: with ``submit`` (last).
+STEP_RANK: dict[str, int] = {
+    "program": 0,
+    "school": 1,
+    "personal": 2,
+    "education": 3,
+    "payment": 4,
+    "submit": 5,
+}
+
+
+def _step_rank(action: dict[str, Any]) -> int:
+    return STEP_RANK.get(str(action.get("step")), STEP_RANK["submit"])
+
+
 def build_next_actions(blockers: list[ReadinessBlocker], *, can_submit: bool, status: str) -> list[dict[str, Any]]:
-    """Deterministic allowed next actions (design §8.3)."""
+    """Deterministic allowed next actions (design §8.3).
+
+    ``submit-application`` comes first when the application can be submitted. The
+    blocker-derived actions follow in wizard step order (:data:`STEP_RANK`), keeping
+    the evaluator's order within one step (a stable sort).
+    """
     actions: list[dict[str, Any]] = []
     seen: set[str] = set()
 
@@ -1243,6 +1266,7 @@ def build_next_actions(blockers: list[ReadinessBlocker], *, can_submit: bool, st
             }
         )
 
+    derived: list[dict[str, Any]] = []
     for blocker in blockers:
         mapped = _NEXT_ACTION_BY_CODE.get(blocker.code)
         if mapped is None:
@@ -1254,7 +1278,8 @@ def build_next_actions(blockers: list[ReadinessBlocker], *, can_submit: bool, st
         if mapped["action"] in seen:
             continue
         seen.add(mapped["action"])
-        actions.append({**mapped, "blocker_code": blocker.code})
+        derived.append({**mapped, "blocker_code": blocker.code})
+    actions.extend(sorted(derived, key=_step_rank))
 
     if not actions:
         actions.append(
