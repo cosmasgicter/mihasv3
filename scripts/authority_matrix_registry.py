@@ -659,11 +659,6 @@ _register("/api/v1/errors/report/", public(auth="none", notes="Frontend error re
 _register("/api/v1/meta/platform/", public(auth="none", notes="Platform metadata (public)."))
 
 # --- V2 namespace (apps.common.v2) -------------------------------------------
-_register("/api/v2/auth/session/", public(auth="optional", notes="V2 session (public)."))
-_register("/api/v2/catalog/programs/", public(auth="optional", notes="V2 program list (public)."))
-_register("/api/v2/applications/<uuid:application_id>/", owner(ownership="Application.user_id == actor.id", tenant_object_path="application.institution_id", disclosure="not_found_mask", notes="V2 owner read; already returns 404 (not 403) to avoid leaking existence — the canonical owner disclosure model."))
-_register("/api/v2/payments/resolve-fee/", owner(ownership="self-service; no object", tenant_object_path=None, disclosure="n/a", notes="V2 fee resolution self-service."))
-_register("/api/v2/documents/", owner(ownership="Document.user_id == actor.id", disclosure="not_found_mask", notes="V2 own documents list."))
 _register("/api/v2/student/applications/<uuid:application_id>/readiness/", owner(ownership="Application.user_id == actor.id OR staff in AccessScopeService.filter_applications scope", tenant_object_path="application.institution_ref_id", disclosure="not_found_mask", finding="STU-11", notes="Authoritative deterministic readiness query (task 6.5, R10.6/R11.2-R11.6/R12.3). Read-only. Owner always; reviewer/admin/super_admin only when the application is in their AccessScopeService scope (this is the R11.3 reviewer readiness query). A different student or out-of-scope staff is masked as 404 so existence cannot be inferred. Fails closed with retryable CONFIGURATION_UNAVAILABLE (503) when the canonical required-document configuration cannot be evaluated."))
 
 # --- V2 tenant onboarding workflow (apps.catalog.onboarding_v2_views; task 4.1) -

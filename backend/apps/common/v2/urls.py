@@ -1,9 +1,10 @@
 """V2 API URL namespace.
 
-Mounts representative V2 endpoints under ``/api/v2/``. These demonstrate the
-canonical V2 response/error/pagination envelope without altering V1.
-
-The V2 namespace is separate from V1 — no V1 routes are changed.
+Mounts the V2 endpoints under ``/api/v2/``: the tenant onboarding workflow, the
+tenant change-request workflow and the student application readiness query. The five
+representative demo views (session, programs, application detail, fee resolution,
+document list) were removed by platform-simplification task 13.1: nothing called them.
+The V2 namespace is separate from V1; no V1 routes are changed.
 
 Design: ``design.md`` section 4 (URL namespace) and section 14 (envelope)
 Task: 1.3
@@ -12,31 +13,9 @@ Requirements: R14.1-R14.2
 
 from django.urls import include, path
 
-from apps.common.v2.demo_views import (
-    V2ApplicationDetailView,
-    V2DocumentListView,
-    V2FeeResolveView,
-    V2ProgramListView,
-    V2SessionView,
-)
-
 app_name = "v2"
 
 urlpatterns = [
-    # Auth domain: session endpoint
-    path("auth/session/", V2SessionView.as_view(), name="session"),
-    # Catalog domain: program list
-    path("catalog/programs/", V2ProgramListView.as_view(), name="program-list"),
-    # Applications domain: application detail (owner read)
-    path(
-        "applications/<uuid:application_id>/",
-        V2ApplicationDetailView.as_view(),
-        name="application-detail",
-    ),
-    # Payment domain: fee resolution
-    path("payments/resolve-fee/", V2FeeResolveView.as_view(), name="fee-resolve"),
-    # Documents domain: document list
-    path("documents/", V2DocumentListView.as_view(), name="document-list"),
     # Tenant onboarding workflow (task 4.1): durable server workflow commands
     # that replace the fragile client multi-call orchestration (TEN-01).
     path("admin/onboarding/", include("apps.catalog.onboarding_v2_urls")),

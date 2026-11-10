@@ -35,31 +35,6 @@
       "decision": "D1"
     },
     {
-      "route": "/api/v2/auth/session/",
-      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/catalog/programs/",
-      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/applications/*/",
-      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/payments/resolve-fee/",
-      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
-      "decision": "D5"
-    },
-    {
-      "route": "/api/v2/documents/",
-      "reason": "v2 demo view with no first-party caller; removal is task 13.1.",
-      "decision": "D5"
-    },
-    {
       "route": "/api/v2/admin/change-requests/",
       "reason": "Dormant change-request workflow route: backend only, no frontend caller, kept dormant by decision D5.",
       "decision": "D5"
