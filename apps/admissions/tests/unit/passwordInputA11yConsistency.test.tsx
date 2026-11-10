@@ -28,6 +28,8 @@ describe('PasswordInput UI/a11y consistency', () => {
       <PasswordInput id="password" label="Password" />
     )
     const toggleButton = document.querySelector('button')
-    expect(toggleButton?.getAttribute('class')).toContain('p-2')
+    // Task 24.6: `p-2` around a 20 px icon measured 36 x 36 px; the target is now 44 x 44 px.
+    expect(toggleButton?.getAttribute('class')).toContain('min-h-touch')
+    expect(toggleButton?.getAttribute('class')).toContain('min-w-touch')
   })
 })

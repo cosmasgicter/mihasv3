@@ -614,7 +614,7 @@ export default function Applications() {
             variant="ghost"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="sm:hidden"
+            className="min-w-touch sm:hidden"
             aria-label="Toggle filters"
             aria-expanded={showFilters}
           >
@@ -624,6 +624,7 @@ export default function Applications() {
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
+            className="min-w-touch"
             aria-label="Refresh applications"
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />

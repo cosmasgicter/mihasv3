@@ -274,7 +274,7 @@ export function ApplicationDetailModal({
                       document.getElementById(`tab-${ids[next]}`)?.focus()
                     }
                   }}
-                  className={`flex min-h-touch min-w-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
+                  className={`flex min-h-touch min-w-touch items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
                     activeTab === tab.id
                       ? 'border-primary text-primary'
                       : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'

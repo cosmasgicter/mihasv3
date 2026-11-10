@@ -127,7 +127,7 @@ const AssignedSchoolStep = ({
                 <Building2 className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Assigned school</p>
+                <p className="text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">Assigned school</p>
                 <h3 id="assigned-school-heading" className="text-base font-semibold text-foreground">
                   {preview.assigned_school.full_name || preview.assigned_school.name}
                 </h3>
@@ -170,7 +170,7 @@ const AssignedSchoolStep = ({
                     <FileCheck2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" aria-hidden="true" />
                     <span>
                       {doc.label}
-                      {!doc.required && <span className="ml-1 text-xs text-muted-foreground">(optional)</span>}
+                      {!doc.required && <span data-text-role="caption" className="ml-1 text-sm sm:text-xs text-muted-foreground">(optional)</span>}
                     </span>
                   </li>
                 ))}
@@ -190,13 +190,13 @@ const AssignedSchoolStep = ({
                 {contact.email && (
                   <li className="flex items-center gap-2">
                     <Mail className="h-4 w-4 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <a href={`mailto:${contact.email}`} className="text-primary hover:underline break-all">{contact.email}</a>
+                    <a href={`mailto:${contact.email}`} className="inline-flex min-h-touch items-center text-primary hover:underline break-all">{contact.email}</a>
                   </li>
                 )}
                 {contact.phone && (
                   <li className="flex items-center gap-2">
                     <Phone className="h-4 w-4 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <a href={`tel:${contact.phone}`} className="text-primary hover:underline">{contact.phone}</a>
+                    <a href={`tel:${contact.phone}`} className="inline-flex min-h-touch items-center text-primary hover:underline">{contact.phone}</a>
                   </li>
                 )}
                 {contact.website && (

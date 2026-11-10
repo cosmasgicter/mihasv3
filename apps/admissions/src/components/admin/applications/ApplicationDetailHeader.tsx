@@ -44,7 +44,7 @@ export function ApplicationDetailHeader({ application, onClose }: ApplicationDet
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="h-9 w-9 flex-shrink-0 rounded-lg border border-border bg-card p-0 hover:bg-muted"
+          className="h-11 w-11 flex-shrink-0 rounded-lg border border-border bg-card p-0 hover:bg-muted"
           aria-label="Close application details"
         >
           <XCircle className="h-5 w-5" />
