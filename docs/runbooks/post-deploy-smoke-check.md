@@ -2,6 +2,8 @@
 
 ## Purpose
 
+> Note (2026-11-09, platform-simplification task 11.4): the launch rollup this runbook mentions below was removed; `run-smoke-gate.py` remains as a by-hand probe of a deployed target. See `docs/runbooks/launch-verification.md`.
+
 Run this immediately after production deploys to catch obvious
 regressions before users do. The May 2026 `application_documents`
 schema-drift incident (hand-written SQL not applied to the DB before

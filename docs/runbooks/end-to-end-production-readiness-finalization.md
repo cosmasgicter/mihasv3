@@ -1,4 +1,6 @@
 # End-to-End Production Readiness Finalization Runbook
+> Note (2026-11-09, platform-simplification task 11.4): the launch rollup (`rollup.py`, `launch-readiness.md`) and the operator-run evidence scripts it read (`record-migration-evidence.py`, `run-onboarding-smoke.py`, `check-operational-readiness.py`, `run-lighthouse.mjs`, `sample-api-timings.py`, `measure-mobile-ui.mjs`) were removed from the tree. They remain in git history. Commands below that name them no longer run; see `docs/runbooks/launch-verification.md` for the gates that remain.
+
 
 Last updated: 2026-06-22
 

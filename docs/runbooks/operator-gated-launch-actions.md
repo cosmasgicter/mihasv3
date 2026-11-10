@@ -1,4 +1,6 @@
 # Operator-Gated Actions — Production Readiness (Phases 0, 5, 7)
+> Note (2026-11-09, platform-simplification task 11.4): the launch rollup (`rollup.py`, `launch-readiness.md`) and the operator-run evidence scripts it read (`record-migration-evidence.py`, `run-onboarding-smoke.py`, `check-operational-readiness.py`, `run-lighthouse.mjs`, `sample-api-timings.py`, `measure-mobile-ui.mjs`) were removed from the tree. They remain in git history. Commands below that name them no longer run; see `docs/runbooks/launch-verification.md` for the gates that remain.
+
 
 > These steps were intentionally **NOT executed automatically**. Each is destructive,
 > touches live third-party systems, rewrites shared git history, or modifies the
