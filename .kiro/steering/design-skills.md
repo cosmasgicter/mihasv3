@@ -14,6 +14,22 @@ Three design skills are installed at the project level and should be invoked whe
 | **ui-ux-pro-max** | `.kiro/skills/ui-ux-pro-max/` | Design-system selection, color palette + font pairing recommendations by product type, 99 UX guidelines lookup, 25 chart-type recommendations, stack-specific best practices. CSV-backed search via `python3 .kiro/skills/ui-ux-pro-max/scripts/search.py`. |
 | **design-for-ai** | `.kiro/skills/design-for-ai/` | Visual design fundamentals from David Kadavy's *Design for Hackers*: typography, proportions, composition, visual hierarchy, color theory and color science. CHECKER mode audits existing designs against 7 chapters; APPLIER mode walks 6-phase build (foundation → structure → typography → composition → color → technical). Sub-commands `brand`, `color`, `design`, `exam`, `flow`, `fonts`, `hone` in `.kiro/skills/design-for-ai/commands/`. |
 
+## Kept skill set
+The repository keeps exactly 17 vendored skills (decision D6, option B; pruned by
+platform-simplification task 15.1). Each has one real copy:
+
+- In `.kiro/skills/`: `a11y-audit`, `agentic-engineering-workflow`,
+  `api-design-reviewer` (its linter runs in CI through `backend/scripts/api_quality.sh`),
+  `code-structure-cleanup`, `content-humanizer`, `copy-editing`, `copywriting`,
+  `design-for-ai`, `grep-loop-review-workflow`, `impeccable`, `screenshot`,
+  `senior-architect`, `source-code-context`, `spec-driven-workflow`,
+  `tech-debt-tracker`, `ui-ux-pro-max`.
+- `neon-postgres` is a symlink in `.kiro/skills/` whose only copy is
+  `.agents/skills/neon-postgres`.
+
+`.agents/skills.json` names `.kiro/skills` as the skill root. Add a skill only
+together with the steering line that says why it is kept.
+
 ## Always load context first
 
 Both skills read these two files at the project root before any design work:

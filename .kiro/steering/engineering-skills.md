@@ -15,6 +15,9 @@ matching `SKILL.md` before acting.
 | **code-structure-cleanup** | `.kiro/skills/code-structure-cleanup/SKILL.md` | After a feature works but has duplicated mechanics, repeated calls, or messy structure. Extract reusable service-layer modules without changing behavior. |
 | **grep-loop-review-workflow** | `.kiro/skills/grep-loop-review-workflow/SKILL.md` | When iterating on review feedback for a PR/feature until tests pass and it is merge-ready. |
 
+The four engineering skills live in `.kiro/skills/` and are part of the kept
+skill set listed in `design-skills.md` ("Kept skill set", decision D6).
+
 ## Default order on any coding command
 
 1. **source-code-context** — ground every API/behavior claim in the real code before writing anything.

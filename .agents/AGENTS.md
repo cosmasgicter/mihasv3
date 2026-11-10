@@ -29,7 +29,7 @@ To ensure correctness and eliminate hallucination, the agent must check and alig
 
 ## 3. Utilizing Kiro / kiro-cli Custom Skills
 
-The agent has access to all the design, product, engineering, and platform skills defined under `.kiro/skills/`. When performing specific actions:
+The repository keeps 17 vendored skills (decision D6, task 15.1): the 16 directories under `.kiro/skills/` plus `neon-postgres`, whose only copy is `.agents/skills/neon-postgres`. The full list and why each is kept is in `.kiro/steering/design-skills.md` ("Kept skill set"). When performing specific actions:
 
 *   Invoke **Impeccable** (`.kiro/skills/impeccable/`) for component audits, critique, layout, typography, colors, motion, and brand/product register alignment. Load the matching reference under `.kiro/skills/impeccable/reference/` for the command you are running.
 *   Invoke **ui-ux-pro-max** (`.kiro/skills/ui-ux-pro-max/`) for searching design-system tokens, color palettes, font pairings, and UX guidelines. Run `python3 .kiro/skills/ui-ux-pro-max/scripts/search.py` with custom flags to resolve specifications.
