@@ -12,7 +12,7 @@ Do not use the default `*.vercel.app` domain for authenticated production traffi
 This backend is a **non-package Django application**. It is **not** a
 pip-installable Python distribution and must not be built or installed as one.
 
-- **Supported install/release command:** `pip install -r requirements.txt`.
+- **Supported install/release command:** `pip install --require-hashes -r requirements.txt` (a hash-checked lock compiled from `requirements.in`; tests use `requirements-dev.txt`).
   This is exactly what [Dockerfile](/home/cosmas/Downloads/mihasv3/backend/Dockerfile),
   `.github/workflows/ci.yml`, and `.github/workflows/backend-governance.yml`
   do. The source tree is then run in place with

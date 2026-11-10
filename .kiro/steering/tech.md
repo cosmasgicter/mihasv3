@@ -44,7 +44,8 @@ inclusion: always
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Framework | Django 5 + Django REST Framework | Active server implementation |
-| Runtime | Python 3.12+ | Repo config targets Python 3.12+ |
+| Runtime | Python 3.12+ | Repo config targets Python 3.12+; host virtual environments use Python 3.12 (not 3.14, which may lack wheels) |
+| Dependencies | pip-tools locks with hashes | `backend/requirements.in` (runtime) and `requirements-dev.in` (tests) compile to `requirements.txt` and `requirements-dev.txt`; the image installs `requirements.txt` only |
 | App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
 | Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
@@ -96,6 +97,9 @@ inclusion: always
 | Command | Purpose |
 |---------|---------|
 | `cd backend && python3 -m pytest` | Run backend tests |
+| `docker run --rm -v "$PWD/backend:/w" -w /w python:3.12-slim sh -c "pip install -q pip-tools==7.6.2 && pip-compile --generate-hashes --strip-extras requirements.in && pip-compile --generate-hashes --strip-extras requirements-dev.in"` | Recompile both locks after editing a `.in` file (same image as production; run from the repository root) |
+| `cd backend && pip install --require-hashes -r requirements-dev.txt` | Install the test environment from the lock (`requirements.txt` for runtime only) |
+| `python3 scripts/check_requirements_lock.py` | Lock freshness: recompiles in a temporary copy and fails on any diff or a package pinned at two versions |
 | `cd backend && python3 manage.py check` | Django system checks |
 | `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` | Generate and verify OpenAPI schema |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
@@ -504,7 +508,7 @@ integration on the platform belongs to **jobs-ops**.
   (gpt-4o-mini), `JOBS_OPS_AI_MODEL_SMART` (deepseek-v3). The **env var** names
   are unchanged (`AI_GATEWAY_API_KEY`, `AI_MODEL_*`) so no deployment was
   re-keyed; only the Django setting names moved.
-- `openai` is declared in `backend/requirements.txt` under an explicit
+- `openai` is declared in `backend/requirements.in` (locked into `requirements.txt`) under an explicit
   **jobs-ops-only** section. Its single importer in the whole backend is
   `apps/jobs/ai_service.py`. It is not a platform dependency and must not become
   one.
