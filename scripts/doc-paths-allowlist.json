@@ -75,46 +75,6 @@
       "file": ".kiro/steering/tech.md",
       "path": "ai_prompt_redactor.py",
       "reason": "Retired module named so nobody reintroduces it (generative-AI boundary section)."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/hooks/useFeeResolver.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/config/payments.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/tests/unit/paymentFlow.test.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "backend/tests/unit/test_application_review_force_approved_legacy.py",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/lib/applicationSlipPdf.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/lib/receiptGenerator.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/lib/acceptanceLetterGenerator.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
-    },
-    {
-      "file": ".kiro/steering/structure.md",
-      "path": "apps/admissions/src/lib/pdfLayout.ts",
-      "reason": "Historical table entry for a file that was removed; leaves with task 9.1 (steering history to archive), which also deletes this entry."
     }
   ]
 }
