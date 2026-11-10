@@ -248,7 +248,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         {/* Pending conditions list (Req 5.9) */}
         {application.status === 'conditionally_approved' && conditionsData && conditionsData.length > 0 && (
           <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-3">
-            <div className="flex items-center gap-2 mb-2 text-sm font-medium text-warning-foreground">
+            <div className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground">
               <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
               <span>Pending conditions</span>
             </div>

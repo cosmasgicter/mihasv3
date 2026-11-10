@@ -209,7 +209,7 @@ const SubmitStep = ({
                       <button
                         type="button"
                         onClick={() => onNavigateToStep(item.stepKey)}
-                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                       >
                         Go to step
                       </button>
@@ -237,7 +237,7 @@ const SubmitStep = ({
                             <button
                               type="button"
                               onClick={() => onNavigateToStep(item.stepKey)}
-                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                             >
                               Fix
                             </button>

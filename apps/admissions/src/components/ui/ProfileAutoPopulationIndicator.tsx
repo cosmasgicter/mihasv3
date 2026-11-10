@@ -30,7 +30,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
   const getColor = () => {
     if (completionPercentage >= 100) return 'bg-success/10 text-success-foreground border-success/30'
     if (completionPercentage >= 80) return 'bg-success/10 text-success-foreground border-success/30'
-    if (completionPercentage >= 60) return 'bg-warning/10 text-warning-foreground border-warning/30'
+    if (completionPercentage >= 60) return 'bg-warning/10 text-foreground border-warning/30'
     return 'bg-destructive/10 text-destructive-foreground border-destructive/30'
   }
 

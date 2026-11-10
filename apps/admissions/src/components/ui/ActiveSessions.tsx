@@ -249,7 +249,7 @@ export function ActiveSessions() {
       )}
 
       {hasSessionAccessIssue && (
-        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-warning-foreground">
+        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-foreground">
           Session details are temporarily unavailable. Your current session remains active.
         </div>
       )}

@@ -445,10 +445,10 @@ function CTASection() {
       <ScrollReveal className="container-responsive grid gap-6 px-4 text-white sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:text-left lg:px-8">
         <TextEffect effect="fadeUp">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               The current intake is open. You can start tonight.
             </h2>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-accent sm:text-lg">
               Takes about 30 minutes if your documents are ready. Your application fee is shown before you pay, in your own currency. Mobile money or card — either works.
             </p>
           </div>

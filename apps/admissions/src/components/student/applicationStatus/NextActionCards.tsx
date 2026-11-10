@@ -138,7 +138,7 @@ export function NextActionCards({
             )}
 
             {enrollment.state === 'blocked' && enrollmentNote && (
-              <p className="flex items-start gap-2 text-sm text-warning-foreground">
+              <p className="flex items-start gap-2 text-sm text-foreground">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" aria-hidden="true" />
                 <span data-testid="enrollment-blocker">{enrollmentNote.message}</span>
               </p>
