@@ -27,6 +27,11 @@ name: Student Journey Gate
 # only when the change touches apps/admissions/, backend/, harness/ or this workflow.
 # On an unrelated change the job reports success within seconds.
 #
+# A second blocking job, `rendered-design-gate` (platform-simplification task 22.5), brings
+# the same harness up, visits the Audited_Page_Set at 1440x900 and 390x844 and compares
+# axe, the measurements and impeccable's browser detector with
+# scripts/rendered-design-baseline.json. Its relevance list adds `scripts/rendered-`.
+#
 # Making `journey-gate` a required check on `main` is a repository-settings step for the
 # operator; nothing here changes settings.
 #
@@ -99,6 +104,79 @@ jobs:
           path: |
             apps/admissions/test-results/harness-evidence/
             apps/admissions/test-results/journey-gate-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Dump harness logs on failure
+        if: failure() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness logs || true
+      - name: Tear the harness down
+        if: always() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness down || true
+
+  rendered-design-gate:
+    name: rendered-design-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether this change needs the rendered design gate
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+          relevant=false
+          changed=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")" || relevant=true
+          elif [ "$EVENT_NAME" = "push" ]; then
+            # Every push to main is relevant.
+            relevant=true
+          else
+            relevant=true
+          fi
+          if grep -Eq '^(apps/admissions/|backend/|harness/|scripts/rendered-|\.github/workflows/student-journey-gate\.yml$)' <<< "$changed"; then
+            relevant=true
+          fi
+          echo "relevant=${relevant}" >> "$GITHUB_OUTPUT"
+          echo "rendered design gate relevant: ${relevant}"
+      - uses: oven-sh/setup-bun@v2
+        if: steps.changes.outputs.relevant == 'true'
+        with:
+          bun-version: latest
+      # Node ships on the ubuntu-latest runner image; no extra action is added.
+      - name: Install impeccable (pinned) without a browser download
+        if: steps.changes.outputs.relevant == 'true'
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: '1'
+        run: npm install -g impeccable@2.1.9
+      - name: Install dependencies and the Chromium browser
+        if: steps.changes.outputs.relevant == 'true'
+        run: |
+          bun install --frozen-lockfile
+          cd apps/admissions
+          bunx playwright install --with-deps chromium
+      - name: Bring the harness up
+        if: steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness up
+      - name: Run the rendered design gate and compare with the baseline
+        if: steps.changes.outputs.relevant == 'true'
+        run: |
+          cd apps/admissions
+          bunx playwright test -c playwright.rendered-gate.config.ts
+          bun ../../scripts/rendered-gate-compare.ts
+      - name: Upload rendered gate screenshots and findings
+        if: always() && steps.changes.outputs.relevant == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-design-gate-evidence
+          path: |
+            apps/admissions/test-results/rendered-gate/
+            apps/admissions/test-results/rendered-gate-artifacts/
           if-no-files-found: warn
           retention-days: 14
       - name: Dump harness logs on failure

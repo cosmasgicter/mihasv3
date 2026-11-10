@@ -133,8 +133,10 @@ def test_workflow_triggers_have_no_path_filter():
 
 def test_workflow_has_the_two_required_jobs_and_never_continues_on_error():
     workflow = _workflow()
-    assert set(workflow["jobs"]) == {"journey-gate"}
+    # platform-simplification task 22.5 adds the second blocking job, `rendered-design-gate`.
+    assert set(workflow["jobs"]) == {"journey-gate", "rendered-design-gate"}
     assert workflow["jobs"]["journey-gate"]["timeout-minutes"] == 45
+    assert workflow["jobs"]["rendered-design-gate"]["timeout-minutes"] == 45
     assert "continue-on-error" not in WORKFLOW.read_text()
     for job in workflow["jobs"].values():
         assert "continue-on-error" not in job
@@ -170,7 +172,7 @@ def test_gate_job_runs_the_command_uploads_evidence_and_tears_down():
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
-@pytest.mark.parametrize("job", ["journey-gate"])
+@pytest.mark.parametrize("job", ["journey-gate", "rendered-design-gate"])
 @pytest.mark.parametrize(
     "changed, expected",
     [
@@ -220,3 +222,33 @@ def test_relevance_step_runs_the_gate_for_dispatch_and_for_a_push_without_a_usab
         env = {**os.environ, "EVENT_NAME": event, "BASE_REF": "", "BEFORE_SHA": before, "GITHUB_OUTPUT": str(output)}
         subprocess.run(["bash", "-c", step["run"]], cwd=tmp, env=env, check=True, capture_output=True)
         assert output.read_text().strip() == "relevant=true"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
+@pytest.mark.parametrize(
+    "job, expected", [("journey-gate", "false"), ("rendered-design-gate", "true")]
+)
+def test_rendered_scripts_prefix_is_relevant_only_to_the_rendered_gate(job, expected):
+    """Task 22.5: `scripts/rendered-` is one more prefix for the rendered gate only."""
+    step = next(s for s in _workflow()["jobs"][job]["steps"] if s.get("id") == "changes")
+    with tempfile.TemporaryDirectory() as tmp:
+
+        def git(*args):
+            subprocess.run(["git", *args], cwd=tmp, check=True, capture_output=True)
+
+        git("init", "-q", "-b", "main")
+        git("config", "user.email", "ci@example.invalid")
+        git("config", "user.name", "ci")
+        Path(tmp, "README").write_text("base")
+        git("add", ".")
+        git("commit", "-qm", "base")
+        git("update-ref", "refs/remotes/origin/main", "HEAD")
+        git("checkout", "-qb", "pr")
+        Path(tmp, "scripts").mkdir()
+        Path(tmp, "scripts", "rendered-gate-rules.ts").write_text("changed")
+        git("add", "-A")
+        git("commit", "-qm", "pr")
+        output = Path(tmp, "github-output")
+        env = {**os.environ, "EVENT_NAME": "pull_request", "BASE_REF": "main", "BEFORE_SHA": "", "GITHUB_OUTPUT": str(output)}
+        subprocess.run(["bash", "-c", step["run"]], cwd=tmp, env=env, check=True, capture_output=True)
+        assert output.read_text().strip() == f"relevant={expected}"
