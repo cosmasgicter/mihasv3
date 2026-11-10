@@ -16,8 +16,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
 
 ## Tasks
 
-- [ ] 1. Early fixes (may start before Spec A's Journey_Gate is green)
-  - [ ] 1.1 Correct steering and agent-instruction claims that are false under every option and that Spec A does not change
+- [x] 1. Early fixes (may start before Spec A's Journey_Gate is green)
+  - [x] 1.1 Correct steering and agent-instruction claims that are false under every option and that Spec A does not change
     - `.kiro/steering/tech.md`:
       - Replace "a real operator dashboard, not a placeholder shell" and the "Current Jobs Ops State" bullets with current facts: routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` and serve seed data when on; decision D1 is confirmed as a freeze (2026-11-08) and not yet implemented (task 12.1).
       - Re-verify each "Known Open Issues" item at HEAD, and mark each fixed one with the file or commit that fixed it.
@@ -36,11 +36,11 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
       Spec A owns everything in that list except the infrastructure identifiers.
     - _Requirements: 6.1, 6.5, 6.6, 9.4_
 
-  - [ ] 1.2 Mark unverified production values in the perf-flags runbook
+  - [x] 1.2 Mark unverified production values in the perf-flags runbook
     - In `docs/runbooks/perf-flags.md`, show "Unverified" for each production value that no P0_Ops_Check has recorded. Keep the claimed value and date in a "previously claimed" note.
     - _Requirements: 5.5_
 
-  - [ ] 1.3 Restore a parseable error-reporter DSN in the harness
+  - [x] 1.3 Restore a parseable error-reporter DSN in the harness
     - In `harness/bin/harness:76`, change the `VITE_GLITCHTIP_DSN` default to `https://harness@harness-invalid.localhost/1` (design §1). Keep the `${VITE_GLITCHTIP_DSN:-…}` form, so a caller's value still wins.
     - Add `apps/admissions/tests/unit/harnessDsnDefault.test.ts` (`// @vitest-environment node`): read the default from `harness/bin/harness`, load `@sentry/core` relative to `@sentry/react` with `createRequire`, and assert that `makeDsn` returns a DSN whose host ends in `.localhost`, with `console.error` spied.
     - If Spec A's harness work has already restored a parseable DSN, keep its value if it names a `.localhost` host and add only the test. If Spec A allowed the "Invalid Sentry Dsn" console text instead, remove that allowance in this task.
@@ -54,8 +54,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - Ask the user if questions arise.
   - _Requirements: 1.1, 22.5, 22.7_
 
-- [ ] 3. Repository checks that land with baselines
-  - [ ] 3.1 Build the routes-versus-callers report
+- [x] 3. Repository checks that land with baselines
+  - [x] 3.1 Build the routes-versus-callers report
     - Create `scripts/routes_report.py`, which:
       - imports `build_backend_route_catalogue()` from `scripts/inventory_admissions_v2.py` (`:464`), not `collect_backend_routes()`, whose setup forces the flag on (`:391`);
       - configures Django itself and builds the catalogue once with `ENABLE_JOBS_OPS_ROUTES` off and once on, each time inside `override_settings`, after reloading `apps.common.email_urls`, `apps.documents.urls` and then `config.urls`, and calling `clear_url_caches()` (design §2);
@@ -68,14 +68,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Add blocking steps to the `backend` job in `.github/workflows/ci.yml`, after its dependency install: one runs the report and uploads its JSON as an artefact, and one runs `python3 -m pytest -p no:django scripts/tests/test_routes_report.py` from the repository root.
     - _Requirements: 2.1, 2.2, 2.3, 2.5_
 
-  - [ ] 3.2 Build the unreachable-module check
+  - [x] 3.2 Build the unreachable-module check
     - Export `collect` and `resolveTsSpecifier` from `scripts/module-size-report.ts`, and change its last line from `main()` (`:1024`) to `if (import.meta.main) main()`, so importing the file runs nothing; its own report must be identical before and after on HEAD.
     - Create `scripts/unreferenced-modules.ts`, with its `main()` guarded the same way. It walks reachability from `apps/admissions/src/main.tsx` over non-test imports, with `scripts/unreferenced-modules-allowlist.json` and `scripts/unreferenced-modules-baseline.json`.
     - Record in the script's header that module reachability does not find unused exports in reachable modules or modules kept alive by a barrel (design §2); such items are listed by hand (D15 item (i), task 33.2).
     - Add a blocking step to the admissions job in `ci.yml`.
     - _Requirements: 2.4, 2.5_
 
-  - [ ] 3.3 Build the doc-path and skill-path check
+  - [x] 3.3 Build the doc-path and skill-path check
     - Create `scripts/check_doc_paths.py` with the candidate, normalisation and resolution rules of design §6. It scans the steering files, `.agents/AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `LOCAL-TESTING.md` and `README.md`, and, for `.kiro/skills/<name>` paths only, `.kiro/hooks/*` and live specs' `tasks.md`. Paths absent on purpose go in `scripts/doc-paths-allowlist.json` with a reason.
     - Make the same script check skill links: every mode-`120000` entry under `.kiro/skills/` and `.agents/skills/` must resolve, and every `path` in `.agents/skills.json` must name a directory relative to `.agents/` or the repository root. Put the two dangling links (`playwright`, `playwright-best-practices`) in its baseline, tied to D6.
     - Run it once at HEAD and record the result in the evidence summary. The design's dry run found 31 distinct paths in 40 file-and-path pairs: 6 stale references, 14 history-table entries and 11 names absent on purpose. Fix the stale paths that task 1.1 did not cover, and allowlist the 11 with reasons; the history entries leave with task 9.1. Do not allowlist `src/`: it resolves to `apps/admissions/src/`, so the check does not report it, and an allowlist entry for it would fail the allowlist's own rule that the path be absent.
@@ -84,7 +84,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Add its self-test, `python3 scripts/tests/test_check_doc_paths.py`, to `spec-governance.yml` beside the existing self-tests (`:52-55`), and add `scripts/check_doc_paths.py` and `scripts/doc-paths-allowlist.json` to both of that workflow's `paths:` lists.
     - _Requirements: 6.2, 4.7_
 
-  - [ ] 3.4 Make spec status markers blocking
+  - [x] 3.4 Make spec status markers blocking
     - Add `--enforce-status` to `scripts/validate_spec_governance.py`. It applies one rule to every live spec in both directions (Requirement 6.3, design §6): completed with an unchecked required task fails, and at least one required task, all checked, without a completed status fails. A required task is one not marked `*`. Exceptions come from `scripts/spec-status-exceptions.json`, which lists the four D12 specs with the reason "D12 lean: record-only; awaiting confirmation".
     - Add self-tests to `scripts/tests/test_validate_spec_governance.py`, with failing fixtures for both rules, a passing fixture whose only open tasks are optional, and an exception that names a missing spec.
     - Fix the metadata of specs outside D12 (recorded in D12's register entry):
@@ -94,18 +94,18 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Run the new mode against the live tree and confirm it passes before making it a blocking step in `spec-governance.yml`. Add `scripts/spec-status-exceptions.json` to both of that workflow's `paths:` lists, so a change to the exceptions alone runs the step.
     - _Requirements: 6.3_
 
-  - [ ] 3.5 Write property tests for classification and baseline rules
+  - [x] 3.5 Write property tests for classification and baseline rules
     - **Property 4: Every route gets exactly one class**
     - **Validates: Requirements 2.1, 2.2**
     - **Property 5: Stale baseline entries fail**
     - **Validates: Requirements 2.5, 19.4**
     - Test in `scripts/tests/test_routes_report.py` using hypothesis; `ci.yml`'s `backend` job runs it (task 3.1). Mirror Property 5 for the TypeScript check with fast-check in `apps/admissions/tests/unit/unreferencedModules.test.ts` (`// @vitest-environment node`), which the admissions job's `bun run test` runs.
 
-  - [ ] 3.6 Ignore agent run directories
+  - [x] 3.6 Ignore agent run directories
     - Add `.agents/tasks/` to `.gitignore`, and confirm with `git check-ignore -v` that a file there is ignored.
     - _Requirements: 4.4_
 
-  - [ ] 3.7 Keep harness browser runs inside the stack (the harness half of C-08)
+  - [x] 3.7 Keep harness browser runs inside the stack (the harness half of C-08)
     - This task removes nothing and is the same under every D2 option, because Spec A's Journey_Gate and the Rendered_Design_Gate run on the harness whatever D2 decides (design §1). Under options A–C it is also how the harness meets Requirements 1.3 and 1.9.
     - Add the widget stub `GET /js/v1/inline.js` to `harness/adapters/adapter_server.py`, proxy `/__lenco/*` to the adapter with the prefix stripped in `harness/Caddyfile`, and export `VITE_LENCO_WIDGET_URL=/__lenco/js/v1/inline.js` in `harness/bin/harness` beside its other `VITE_*` values.
     - Move the three preconnects out of `apps/admissions/index.html:26-28` into the `beanola-resource-hints` plugin in `vite.config.ts`, and confirm that a build with `VITE_API_BASE_URL` set to the API origin and an empty widget variable emits the same API and `pay.lenco.co` hints as today.
