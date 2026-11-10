@@ -170,6 +170,11 @@ DATABASES = {
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
 CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+# Redis database for the refresh-token JTI blacklist (apps/accounts/tokens.py).
+# Defaults to the broker URL, so production keeps today's Redis database unless
+# this variable is set. Test runs override it per xdist worker (see the
+# ``_is_testing`` block below, task 6.3).
+JTI_REDIS_URL = os.environ.get("JTI_REDIS_URL", CELERY_BROKER_URL)
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_RESULT_SERIALIZER = "json"
@@ -882,6 +887,33 @@ if _is_testing:
             "LOCATION": "beanola-test-cache",
         }
     }
+    # Test isolation (task 6.3, R7.4). These are SETTINGS, not conftest values,
+    # because pytest-django loads settings and calls ``django.setup()`` before any
+    # ``conftest.py`` is imported.
+    #
+    # Celery: an in-memory broker and a cache result backend, so no ``apply_async``
+    # reaches a shared Redis. The result backend used to be ``REDIS_URL`` and
+    # subscribed over pubsub for every ``apply_async`` that did not ignore its result.
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+    # JTI blacklist: one Redis database per xdist worker. Database 8 is the
+    # non-xdist run; worker ``gwN`` uses 9 + N. Redis has 16 databases (0-15), so
+    # 7 workers (gw0..gw6, databases 9-15) is the most that fit.
+    _MAX_XDIST_WORKERS = 7
+    _xdist_workers = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", "0") or 0)
+    if _xdist_workers > _MAX_XDIST_WORKERS:
+        raise ImproperlyConfigured(
+            f"PYTEST_XDIST_WORKER_COUNT={_xdist_workers} exceeds the limit of "
+            f"{_MAX_XDIST_WORKERS}: each worker needs its own Redis database for "
+            "the JTI blacklist and Redis has 16 (databases 9-15 are available)."
+        )
+    _xdist_worker = os.environ.get("PYTEST_XDIST_WORKER", "")
+    _jti_db = 8 + (int(_xdist_worker[2:]) + 1 if _xdist_worker.startswith("gw") and _xdist_worker[2:].isdigit() else 0)
+    from urllib.parse import urlsplit as _urlsplit
+
+    JTI_REDIS_URL = _urlsplit(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))._replace(
+        path=f"/{_jti_db}"
+    ).geturl()
 
 # Enforced after the final settings module is loaded, by
 # ``apps.common.apps.CommonConfig.ready()``. Calling the validator while this

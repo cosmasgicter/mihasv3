@@ -33,6 +33,73 @@ def _guard_test_database_host():
     yield
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _assert_isolated_test_infrastructure():
+    """Fail early when the test run could touch a shared broker, result backend or JTI database.
+
+    Task 6.3 (R7.4). The values come from ``config/settings/base.py``'s
+    ``_is_testing`` block, because settings are loaded before any ``conftest.py``.
+    This fixture only asserts they are in effect. Failures name the setting and,
+    for the JTI database, the expected number; they never print a URL.
+    """
+    import re
+    from urllib.parse import urlsplit
+
+    from django.conf import settings
+
+    assert settings.CELERY_BROKER_URL == "memory://", "CELERY_BROKER_URL must be memory:// under test"
+    assert settings.CELERY_RESULT_BACKEND == "cache+memory://", (
+        "CELERY_RESULT_BACKEND must be cache+memory:// under test"
+    )
+    worker = os.environ.get("PYTEST_XDIST_WORKER", "")
+    match = re.fullmatch(r"gw(\d+)", worker)
+    expected = 9 + int(match.group(1)) if match else 8
+    actual = urlsplit(settings.JTI_REDIS_URL).path.lstrip("/")
+    assert actual == str(expected), f"JTI_REDIS_URL must use Redis database {expected} for this worker"
+    yield
+
+
+_NEVER_TRUNCATE = frozenset({"migration_history", "django_migrations"})
+
+
+@pytest.fixture(autouse=True)
+def _truncate_unmanaged_tables_after_transactional_tests(request, django_db_blocker):
+    """Empty ``managed = False`` tables after every transactional test.
+
+    Task 6.3 (R7.5). Django's flush resets the tables of managed models only, so
+    rows a transactional test wrote to an unmanaged table survived into the next
+    test. Non-transactional tests roll back and need nothing. Managed tables
+    (``django_content_type`` and ``auth_permission`` included) and the two history
+    tables are left alone.
+    """
+    yield
+    from django.test import TransactionTestCase, TestCase
+
+    instance = getattr(request, "instance", None)
+    is_unittest_transactional = isinstance(instance, TransactionTestCase) and not isinstance(
+        instance, TestCase
+    )
+    marker = request.node.get_closest_marker("django_db")
+    marked_transactional = bool(marker and marker.kwargs.get("transaction"))
+    if (
+        not marked_transactional
+        and "transactional_db" not in request.fixturenames
+        and not is_unittest_transactional
+    ):
+        return
+    with django_db_blocker.unblock():
+        managed = {
+            model._meta.db_table for model in apps.get_models(include_auto_created=True) if model._meta.managed
+        }
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = current_schema()")
+            present = {row[0] for row in cursor.fetchall()}
+            targets = sorted(present - managed - _NEVER_TRUNCATE)
+            if targets:
+                quoted = ", ".join(connection.ops.quote_name(name) for name in targets)
+                cursor.execute(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE")
+
+
 @pytest.fixture(autouse=True)
 def _reset_rate_limit_cache():
     """Clear the shared cache before every test.

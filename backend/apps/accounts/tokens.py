@@ -28,11 +28,11 @@ def _get_refresh_ttl_seconds() -> int:
 
 
 def _get_redis() -> redis.Redis:
-    """Lazy-init Redis client from CELERY_BROKER_URL."""
+    """Lazy-init Redis client from JTI_REDIS_URL (defaults to CELERY_BROKER_URL)."""
     global _redis_client
     if _redis_client is None:
         _redis_client = redis.from_url(
-            settings.CELERY_BROKER_URL,
+            settings.JTI_REDIS_URL,
             decode_responses=True,
             socket_connect_timeout=2,
             socket_timeout=2,
