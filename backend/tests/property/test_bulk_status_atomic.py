@@ -220,7 +220,7 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
         view = ApplicationBulkStatusView()
 
         with patch(
-            "apps.applications.views.Application.objects.filter",
+            "apps.applications.models.Application.objects.filter",
             return_value=mock_qs,
         ), patch(
             "apps.catalog.services.AccessScopeService",

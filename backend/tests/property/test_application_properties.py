@@ -328,7 +328,7 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
 
     def test_track_view_has_allow_any_permission(self):
         """ApplicationTrackView must use AllowAny permission and OptionalJWTCookieAuthentication."""
-        from apps.applications.views import ApplicationTrackView
+        from apps.applications.public_views import ApplicationTrackView
         from apps.accounts.authentication import OptionalJWTCookieAuthentication
 
         view = ApplicationTrackView()
@@ -351,7 +351,7 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
         """
         assume(code.strip() != "")
 
-        from apps.applications.views import ApplicationTrackView
+        from apps.applications.public_views import ApplicationTrackView
 
         request = MagicMock()
         request.query_params = {"code": code}
@@ -374,7 +374,7 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
     ):
         """A well-formed tracking secret that resolves nothing is a masked 404."""
         from apps.applications.tracking_secret import build_code
-        from apps.applications.views import ApplicationTrackView
+        from apps.applications.public_views import ApplicationTrackView
 
         request = MagicMock()
         request.query_params = {"code": build_code(selector, verifier)}
@@ -388,7 +388,7 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
 
     def test_track_view_returns_400_for_empty_code(self):
         """Track view returns 400 when no code is provided."""
-        from apps.applications.views import ApplicationTrackView
+        from apps.applications.public_views import ApplicationTrackView
 
         request = MagicMock()
         request.query_params = {"code": ""}
@@ -437,7 +437,7 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
     def test_approval_without_force_rejected_when_payment_unverified(self, notes):
         """Review with new_status=approved and no force flag is rejected
         when payment is unverified."""
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         app = _make_mock_application(status_val="submitted")
         user = _make_mock_user(role="admin")
@@ -467,7 +467,7 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
     @_default_settings
     def test_approval_with_force_proceeds_when_payment_unverified(self, notes):
         """Review with new_status=approved and force=true proceeds."""
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         app = _make_mock_application(status_val="submitted")
         user = _make_mock_user(role="admin")
@@ -501,7 +501,7 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
     @_default_settings
     def test_non_approval_status_skips_payment_check(self, new_status):
         """Non-approval status changes don't check payment status."""
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         app = _make_mock_application(status_val="submitted")
         user = _make_mock_user(role="admin")

@@ -32,9 +32,11 @@ from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.common.middleware_compat import CSRFEnforcementMiddleware  # noqa: E402
-from apps.applications.views import (  # noqa: E402
-    ApplicationDetailView,
+from apps.applications.admin_review_views import (  # noqa: E402
     ApplicationReviewView,
+)
+from apps.applications.student_draft_views import (  # noqa: E402
+    ApplicationDetailView,
 )
 
 _default_settings = settings(max_examples=5, deadline=None)

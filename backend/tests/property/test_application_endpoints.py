@@ -32,7 +32,7 @@ from hypothesis import strategies as st  # noqa: E402
 from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
-from apps.applications.views import (  # noqa: E402
+from apps.applications.document_views import (  # noqa: E402
     AcceptanceLetterView,
     ApplicationVerifyDocumentView,
     FinanceReceiptView,
@@ -41,8 +41,8 @@ from apps.applications.views import (  # noqa: E402
 _default_settings = settings(max_examples=5, deadline=None)
 
 # Patch targets (same as unit tests)
-_APP = "apps.applications.views.Application.objects"
-_DOC = "apps.applications.views.ApplicationDocument.objects"
+_APP = "apps.applications.models.Application.objects"
+_DOC = "apps.documents.models.ApplicationDocument.objects"
 _AUDIT = "apps.common.models.AuditLog.objects"
 _IDEM = "apps.common.models.IdempotencyKey.objects"
 _PAY = "apps.documents.models.Payment.objects"

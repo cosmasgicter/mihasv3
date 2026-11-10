@@ -86,7 +86,6 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
 | `apps/admissions/src/pages/student/DocumentOpen.tsx` | The one opener for every student View/Open control (`/student/documents/open`); signs at click time and only reads (SJR task 3.17, R5-a) |
 | `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
-| `backend/apps/applications/views.py` | Legacy re-exports for URL compatibility (imports from split modules) |
 | `backend/apps/applications/student_views.py` | Student-facing endpoints: submit, withdraw, email-slip, enrollment, amendments |
 | `backend/apps/applications/admin_views.py` | Admin endpoints: review, assign, bulk status, fee waiver, conditions |
 | `backend/apps/applications/public_views.py` | Unauthenticated endpoints: track application |

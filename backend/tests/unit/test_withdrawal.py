@@ -11,8 +11,8 @@ from apps.applications.withdrawal_service import (
 from apps.applications.student_withdrawal_views import ApplicationWithdrawView
 
 _WS = "apps.applications.withdrawal_service.WithdrawalService.withdraw"
-_AO = "apps.applications.views.Application.objects"
-_AS = "apps.applications.views.ApplicationSerializer"
+_AO = "apps.applications.models.Application.objects"
+_AS = "apps.applications.serializers.ApplicationSerializer"
 
 def _user(uid=None):
     return JWTUser({"user_id": str(uid or uuid.uuid4()), "email": "s@e.com",

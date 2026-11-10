@@ -15,7 +15,7 @@ from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
-from apps.applications.views import (
+from apps.applications.document_views import (
     AcceptanceLetterView,
     ApplicationVerifyDocumentView,
     FinanceReceiptView,
@@ -23,11 +23,11 @@ from apps.applications.views import (
 
 # Patch targets:
 # - Application and ApplicationDocument are module-level imports in views.py
-#   → patch "apps.applications.views.Application.objects" etc.
+#   → patch "apps.applications.models.Application.objects" etc.
 # - AuditLog, IdempotencyKey, Payment, and tasks are lazy-imported inside methods
 #   → patch at source: "apps.common.models.AuditLog.objects" etc.
-_APP = "apps.applications.views.Application.objects"
-_DOC = "apps.applications.views.ApplicationDocument.objects"
+_APP = "apps.applications.models.Application.objects"
+_DOC = "apps.documents.models.ApplicationDocument.objects"
 _AUDIT = "apps.common.models.AuditLog.objects"
 _IDEM = "apps.common.models.IdempotencyKey.objects"
 _PAY = "apps.documents.models.Payment.objects"

@@ -15,7 +15,7 @@ from apps.documents.fee_waiver_service import (
 from apps.applications.admin_assignment_views import ApplicationFeeWaiverView
 
 
-_AO = "apps.applications.views.Application.objects"
+_AO = "apps.applications.models.Application.objects"
 
 
 def _admin(uid=None, role="super_admin"):

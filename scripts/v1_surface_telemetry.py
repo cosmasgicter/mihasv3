@@ -1991,7 +1991,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                     "backend/apps/catalog/admin_views.py",
                     "backend/apps/accounts/admin_views.py",
                     "backend/apps/accounts/batch_views.py",
-                    "backend/apps/applications/views.py",
                     "backend/apps/documents/views.py",
                 ),
             ),

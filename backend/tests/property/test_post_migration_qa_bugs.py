@@ -204,12 +204,12 @@ class TestLegacyEndpointCompatibility:
 
     # Each tuple: (method, view_class_path, expected_handler_name)
     FRONTEND_API_CALLS = [
-        ("PUT", "apps.applications.views.ApplicationDetailView", "put"),
-        ("DELETE", "apps.applications.views.ApplicationDetailView", "delete"),
-        ("PUT", "apps.applications.views.ApplicationInterviewView", "put"),
-        ("DELETE", "apps.applications.views.ApplicationInterviewView", "delete"),
-        ("PATCH", "apps.applications.views.ApplicationReviewView", "patch"),
-        ("POST", "apps.applications.views.ApplicationReviewView", "post"),
+        ("PUT", "apps.applications.student_draft_views.ApplicationDetailView", "put"),
+        ("DELETE", "apps.applications.student_draft_views.ApplicationDetailView", "delete"),
+        ("PUT", "apps.applications.interview_views.ApplicationInterviewView", "put"),
+        ("DELETE", "apps.applications.interview_views.ApplicationInterviewView", "delete"),
+        ("PATCH", "apps.applications.admin_review_views.ApplicationReviewView", "patch"),
+        ("POST", "apps.applications.admin_review_views.ApplicationReviewView", "post"),
         ("PUT", "apps.common.notification_views.NotificationPreferenceView", "put"),
         ("PUT", "apps.common.notification_views.NotificationMarkReadView", "put"),
         ("PUT", "apps.common.notification_views.NotificationMarkAllReadView", "put"),

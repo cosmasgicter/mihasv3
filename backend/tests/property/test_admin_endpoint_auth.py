@@ -166,37 +166,37 @@ ADMIN_SERVICE_ENDPOINTS: list[AdminEndpoint] = [
 ADMIN_ONLY_APPLICATION_ENDPOINTS: list[AdminEndpoint] = [
     AdminEndpoint(
         url_pattern="/api/v1/applications/{id}/review/",
-        module="apps.applications.views",
+        module="apps.applications.admin_review_views",
         view_class_name="ApplicationReviewView",
         source_module="applications.ts",
     ),
     AdminEndpoint(
         url_pattern="/api/v1/applications/export/",
-        module="apps.applications.views",
+        module="apps.applications.admin_export_views",
         view_class_name="ApplicationExportView",
         source_module="applications.ts",
     ),
     AdminEndpoint(
         url_pattern="/api/v1/applications/bulk-status/",
-        module="apps.applications.views",
+        module="apps.applications.admin_bulk_views",
         view_class_name="ApplicationBulkStatusView",
         source_module="applications.ts",
     ),
     AdminEndpoint(
         url_pattern="/api/v1/applications/{id}/verify-document/",
-        module="apps.applications.views",
+        module="apps.applications.document_views",
         view_class_name="ApplicationVerifyDocumentView",
         source_module="applications.ts",
     ),
     AdminEndpoint(
         url_pattern="/api/v1/applications/{id}/acceptance-letter/",
-        module="apps.applications.views",
+        module="apps.applications.document_views",
         view_class_name="AcceptanceLetterView",
         source_module="applications.ts",
     ),
     AdminEndpoint(
         url_pattern="/api/v1/applications/{id}/finance-receipt/",
-        module="apps.applications.views",
+        module="apps.applications.document_views",
         view_class_name="FinanceReceiptView",
         source_module="applications.ts",
     ),

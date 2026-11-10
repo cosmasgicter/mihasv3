@@ -91,10 +91,19 @@ class TestReviewViewNoDebugWrapper(SimpleTestCase):
 
     def test_no_format_exc_import_in_module(self):
         """The applications views module should not import traceback."""
-        import apps.applications.views as views_module
+        import importlib
 
-        module_source = inspect.getsource(views_module)
-        self.assertNotIn("import traceback", module_source)
+        for name in (
+            "student_views",
+            "admin_views",
+            "interview_views",
+            "document_views",
+            "public_views",
+            "_view_helpers",
+        ):
+            views_module = importlib.import_module(f"apps.applications.{name}")
+            module_source = inspect.getsource(views_module)
+            self.assertNotIn("import traceback", module_source, name)
 
 
 # =========================================================================

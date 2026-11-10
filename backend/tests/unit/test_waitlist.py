@@ -487,7 +487,7 @@ class TestPromotionTriggeredByRejection:
                                           mock_sync, mock_promote,
                                           mock_email_task, mock_notif_qs,
                                           mock_email_qs, mock_intake_qs):
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         uid = uuid.uuid4()
         app = _app(uid=uid, status="under_review", aid=uuid.uuid4())
