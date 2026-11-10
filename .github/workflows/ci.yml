@@ -695,15 +695,36 @@ jobs:
   # any diff, or on a package pinned at two versions across the two locks.
   backend-locks:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The full recompile hashes every published wheel of every pinned package
+    # (about 3,100 files measured locally, roughly 100 minutes per lock pair), so
+    # it runs only on a change that can make a lock stale. The version-consistency
+    # check below is cheap and always runs.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Lock helper self-test
         run: python3 scripts/tests/test_backend_lock_scripts.py
-      - name: Locks are fresh and consistent
+      - name: No package pinned at two versions across the locks
+        run: python3 scripts/check_requirements_lock.py --versions-only
+      - name: Did a lock input change?
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          full=true
+          if [ -n "${BASE_SHA}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${BASE_SHA}" 2>/dev/null; then
+            if ! git diff --name-only "${BASE_SHA}" HEAD | grep -qE '^(backend/requirements(-dev)?\.(in|txt)|scripts/check_requirements_lock\.py)$'; then
+              full=false
+            fi
+          fi
+          echo "full=${full}" >> "$GITHUB_OUTPUT"
+      - name: Locks are fresh (recompile in a temporary copy)
+        if: steps.changed.outputs.full == 'true'
         run: python3 scripts/check_requirements_lock.py
 
   frontend-drift-guards:
