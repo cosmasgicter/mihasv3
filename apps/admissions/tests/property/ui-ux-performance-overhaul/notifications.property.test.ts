@@ -244,15 +244,16 @@ describe('Property 19: Notification Variant Color Consistency', () => {
     fc.assert(
       fc.property(alertVariantArb, (variant) => {
         // Alert uses cva variants with semantic tokens:
-        // info: text-primary, bg-primary/5
-        // success: text-success, bg-success/5
-        // warning: text-warning, bg-warning/5
-        // error: text-destructive, bg-destructive/5
+        // Platform-simplification task 23.1: the tint, border and label come from the
+        // shared tone map (`lib/statusTone.ts`: bg-<tone>/10, text-foreground); the
+        // variant itself still names the tone's base colour for its icon.
+        // info: [&>svg]:text-info, success: [&>svg]:text-success,
+        // warning: [&>svg]:text-warning, error: [&>svg]:text-destructive
         const tokenMap: Record<string, string[]> = {
-          info: ['text-primary', 'bg-primary'],
-          success: ['text-success', 'bg-success'],
-          warning: ['text-warning', 'bg-warning'],
-          error: ['text-destructive', 'bg-destructive'],
+          info: ['text-info', "toneSurfaceClasses('info')"],
+          success: ['text-success', "toneSurfaceClasses('success')"],
+          warning: ['text-warning', "toneSurfaceClasses('warning')"],
+          error: ['text-destructive', "toneSurfaceClasses('danger')"],
         }
 
         const expectedTokens = tokenMap[variant]

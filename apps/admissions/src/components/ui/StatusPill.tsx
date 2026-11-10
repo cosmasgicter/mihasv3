@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
 
-type StatusTone = 'neutral' | 'info' | 'warning' | 'success' | 'danger' | 'muted'
+import { toneSurfaceClasses, type StatusTone } from '@/lib/statusTone'
 
 interface StatusConfig {
   tone: StatusTone
