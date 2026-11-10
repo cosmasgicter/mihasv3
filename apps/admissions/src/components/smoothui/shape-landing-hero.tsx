@@ -92,6 +92,7 @@ export function ShapeLandingHero({
               <div className="transition-transform duration-150 ease-smooth-out motion-safe:hover:scale-[1.03] motion-safe:active:scale-[0.97]">
                 <Link
                   to={primaryCta.href}
+                  data-landing-action="primary"
                   onPointerEnter={warmPrimaryRoute}
                   onFocus={warmPrimaryRoute}
                   onTouchStart={warmPrimaryRoute}
@@ -111,6 +112,7 @@ export function ShapeLandingHero({
               {secondaryCta.href.startsWith('#') ? (
                 <a
                   href={secondaryCta.href}
+                  data-landing-action="secondary"
                   aria-label={secondaryCta.label}
                   className={cn(
                     'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',
@@ -126,6 +128,7 @@ export function ShapeLandingHero({
               ) : (
                 <Link
                   to={secondaryCta.href}
+                  data-landing-action="secondary"
                   aria-label={secondaryCta.label}
                   className={cn(
                     'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-medium',

@@ -1100,6 +1100,7 @@ const ApplicationWizardContent = () => {
                 <div
                   key={stepKey}
                   ref={stepContentRef}
+                  data-wizard-form-region
                   tabIndex={-1}
                   className={`outline-none ${stepDirection === "forward" ? "wizard-step-forward" : "wizard-step-backward"}`}
                 >
