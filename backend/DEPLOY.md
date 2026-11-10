@@ -89,7 +89,6 @@ Celery Beat reads the `CELERY_BEAT_SCHEDULE` from Django settings and dispatches
 
 | Task | Schedule | Purpose |
 | --- | --- | --- |
-| `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to prevent Koyeb cold starts |
 | `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check with email alerts on failure/recovery |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Purge expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records by retention category |

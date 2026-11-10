@@ -30,7 +30,7 @@ _PLACEHOLDER = {
     "S3_ACCESS_KEY": "placeholder-access",
     "S3_SECRET_KEY": "placeholder-secret",
 }
-_OUTBOUND = ("FRONTEND_URL", "HEALTH_CHECK_URL", "KEEP_ALIVE_URL", "ZOHO_SMTP_HOST")
+_OUTBOUND = ("FRONTEND_URL", "HEALTH_CHECK_URL", "ZOHO_SMTP_HOST")
 
 _PROBE = (
     "import os, sys\n"
@@ -38,7 +38,7 @@ _PROBE = (
     "import django\n"
     "django.setup()\n"
     "from django.conf import settings as s\n"
-    "print('|'.join([s.FRONTEND_URL, s.HEALTH_CHECK_URL, s.KEEP_ALIVE_URL, s.EMAIL_HOST]))\n"
+    "print('|'.join([s.FRONTEND_URL, s.HEALTH_CHECK_URL, s.EMAIL_HOST]))\n"
 )
 
 
@@ -74,9 +74,9 @@ def test_staging_refuses_to_start_without_frontend_and_health_urls():
 def test_local_modules_start_with_both_variables_unset(module):
     result = _run(module)
     assert result.returncode == 0, result.stderr[-500:]
-    frontend, health, keep_alive, _host = result.stdout.strip().splitlines()[-1].split("|")
+    frontend, health, _host = result.stdout.strip().splitlines()[-1].split("|")
     assert frontend.startswith("http://")
-    assert "beanola.com" not in (frontend + health + keep_alive)
+    assert "beanola.com" not in (frontend + health)
 
 
 @pytest.mark.parametrize("module", ["base", "dev", "staging", "local_real", "harness", "test"])
@@ -86,7 +86,7 @@ def test_no_non_production_module_defaults_to_a_production_host(module):
         pytest.skip(f"{module}.py does not exist")
     source = path.read_text()
     pattern = re.compile(
-        r"""(?:HEALTH_CHECK_URL|KEEP_ALIVE_URL|FRONTEND_URL|ZOHO_SMTP_HOST)["']?\s*,\s*["']([^"']*)["']"""
+        r"""(?:HEALTH_CHECK_URL|FRONTEND_URL|ZOHO_SMTP_HOST)["']?\s*,\s*["']([^"']*)["']"""
     )
     for default in pattern.findall(source):
         assert "beanola.com" not in default, f"{module}.py defaults to {default!r}"
@@ -97,7 +97,6 @@ def test_no_non_production_module_defaults_to_a_production_host(module):
 def test_base_defaults_are_local_or_empty():
     source = (SETTINGS_DIR / "base.py").read_text()
     assert 'os.environ.get("HEALTH_CHECK_URL", "")' in source
-    assert 'os.environ.get("KEEP_ALIVE_URL", "")' in source
     assert 'os.environ.get("FRONTEND_URL", "http://localhost:5173")' in source
     assert "os.environ.get('ZOHO_SMTP_HOST', 'localhost')" in source
 
@@ -105,7 +104,6 @@ def test_base_defaults_are_local_or_empty():
 def test_prod_keeps_todays_values():
     source = (SETTINGS_DIR / "prod.py").read_text()
     assert '"HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"' in source
-    assert '"KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"' in source
     assert 'os.environ.get("FRONTEND_URL", "https://apply.beanola.com")' in source
     assert 'os.environ.get("ZOHO_SMTP_HOST", "smtp.zoho.com")' in source
 
@@ -120,19 +118,16 @@ def test_prod_module_resolves_todays_values():
         },
     )
     assert result.returncode == 0, result.stderr[-500:]
-    frontend, health, keep_alive, host = result.stdout.strip().splitlines()[-1].split("|")
+    frontend, health, host = result.stdout.strip().splitlines()[-1].split("|")
     assert frontend == "https://apply.beanola.com"
     assert health == "https://api.beanola.com/health/ready/"
-    assert keep_alive == "https://api.beanola.com/health/live/"
     assert host == "smtp.zoho.com"
 
 
 def test_scheduled_tasks_return_early_without_a_request(settings):
     from apps.common import tasks
 
-    settings.KEEP_ALIVE_URL = ""
     settings.HEALTH_CHECK_URL = ""
     with mock.patch("requests.get", side_effect=AssertionError("must not be called")) as get:
-        assert tasks.keep_alive_task() is None
         assert tasks.check_uptime_task() is None
     get.assert_not_called()

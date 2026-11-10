@@ -271,8 +271,8 @@ from R2 (`aws s3 cp --profile r2 s3://<bucket>/<file> .`).
 ## 8. After you're confident (1+ week stable)
 
 - Decommission Koyeb + Vercel + Neon.
-- The Celery `keep_alive_task` (every 4 min, to dodge Koyeb cold starts) is now
-  pointless — it's harmless but you can drop it from the beat schedule.
+- The Celery `keep_alive_task` (cold-start ping) was removed in the simplification
+  spec (task 14.8); the host no longer sleeps.
 - Consider a 4GB instance if you ever see swap usage climbing under load
   (`free -h`, `docker stats`).
 

@@ -255,7 +255,6 @@ Completed and in-progress spec-driven development workflows. Each spec directory
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `keep_alive_task` | Every 4 minutes | Lightweight health ping to keep the service warm |
 | `check_uptime_task` | Every 15 minutes | Internal health check with alert on failure/recovery |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit logs (90d standard, 365d security) |

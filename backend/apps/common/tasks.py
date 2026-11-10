@@ -312,32 +312,6 @@ def send_bulk_notifications_task(self, notification_ids):
                     logger.exception("Failed to forward retry-exhaustion alert to GlitchTip")
 
 
-# ---------------------------------------------------------------------------
-# Keep-alive ping - prevents Koyeb cold starts
-# ---------------------------------------------------------------------------
-
-@shared_task(bind=True, max_retries=0, soft_time_limit=30, time_limit=45)
-def keep_alive_task(self):
-    """Lightweight keep-alive ping to prevent Koyeb cold starts.
-
-    Hits /health/live/ (no DB or Redis check) every 4 minutes to keep
-    the Koyeb web service instance warm. Uses the liveness endpoint
-    instead of /health/ready/ to avoid unnecessary DB/Redis load.
-    """
-    import requests as http_requests
-
-    live_url = getattr(settings, "KEEP_ALIVE_URL", "")
-    if not live_url:
-        logger.info("Keep-alive ping skipped: KEEP_ALIVE_URL is empty")
-        return
-
-    try:
-        resp = http_requests.get(live_url, timeout=10)
-        logger.debug("Keep-alive ping: %s → %s", live_url, resp.status_code)
-    except Exception:
-        logger.warning("Keep-alive ping failed for %s", live_url)
-
-
 UPTIME_REDIS_KEY = "uptime:last_status"
 UPTIME_STATUS_OK = "ok"
 UPTIME_STATUS_DOWN = "down"

@@ -187,10 +187,6 @@ from celery.schedules import crontab  # noqa: E402
 CELERY_BEAT_SCHEDULE_FILENAME = "/tmp/celerybeat-schedule"
 
 CELERY_BEAT_SCHEDULE = {
-    "keep-alive": {
-        "task": "apps.common.tasks.keep_alive_task",
-        "schedule": 240.0,  # Every 4 minutes — prevents Koyeb cold starts (free tier sleeps after ~5m inactivity)
-    },
     "check-uptime": {
         "task": "apps.common.tasks.check_uptime_task",
         "schedule": 900.0,  # Every 15 minutes (was 5m — reduced to conserve Upstash free-tier Redis requests)
@@ -624,7 +620,6 @@ ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@beanola.com")
 # return early when the value is empty.
 HEALTH_CHECK_URL = os.environ.get("HEALTH_CHECK_URL", "")
 
-KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "")
 
 # ---------------------------------------------------------------------------
 # Password hashing

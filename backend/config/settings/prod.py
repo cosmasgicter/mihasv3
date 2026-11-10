@@ -26,9 +26,6 @@ validate_debug_not_serving_production_hosts()  # noqa: F405
 HEALTH_CHECK_URL = os.environ.get(  # noqa: F405
     "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"
 )
-KEEP_ALIVE_URL = os.environ.get(  # noqa: F405
-    "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"
-)
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")  # noqa: F405
 EMAIL_HOST = os.environ.get("ZOHO_SMTP_HOST", "smtp.zoho.com")  # noqa: F405
 # Full security with SSL redirect
