@@ -24,7 +24,7 @@ real backend services:
     4.  canonical-program + intake selection (program-first)       R8.1
     5.  seeing the assigned institution (assigned_school)          R8.1
     6.  document upload (POST /api/v1/documents/upload/)           R8.1
-    7.  save-draft and resume (POST/GET /api/v1/applications/draft/) R8.1
+    7.  save-draft and resume (PATCH/GET /api/v1/applications/drafts/{id}/) R8.1
     8.  pay-or-defer-where-allowed (PaymentService.initiate) R8.1
     9.  submission (POST /api/v1/applications/{id}/submit/)        R8.1
     10. downloading the backend application slip                   R8.1
@@ -337,23 +337,6 @@ class TestStudentJourneyE2E:
         student_client = _client_for(student)
 
         # ----------------------------------------------------------------- #
-        # Step 7a — Save a draft BEFORE creating the application (R8.1)      #
-        #   Students often start on the shared portal and save progress.     #
-        # ----------------------------------------------------------------- #
-        draft_payload = {"full_name": "Journey Student", "step": "kyc"}
-        save_draft = student_client.post(
-            "/api/v1/applications/draft/",
-            data={"draft_data": draft_payload},
-            format="json",
-        )
-        assert save_draft.status_code in (200, 201), save_draft.content
-
-        # Step 7b — Resume the draft (R8.1): the saved data round-trips.
-        resume = student_client.get("/api/v1/applications/draft/")
-        assert resume.status_code == 200, resume.content
-        assert _data(resume.json())["draft_data"] == draft_payload
-
-        # ----------------------------------------------------------------- #
         # Steps 3-5 — Application creation, canonical-program + intake       #
         #   selection, and seeing the assigned institution (R8.1)            #
         #   Program-first create with no white-label filter resolves to the  #
@@ -381,6 +364,24 @@ class TestStudentJourneyE2E:
         application_id = app_body["id"]
         # Step 5: the student sees the assigned institution.
         assert app_body["assigned_school"]["id"] == institution_id
+
+        # ----------------------------------------------------------------- #
+        # Step 7 — Save the draft and resume it (R8.1)                       #
+        #   The canonical online draft is the Application(status='draft')    #
+        #   row. The compatibility /applications/draft/ endpoint was removed #
+        #   (platform-simplification task 14.2), so the journey saves and    #
+        #   resumes through /applications/drafts/{id}/.                      #
+        # ----------------------------------------------------------------- #
+        save_draft = student_client.patch(
+            f"/api/v1/applications/drafts/{application_id}/",
+            data={"residence_town": "Kitwe", "expected_version": app_body.get("version") or 1},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="journey-draft-save-1",
+        )
+        assert save_draft.status_code == 200, save_draft.content
+        resume = student_client.get(f"/api/v1/applications/drafts/{application_id}/")
+        assert resume.status_code == 200, resume.content
+        assert _data(resume.json())["residence_town"] == "Kitwe"
         # Canonical IDs persisted in the same transaction as creation.
         application = Application.objects.get(id=application_id)
         assert str(application.institution_ref_id) == institution_id

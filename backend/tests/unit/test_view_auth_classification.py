@@ -230,7 +230,6 @@ _PROTECTED = {
     # applications — student
     "apps.applications.student_views.ApplicationDetailView",
     "apps.applications.student_views.ApplicationDetailsView",
-    "apps.applications.student_views.ApplicationDraftView",
     "apps.applications.student_views.ApplicationGradesView",
     "apps.applications.student_views.ApplicationDocumentsView",
     "apps.applications.student_views.ApplicationSummaryView",
@@ -534,7 +533,6 @@ _PROTECTED.update(
         # ``EmailSlipView`` removed by admissions-v2 task 10.6 (R13.5, API-04).
         "apps.applications.student_draft_views.ApplicationDetailView",
         "apps.applications.student_draft_views.ApplicationDetailsView",
-        "apps.applications.student_draft_views.ApplicationDraftView",
         "apps.applications.student_submission_views.ApplicationGradesView",
         "apps.applications.student_submission_views.ApplicationPreviewSummaryView",
         "apps.applications.student_submission_views.ApplicationSubmitView",

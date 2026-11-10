@@ -61,7 +61,6 @@ from apps.applications.student_draft_views import (
     ApplicationDraftDetailView,
     ApplicationDraftListView,
     ApplicationDraftRenameView,
-    ApplicationDraftView,
 )
 from apps.applications.student_submission_views import (
     ApplicationGradesView,
@@ -83,7 +82,6 @@ urlpatterns = [
     path("export/", ApplicationExportView.as_view(), name="application-export"),
     path("track/", ApplicationTrackView.as_view(), name="application-track"),
     path("bulk-status/", ApplicationBulkStatusView.as_view(), name="application-bulk-status"),
-    path("draft/", ApplicationDraftView.as_view(), name="application-draft"),
     path("drafts/", ApplicationDraftListView.as_view(), name="application-draft-list"),
     path("interviews/", ApplicationInterviewListView.as_view(), name="application-interview-list"),
     path("history/", TimelineHistoryView.as_view(), name="application-history"),

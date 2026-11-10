@@ -742,13 +742,6 @@ export const applicationService = {
     })
   },
 
-  /** POST /applications/draft/ — auto-save draft persistence */
-  saveDraft: async (data: ApplicationPayload) => {
-    return apiClient.request<unknown>('/applications/draft/', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
 
   /**
    * POST /applications/drafts/ — canonical multi-draft START (task 6.2).

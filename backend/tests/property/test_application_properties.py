@@ -550,48 +550,11 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
 class TestDraftAutoSaveRoundTrip(SimpleTestCase):
     """Property 15: Draft auto-save round-trip.
 
-    For any draft data (JSON), saving and loading back produces identical content.
+    The compatibility ``/applications/draft/`` endpoint was removed (task 14.2);
+    what remains here is the serializer contract for ``draft_data``.
 
     **Validates: Requirements 4.9**
     """
-
-    @given(
-        draft_data=st.fixed_dictionaries({
-            "step": st.integers(min_value=1, max_value=4),
-            "full_name": st.text(min_size=1, max_size=100),
-        })
-    )
-    @_default_settings
-    def test_draft_save_and_load_round_trip(self, draft_data):
-        """Saving draft data and reading it back returns identical JSON."""
-        from apps.applications.views import ApplicationDraftView
-
-        user = _make_mock_user(role="student")
-        user_id = str(user.id)
-
-        mock_draft = MagicMock()
-        mock_draft.id = str(uuid.uuid4())
-        mock_draft.user_id = user_id
-        mock_draft.application_id = None
-        mock_draft.draft_data = draft_data
-        mock_draft.created_at = MagicMock()
-        mock_draft.created_at.isoformat.return_value = "2025-01-01T00:00:00"
-        mock_draft.updated_at = MagicMock()
-        mock_draft.updated_at.isoformat.return_value = "2025-01-01T00:00:00"
-
-        request = MagicMock()
-        request.user = user
-        request.data = {"draft_data": draft_data}
-
-        with patch("apps.applications.student_draft_views.ApplicationDraft.objects") as mock_qs:
-            mock_qs.update_or_create.return_value = (mock_draft, True)
-
-            view = ApplicationDraftView()
-            response = view.post(request)
-
-        self.assertEqual(response.status_code, 201)
-        self.assertTrue(response.data["success"])
-        self.assertEqual(response.data["data"]["draft_data"], draft_data)
 
     def test_draft_serializer_includes_draft_data_field(self):
         """ApplicationDraftSerializer includes draft_data field."""
@@ -599,38 +562,3 @@ class TestDraftAutoSaveRoundTrip(SimpleTestCase):
 
         self.assertIn("draft_data", ApplicationDraftSerializer.Meta.fields)
 
-    @given(
-        draft_data=st.fixed_dictionaries({
-            "step": st.integers(min_value=1, max_value=4),
-            "notes": st.text(max_size=200),
-        })
-    )
-    @_default_settings
-    def test_draft_get_returns_latest(self, draft_data):
-        """GET draft returns the most recent draft for the user."""
-        from apps.applications.views import ApplicationDraftView
-
-        user = _make_mock_user(role="student")
-
-        mock_draft = MagicMock()
-        mock_draft.id = str(uuid.uuid4())
-        mock_draft.user_id = str(user.id)
-        mock_draft.application_id = None
-        mock_draft.draft_data = draft_data
-        mock_draft.created_at = MagicMock()
-        mock_draft.created_at.isoformat.return_value = "2025-01-01T00:00:00"
-        mock_draft.updated_at = MagicMock()
-        mock_draft.updated_at.isoformat.return_value = "2025-01-01T00:00:00"
-
-        request = MagicMock()
-        request.user = user
-
-        with patch("apps.applications.student_draft_views.ApplicationDraft.objects") as mock_qs:
-            mock_qs.filter.return_value.order_by.return_value.first.return_value = mock_draft
-
-            view = ApplicationDraftView()
-            response = view.get(request)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.data["success"])
-        self.assertEqual(response.data["data"]["draft_data"], draft_data)

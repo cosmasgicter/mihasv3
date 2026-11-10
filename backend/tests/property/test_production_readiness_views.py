@@ -32,7 +32,6 @@ EXPECTED_VIEW_CLASSES = [
     "ApplicationDetailView",
     "ApplicationDetailsView",
     "ApplicationDocumentsView",
-    "ApplicationDraftView",
     "ApplicationExportView",
     "ApplicationFeeWaiverView",
     "ApplicationGradesView",

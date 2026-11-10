@@ -2541,38 +2541,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/applications/draft/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Retrieve applications draft
-         * @description Deprecated compatibility endpoint for latest wizard snapshot payloads.
-         *
-         *     Do not use this endpoint for production multi-draft routing. Canonical
-         *     online drafts are ``Application(status='draft')`` rows exposed through
-         *     ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-         */
-        readonly get: operations["applications_draft_retrieve"];
-        readonly put?: never;
-        /**
-         * Submit applications draft save
-         * @description Deprecated compatibility endpoint for latest wizard snapshot payloads.
-         *
-         *     Do not use this endpoint for production multi-draft routing. Canonical
-         *     online drafts are ``Application(status='draft')`` rows exposed through
-         *     ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-         */
-        readonly post: operations["applications_draft_save"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v1/applications/drafts/": {
         readonly parameters: {
             readonly query?: never;
@@ -5337,25 +5305,6 @@ export interface components {
             /** @default true */
             readonly success: boolean;
         };
-        /** @description Deprecated compatibility serializer for wizard snapshot payloads. */
-        readonly ApplicationDraft: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Format: uuid */
-            readonly application_id: string | null;
-            /** Format: uuid */
-            readonly user_id: string;
-            readonly draft_data: unknown;
-            readonly draft_name?: string | null;
-            readonly step_completed?: number | null;
-            readonly is_active?: boolean | null;
-            /** Format: date-time */
-            readonly last_accessed_at?: string | null;
-            /** Format: date-time */
-            readonly created_at: string | null;
-            /** Format: date-time */
-            readonly updated_at: string | null;
-        };
         /** @description A draft conflict, including the version a client must reload. */
         readonly ApplicationDraftConflictResponse: {
             /** @default false */
@@ -5364,16 +5313,6 @@ export interface components {
             readonly code: string;
             readonly details?: unknown;
             readonly current_version?: number;
-        };
-        readonly ApplicationDraftResponse: {
-            readonly data: components["schemas"]["ApplicationDraft"];
-            /** @default true */
-            readonly success: boolean;
-        };
-        readonly ApplicationDraftWrite: {
-            /** Format: uuid */
-            readonly application_id?: string | null;
-            readonly draft_data?: unknown;
         };
         /** @description Generic {success, data} envelope for application business-logic responses.
          *
@@ -16236,138 +16175,6 @@ export interface operations {
                     readonly "application/json": components["schemas"]["ApplicationBulkStatusResponse"];
                 };
             };
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly applications_draft_retrieve: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly applications_draft_save: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["ApplicationDraftWrite"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["ApplicationDraftWrite"];
-                readonly "multipart/form-data": components["schemas"]["ApplicationDraftWrite"];
-            };
-        };
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            readonly 201: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
             readonly 400: {
                 headers: {
                     readonly [name: string]: unknown;

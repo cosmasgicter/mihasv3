@@ -77,7 +77,6 @@ const FRONTEND_SERVICE_ROUTES: readonly string[] = [
   '/api/v1/applications/{application_id}/payment-receipt/',
   '/api/v1/applications/auto-assign/',
   '/api/v1/applications/bulk-status/',
-  '/api/v1/applications/draft/',
   '/api/v1/applications/export/',
   '/api/v1/applications/interviews/',
   '/api/v1/applications/track/',

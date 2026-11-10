@@ -222,8 +222,9 @@ finding TEN-06 — the tenant console's "request change" affordance is a backend
 The canonical online draft model is **true multi-draft**:
 `Application(status='draft')` is the draft record. The `Application.id` is the
 draft id used for resume, uploads, grades, payment protection, and deletion.
-`ApplicationDraft` / `/api/v1/applications/draft/` is compatibility/cache
-metadata only and must not become a parallel lifecycle.
+The `ApplicationDraft` model is compatibility/cache metadata only (its
+`/api/v1/applications/draft/` endpoint was removed and answers 404); it must not
+become a parallel lifecycle.
 
 - Start-new intent is explicit: `/student/application-wizard?mode=new`
   (legacy aliases `?new=true` and `?fresh=1` normalize to this). New mode never

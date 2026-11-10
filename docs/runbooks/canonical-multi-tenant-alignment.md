@@ -133,8 +133,8 @@ override an explicit new/resume intent.
 | `GET /api/v1/applications/?mine=true&status=draft` | Existing list of online drafts. | Canonical multi-draft list API. |
 | `POST /api/v1/applications/` with `status='draft'` | Creates online draft application. | Canonical online draft create API. |
 | `GET/PATCH/DELETE /api/v1/applications/{id}/` | Existing draft detail/update/delete. | Canonical selected-draft resume/update/delete API; delete remains blocked when resolved payment activity exists. |
-| `GET /api/v1/applications/draft/` | Returns latest `ApplicationDraft` row for current user. | Compatibility-only; do not use for production wizard routing. Deprecate after callers are removed. |
-| `POST /api/v1/applications/draft/` | Upserts by user/application id into `ApplicationDraft`. | Compatibility-only local payload backup; must not create a second lifecycle. |
+| `GET /api/v1/applications/draft/` | Removed (task 14.2); answers 404. | Use `/api/v1/applications/drafts/`. |
+| `POST /api/v1/applications/draft/` | Removed (task 14.2); answers 404. | Use `/api/v1/applications/drafts/`. |
 | Duplicate conflict | Some frontend persistence can adopt `existing_id`. | Must require explicit user choice: continue existing, start different program/intake, or cancel. |
 
 Draft lifecycle rules:
