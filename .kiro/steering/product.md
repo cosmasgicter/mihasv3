@@ -127,7 +127,7 @@ backend `AdminCapabilityService`, never by comparing raw role strings. See
 
 `Registration -> Profile Setup -> Application Wizard -> Payment (mobile money / card / defer) -> Submission -> Interview -> Decision`
 
-Email verification is not implemented and is not part of the flow (decision D8, confirmed 2026-11-08).
+Email verification is not implemented and is not part of the flow (decision D8, confirmed 2026-11-08, option B). The reasoning and the retained `email_verified` column are recorded in the module note of `backend/apps/common/email_links.py`.
 
 Admissions expectations:
 
