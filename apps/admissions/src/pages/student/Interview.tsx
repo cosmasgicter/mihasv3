@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/dateFormat'
 import { Seo } from '@/components/seo/Seo'
 import { usePortalBrand } from '@/hooks/usePortalBrand'
 import { brandedPageTitle } from '@/lib/tenantBrandCopy'
+import { resolveTenantSupportContact } from '@/lib/tenantSupport'
 import { 
   Calendar, 
   Clock, 
@@ -177,7 +178,12 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 export default function InterviewPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { brandName } = usePortalBrand()
+  const { brandName, supportEmail } = usePortalBrand()
+  const support = resolveTenantSupportContact({
+    supportEmail,
+    brandName,
+    subject: 'Interview reschedule request',
+  })
   const {
     data: interviews = [],
     isLoading,
@@ -373,22 +379,33 @@ export default function InterviewPage() {
             </Card>
           )}
 
-          {/* Help Card */}
-          <Card className="bg-muted/30">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-base sm:text-sm text-muted-foreground mb-2">
-                  Need to reschedule your interview?
-                </p>
-                <p className="text-base sm:text-sm text-muted-foreground">
-                  Contact the admissions office at{' '}
-                  <a href="mailto:admissions@beanola.com" className="text-primary hover:underline">
-                    admissions@beanola.com
-                  </a>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Help card: a reschedule prompt only when there is an interview to move,
+              with the support contact from the resolved tenant (tasks 27.2, 27.3). */}
+          {interviews.length > 0 && (
+            <Card className="bg-muted/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-base sm:text-sm text-muted-foreground mb-2">
+                    Need to reschedule your interview?
+                  </p>
+                  <p className="text-base sm:text-sm text-muted-foreground">
+                    {support.isExternal ? (
+                      <>
+                        Contact the admissions office at{' '}
+                        <a href={support.href} className="inline-flex min-h-touch items-center text-primary hover:underline">
+                          {support.email}
+                        </a>
+                      </>
+                    ) : (
+                      <Link to={support.href} className="inline-flex min-h-touch items-center text-primary hover:underline">
+                        Contact admissions
+                      </Link>
+                    )}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
     </PageShell>
     </>

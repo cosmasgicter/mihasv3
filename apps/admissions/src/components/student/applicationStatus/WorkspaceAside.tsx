@@ -53,7 +53,7 @@ export function WorkspaceAside({
       </SectionCard>
 
       {paymentReviewNote && (
-        <SectionCard title="Latest payment review note" description="Use this guidance if you need to correct or complete payment." icon={<CreditCard className="h-5 w-5" />}>
+        <SectionCard title="Latest note from admissions" description="Read this before you continue with your application." icon={<CreditCard className="h-5 w-5" />}>
           <p className="text-base sm:text-sm text-foreground">{paymentReviewNote}</p>
         </SectionCard>
       )}

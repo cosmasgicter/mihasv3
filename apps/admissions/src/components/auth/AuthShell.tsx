@@ -48,7 +48,7 @@ interface AuthShellProps {
 
 const DEFAULT_TRUST_NOTE = (
   <p className="text-center text-xs text-muted-foreground">
-    Your session lasts 7 days. We never share your information.
+    You stay signed in on this device until your session ends. Sign out on a shared device.
   </p>
 )
 

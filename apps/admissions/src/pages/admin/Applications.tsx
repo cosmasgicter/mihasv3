@@ -442,11 +442,11 @@ export default function Applications() {
       setUpdatingPaymentId(applicationId)
       const result = await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
 
-      // Handle advisory warning (no payment proof uploaded)
+      // Handle advisory warning (payment not verified)
       if (isWarningResult(result)) {
         const confirmed = await confirmDialog.confirm({
           title: 'Payment warning',
-          message: result.message || 'No payment proof uploaded. Proceed anyway?',
+          message: result.message || 'Payment has not been verified. Proceed anyway?',
           confirmText: 'Proceed',
           cancelText: 'Cancel',
           variant: 'danger'
@@ -575,7 +575,7 @@ export default function Applications() {
     <PageShell
       title="Applications"
       eyebrow="Admissions review"
-      subtitle="Review intake volume, payment proof, and decision readiness from a single triage surface built for fast, accurate approvals."
+      subtitle="Review intake volume, payment status and decision readiness in one place."
       maxWidth="7xl"
       tone="admin"
       metrics={metrics}
