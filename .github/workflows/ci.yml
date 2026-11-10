@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r requirements-dev.txt
         working-directory: backend
       # Routes-versus-callers report (platform-simplification task 3.1, R2.1-2.5).
       # Fails on a route with no caller, consumer, gate or baseline entry, and on
@@ -284,7 +284,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r requirements-dev.txt
         working-directory: backend
       - name: Run property tests (shard ${{ matrix.shard }} of 8)
         id: suite-property
@@ -339,6 +339,51 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # Whole backend tree on Postgres 17 (platform-simplification task 6.7, R7.5,
+  # R7.6). One job runs every test under backend/tests, so a directory that no
+  # other job names cannot sit unexercised. Operator step (repository settings):
+  # after two consecutive green runs, make this a required check on main.
+  backend-full-tree:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: test_mihas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      JWT_SIGNING_KEY: ci-test-key-not-for-production
+      SECRET_KEY: ci-test-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install --require-hashes -r requirements-dev.txt
+        working-directory: backend
+      - name: Run the whole backend test tree
+        run: python -m pytest -n 6 tests -q --tb=short
+        working-directory: backend
   admissions:
     runs-on: ubuntu-latest
     env:
@@ -551,7 +596,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: pip install --require-hashes -r requirements-dev.txt
         working-directory: backend
       # Each guard below is REQUIRED (R13.6 — no guard is optional). Running them
       # in a single pytest invocation keeps the inventory explicit and fails the
@@ -627,6 +672,40 @@ jobs:
   # (no `continue-on-error`), so frontend brand drift, document-flow drift,
   # payment-status drift, error-code drift, role-mirror drift, or
   # application-lifecycle drift fails CI (R13.3, R13.6).
+  # Backend image contents (platform-simplification task 5.2, R10.2). Builds the
+  # production image and fails, naming the module or package, if a test-only
+  # package is importable inside it, a package that requirements.in names is
+  # missing, or cryptography.fernet does not import.
+  backend-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the backend image
+        run: docker build -t beanola-backend-image-check backend
+      - name: Check the image holds runtime packages only
+        run: |
+          docker run --rm \
+            -v "$PWD/scripts/check_backend_image.py:/check.py:ro" \
+            beanola-backend-image-check \
+            python /check.py /app/requirements.in
+
+  # Lock freshness (platform-simplification task 5.3, R10.3, R10.5). Recompiles
+  # in a temporary copy with the exact command recorded in tech.md and fails on
+  # any diff, or on a package pinned at two versions across the two locks.
+  backend-locks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Lock helper self-test
+        run: python3 scripts/tests/test_backend_lock_scripts.py
+      - name: Locks are fresh and consistent
+        run: python3 scripts/check_requirements_lock.py
+
   frontend-drift-guards:
     runs-on: ubuntu-latest
     name: Drift guards (frontend inventory)
