@@ -594,18 +594,20 @@ describe('a tone-coloured label is never painted on a wash of its own tone', () 
   })
 
   it('the two canonical primitives put the tone in the fill and the border', () => {
+    // Platform-simplification task 23.1 moved the tone classes into the one shared map,
+    // `src/lib/statusTone.ts`; the primitives adopt it. The rule is unchanged: the fill
+    // and the border carry the tone, and the label is the high-contrast one.
+    const map = readCode('src/lib/statusTone.ts')
+    for (const tone of ['info', 'warning', 'destructive', 'success']) {
+      expect(map, `statusTone.ts: ${tone} lost its fill`).toMatch(new RegExp(`bg-${tone}/10`))
+      expect(map, `statusTone.ts: ${tone} lost its border`).toMatch(new RegExp(`border-${tone}/40`))
+    }
+    expect(map).toContain('text-foreground')
     for (const file of ['src/components/ui/StatusPill.tsx', 'src/components/ui/StatusBadge.tsx']) {
-      const code = readCode(file)
-      for (const tone of ['info', 'warning', 'destructive', 'success']) {
-        expect(code, `${file}: ${tone} lost its fill`).toMatch(new RegExp(`bg-${tone}/10`))
-        expect(code, `${file}: ${tone} lost its border`).toMatch(new RegExp(`border-${tone}/40`))
-      }
-      // …and the label is the high-contrast one.
-      expect(code).toContain('text-foreground')
+      expect(readCode(file), `${file} must adopt the shared map`).toContain('toneSurfaceClasses(')
     }
   })
 })
-
 // ---------------------------------------------------------------------------
 // 8. The tracker result strip: one help heading, real links, 44 px (R16.2/R16.5)
 // ---------------------------------------------------------------------------

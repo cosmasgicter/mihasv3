@@ -33,14 +33,6 @@ interface StatusConfig {
  * component always renders), and `StatusBadge` was corrected the same way for
  * the same reason.
  */
-const TONE_CLASSES: Record<StatusTone, string> = {
-  neutral: 'bg-muted text-foreground border-border/60',
-  info: 'bg-info/10 text-foreground border-info/40',
-  warning: 'bg-warning/10 text-foreground border-warning/40',
-  success: 'bg-success/10 text-foreground border-success/40',
-  danger: 'bg-destructive/10 text-foreground border-destructive/40',
-  muted: 'bg-muted/60 text-muted-foreground border-border/40',
-}
 
 const STATUS_MAP: Record<ApplicationStatus, StatusConfig> = {
   draft: { tone: 'neutral', icon: <FileEdit className="h-3 w-3" /> },
@@ -68,7 +60,7 @@ interface StatusPillProps {
  */
 export function StatusPill({ status, size = 'sm', className = '' }: StatusPillProps) {
   const config = STATUS_MAP[status as ApplicationStatus] ?? { tone: 'neutral' as StatusTone, icon: <FileEdit className="h-3 w-3" /> }
-  const toneClass = TONE_CLASSES[config.tone]
+  const toneClass = toneSurfaceClasses(config.tone)
   const sizeClass = size === 'sm' ? 'rounded-full px-2.5 py-0.5 text-xs' : 'rounded-full px-3 py-1 text-sm'
 
   return (

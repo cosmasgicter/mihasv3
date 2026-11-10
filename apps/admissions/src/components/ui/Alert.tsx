@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { toneSurfaceClasses } from '@/lib/statusTone'
 import { CheckCircle, Info, XCircle, AlertTriangle } from 'lucide-react'
 
 const alertVariants = cva(
@@ -9,11 +10,11 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: 'bg-background text-foreground',
-        info: 'border-primary/50 text-primary [&>svg]:text-primary bg-primary/5',
-        success: 'border-success/50 text-success [&>svg]:text-success bg-success/5',
-        warning: 'border-warning/50 text-warning [&>svg]:text-warning bg-warning/5',
-        error: 'border-error-border text-destructive [&>svg]:text-destructive bg-destructive/5',
-        destructive: 'border-error-border text-destructive [&>svg]:text-destructive bg-destructive/5',
+        info: `${toneSurfaceClasses('info')} [&>svg]:text-info`,
+        success: `${toneSurfaceClasses('success')} [&>svg]:text-success`,
+        warning: `${toneSurfaceClasses('warning')} [&>svg]:text-warning`,
+        error: `${toneSurfaceClasses('danger')} [&>svg]:text-destructive`,
+        destructive: `${toneSurfaceClasses('danger')} [&>svg]:text-destructive`,
       },
     },
     defaultVariants: {
