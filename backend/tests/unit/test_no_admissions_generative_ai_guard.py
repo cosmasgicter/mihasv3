@@ -251,13 +251,16 @@ def test_no_retired_generative_route_is_registered():
 
 def test_requirements_scopes_the_generative_sdk_to_jobs_ops():
     """R11.9's isolation clause, at the dependency-declaration level."""
-    requirements = (BACKEND_ROOT / "requirements.txt").read_text()
+    # Task 5.1 split the manifest: `requirements.in` declares, `requirements.txt` is
+    # the compiled lock (no comments, no sections). The declaration is what this
+    # test reads; the unchanged assertions below still apply to it.
+    requirements = (BACKEND_ROOT / "requirements.in").read_text()
     assert re.search(r"^openai", requirements, re.MULTILINE), (
         "openai is a live jobs-ops dependency and must stay declared"
     )
     # The declaration must sit under the jobs-ops marker, not in the general list.
     head, marker, tail = requirements.partition("# jobs-ops only")
-    assert marker, "requirements.txt must mark the jobs-ops-only section"
+    assert marker, "requirements.in must mark the jobs-ops-only section"
     assert not re.search(r"^openai", head, re.MULTILINE), (
         "openai must be declared inside the jobs-ops-only section, so a reader "
         "cannot mistake it for a platform dependency"
@@ -267,7 +270,8 @@ def test_requirements_scopes_the_generative_sdk_to_jobs_ops():
 
 def test_server_side_ocr_dependencies_are_retained():
     """The bullet is about *dead* dependencies. Backend OCR is alive (task 7.5)."""
-    requirements = (BACKEND_ROOT / "requirements.txt").read_text()
+    # Declarations live in `requirements.in` since task 5.1 (the lock lowercases names).
+    requirements = (BACKEND_ROOT / "requirements.in").read_text()
     for package in ("pytesseract", "Pillow"):
         assert re.search(rf"^{package}", requirements, re.MULTILINE), (
             f"{package} backs `extract_document_text_task`, which task 7.5 kept "

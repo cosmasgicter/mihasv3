@@ -1,0 +1,81 @@
+# Runtime packages for the backend image. Edit this file, then recompile the locks
+# with the command below (platform-simplification task 5.1, R10.1/R10.4). The
+# compiled `requirements.txt` is what the Dockerfile installs, hash-checked.
+#
+# Recompile (same image as production, pinned pip-tools):
+#   docker run --rm -v "$PWD/backend:/w" -w /w python:3.12-slim sh -c "pip install pip-tools==7.6.2 && pip-compile --generate-hashes --strip-extras requirements.in && pip-compile --generate-hashes --strip-extras requirements-dev.in"
+#
+# Django core
+Django>=5.0,<6.0
+djangorestframework>=3.15,<4.0
+django-cors-headers>=4.3,<5.0
+django-ratelimit>=4.1,<5.0
+django-filter>=24.0,<25.0
+dj-database-url>=2.1,<3.0
+psycopg2-binary>=2.9,<3.0
+
+# Async tasks
+celery>=5.3,<6.0
+redis>=5.0,<6.0
+# kombu 5.7 requires redis-py >= 6.1, which the pin above forbids; a fresh
+# image build otherwise gets a worker that cannot reach its broker.
+kombu>=5.6,<5.7
+
+# Storage
+django-storages>=1.14,<2.0
+boto3>=1.34,<2.0
+
+# API docs
+drf-spectacular>=0.27,<1.0
+
+# Static files & server
+whitenoise>=6.6,<7.0
+uvicorn[standard]>=0.29,<1.0
+
+# Security
+bcrypt>=4.1,<5.0
+PyJWT>=2.8,<3.0
+
+# OCR — server-side Tesseract, deliberately retained.
+# admissions-v2 task 7.5 (R11.4, R11.9) kept this path as *optional deterministic
+# assistance*: `extract_document_text_task` proposes subject/grade candidates that
+# a student must explicitly confirm. What 7.5 removed was the unused **browser**
+# OCR (tesseract.js / tesseract.js-core) and its 29 MB asset step. Do not remove
+# these two — the bullet is about dead dependencies, and this one is alive.
+pytesseract>=0.3,<1.0
+Pillow>=10.0,<13.0
+
+# PDF generation
+reportlab>=4.1,<5.0
+
+# Email
+resend>=2.0,<3.0
+
+# Error tracking (GlitchTip — Sentry-compatible)
+sentry-sdk>=2.0,<3.0
+
+# HTTP client (used by uptime check task)
+requests>=2.32,<3.0
+
+# Fernet encryption of audit network context: imported at runtime by
+# apps/common/audit_network.py (it sat under "# Testing" before the lock split).
+cryptography>=43.0.0
+
+# ---------------------------------------------------------------------------
+# jobs-ops only — NOT admissions
+# ---------------------------------------------------------------------------
+# admissions-v2 task 12.4 (R11.9: "Any AI retained for another product SHALL be
+# isolated outside the admissions boundary") moved this line out of the general
+# list and into its own section, because `openai` is **not** a platform
+# dependency: its single importer in the whole backend is
+# `apps/jobs/ai_service.py`, which reads the `JOBS_OPS_AI_*` settings and serves
+# the jobs-ops operator dashboard. Task 7.4 removed every admissions generative
+# call; leaving the SDK in an unmarked list is how the next reader concludes
+# admissions still has one, or deletes it and breaks a different product.
+#
+# The SDK is pointed at the Vercel AI Gateway, so the package name understates
+# what it talks to; `docs/ai-data-flows.md` is the data map.
+#
+# `tests/unit/test_no_admissions_generative_ai_guard.py` fails if an admissions
+# module imports it, or if its importer set grows beyond `apps/jobs/`.
+openai>=1.40.0
