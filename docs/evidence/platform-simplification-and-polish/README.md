@@ -244,3 +244,40 @@ Each row of the critique's §6 table, re-read at this commit:
 
 ### G4 results
 - Backend pytest -n 6: 3 failed (baseline `test_legacy_column_contraction_12_3.py`), 5620 passed. Admissions: 5004 passed/1 skipped, lint, build, type-check pass. jobs-ops pass. manage.py check pass; circular imports unchanged (3 known); routes, unreachable-module, doc-path, spec validators pass.
+## G5: tasks 14 to 21 (unnumbered removals, skills, capabilities, OCR, D8, D12, P1 exit)
+Removal safety for every task below: `git grep` of each removed name across apps, backend, scripts, workflows, harness, docs, steering and `.kiro/hooks` after the removal; the remaining hits are history (`docs/audits`, `audit-results`, `docs/v2-evidence`, `all-files.txt`), comments that say the path is gone, or guard tests that pin the absence. The routes report (0 offenders), the unreachable-module check (0 offenders), the doc-path check and both spec validators were green at the group head.
+### 14.1 Dev-only @react-pdf stack (R2.8, 2.9): c2fda88cf, da7bd7ddf
+- Removed `src/lib/pdf`, the `/dev` preview pages, fonts, PNGs, 13 tests, `@react-pdf/renderer`, the CI PDF chunk smoke step and `check-pdf-chunk-load.mjs`. The two fonts the crest script needs moved to `backend/scripts/assets/fonts`. `DESIGN.md` Print/PDF now describes the backend renderers. `documentFlowDriftGuard` keeps its rule with an empty allowlist. Remaining `lib/pdf` hits are comments stating official documents never use it. The nine brand-allowlist entries for deleted files were dropped (the guard fails on stale entries). Deploy path: approved Deploy run while Spec A's pause holds, else the normal automatic deploy.
+### 14.2 Draft compatibility endpoint (R2.8, 2.9, 2.10): 9303fcfee
+- Removed `ApplicationDraftView`, its route, `applicationService.saveDraft` and their tests; `/api/v1/applications/draft/` now answers 404; model and table kept. Multi-draft and auto-save use `/applications/drafts/{id}/` and the wizard's own `saveDraft` (a different function, same name). `test_student_journey_e2e.py` step 7 moved to the canonical routes. Schema candidate and `api.d.ts` regenerated; truth map updated.
+### 14.3 `applications/views.py` shim (R2.8, 2.9): 4f88b2988
+- 17 test files repointed to the defining modules first, backend suite run, then the shim deleted. Tests changed by name: `test_production_readiness_views`, `test_compatibility_surfaces_12_2` (shim register 6 to 5), `test_canonical_import_boundaries`, `test_live_500_fixes`.
+### 14.4 Modules with no product importer (R2.8, 2.9): 341665785
+- Removed 48 modules and 6 tests that only exercised them; 5 tests repointed to the live owner or to the file's absence. The unreachable baseline keeps only the drift-guard fixtures (check now reports 524 modules, 3 unreachable, 0 offenders).
+### 14.5 Placeholder apps (R2.8, 2.9): cd79f580d
+- Removed `apps/website`, `apps/student-portal`, their two Dockerfile COPY lines, their `bun.lock` workspace entries and the steering rows. `bun install --frozen-lockfile` passes and `bun run build` passes.
+### 14.6 Agent hub (R4.8): 19598c710
+- Removed `scripts/agenthub`, `.agenthub`, their unit tests and the smoke test. No workflow, hook, steering or `.agents` file referenced them. Only an untracked `__pycache__` directory remains locally.
+### 14.7 Stray root files (R4.8): 7ab28a64a
+- Two files removed with exact quoting; the two empty untracked directories are absent from a clean worktree.
+### 14.8 `keep_alive_task` (R9.3): 54db40dc7
+- Removed task, beat entry, `KEEP_ALIVE_URL`, test assertions and steering rows. The beat-table guard stays green. Remaining hits: a historical regression-table entry in `test_go_live_polish_regression.py` and a note in `deploy/RUNBOOK.md`. Production effect: beat stops pinging its own health endpoint every 4 minutes.
+### 14.9 Dead upload paths (R2.8, 2.9, 22.12): 71b0111e5
+- Removed `documentService.upload`, `useWizardFileUploads`, the `startUpload` stack, `lib/storage.ts`, `applicationSlipStorage.ts`, `slipService.ts` and their tests. `uploadPathSingleSource` keeps its guard with an empty frozen list. The four R22.12 guard tests are unchanged and pass.
+### 15.1, 15.2 Skills (R4.6, 4.7, 6.1): f4965c762, b617de9a2
+- Pruned to the D6 keep-list (option B): 310 `.kiro/skills` entries and 12 `.agents/skills` targets, the second `ui-ux-pro-max` copy and the two dangling symlinks with their baseline entries. `api-design-reviewer` is kept because CI's `api_quality.sh` runs its linter (recorded in contradictions.md). Impeccable, ui-ux-pro-max, design-for-ai, a11y-audit and the four engineering skills are kept. Steering and `.agents/AGENTS.md` section 3 name the kept set. Skill-path check green.
+### 16.1, 16.2 Performance caches: BLOCKED
+- Need a live production host and the P0_Ops_Check (D14). Nothing changed.
+### 17.1 Remove `platform.user.create_global` (R8.1, 8.2, 8.5, 8.6, 22.1): 0858df457
+- Spec A's P0 was present in the base. Catalogue is now 16 platform and 17 tenant. Updated the 8.1 update set (authority matrix registry and v2, perf fixture, truth map, permissions plan, enterprise-tenancy and tech steering). Regression test `test_removed_capability_grant_17_1.py`: a grant naming it grants only the read bundle and raises nothing. Two count assertions 17 to 16 are named in the commit. Cross-tenant property tests unchanged and green.
+### 17.2 BLOCKED, 17.3 DRAFT ONLY (R8.3, 8.4): 98a93a39e
+- 17.2 waits for the D3/D5 answer. 17.3: the merge table is drafted for the user's approval; it proposes no merge and nothing was applied.
+### 18.1 to 18.3 OCR opt-in (R6.6, 11.1 to 11.5, 22.1, 22.9, 22.12): 9db23844b, f216e6096, 8cabf864e
+- `ocr_policy.py`; 409 `OCR_NOT_ENABLED` after scoped authorization with nothing queued; run-time re-check in the task; `GET/PUT /api/v1/admin/documents/ocr-opt-in/` gated by `platform.settings.manage` with one `settings.change` audit event per write; the key is omitted from generic settings reads, writes return 403 `KEY_MANAGED_ELSEWHERE`, import reports it, reset keeps it. Codes registered in backend, frontend mirror and truth map. 18.2: `ocr_available` on the required-documents contract with a drift guard; the wizard extracts and polls only when true, manual grade form first. 18.3: Property 9 (hypothesis) and docs. Upload validation and staged write order untouched. Existing extraction tests opt their institution in (setup only). Production effect: the extract endpoint refuses every institution until one opts in; 18.1 and 18.2 ship in the same Deploy run.
+### 19.1 Email verification stance (R6.1, 6.5): 5784f04b0
+- `product.md`, `tech.md` and the truth map state D8 option B and point to the `email_links.py` note.
+### 20.1 Spec relationships (R6.3, 22.10, 22.11): e05fc9275
+- The truth map registers Spec B as superseding `student-ui-ux-mobile-remediation` for student surfaces and lists the three record-only overlaps. `scripts/spec-status-exceptions.json` already lists the four D12 specs and is in step. None of the four specs was edited; no `status` added to this spec.
+### 21 Checkpoint: P1 exit
+- Documented_Local_Stack passes the Journey_Gate (see g5-evidence.md for the run); routes and doc-path checks green; backend `-n 6` on the SQL-built test database shows only the 3 known baseline failures.
+- Still waiting: 6.8, 16.1, 16.2 (live host, D14); 12.1 webhook step (D1.b); 17.2 (D3/D5 answer); 17.3 (merge table approval); 11.2 hand-over (operator drops `local-stack-storage` from required checks). Requirement 7.2's production comparison stays open until 6.8 runs. Open questions: D17, D1.b, D3/D5, merge table, C-15.
