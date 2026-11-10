@@ -155,7 +155,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Confirm that the admissions job's type check, tests, build, bundle guard and PDF chunk check still pass.
     - _Requirements: 9.6_
 
-- [ ] 5. Reproducible backend builds
+- [x] 5. Reproducible backend builds
   - [x] 5.1 Split and lock the requirements
     - Create `backend/requirements.in` for runtime packages, keeping the jobs-ops `openai` section and its comment. `cryptography` goes here, not with the test packages: it sits under the "# Testing" comment today (`requirements.txt:59`), but `apps/common/audit_network.py:8` imports it at runtime.
     - Create `backend/requirements-dev.in` with `-r requirements.in`, `-c requirements.txt` and the test packages, so shared pins match the runtime lock.
@@ -169,7 +169,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the image no longer carries the test packages. Precondition: the image check passes on the commit that deploys.
     - _Requirements: 10.2_
 
-  - [ ] 5.3 Use the dev lock in CI and check freshness
+  - [x] 5.3 Use the dev lock in CI and check freshness
     - Change every backend `pip install -r requirements.txt` in `.github/workflows/` to `pip install --require-hashes -r requirements-dev.txt`.
     - Add the freshness step (design §10): copy the two `.in` files and both locks into a temporary directory, run there the exact compile command recorded in `tech.md` and the `.in` headers (same image, pip-tools pin and file names), and fail on any diff with the committed locks. Do not compile to a different output file name: pip-compile writes its command line, `--output-file` included, into the lock's header (Likely; pip-tools is not installed where this was written), so that diff would never be empty. Also fail, naming the package, if a package pinned in both locks has two versions.
     - _Requirements: 10.3, 10.5_

@@ -696,7 +696,7 @@ jobs:
   backend-locks:
     runs-on: ubuntu-latest
     # The full recompile hashes every published wheel of every pinned package
-    # (about 3,100 files measured locally, roughly 100 minutes per lock pair), so
+    # (about 3,100 files; measured locally at 30 to 105 minutes per lock pair), so
     # it runs only on a change that can make a lock stale. The version-consistency
     # check below is cheap and always runs.
     timeout-minutes: 180
