@@ -17,7 +17,7 @@ WORKDIR /app
 
 # Install Python dependencies first (layer caching)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # Remove build tools no longer needed at runtime
 RUN apt-get purge -y --auto-remove gcc && rm -rf /var/lib/apt/lists/*
