@@ -35,4 +35,5 @@ export const OUTLINE_WARNING = 'border-warning/50 text-warning hover:bg-warning/
 export const OUTLINE_INFO = 'border-info/50 text-info hover:bg-info/5'
 
 /** A status-only callout: one container deep, no card treatment of its own. */
-export const STATUS_CALLOUT = 'rounded-lg border border-warning/30 bg-warning/5'
+// Tint only: the callout sits inside the review's decision bar (task 31.3, R21.5).
+export const STATUS_CALLOUT = 'rounded-lg bg-warning/10'

@@ -58,3 +58,25 @@ describe('the bottom bar name contains the visible text', () => {
     expect(apply.textContent).toContain('Apply')
   })
 })
+
+describe('the mobile header names the page from the route registry (task 31.3, R21.6)', () => {
+  it('reads the registry label before the fallback map', () => {
+    const layout = read('src/components/navigation/AppLayout.tsx')
+    expect(layout).toContain('const registryLabel = routeByPath(pathname)?.nav?.label')
+    expect(layout.indexOf('registryLabel')).toBeLessThan(layout.indexOf('const exactMatch = pageTitles[pathname]'))
+  })
+})
+
+describe('nested cards are flattened in the shared primitives (task 31.3, R21.5)', () => {
+  it('SectionCard headers are not a second card', () => {
+    const src = read('src/components/ui/SectionCard.tsx')
+    expect(src).toContain("default: 'bg-transparent'")
+    expect(src).toContain("headerVariant !== 'tinted' && 'border-b border-border/45'")
+  })
+
+  it('Alert has an inset form with no border for use inside a card', () => {
+    const src = read('src/components/ui/Alert.tsx')
+    expect(src).toContain('inset = false')
+    expect(read('src/pages/student/applicationWizard/steps/SubmitStep.tsx')).toContain('<Alert inset ')
+  })
+})

@@ -794,7 +794,7 @@ export function TenantOnboardingWizard() {
                           Save colours
                         </Button>
                       </div>
-                      <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+                      <div className="space-y-3 rounded-lg bg-muted p-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-sm font-medium text-foreground">Official document assets</p>
                           <div className="flex flex-wrap gap-2">
@@ -874,7 +874,7 @@ export function TenantOnboardingWizard() {
 
                       <div className="grid gap-2 sm:grid-cols-2">
                         {domains.map((domain) => (
-                          <div key={domain.id} className="rounded-lg border border-border bg-background p-3">
+                          <div key={domain.id} className="rounded-lg bg-muted p-3">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="break-words text-sm font-medium text-foreground">{domain.hostname}</p>
@@ -923,7 +923,7 @@ export function TenantOnboardingWizard() {
                       <CountNote count={templates.length} singular="template" />
                       <div className="space-y-2">
                         {templates.map((tpl) => (
-                          <div key={tpl.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                          <div key={tpl.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                             <div className="min-w-0">
                               <p className="break-words text-sm font-medium text-foreground">{tpl.name}</p>
                               <p className="text-xs text-muted-foreground">{tpl.document_type} · v{tpl.version}</p>
@@ -979,7 +979,7 @@ export function TenantOnboardingWizard() {
                       <CountNote count={requiredDocuments.length} singular="required document" plural="required documents" />
                       <div className="space-y-2">
                         {requiredDocuments.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                          <div key={doc.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                             <div className="min-w-0">
                               <p className="break-words text-sm font-medium text-foreground">{doc.label}</p>
                               <p className="text-xs text-muted-foreground">{doc.document_type}</p>
@@ -1067,7 +1067,7 @@ export function TenantOnboardingWizard() {
                         ))}
                       </dl>
 
-                      <div className="space-y-2 rounded-lg border border-border bg-background p-3">
+                      <div className="space-y-2 rounded-lg bg-muted p-3">
                         <p className="text-sm font-medium text-foreground">Domain activation</p>
                         {domains.length === 0 ? (
                           <p className="text-sm text-muted-foreground">No domain to activate. You can add one on the Domains step.</p>
@@ -1157,7 +1157,7 @@ export function TenantOnboardingWizard() {
 
 function ReviewRow({ icon: Icon, label, value, ok, required = false }: { icon: LucideIcon; label: string; value: string; ok: boolean; required?: boolean }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+    <div className="flex items-center gap-3 rounded-lg bg-background p-3">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>

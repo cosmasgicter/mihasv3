@@ -133,7 +133,7 @@ const AssignedSchoolStep = ({
           {/* Assigned school */}
           <section
             aria-labelledby="assigned-school-heading"
-            className="rounded-lg border border-primary/20 bg-primary/5 p-4 sm:p-5"
+            className="rounded-lg bg-primary/5 p-4 sm:p-5"
           >
             <div className="flex items-start gap-3">
               <span className="mt-0.5 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -152,7 +152,7 @@ const AssignedSchoolStep = ({
           </section>
 
           {/* Application fee */}
-          <section aria-labelledby="assigned-fee-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
+          <section aria-labelledby="assigned-fee-heading" className="rounded-lg p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
                 <Receipt className="h-5 w-5" aria-hidden="true" />
@@ -186,7 +186,7 @@ const AssignedSchoolStep = ({
             </div>
           </section>
           {/* Required documents */}
-          <section aria-labelledby="assigned-docs-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
+          <section aria-labelledby="assigned-docs-heading" className="rounded-lg p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2">
               <FileCheck2 className="h-5 w-5 text-foreground" aria-hidden="true" />
               <h2 id="assigned-docs-heading" className="text-sm font-medium text-foreground">Required documents</h2>
@@ -212,7 +212,7 @@ const AssignedSchoolStep = ({
 
           {/* School contact */}
           {contact && (contact.email || contact.phone || contact.website) && (
-            <section aria-labelledby="assigned-contact-heading" className="rounded-lg border border-border/60 p-4 sm:p-5">
+            <section aria-labelledby="assigned-contact-heading" className="rounded-lg p-4 sm:p-5">
               <h2 id="assigned-contact-heading" className="mb-3 text-sm font-medium text-foreground">School contact</h2>
               <ul className="space-y-2 text-base sm:text-sm">
                 {contact.email && (

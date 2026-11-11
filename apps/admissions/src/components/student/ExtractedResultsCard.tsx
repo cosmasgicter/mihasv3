@@ -119,7 +119,7 @@ export function ExtractedResultsCard({
 
   return (
     <div
-      className="rounded-lg border border-primary/20 bg-primary/5 p-4 sm:p-5 animate-in fade-in duration-300"
+      className="rounded-lg bg-primary/5 p-4 sm:p-5 animate-in fade-in duration-300"
       role="region"
       aria-label="Suggested grades read from your result slip"
       data-testid="extracted-results-card"

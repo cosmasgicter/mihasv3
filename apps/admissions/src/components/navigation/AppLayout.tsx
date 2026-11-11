@@ -27,7 +27,7 @@ import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { matchesRoutePath, navLabelFor, pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { matchesRoutePath, navLabelFor, pathFor, routeByPath, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -148,6 +148,10 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const expandedWidth = designTokens.layout.sidebarExpanded
 
   const resolvePageTitle = (pathname: string): string => {
+    // The route registry's label names the page (task 31.3, R21.6); the map
+    // below is the fallback for routes the registry gives no navigation label.
+    const registryLabel = routeByPath(pathname)?.nav?.label
+    if (registryLabel) return registryLabel
     const exactMatch = pageTitles[pathname]
     if (exactMatch) return exactMatch
     const nestedMatch = Object.entries(pageTitles).find(([path]) =>

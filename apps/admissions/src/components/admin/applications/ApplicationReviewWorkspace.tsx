@@ -516,11 +516,11 @@ export function ApplicationReviewWorkspace({
                       </h3>
                       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="space-y-4">
-                          <div className="flex items-center gap-3">
-                            <Mail className="h-4 w-4 text-foreground" />
-                            <div>
+                          <div className="flex min-w-0 items-center gap-3">
+                            <Mail className="h-4 w-4 shrink-0 text-foreground" />
+                            <div className="min-w-0">
                               <p className="text-sm text-foreground">Email</p>
-                              <p className="font-medium text-foreground">
+                              <p className="break-all font-medium text-foreground">
                                 {workspace.identity.email ?? 'Not provided'}
                               </p>
                             </div>
@@ -733,7 +733,7 @@ export function ApplicationReviewWorkspace({
       </div>
 
       {detail && (
-        <div className="max-h-[40dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-5 sm:pb-5">
+        <div className="max-h-[32dvh] flex-shrink-0 sm:max-h-[40dvh] overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-5 sm:pb-5">
           {can.review_decision ? (
             <ApplicationApprovalActions
               applicationId={detail.id}

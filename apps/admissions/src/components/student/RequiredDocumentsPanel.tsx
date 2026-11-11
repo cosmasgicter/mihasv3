@@ -175,9 +175,10 @@ function RequirementRow({
       </div>
 
       {showStoredSummary ? (
-        <div className="flex flex-1 flex-col gap-2 rounded-lg border border-success/30 bg-success/5 p-4 text-base sm:text-sm text-success">
+        <div className="flex flex-1 flex-col gap-2 rounded-lg bg-success/10 p-4 text-base sm:text-sm text-foreground">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            {/* Label in text-foreground; the tone is the tint and the icon (R18.2). */}
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
             <div className="min-w-0">
               <p className="font-medium">
                 {requirement.state === 'verified' ? 'Verified by the admissions team' : 'Saved'}

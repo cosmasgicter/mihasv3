@@ -617,7 +617,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
 
       {/* Mobile Money Form */}
       {paymentMethod === 'mobile-money' && (
-        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg bg-card/50 p-5">
           <div className="flex flex-wrap items-center gap-2" aria-label="Supported mobile money networks">
             <span data-text-role="caption" className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-sm sm:text-xs font-semibold text-red-700">
               Airtel Money
@@ -678,7 +678,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
 
       {/* Card Payment */}
       {paymentMethod === 'card' && (
-        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg bg-card/50 p-5">
           {!isScriptLoaded && !widgetLoading && (
             <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-base sm:text-sm">
               <p className="text-muted-foreground">{widgetLoadError || 'The card payment module is loading…'}</p>

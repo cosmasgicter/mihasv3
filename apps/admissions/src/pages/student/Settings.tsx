@@ -664,7 +664,7 @@ export default function StudentSettings() {
             description="Review every device currently signed in to your account and revoke any session you do not recognize."
             icon={<Shield className="h-5 w-5" />}
           >
-            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground">
+            <div className="rounded-lg bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground">
               Terminating another session signs that device out without affecting the current page. Use this after shared-device access or if you notice an unfamiliar browser or IP address.
             </div>
             <ActiveSessions />

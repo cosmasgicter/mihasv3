@@ -5,7 +5,9 @@ type HeaderVariant = 'default' | 'tinted' | 'plain'
 type PaddingScale = 'sm' | 'md' | 'lg'
 
 const headerVariantStyles: Record<HeaderVariant, string> = {
-  default: 'bg-card',
+  // Transparent: the section is already bg-card, so the header band looks the
+  // same and is not a second card inside the first (task 31.3, R21.5).
+  default: 'bg-transparent',
   tinted: 'bg-muted/40',
   plain: 'bg-transparent'
 }
@@ -55,7 +57,10 @@ export function SectionCard({
       {hasHeader && (
         <div
           className={cn(
-            'flex min-w-0 flex-col gap-3 border-b border-border/45 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5',
+            // A tinted header is set apart by its tint; a rule as well would make it
+            // a card inside the section (task 31.3, R21.5).
+            'flex min-w-0 flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5',
+            headerVariant !== 'tinted' && 'border-b border-border/45',
             headerVariantStyles[headerVariant],
             stickyHeader && 'sticky top-[4.25rem] z-10 bg-card/95',
             headerClassName

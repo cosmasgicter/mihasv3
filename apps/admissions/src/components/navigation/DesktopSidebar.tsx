@@ -117,7 +117,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'px-2' : 'px-4'
       )}>
         <div className={cn(
-          'relative flex items-center rounded-lg border border-white/10 bg-card/5 shadow-sm transition-all duration-200',
+          'relative flex items-center rounded-lg bg-card/5 transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Beanola Admissions">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm" aria-hidden="true">

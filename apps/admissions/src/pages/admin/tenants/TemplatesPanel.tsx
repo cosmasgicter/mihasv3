@@ -178,7 +178,7 @@ export function TemplatesPanel({ institutionId, templates, onChanged }: Template
           <p className="text-sm text-muted-foreground">No templates configured.</p>
         ) : (
           templates.map(template => (
-            <div key={template.id} className="rounded-lg border border-border bg-background p-3">
+            <div key={template.id} className="rounded-lg bg-muted p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

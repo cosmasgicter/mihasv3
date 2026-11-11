@@ -218,7 +218,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         is the token the rest of the roster row already uses.
       */}
       {app.isDraft && (
-        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
+        <div className="mb-4 rounded-lg bg-warning/5 p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
@@ -344,7 +344,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       </div>
 
       {app.last_payment_audit_notes && (
-        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
+        <div className="mb-4 rounded-lg bg-warning/5 p-3">
           <div className="mb-1 text-xs font-medium uppercase tracking-wide text-warning">
             Latest payment review note
           </div>
@@ -355,7 +355,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       )}
 
       {app.grades_summary && (
-        <div className="mb-4 rounded-lg border border-border bg-muted p-3">
+        <div className="mb-4 rounded-lg bg-muted p-3">
           <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
             Grades summary
           </div>

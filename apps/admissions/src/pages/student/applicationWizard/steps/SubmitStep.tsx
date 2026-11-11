@@ -218,7 +218,7 @@ const SubmitStep = ({
             </ul>
 
             {wizardReadiness && !wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
-              <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3.5">
+              <div className="rounded-lg bg-warning/5 px-4 py-3.5">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
                   <div className="min-w-0 flex-1 space-y-2">
@@ -272,34 +272,34 @@ const SubmitStep = ({
 
             <dl className="grid gap-3 sm:grid-cols-2">
               {formValues.full_name && (
-                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
                   <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
                   <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name}</dd>
                 </div>
               )}
               {programLabel && (
-                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
                   <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
                   <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel}</dd>
                 </div>
               )}
               {institutionLabel && (
-                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
                   <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
                   <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{institutionLabel}</dd>
                 </div>
               )}
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
                 <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
                 <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
                 <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   {isSuccessfulPayment
@@ -311,7 +311,7 @@ const SubmitStep = ({
               </div>
             </dl>
 
-            <div className="rounded-lg border border-border/70 bg-card px-4 py-4">
+            <div className="rounded-lg bg-card px-4 py-4">
               <p className="text-base sm:text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
               <ul className="mt-3 space-y-2 text-base sm:text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {
@@ -335,7 +335,7 @@ const SubmitStep = ({
             </div>
 
             {eligibilityCheck && (
-              <Alert variant={eligibilityCheck.eligible ? 'success' : 'warning'}>
+              <Alert inset variant={eligibilityCheck.eligible ? 'success' : 'warning'}>
                 <AlertTitle className="text-foreground">
                   {eligibilityCheck.eligible ? 'Eligibility check passed' : 'Eligibility advisory'}
                   {eligibilityCheck.score ? ` (${eligibilityCheck.score}%)` : ''}
@@ -355,7 +355,7 @@ const SubmitStep = ({
         padding="sm"
       >
         {!isPaymentResolvedForProgress(paymentStatus) && (
-          <Alert variant="warning" className="mb-4">
+          <Alert inset variant="warning" className="mb-4">
             <AlertTitle className="text-foreground">Payment required</AlertTitle>
             <AlertDescription className="text-muted-foreground">
               Please go back to the payment step and complete your application fee payment before submitting.
@@ -372,7 +372,7 @@ const SubmitStep = ({
         />
 
         {!confirmSubmission && (
-          <Alert variant="warning">
+          <Alert inset variant="warning">
             <AlertTitle className="text-foreground">Confirmation required</AlertTitle>
             <AlertDescription className="text-muted-foreground">
               Check the confirmation box to enable final submission.

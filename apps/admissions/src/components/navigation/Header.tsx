@@ -53,7 +53,8 @@ export const Header = React.memo(function Header() {
     >
       <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
-          <div className="flex min-w-0 items-center gap-3 rounded-full border border-border/70 bg-card/80 px-3 py-2 shadow-sm">
+          {/* A row, not a pill-shaped card inside the header (task 31.3, R21.5). */}
+          <div className="flex min-w-0 items-center gap-3 py-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </span>
@@ -63,10 +64,10 @@ export const Header = React.memo(function Header() {
               role="group"
               aria-label={`${isAdmin ? 'Admin workspace' : 'Student workspace'}: ${fullName}`}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${platformShell ? 'text-white' : 'text-muted-foreground'}`}>
                 {isAdmin ? 'Admin workspace' : 'Student workspace'}
               </p>
-              <p className="truncate text-sm font-semibold text-foreground">{fullName}</p>
+              <p className={`truncate text-sm font-semibold ${platformShell ? 'text-white' : 'text-foreground'}`}>{fullName}</p>
             </div>
           </div>
           {platformShell && (

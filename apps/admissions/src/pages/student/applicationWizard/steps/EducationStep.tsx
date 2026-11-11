@@ -307,7 +307,7 @@ const EducationStep = ({
 
           {selectedProgram && recommendedSubjects.length > 0 && (
             <div
-              className={`mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg ${animateClasses.slideUp}`}
+              className={`mb-4 p-3 bg-primary/5 rounded-lg ${animateClasses.slideUp}`}
             >
               {/*
                 GATE-13.3-12, continued. Two rows on this one panel:

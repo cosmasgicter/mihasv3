@@ -44,7 +44,7 @@ export function ApplicationDetailPayment({
         Payment information
       </h3>
 
-      <div className="mb-4 rounded-lg border border-border bg-muted p-3">
+      <div className="mb-4 rounded-lg bg-muted p-3">
         <div className="flex items-center gap-3">
           {getPaymentIcon(application.payment_status || 'not_paid')}
           <div>

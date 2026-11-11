@@ -24,9 +24,11 @@ export function DetailRow({ label, value }: { label: string; value: React.ReactN
   if (value === null || value === undefined || value === false) return null
   if (typeof value === 'string' && value.trim().length === 0) return null
   return (
-    <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
+    // A long unbroken value (an email) wraps inside its column instead of
+    // widening it past the 390 px viewport (measure/overflow, R19.7).
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-1 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)] sm:items-start">
       <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="text-base sm:text-sm font-medium text-foreground break-words">{value}</dd>
+      <dd className="min-w-0 text-base sm:text-sm font-medium text-foreground [overflow-wrap:anywhere]">{value}</dd>
     </div>
   )
 }
@@ -45,7 +47,7 @@ export function ApplicationDetailsSection({
   return (
     <SectionCard title="Application details" description="Review the information you submitted with this application." icon={<FileText className="h-5 w-5" />}>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-lg border border-border bg-muted px-5 py-4">
+        <div className="rounded-lg bg-muted px-5 py-4">
           <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
           <dl className="space-y-2 text-base sm:text-sm">
             <DetailRow label="Full name" value={application.full_name} />
@@ -59,7 +61,7 @@ export function ApplicationDetailsSection({
             <DetailRow label="Nationality" value={application.nationality} />
           </dl>
         </div>
-        <div className="rounded-lg border border-border bg-muted px-5 py-4">
+        <div className="rounded-lg bg-muted px-5 py-4">
           <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
           <dl className="space-y-2 text-base sm:text-sm">
             <DetailRow label="Residence town" value={application.residence_town} />

@@ -81,7 +81,7 @@ export function PanelNoAccess({ description }: { description?: string }) {
  */
 export function PanelReadOnlyNotice({ description }: { description: string }) {
   return (
-    <p className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
+    <p className="flex items-start gap-2 rounded-lg bg-muted/30 p-3 text-sm text-muted-foreground">
       <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <span>{description}</span>
     </p>

@@ -232,7 +232,7 @@ export function TenantStaffPanel({ institutionId }: { institutionId: string }) {
               {pendingInvitations.map((invitation) => (
                 <div
                   key={invitation.id}
-                  className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-2 rounded-lg bg-muted p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="break-words text-sm font-medium text-foreground">{invitation.email}</p>

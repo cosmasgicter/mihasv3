@@ -162,7 +162,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
 
           <div className="grid gap-2 sm:grid-cols-2">
             {domains.map((domain) => (
-              <div key={domain.id} className="rounded-lg border border-border bg-background p-3">
+              <div key={domain.id} className="rounded-lg bg-muted p-3">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">

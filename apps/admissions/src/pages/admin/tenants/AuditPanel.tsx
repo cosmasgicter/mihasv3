@@ -81,7 +81,7 @@ function formatTimestamp(value: string | null): string {
 
 function AuditEventRow({ event, definition }: { event: TenantAuditEvent; definition?: string }) {
   return (
-    <li className="rounded-lg border border-border bg-background p-3" data-audit-event={event.id}>
+    <li className="rounded-lg bg-muted p-3" data-audit-event={event.id}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="break-words text-sm font-medium text-foreground">{event.action}</p>

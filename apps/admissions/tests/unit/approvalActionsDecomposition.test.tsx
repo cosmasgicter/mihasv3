@@ -133,7 +133,9 @@ describe('the payment controls render the same branch per payment status', () =>
     const labels = buttonLabels()
     expect(labels.some((text) => text.includes('Verify'))).toBe(false)
     expect(labels.some((text) => text.includes('Reopen'))).toBe(false)
-    expect(screen.getByText('Verified')).toBeTruthy()
+    // The status summary now prints the payment label ("Verified", task 30.3
+    // follow-up; it printed the raw value before) and the callout says it too.
+    expect(screen.getAllByText('Verified')).toHaveLength(2)
   })
 
   it('an actor without the capability is told why, and offered nothing', () => {

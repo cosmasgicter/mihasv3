@@ -91,7 +91,7 @@ function ReadOnlyOfferings({ institutionId, canRequest }: { institutionId: strin
             {offerings.map((offering) => {
               const archived = (offering.offering_status || 'active') === 'archived'
               return (
-                <li key={offering.id} className="rounded-lg border border-border bg-background p-3">
+                <li key={offering.id} className="rounded-lg bg-muted p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">{offering.name}</p>

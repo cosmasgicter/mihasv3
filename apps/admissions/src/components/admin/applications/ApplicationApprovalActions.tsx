@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { formatApplicationStatus } from '@/types/applicationStatus'
-import { isPaymentResolvedForApproval, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { isPaymentResolvedForApproval, normalizePaymentStatus, getPaymentStatusLabel } from '@/lib/paymentStatus'
 import type { StatusCommandOptions } from '@/types/statusCommand'
 import { ConditionsDialog } from '@/components/admin/applications/ConditionsDialog'
 import { useState } from 'react'
@@ -108,13 +108,13 @@ export function ApplicationApprovalActions({
     <div className="space-y-3">
       {showStatusSummary && (
         <div className="grid gap-2 sm:grid-cols-2">
-          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
+          <div className="rounded-lg bg-muted/90 px-3 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
             <p className="mt-1 text-sm font-semibold text-foreground">{formatApplicationStatus(currentStatus)}</p>
           </div>
-          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
+          <div className="rounded-lg bg-muted/90 px-3 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{getPaymentStatusLabel(normalizedPaymentStatus)}</p>
           </div>
         </div>
       )}

@@ -24,14 +24,15 @@ export function ApplicationDetailHeader({ application, onClose, variant = 'close
   const Heading = variant === 'back' ? 'h1' : 'h2'
   return (
     <div className="flex-shrink-0 border-b border-border bg-card p-4 sm:p-6">
-      <div className="flex items-center justify-between gap-2">
+      {/* As a page the way back is its own row, so the applicant's name keeps the width (task 30.3). */}
+      <div className={variant === 'back' ? 'flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-center sm:justify-between' : 'flex items-center justify-between gap-2'}>
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 sm:h-12 sm:w-12">
             <User className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
           </div>
           <div className="min-w-0 flex-1">
             {/* As a page the applicant's name is the page heading; beside the queue it is not. */}
-            <Heading className="break-words text-base font-bold text-foreground sm:text-xl">
+            <Heading className={`break-words font-bold text-foreground ${variant === 'back' ? 'text-2xl' : 'text-base sm:text-xl'}`}>
               {application.full_name}
             </Heading>
             <div className="flex flex-wrap items-center gap-2 text-xs text-foreground sm:gap-3 sm:text-sm">

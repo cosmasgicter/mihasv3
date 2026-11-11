@@ -102,7 +102,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
@@ -111,7 +111,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <p className="mt-0.5 text-sm text-muted-foreground">Sign in and choose &ldquo;Get tracking link&rdquo; on your application</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
@@ -128,7 +128,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             student gets. What they get is the current recorded status without
             signing in, which is worth saying plainly.
           */}
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>

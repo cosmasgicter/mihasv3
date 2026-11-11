@@ -4,7 +4,6 @@ import { Monitor, RefreshCw, ShieldCheck, Smartphone, Tablet } from 'lucide-reac
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import {
   type DeviceSession,
@@ -80,6 +79,7 @@ function getDeviceMeta(info: SessionDeviceInfo, ipAddress?: string | null) {
   return parts.join(' • ')
 }
 
+/** Rendered inside the Settings security section, so it is not a card of its own (task 31.3, R21.5). */
 export function ActiveSessions() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<DeviceSession[]>([])
@@ -199,7 +199,7 @@ export function ActiveSessions() {
 
   if (loading) {
     return (
-      <Card className="p-4">
+      <div className="pt-4">
         <div className="animate-pulse">
           <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
@@ -207,12 +207,12 @@ export function ActiveSessions() {
             <div className="h-3 bg-skeleton rounded w-5/6"></div>
           </div>
         </div>
-      </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="p-4">
+    <div className="pt-4">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold">Active sessions</h3>
@@ -221,7 +221,7 @@ export function ActiveSessions() {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
-          <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-base sm:text-sm font-medium text-foreground">
+          <div className="rounded-lg bg-muted/50 px-3 py-2 text-base sm:text-sm font-medium text-foreground">
             {sortedSessions.length} active session{sortedSessions.length === 1 ? '' : 's'}
           </div>
           {lastSyncedLabel && (
@@ -335,6 +335,6 @@ export function ActiveSessions() {
           Refresh sessions
         </Button>
       </div>
-    </Card>
+    </div>
   )
 }

@@ -13,11 +13,9 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
   return (
     <div
-      className={`rounded-lg border p-4 animate-fade-in ${
-        eligible
-          ? 'bg-green-50 border-green-200'
-          : 'bg-yellow-50 border-yellow-200'
-      }`}
+      // Tint only, from the status-tone map: this sits inside the wizard's card
+      // (task 31.3, R21.5); the icon and the heading carry the status too.
+      className={`rounded-lg p-4 animate-fade-in ${eligible ? 'bg-success/10' : 'bg-warning/10'}`}
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
@@ -67,7 +65,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
 
           {!eligible && canProceed && (
-            <div className="mb-3 p-3 bg-primary/5 border border-primary/30 rounded-md">
+            <div className="mb-3 p-3 bg-primary/5 rounded-md">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                 <div data-text-role="caption" className="text-sm sm:text-xs text-primary-foreground">
@@ -95,7 +93,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
           )}
           
           {eligibility.alternativePathways && eligibility.alternativePathways.length > 0 && (
-            <div className="mt-2 p-2 bg-secondary/5 border border-input/30 rounded">
+            <div className="mt-2 p-2 bg-secondary/5 rounded">
               <p className="text-base sm:text-sm font-medium text-purple-800 mb-1">Alternative Entry Routes:</p>
               <ul className="space-y-1">
                 {eligibility.alternativePathways.map((pathway, index) => (

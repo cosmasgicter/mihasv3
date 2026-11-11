@@ -462,7 +462,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
             </span>
           </div>
           {draft.sections.map((row, index) => (
-            <div key={index} className="space-y-2 rounded-lg border border-border bg-background p-3">
+            <div key={index} className="space-y-2 rounded-lg bg-muted p-3">
               <div className="flex items-center gap-2">
                 <Input
                   value={row.key}
@@ -601,7 +601,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
           />
         ) : (
           scopes.map(({ latest, versions }) => (
-            <div key={scopeKey(latest)} className="space-y-2 rounded-lg border border-border bg-background p-3">
+            <div key={scopeKey(latest)} className="space-y-2 rounded-lg bg-muted p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

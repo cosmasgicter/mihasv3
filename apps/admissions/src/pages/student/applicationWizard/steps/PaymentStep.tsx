@@ -134,7 +134,7 @@ const PaymentStep = ({
         <legend className="sr-only">Payment</legend>
 
         {/* Fee display — every value below is rendered exactly as the server sent it */}
-        <div className="rounded-lg border border-border bg-card p-5" data-testid="fee-quote-panel">
+        <div className="rounded-lg bg-muted p-5" data-testid="fee-quote-panel">
           <div className="flex flex-wrap-reverse items-start justify-between gap-3">
             <div className="min-w-0 flex-1 basis-56">
               <p className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>

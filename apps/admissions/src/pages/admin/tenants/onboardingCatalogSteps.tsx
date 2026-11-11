@@ -195,7 +195,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           {offerings.length > 0 ? `${offerings.length} offering${offerings.length === 1 ? '' : 's'} assigned` : 'No offerings assigned yet'}
         </p>
         {offerings.map((offering) => (
-          <div key={offering.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+          <div key={offering.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
             <div className="min-w-0">
               <p className="break-words text-sm font-medium text-foreground">{offering.name}</p>
               <p className="text-xs text-muted-foreground">{offering.code}</p>
@@ -366,7 +366,7 @@ export function WizardIntakesStep({ institutionId }: { institutionId: string }) 
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Linked this session</p>
           {linked.map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+            <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
               <div className="min-w-0">
                 <p className="break-words text-sm font-medium text-foreground">{item.offeringName}</p>
                 <p className="text-xs text-muted-foreground">{item.intakeName}</p>
@@ -534,7 +534,7 @@ export function WizardFeesStep({ institutionId }: { institutionId: string }) {
                 <p className="text-sm text-muted-foreground">No fees configured for this offering yet.</p>
               ) : (
                 fees.map((fee) => (
-                  <div key={fee.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                  <div key={fee.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                     <div className="min-w-0">
                       <p className="break-words text-sm font-medium text-foreground">
                         {fee.currency} {fee.amount}

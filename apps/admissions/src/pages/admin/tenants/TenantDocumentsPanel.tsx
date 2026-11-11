@@ -254,7 +254,7 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
           <PanelReadOnlyNotice description="Required document changes are managed by your platform administrator. This view is read-only." />
           <ul className="space-y-2">
             {documents.map((doc) => (
-              <li key={doc.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+              <li key={doc.id} className="flex items-start gap-3 rounded-lg bg-muted p-3">
                 <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <div className="min-w-0">
                   <p className="break-words text-sm font-medium text-foreground">{doc.label}</p>

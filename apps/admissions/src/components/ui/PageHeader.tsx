@@ -19,14 +19,16 @@ export interface PageHeaderProps {
  stats?: PageHeaderStat[]
  children?: React.ReactNode
  className?: string
- variant?: 'gradient' | 'surface' | 'subtle'
+ variant?: 'gradient' | 'surface' | 'subtle' | 'plain'
  align?: 'start' | 'center'
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
  gradient: 'bg-gradient-vibrant text-primary-foreground border-card/20 shadow-lg',
  surface: 'bg-card text-foreground border border-border shadow-md',
- subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg '
+ subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg ',
+ // Inside a surface that is already a card (task 31.3, R21.5).
+ plain: 'text-foreground'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
