@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react'
 import type { ApplicationFilters } from '@/hooks/admin/useApplicationFilters'
 import { DRAFT_FILTER_OPTIONS } from '@/hooks/admin/useApplicationFilters'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
@@ -104,6 +104,10 @@ export function FiltersPanel({
     debouncedSearchChange(value)
   }
 
+  const [showMore, setShowMore] = useState(false)
+  // How many of the filters behind "More filters" are active.
+  const moreActiveCount = [draftFilter !== 'all' ? draftFilter : '', institutionFilter, assignedReviewerFilter, lateSubmissionFilter, pendingAmendmentsFilter, reviewQueueFilter, overdueReviewFilter, pendingDocumentsFilter, upcomingInterviewsFilter, deadlinePressureFilter].filter(Boolean).length
+
   const activeFilterCount = [statusFilter, paymentFilter, programFilter, institutionFilter, draftFilter !== 'all' ? draftFilter : '', assignedReviewerFilter, lateSubmissionFilter, pendingAmendmentsFilter, reviewQueueFilter, overdueReviewFilter, pendingDocumentsFilter, upcomingInterviewsFilter, deadlinePressureFilter].filter(Boolean).length
 
   const handleClearAll = () => {
@@ -148,7 +152,109 @@ export function FiltersPanel({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+      {/*
+        Four filters on show; the rest behind "More filters (n)" (platform-
+        simplification task 30.4, R17.6). Filter state stays in the URL, so a
+        hidden filter that a link applied is still applied and still counted.
+      */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+        <div className="md:col-span-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search applicant, email, application number…"
+              value={localSearch}
+              onChange={handleSearchChange}
+              className="pl-10 h-11 rounded-lg border-border/60 hover:border-primary/20 transition-colors"
+              aria-label="Search applications"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor={controlId('status-filter')} className="sr-only">Status filter</label>
+          <select
+            id={controlId('status-filter')}
+            value={statusFilter}
+            onChange={(e) => onFilterChange('statusFilter', e.target.value)}
+            className={selectClasses}
+          >
+            <option value="">All statuses</option>
+            {STATUS_FILTER_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor={controlId('program-filter')} className="sr-only">Programme filter</label>
+          <select
+            id={controlId('program-filter')}
+            value={programFilter}
+            onChange={(e) => onFilterChange('programFilter', e.target.value)}
+            className={selectClasses}
+          >
+            <option value="">All programmes</option>
+            {/*
+              The server's facet for this query, so an offering with no row on
+              the loaded page is still offered, and each option carries its own
+              whole-set count (task 9.1, ADM-01).
+            */}
+            {programOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor={controlId('payment-filter')} className="sr-only">Payment filter</label>
+          <select
+            id={controlId('payment-filter')}
+            value={paymentFilter}
+            onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
+            className={selectClasses}
+          >
+            <option value="">All payment states</option>
+            <option value="not_paid">Awaiting payment</option>
+            <option value="pending_review">Awaiting payment review</option>
+            <option value="verified">Verified</option>
+            <option value="rejected">Payment rejected</option>
+            <option value="deferred">Deferred</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowMore((open) => !open)}
+          aria-expanded={showMore}
+          aria-controls={controlId('more-filters')}
+          className="inline-flex min-h-touch items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          More filters ({moreActiveCount})
+          <ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${showMore ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+        <div
+          id={controlId('more-filters')}
+          hidden={!showMore}
+          className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4"
+        >
+        <div>
+          <label htmlFor={controlId('draft-filter')} className="sr-only">Draft filter</label>
+          <select
+            id={controlId('draft-filter')}
+            value={draftFilter}
+            onChange={(e) => onFilterChange('draftFilter', e.target.value)}
+            className={selectClasses}
+          >
+            {DRAFT_FILTER_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <select value={reviewQueueFilter} onChange={(e) => onFilterChange('reviewQueueFilter', e.target.value)} className={selectClasses} aria-label="Review queue filter">
           <option value="">Review queue</option>
           <option value="true">In review queue</option>
@@ -169,95 +275,7 @@ export function FiltersPanel({
           <option value="true">Upcoming interviews</option>
           <option value="false">No upcoming interviews</option>
         </select>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-        <div className="md:col-span-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search applicant, email, application number…"
-              value={localSearch}
-              onChange={handleSearchChange}
-              className="pl-10 h-11 rounded-lg border-border/60 hover:border-primary/20 transition-colors"
-              aria-label="Search applications"
-            />
-          </div>
-        </div>
-        
         <div>
-          <label htmlFor={controlId('draft-filter')} className="sr-only">Draft filter</label>
-          <select
-            id={controlId('draft-filter')}
-            value={draftFilter}
-            onChange={(e) => onFilterChange('draftFilter', e.target.value)}
-            className={selectClasses}
-          >
-            {DRAFT_FILTER_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label htmlFor={controlId('status-filter')} className="sr-only">Status filter</label>
-          <select
-            id={controlId('status-filter')}
-            value={statusFilter}
-            onChange={(e) => onFilterChange('statusFilter', e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">All statuses</option>
-            {STATUS_FILTER_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label htmlFor={controlId('payment-filter')} className="sr-only">Payment filter</label>
-          <select
-            id={controlId('payment-filter')}
-            value={paymentFilter}
-            onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">All payment states</option>
-            <option value="not_paid">Awaiting payment</option>
-            <option value="pending_review">Awaiting payment review</option>
-            <option value="verified">Verified</option>
-            <option value="rejected">Payment rejected</option>
-            <option value="deferred">Deferred</option>
-          </select>
-        </div>
-        
-        <div>
-          <label htmlFor={controlId('program-filter')} className="sr-only">Programme filter</label>
-          <select
-            id={controlId('program-filter')}
-            value={programFilter}
-            onChange={(e) => onFilterChange('programFilter', e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">All programmes</option>
-            {/*
-              The server's facet for this query, so an offering with no row on
-              the loaded page is still offered, and each option carries its own
-              whole-set count (task 9.1, ADM-01).
-            */}
-            {programOptions.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      
-      {/* Second row for institution filter and new filters */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mt-3">
-        <div className="md:col-span-2">
           <label htmlFor={controlId('institution-filter')} className="sr-only">Institution filter</label>
           <select
             id={controlId('institution-filter')}
@@ -325,6 +343,7 @@ export function FiltersPanel({
             </option>
             <option value="false">No near deadline</option>
           </select>
+        </div>
         </div>
       </div>
     </div>

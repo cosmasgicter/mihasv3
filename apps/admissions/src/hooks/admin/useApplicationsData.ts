@@ -80,6 +80,9 @@ export interface ApplicationSummary {
   activity_at: string | null
   /** Platform-only cross-tenant context; withheld for a tenant actor. */
   peer_offering_count?: number | null
+  /** Current document versions and how many are verified; `null` when not sent (task 30.4). */
+  current_document_count: number | null
+  verified_document_count: number | null
   /** Detail-only fields the triage contract does not carry (see above). */
   application_fee: number | null
   paid_amount: number | null
@@ -126,6 +129,8 @@ export const rosterRowToSummary = (row: ApplicationRosterRow): ApplicationSummar
   created_at: row.created_at ?? '',
   activity_at: row.activity_at,
   peer_offering_count: row.peer_offering_count ?? null,
+  current_document_count: row.current_document_count ?? null,
+  verified_document_count: row.verified_document_count ?? null,
   application_fee: null,
   paid_amount: null,
   payment_currency: null,

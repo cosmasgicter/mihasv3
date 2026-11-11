@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   FiltersPanel,
   ApplicationsTable,
@@ -8,6 +8,7 @@ import {
   ApplicationReviewWorkspace
 } from '@/components/admin/applications'
 import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
+import { ReviewNotFound } from '@/components/admin/applications/ReviewNotFound'
 import { RosterPagination } from '@/components/admin/applications/RosterPagination'
 import {
   APPLICATION_FILTER_KEYS,
@@ -180,29 +181,6 @@ const getErrorStatus = (error: unknown): number =>
     ? error.status
     : 0
 
-/**
- * An `:applicationId` that is not a UUID is not an application anywhere: the
- * not-found page, which reveals nothing (task 30.2, R17.2). A masked 404 from the
- * backend is handled inside the workspace.
- */
-function ReviewNotFound() {
-  const { search } = useLocation()
-  return (
-    <div className="mx-auto max-w-xl p-6" data-testid="review-not-found">
-      <h1 className="text-xl font-semibold text-foreground">Application not found</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This address does not match an application.
-      </p>
-      <Link
-        to={`${pathFor('admin.applications')}${search}`}
-        className="mt-4 inline-flex min-h-touch items-center text-sm font-medium text-primary underline"
-      >
-        Back to applications
-      </Link>
-    </div>
-  )
-}
-
 export default function Applications() {
   const {
     filters,
@@ -363,6 +341,11 @@ export default function Applications() {
   const handleViewDetails = useCallback((applicationId: string) => {
     navigate(`${pathFor('admin.applications')}/${applicationId}${location.search}`)
   }, [navigate, location.search])
+
+  const reviewHref = useCallback(
+    (applicationId: string) => `${pathFor('admin.applications')}/${applicationId}${location.search}`,
+    [location.search],
+  )
 
   // Back to the queue with the same query string, so the filters are unchanged.
   const handleCloseDetails = useCallback(() => {
@@ -591,7 +574,7 @@ export default function Applications() {
       onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
     />
   ) : null
-  const reviewPane = widthBand === 'wide' && reviewId ? (reviewWorkspace ?? <ReviewNotFound />) : null
+  const reviewPane = widthBand === 'wide' && reviewId ? (reviewWorkspace ?? <ReviewNotFound asPage={false} />) : null
 
   // Below 1024px the review is the whole page, with a way back that keeps the
   // queue's query string (task 30.3, R17.3).
@@ -604,7 +587,7 @@ export default function Applications() {
           path="/admin/applications"
           noindex
         />
-        {reviewWorkspace ?? <ReviewNotFound />}
+        {reviewWorkspace ?? <ReviewNotFound asPage />}
         <ConfirmAlertDialog
           isOpen={confirmDialog.isOpen}
           onClose={confirmDialog.handleCancel}
@@ -851,6 +834,7 @@ export default function Applications() {
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
+            reviewHref={reviewHref}
             onStatusUpdate={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<void>}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}

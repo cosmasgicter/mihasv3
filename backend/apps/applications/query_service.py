@@ -1237,6 +1237,7 @@ class ApplicationQueryService:
             )[:EXPORT_ROW_LIMIT]
         )
         peer_counts = self._peer_offering_counts(window) if policy.unrestricted else {}
+        document_counts = self._document_counts(window)
         rows: list[dict[str, Any]] = []
         for app in window:
             canonical_id = str(getattr(app, "canonical_program_id", "") or "")
@@ -1278,9 +1279,43 @@ class ApplicationQueryService:
                 "updated_at": _iso(app.updated_at),
                 "activity_at": _iso(getattr(app, "activity_at", None)),
                 "peer_offering_count": peer_counts.get(canonical_id),
+                # Plain-text document state for the queue row (platform-
+                # simplification task 30.4, R17.5): current versions and how many
+                # of them are verified, the review workspace's own definition
+                # (``ReviewWorkspaceService._evidence``). Not in ``ROW_COLUMNS``,
+                # so the export is unchanged.
+                "current_document_count": document_counts.get(str(app.id), (0, 0))[0],
+                "verified_document_count": document_counts.get(str(app.id), (0, 0))[1],
             }
             rows.append(policy.apply(row))
         return rows
+
+    @staticmethod
+    def _document_counts(applications) -> dict[str, tuple[int, int]]:
+        """``(current, verified)`` document versions per application in this window.
+
+        One grouped query for the window, with the review workspace's definition:
+        ``is_current=True`` versions, and of those the ones whose
+        ``verification_status`` is ``verified``. The window is already scoped, so
+        this never counts another tenant's evidence.
+        """
+        from apps.documents.models import ApplicationDocument
+
+        ids = [app.id for app in applications]
+        if not ids:
+            return {}
+        rows = (
+            ApplicationDocument.objects.filter(application_id__in=ids, is_current=True)
+            .values("application_id")
+            .annotate(
+                current=Count("id"),
+                verified=Count("id", filter=Q(verification_status="verified")),
+            )
+        )
+        return {
+            str(row["application_id"]): (int(row["current"]), int(row["verified"]))
+            for row in rows
+        }
 
     @staticmethod
     def _peer_offering_counts(applications) -> dict[str, int]:

@@ -61,6 +61,9 @@ export interface ApplicationRosterRow {
   activity_at: string | null
   /** Platform-only cross-tenant context: withheld for a tenant actor. */
   peer_offering_count?: number | null
+  /** Current document versions, and how many are verified (task 30.4). */
+  current_document_count?: number | null
+  verified_document_count?: number | null
 }
 
 /**
