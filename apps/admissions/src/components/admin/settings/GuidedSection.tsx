@@ -105,8 +105,8 @@ export function GuidedSection({
                         onChange={(value) => onDraftChange(blueprint.key, 'value', value)}
                         options={[
                           { value: 'unrestricted', label: 'Unrestricted' },
-                          { value: 'single_active', label: 'Single Active' },
-                          { value: 'waitlist_cascade', label: 'Waitlist Cascade' },
+                          { value: 'single_active', label: 'Single active' },
+                          { value: 'waitlist_cascade', label: 'Waitlist cascade' },
                         ]}
                       />
                     ) : (

@@ -1309,7 +1309,7 @@ class TestExportIsPageIndependentAndAudited:
         from apps.catalog.services import AdminCapabilityService
 
         assert USER_EXPORT_CAPABILITY in AdminCapabilityService.TENANT_CAPABILITIES
-        assert len(AdminCapabilityService.PLATFORM_CAPABILITIES) == 17
+        assert len(AdminCapabilityService.PLATFORM_CAPABILITIES) == 16  # 17.1 removed platform.user.create_global
         assert len(AdminCapabilityService.TENANT_CAPABILITIES) == 17
 
 

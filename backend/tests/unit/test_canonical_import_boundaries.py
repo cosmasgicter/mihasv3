@@ -36,7 +36,6 @@ def test_remaining_view_reexport_shims_have_owner_and_removal_condition():
 
     shim_files = [
         REPO_ROOT / "backend/apps/accounts/admin_views.py",
-        REPO_ROOT / "backend/apps/applications/views.py",
         REPO_ROOT / "backend/apps/documents/views.py",
     ]
 

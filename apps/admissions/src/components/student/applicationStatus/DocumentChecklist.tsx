@@ -20,7 +20,8 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Skeleton } from '@/components/ui'
-import { StatusBadge, type StatusBadgeTone } from '@/components/ui/StatusBadge'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { DOCUMENT_STATE_PRESENTATION, documentStateFromVerification } from '@/lib/documentStatePresentation'
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { documentOpenHrefForRow } from '@/lib/documentOpen'
 import { isRateLimitedError, rateLimitMessage, retryAfterOf } from '@/lib/rateLimitCopy'
@@ -68,18 +69,6 @@ export function humaniseDocumentType(documentType: string): string {
   const base = documentType.replace(/^condition_evidence[_:].*$/i, 'condition_evidence')
   const words = base.replace(/[_-]+/g, ' ').trim()
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Document'
-}
-
-const STATUS_PRESENTATION: Record<string, { label: string; tone: StatusBadgeTone }> = {
-  verified: { label: 'Verified', tone: 'success' },
-  approved: { label: 'Verified', tone: 'success' },
-  rejected: { label: 'Needs attention', tone: 'warning' },
-  changes_required: { label: 'Needs attention', tone: 'warning' },
-  pending: { label: 'Awaiting review', tone: 'info' },
-}
-
-function statusPresentation(status: string): { label: string; tone: StatusBadgeTone } {
-  return STATUS_PRESENTATION[status] ?? { label: 'Awaiting review', tone: 'info' }
 }
 
 export function DocumentChecklist({ applicationId }: DocumentChecklistProps) {
@@ -145,7 +134,8 @@ export function DocumentChecklist({ applicationId }: DocumentChecklistProps) {
     <ul className="space-y-4" aria-label="Your uploaded documents">
       {rows.map((row, index) => {
         const href = documentOpenHrefForRow({ id: row.id })
-        const presentation = statusPresentation(row.verificationStatus)
+        const presentation =
+          DOCUMENT_STATE_PRESENTATION[documentStateFromVerification(row.verificationStatus)]
         const label = labels.get(row.documentType) ?? humaniseDocumentType(row.documentType)
         return (
           <li
@@ -158,11 +148,11 @@ export function DocumentChecklist({ applicationId }: DocumentChecklistProps) {
                 <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div className="min-w-0 space-y-1">
-                <p className="break-words text-sm font-semibold text-foreground">{label}</p>
+                <p className="break-words text-base sm:text-sm font-semibold text-foreground">{label}</p>
                 {row.documentName && (
-                  <p className="truncate text-xs text-muted-foreground">{row.documentName}</p>
+                  <p className="truncate text-base sm:text-sm text-muted-foreground">{row.documentName}</p>
                 )}
-                <StatusBadge label={presentation.label} tone={presentation.tone} size="sm" />
+                <StatusBadge label={presentation.label} tone={presentation.tone} icon={presentation.icon} size="sm" />
               </div>
             </div>
             {href && (

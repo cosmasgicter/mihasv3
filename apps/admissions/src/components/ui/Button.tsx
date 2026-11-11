@@ -32,9 +32,9 @@ const buttonVariants = cva(
         gradient: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]',
       },
       size: {
-        default: 'h-11 min-h-touch h-auto px-4 py-2 text-sm',      // 44px - meets touch target minimum
-        xs: 'min-h-touch h-auto px-2 py-1.5 text-xs',             // 44px - touch target enforced
-        sm: 'min-h-touch h-auto px-3 py-2 text-sm',               // 44px - touch target enforced
+        default: 'h-11 min-h-touch h-auto px-4 py-2 text-base sm:text-sm',      // 44px - meets touch target minimum
+        xs: 'min-h-touch h-auto px-2 py-1.5 text-base sm:text-xs',             // 44px - touch target enforced
+        sm: 'min-h-touch h-auto px-3 py-2 text-base sm:text-sm',               // 44px - touch target enforced
         md: 'min-h-touch h-auto px-4 py-2 text-base',             // 44px - medium
         lg: 'min-h-touch-lg h-auto px-6 py-2.5 text-lg',          // 48px - large
         xl: 'min-h-touch-lg h-auto px-8 py-2.5 text-xl',          // 48px - extra large
@@ -115,6 +115,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         disabled={disabled || loading}
+        data-text-role="control"
         aria-busy={loading || undefined}
         aria-disabled={disabled || loading || undefined}
         onClick={handleClick}

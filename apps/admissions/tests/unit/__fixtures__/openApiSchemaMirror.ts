@@ -55,7 +55,6 @@ export const OPENAPI_PATHS: readonly string[] = [
   "/api/v1/applications/",
   "/api/v1/applications/auto-assign/",
   "/api/v1/applications/bulk-status/",
-  "/api/v1/applications/draft/",
   "/api/v1/applications/export/",
   "/api/v1/applications/history/",
   "/api/v1/applications/interviews/",

@@ -93,8 +93,8 @@ export function OfficialDocumentRecovery({
           aria-hidden="true"
         />
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-foreground">{message}</p>
-          <p className="text-sm text-muted-foreground">{support.description}</p>
+          <p className="text-base sm:text-sm font-medium text-foreground">{message}</p>
+          <p className="text-base sm:text-sm text-muted-foreground">{support.description}</p>
         </div>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -137,7 +137,7 @@ export function OfficialDocumentRecovery({
           setup failure: the school's own staff were told, by name, through the
           inbox work item the renderer writes (task 10.4 part 3). */}
       {isSetupRequired && !notAvailableYet && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-base sm:text-sm text-muted-foreground">
           The admissions office has been notified and does not need you to do
           anything else.
         </p>

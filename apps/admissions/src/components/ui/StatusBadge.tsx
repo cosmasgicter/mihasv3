@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toneSurfaceClasses, type StatusTone } from '@/lib/statusTone'
 
 /**
  * StatusBadge — generic status pill that contractually pairs colour with an icon.
@@ -61,13 +62,14 @@ export interface StatusBadgeProps {
  * tone is still carried by the fill, the border, and the icon this component
  * requires — "never colour alone" was never about the *label's* colour.
  */
-const TONE_CLASSES: Record<StatusBadgeTone, string> = {
-  neutral: 'bg-muted text-foreground border-border/60',
-  info: 'bg-info/10 text-foreground border-info/40',
-  warning: 'bg-warning/10 text-foreground border-warning/40',
-  destructive: 'bg-destructive/10 text-foreground border-destructive/40',
-  success: 'bg-success/10 text-foreground border-success/40',
-  muted: 'bg-muted/60 text-muted-foreground border-border/40',
+/** `StatusBadge` says `destructive`; the shared map says `danger`. */
+const TONE_FOR_BADGE: Record<StatusBadgeTone, StatusTone> = {
+  neutral: 'neutral',
+  info: 'info',
+  warning: 'warning',
+  destructive: 'danger',
+  success: 'success',
+  muted: 'muted',
 }
 
 const TONE_DEFAULT_ICONS: Record<StatusBadgeTone, LucideIcon> = {
@@ -89,15 +91,16 @@ export function StatusBadge({
   const Icon = icon ?? TONE_DEFAULT_ICONS[tone]
   const sizeClass =
     size === 'sm'
-      ? 'rounded-full px-2.5 py-0.5 text-xs'
+      ? 'rounded-full px-2.5 py-0.5 text-sm sm:text-xs'
       : 'rounded-full px-3 py-1 text-sm'
   const iconClass = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'
 
   return (
     <span
+      data-text-role="caption"
       className={cn(
         'inline-flex items-center gap-1 border font-semibold whitespace-nowrap',
-        TONE_CLASSES[tone],
+        toneSurfaceClasses(TONE_FOR_BADGE[tone]),
         sizeClass,
         className,
       )}

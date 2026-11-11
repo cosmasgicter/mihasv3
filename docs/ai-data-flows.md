@@ -26,7 +26,7 @@ used to be generative are now deterministic:
 |---|---|
 | Reviewer review brief | a deterministic readiness checklist computed by the same evaluator submission re-runs (payment gate, required documents, identity, grades/eligibility, duplicate/late flags, allowed next actions) |
 | Student review-step summary | composed from stored fields and current validation results; names blockers, no generated prose |
-| Grade extraction from a result slip | **server-side Tesseract** + a deterministic parser. No model. Candidates resolve only through the versioned alias catalogue, carry confidence and provenance, and require explicit student confirmation; a manual entry always wins and an unrecognised label stays unresolved rather than being guessed |
+| Grade extraction from a result slip | **server-side Tesseract** + a deterministic parser. No model. Candidates resolve only through the versioned alias catalogue, carry confidence and provenance, and require explicit student confirmation; a manual entry always wins and an unrecognised label stays unresolved rather than being guessed. **Opt-in per institution** (decision D4, platform-simplification task 18): it runs only for schools a super admin has added through `/api/v1/admin/documents/ocr-opt-in/`; the list starts empty, so by default no result slip is read and students enter grades by hand. Nothing leaves the platform either way |
 | Document classification, eligibility, verification, routing, decisions | deterministic services; never a model |
 
 The **only** generative integration on the platform is `backend/apps/jobs/ai_service.py`,

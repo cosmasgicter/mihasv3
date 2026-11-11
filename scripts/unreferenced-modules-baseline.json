@@ -1,0 +1,25 @@
+{
+  "description": "Modules unreachable from apps/admissions/src/main.tsx on the first run of scripts/unreferenced-modules.ts (task 3.2). Each has a reason; a stale entry fails the check. This measured list replaces the critique's heuristic count and is the input for D15 item (d).",
+  "entries": [
+    {
+      "module": "apps/admissions/src/lib/__fixtures__/paymentStatusBackendMirror.ts",
+      "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
+    },
+    {
+      "module": "apps/admissions/src/types/__fixtures__/lifecycleStatusBackendMirror.ts",
+      "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
+    },
+    {
+      "module": "apps/admissions/src/components/motion/scroll-reveal.tsx",
+      "reason": "Its only product importer was the landing's old sections (task 33.1, D10 option A rebuilt them as rows and lists). Not named by task 33.2, so kept; the next scroll-driven reveal uses it again or a later cleanup deletes it."
+    },
+    {
+      "module": "apps/admissions/src/components/smoothui/index.ts",
+      "reason": "Nothing imports the barrel; the product imports its modules by path. Task 33.2 removed the hero and counter exports after git grep found no product import of AnimatedCounter, SimpleCounter or ShapeLandingHero. Left in place because AnimatedInput and the page transitions are still exported."
+    },
+    {
+      "module": "apps/admissions/src/components/ui/OptimizedImage.tsx",
+      "reason": "The steering primitive for content images (tech.md). Its only product importer was the landing's accreditation logo tiles, which task 29.1 removed; tests still exercise it. The next content image uses it again."
+    }
+  ]
+}

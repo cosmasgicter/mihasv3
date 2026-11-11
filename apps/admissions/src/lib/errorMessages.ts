@@ -29,7 +29,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   FILE_CONTENT_MISMATCH: 'File content does not match the declared type.',
   SECURITY_VIOLATION: 'Request blocked for security reasons. Please try again.',
   INVALID_INPUT: 'Invalid input. Please check your data and try again.',
-  PROGRAM_CAPACITY_REACHED: 'This program for the selected intake is full. Please choose another intake or program.',
+  PROGRAM_CAPACITY_REACHED: 'This programme for the selected intake is full. Please choose another intake or programme.',
   RESOURCE_NOT_FOUND: 'The requested resource was not found.',
   SERVER_ERROR: 'Something went wrong. Please try again.',
 
@@ -48,7 +48,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   MISSING_PROVIDER_REFERENCE: 'Payment provider reference is missing.',
   PROVIDER_UNAVAILABLE: 'Payment service is temporarily unavailable. Please try again.',
   PAYMENT_UNAVAILABLE: 'Payment processing is not available right now.',
-  FEE_UNAVAILABLE: 'Fee is not available for this program.',
+  FEE_UNAVAILABLE: 'Fee is not available for this programme.',
   FEE_NOT_CONFIGURED: 'The application fee is not configured for this option.',
   FEE_AMBIGUOUS: 'More than one active application fee is configured for this option.',
   // Server-authored fee quotes (admissions-v2 task 8.1). Every refusal is
@@ -94,8 +94,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVALID_STATUS_TRANSITION: 'This status change is not allowed.',
 
   // Application
-  DUPLICATE_APPLICATION: 'An application for this program already exists.',
-  DUPLICATE_SUBMITTED_APPLICATION: 'A submitted application for this program already exists.',
+  DUPLICATE_APPLICATION: 'An application for this programme already exists.',
+  DUPLICATE_SUBMITTED_APPLICATION: 'A submitted application for this programme already exists.',
   PAYMENT_REQUIRED: 'Payment is required before submission.',
   IDENTITY_DOCUMENT_REQUIRED: 'NRC or Passport document is required.',
   LATE_FEE_REQUIRED: 'Late application fee is required.',
@@ -134,15 +134,15 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   NO_FILE: 'No file provided.',
   STORAGE_ERROR: 'File storage operation failed. Please try again.',
   OFFICIAL_DOCUMENT_IMMUTABLE: 'Official generated documents cannot be deleted.',
-  DOCUMENT_PROFILE_NOT_CONFIGURED: 'This document is not available yet — its template has not been configured. Please contact the admissions office.',
+  DOCUMENT_PROFILE_NOT_CONFIGURED: 'This document is not available yet. Its template has not been configured. Please contact the admissions office.',
   ASSET_INVALID: 'This asset must be a PNG, JPEG, WebP, or SVG under 2MB.',
   TEMPLATE_TOKEN_REJECTED: 'Disallowed section or token in document template.',
 
   // Immutable document evidence versions (admissions-v2 task 7.3)
   EMPTY_FILE: 'That file is empty. Please choose the file again.',
   UNSAFE_FILE_CONTENT: 'This file contains active content, so it cannot be accepted. Please upload a plain PDF, JPEG, or PNG.',
-  DOCUMENT_STORAGE_UNVERIFIED: 'We could not confirm your upload was stored. Your previous document is still on file — please try again.',
-  DOCUMENT_COMMIT_FAILED: 'The upload could not be saved. Your previous document is still on file — please try again.',
+  DOCUMENT_STORAGE_UNVERIFIED: 'We could not confirm your upload was stored. Your previous document is still on file. Please try again.',
+  DOCUMENT_COMMIT_FAILED: 'The upload could not be saved. Your previous document is still on file. Please try again.',
   DOCUMENT_VERSION_CONFLICT: 'Another upload for this document finished first. Reload the page to see the current file.',
   DOCUMENT_TRANSITION_REJECTED: 'This document version can no longer accept that change. Reload the page to see its current state.',
   INVALID_VERIFICATION_DECISION: 'A document decision must be either verified or rejected.',
@@ -150,10 +150,10 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   // Catalog
   INACTIVE_INTAKE: 'The selected intake is not active.',
   INVALID_INSTITUTION: 'Invalid institution.',
-  INVALID_PROGRAM_INTAKE: 'The program is not available for this intake.',
+  INVALID_PROGRAM_INTAKE: 'The programme is not available for this intake.',
 
   // Offering assignment (multi-tenant Beanola — submission revalidation)
-  NO_ELIGIBLE_OFFERING: 'No school offering is available for this program and intake. Try another intake or contact admissions.',
+  NO_ELIGIBLE_OFFERING: 'No school offering is available for this programme and intake. Try another intake or contact admissions.',
   OFFERING_NO_LONGER_AVAILABLE: 'The assigned school offering is no longer available. Try another intake or contact admissions.',
   OFFERING_CAPACITY_FULL: 'The assigned offering filled before submission. You can join the waitlist or choose another intake.',
 
@@ -189,6 +189,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   DASHBOARD_ERROR: 'Dashboard data could not be loaded. Please try again.',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
   OCR_QUEUE_UNAVAILABLE: 'Automatic grade scanning is unavailable right now. You can enter your grades manually.',
+  OCR_NOT_ENABLED: 'Automatic grade reading is not turned on for this school. Enter your grades by hand.',
+  KEY_MANAGED_ELSEWHERE: 'This setting is changed through its own command.',
 
   // Security hardening
   BLACKLIST_UNAVAILABLE: 'Token service temporarily unavailable. Please try again.',
@@ -207,7 +209,7 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   //
   // Official-document email path
   DOCUMENT_NOT_READY:
-    'This document is not ready yet. Nothing was emailed — try again once it finishes preparing.',
+    'This document is not ready yet. Nothing was emailed. Try again once it finishes preparing.',
   RECIPIENT_NOT_PERMITTED:
     'Official documents can only be emailed to the address on the application. Update the account email first.',
   NO_RECIPIENT:
@@ -310,30 +312,30 @@ interface ErrorLike {
 
 export function getErrorMessage(error: ErrorLike): ErrorMessage {
   if (error.message?.includes('fetch') || error.message?.includes('network')) {
-    return { title: 'Connection Problem', description: 'We couldn\'t connect to the server.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+    return { title: 'Connection problem', description: 'We couldn\'t connect to the server.', action: 'retry', actionLabel: 'Try again', technicalDetails: error.message };
   }
   if (error.status === 401 || error.message?.includes('unauthorized')) {
-    return { title: 'Session Expired', description: 'Your session has expired. Please sign in again.', action: '/auth/signin', actionLabel: 'Sign In', technicalDetails: error.message };
+    return { title: 'Session expired', description: 'Your session has expired. Please sign in again.', action: '/auth/signin', actionLabel: 'Sign in', technicalDetails: error.message };
   }
   if (error.status === 403 || error.message?.includes('forbidden')) {
-    return { title: 'Access Denied', description: 'You don\'t have permission to access this resource.', action: '/contact', actionLabel: 'Contact Support', technicalDetails: error.message };
+    return { title: 'Access denied', description: 'You don\'t have permission to access this resource.', action: '/contact', actionLabel: 'Contact support', technicalDetails: error.message };
   }
   if (error.status === 400 || error.message?.includes('validation')) {
-    return { title: 'Invalid Information', description: error.details || 'Some information is invalid. Please check and try again.', action: 'review', actionLabel: 'Review Form', technicalDetails: error.message };
+    return { title: 'Invalid information', description: error.details || 'Some information is invalid. Please check and try again.', action: 'review', actionLabel: 'Review form', technicalDetails: error.message };
   }
   if (error.status === 404) {
-    return { title: 'Not Found', description: 'The resource you\'re looking for doesn\'t exist.', action: '/', actionLabel: 'Go Home', technicalDetails: error.message };
+    return { title: 'Not found', description: 'The resource you\'re looking for doesn\'t exist.', action: '/', actionLabel: 'Go home', technicalDetails: error.message };
   }
   if (error.status && error.status >= 500) {
-    return { title: 'Server Error', description: 'Something went wrong on our end.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+    return { title: 'Server error', description: 'Something went wrong on our end.', action: 'retry', actionLabel: 'Try again', technicalDetails: error.message };
   }
   if (error.message?.includes('timeout')) {
-    return { title: 'Request Timeout', description: 'The request took too long.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+    return { title: 'Request timeout', description: 'The request took too long.', action: 'retry', actionLabel: 'Try again', technicalDetails: error.message };
   }
   if (error.status === 429) {
-    return { title: 'Too Many Requests', description: 'Please wait a moment and try again.', action: 'wait', actionLabel: 'Wait and Retry', technicalDetails: error.message };
+    return { title: 'Too many requests', description: 'Please wait a moment and try again.', action: 'wait', actionLabel: 'Wait and Retry', technicalDetails: error.message };
   }
-  return { title: 'Something Went Wrong', description: 'An unexpected error occurred.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message || JSON.stringify(error) };
+  return { title: 'Something went wrong', description: 'An unexpected error occurred.', action: 'retry', actionLabel: 'Try again', technicalDetails: error.message || JSON.stringify(error) };
 }
 
 export function getErrorCategory(error: ErrorLike): ErrorCategory {

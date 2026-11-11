@@ -2,25 +2,6 @@ import { logApiError } from '@/lib/apiErrorLogger'
 import { apiClient } from './client'
 
 export const documentService = {
-  /** Upload a document via Django multipart endpoint. */
-  upload: async (data: { file: File; fileType: string; applicationId: string }) => {
-    const formData = new FormData()
-    formData.append('file', data.file)
-    formData.append('application_id', data.applicationId)
-    formData.append('document_type', data.fileType)
-
-    try {
-      const result = await apiClient.request('/documents/upload/', {
-        method: 'POST',
-        body: formData
-      })
-      return result ?? null
-    } catch (err) {
-      logApiError('documents', '/documents/upload/', err)
-      throw err
-    }
-  },
-
   /**
    * Extract text from an uploaded document via Celery.
    *

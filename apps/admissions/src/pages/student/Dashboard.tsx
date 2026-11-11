@@ -392,7 +392,7 @@ export default function StudentDashboard() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('Student Dashboard', brandName)}
+        title={brandedPageTitle('Student dashboard', brandName)}
         description="View your application progress, pending actions, interview updates, and key admission milestones."
         path="/student/dashboard"
         siteName={brandName}
@@ -498,7 +498,7 @@ export default function StudentDashboard() {
                 loading={isRefreshing || isManualRefreshing}
               >
                 {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" aria-hidden="true" />}
-                {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
+                {(isRefreshing || isManualRefreshing) ? 'Refreshing…' : 'Refresh'}
               </Button>
             </div>
 

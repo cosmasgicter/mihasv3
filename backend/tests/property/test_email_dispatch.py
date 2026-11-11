@@ -21,7 +21,7 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.test import SimpleTestCase  # noqa: E402
+from django.test import SimpleTestCase, override_settings  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
@@ -215,6 +215,7 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
 
     @given(token=_tokens, email=_emails)
     @settings(max_examples=5, deadline=None)
+    @override_settings(FRONTEND_URL="https://apply.beanola.com")
     def test_reset_email_body_contains_token_and_base_url(self, token, email):
         """PasswordResetRequestView creates an email body containing the raw
         token and the base URL https://apply.beanola.com."""

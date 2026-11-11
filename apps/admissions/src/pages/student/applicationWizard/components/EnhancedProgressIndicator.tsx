@@ -7,17 +7,23 @@
  */
 
 import React, { useCallback, useRef } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { staggerChild } from '@/lib/animations';
-import type { WizardStepConfig } from '../steps/config';
+import type { StepKey, WizardStepConfig } from '../steps/config';
+import type { WizardStepState } from '../lib/wizardProgress';
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation';
 
 interface EnhancedProgressIndicatorProps {
   steps: WizardStepConfig[];
   currentStepIndex: number;
   onStepClick?: (stepIndex: number) => void;
-  completedSteps?: Set<number>;
+  /**
+   * Each step's state from the wizard's one readiness (task 26.1). A step is
+   * complete only when its items pass; a visited step with failing items is
+   * incomplete. There is no "every earlier step is complete" shortcut.
+   */
+  stepStates: Record<StepKey, WizardStepState>;
   progressPercentage?: number;
   className?: string;
   /**
@@ -39,6 +45,7 @@ interface StepItemProps {
   index: number;
   isActive: boolean;
   isCompleted: boolean;
+  isIncomplete: boolean;
   isCurrent: boolean;
   isClickable: boolean;
   onClick?: () => void;
@@ -52,6 +59,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   index,
   isActive,
   isCompleted,
+  isIncomplete,
   isCurrent,
   isClickable,
   onClick,
@@ -76,25 +84,32 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
         shouldAnimate && 'transition-transform duration-200  '
       )}
       style={shouldAnimate ? staggerChild(index, 100) : undefined}
-      aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+      aria-label={`Step ${step.id}: ${step.progressTitle}${isCurrent ? ' (current)' : isCompleted ? ' (completed)' : isIncomplete ? ' (incomplete)' : ''}`}
       aria-current={isCurrent ? 'step' : undefined}
     >
       {/* Step circle with icon */}
       <div
         className={cn(
           'relative rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-out z-10',
+          'text-base sm:text-sm font-semibold border-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-out z-10',
           isCompleted
             ? 'bg-success/90 border-success/70 text-white shadow-sm'
+            : isIncomplete && !isCurrent
+            ? 'bg-background border-warning text-foreground'
             : isCurrent
             ? 'bg-primary border-primary text-white  shadow-primary/25 scale-110'
-            : 'bg-background border-border/50 text-muted-foreground/60',
+            : 'bg-background border-border/50 text-muted-foreground',
         )}
         style={{ width: isCurrent ? '48px' : 'var(--touch-target, 44px)', height: isCurrent ? '48px' : 'var(--touch-target, 44px)' }}
       >
         {isCompleted ? (
           <CheckCircle
             className="transition-transform duration-300"
+            style={{ width: 'var(--icon-size, 20px)', height: 'var(--icon-size, 20px)' }}
+          />
+        ) : isIncomplete && !isCurrent ? (
+          <AlertTriangle
+            className="text-warning"
             style={{ width: 'var(--icon-size, 20px)', height: 'var(--icon-size, 20px)' }}
           />
         ) : (
@@ -112,9 +127,9 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       </div>
 
       {/* Step label */}
-      <div
+      <div data-text-role="caption"
         className={cn(
-          'mt-3 text-xs font-medium text-center leading-tight max-w-[100px]',
+          'mt-3 text-sm sm:text-xs font-medium text-center leading-tight max-w-[100px]',
           'transition-[color] duration-150',
           isCurrent ? 'text-primary font-semibold' : isActive ? 'text-foreground' : 'text-muted-foreground'
         )}
@@ -123,18 +138,25 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       </div>
 
       {/* Step number badge */}
-      <div
+      <div data-text-role="caption"
         className={cn(
-          'mt-1 text-[10px] font-medium transition-opacity duration-300',
+          'mt-1 text-sm sm:text-xs font-medium transition-opacity duration-300',
           isCurrent ? 'text-primary' : 'text-muted-foreground'
         )}
       >
-        Step {step.id} of {totalSteps}
+        {isIncomplete && !isCurrent ? (
+          <span className="inline-flex items-center gap-1 text-foreground">
+            <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+            Incomplete
+          </span>
+        ) : (
+          <>Step {step.id} of {totalSteps}</>
+        )}
       </div>
 
       {/* Click to return hint */}
       {isClickable && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary whitespace-nowrap">
+        <div data-text-role="caption" className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-sm sm:text-xs text-primary whitespace-nowrap">
           Click to return
         </div>
       )}
@@ -149,6 +171,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   index: _index,
   isActive,
   isCompleted,
+  isIncomplete,
   isCurrent,
   isClickable,
   onClick,
@@ -172,33 +195,35 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
         isClickable ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
         isCurrent && 'bg-primary/5'
       )}
-      aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+      aria-label={`Step ${step.id}: ${step.progressTitle}${isCurrent ? ' (current)' : isCompleted ? ' (completed)' : isIncomplete ? ' (incomplete)' : ''}`}
       aria-current={isCurrent ? 'step' : undefined}
     >
       {/* Step circle — 44px touch target */}
       <div
         className={cn(
           'w-11 h-11 rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 flex-shrink-0 transition-[color,background-color,border-color] duration-200',
+          'text-base sm:text-sm font-semibold border-2 flex-shrink-0 transition-[color,background-color,border-color] duration-200',
           isCompleted
             ? 'bg-success border-success text-white'
+            : isIncomplete && !isCurrent
+            ? 'bg-background border-warning text-foreground'
             : isCurrent
             ? 'bg-primary border-primary text-white ring-4 ring-primary/20'
             : 'bg-background border-border text-muted-foreground'
         )}
       >
-        {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+        {isCompleted ? <CheckCircle className="h-5 w-5" /> : isIncomplete && !isCurrent ? <AlertTriangle className="h-5 w-5 text-warning" /> : <Icon className="h-5 w-5" />}
       </div>
 
       {/* Step info */}
       <div className="flex-1 min-w-0 text-left">
         <div className={cn(
-          'text-sm font-semibold truncate',
+          'text-base sm:text-sm font-semibold truncate',
           isCurrent ? 'text-primary' : isActive ? 'text-foreground' : 'text-muted-foreground'
         )}>
           {step.progressTitle}
         </div>
-        <div className="text-xs text-caption mt-0.5">
+        <div data-text-role="caption" className="text-sm sm:text-xs text-caption mt-0.5">
           Step {step.id} of {totalSteps}
         </div>
       </div>
@@ -223,7 +248,7 @@ export const EnhancedProgressIndicator = ({
   steps,
   currentStepIndex,
   onStepClick,
-  completedSteps = new Set(),
+  stepStates,
   progressPercentage,
   className,
   compact = false,
@@ -267,6 +292,9 @@ export const EnhancedProgressIndicator = ({
     [steps.length]
   );
 
+  const incompleteTitles = steps
+    .filter((step, index) => index !== currentStepIndex && stepStates[step.key] === 'incomplete')
+    .map(step => step.progressTitle);
   const displayProgressPercentage = progressPercentage ?? ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
@@ -291,8 +319,9 @@ export const EnhancedProgressIndicator = ({
         >
           {steps.map((step, index) => {
             const isActive = index <= currentStepIndex;
-            const isCompleted = index < currentStepIndex || completedSteps.has(index);
             const isCurrent = index === currentStepIndex;
+            const isCompleted = !isCurrent && stepStates[step.key] === 'complete';
+            const isIncomplete = stepStates[step.key] === 'incomplete';
             const isClickable = index < currentStepIndex;
 
             return (
@@ -303,6 +332,7 @@ export const EnhancedProgressIndicator = ({
                 index={index}
                 isActive={isActive}
                 isCompleted={isCompleted}
+                isIncomplete={isIncomplete}
                 isCurrent={isCurrent}
                 isClickable={isClickable}
                 onClick={() => handleStepClick(index)}
@@ -356,8 +386,9 @@ export const EnhancedProgressIndicator = ({
           data-orientation="horizontal"
         >
           {steps.map((step, index) => {
-            const isCompleted = index < currentStepIndex || completedSteps.has(index);
             const isCurrent = index === currentStepIndex;
+            const isCompleted = !isCurrent && stepStates[step.key] === 'complete';
+            const isIncomplete = stepStates[step.key] === 'incomplete';
             const isClickable = index < currentStepIndex;
             const Icon = step.icon;
 
@@ -386,13 +417,17 @@ export const EnhancedProgressIndicator = ({
                       ? 'bg-primary text-white ring-2 ring-primary/40 ring-offset-2 ring-offset-card shadow-primary/25'
                       : isCompleted
                       ? 'bg-success/90 text-white'
-                      : 'bg-muted border border-border/50 text-muted-foreground/60'
+                      : isIncomplete
+                      ? 'bg-background border-2 border-warning text-foreground'
+                      : 'bg-muted border border-border/50 text-muted-foreground'
                   )}
-                  aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+                  aria-label={`Step ${step.id}: ${step.progressTitle}${isCurrent ? ' (current)' : isCompleted ? ' (completed)' : isIncomplete ? ' (incomplete)' : ''}`}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
                   {isCompleted ? (
                     <CheckCircle className="h-5 w-5" />
+                  ) : isIncomplete ? (
+                    <AlertTriangle className="h-5 w-5 text-warning" />
                   ) : (
                     <Icon className={cn(isCurrent ? 'h-5 w-5' : 'h-4 w-4')} />
                   )}
@@ -401,9 +436,15 @@ export const EnhancedProgressIndicator = ({
             );
           })}
         </div>
+        {incompleteTitles.length > 0 && (
+          <p data-text-role="caption" className="mt-1 flex items-center justify-center gap-1.5 text-sm sm:text-xs text-foreground">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
+            <span>Incomplete: {incompleteTitles.join(', ')}</span>
+          </p>
+        )}
         {/* Current step label */}
         {!compact && (
-          <p className="text-center text-sm font-semibold text-primary mt-2">
+          <p className="text-center text-base sm:text-sm font-semibold text-primary mt-2">
             {steps[currentStepIndex]?.progressTitle}
             <span className="text-muted-foreground font-normal ml-1.5">
               — Step {currentStepIndex + 1} of {steps.length}
@@ -415,8 +456,8 @@ export const EnhancedProgressIndicator = ({
       {/* Overall progress bar (mobile only) */}
       {!compact && (
         <div className="md:hidden mt-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>Overall Progress</span>
+          <div data-text-role="caption" className="flex items-center justify-between text-sm sm:text-xs text-muted-foreground mb-1">
+            <span>Overall progress</span>
             <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
           </div>
           <div className="h-2 bg-border rounded-full overflow-hidden">

@@ -97,7 +97,7 @@ describe('Not found page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('404')
-    expect(text).toContain('Page Not Found')
+    expect(text).toContain('Page not found')
   })
 
   it('displays the attempted path', async () => {
@@ -125,7 +125,7 @@ describe('Not found page verification', () => {
   it('renders a go-back button', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Go Back')
+    expect(text).toContain('Go back')
   })
 
   // ── Suggested pages for unauthenticated users ───────────────────────
@@ -136,7 +136,7 @@ describe('Not found page verification', () => {
     const text = container.textContent || ''
     expect(text).toContain('You might be looking for')
     expect(text).toContain('Home')
-    expect(text).toContain('Track Application')
+    expect(text).toContain('Track application')
   })
 
   // ── Suggested pages for student-like paths ──────────────────────────
@@ -145,7 +145,7 @@ describe('Not found page verification', () => {
     mockLocation.pathname = '/student/nonexistent/page'
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('My Dashboard')
+    expect(text).toContain('My dashboard')
   })
 
   // ── Suggested pages for admin-like paths ────────────────────────────
@@ -154,7 +154,7 @@ describe('Not found page verification', () => {
     mockLocation.pathname = '/admin/nonexistent/page'
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Admin Dashboard')
+    expect(text).toContain('Admin dashboard')
   })
 
   // ── Help text ───────────────────────────────────────────────────────

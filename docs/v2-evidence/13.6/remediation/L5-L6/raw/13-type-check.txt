@@ -1,3 +1,0 @@
-]633;E;echo "=== bun run type-check  (tsconfig.build.json — the app's own gate) ===";25bd0a51-1aa3-40e6-a43f-95c2f44c43df]633;C=== bun run type-check  (tsconfig.build.json — the app's own gate) ===
-$ tsc -p tsconfig.build.json --noEmit
-type-check exit=0

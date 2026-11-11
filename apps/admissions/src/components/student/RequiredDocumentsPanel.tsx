@@ -30,11 +30,13 @@ import {
 
 import { Button } from '@/components/ui/Button'
 import { FileUpload } from '@/components/ui/FileUpload'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { DOCUMENT_STATE_PRESENTATION } from '@/lib/documentStatePresentation'
 import { documentOpenHref } from '@/lib/documentOpen'
 import {
   acceptAttribute,
-  constraintHint,
   formatConstraintSize,
+  uploadRulesText,
   rejectionForDropzoneCode,
   type RequiredDocumentRequirement,
 } from '@/lib/requiredDocuments'
@@ -64,56 +66,41 @@ export interface RequiredDocumentsPanelProps {
 }
 
 type StatusTone = 'verified' | 'uploaded' | 'uploading' | 'removing' | 'failed' | 'missing'
-
-const STATUS_STYLES: Record<StatusTone, string> = {
-  verified: 'border-success/30 bg-success/5 text-success',
-  uploaded: 'border-success/30 bg-success/5 text-success',
+/** Transient, client-side states. The persisted ones come from the shared map. */
+const TRANSIENT_STYLES: Record<'uploading' | 'removing' | 'failed', string> = {
   uploading: 'border-primary/30 bg-primary/5 text-primary',
   removing: 'border-primary/30 bg-primary/5 text-primary',
   failed: 'border-destructive/30 bg-destructive/5 text-destructive',
-  missing: 'border-border bg-muted text-muted-foreground',
 }
-
-const STATUS_LABELS: Record<StatusTone, string> = {
-  verified: 'Verified',
-  uploaded: 'Uploaded',
+const TRANSIENT_LABELS: Record<'uploading' | 'removing' | 'failed', string> = {
   uploading: 'Uploading',
   removing: 'Removing',
   failed: 'Needs retry',
-  missing: 'Not added',
 }
-
 function StatusPill({ tone }: { tone: StatusTone }) {
-  const Icon =
-    tone === 'verified'
-      ? ShieldCheck
-      : tone === 'uploaded'
-        ? CheckCircle2
-        : tone === 'uploading' || tone === 'removing'
-          ? Loader2
-          : tone === 'failed'
-            ? AlertCircle
-            : FileText
-
+  // Missing, uploaded and verified read the one document-state map (task 26.5).
+  if (tone === 'missing' || tone === 'uploaded' || tone === 'verified') {
+    const presentation = DOCUMENT_STATE_PRESENTATION[tone]
+    return (
+      <StatusBadge label={presentation.label} tone={presentation.tone} icon={presentation.icon} size="sm" />
+    )
+  }
+  const Icon = tone === 'failed' ? AlertCircle : Loader2
   return (
-    <span
+    <span data-text-role="caption"
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold',
-        STATUS_STYLES[tone],
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm sm:text-xs font-semibold',
+        TRANSIENT_STYLES[tone],
       )}
     >
       <Icon
-        className={cn(
-          'h-3.5 w-3.5',
-          (tone === 'uploading' || tone === 'removing') && 'animate-spin',
-        )}
+        className={cn('h-3.5 w-3.5', tone !== 'failed' && 'animate-spin')}
         aria-hidden="true"
       />
-      {STATUS_LABELS[tone]}
+      {TRANSIENT_LABELS[tone]}
     </span>
   )
 }
-
 function toneFor(
   requirement: RequiredDocumentRequirement,
   state: RequiredDocumentUploadState | undefined,
@@ -174,29 +161,29 @@ function RequirementRow({
     <div className="flex h-full flex-col gap-3 border-t border-border/60 pt-4 first:border-t-0 first:pt-0 md:border-t-0 md:pt-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h4 className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground">
             {requirement.label}
             {!requirement.required && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">(optional)</span>
+              <span data-text-role="caption" className="ml-2 text-sm sm:text-xs font-normal text-muted-foreground">(optional)</span>
             )}
-          </h4>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {requirement.description ? `${requirement.description} ` : ''}
-            {constraintHint(requirement)}.
-          </p>
+          </h3>
+          {requirement.description && (
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">{requirement.description}</p>
+          )}
         </div>
         <StatusPill tone={tone} />
       </div>
 
       {showStoredSummary ? (
-        <div className="flex flex-1 flex-col gap-2 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
+        <div className="flex flex-1 flex-col gap-2 rounded-lg bg-success/10 p-4 text-base sm:text-sm text-foreground">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            {/* Label in text-foreground; the tone is the tint and the icon (R18.2). */}
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
             <div className="min-w-0">
               <p className="font-medium">
                 {requirement.state === 'verified' ? 'Verified by the admissions team' : 'Saved'}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-base sm:text-sm text-muted-foreground">
                 {documentName ?? 'Uploaded document'}
                 {documentSize ? ` · ${formatConstraintSize(documentSize)}` : ''}
               </p>
@@ -207,7 +194,7 @@ function RequirementRow({
                 upload is still on file (R11.7-R11.8).
               */}
               {(storedVersion !== null || preservedVersions > 0) && (
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
                   {storedVersion !== null ? `Version ${storedVersion}` : null}
                   {storedVersion !== null && preservedVersions > 0 ? ' · ' : null}
                   {preservedVersions > 0
@@ -271,6 +258,7 @@ function RequirementRow({
           <FileUpload
             label={`Upload ${requirement.label}`}
             accept={acceptAttribute(requirement)}
+            rulesText={uploadRulesText(requirement)}
             maxSize={requirement.maxSizeBytes}
             value={state?.file ?? null}
             uploading={state?.status === 'uploading'}
@@ -322,7 +310,7 @@ function RequirementRow({
             rather than destroyed (R11.8).
           */}
           {preservedVersions > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-base sm:text-sm text-muted-foreground">
               {preservedVersions} earlier {preservedVersions === 1 ? 'version' : 'versions'} kept on
               file.
             </p>
@@ -423,7 +411,7 @@ export function RequiredDocumentsPanel({
   if (loading) {
     return (
       <div className={cn('space-y-3', className)} aria-busy="true">
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2 text-base sm:text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           Loading the documents this application needs…
         </p>
@@ -444,7 +432,7 @@ export function RequiredDocumentsPanel({
       >
         <div className="flex items-start gap-2.5">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
-          <p className="text-sm text-destructive">{contractError}</p>
+          <p className="text-base sm:text-sm text-destructive">{contractError}</p>
         </div>
         {contractErrorRetryable && onReload && (
           <Button
@@ -464,7 +452,7 @@ export function RequiredDocumentsPanel({
 
   if (requirements.length === 0) {
     return (
-      <p className={cn('text-sm text-muted-foreground', className)}>
+      <p className={cn('text-base sm:text-sm text-muted-foreground', className)}>
         No documents are required for this application.
       </p>
     )
@@ -483,13 +471,13 @@ export function RequiredDocumentsPanel({
           aria-live="assertive"
           className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+          <p className="flex items-center gap-2 text-base sm:text-sm font-medium text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             {failures.length === 1
               ? '1 document needs your attention'
               : `${failures.length} documents need your attention`}
           </p>
-          <ul className="mt-1.5 space-y-1 pl-6 text-xs text-destructive">
+          <ul data-text-role="caption" className="mt-1.5 space-y-1 pl-6 text-sm sm:text-xs text-destructive">
             {failures.map((entry) => (
               <li key={entry.requirement.documentType}>
                 <span className="font-medium">{entry.requirement.label}:</span>{' '}

@@ -36,7 +36,7 @@ describe('resolveTenantNavItem', () => {
     expect(item?.icon).toBe(Building2)
   })
 
-  it('R13.2: a tenant-admin with tenant.profile.read sees the "My School" item', () => {
+  it('R13.2: a tenant-admin with tenant.profile.read sees the "My school" item', () => {
     const item = resolveTenantNavItem(
       caps({
         isTenantAdmin: true,
@@ -44,7 +44,7 @@ describe('resolveTenantNavItem', () => {
       }),
     )
     expect(item).not.toBeNull()
-    expect(item?.label).toBe('My School')
+    expect(item?.label).toBe('My school')
     expect(item?.to).toBe(TENANT_NAV_PATH)
     expect(item?.icon).toBe(School)
   })
@@ -59,7 +59,7 @@ describe('resolveTenantNavItem', () => {
   })
 
   it('super-admin takes precedence over the tenant-admin branch', () => {
-    // A super-admin must always get the platform management item, never "My School".
+    // A super-admin must always get the platform management item, never "My school".
     const item = resolveTenantNavItem(
       caps({ isSuperAdmin: true, isTenantAdmin: true, can: () => true }),
     )

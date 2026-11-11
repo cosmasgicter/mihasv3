@@ -466,12 +466,9 @@ class AssignmentPreviewView(APIView):
                     nationality,
                     country,
                 )
-                fee_data = {
-                    "amount": str(resolved_fee.amount),
-                    "currency": resolved_fee.currency,
-                    "residency_category": resolved_fee.residency_category,
-                    "source": resolved_fee.source,
-                }
+                from apps.documents.fee_quote_service import fee_preview_payload
+
+                fee_data = fee_preview_payload(resolved_fee)
             except FeeConfigurationError as exc:
                 # Task 5.4 (R7.5, design §6.2): the offering has no unique active
                 # fee for this residency path. Fail closed AND name the readiness

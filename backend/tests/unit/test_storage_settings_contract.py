@@ -1,11 +1,11 @@
-"""R1 exploration: the local-test stack declares object storage, and the new
-storage settings parse and are bounded.
+"""R1 exploration: the new storage settings parse and are bounded.
 
 Spec: student-journey-repair task 1.1, clause 1.1 (design R1-a).
-
-Static checks only: the compose file is parsed (not started), and the two new
-settings are exercised by importing ``config.settings.base`` in a subprocess
-with controlled variables, because they are read at import time.
+The two settings are exercised by importing ``config.settings.base`` in a subprocess
+with controlled variables, because they are read at import time. The assertions that
+parsed ``backend/docker-compose.local-test.yml`` went with that file (platform-
+simplification task 11.2): the documented local stack is the harness, whose storage
+the journey gate checks with ``storage_roundtrip_check --expect-private``.
 """
 from __future__ import annotations
 
@@ -15,37 +15,8 @@ import sys
 from pathlib import Path
 
 import pytest
-import yaml
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
-COMPOSE = BACKEND_DIR / "docker-compose.local-test.yml"
-S3_NAMES = {"S3_ENDPOINT_URL", "S3_BUCKET", "S3_ACCESS_KEY", "S3_SECRET_KEY"}
-
-
-def _compose() -> dict:
-    return yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
-
-
-def _environment(service: dict) -> dict[str, str]:
-    env = service.get("environment") or {}
-    if isinstance(env, list):
-        return dict(item.split("=", 1) for item in env if "=" in item)
-    return {k: str(v) for k, v in env.items()}
-
-
-def test_local_test_compose_declares_a_minio_service():
-    services = _compose()["services"]
-    minio = [
-        name for name, svc in services.items() if "minio" in str(svc.get("image", "")) and "client" not in str(svc.get("image", ""))
-    ]
-    assert minio, "docker-compose.local-test.yml has no MinIO service; uploads cannot be stored"
-
-
-@pytest.mark.parametrize("service", ["web", "celery"])
-def test_web_and_celery_receive_storage_settings(service):
-    env = _environment(_compose()["services"][service])
-    missing = sorted(S3_NAMES - {k for k, v in env.items() if v.strip()})
-    assert not missing, f"{service} has no value for {missing}"
 
 
 def _settings_probe(**overrides: str) -> subprocess.CompletedProcess:

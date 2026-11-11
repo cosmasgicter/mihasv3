@@ -31,17 +31,17 @@ export const DECISIONED_APPLICATION_STATUSES = [
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   draft: 'Draft',
   submitted: 'Submitted',
-  under_review: 'Under Review',
+  under_review: 'Under review',
   approved: 'Approved',
-  conditionally_approved: 'Conditionally Approved',
+  conditionally_approved: 'Conditionally approved',
   rejected: 'Rejected',
   waitlisted: 'Waitlisted',
   withdrawn: 'Withdrawn',
   expired: 'Expired',
   enrolled: 'Enrolled',
-  enrollment_expired: 'Enrollment Expired'
+  enrollment_expired: 'Enrollment expired'
 }
 
 export const formatApplicationStatus = (status: ApplicationStatus | string): string => {
-  return APPLICATION_STATUS_LABELS[status as ApplicationStatus] ?? status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return APPLICATION_STATUS_LABELS[status as ApplicationStatus] ?? status.replace(/_/g, ' ').replace(/^\w/, char => char.toUpperCase())
 }

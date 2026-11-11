@@ -14,9 +14,9 @@
  *
  * | View | Owns |
  * |---|---|
- * | `WizardProgressSummary` | where the student is, and the **platform's** current blockers (task 6.5) |
+ * | `WizardProgressSummary` | where the student is: one row, "Step 4 of 6 · 62%" |
  * | `WizardStepRenderer` | the current step, one branch per state of the machine |
- * | `WizardContextPanel` | the checklist and context — on **every** viewport, not only `lg` |
+ * | `WizardStillNeeded` | the one "Still needed" list and the **platform's** current blockers (task 6.5) — on **every** viewport |
  * | `WizardActionBar` | the one anchored bottom surface: back, forward/submit, and draft state |
  * | `WizardDraftPicker` | one draft list with continue / rename / delete, used by the choice screen and by "switch draft" |
  *
@@ -51,7 +51,7 @@
  * it. See `lib/wizardStepDeepLink.ts` for why an out-of-reach request lands on the
  * checkpoint and says so rather than being followed or silently dropped.
  */
-import { AlertCircle, ArrowLeft, FilePlus2, FileText } from "lucide-react";
+import { AlertCircle, ArrowLeft, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   useEffect,
@@ -82,13 +82,12 @@ import {
   type WizardValidationError,
 } from "./components/WizardErrorSummary";
 import { WizardActionBar } from "./components/WizardActionBar";
-import { WizardContextPanel } from "./components/WizardContextPanel";
+import { WizardStillNeeded } from "./components/WizardStillNeeded";
 import { WizardDraftPicker } from "./components/WizardDraftPicker";
 import { WizardProgressSummary } from "./components/WizardProgressSummary";
 import { WizardStepRenderer } from "./components/WizardStepRenderer";
 import useWizardController from "./hooks/useWizardController";
 import { useStepValidation } from "./hooks/useStepValidation";
-import { useOverallProgress } from "./hooks/useOverallProgress";
 import { useSmartAutoSave } from "./hooks/useSmartAutoSave";
 import { deriveWizardPageSaveView } from "./lib/pageSaveView";
 import { useWizardReadiness } from "./hooks/useWizardReadiness";
@@ -106,7 +105,13 @@ import {
   documentReviewChecks,
   documentValidationFields,
 } from "./lib/requiredDocumentSurfaces";
-import { buildWizardChecklist } from "./lib/wizardChecklist";
+import { focusWizardField } from "./lib/wizardFieldFocus";
+import {
+  buildStepStates,
+  progressPercent as progressPercentOf,
+  recordContinueAttempt,
+  shouldShowIncompleteAlert,
+} from "./lib/wizardProgress";
 import { collectWizardValidationErrors } from "./lib/wizardValidationErrors";
 import { resolveWizardDeepLinkStep } from "./lib/wizardStepDeepLink";
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
@@ -226,14 +231,6 @@ const ApplicationWizardContent = () => {
     uploading,
     assignmentResolved,
   });
-  const overallProgress = useOverallProgress(form, {
-    selectedGrades,
-    uploadedFiles,
-    hasResultSlipFile: Boolean(resultSlipFile),
-    hasIdentityFile: Boolean(extraKycFile),
-    paymentStatus,
-    confirmSubmission,
-  });
   const { shouldAnimate } = useOptimizedAnimation();
   const isOnline = useIsOnline();
   const keyboardOpen = useKeyboardOpen();
@@ -246,14 +243,12 @@ const ApplicationWizardContent = () => {
       return {
         label: "New application",
         description: "Saved drafts will not be restored into this application.",
-        className: "border-primary/20 bg-primary/5 text-primary",
       };
     }
     if (draftIntent.mode === "resume") {
       return {
         label: "Resuming draft",
         description: "Only the selected saved draft is loaded in this session.",
-        className: "border-success/25 bg-success/5 text-foreground",
       };
     }
     if (draftIntent.mode === "local" || isLocalDraftIntent) {
@@ -261,13 +256,11 @@ const ApplicationWizardContent = () => {
         label: "Local draft",
         description:
           "Your browser draft is being continued without clearing local progress.",
-        className: "border-warning/25 bg-warning/5 text-warning",
       };
     }
     return {
       label: applicationId ? "Draft in progress" : "Application in progress",
       description: "Autosave is active while you complete the application.",
-      className: "border-border bg-muted/50 text-foreground",
     };
   })();
   const draftChoices = (draftApplications?.applications ?? []) as Array<{
@@ -288,7 +281,7 @@ const ApplicationWizardContent = () => {
   const isPaymentStepActive = currentStepConfig.key === "payment";
   const isPaymentInProgress =
     isPaymentStepActive && paymentStatus === "pending";
-  const nextButtonLabel = loading ? "Saving step..." : "Next Step";
+  const nextButtonLabel = loading ? "Saving step…" : "Next step";
   // The view over the draft machine. `enabled` is the autosave gate only: edits
   // made while it is closed are recorded and written when it opens.
   const smartAutoSave = useSmartAutoSave({
@@ -322,7 +315,18 @@ const ApplicationWizardContent = () => {
     void draftMachine.flush();
   }, [draftMachine]);
 
-  const progressPercent = overallProgress.percentage;
+  // One readiness drives the percentage and the stepper (task 26.1, R14.1, R14.2).
+  const progressPercent = progressPercentOf(wizardReadiness);
+  const [highestStepIndex, setHighestStepIndex] = useState(currentStepIndex);
+  useEffect(() => {
+    setHighestStepIndex((highest) => Math.max(highest, currentStepIndex));
+  }, [currentStepIndex]);
+  const stepStates = buildStepStates(
+    wizardReadiness,
+    wizardSteps.map((step) => step.key),
+    currentStepIndex,
+    highestStepIndex,
+  );
 
   /**
    * The platform's current blockers (task 6.5, R16.1).
@@ -542,10 +546,19 @@ const ApplicationWizardContent = () => {
   }, [success, goToStep]);
 
   // Track step direction for transitions
+  // Steps where the student pressed Next while the step was incomplete. The
+  // "still incomplete" alert reads this, so it never greets a student who has
+  // only arrived (task 26.2, R14.4). In memory only: nothing about it is saved.
+  const [continueAttemptedSteps, setContinueAttemptedSteps] = useState<
+    ReadonlySet<StepKey>
+  >(() => new Set());
   const wrappedHandleNextStep = useCallback(() => {
     setStepDirection("forward");
+    setContinueAttemptedSteps((attempted) =>
+      recordContinueAttempt(attempted, currentStepConfig.key, stepValidation.isValid),
+    );
     void handleNextStep();
-  }, [handleNextStep]);
+  }, [handleNextStep, stepValidation.isValid, currentStepConfig.key]);
 
   const wrappedHandlePrevStep = useCallback(() => {
     setStepDirection("backward");
@@ -651,38 +664,9 @@ const ApplicationWizardContent = () => {
     );
   }, [validationErrors, currentStepIndex, currentStepConfig.title]);
 
-  const checklistItems = useMemo(
-    () =>
-      buildWizardChecklist({
-        stepKey: currentStepConfig.key,
-        values: (() => {
-          try {
-            return typeof form?.watch === "function"
-              ? ((form.watch() as Record<string, unknown>) ?? {})
-              : {};
-          } catch {
-            return {};
-          }
-        })(),
-        selectedGrades,
-        assignmentResolved,
-        confirmSubmission,
-        paymentStatus,
-        requiredDocumentsContract: requiredDocuments.contract,
-        legacyDocumentState,
-      }),
-    [
-      currentStepConfig.key,
-      form,
-      selectedGrades,
-      assignmentResolved,
-      confirmSubmission,
-      paymentStatus,
-      requiredDocuments.contract,
-      legacyDocumentState,
-    ],
-  );
-
+  // The current step's failing items from the wizard's one readiness (task 25.2).
+  const stillNeededItems =
+    wizardReadiness.stepProgressByKey[currentStepConfig.key]?.missingItems ?? [];
   // Keyboard shortcuts
   useEffect(() => {
     if (success) {
@@ -853,7 +837,6 @@ const ApplicationWizardContent = () => {
         />
         <PageShell
           title="Choose an application"
-          eyebrow="Application Flow"
           subtitle="Continue a saved draft or begin a clean application."
           maxWidth="4xl"
           tone="application"
@@ -896,9 +879,8 @@ const ApplicationWizardContent = () => {
         noindex
       />
       <PageShell
-        title="Student Application"
-        eyebrow="Application Flow"
-        subtitle={`Complete ${totalSteps} steps with autosave. You can leave and come back at any time.`}
+        title={currentStepConfig.title}
+        subtitle={currentStepConfig.instruction}
         maxWidth="full"
         tone="application"
         className={shouldAnimate ? "animate-fade-in" : ""}
@@ -909,7 +891,8 @@ const ApplicationWizardContent = () => {
         </div>
 
         <Container size="md" className="space-y-4 pb-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* On a phone the app bar's back arrow does this job (task 25.1). */}
+          <div className="hidden md:block">
             <button
               type="button"
               onClick={() => {
@@ -918,23 +901,13 @@ const ApplicationWizardContent = () => {
               className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back to Dashboard
+              Back to dashboard
             </button>
-            <span
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${wizardModeSummary.className}`}
-              role="status"
-              aria-live="polite"
-              data-testid="wizard-mode-summary"
-              title={wizardModeSummary.description}
-            >
-              {wizardModeSummary.label}
-            </span>
           </div>
-
           {!isOnline && (
             <div
               role="alert"
-              className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-foreground"
+              className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-base sm:text-sm text-foreground"
             >
               You appear to be offline. Your progress is saved on this device
               and will sync when you reconnect.
@@ -952,21 +925,16 @@ const ApplicationWizardContent = () => {
           <WizardProgressSummary
             stepNumber={currentStepIndex + 1}
             totalSteps={totalSteps}
-            stepTitle={currentStepConfig.title}
-            stepDescription={currentStepConfig.description}
+            modeLabel={wizardModeSummary.label}
+            modeDescription={wizardModeSummary.description}
             percentComplete={progressPercent}
-            blockers={serverReadiness.blockers}
-            readinessLoading={serverReadiness.isLoading}
-            readinessUnavailable={serverReadiness.unavailable}
-            canSubmit={serverReadiness.canSubmit}
-            notEvaluatedYet={!applicationId}
-            onRetryReadiness={serverReadiness.refetch}
           />
 
           <EnhancedProgressIndicator
             steps={wizardSteps}
             currentStepIndex={currentStepIndex}
             onStepClick={handleProgressStepClick}
+            stepStates={stepStates}
             progressPercentage={progressPercent}
             compact
           />
@@ -1016,7 +984,7 @@ const ApplicationWizardContent = () => {
                         goToStep(getStepIndexByKey("program"));
                       }}
                     >
-                      Change program
+                      Change programme
                     </Button>
                   )}
                   {(error.toLowerCase().includes("network") ||
@@ -1050,9 +1018,11 @@ const ApplicationWizardContent = () => {
             </Alert>
           )}
 
-          {!stepValidation.isValid &&
-            !isLastStep &&
-            stepValidation.completedFields > 0 && (
+          {shouldShowIncompleteAlert(
+            continueAttemptedSteps,
+            currentStepConfig.key,
+            stepValidation.isValid,
+          ) && (
               <Alert variant="warning" className="animate-slide-up">
                 <div className="flex-1">
                   <AlertTitle className="text-foreground">
@@ -1062,7 +1032,7 @@ const ApplicationWizardContent = () => {
                     Complete the remaining items before continuing.
                   </AlertDescription>
                   {stepValidation.missingFields.length > 0 && (
-                    <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                    <ul data-text-role="caption" className="mt-2 list-disc space-y-1 pl-4 text-sm sm:text-xs text-muted-foreground">
                       {stepValidation.missingFields.map((field, idx) => (
                         <li key={idx}>{field}</li>
                       ))}
@@ -1100,12 +1070,13 @@ const ApplicationWizardContent = () => {
                 <div
                   key={stepKey}
                   ref={stepContentRef}
+                  data-wizard-form-region
                   tabIndex={-1}
                   className={`outline-none ${stepDirection === "forward" ? "wizard-step-forward" : "wizard-step-backward"}`}
                 >
                   {uploading && currentStepConfig.key !== "education" && (
                     <div
-                      className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary"
+                      className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-base sm:text-sm text-primary"
                       role="status"
                     >
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/40 border-t-primary motion-reduce:animate-none" />
@@ -1165,82 +1136,36 @@ const ApplicationWizardContent = () => {
             </div>
 
             {/*
-              One instance, two placements (R16.1, STU-03). CSS grid puts this column
-              beside the form at `lg` and after it on a phone, so the checklist,
-              the application preview and the draft list are in the DOM at **every**
-              width — where before they were inside `hidden lg:block` and a phone had
-              no way to reach them at all. Rendering the panel twice (`lg:hidden` plus
-              `hidden lg:block`) would duplicate every heading for a screen reader,
-              which is why the mobile/desktop difference lives inside the panel as a
-              disclosure rather than out here as two copies.
+              One instance, two placements (R16.1, STU-03; task 25.2). CSS grid puts
+              this column beside the form at `lg` and after it on a phone. It is one
+              "Still needed" list (the current step's failing readiness items, the
+              platform's own check, and the two draft commands), not four rails.
+
+              Switching applications stays a **navigation**, not a second draft
+              subscription (R10.2): embedding `WizardDraftPicker` here put a second
+              reader of draft state next to the one machine that owns it
+              (`docs/v2-evidence/11.2/raw/harness-experiment-no-picker.txt`). The
+              commands are links to the chooser, where the full picker lives with no
+              wizard form mounted beside it.
             */}
-            <aside
-              className="space-y-4 lg:col-span-1"
-              aria-label="Application context"
-            >
+            <aside className="space-y-4 lg:col-span-1" aria-label="Still needed">
               <div className="space-y-4 lg:sticky lg:top-6">
-                <WizardContextPanel
-                  form={form}
-                  stepKey={currentStepConfig.key}
-                  checklistItems={checklistItems}
-                  programName={selectedProgramDetails?.name}
-                  intakeName={
-                    intakes.find((intake) => intake.id === form.watch("intake"))
-                      ?.name
-                  }
+                <WizardStillNeeded
+                  items={stillNeededItems}
+                  onGoToField={focusWizardField}
+                  onSwitchApplication={() => {
+                    void handleSwitchApplication();
+                  }}
+                  onStartNew={() => {
+                    void handleStartAnother();
+                  }}
+                  blockers={serverReadiness.blockers}
+                  readinessLoading={serverReadiness.isLoading}
+                  readinessUnavailable={serverReadiness.unavailable}
+                  canSubmit={serverReadiness.canSubmit}
+                  notEvaluatedYet={!applicationId}
+                  onRetryReadiness={serverReadiness.refetch}
                 />
-                {/*
-                  Switching applications is a **navigation**, not a second draft
-                  subscription (R10.2).
-
-                  The first version of this recomposition embedded the whole
-                  `WizardDraftPicker` here, and the browser characterisation caught
-                  what that costs: `useMultiDraft` re-lists the student's drafts on
-                  every draft-store revision, so mounting it *inside* the wizard put a
-                  second reader of draft state next to the one state machine that owns
-                  it — and on the mobile project a manual save then came back with the
-                  profile's town instead of the one the student had just typed, with
-                  two other typed fields wiped. A controlled run with this block
-                  removed passed the same journey in 19 s
-                  (`docs/v2-evidence/11.2/raw/harness-experiment-no-picker.txt`).
-                  R10.2 already names the rule this broke: one state machine owns
-                  hydration and edits, and everything else is a pure adapter or view.
-
-                  So the command survives on every viewport — which is what R16.1
-                  requires — as a link to the chooser, where the full picker
-                  (continue / rename / delete) lives with no wizard form mounted
-                  beside it.
-                */}
-                <SectionCard title="Your applications" padding="sm">
-                  <p className="text-sm text-muted-foreground">
-                    Your other saved applications are untouched while you work
-                    on this one.
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-touch w-full justify-start"
-                      onClick={() => {
-                        void handleSwitchApplication();
-                      }}
-                    >
-                      <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
-                      Switch application
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="min-h-touch w-full justify-start"
-                      onClick={() => {
-                        void handleStartAnother();
-                      }}
-                    >
-                      <FilePlus2 className="h-4 w-4 mr-2" aria-hidden="true" />
-                      Start a new application
-                    </Button>
-                  </div>
-                </SectionCard>
               </div>
             </aside>
           </div>

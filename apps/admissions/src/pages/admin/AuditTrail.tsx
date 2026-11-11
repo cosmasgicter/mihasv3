@@ -66,7 +66,7 @@ const ENTITY_OPTIONS = [
   { value: 'applications', label: 'Applications' },
   { value: 'profiles', label: 'Profiles' },
   { value: 'users', label: 'Users' },
-  { value: 'programs', label: 'Programs' },
+  { value: 'programs', label: 'Programmes' },
   { value: 'institutions', label: 'Institutions' },
   { value: 'payments', label: 'Payments' },
   { value: 'documents', label: 'Documents' },
@@ -458,7 +458,7 @@ export default function AuditTrailPage() {
         noindex
       />
     <PageShell
-      title="Audit Trail"
+      title="Audit trail"
       eyebrow="Traceability"
       subtitle="Review real operational history across authentication, application management, settings, and staff actions."
       maxWidth="7xl"

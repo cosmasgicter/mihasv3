@@ -37,7 +37,7 @@ export function WithdrawDialog({ open, onOpenChange, reason, onReasonChange, onC
             This action cannot be undone. Your application will be permanently withdrawn.
           </AlertDialogDescription>
           <div className="mt-4">
-            <label htmlFor="withdrawal-reason" className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="withdrawal-reason" className="block text-base sm:text-sm font-medium text-foreground mb-1">
               Reason for withdrawal (min 10 characters)
             </label>
             <textarea
@@ -47,13 +47,13 @@ export function WithdrawDialog({ open, onOpenChange, reason, onReasonChange, onC
               rows={3}
               minLength={10}
               maxLength={500}
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Please explain why you are withdrawing this application..."
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="Please explain why you are withdrawing this application…"
             />
-            <p className="text-xs text-muted-foreground mt-1">{reason.length}/10 characters minimum</p>
+            <p className="text-base sm:text-sm text-muted-foreground mt-1">{reason.length}/10 characters minimum</p>
           </div>
           {error && (
-            <p className="text-sm text-destructive mt-3">{error}</p>
+            <p className="text-base sm:text-sm text-destructive mt-3">{error}</p>
           )}
         </div>
         <AlertDialogFooter className="p-6">
@@ -101,7 +101,7 @@ export function EnrollDialog({ open, onOpenChange, onConfirm, isPending, error }
             Are you sure you want to confirm your enrollment? This action cannot be undone.
           </AlertDialogDescription>
           {error && (
-            <p className="text-sm text-destructive mt-3">{error}</p>
+            <p className="text-base sm:text-sm text-destructive mt-3">{error}</p>
           )}
         </div>
         <AlertDialogFooter className="p-6">

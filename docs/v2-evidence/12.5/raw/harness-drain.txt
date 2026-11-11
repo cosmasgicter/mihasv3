@@ -1,5 +1,0 @@
-]633;E;echo "\\$ harness drain";8aef558c-1d8f-4210-92a7-ff27c41447de]633;C$ harness drain
-[36m[harness][0m asserting required background jobs drained
-  queue-depth: {"broker_queue_depth": 0, "celery_queues": ["celery"], "unsettled_payment_collections": 0, "unsettled_references": []}
-[harness] ✓ no undrained required jobs
-EXIT=0

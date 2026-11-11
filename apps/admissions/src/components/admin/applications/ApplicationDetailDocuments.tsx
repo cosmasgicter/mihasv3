@@ -49,7 +49,7 @@ function DocumentVerifyActions({
         disabled={loading}
         data-testid={`document-verify-${doc.id}`}
         aria-label={`Verify ${doc.document_name}`}
-        className="border-green-300 text-green-700 hover:bg-green-50"
+        className="min-w-touch border-green-300 text-green-700 hover:bg-green-50"
       >
         <CheckCircle className="h-3.5 w-3.5" />
       </Button>
@@ -60,7 +60,7 @@ function DocumentVerifyActions({
         disabled={loading}
         data-testid={`document-reject-${doc.id}`}
         aria-label={`Reject ${doc.document_name}`}
-        className="border-red-300 text-red-700 hover:bg-red-50"
+        className="min-w-touch border-red-300 text-red-700 hover:bg-red-50"
       >
         <XCircle className="h-3.5 w-3.5" />
       </Button>

@@ -49,6 +49,15 @@ rules (1, 2, 3) for any spec that carries the full requirements/tasks/findings
 trio. Fixing pre-existing status debt in unrelated specs is out of task 0.2's
 scope; this tool only reports it.
 
+`--enforce-status` (platform-simplification task 3.4, Requirement 6.3) applies one
+status rule to EVERY live spec, in both directions, and runs nothing else: a spec
+marked completed must have no unchecked required task, and a spec with at least
+one required task, all of them checked, must be marked completed. A required
+task is a checkbox task not marked optional with `*` (`- [ ]*` lines do not match
+the task pattern); `[-]` and `[~]` count as unchecked. Exceptions come from
+`scripts/spec-status-exceptions.json` (`{spec, reason}`, each naming an existing
+live spec).
+
 Exit codes: 0 = clean (or warnings only), 1 = warnings with --strict, 2 = errors.
 No third-party dependencies; standard library only.
 """
@@ -497,6 +506,97 @@ def validate(
     }
 
 
+
+EXCEPTIONS_FILENAME = "spec-status-exceptions.json"
+
+
+def _live_spec_dirs(specs_root: Path) -> List[Path]:
+    return [
+        child
+        for child in sorted(specs_root.iterdir())
+        if child.is_dir() and not child.name.startswith("_")
+    ]
+
+
+def _load_status_exceptions(path: Path, live: Set[str]) -> Tuple[Dict[str, str], List[str]]:
+    """Return ``({spec: reason}, problems)``. Every entry must name a live spec and a reason."""
+    problems: List[str] = []
+    excepted: Dict[str, str] = {}
+    if not path.is_file():
+        return excepted, problems
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        return excepted, [f"exceptions file is not valid JSON: {exc}"]
+    entries = data.get("entries") if isinstance(data, dict) else data
+    for entry in entries or []:
+        spec = entry.get("spec") if isinstance(entry, dict) else None
+        reason = entry.get("reason") if isinstance(entry, dict) else None
+        if not isinstance(spec, str) or not spec.strip() or not isinstance(reason, str) or not reason.strip():
+            problems.append(f"exception entry needs a spec and a non-empty reason: {entry!r}")
+        elif spec not in live:
+            problems.append(f"exception names a spec that is not a live spec directory: {spec}")
+        else:
+            excepted[spec] = reason
+    return excepted, problems
+
+
+def enforce_status(specs_root: Path, exceptions_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Apply the two-way status rule (Requirement 6.3) to every live spec."""
+    if exceptions_path is None:
+        exceptions_path = specs_root.parent.parent / "scripts" / EXCEPTIONS_FILENAME
+    live_dirs = _live_spec_dirs(specs_root)
+    excepted, problems = _load_status_exceptions(exceptions_path, {d.name for d in live_dirs})
+    findings: List[Dict[str, str]] = [
+        {"severity": "error", "spec": "-", "rule": "status-exceptions", "message": m} for m in problems
+    ]
+    rows: List[Dict[str, Any]] = []
+    for spec_dir in live_dirs:
+        tasks_path = spec_dir / "tasks.md"
+        if not tasks_path.is_file():
+            continue
+        config, config_error = _load_config(spec_dir / ".config.kiro")
+        status = (config or {}).get("status")
+        completed = isinstance(status, str) and status.strip().lower() == "completed"
+        tasks = parse_tasks(tasks_path.read_text(encoding="utf-8"))
+        unchecked = [t for t in tasks if not t["checked"]]
+        rows.append({"spec": spec_dir.name, "required": len(tasks), "unchecked": len(unchecked), "completed": completed})
+        if spec_dir.name in excepted:
+            continue
+        if config_error:
+            findings.append({"severity": "error", "spec": spec_dir.name, "rule": "config", "message": f".config.kiro is not valid JSON: {config_error}"})
+        if completed and unchecked:
+            preview = ", ".join(t["id"] for t in unchecked[:10])
+            more = "" if len(unchecked) <= 10 else f" (+{len(unchecked) - 10} more)"
+            findings.append({
+                "severity": "error",
+                "spec": spec_dir.name,
+                "rule": "status-completed-with-open-tasks",
+                "message": f"marked status=completed but {len(unchecked)} required task(s) are unchecked: {preview}{more}",
+            })
+        elif tasks and not unchecked and not completed:
+            findings.append({
+                "severity": "error",
+                "spec": spec_dir.name,
+                "rule": "status-missing-on-finished-spec",
+                "message": f"all {len(tasks)} required task(s) are checked but .config.kiro has no \"status\": \"completed\"",
+            })
+    error_count = sum(1 for f in findings if f["severity"] == "error")
+    return {"specs": rows, "exceptions": excepted, "findings": findings, "error_count": error_count, "ok": error_count == 0}
+
+
+def format_enforce_status(result: Dict[str, Any]) -> str:
+    lines = ["SPEC STATUS CHECK (Requirement 6.3)", ""]
+    for row in result["specs"]:
+        mark = "completed" if row["completed"] else "open"
+        note = f"  [exception: {result['exceptions'][row['spec']]}]" if row["spec"] in result["exceptions"] else ""
+        lines.append(f"  {row['spec']}: {mark}, {row['required'] - row['unchecked']}/{row['required']} required tasks checked{note}")
+    lines.append("")
+    for f in result["findings"]:
+        lines.append(f"ERROR [{f['spec']}] ({f['rule']}) {f['message']}")
+    lines.append("RESULT: " + ("PASS" if result["ok"] else "FAIL"))
+    return "\n".join(lines)
+
 # --------------------------------------------------------------------------- #
 # Reporting / CLI
 # --------------------------------------------------------------------------- #
@@ -570,6 +670,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Audit completed-status across every live spec and structural rules "
         "for any spec with the requirements/tasks/findings trio.",
     )
+    parser.add_argument(
+        "--enforce-status",
+        action="store_true",
+        help="Apply the two-way completed-status rule to every live spec (Requirement 6.3) and nothing else.",
+    )
+    parser.add_argument(
+        "--exceptions",
+        type=Path,
+        default=None,
+        help="Exceptions file for --enforce-status (default: <repo>/scripts/spec-status-exceptions.json).",
+    )
     parser.add_argument("--json", action="store_true", dest="json_flag", help="Emit JSON.")
     parser.add_argument(
         "--strict",
@@ -577,6 +688,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Exit non-zero (1) on warnings as well as errors.",
     )
     args = parser.parse_args(argv)
+    if args.enforce_status:
+        status_result = enforce_status(args.specs_root, args.exceptions)
+        print(json.dumps(status_result, indent=2, sort_keys=True) if args.json_flag else format_enforce_status(status_result))
+        return 0 if status_result["ok"] else 2
 
     result = validate(
         args.specs_root,

@@ -1,4 +1,0 @@
-/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
-  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
-LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
-FRESHNESS OK: report covers every June 2026+ migration script on disk (16 June+ rows), links sha256:0d8a44ee5de25decb8c65bb93b10df49d4b6ad026bf846c7caf21a5a74b26d31, no secrets.

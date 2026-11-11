@@ -149,7 +149,7 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
       live: 'polite',
     },
     offline: {
-      label: error ?? 'Offline — changes will sync when you reconnect',
+      label: error ?? 'Offline: changes will sync when you reconnect',
       className: 'text-warning',
       icon: <CloudOff className="h-4 w-4" />,
       live: 'polite',
@@ -176,19 +176,15 @@ function SaveIndicator({ status, error }: SaveIndicatorProps) {
 
   const entry = config[status]
   return (
-    <span
+    <span data-text-role="caption"
       role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}
       aria-live={entry.live}
-      className={`inline-flex items-center gap-2 text-xs font-medium ${entry.className}`}
+      className={`inline-flex items-center gap-2 text-sm sm:text-xs font-medium ${entry.className}`}
     >
       <span className="flex-shrink-0" aria-hidden="true">{entry.icon}</span>
       {entry.label}
     </span>
   )
-}
-
-function getDisplayValue(value?: string | null, fallback = 'Not provided') {
-  return value && value.trim().length > 0 ? value : fallback
 }
 
 export default function StudentSettings() {
@@ -361,12 +357,6 @@ export default function StudentSettings() {
     })
   }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
-  const notificationPhone =
-    currentPhone?.trim() ||
-    profile?.phone?.trim() ||
-    metadata?.phone?.trim() ||
-    ''
-
   const handleNavigate = React.useCallback((path: string) => {
     // Autosave is canonical: flush any queued edits, then navigate. No blocking
     // confirm dialog — the autosave hook owns unload protection.
@@ -396,7 +386,7 @@ export default function StudentSettings() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('My Settings', brandName)}
+        title={brandedPageTitle('My settings', brandName)}
         description="Manage your profile details, residence information, and security settings for your admissions account."
         path="/student/settings"
         siteName={brandName}
@@ -418,7 +408,7 @@ export default function StudentSettings() {
         <button
           type="button"
           onClick={() => handleNavigate('/student/dashboard')}
-          className="inline-flex min-h-touch items-center rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-primary/80 hover:bg-primary/5"
+          className="inline-flex min-h-touch items-center rounded-lg px-3 py-2 text-base sm:text-sm font-medium text-primary transition-colors hover:text-link-hover hover:bg-primary/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
@@ -459,7 +449,7 @@ export default function StudentSettings() {
             <div
               role="alert"
               aria-live="assertive"
-              className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-base sm:text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -480,7 +470,7 @@ export default function StudentSettings() {
             <div
               role="status"
               aria-live="polite"
-              className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning"
+              className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-base sm:text-sm text-warning"
             >
               <CloudOff className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
               You are offline. Your edits are kept on this device and will save automatically when you reconnect.
@@ -524,7 +514,7 @@ export default function StudentSettings() {
                 label="Phone number"
                 autoComplete="tel"
                 placeholder="+260970000000"
-                helperText="Zambian format (+260 and 9 digits). Reused for SMS notification delivery."
+                helperText="Zambian format (+260 and 9 digits)."
                 error={errors.phone?.message}
                 disabled={!profileEditingEnabled}
               />
@@ -552,7 +542,7 @@ export default function StudentSettings() {
 
           <SectionCard
             title={SECTION_LABELS.residence}
-            description="These details feed the application wizard so your residence data does not drift from your student profile."
+            description="These details feed the application wizard, so your residence is the same in both places."
             icon={<MapPin className="h-5 w-5" />}
             actions={<SaveIndicator status={sections.residence.status} error={sections.residence.error} />}
           >
@@ -660,25 +650,21 @@ export default function StudentSettings() {
 
           <SectionCard
             title="Notification delivery"
-            description="Portal inbox notifications stay available in-app. SMS delivery uses the phone number stored on this profile."
+            description="Notices appear in your portal inbox and are sent to your account email."
             icon={<Bell className="h-5 w-5" />}
             actions={
               <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => handleNavigate('/student/notifications')}>
                 Open notification preferences
               </Button>
             }
-          >
-            <p className="text-sm text-muted-foreground">
-              SMS delivery phone: <span className="font-semibold text-foreground">{getDisplayValue(notificationPhone, 'No phone number on file')}</span>
-            </p>
-          </SectionCard>
+          />
 
           <SectionCard
             title="Security and active sessions"
             description="Review every device currently signed in to your account and revoke any session you do not recognize."
             icon={<Shield className="h-5 w-5" />}
           >
-            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-lg bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground">
               Terminating another session signs that device out without affecting the current page. Use this after shared-device access or if you notice an unfamiliar browser or IP address.
             </div>
             <ActiveSessions />

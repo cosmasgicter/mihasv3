@@ -91,6 +91,7 @@ import { ReportsPage } from '@/features/analytics/pages/ReportsPage';
 import { ReviewWorkbenchPage } from '@/features/review/pages/ReviewWorkbenchPage';
 import { AuditLogPage } from '@/features/audit/pages/AuditLogPage';
 import { JobsOpsShell } from '@/app/layout/JobsOpsShell';
+import { FeatureGate } from '@/app/FeatureGate';
 
 const BASE = 'http://localhost:8000';
 
@@ -112,7 +113,11 @@ function buildRoutes() {
   return [
     {
       path: '/',
-      element: createElement(ProtectedRoute, null, createElement(JobsOpsShell)),
+      element: createElement(
+        FeatureGate,
+        null,
+        createElement(ProtectedRoute, null, createElement(JobsOpsShell)),
+      ),
       children: [
         { index: true, element: createElement(OverviewPage) },
         { path: 'jobs', element: createElement(JobsInboxPage) },
@@ -140,6 +145,22 @@ function renderRoute(
   initialPath: string,
   options: { authenticated: boolean } = { authenticated: true },
 ) {
+  // The real router wraps everything in FeatureGate (task 12.2), which asks the metadata
+  // endpoint first; these tests are about routing, so the backend reports jobs-ops enabled.
+  server.use(
+    http.get(`${BASE}/api/v1/meta/platform/`, () =>
+      HttpResponse.json({
+        success: true,
+        data: {
+          product: 'Beanola Admissions Platform',
+          creator: { name: 'Cosmas Kanchepa' },
+          developer: { name: 'Beanola Technologies', url: 'https://beanola.com' },
+          api_version: 'v1',
+          features: { jobs_ops: true },
+        },
+      }),
+    ),
+  );
   if (options.authenticated) {
     server.use(
       http.get(`${BASE}/api/v1/auth/session/`, () =>

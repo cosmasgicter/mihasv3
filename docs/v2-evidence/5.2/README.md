@@ -1,5 +1,7 @@
 # Task 5.2 Evidence — Make assignment and requirement resolution canonical and fail closed
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R7.1-R7.3, R7.5, R10.5-R10.6, R11.6_
 _Findings: DATA-01, DATA-04, STU-01, STU-13_
 _Design: design.md §7.2 (Application Assignment), §8.3 (Readiness), §9.3 (Required Documents snapshotted to the application assignment)_

@@ -51,22 +51,22 @@ export const OFFICIAL_DOCUMENT_COPY: Readonly<
 > = Object.freeze({
   acceptance_letter: {
     noun: 'acceptance letter',
-    label: 'Acceptance Letter',
+    label: 'Acceptance letter',
     emailLabel: 'Email acceptance letter to me',
   },
   conditional_offer: {
     noun: 'conditional acceptance',
-    label: 'Conditional Acceptance',
+    label: 'Conditional acceptance',
     emailLabel: 'Email conditional acceptance to me',
   },
   application_slip: {
     noun: 'application slip',
-    label: 'Application Slip',
+    label: 'Application slip',
     emailLabel: 'Email application slip to me',
   },
   payment_receipt: {
     noun: 'payment receipt',
-    label: 'Payment Receipt',
+    label: 'Payment receipt',
     emailLabel: 'Email payment receipt to me',
   },
 })

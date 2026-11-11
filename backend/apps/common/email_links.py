@@ -6,7 +6,7 @@ submission confirmations, etc.). It resolves the correct base URL from:
 
 1. A resolved tenant domain (e.g. ``apply.mihas.edu.zm``) if the email is sent
    in a tenant context with an active domain.
-2. The ``FRONTEND_URL`` environment setting (default ``https://apply.beanola.com``)
+2. The ``FRONTEND_URL`` environment setting (production sets ``https://apply.beanola.com``)
    as the neutral Beanola platform fallback.
 
 This ensures:
@@ -37,6 +37,8 @@ from urllib.parse import quote, urlencode, urljoin
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+# One WARNING per process when FRONTEND_URL is empty (task 4.2).
+_warned_empty_frontend_url = False
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +74,15 @@ ROUTE_TRACK_APPLICATION = "/track-application"
 
 def _get_platform_base_url() -> str:
     """Return the neutral Beanola platform base URL (env-driven)."""
-    url = getattr(settings, "FRONTEND_URL", "") or "https://apply.beanola.com"
+    url = getattr(settings, "FRONTEND_URL", "") or ""
+    if not url:
+        global _warned_empty_frontend_url
+        if not _warned_empty_frontend_url:
+            _warned_empty_frontend_url = True
+            logger.warning(
+                "FRONTEND_URL is empty: email links are path-only until the setting is configured"
+            )
+        return ""
     return url.rstrip("/")
 
 

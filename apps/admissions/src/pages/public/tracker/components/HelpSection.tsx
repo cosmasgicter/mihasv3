@@ -46,7 +46,7 @@ export const HelpSection: React.FC = () => {
   return (
     <div className={animateClasses.slideUp} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
       <SectionCard
-        title="Need Help?"
+        title="Need help?"
         description="Where a tracking link comes from, and what each status means."
         icon={<HelpCircle className="h-5 w-5" />}
         headerVariant="tinted"
@@ -60,7 +60,7 @@ export const HelpSection: React.FC = () => {
               credential actually comes from — the owner's own command — and that
               getting a new link replaces the old one.
             */}
-            <div className="rounded-lg border border-border bg-muted p-5">
+            <div className="rounded-lg bg-muted p-5">
               <div className="mb-4 flex items-start gap-3">
                 <div className="rounded-lg bg-primary/10 p-2">
                   <FileSearch className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -86,7 +86,7 @@ export const HelpSection: React.FC = () => {
             </div>
 
             {/* Status glossary — what each status means for the applicant. */}
-            <div className="rounded-lg border border-border bg-muted p-5">
+            <div className="rounded-lg bg-muted p-5">
               <div className="mb-4 flex items-start gap-3">
                 <div className="rounded-lg bg-warning/10 p-2">
                   <Target className="h-5 w-5 text-warning" aria-hidden="true" />

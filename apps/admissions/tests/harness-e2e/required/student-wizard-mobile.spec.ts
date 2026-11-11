@@ -173,10 +173,16 @@ async function openWizard(page: Page, applicationId: string, step?: string) {
   // screen, so every geometry claim waits for it to leave rather than excluding it.
   await expect(page.locator('.beanola-preloader')).toHaveCount(0, { timeout: 30_000 });
   // And the platform's readiness has answered, so the surface under test has settled.
+  // On a phone the Still needed list is a closed disclosure; open it to read the
+  // platform's check, then put it back as the student would find it.
+  const stillNeededToggle = page.getByTestId('wizard-context-toggle');
+  const collapsed = await stillNeededToggle.isVisible();
+  if (collapsed) await stillNeededToggle.click();
   await expect(page.getByTestId('wizard-current-blockers')).not.toContainText(
     /checking what is still needed/i,
     { timeout: 60_000 },
   );
+  if (collapsed) await stillNeededToggle.click();
 }
 
 /**
@@ -396,7 +402,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
       // diagnosing §9, and it is why the wait below is 500 ms rather than nothing:
       // the shell sets `scroll-behavior: smooth`, so a point read during the
       // animation is a point the control has already left.
-      const primary = page.getByRole('button', { name: /^continue to /i }).first();
+      const primary = page.getByRole('button', { name: /^next step$/i }).first();
       await expect(primary).toBeVisible();
       await primary.scrollIntoViewIfNeeded();
       await page.waitForTimeout(500);
@@ -425,7 +431,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
   // ---------------------------------------------------------------------------
   // 2. The checklist and context reach a phone (STU-03)
   // ---------------------------------------------------------------------------
-  test('offers the step checklist on a 320px phone, by keyboard', async ({ page, gate }) => {
+  test('offers the Still needed list on a 320px phone, by keyboard', async ({ page, gate }) => {
     test.setTimeout(240_000);
     allowHarnessNoise(gate);
     mkdirSync(SHOT_DIR, { recursive: true });
@@ -455,7 +461,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     await expect(region).toBeVisible({ timeout: 30_000 });
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     // It lists this step's requirements — the surface a phone previously never had.
-    await expect(region.getByText(/step checklist/i)).toBeVisible();
+    await expect(region.getByText(/whole application/i)).toBeVisible();
     const rows = await region.locator('span').allTextContents();
     expect(rows.filter(text => text.trim().length > 0).length).toBeGreaterThan(0);
 
@@ -485,6 +491,8 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     await page.setViewportSize({ width: 390, height: 844 });
     await openWizard(page, applicationId);
 
+    // The platform's check sits in the Still needed list, a closed disclosure on a phone.
+    await page.getByTestId('wizard-context-toggle').click();
     const rows = page.getByTestId('wizard-blocker');
     await expect(rows.first()).toBeVisible({ timeout: 60_000 });
 
@@ -603,7 +611,7 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('alertdialog')).toHaveCount(0);
     // And the primary control is still offered: an offline student is not locked out.
-    await expect(page.getByRole('button', { name: /^continue to /i }).first()).toBeEnabled();
+    await expect(page.getByRole('button', { name: /^next step$/i }).first()).toBeEnabled();
 
     await page.screenshot({ path: join(SHOT_DIR, 'wizard-390-offline.png'), fullPage: true });
 
@@ -729,10 +737,10 @@ test.describe('The wizard is usable on a phone (R16.1-R16.3, R16.7-R16.8)', () =
     // id, not by `getByRole(...).first()`: the context panel's own `sr-only` <h2>
     // is earlier in the DOM and is 32 px wide by design, which is what the first
     // version of this assertion measured.
-    const heading = page.locator('#wizard-step-heading');
+    const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible();
     expect((await heading.boundingBox())!.width, 'the heading keeps usable line width').toBeGreaterThan(40);
-    await expect(page.getByRole('button', { name: /^continue to /i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /^next step$/i }).first()).toBeVisible();
 
     await page.screenshot({ path: join(SHOT_DIR, 'wizard-320-text200.png'), fullPage: true });
   });

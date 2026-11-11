@@ -64,7 +64,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install backend dependencies
-        run: pip install -r requirements.txt
+        run: pip install --require-hashes -r requirements-dev.txt
 
       - name: Static schema verification
         env:
@@ -108,7 +108,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install backend dependencies
-        run: pip install -r requirements.txt
+        run: pip install --require-hashes -r requirements-dev.txt
 
       - name: Create Neon branch fork
         id: fork

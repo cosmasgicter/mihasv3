@@ -58,6 +58,10 @@ export interface EnhancedDataTableProps<T extends object> {
   selectable?: boolean;
   selectedRows?: T[keyof T][];
   onSelectionChange?: (selectedIds: T[keyof T][]) => void;
+  /** Accessible name of a row's checkbox, e.g. "Select application APP-…" (task 30.4). */
+  rowSelectionLabel?: (row: T) => string;
+  /** Hide the client-side pager when a server page is shown whole (task 30.4). */
+  showPagination?: boolean;
   // Actions
   onRowClick?: (row: T) => void;
   rowActions?: (row: T) => React.ReactNode;
@@ -283,12 +287,14 @@ export function EnhancedDataTable<T extends object>({
   defaultSortKey,
   defaultSortDirection = null,
   searchable = true,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = 'Search…',
   selectable = false,
   selectedRows = [],
   onSelectionChange,
   onRowClick,
   rowActions,
+  rowSelectionLabel,
+  showPagination = true,
   loading = false,
   emptyMessage = 'No data available',
   emptyIcon,
@@ -475,7 +481,10 @@ export function EnhancedDataTable<T extends object>({
           <thead className="bg-muted/50">
             <tr>
               {selectable && (
-                <th className="w-12 px-4 py-3">
+                <th className="w-12 px-2 py-1">
+                  {/* 44 x 44 hit area: the gate measures the checkbox and its label together (task 30.4, R17.4). */}
+                  <label className="inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center">
+                  <span className="sr-only">Select all rows on this page</span>
                   <input
                     type="checkbox"
                     checked={
@@ -485,6 +494,7 @@ export function EnhancedDataTable<T extends object>({
                     onChange={handleSelectAll}
                     className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
+                  </label>
                 </th>
               )}
               {columns.map((column) => (
@@ -527,22 +537,35 @@ export function EnhancedDataTable<T extends object>({
                       selectedRows.includes(row[keyField]) && 'bg-primary/5'
                     )}
                     onClick={() => onRowClick?.(row)}
+                    onKeyDown={onRowClick ? (event) => {
+                      // The row responds to Enter (task 30.4), but only when the row
+                      // itself has focus, not a control inside it.
+                      if (event.key === 'Enter' && event.target === event.currentTarget) {
+                        event.preventDefault();
+                        onRowClick(row);
+                      }
+                    } : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
                   >
                     {selectable && (
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedRows.includes(row[keyField])}
-                          onChange={() => handleSelectRow(row[keyField])}
-                          className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        />
+                      <td className="h-11 px-2 py-0" onClick={(e) => e.stopPropagation()}>
+                        <label className="inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center">
+                          <span className="sr-only">{rowSelectionLabel ? rowSelectionLabel(row) : 'Select row'}</span>
+                          <input
+                            type="checkbox"
+                            checked={selectedRows.includes(row[keyField])}
+                            onChange={() => handleSelectRow(row[keyField])}
+                            className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          />
+                        </label>
                       </td>
                     )}
                     {columns.map((column) => (
                       <td
                         key={String(column.key)}
                         className={cn(
-                          'px-4 text-sm text-foreground',
+                          // A cell height is a minimum: every row is at least 44 px (task 30.4).
+                          'h-11 px-4 text-sm text-foreground',
                           compact ? 'py-2' : 'py-3',
                           column.align === 'center' && 'text-center',
                           column.align === 'right' && 'text-right'
@@ -552,7 +575,7 @@ export function EnhancedDataTable<T extends object>({
                       </td>
                     ))}
                     {rowActions && (
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <td className="h-11 px-4 py-1" onClick={(e) => e.stopPropagation()}>
                         {rowActions(row)}
                       </td>
                     )}
@@ -577,7 +600,7 @@ export function EnhancedDataTable<T extends object>({
       </div>
 
       {/* Pagination */}
-      {sortedData.length > 0 && (
+      {showPagination && sortedData.length > 0 && (
         <TablePagination
           currentPage={currentPage}
           totalPages={totalPages}

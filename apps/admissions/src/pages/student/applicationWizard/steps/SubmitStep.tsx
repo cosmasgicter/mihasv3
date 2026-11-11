@@ -32,7 +32,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
-import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
+import { PAYMENT_CHANNEL_LABEL, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import { cn } from '@/lib/utils'
 
@@ -45,7 +45,6 @@ import {
 } from '../lib/requiredDocumentSurfaces'
 
 interface SubmitStepProps {
-  title: string
   form: UseFormReturn<WizardFormData>
   subjects: Grade12Subject[]
   selectedGrades: SubjectGrade[]
@@ -83,7 +82,6 @@ const gradeLabelMap: Record<number, string> = {
 }
 
 const SubmitStep = ({
-  title,
   form,
   subjects,
   selectedGrades,
@@ -153,12 +151,12 @@ const SubmitStep = ({
     })),
     {
       label: isSuccessfulPayment
-        ? 'Payment completed via Lenco'
+        ? 'Payment completed'
         : isDeferredPayment
           ? 'Payment deferred'
           : 'Payment still required',
       detail: isSuccessfulPayment
-        ? 'Payment confirmed through the secure Lenco gateway.'
+        ? `Paid by ${PAYMENT_CHANNEL_LABEL.toLowerCase()}.`
         : isDeferredPayment
           ? 'You chose to pay later. You can pay from the payment page after submission.'
           : 'Please complete payment in the payment step before submitting.',
@@ -178,10 +176,10 @@ const SubmitStep = ({
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section className="space-y-4" aria-labelledby="submit-readiness-heading">
             <div>
-              <h3 id="submit-readiness-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 id="submit-readiness-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Submission readiness
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              </h2>
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                 Each item below should be complete before you submit.
               </p>
             </div>
@@ -202,14 +200,14 @@ const SubmitStep = ({
                       <AlertTriangle className="mt-0.5 h-5 w-5 text-warning" aria-hidden="true" />
                     )}
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                      <p className="text-sm text-muted-foreground">{item.detail}</p>
+                      <p className="text-base sm:text-sm font-semibold text-foreground">{item.label}</p>
+                      <p className="text-base sm:text-sm text-muted-foreground">{item.detail}</p>
                     </div>
                     {!item.completed && onNavigateToStep && (
                       <button
                         type="button"
                         onClick={() => onNavigateToStep(item.stepKey)}
-                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-base sm:text-sm font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                       >
                         Go to step
                       </button>
@@ -220,16 +218,16 @@ const SubmitStep = ({
             </ul>
 
             {wizardReadiness && !wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
-              <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3.5">
+              <div className="rounded-lg bg-warning/5 px-4 py-3.5">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-base sm:text-sm font-semibold text-foreground">
                       Complete these {wizardReadiness.missingItems.length} item{wizardReadiness.missingItems.length === 1 ? '' : 's'} to enable submission
                     </p>
                     <ul className="space-y-1.5">
                       {wizardReadiness.missingItems.map(item => (
-                        <li key={`${item.stepKey}-${item.field}`} className="flex items-start justify-between gap-3 text-sm">
+                        <li key={`${item.stepKey}-${item.field}`} className="flex items-start justify-between gap-3 text-base sm:text-sm">
                           <span className="text-muted-foreground">
                             <span className="font-medium text-foreground">{item.label}:</span> {item.message}
                           </span>
@@ -237,7 +235,7 @@ const SubmitStep = ({
                             <button
                               type="button"
                               onClick={() => onNavigateToStep(item.stepKey)}
-                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-base sm:text-sm font-medium text-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                             >
                               Fix
                             </button>
@@ -254,10 +252,10 @@ const SubmitStep = ({
           <section className="space-y-4" aria-labelledby="submit-summary-heading">
             <div className="flex items-center justify-between">
               <div>
-                <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <h2 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Application summary
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+                </h2>
+                <p className="mt-1 max-w-prose text-base sm:text-sm text-muted-foreground">
                   Confirm the record exactly as admissions should review it.
                 </p>
               </div>
@@ -265,7 +263,7 @@ const SubmitStep = ({
                 <button
                   type="button"
                   onClick={() => onNavigateToStep('personal')}
-                  className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
+                  className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-base sm:text-sm font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
                 >
                   Edit details
                 </button>
@@ -273,35 +271,39 @@ const SubmitStep = ({
             </div>
 
             <dl className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
-              </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
-              </div>
-              {institutionLabel && (
-                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
-                  <dd className="mt-1 text-sm font-medium text-foreground">{institutionLabel}</dd>
+              {formValues.full_name && (
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{formValues.full_name}</dd>
                 </div>
               )}
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
+              {programLabel && (
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{programLabel}</dd>
+                </div>
+              )}
+              {institutionLabel && (
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
+                  <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
+                  <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{institutionLabel}</dd>
+                </div>
+              )}
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
-              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <dt className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
+                <dd className="mt-1 text-base sm:text-sm font-medium text-foreground">
                   {isSuccessfulPayment
-                    ? 'Processed via Lenco payment gateway'
+                    ? PAYMENT_CHANNEL_LABEL
                     : isDeferredPayment
                       ? 'Deferred for later payment from the dashboard'
                       : 'Awaiting payment action'}
@@ -309,12 +311,12 @@ const SubmitStep = ({
               </div>
             </dl>
 
-            <div className="rounded-lg border border-border/70 bg-card px-4 py-4">
-              <p className="text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
-              <ul className="mt-3 space-y-2 text-sm text-foreground">
+            <div className="rounded-lg bg-card px-4 py-4">
+              <p className="text-base sm:text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
+              <ul className="mt-3 space-y-2 text-base sm:text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {
                   const subject = subjects.find(subjectItem => subjectItem.id === grade.subject_id)
-                  const subjectName = subject?.name || grade.subject_id || 'Loading...'
+                  const subjectName = subject?.name || grade.subject_id || 'Loading…'
                   const gradeLabel = gradeLabelMap[grade.grade] || grade.grade
 
                   return (
@@ -333,7 +335,7 @@ const SubmitStep = ({
             </div>
 
             {eligibilityCheck && (
-              <Alert variant={eligibilityCheck.eligible ? 'success' : 'warning'}>
+              <Alert inset variant={eligibilityCheck.eligible ? 'success' : 'warning'}>
                 <AlertTitle className="text-foreground">
                   {eligibilityCheck.eligible ? 'Eligibility check passed' : 'Eligibility advisory'}
                   {eligibilityCheck.score ? ` (${eligibilityCheck.score}%)` : ''}
@@ -353,7 +355,7 @@ const SubmitStep = ({
         padding="sm"
       >
         {!isPaymentResolvedForProgress(paymentStatus) && (
-          <Alert variant="warning" className="mb-4">
+          <Alert inset variant="warning" className="mb-4">
             <AlertTitle className="text-foreground">Payment required</AlertTitle>
             <AlertDescription className="text-muted-foreground">
               Please go back to the payment step and complete your application fee payment before submitting.
@@ -370,7 +372,7 @@ const SubmitStep = ({
         />
 
         {!confirmSubmission && (
-          <Alert variant="warning">
+          <Alert inset variant="warning">
             <AlertTitle className="text-foreground">Confirmation required</AlertTitle>
             <AlertDescription className="text-muted-foreground">
               Check the confirmation box to enable final submission.

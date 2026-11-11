@@ -24,9 +24,13 @@ import * as path from 'path';
 
 // ── Source paths ────────────────────────────────────────────────────────
 
+// `hooks/wizard/state/useWizardState.ts` had no importer and was removed by
+// platform-simplification task 14.4. The wizard's grade state (selectedGrades,
+// gradesHydrating) is owned by useWizardController.ts, so the structural checks
+// read the owner instead.
 const USE_WIZARD_STATE_PATH = path.resolve(
   __dirname,
-  '../../src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts',
+  '../../src/pages/student/applicationWizard/hooks/useWizardController.ts',
 );
 
 const INDEX_PATH = path.resolve(
@@ -58,7 +62,7 @@ describe('Property 7: Bug Condition — Grade Validation Runs on Empty State Dur
    *
    * **Validates: Requirements 1.5, 1.6**
    */
-  it('useWizardState.ts declares gradesHydrating state', () => {
+  it('the wizard grade state declares gradesHydrating', () => {
     const source = fs.readFileSync(USE_WIZARD_STATE_PATH, 'utf-8');
 
     // The file must contain a gradesHydrating state declaration

@@ -160,11 +160,11 @@ test.describe('Deterministic OCR is optional: manual entry always works (R11.4)'
     await expect(page.getByTestId('program-step')).toBeVisible();
     await selectOption(page, /programme/i, offering.programName);
     await selectOption(page, /intake/i, offering.intakeName);
-    await page.getByRole('button', { name: /continue to assigned school/i }).click();
+    await page.getByRole('button', { name: /^next step$/i }).click();
 
     // --- Step 2: assigned-school checkpoint (resolves because a fee exists) --
     await expect(page.getByRole('heading', { name: /your assigned school/i }).first()).toBeVisible();
-    const toPersonal = page.getByRole('button', { name: /continue to personal/i });
+    const toPersonal = page.getByRole('button', { name: /^next step$/i });
     await expect(toPersonal).toBeEnabled({ timeout: 30_000 });
     await toPersonal.click();
 
@@ -177,7 +177,7 @@ test.describe('Deterministic OCR is optional: manual entry always works (R11.4)'
     const emailField = page.getByLabel(/email address/i).first();
     if (!(await emailField.inputValue())) await emailField.fill(email);
     await page.getByLabel(/town|city/i).first().fill('Lusaka');
-    await page.getByRole('button', { name: /continue to education/i }).click();
+    await page.getByRole('button', { name: /^next step$/i }).click();
 
     // --- Step 4: education — the actual claim ------------------------------
     const education = page.getByTestId('education-step');

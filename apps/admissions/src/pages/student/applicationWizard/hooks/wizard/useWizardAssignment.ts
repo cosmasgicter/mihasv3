@@ -165,7 +165,7 @@ export function useWizardAssignment({
     })
     if (recorded) {
       setAssignmentInterestTick(tick => tick + 1)
-      showSuccess('Added to the interest list. We will contact you if a place opens.')
+      showSuccess('Reminder saved on this device. It does not tell admissions, so contact them to ask about a place.')
     }
   }, [selectedProgram, selectedIntake, activeAssignmentFailureCode, showSuccess])
 

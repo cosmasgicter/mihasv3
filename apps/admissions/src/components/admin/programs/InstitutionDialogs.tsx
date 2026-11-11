@@ -46,7 +46,7 @@ function InstitutionFormFields({ form, showStatus }: InstitutionFormFieldsProps)
       <Textarea
         label="Description"
         {...form.register('description')}
-        helperText="Briefly describe the institution for admins managing programs and applications."
+        helperText="Briefly describe the institution for admins managing programmes and applications."
       />
       <Input
         label="Address"
@@ -84,7 +84,7 @@ function InstitutionFormFields({ form, showStatus }: InstitutionFormFieldsProps)
             { value: 'active', label: 'Active' },
             { value: 'archived', label: 'Archived' },
           ]}
-          helperText="Archived institutions remain visible to admins but should not receive new programs."
+          helperText="Archived institutions remain visible to admins but should not receive new programmes."
         />
       ) : null}
     </div>
@@ -129,14 +129,14 @@ export function InstitutionDialogs({
       <Dialog open={showCreate} onOpenChange={onOpenChangeCreate}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Create Institution</DialogTitle>
-            <DialogDescription>Add the institution first so programs can be assigned to it immediately.</DialogDescription>
+            <DialogTitle>Create institution</DialogTitle>
+            <DialogDescription>Add the institution first so programmes can be assigned to it immediately.</DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmitCreate}>
             <InstitutionFormFields form={form} />
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onCloseCreate} disabled={saving}>Cancel</Button>
-              <Button type="submit" loading={saving}>Create Institution</Button>
+              <Button type="submit" loading={saving}>Create institution</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -145,14 +145,14 @@ export function InstitutionDialogs({
       <Dialog open={showEdit} onOpenChange={(open) => { if (!open) onCloseEdit() }}>
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>Edit Institution</DialogTitle>
+            <DialogTitle>Edit institution</DialogTitle>
             <DialogDescription>Update institution details and control whether it stays active in the admissions catalog.</DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmitEdit}>
             <InstitutionFormFields form={form} showStatus />
             <DialogFooter>
               <Button variant="outline" type="button" onClick={onCloseEdit} disabled={saving}>Cancel</Button>
-              <Button type="submit" loading={saving}>Save Changes</Button>
+              <Button type="submit" loading={saving}>Save changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -161,11 +161,11 @@ export function InstitutionDialogs({
       <Dialog open={showDelete} onOpenChange={(open) => { if (!open) onCloseDelete() }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Archive Institution</DialogTitle>
+            <DialogTitle>Archive institution</DialogTitle>
             <DialogDescription>
               {currentInstitution ? (
                 <>
-                  Archive &quot;{currentInstitution.name}&quot; once there are no active programs still linked to it.
+                  Archive &quot;{currentInstitution.name}&quot; once there are no active programmes still linked to it.
                 </>
               ) : null}
             </DialogDescription>
@@ -173,11 +173,11 @@ export function InstitutionDialogs({
           <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
             {currentInstitutionProgramCount > 0 ? (
               <>
-                This institution still has {currentInstitutionProgramCount} active program{currentInstitutionProgramCount !== 1 ? 's' : ''}.
-                Reassign or archive those programs before archiving the institution.
+                This institution still has {currentInstitutionProgramCount} active programme{currentInstitutionProgramCount !== 1 ? 's' : ''}.
+                Reassign or archive those programmes before archiving the institution.
               </>
             ) : (
-              <>The institution will be removed from active program assignment but stay available for historical admin records.</>
+              <>The institution will be removed from active programme assignment but stay available for historical admin records.</>
             )}
           </div>
           <DialogFooter>
@@ -188,7 +188,7 @@ export function InstitutionDialogs({
               loading={saving}
               disabled={saving || currentInstitutionProgramCount > 0 || !currentInstitution || !isInstitutionActive(currentInstitution)}
             >
-              Archive Institution
+              Archive institution
             </Button>
           </DialogFooter>
         </DialogContent>

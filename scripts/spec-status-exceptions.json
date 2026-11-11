@@ -1,0 +1,21 @@
+{
+  "description": "Specs exempt from scripts/validate_spec_governance.py --enforce-status. This spec does not edit them (D12).",
+  "entries": [
+    {
+      "spec": "student-ui-ux-mobile-remediation",
+      "reason": "D12 (confirmed 2026-11-08): record-only. This spec does not edit it, so its status marker stays as it is."
+    },
+    {
+      "spec": "admin-dashboard-overhaul",
+      "reason": "D12 (confirmed 2026-11-08): record-only. This spec does not edit it, so its status marker stays as it is."
+    },
+    {
+      "spec": "profile-updates",
+      "reason": "D12 (confirmed 2026-11-08): record-only. This spec does not edit it, so its status marker stays as it is."
+    },
+    {
+      "spec": "admissions-v2-canonical-rebuild",
+      "reason": "D12 (confirmed 2026-11-08): record-only. This spec does not edit it, so its status marker stays as it is."
+    }
+  ]
+}

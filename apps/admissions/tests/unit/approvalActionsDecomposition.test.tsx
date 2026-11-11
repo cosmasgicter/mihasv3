@@ -64,7 +64,7 @@ function buttonLabels(): string[] {
 describe('resolvePaymentReviewCopy answers for every payment decision', () => {
   it('verify: an optional note', () => {
     const copy = resolvePaymentReviewCopy('verified')
-    expect(copy.title).toBe('Verify Payment')
+    expect(copy.title).toBe('Verify payment')
     expect(copy.confirmText).toBe('Verify payment')
     expect(copy.notesLabel).toBe('Verification note')
     expect(copy.notesRequired).toBe(false)
@@ -72,7 +72,7 @@ describe('resolvePaymentReviewCopy answers for every payment decision', () => {
 
   it('reject: a required reason, because the student has to act on it', () => {
     const copy = resolvePaymentReviewCopy('rejected')
-    expect(copy.title).toBe('Reject Payment')
+    expect(copy.title).toBe('Reject payment')
     expect(copy.notesLabel).toBe('Rejection reason')
     expect(copy.notesRequired).toBe(true)
     expect(copy.description).toContain('so the student can correct and resubmit it')
@@ -80,14 +80,14 @@ describe('resolvePaymentReviewCopy answers for every payment decision', () => {
 
   it('defer: a required reason', () => {
     const copy = resolvePaymentReviewCopy('deferred')
-    expect(copy.title).toBe('Defer Payment')
+    expect(copy.title).toBe('Defer payment')
     expect(copy.notesLabel).toBe('Deferral reason')
     expect(copy.notesRequired).toBe(true)
   })
 
   it('reopen: the fallback, with an optional note', () => {
     const copy = resolvePaymentReviewCopy('pending_review')
-    expect(copy.title).toBe('Return Payment To Review')
+    expect(copy.title).toBe('Return payment to review')
     expect(copy.confirmText).toBe('Return to review')
     expect(copy.notesRequired).toBe(false)
   })
@@ -116,8 +116,8 @@ describe('the payment controls render the same branch per payment status', () =>
   const BRANCHES: Array<[string, string[]]> = [
     ['not_paid', ['Mark as Paid']],
     ['pending_review', ['Verify', 'Reject', 'Defer']],
-    ['rejected', ['Reopen Review']],
-    ['deferred', ['Reopen Review']],
+    ['rejected', ['Reopen review']],
+    ['deferred', ['Reopen review']],
   ]
 
   it.each(BRANCHES)('%s offers %s', (paymentStatus, expected) => {
@@ -133,7 +133,9 @@ describe('the payment controls render the same branch per payment status', () =>
     const labels = buttonLabels()
     expect(labels.some((text) => text.includes('Verify'))).toBe(false)
     expect(labels.some((text) => text.includes('Reopen'))).toBe(false)
-    expect(screen.getByText('Verified')).toBeTruthy()
+    // The status summary now prints the payment label ("Verified", task 30.3
+    // follow-up; it printed the raw value before) and the callout says it too.
+    expect(screen.getAllByText('Verified')).toHaveLength(2)
   })
 
   it('an actor without the capability is told why, and offered nothing', () => {
@@ -147,7 +149,7 @@ describe('the payment controls render the same branch per payment status', () =>
     // Task 11.4: the roster row already publishes both statuses above the
     // disclosure this block sits in.
     renderBlock({ currentPaymentStatus: 'not_paid', showStatusSummary: false })
-    expect(screen.queryByText('Awaiting Payment')).toBeNull()
+    expect(screen.queryByText('Awaiting payment')).toBeNull()
     // The command itself is never suppressed.
     expect(buttonLabels().some((text) => text.includes('Mark as Paid'))).toBe(true)
   })

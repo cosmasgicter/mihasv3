@@ -64,7 +64,7 @@ export const TrackingLinkAction: React.FC<TrackingLinkActionProps> = ({
 
   return (
     <div className={className} data-testid="tracking-link-action">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-base sm:text-sm text-muted-foreground">
         {description ??
           'Track this application without signing in, or share its status with someone. Getting a link replaces any link you shared before.'}
       </p>
@@ -81,24 +81,24 @@ export const TrackingLinkAction: React.FC<TrackingLinkActionProps> = ({
         </Button>
       )}
       {error && (
-        <p className="mt-3 text-sm text-destructive" role="alert">
+        <p className="mt-3 text-base sm:text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
       {link && (
         <div className="mt-3 space-y-3" aria-live="polite">
           <div className="rounded-lg border border-border bg-muted/50 p-3">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="mb-1 text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Tracking link
             </p>
-            <p className="break-all font-mono text-sm text-foreground" data-testid="issued-tracking-url">
+            <p className="break-all font-mono text-base sm:text-sm text-foreground" data-testid="issued-tracking-url">
               {link.url}
             </p>
           </div>
           <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-            <p className="text-sm text-foreground">
-              Copy it now — it is shown once.{' '}
+            <p className="text-base sm:text-sm text-foreground">
+              Copy it now: it is shown once.{' '}
               {link.replaced_previous
                 ? 'Any link you shared earlier no longer works.'
                 : 'Anyone with this link can see this application’s status.'}

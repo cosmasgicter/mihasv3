@@ -296,7 +296,7 @@ export default function AdminUsers() {
         noindex
       />
       <PageShell
-        title="User Management"
+        title="User management"
         eyebrow="People & Access"
         subtitle="Create accounts, adjust platform roles, review backend-derived effective access, and review account activity."
         maxWidth="7xl"
@@ -429,7 +429,7 @@ export default function AdminUsers() {
                   <option value="false">Deactivated accounts</option>
                 </select>
                 <p className="mt-1.5 text-sm text-foreground">
-                  Enabled means permitted to sign in. The platform does not measure who is online.
+                  Enabled means permitted to sign in.
                 </p>
               </div>
             </div>

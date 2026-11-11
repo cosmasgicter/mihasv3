@@ -158,7 +158,7 @@ export function ConditionsDialog({ open, onOpenChange, onConfirm, submitting = f
             Cancel
           </Button>
           <Button type="button" onClick={submit} disabled={!valid || submitting}>
-            {submitting ? 'Saving...' : 'Record conditional offer'}
+            {submitting ? 'Saving…' : 'Record conditional offer'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -78,7 +78,7 @@ export function Banner({
       ref={captureRef}
       role={getRole(variant)}
       className={cn(
-        'flex items-center gap-3 border-b px-4 py-2.5 text-sm',
+        'flex items-center gap-3 border-b px-4 py-2.5 text-base sm:text-sm',
         sticky && 'sticky top-0 z-50',
         variantStyles[variant],
         className,

@@ -114,43 +114,12 @@ const PREVIEW_ALLOWLIST_OWNER = 'platform-admissions'
  */
 const PREVIEW_ALLOWLIST_REMOVE_BY = '2027-02-07'
 
-const PREVIEW_ALLOWLIST: readonly AllowlistEntry[] = [
-  {
-    path: 'apps/admissions/src/pages/dev/DocumentPreview.tsx',
-    reason:
-      'Dev-only PDF preview page (under /dev). Renders draft previews for engineers; not a student official-download path.',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-  {
-    path: 'apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx',
-    reason:
-      'Dev-only acceptance-letter preview page (under /dev). Preview/QA surface only; not a student official-download path.',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-  {
-    path: 'apps/admissions/src/lib/slipService.ts',
-    reason:
-      'Legacy/manual slip preview helper (non-official draft preview, R7.6). Not wired into production student or public document actions.',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-  {
-    path: 'apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts',
-    reason:
-      'Dev-only client-generation hook retained for local PDF preview tests. Not wired into the student official-download components (those use useOfficialDocument).',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-  {
-    path: 'apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts',
-    reason:
-      'Dev-only client receipt-preview hook. Not wired into the student official-download path (DownloadReceiptButton uses useOfficialDocument).',
-    owner: PREVIEW_ALLOWLIST_OWNER,
-    removeBy: PREVIEW_ALLOWLIST_REMOVE_BY,
-  },
-] as const
+// Empty since platform-simplification task 14.1 (D15 item a) deleted the
+// client `@/lib/pdf` stack, its dev preview pages and their hooks. The rule
+// stays: a new reference to `@/lib/pdf` or a client generator anywhere under
+// `src/` fails the scan below, and a new allowlist entry needs a reason, an
+// owner and a removal date.
+const PREVIEW_ALLOWLIST: readonly AllowlistEntry[] = []
 
 const ALLOWLIST_PATHS = new Set(PREVIEW_ALLOWLIST.map((e) => e.path))
 

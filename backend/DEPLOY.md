@@ -12,7 +12,7 @@ Do not use the default `*.vercel.app` domain for authenticated production traffi
 This backend is a **non-package Django application**. It is **not** a
 pip-installable Python distribution and must not be built or installed as one.
 
-- **Supported install/release command:** `pip install -r requirements.txt`.
+- **Supported install/release command:** `pip install --require-hashes -r requirements.txt` (a hash-checked lock compiled from `requirements.in`; tests use `requirements-dev.txt`).
   This is exactly what [Dockerfile](/home/cosmas/Downloads/mihasv3/backend/Dockerfile),
   `.github/workflows/ci.yml`, and `.github/workflows/backend-governance.yml`
   do. The source tree is then run in place with
@@ -89,7 +89,6 @@ Celery Beat reads the `CELERY_BEAT_SCHEDULE` from Django settings and dispatches
 
 | Task | Schedule | Purpose |
 | --- | --- | --- |
-| `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to prevent Koyeb cold starts |
 | `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check with email alerts on failure/recovery |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Purge expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records by retention category |

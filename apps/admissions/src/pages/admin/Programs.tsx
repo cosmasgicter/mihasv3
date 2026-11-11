@@ -115,7 +115,7 @@ export default function AdminPrograms() {
       dispatch({ type: 'SET_TAB', payload: 'institutions' })
       institutionForm.reset(defaultInstitutionForm)
       dispatch({ type: 'OPEN_INSTITUTION_CREATE' })
-      dispatch({ type: 'SET_ERROR', payload: 'Create an institution before adding programs.' })
+      dispatch({ type: 'SET_ERROR', payload: 'Create an institution before adding programmes.' })
       return
     }
 
@@ -323,7 +323,7 @@ export default function AdminPrograms() {
     : 0
 
   const primaryActionLabel =
-    state.activeTab === 'institutions' || activeInstitutions.length === 0 ? 'Add Institution' : 'Add Program'
+    state.activeTab === 'institutions' || activeInstitutions.length === 0 ? 'Add institution' : 'Add programme'
   const primaryActionHandler =
     state.activeTab === 'institutions' || activeInstitutions.length === 0
       ? openInstitutionCreate
@@ -332,15 +332,15 @@ export default function AdminPrograms() {
   return (
     <>
       <Seo
-        title="Programs & Intakes | Beanola Admissions"
-        description="Manage academic programs, institutions, and intake configurations."
+        title="Programmes & Intakes | Beanola Admissions"
+        description="Manage academic programmes, institutions, and intake configurations."
         path="/admin/programs"
         noindex
       />
       <PageShell
-        title="Programs & Institutions"
-        eyebrow="Academic Catalog"
-        subtitle="Manage the academic catalog and the institutions that own each program."
+        title="Programmes & Institutions"
+        eyebrow="Academic catalog"
+        subtitle="Manage the academic catalog and the institutions that own each programme."
         maxWidth="7xl"
         tone="admin"
         /*
@@ -387,7 +387,7 @@ export default function AdminPrograms() {
                       onClick={() => invalidateCatalog()}
                       className="border-destructive/30 text-destructive hover:bg-destructive/5"
                     >
-                      Reload Catalog
+                      Reload catalog
                     </Button>
                   </div>
                 </div>
@@ -396,7 +396,7 @@ export default function AdminPrograms() {
               <div className="grid gap-4 md:grid-cols-3">
                 <Card className="rounded-lg border-border/60 shadow-sm">
                   <CardHeader className="pb-3">
-                    <CardDescription>Total Programs</CardDescription>
+                    <CardDescription>Total programmes</CardDescription>
                     <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                       <GraduationCap className="h-6 w-6 text-primary" />
                       {totalPrograms}
@@ -419,14 +419,14 @@ export default function AdminPrograms() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Institutions available for program assignment and admissions routing.
+                      Institutions available for programme assignment and admissions routing.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="rounded-lg border-border/60 shadow-sm">
                   <CardHeader className="pb-3">
-                    <CardDescription>Archived Institutions</CardDescription>
+                    <CardDescription>Archived institutions</CardDescription>
                     <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                       <School className="h-6 w-6 text-muted-foreground" />
                       {archivedInstitutions}
@@ -442,7 +442,7 @@ export default function AdminPrograms() {
 
               <Tabs value={state.activeTab} onValueChange={handleTabChange} className="space-y-6">
                 <TabsList className="grid w-full max-w-md grid-cols-2">
-                  <TabsTrigger value="programs">Programs</TabsTrigger>
+                  <TabsTrigger value="programs">Programmes</TabsTrigger>
                   <TabsTrigger value="institutions">Institutions</TabsTrigger>
                 </TabsList>
 
@@ -453,15 +453,15 @@ export default function AdminPrograms() {
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
                           <div>
-                            <p className="font-semibold text-foreground">Programs need an institution first</p>
+                            <p className="font-semibold text-foreground">Programmes need an institution first</p>
                             <p className="text-sm text-muted-foreground">
-                              Create at least one active institution before adding or reassigning programs.
+                              Create at least one active institution before adding or reassigning programmes.
                             </p>
                           </div>
                         </div>
                         <Button onClick={openInstitutionCreate}>
                           <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-                          Add Institution
+                          Add institution
                         </Button>
                       </div>
                     </div>
@@ -481,7 +481,7 @@ export default function AdminPrograms() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-sm font-semibold text-foreground">Institution management rules</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Institutions can be edited or archived here. Archiving is blocked while active programs still point to the institution.
+                      Institutions can be edited or archived here. Archiving is blocked while active programmes still point to the institution.
                     </p>
                   </div>
 

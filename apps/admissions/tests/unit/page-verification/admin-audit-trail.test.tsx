@@ -205,7 +205,7 @@ describe('Admin audit trail page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Audit Trail')
+    expect(text).toContain('Audit trail')
   })
 
   it('renders the page subtitle', async () => {
@@ -301,7 +301,7 @@ describe('Admin audit trail page verification', () => {
     // React Query will show error state — the page should still render
     // without crashing. The page heading should still be visible.
     const text = container.textContent || ''
-    expect(text).toContain('Audit Trail')
+    expect(text).toContain('Audit trail')
     expect(text).toContain('Audit activity could not be loaded')
   })
 })

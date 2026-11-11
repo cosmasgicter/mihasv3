@@ -81,7 +81,7 @@ function formatTimestamp(value: string | null): string {
 
 function AuditEventRow({ event, definition }: { event: TenantAuditEvent; definition?: string }) {
   return (
-    <li className="rounded-lg border border-border bg-background p-3" data-audit-event={event.id}>
+    <li className="rounded-lg bg-muted p-3" data-audit-event={event.id}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="break-words text-sm font-medium text-foreground">{event.action}</p>
@@ -133,7 +133,7 @@ export function AuditPanel({ institutionId }: { institutionId: string }) {
   return (
     <SectionCard
       title="Configuration audit"
-      description="Recorded activity for this school — configuration changes, authorization refusals, review decisions and exports. Filters, counts and the export are the server's."
+      description="Recorded activity for this school. Configuration changes, authorization refusals, review decisions and exports. Filters, counts and the export are the server's."
       icon={<History className="h-5 w-5" />}
       actions={
         mayExport ? (

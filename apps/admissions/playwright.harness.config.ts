@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { harnessLaunchOptions } from './tests/harness-e2e/helpers/host-resolver';
 
 import {
   evidenceDirRelative,
@@ -144,6 +145,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     // The harness edge issues first-party cookies over http://*.localhost.
     ignoreHTTPSErrors: true,
+    // Outside host names do not resolve in the browser (task 3.7, R1.11).
+    launchOptions: harnessLaunchOptions,
     /*
       Item M5's half of the raised `timeout` above. These two default to 0 — no limit —
       which means that before M5 the per-test budget was the ONLY bound on a hung

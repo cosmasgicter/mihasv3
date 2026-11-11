@@ -25,7 +25,7 @@ export function getResidenceTownHelperText({
   defaultCountry: string
 }): string {
   if (loadingCities) {
-    return 'Loading town suggestions...'
+    return 'Loading town suggestions…'
   }
 
   const country = selectedCountry || defaultCountry

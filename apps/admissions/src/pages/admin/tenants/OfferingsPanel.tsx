@@ -87,7 +87,7 @@ export function OfferingsPanel({ institutionId }: { institutionId: string }) {
     return (
       <SectionCard
         title="Offerings & assignment rules"
-        description="Program offerings and the routing rules that assign applicants to this school."
+        description="Programme offerings and the routing rules that assign applicants to this school."
         icon={<GraduationCap className="h-5 w-5" />}
       >
         <ErrorDisplay message="Could not load this school's offerings." onRetry={() => offeringsQuery.refetch()} />
@@ -99,13 +99,13 @@ export function OfferingsPanel({ institutionId }: { institutionId: string }) {
     return (
       <SectionCard
         title="Offerings & assignment rules"
-        description="Program offerings and the routing rules that assign applicants to this school."
+        description="Programme offerings and the routing rules that assign applicants to this school."
         icon={<GraduationCap className="h-5 w-5" />}
       >
         <EmptyState
           icon={<Layers />}
           heading="No offerings yet"
-          description="This school has no program offerings. Create offerings under Programs, then return to configure their routing rules."
+          description="This school has no programme offerings. Create offerings under Programmes, then return to configure their routing rules."
         />
       </SectionCard>
     )
@@ -141,7 +141,7 @@ export function OfferingsPanel({ institutionId }: { institutionId: string }) {
       icon={<GraduationCap className="h-5 w-5" />}
     >
       <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="space-y-2" role="listbox" aria-label="Program offerings">
+        <div className="space-y-2" role="listbox" aria-label="Programme offerings">
           {offerings.map(offering => {
             const isSelected = offering.id === selectedOfferingId
             const archived = (offering.offering_status || 'active') === 'archived'

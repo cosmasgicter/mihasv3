@@ -25,9 +25,13 @@ const INDEX_PATH = path.resolve(
   '../../src/pages/student/applicationWizard/index.tsx',
 );
 
+// `hooks/wizard/state/useWizardState.ts` had no importer and was removed by
+// platform-simplification task 14.4. The wizard's grade state (selectedGrades,
+// gradesHydrating) is owned by useWizardController.ts, so the structural checks
+// read the owner instead.
 const USE_WIZARD_STATE_PATH = path.resolve(
   __dirname,
-  '../../src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts',
+  '../../src/pages/student/applicationWizard/hooks/useWizardController.ts',
 );
 
 // ── Types ───────────────────────────────────────────────────────────────
@@ -106,8 +110,14 @@ describe('Property 8: Preservation — Grade Validation Correct After Hydration 
    *
    * **Validates: Requirements 3.5, 3.6**
    */
-  it('useWizardState.ts manages selectedGrades with add/remove/update', () => {
-    const source = fs.readFileSync(USE_WIZARD_STATE_PATH, 'utf-8');
+  it('the wizard manages selectedGrades with add/remove/update', () => {
+    // add/remove/update live in useWizardGrades.ts, which the controller uses.
+    const source =
+      fs.readFileSync(USE_WIZARD_STATE_PATH, 'utf-8') +
+      fs.readFileSync(
+        path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/wizard/useWizardGrades.ts'),
+        'utf-8',
+      );
 
     // selectedGrades must be initialized as empty array
     expect(source).toContain('selectedGrades');

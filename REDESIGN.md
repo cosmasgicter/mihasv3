@@ -1,6 +1,9 @@
 # REDESIGN.md — 2026-05-17
 
-> Design direction for the systemic redesign of MIHAS-KATC admissions, jobs-ops,
+> **Note (2026-11-09):** this file is a historical design direction, not current rules. Current rules are in `PRODUCT.md`, `DESIGN.md` and `.kiro/steering/design-skills.md`.
+
+
+> Design direction for the systemic redesign of Beanola admissions, jobs-ops,
 > and PDF surfaces. Read alongside `PRODUCT.md` (audience, voice, anti-references)
 > and `DESIGN.md` (tokens, components, do's and don'ts).
 >
@@ -172,6 +175,6 @@ Each step ships its own commit. Each must:
 - Auto-save still works on every form a student touches.
 - Drift-guard tests still pass.
 - TypeScript clean.
-- Visual: the wordmark "MIHAS-KATC" reads institutional, not tech-startup. The auth surface looks like a calm tool, not a marketing landing. The dashboard's hero card answers "what should I do next?" within 2 seconds of arrival.
+- Visual: the wordmark "Beanola" reads institutional, not tech-startup. The auth surface looks like a calm tool, not a marketing landing. The dashboard's hero card answers "what should I do next?" within 2 seconds of arrival.
 
 That's the bar. Ship it.

@@ -1,7 +1,7 @@
 name: Student Journey Gate
 # Student journey repair, task 4 (design R9-e, clauses 2.43, 2.46, 2.47).
 #
-# Two blocking checks, `journey-gate` and `local-stack-storage`:
+# One blocking check, `journey-gate`:
 #
 #   journey-gate        `bash harness/bin/harness journey-gate`: the harness stack with
 #                       real object storage (MinIO), the rate limiter ON, a private
@@ -14,19 +14,26 @@ name: Student Journey Gate
 #                       check. It fails on any 429 or 5xx on any page or popup, any
 #                       console error, any unsigned storage URL, a missing throttle or an
 #                       accessibility violation on the new surfaces. Retries: zero.
-#   local-stack-storage the storage round trip on the documented local-test stack
-#                       (backend/docker-compose.local-test.yml), so the stack a developer
-#                       actually uses cannot silently lose its object storage again.
+#
+# The storage round trip on the documented local stack is part of `journey-gate` itself
+# (`storage_roundtrip_check --expect-private`, run before the journey), and the documented
+# local stack is the harness, so a second job on a second stack was retired by
+# platform-simplification task 11.2 (decision D2).
 #
 # NO `paths:` FILTER, on purpose. GitHub leaves a required check pending when path
 # filtering stops its workflow from running, so a filtered gate made required would block
-# every pull request that touches only other paths (docs, apps/jobs-ops). Instead each
+# every pull request that touches only other paths (docs, apps/jobs-ops). Instead the
 # job's first steps decide relevance from the changed paths, and every later step runs
 # only when the change touches apps/admissions/, backend/, harness/ or this workflow.
-# On an unrelated change both jobs report success within seconds.
+# On an unrelated change the job reports success within seconds.
 #
-# Making `journey-gate` and `local-stack-storage` required checks on `main` is a
-# repository-settings step for the operator; nothing here changes settings.
+# A second blocking job, `rendered-design-gate` (platform-simplification task 22.5), brings
+# the same harness up, visits the Audited_Page_Set at 1440x900 and 390x844 and compares
+# axe, the measurements and impeccable's browser detector with
+# scripts/rendered-design-baseline.json. Its relevance list adds `scripts/rendered-`.
+#
+# Making `journey-gate` a required check on `main` is a repository-settings step for the
+# operator; nothing here changes settings.
 #
 # This workflow never contacts production, Neon, R2, Zoho, Resend or Lenco.
 on:
@@ -106,15 +113,15 @@ jobs:
         if: always() && steps.changes.outputs.relevant == 'true'
         run: bash harness/bin/harness down || true
 
-  local-stack-storage:
-    name: local-stack-storage
+  rendered-design-gate:
+    name: rendered-design-gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Decide whether this change needs the storage check
+      - name: Decide whether this change needs the rendered design gate
         id: changes
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -127,45 +134,54 @@ jobs:
           if [ "$EVENT_NAME" = "pull_request" ]; then
             changed="$(git diff --name-only "origin/${BASE_REF}...HEAD")" || relevant=true
           elif [ "$EVENT_NAME" = "push" ]; then
-            if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
-              relevant=true
-            else
-              changed="$(git diff --name-only "${BEFORE_SHA}...HEAD")" || relevant=true
-            fi
+            # Every push to main is relevant.
+            relevant=true
           else
             relevant=true
           fi
-          if grep -Eq '^(apps/admissions/|backend/|harness/|\.github/workflows/student-journey-gate\.yml$)' <<< "$changed"; then
+          if grep -Eq '^(apps/admissions/|backend/|harness/|scripts/rendered-|\.github/workflows/student-journey-gate\.yml$)' <<< "$changed"; then
             relevant=true
           fi
           echo "relevant=${relevant}" >> "$GITHUB_OUTPUT"
-          echo "local-stack storage check relevant: ${relevant}"
-      - name: Bring up the documented local-test stack
+          echo "rendered design gate relevant: ${relevant}"
+      - uses: oven-sh/setup-bun@v2
         if: steps.changes.outputs.relevant == 'true'
-        working-directory: backend
-        run: |
-          cp .env.local.test.example .env.local.test
-          docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test up -d --build
-      - name: Storage round trip on the local-test stack
+        with:
+          bun-version: latest
+      # Node ships on the ubuntu-latest runner image; no extra action is added.
+      - name: Install impeccable (pinned) without a browser download
         if: steps.changes.outputs.relevant == 'true'
-        working-directory: backend
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: '1'
+        run: npm install -g impeccable@2.1.9
+      - name: Install dependencies and the Chromium browser
+        if: steps.changes.outputs.relevant == 'true'
         run: |
-          # The web container needs a moment to start; retry the command itself, and let
-          # the last attempt fail the job.
-          for attempt in $(seq 1 30); do
-            if docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test \
-                 exec -T web python3 manage.py storage_roundtrip_check --expect-private; then
-              exit 0
-            fi
-            echo "attempt ${attempt} did not pass; waiting"
-            sleep 4
-          done
-          exit 1
-      - name: Dump local-test logs on failure
-        if: failure() && steps.changes.outputs.relevant == 'true'
-        working-directory: backend
-        run: docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test logs --tail=120 || true
-      - name: Tear the local-test stack down
+          bun install --frozen-lockfile
+          cd apps/admissions
+          bunx playwright install --with-deps chromium
+      - name: Bring the harness up
+        if: steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness up
+      - name: Run the rendered design gate and compare with the baseline
+        if: steps.changes.outputs.relevant == 'true'
+        run: |
+          cd apps/admissions
+          bunx playwright test -c playwright.rendered-gate.config.ts
+          bun ../../scripts/rendered-gate-compare.ts
+      - name: Upload rendered gate screenshots and findings
         if: always() && steps.changes.outputs.relevant == 'true'
-        working-directory: backend
-        run: docker compose -p mihas-localtest -f docker-compose.local-test.yml --env-file .env.local.test down -v || true
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-design-gate-evidence
+          path: |
+            apps/admissions/test-results/rendered-gate/
+            apps/admissions/test-results/rendered-gate-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Dump harness logs on failure
+        if: failure() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness logs || true
+      - name: Tear the harness down
+        if: always() && steps.changes.outputs.relevant == 'true'
+        run: bash harness/bin/harness down || true

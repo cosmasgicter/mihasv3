@@ -125,7 +125,7 @@ function prepareStateLabel(uiState: OfficialDocumentUiState): string | null {
     case 'failed':
       return 'Retry'
     case 'setup_required':
-      return 'Setup Required'
+      return 'Setup required'
     default:
       return null
   }
@@ -313,7 +313,7 @@ function OfficialDocAction({
         >
           <a ref={openRef} href={href} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Open <span>{copy.label}</span>
+            Open <span>{copy.noun}</span>
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </Button>
@@ -329,7 +329,7 @@ function OfficialDocAction({
           {leadingIcon}
           {stateLabel ?? (
             <>
-              Prepare <span>{copy.label}</span>
+              Prepare <span>{copy.noun}</span>
             </>
           )}
         </Button>
@@ -352,7 +352,7 @@ function OfficialDocAction({
         // Not a warning and not an error: the document is lawful and readable.
         // It is simply the copy the platform issued, which is why it stays
         // available once the application itself is terminal (STU-18).
-        <p className="text-xs text-muted-foreground">Issued copy on record</p>
+        <p className="text-base sm:text-sm text-muted-foreground">Issued copy on record</p>
       )}
 
       {setupKnownFromRead && (
@@ -503,7 +503,7 @@ export function DocumentButtons({
         took away.
       */}
       {summary && (
-        <p className="break-words text-sm text-muted-foreground" data-testid="document-status-summary">
+        <p className="break-words text-base sm:text-sm text-muted-foreground" data-testid="document-status-summary">
           {summary}
         </p>
       )}
@@ -523,7 +523,7 @@ export function DocumentButtons({
         aria-expanded={open}
         aria-controls={panelId}
         data-testid="document-options-trigger"
-        className="inline-flex min-h-touch w-full items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-auto"
+        className="inline-flex min-h-touch w-full items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-auto"
       >
         <span className="inline-flex min-w-0 items-center gap-2">
           <FileText className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />

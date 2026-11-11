@@ -240,6 +240,30 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/admin/documents/ocr-opt-in/": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Retrieve admin documents ocr opt in
+         * @description Read or replace the set of institutions that have opted in to OCR.
+         */
+        readonly get: operations["admin_documents_ocr_opt_in_retrieve"];
+        /**
+         * Update admin documents ocr opt in
+         * @description Read or replace the set of institutions that have opted in to OCR.
+         */
+        readonly put: operations["admin_documents_ocr_opt_in_update"];
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/admin/fees/": {
         readonly parameters: {
             readonly query?: never;
@@ -2541,38 +2565,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/applications/draft/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Retrieve applications draft
-         * @description Deprecated compatibility endpoint for latest wizard snapshot payloads.
-         *
-         *     Do not use this endpoint for production multi-draft routing. Canonical
-         *     online drafts are ``Application(status='draft')`` rows exposed through
-         *     ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-         */
-        readonly get: operations["applications_draft_retrieve"];
-        readonly put?: never;
-        /**
-         * Submit applications draft save
-         * @description Deprecated compatibility endpoint for latest wizard snapshot payloads.
-         *
-         *     Do not use this endpoint for production multi-draft routing. Canonical
-         *     online drafts are ``Application(status='draft')`` rows exposed through
-         *     ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-         */
-        readonly post: operations["applications_draft_save"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v1/applications/drafts/": {
         readonly parameters: {
             readonly query?: never;
@@ -3448,74 +3440,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/documents/cover-letters/generate/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Submit documents cover letters generate */
-        readonly post: operations["documents_cover_letters_generate"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/documents/question-bank/answer/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Submit documents question bank answer */
-        readonly post: operations["documents_question_bank_answer"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/documents/resumes/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** List documents resumes */
-        readonly get: operations["documents_resumes_list"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/documents/resumes/variants/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Create documents resume variants */
-        readonly post: operations["documents_resume_variants_create"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v1/documents/upload/": {
         readonly parameters: {
             readonly query?: never;
@@ -3538,40 +3462,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/email/accounts/zoho/connect/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Submit email zoho connect */
-        readonly post: operations["email_zoho_connect"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/email/messages/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** List email messages */
-        readonly get: operations["email_messages_list"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v1/email/send/": {
         readonly parameters: {
             readonly query?: never;
@@ -3588,23 +3478,6 @@ export interface paths {
          *     Admin-only, enqueue email via Celery.
          */
         readonly post: operations["email_send"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/email/threads/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /** List email threads */
-        readonly get: operations["email_threads_list"];
-        readonly put?: never;
-        readonly post?: never;
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -4852,120 +4725,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v2/applications/{application_id}/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Retrieve v2 applications
-         * @description GET /api/v2/applications/{id}/ — application detail for owner.
-         *
-         *     Demonstrates: owner-scoped read, NOT_FOUND for non-existent/non-owned,
-         *     success envelope with application data.
-         */
-        readonly get: operations["v2_applications_retrieve"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v2/auth/session/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Retrieve v2 auth session
-         * @description GET /api/v2/auth/session/ — current user session info.
-         *
-         *     Returns authenticated user data or {authenticated: false} for anonymous.
-         *     Demonstrates: success envelope with meta, anonymous vs authenticated paths.
-         */
-        readonly get: operations["v2_auth_session_retrieve"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v2/catalog/programs/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * List v2 catalog programs
-         * @description GET /api/v2/catalog/programs/ — paginated program list.
-         *
-         *     Public endpoint returning active programs. Demonstrates: V2 pagination
-         *     envelope with meta, page_size, total_count.
-         */
-        readonly get: operations["v2_catalog_programs_list"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v2/documents/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * List v2 documents
-         * @description GET /api/v2/documents/ — paginated document list for current user.
-         *
-         *     Demonstrates: authenticated list with V2 pagination, empty results handling.
-         */
-        readonly get: operations["v2_documents_list"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v2/payments/resolve-fee/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        /**
-         * Get v2 payments fee resolve
-         * @description GET /api/v2/payments/resolve-fee/ — resolve application fee.
-         *
-         *     Demonstrates: validation error with fields, domain error (FEE_NOT_CONFIGURED),
-         *     provider unavailable, and success envelope.
-         */
-        readonly get: operations["v2_payments_fee_resolve"];
-        readonly put?: never;
-        readonly post?: never;
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v2/student/applications/{application_id}/readiness/": {
         readonly parameters: {
             readonly query?: never;
@@ -5186,7 +4945,6 @@ export interface components {
             readonly institution_id: string;
             readonly document_type: string;
             readonly name: string;
-            /** Format: int64 */
             readonly version?: number;
             readonly sections?: unknown;
             readonly tokens?: unknown;
@@ -5430,7 +5188,6 @@ export interface components {
             readonly payment_verified_by_email: string | null;
             readonly payment_currency: string | null;
             readonly eligibility_status?: string | null;
-            /** Format: int64 */
             readonly eligibility_score?: number | null;
             readonly eligibility_notes?: string | null;
             readonly admin_feedback?: string | null;
@@ -5572,26 +5329,6 @@ export interface components {
             /** @default true */
             readonly success: boolean;
         };
-        /** @description Deprecated compatibility serializer for wizard snapshot payloads. */
-        readonly ApplicationDraft: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Format: uuid */
-            readonly application_id: string | null;
-            /** Format: uuid */
-            readonly user_id: string;
-            readonly draft_data: unknown;
-            readonly draft_name?: string | null;
-            /** Format: int64 */
-            readonly step_completed?: number | null;
-            readonly is_active?: boolean | null;
-            /** Format: date-time */
-            readonly last_accessed_at?: string | null;
-            /** Format: date-time */
-            readonly created_at: string | null;
-            /** Format: date-time */
-            readonly updated_at: string | null;
-        };
         /** @description A draft conflict, including the version a client must reload. */
         readonly ApplicationDraftConflictResponse: {
             /** @default false */
@@ -5600,16 +5337,6 @@ export interface components {
             readonly code: string;
             readonly details?: unknown;
             readonly current_version?: number;
-        };
-        readonly ApplicationDraftResponse: {
-            readonly data: components["schemas"]["ApplicationDraft"];
-            /** @default true */
-            readonly success: boolean;
-        };
-        readonly ApplicationDraftWrite: {
-            /** Format: uuid */
-            readonly application_id?: string | null;
-            readonly draft_data?: unknown;
         };
         /** @description Generic {success, data} envelope for application business-logic responses.
          *
@@ -5753,9 +5480,7 @@ export interface components {
             /** Format: uuid */
             readonly intake_id: string;
             readonly draft_name?: string | null;
-            /** Format: int64 */
             readonly version?: number;
-            /** Format: int64 */
             readonly assignment_version?: number;
             readonly status?: string;
             readonly payment_status?: string | null;
@@ -5772,8 +5497,8 @@ export interface components {
             readonly payment_currency: string | null;
             /** Format: date-time */
             readonly submitted_at?: string | null;
-            readonly admin_feedback?: string | null;
-            readonly last_payment_audit_notes: string;
+            readonly admin_feedback: string | null;
+            readonly last_payment_audit_notes: string | null;
             /** Format: date-time */
             readonly review_started_at?: string | null;
             /** Format: date-time */
@@ -5995,7 +5720,6 @@ export interface components {
             readonly name: string;
             readonly code: string;
             readonly description?: string | null;
-            /** Format: int64 */
             readonly duration_months?: number | null;
             readonly regulatory_body?: string | null;
             readonly is_active?: boolean | null;
@@ -6267,6 +5991,10 @@ export interface components {
             readonly application_id: string;
             readonly document_type: string;
             readonly document_name: string;
+            /** @description A freshly signed URL, never the stored key (design R4-a).
+             *
+             *     A signing failure yields ``null`` and an ERROR log; the student opener
+             *     signs separately and shows its own state. */
             readonly file_url: string | null;
             readonly file_size: number | null;
             readonly mime_type: string | null;
@@ -6297,17 +6025,6 @@ export interface components {
             /** Format: date-time */
             readonly superseded_at: string | null;
             readonly provenance: string | null;
-        };
-        readonly DocumentAction: {
-            readonly message: string;
-            readonly status: string;
-            /** Format: uuid */
-            readonly reference_id: string;
-        };
-        readonly DocumentActionResponse: {
-            readonly data: components["schemas"]["DocumentAction"];
-            /** @default true */
-            readonly success: boolean;
         };
         readonly DocumentResponse: {
             readonly data: components["schemas"]["Document"];
@@ -6370,48 +6087,10 @@ export interface components {
             readonly institution_id?: string | null;
             readonly assignment_version?: number;
         };
-        readonly EmailAccount: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly provider: string;
-            /** Format: email */
-            readonly email: string;
-            readonly status: string;
-        };
-        readonly EmailAccountResponse: {
-            readonly data: components["schemas"]["EmailAccount"];
-            /** @default true */
-            readonly success: boolean;
-        };
         readonly EmailActionResponse: {
             readonly data: components["schemas"]["IntegrationAction"];
             /** @default true */
             readonly success: boolean;
-        };
-        readonly EmailMessage: {
-            /** Format: uuid */
-            readonly id: string;
-            /** Format: uuid */
-            readonly thread_id: string;
-            readonly direction: string;
-            /** Format: email */
-            readonly sender: string;
-            /** Format: email */
-            readonly recipient: string;
-            readonly subject: string;
-            readonly body_preview: string;
-            readonly classification: string;
-        };
-        readonly EmailMessageListResponse: {
-            readonly data: components["schemas"]["EmailMessagePage"];
-            /** @default true */
-            readonly success: boolean;
-        };
-        readonly EmailMessagePage: {
-            readonly results: readonly components["schemas"]["EmailMessage"][];
-            readonly page: number;
-            readonly pageSize: number;
-            readonly totalCount: number;
         };
         readonly EmailSend: {
             /** Format: email */
@@ -6423,24 +6102,6 @@ export interface components {
             readonly data: components["schemas"]["IdMessage"];
             /** @default true */
             readonly success: boolean;
-        };
-        readonly EmailThread: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly subject: string;
-            readonly thread_key: string;
-            readonly status: string;
-        };
-        readonly EmailThreadListResponse: {
-            readonly data: components["schemas"]["EmailThreadPage"];
-            /** @default true */
-            readonly success: boolean;
-        };
-        readonly EmailThreadPage: {
-            readonly results: readonly components["schemas"]["EmailThread"][];
-            readonly page: number;
-            readonly pageSize: number;
-            readonly totalCount: number;
         };
         readonly ErrorResponse: {
             /** @default false */
@@ -6497,17 +6158,6 @@ export interface components {
             readonly success: boolean;
             readonly data: components["schemas"]["FeeQuoteData"];
         };
-        readonly GeneratedText: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly content: string;
-            readonly status: string;
-        };
-        readonly GeneratedTextResponse: {
-            readonly data: components["schemas"]["GeneratedText"];
-            /** @default true */
-            readonly success: boolean;
-        };
         readonly HealthStatus: {
             readonly status: string;
             readonly db?: string;
@@ -6543,7 +6193,6 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly name: string;
-            /** Format: int64 */
             readonly year?: number | null;
             readonly semester?: string | null;
             /** Format: date */
@@ -6554,9 +6203,7 @@ export interface components {
             readonly application_start_date?: string | null;
             /** Format: date */
             readonly application_deadline?: string | null;
-            /** Format: int64 */
             readonly max_capacity?: number | null;
-            /** Format: int64 */
             readonly current_enrollment?: number | null;
             readonly is_active?: boolean | null;
             /** Format: date-time */
@@ -6755,9 +6402,17 @@ export interface components {
             /** @default true */
             readonly success: boolean;
         };
+        /** @description The opt-in set: the institutions whose students get OCR suggestions. */
+        readonly OcrOptIn: {
+            readonly institution_ids: readonly string[];
+        };
+        readonly OcrOptInResponse: {
+            readonly data: components["schemas"]["OcrOptIn"];
+            /** @default true */
+            readonly success: boolean;
+        };
         /** @description Optional recipient override for the official-document email (R13.5). */
         readonly OfficialDocumentEmailRequest: {
-            /** Format: email */
             readonly email?: string;
         };
         /** @description The committed durable job, as published (R13.11). */
@@ -7017,7 +6672,6 @@ export interface components {
             readonly institution_id?: string;
             readonly document_type?: string;
             readonly name?: string;
-            /** Format: int64 */
             readonly version?: number;
             readonly sections?: unknown;
             readonly tokens?: unknown;
@@ -7196,7 +6850,6 @@ export interface components {
             readonly payment_verified_by_email?: string | null;
             readonly payment_currency?: string | null;
             readonly eligibility_status?: string | null;
-            /** Format: int64 */
             readonly eligibility_score?: number | null;
             readonly eligibility_notes?: string | null;
             readonly admin_feedback?: string | null;
@@ -7272,7 +6925,6 @@ export interface components {
             /** Format: uuid */
             readonly id?: string;
             readonly name?: string;
-            /** Format: int64 */
             readonly year?: number | null;
             readonly semester?: string | null;
             /** Format: date */
@@ -7283,9 +6935,7 @@ export interface components {
             readonly application_start_date?: string | null;
             /** Format: date */
             readonly application_deadline?: string | null;
-            /** Format: int64 */
             readonly max_capacity?: number | null;
-            /** Format: int64 */
             readonly current_enrollment?: number | null;
             readonly is_active?: boolean | null;
             /** Format: date-time */
@@ -7320,11 +6970,9 @@ export interface components {
             readonly institution?: components["schemas"]["Institution"];
             /** Format: uuid */
             readonly institution_id?: string;
-            /** Format: int64 */
             readonly duration_months?: number | null;
             /** Format: uuid */
             readonly canonical_program_id?: string;
-            /** Format: int64 */
             readonly assignment_priority?: number | null;
             readonly offering_status?: string | null;
             /** Format: decimal */
@@ -7346,11 +6994,9 @@ export interface components {
             readonly code?: string;
             /** Format: uuid */
             readonly institution_id?: string;
-            /** Format: int64 */
             readonly duration_months?: number | null;
             /** Format: uuid */
             readonly canonical_program_id?: string | null;
-            /** Format: int64 */
             readonly assignment_priority?: number | null;
             readonly offering_status?: string | null;
             readonly assignment_rules?: unknown;
@@ -7454,7 +7100,7 @@ export interface components {
             readonly creator: components["schemas"]["PlatformMetaCreator"];
             readonly developer: components["schemas"]["PlatformMetaDeveloper"];
             readonly api_version: string;
-            readonly status: string;
+            readonly features: components["schemas"]["PlatformMetaFeatures"];
         };
         readonly PlatformMetaCreator: {
             readonly name: string;
@@ -7463,6 +7109,9 @@ export interface components {
             readonly name: string;
             /** Format: uri */
             readonly url: string;
+        };
+        readonly PlatformMetaFeatures: {
+            readonly jobs_ops: boolean;
         };
         readonly PlatformMetaResponse: {
             readonly data: components["schemas"]["PlatformMeta"];
@@ -7478,11 +7127,9 @@ export interface components {
             readonly institution: components["schemas"]["Institution"];
             /** Format: uuid */
             readonly institution_id: string;
-            /** Format: int64 */
             readonly duration_months?: number | null;
             /** Format: uuid */
             readonly canonical_program_id: string;
-            /** Format: int64 */
             readonly assignment_priority?: number | null;
             readonly offering_status?: string | null;
             /** Format: decimal */
@@ -7504,11 +7151,9 @@ export interface components {
             readonly code: string;
             /** Format: uuid */
             readonly institution_id: string;
-            /** Format: int64 */
             readonly duration_months?: number | null;
             /** Format: uuid */
             readonly canonical_program_id?: string | null;
-            /** Format: int64 */
             readonly assignment_priority?: number | null;
             readonly offering_status?: string | null;
             readonly assignment_rules?: unknown;
@@ -7601,21 +7246,8 @@ export interface components {
             readonly policy: {
                 readonly [key: string]: unknown;
             };
-        };
-        readonly ResumeAsset: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly name: string;
-            readonly asset_type: string;
-            readonly target_role: string;
-            readonly status: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        readonly ResumeListResponse: {
-            readonly data: readonly components["schemas"]["ResumeAsset"][];
-            /** @default true */
-            readonly success: boolean;
+            /** @description True when the application's institution has opted in to OCR grade suggestions (decision D4). */
+            readonly ocr_available: boolean;
         };
         /** @description Documents the workspace payload shape (design §11.1) for the schema. */
         readonly ReviewWorkspaceResponse: {
@@ -7915,118 +7547,6 @@ export interface components {
         readonly UpdatedCount: {
             readonly message: string;
             readonly updated: number;
-        };
-        readonly V2ApplicationDetail: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly status: string;
-            readonly program: string;
-            readonly institution: string;
-            /** Format: date-time */
-            readonly created_at: string | null;
-            /** Format: date-time */
-            readonly updated_at: string | null;
-        };
-        readonly V2ApplicationDetailEnvelope: {
-            /** @default true */
-            readonly success: boolean;
-            readonly data: components["schemas"]["V2ApplicationDetail"];
-            readonly meta: components["schemas"]["V2Meta"];
-        };
-        readonly V2Document: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly document_type: string;
-            readonly file_name: string;
-            readonly status: string;
-            /** Format: date-time */
-            readonly created_at: string | null;
-        };
-        readonly V2DocumentListEnvelope: {
-            /** @default true */
-            readonly success: boolean;
-            readonly data: components["schemas"]["V2DocumentPage"];
-            readonly meta: components["schemas"]["V2Meta"];
-        };
-        readonly V2DocumentPage: {
-            readonly page: number;
-            readonly page_size: number;
-            readonly total_count: number;
-            readonly results: readonly components["schemas"]["V2Document"][];
-        };
-        readonly V2ErrorBody: {
-            readonly code: string;
-            readonly message: string;
-            readonly fields?: {
-                readonly [key: string]: readonly string[];
-            };
-            readonly retryable: boolean;
-        };
-        readonly V2ErrorEnvelope: {
-            /** @default false */
-            readonly success: boolean;
-            readonly error: components["schemas"]["V2ErrorBody"];
-            readonly meta: components["schemas"]["V2Meta"];
-        };
-        readonly V2FeeResolution: {
-            /** Format: decimal */
-            readonly amount: string;
-            readonly currency: string;
-            readonly residency_category: string;
-            readonly source: string;
-            /** Format: decimal */
-            readonly provider_fee_estimate: string;
-            /** Format: decimal */
-            readonly customer_total: string;
-            readonly bearer: string;
-            readonly is_binding_quote: boolean;
-        };
-        readonly V2FeeResolutionEnvelope: {
-            /** @default true */
-            readonly success: boolean;
-            readonly data: components["schemas"]["V2FeeResolution"];
-            readonly meta: components["schemas"]["V2Meta"];
-        };
-        readonly V2Meta: {
-            /** Format: uuid */
-            readonly request_id: string | null;
-            /** @default v2 */
-            readonly api_version: string;
-        };
-        readonly V2Program: {
-            /** Format: uuid */
-            readonly id: string;
-            readonly name: string;
-            readonly code: string | null;
-            readonly is_active: boolean;
-        };
-        readonly V2ProgramListEnvelope: {
-            /** @default true */
-            readonly success: boolean;
-            readonly data: components["schemas"]["V2ProgramPage"];
-            readonly meta: components["schemas"]["V2Meta"];
-        };
-        readonly V2ProgramPage: {
-            readonly page: number;
-            readonly page_size: number;
-            readonly total_count: number;
-            readonly results: readonly components["schemas"]["V2Program"][];
-        };
-        readonly V2SessionData: {
-            readonly authenticated: boolean;
-            /** Format: uuid */
-            readonly id?: string;
-            /** Format: email */
-            readonly email?: string;
-            readonly first_name?: string;
-            readonly last_name?: string;
-            readonly role?: string;
-        };
-        readonly V2SessionEnvelope: {
-            /** @default true */
-            readonly success: boolean;
-            readonly data: components["schemas"]["V2SessionData"];
-            readonly meta: components["schemas"]["V2Meta"];
         };
         readonly WithdrawalReason: {
             readonly withdrawal_reason: string;
@@ -8738,6 +8258,128 @@ export interface operations {
                 };
             };
             /** @description Forbidden — the authenticated user lacks permission for this action. */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Resource not found. */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error. Logged to GlitchTip. */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    readonly admin_documents_ocr_opt_in_retrieve: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["OcrOptInResponse"];
+                };
+            };
+            /** @description Authentication required — missing or invalid credentials. */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Resource not found. */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error. Logged to GlitchTip. */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    readonly admin_documents_ocr_opt_in_update: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["OcrOptIn"];
+                readonly "application/x-www-form-urlencoded": components["schemas"]["OcrOptIn"];
+                readonly "multipart/form-data": components["schemas"]["OcrOptIn"];
+            };
+        };
+        readonly responses: {
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["OcrOptInResponse"];
+                };
+            };
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required — missing or invalid credentials. */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             readonly 403: {
                 headers: {
                     readonly [name: string]: unknown;
@@ -16736,138 +16378,6 @@ export interface operations {
             };
         };
     };
-    readonly applications_draft_retrieve: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly applications_draft_save: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["ApplicationDraftWrite"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["ApplicationDraftWrite"];
-                readonly "multipart/form-data": components["schemas"]["ApplicationDraftWrite"];
-            };
-        };
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            readonly 201: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ApplicationDraftResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     readonly applications_drafts_list: {
         readonly parameters: {
             readonly query?: never;
@@ -19617,6 +19127,15 @@ export interface operations {
                     readonly "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description OCR_NOT_ENABLED: the document's institution has not opted in to OCR. */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Internal server error. Logged to GlitchTip. */
             readonly 500: {
                 headers: {
@@ -19799,271 +19318,6 @@ export interface operations {
             };
         };
     };
-    readonly documents_cover_letters_generate: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["GeneratedText"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["GeneratedText"];
-                readonly "multipart/form-data": components["schemas"]["GeneratedText"];
-            };
-        };
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["GeneratedTextResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly documents_question_bank_answer: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["GeneratedText"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["GeneratedText"];
-                readonly "multipart/form-data": components["schemas"]["GeneratedText"];
-            };
-        };
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["GeneratedTextResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly documents_resumes_list: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ResumeListResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly documents_resume_variants_create: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["DocumentAction"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["DocumentAction"];
-                readonly "multipart/form-data": components["schemas"]["DocumentAction"];
-            };
-        };
-        readonly responses: {
-            readonly 202: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["DocumentActionResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     readonly documents_upload: {
         readonly parameters: {
             readonly query?: never;
@@ -20138,131 +19392,6 @@ export interface operations {
             };
         };
     };
-    readonly email_zoho_connect: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["EmailAccount"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["EmailAccount"];
-                readonly "multipart/form-data": components["schemas"]["EmailAccount"];
-            };
-        };
-        readonly responses: {
-            readonly 201: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["EmailAccountResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly email_messages_list: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["EmailMessageListResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     readonly email_send: {
         readonly parameters: {
             readonly query?: never;
@@ -20292,61 +19421,6 @@ export interface operations {
                 };
                 content: {
                     readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly email_threads_list: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["EmailThreadListResponse"];
                 };
             };
             /** @description Authentication required — missing or invalid credentials. */
@@ -24327,319 +23401,6 @@ export interface operations {
                 };
                 content: {
                     readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly v2_applications_retrieve: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                /** @description Application UUID. */
-                readonly application_id: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ApplicationDetailEnvelope"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ErrorEnvelope"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly v2_auth_session_retrieve: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2SessionEnvelope"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly v2_catalog_programs_list: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ProgramListEnvelope"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly v2_documents_list: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2DocumentListEnvelope"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly v2_payments_fee_resolve: {
-        readonly parameters: {
-            readonly query: {
-                readonly country?: string;
-                readonly nationality?: string;
-                readonly program_code: string;
-            };
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2FeeResolutionEnvelope"];
-                };
-            };
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ErrorEnvelope"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            readonly 409: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ErrorEnvelope"];
-                };
-            };
-            readonly 422: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ErrorEnvelope"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            readonly 503: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["V2ErrorEnvelope"];
                 };
             };
         };

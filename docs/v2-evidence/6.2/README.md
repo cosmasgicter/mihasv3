@@ -1,5 +1,7 @@
 # Task 6.2 Evidence — Implement valid server draft start/list/rename policy
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R10.1, R10.3, R10.9_
 _Findings: STU-12_
 _Design: design.md §7.2 (Application Assignment — `Application.id` is the online draft identity; `StartDraftCommand` accepts canonical offering + intake IDs, derives every field server-side, snapshots display values; generic PATCH never accepts assignment identifiers); §8.1/§8.2 (application/draft lifecycle; multi-draft list keyed by `Application.id`, explicit new/resume intent); §14.1/§14.2 (success/error envelopes; commands that create effects require `Idempotency-Key`, DB uniqueness is the final race guard)._

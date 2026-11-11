@@ -49,13 +49,13 @@ export const KeyboardShortcutsHelp = () => {
             ref={focusTrapRef as React.RefObject<HTMLDivElement>}
             role="dialog"
             aria-modal="true"
-            aria-label="Keyboard Shortcuts"
+            aria-label="Keyboard shortcuts"
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-md p-6 z-50 w-full max-w-md animate-scale-in"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Keyboard className="h-5 w-5" />
-                Keyboard Shortcuts
+                Keyboard shortcuts
               </h3>
               <button
                 onClick={() => setIsOpen(false)}
@@ -68,11 +68,11 @@ export const KeyboardShortcutsHelp = () => {
             <div className="space-y-3">
               {shortcuts.map((shortcut, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-foreground">{shortcut.description}</span>
+                  <span className="text-base sm:text-sm text-foreground">{shortcut.description}</span>
                   <div className="flex items-center gap-1">
                     {shortcut.keys.map((key, i) => (
                       <span key={i}>
-                        <kbd className="px-2 py-1 text-xs font-semibold bg-muted border border-border rounded">
+                        <kbd data-text-role="caption" className="px-2 py-1 text-sm sm:text-xs font-semibold bg-muted border border-border rounded">
                           {key}
                         </kbd>
                         {i < shortcut.keys.length - 1 && (

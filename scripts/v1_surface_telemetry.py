@@ -541,6 +541,9 @@ def run_routes() -> dict[str, Any]:
         import inventory_admissions_v2 as inv  # noqa: PLC0415
 
         settings.ENABLE_JOBS_OPS_ROUTES = True
+        # The email and documents URL modules read the flag when they load (task 12.1).
+        importlib.reload(importlib.import_module("apps.common.email_urls"))
+        importlib.reload(importlib.import_module("apps.documents.urls"))
         importlib.reload(config.urls)
         clear_url_caches()
         catalogue = inv.build_backend_route_catalogue(REPO_ROOT)
@@ -1679,7 +1682,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                     "applicationWizard/hooks/useWizardController.ts",
                     "applicationWizard/hooks/useApplicationFileUploads.ts",
                     "applicationWizard/hooks/wizard/wizardControllerUtils.ts",
-                    "applicationWizard/hooks/wizard/useWizardFileUploads.ts",
                     "applicationWizard/steps/PaymentStep.tsx",
                     "src/pages/student/PaymentCallback.tsx",
                 ),
@@ -1746,7 +1748,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                 paths=(
                     "apps/admissions/src/pages/dev/DocumentPreview.tsx",
                     "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
-                    "apps/admissions/src/lib/slipService.ts",
                     "apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts",
                     "apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts",
                 ),
@@ -1988,7 +1989,6 @@ REVIEW_CATEGORIES: tuple[ReviewCategory, ...] = (
                     "backend/apps/catalog/admin_views.py",
                     "backend/apps/accounts/admin_views.py",
                     "backend/apps/accounts/batch_views.py",
-                    "backend/apps/applications/views.py",
                     "backend/apps/documents/views.py",
                 ),
             ),

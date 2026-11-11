@@ -49,9 +49,9 @@ export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
 }
 
 export const DRAFT_FILTER_OPTIONS = [
-  { value: 'all', label: 'All Applications' },
-  { value: 'drafts', label: 'Drafts Only' },
-  { value: 'completed', label: 'Completed Only' }
+  { value: 'all', label: 'All applications' },
+  { value: 'drafts', label: 'Drafts only' },
+  { value: 'completed', label: 'Completed only' }
 ] as const
 
 export const APPLICATION_FILTER_KEYS = [

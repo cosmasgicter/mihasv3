@@ -65,7 +65,7 @@ export function UserEffectiveCapabilities({
             <p className="mt-3 text-sm text-foreground">
               These are the capabilities the backend grants this account, derived from its platform role,
               institution memberships, and access grants. Access is changed only through those canonical
-              commands — there is no permission editor.
+              commands. There is no permission editor.
             </p>
           </div>
 

@@ -232,7 +232,7 @@ describe('Admin settings page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Operational Settings')
+    expect(text).toContain('Operational settings')
   })
 
   it('renders the page subtitle', async () => {
@@ -254,10 +254,10 @@ describe('Admin settings page verification', () => {
   it('renders the summary cards with setting counts', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Guided Controls')
-    expect(text).toContain('Public Settings')
-    expect(text).toContain('Private Settings')
-    expect(text).toContain('Advanced Keys')
+    expect(text).toContain('Guided controls')
+    expect(text).toContain('Public settings')
+    expect(text).toContain('Private settings')
+    expect(text).toContain('Advanced keys')
   })
 
   // ── Guided configuration sections ───────────────────────────────────
@@ -265,13 +265,13 @@ describe('Admin settings page verification', () => {
   it('renders the guided configuration heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Guided Configuration')
+    expect(text).toContain('Guided configuration')
   })
 
   it('renders the Portal Experience guided section', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Portal Experience')
+    expect(text).toContain('Portal experience')
     expect(text).toContain('Portal name')
     expect(text).toContain('Online applications')
   })
@@ -279,7 +279,7 @@ describe('Admin settings page verification', () => {
   it('renders the Admissions Contact guided section', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Admissions Contact')
+    expect(text).toContain('Admissions contact')
     expect(text).toContain('Admissions email')
     expect(text).toContain('Admissions phone')
   })
@@ -287,7 +287,7 @@ describe('Admin settings page verification', () => {
   it('renders the Admissions Operations guided section', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Admissions Operations')
+    expect(text).toContain('Admissions operations')
     expect(text).toContain('Application fee')
     expect(text).toContain('Application limit per student')
   })
@@ -297,7 +297,7 @@ describe('Admin settings page verification', () => {
   it('renders the Advanced Keys section heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Advanced Keys')
+    expect(text).toContain('Advanced keys')
   })
 
   // ── Empty state ─────────────────────────────────────────────────────
@@ -320,6 +320,6 @@ describe('Admin settings page verification', () => {
     // React Query will show error state — the page should still render
     // without crashing. The page heading should still be visible.
     const text = container.textContent || ''
-    expect(text).toContain('Operational Settings')
+    expect(text).toContain('Operational settings')
   })
 })

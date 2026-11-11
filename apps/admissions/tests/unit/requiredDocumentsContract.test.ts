@@ -20,6 +20,7 @@ import {
   RequiredDocumentsContractError,
   acceptAttribute,
   constraintHint,
+  uploadRulesText,
   formatConstraintSize,
   parseRequiredDocumentsContract,
   unsatisfiedRequirements,
@@ -343,5 +344,18 @@ describe('presentation helpers', () => {
     )
     expect(unsatisfiedRequirements(contract).map((row) => row.documentType)).toEqual(['b', 'd'])
     expect(unsatisfiedRequirements(null)).toEqual([])
+  })
+})
+
+describe('uploadRulesText (task 25.4)', () => {
+  it('states the rules once, in the form the upload control shows', () => {
+    expect(uploadRulesText(requirement({ acceptedExtensions: ['.pdf'], maxSizeBytes: 2097152 }))).toBe(
+      'PDF, up to 2 MB',
+    )
+    expect(
+      uploadRulesText(
+        requirement({ acceptedExtensions: ['.pdf', '.jpg', '.jpeg', '.png'], maxSizeBytes: 10485760 }),
+      ),
+    ).toBe('PDF, JPG or PNG, up to 10 MB')
   })
 })

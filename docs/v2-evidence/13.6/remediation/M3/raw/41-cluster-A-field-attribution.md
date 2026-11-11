@@ -1,5 +1,7 @@
 # M3 cluster A — every regenerated golden field, attributed before regeneration
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 The goldens print *"(re-run with `PERF_BASELINE_UPDATE=1` only if this contract
 change is intended)"*. This file is the "is it intended" answer, taken field by
 field from the **full** divergence list in

@@ -16,6 +16,11 @@ PAYMENT_HARDENING_RATE_LIMITS = True
 # payment-hardening pattern: env vars cannot silently leave PII redaction off.
 DOCUMENT_EXTRACT_RATE_LIMITS = True
 
+# Staging names its own frontend and health-check host; there is no default, and
+# startup validation refuses to start without them (task 4.1).
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "")  # noqa: F405
+HEALTH_CHECK_URL = os.environ.get("HEALTH_CHECK_URL", "")  # noqa: F405
+REQUIRED_ENV_VARS = [*REQUIRED_ENV_VARS, "FRONTEND_URL", "HEALTH_CHECK_URL"]  # noqa: F405
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("ALLOWED_HOSTS", "").split(",")  # noqa: F405

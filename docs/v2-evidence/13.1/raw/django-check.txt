@@ -1,6 +1,0 @@
-]633;E;echo "=== manage.py check (NO TESTING=1, NO substitute REDIS_URL) ===";d5a74086-461b-4179-a194-0f05f4abc256]633;C=== manage.py check (NO TESTING=1, NO substitute REDIS_URL) ===
-/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
-  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
-LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
-System check identified no issues (1 silenced).
-exit=0

@@ -54,7 +54,7 @@ export default function History() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('Activity History', brandName)}
+        title={brandedPageTitle('Activity history', brandName)}
         description="View the chronological timeline of your application activity."
         path="/student/history"
         siteName={brandName}
@@ -73,7 +73,7 @@ export default function History() {
         timeline below the fold. Task 11.1 named this row as this task's.
       */}
       <PageShell
-        title="Activity History"
+        title="Activity history"
         subtitle="A chronological timeline of all activity on your applications."
         eyebrow="Timeline"
         tone="student"
@@ -108,8 +108,9 @@ export default function History() {
           {isEmpty && (
             <EmptyState
               icon={<Clock className="h-12 w-12" />}
-              heading="No activity history"
-              description="There is no activity history for your applications yet. Updates will appear here as your applications progress."
+              headingLevel="h2"
+              heading="No activity yet"
+              description="Each change to your applications, such as a submission, a payment or a decision, appears here."
             />
           )}
 
@@ -131,14 +132,14 @@ export default function History() {
                       >
                         {/* Status transition indicator */}
                         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.old_status)}`}
+                          <span data-text-role="caption"
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${getTimelineStatusColor(entry.old_status)}`}
                           >
                             {formatStatus(entry.old_status)}
                           </span>
                           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-label="to" />
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.new_status)}`}
+                          <span data-text-role="caption"
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${getTimelineStatusColor(entry.new_status)}`}
                           >
                             {formatStatus(entry.new_status)}
                           </span>
@@ -147,19 +148,19 @@ export default function History() {
                         {/* Content */}
                         <div className="min-w-0 flex-1">
                           {entry.notes && (
-                            <p className="text-sm text-foreground/80">
+                            <p className="text-base sm:text-sm text-muted-foreground">
                               {entry.notes}
                             </p>
                           )}
                           <div className="mt-1 flex flex-wrap items-center gap-3">
-                            <time
-                              className="text-xs text-muted-foreground"
+                            <time data-text-role="caption"
+                              className="text-sm sm:text-xs text-muted-foreground"
                               dateTime={entry.created_at}
                             >
                               {formatRelative(entry.created_at)}
                             </time>
                             {entry.changed_by_name && (
-                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <span data-text-role="caption" className="inline-flex items-center gap-1 text-sm sm:text-xs text-muted-foreground">
                                 <User className="h-3 w-3" />
                                 {entry.changed_by_name}
                               </span>
@@ -177,7 +178,7 @@ export default function History() {
           {/* Pagination */}
           {!isLoading && !error && totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm text-muted-foreground">
                 Page {pagination.page} of {totalPages}
               </p>
               <div className="flex gap-2">

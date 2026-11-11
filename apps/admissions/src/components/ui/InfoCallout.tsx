@@ -46,8 +46,8 @@ export function InfoCallout({ icon: Icon, title, description, variant = 'info', 
       <div className="flex items-start gap-3">
         <Icon className={cn('mt-0.5 h-5 w-5 flex-shrink-0', styles.icon)} />
         <div className="space-y-1">
-          <p className={cn('text-sm font-semibold', styles.title)}>{title}</p>
-          <p className={cn('text-sm', styles.description)}>{description}</p>
+          <p className={cn('text-base sm:text-sm font-semibold', styles.title)}>{title}</p>
+          <p className={cn('text-base sm:text-sm', styles.description)}>{description}</p>
         </div>
       </div>
     </div>

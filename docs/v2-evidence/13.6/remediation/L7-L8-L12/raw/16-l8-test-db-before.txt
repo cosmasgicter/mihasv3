@@ -1,6 +1,0 @@
-]633;E;echo "### $(date -u +%Y-%m-%dT%H:%M:%SZ) L8 - local test-database state BEFORE the L8 runs";6d210f31-056c-4e04-9fa8-a03e26040e7d]633;C### 2026-08-14T16:11:22Z L8 - local test-database state BEFORE the L8 runs
-# Postgres mihas_localtest 127.0.0.1:5433, Redis 127.0.0.1:6380
-# (isolated backend/.env.local.test stack via .localtest-host-env.sh, so the
-#  Neon DSN cannot leak into a test run)
-test_% databases present : <none>
-containers               : mihas-localtest-postgres-1 (Up 36 hours (healthy)),mihas-localtest-redis-1 (Up 36 hours (healthy))

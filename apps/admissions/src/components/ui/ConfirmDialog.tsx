@@ -68,7 +68,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   }`}>
                     <AlertTriangle className={`h-5 w-5 sm:h-6 sm:w-6 ${
                       variant === 'danger' ? 'text-destructive' :
-                      variant === 'warning' ? 'text-accent' :
+                      variant === 'warning' ? 'text-accent-foreground' :
                       'text-primary'
                     }`} />
                   </div>
@@ -88,7 +88,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
             {/* Content — scrollable */}
             <div className="p-4 sm:p-6">
-              <p className="text-foreground text-sm sm:text-base">
+              <p className="text-foreground text-base">
                 {message}
               </p>
             </div>

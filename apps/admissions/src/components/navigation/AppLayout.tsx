@@ -4,11 +4,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/ui/BottomNavigation'
 import { MobilePageHeader } from '@/components/ui/MobilePageHeader'
 import { DesktopSidebar } from './DesktopSidebar'
-import { Header } from './Header'
+import { Header, PLATFORM_SCOPE_LABEL } from './Header'
 import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
+import { resolveBackAction } from './backNavigation'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge'
@@ -26,7 +27,7 @@ import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { matchesRoutePath, navLabelFor, pathFor, routeByPath, routeById, studentNavRoutes, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -44,15 +45,15 @@ const pageTitles: Record<string, string> = {
   // preferences screen was half of why the inbox was hard to find.
   [pathFor('student.notifications')]: 'Notification settings',
   [pathFor('student.communications')]: 'Communications',
-  [pathFor('student.status')]: 'Application Status',
-  [pathFor('admin.dashboard')]: 'Admin Dashboard',
+  [pathFor('student.status')]: 'Application status',
+  [pathFor('admin.dashboard')]: 'Admin dashboard',
   [pathFor('admin.applications')]: 'Applications',
   [pathFor('admin.users')]: 'Users',
   [pathFor('admin.tenants')]: 'Tenants',
   [pathFor('admin.programs')]: 'Programs',
   [pathFor('admin.intakes')]: 'Intakes',
-  [pathFor('admin.audit')]: 'Audit Trail',
-  [pathFor('admin.programFees')]: 'Program Fees',
+  [pathFor('admin.audit')]: 'Audit trail',
+  [pathFor('admin.programFees')]: 'Programme fees',
   [pathFor('admin.settings')]: 'Settings',
 }
 
@@ -72,9 +73,11 @@ const backRoutes = new Set([
   pathFor('admin.programFees'),
 ])
 
-const navItemFromRoute = (route: ProductRouteDefinition, labelOverride?: string) => ({
+// The registry's `navLabel` is the one label: visible text and accessible name,
+// on the bottom bar and in the sidebar alike (task 31.1, R21.1, R15.4).
+const navItemFromRoute = (route: ProductRouteDefinition) => ({
   href: route.path,
-  label: labelOverride ?? route.nav!.label,
+  label: navLabelFor(route),
   icon: route.nav!.icon,
   activeMatchPaths: route.nav?.activeMatchPaths ?? [],
 })
@@ -83,12 +86,12 @@ const navItemFromRoute = (route: ProductRouteDefinition, labelOverride?: string)
  *  render time from the shared capability-gated helper (R13.4). */
 const adminNavItems = [
   navItemFromRoute(routeById('admin.dashboard')),
-  navItemFromRoute(routeById('admin.applications'), 'Apps'),
+  navItemFromRoute(routeById('admin.applications')),
   navItemFromRoute(routeById('admin.programs')),
   navItemFromRoute(routeById('admin.intakes')),
   navItemFromRoute(routeById('admin.users')),
-  navItemFromRoute(routeById('admin.programFees'), 'Fees'),
-  navItemFromRoute(routeById('admin.audit'), 'Audit'),
+  navItemFromRoute(routeById('admin.programFees')),
+  navItemFromRoute(routeById('admin.audit')),
   navItemFromRoute(routeById('admin.settings')),
 ]
 
@@ -105,21 +108,12 @@ const adminNavItems = [
  * inbox was settings. Navigation rules are identical on desktop and mobile, so
  * "one inbox, reachable" has to hold on both.
  *
- * The order follows `routeRegistry` (`student.communications` is `order: 25`),
- * and each label is the registry's own, so the two entries read as what they are:
- * "Communications" is where messages are, "Notification settings" is where the
- * switches are.
+ * Task 34.1 (D16 option A, R21.3): the list is read from the registry and holds
+ * three destinations, "My application", "Messages" and "Account". The routes
+ * they contain stay live and keep their destination highlighted through
+ * `activeMatchPaths`.
  */
-const studentNavItems = [
-  navItemFromRoute(routeById('student.dashboard')),
-  navItemFromRoute(routeById('student.applicationWizard')),
-  navItemFromRoute(routeById('student.communications')),
-  navItemFromRoute(routeById('student.payment')),
-  navItemFromRoute(routeById('student.interview')),
-  navItemFromRoute(routeById('student.notifications')),
-  navItemFromRoute(routeById('student.settings')),
-  navItemFromRoute(routeById('student.status')),
-]
+const studentNavItems = studentNavRoutes().map(navItemFromRoute)
 
 const studentLogoutNavItem = { href: pathFor('auth.signIn'), label: 'Logout', icon: LogOut }
 
@@ -145,6 +139,10 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const expandedWidth = designTokens.layout.sidebarExpanded
 
   const resolvePageTitle = (pathname: string): string => {
+    // The route registry's label names the page (task 31.3, R21.6); the map
+    // below is the fallback for routes the registry gives no navigation label.
+    const registryLabel = routeByPath(pathname)?.nav?.label
+    if (registryLabel) return registryLabel
     const exactMatch = pageTitles[pathname]
     if (exactMatch) return exactMatch
     const nestedMatch = Object.entries(pageTitles).find(([path]) =>
@@ -156,9 +154,21 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   // Determine mobile header props from current route
   const pageTitle = resolvePageTitle(location.pathname)
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
-  const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
   const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith(pathFor('student.applicationWizard'))
+  // The review page carries its own sticky decision bar; the bottom navigation
+  // would sit over it (task 30.3, R17.3).
+  const isAdminReviewRoute = matchesRoutePath(location.pathname, routeById('admin.applicationReview'))
+  const handleBack = () => {
+    const action = resolveBackAction({
+      isWizardRoute,
+      locationKey: location.key,
+      historyIndex: (window.history.state as { idx?: number } | null)?.idx ?? null,
+      dashboardPath: pathFor('student.dashboard'),
+    })
+    if (action.kind === 'path') navigate(action.path, { replace: true })
+    else navigate(-1)
+  }
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -273,6 +283,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
           showBack={showBack}
           onBack={handleBack}
           actions={mobileActions}
+          scopeLabel={isAdmin && caps.isSuperAdmin ? PLATFORM_SCOPE_LABEL : undefined}
         />
 
         <main
@@ -301,11 +312,13 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
       {/* Canonical bottom navigation — mobile only */}
       {!isWizardRoute && (
-        <BottomNavigation
-          items={navItems}
-          isAuthenticated
-          overflowMode
-        />
+        isAdminReviewRoute ? null : (
+          <BottomNavigation
+            items={navItems}
+            isAuthenticated
+            overflowMode
+          />
+        )
       )}
     </div>
   )

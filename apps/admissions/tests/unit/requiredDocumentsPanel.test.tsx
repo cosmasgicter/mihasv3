@@ -131,8 +131,8 @@ describe('RequiredDocumentsPanel — contract-driven controls (R11.6)', () => {
     expect(platform).toContain('.jpeg')
 
     // The narrowed requirement states its own limit, not the platform ceiling.
-    expect(screen.getByText(/PDF up to 2MB/)).toBeTruthy()
-    expect(screen.getByText(/PDF, JPG or PNG up to 10MB/)).toBeTruthy()
+    expect(screen.getByText(/PDF, up to 2 MB/)).toBeTruthy()
+    expect(screen.getByText(/PDF, JPG or PNG, up to 10 MB/)).toBeTruthy()
   })
 
   it('marks an optional requirement as optional', () => {

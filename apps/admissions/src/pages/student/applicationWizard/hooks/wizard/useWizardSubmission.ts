@@ -251,7 +251,7 @@ export function useWizardSubmission({
         void queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
         message = 'We could not confirm submission because the server had a temporary issue. Please refresh your application status before trying again.'
       } else if (errorStatus === 404) {
-        message = 'The selected program or intake is no longer available. Please go back and select a different option.'
+        message = 'The selected programme or intake is no longer available. Please go back and select a different option.'
       } else if (message.includes('Bad Request')) {
         message = 'Connection issue - please try again'
       }

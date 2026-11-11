@@ -82,8 +82,10 @@ describe('Navigation links', () => {
     expect(studentNav.map((route) => route.path)).toContain('/student/communications')
   })
 
-  it('DesktopSidebar includes /student/history link', () => {
-    expect(studentNav.map((route) => route.path)).toContain('/student/history')
+  it('History is inside the Messages destination, not a fourth navigation entry (task 34.1, D16)', () => {
+    expect(studentNav.map((route) => route.path)).not.toContain('/student/history')
+    expect(routeById('student.communications').nav?.activeMatchPaths).toContain('/student/history')
+    expect(readSource('pages/student/Communications.tsx')).toContain("pathFor('student.history')")
   })
 
   it('Communications link has a label', () => {
@@ -91,7 +93,7 @@ describe('Navigation links', () => {
   })
 
   it('History link has a label', () => {
-    expect(routeById('student.history').nav?.label).toBe('Activity History')
+    expect(routeById('student.history').nav?.label).toBe('Activity history')
   })
 
   it('Communications link is in the studentLinks array', () => {
@@ -99,9 +101,10 @@ describe('Navigation links', () => {
     expect(routeById('student.communications').nav?.desktop).toBe(true)
   })
 
-  it('History link is in the studentLinks array', () => {
+  it('History keeps its route, label and section, and is no navigation entry of its own', () => {
     expect(routeById('student.history').nav?.section).toBe('student')
-    expect(routeById('student.history').nav?.desktop).toBe(true)
+    expect(routeById('student.history').nav?.desktop).toBeFalsy()
+    expect(routeById('student.history').path).toBe('/student/history')
   })
 })
 
@@ -114,7 +117,7 @@ describe('CommunicationsPage source structure', () => {
 
   it('uses EmptyState component for empty notifications', () => {
     expect(commSource).toContain('<EmptyState')
-    expect(commSource).toMatch(/No communications/)
+    expect(commSource).toMatch(/No messages yet/)
   })
 
   it('uses ErrorDisplay component for fetch failures', () => {
@@ -172,7 +175,7 @@ describe('ActivityTimeline (History) source structure', () => {
 
   it('uses EmptyState component for empty history', () => {
     expect(historySource).toContain('<EmptyState')
-    expect(historySource).toMatch(/No activity history/)
+    expect(historySource).toMatch(/No activity yet/)
   })
 
   it('uses ErrorDisplay component for fetch failures', () => {

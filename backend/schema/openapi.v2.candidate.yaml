@@ -818,6 +818,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve api v1 admin dashboard
+  /api/v1/admin/documents/ocr-opt-in/:
+    get:
+      operationId: admin_documents_ocr_opt_in_retrieve
+      description: Read or replace the set of institutions that have opted in to OCR.
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcrOptInResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve admin documents ocr opt in
+    put:
+      operationId: admin_documents_ocr_opt_in_update
+      description: Read or replace the set of institutions that have opted in to OCR.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OcrOptIn'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcrOptInResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update admin documents ocr opt in
   /api/v1/admin/fees/:
     get:
       operationId: admin_fees_list
@@ -8703,123 +8802,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Update applications bulk status
-  /api/v1/applications/draft/:
-    get:
-      operationId: applications_draft_retrieve
-      description: |-
-        Deprecated compatibility endpoint for latest wizard snapshot payloads.
-
-        Do not use this endpoint for production multi-draft routing. Canonical
-        online drafts are ``Application(status='draft')`` rows exposed through
-        ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-      tags:
-      - applications
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationDraftResponse'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve applications draft
-    post:
-      operationId: applications_draft_save
-      description: |-
-        Deprecated compatibility endpoint for latest wizard snapshot payloads.
-
-        Do not use this endpoint for production multi-draft routing. Canonical
-        online drafts are ``Application(status='draft')`` rows exposed through
-        ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-      tags:
-      - applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApplicationDraftWrite'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ApplicationDraftWrite'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ApplicationDraftWrite'
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationDraftResponse'
-          description: ''
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationDraftResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit applications draft save
   /api/v1/applications/drafts/:
     get:
       operationId: applications_drafts_list
@@ -11407,6 +11389,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: 'OCR_NOT_ENABLED: the document''s institution has not opted
+            in to OCR.'
         '400':
           description: Bad request — validation error. Response body follows the platform
             error envelope.
@@ -11580,227 +11569,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List documents versions
-  /api/v1/documents/cover-letters/generate/:
-    post:
-      operationId: documents_cover_letters_generate
-      tags:
-      - documents
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneratedTextResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit documents cover letters generate
-  /api/v1/documents/question-bank/answer/:
-    post:
-      operationId: documents_question_bank_answer
-      tags:
-      - documents
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GeneratedText'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneratedTextResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit documents question bank answer
-  /api/v1/documents/resumes/:
-    get:
-      operationId: documents_resumes_list
-      tags:
-      - documents
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResumeListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List documents resumes
-  /api/v1/documents/resumes/variants/:
-    post:
-      operationId: documents_resume_variants_create
-      tags:
-      - documents
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DocumentAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/DocumentAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/DocumentAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create documents resume variants
   /api/v1/documents/upload/:
     post:
       operationId: documents_upload
@@ -11869,107 +11637,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit documents upload
-  /api/v1/email/accounts/zoho/connect/:
-    post:
-      operationId: email_zoho_connect
-      tags:
-      - email
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EmailAccount'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/EmailAccount'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/EmailAccount'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmailAccountResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit email zoho connect
-  /api/v1/email/messages/:
-    get:
-      operationId: email_messages_list
-      tags:
-      - email
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmailMessageListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List email messages
   /api/v1/email/send/:
     post:
       operationId: email_send
@@ -12033,47 +11700,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit email send
-  /api/v1/email/threads/:
-    get:
-      operationId: email_threads_list
-      tags:
-      - email
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmailThreadListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List email threads
   /api/v1/email/webhooks/delivery/:
     post:
       operationId: email_delivery_webhook
@@ -15938,283 +15564,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit v2 admin onboarding suspend
-  /api/v2/applications/{application_id}/:
-    get:
-      operationId: v2_applications_retrieve
-      description: |-
-        GET /api/v2/applications/{id}/ — application detail for owner.
-
-        Demonstrates: owner-scoped read, NOT_FOUND for non-existent/non-owned,
-        success envelope with application data.
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        description: Application UUID.
-        required: true
-      tags:
-      - applications
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ApplicationDetailEnvelope'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ErrorEnvelope'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve v2 applications
-  /api/v2/auth/session/:
-    get:
-      operationId: v2_auth_session_retrieve
-      description: |-
-        GET /api/v2/auth/session/ — current user session info.
-
-        Returns authenticated user data or {authenticated: false} for anonymous.
-        Demonstrates: success envelope with meta, anonymous vs authenticated paths.
-      tags:
-      - auth
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2SessionEnvelope'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve v2 auth session
-  /api/v2/catalog/programs/:
-    get:
-      operationId: v2_catalog_programs_list
-      description: |-
-        GET /api/v2/catalog/programs/ — paginated program list.
-
-        Public endpoint returning active programs. Demonstrates: V2 pagination
-        envelope with meta, page_size, total_count.
-      tags:
-      - catalog
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ProgramListEnvelope'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List v2 catalog programs
-  /api/v2/documents/:
-    get:
-      operationId: v2_documents_list
-      description: |-
-        GET /api/v2/documents/ — paginated document list for current user.
-
-        Demonstrates: authenticated list with V2 pagination, empty results handling.
-      tags:
-      - documents
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2DocumentListEnvelope'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List v2 documents
-  /api/v2/payments/resolve-fee/:
-    get:
-      operationId: v2_payments_fee_resolve
-      description: |-
-        GET /api/v2/payments/resolve-fee/ — resolve application fee.
-
-        Demonstrates: validation error with fields, domain error (FEE_NOT_CONFIGURED),
-        provider unavailable, and success envelope.
-      parameters:
-      - in: query
-        name: country
-        schema:
-          type: string
-      - in: query
-        name: nationality
-        schema:
-          type: string
-      - in: query
-        name: program_code
-        schema:
-          type: string
-        required: true
-      tags:
-      - payments
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2FeeResolutionEnvelope'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ErrorEnvelope'
-          description: ''
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ErrorEnvelope'
-          description: ''
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ErrorEnvelope'
-          description: ''
-        '503':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2ErrorEnvelope'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get v2 payments fee resolve
   /api/v2/student/applications/{application_id}/readiness/:
     get:
       operationId: v2_student_application_readiness
@@ -16654,9 +16003,8 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         sections: {}
         tokens:
           nullable: true
@@ -17312,9 +16660,8 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         eligibility_notes:
           type: string
@@ -17649,57 +16996,6 @@ components:
           default: true
       required:
       - data
-    ApplicationDraft:
-      type: object
-      description: Deprecated compatibility serializer for wizard snapshot payloads.
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        application_id:
-          type: string
-          format: uuid
-          readOnly: true
-          nullable: true
-        user_id:
-          type: string
-          format: uuid
-          readOnly: true
-        draft_data: {}
-        draft_name:
-          type: string
-          nullable: true
-        step_completed:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          nullable: true
-        is_active:
-          type: boolean
-          nullable: true
-        last_accessed_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-      required:
-      - application_id
-      - created_at
-      - draft_data
-      - id
-      - updated_at
-      - user_id
     ApplicationDraftConflictResponse:
       type: object
       description: A draft conflict, including the version a client must reload.
@@ -17718,24 +17014,6 @@ components:
       required:
       - code
       - error
-    ApplicationDraftResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationDraft'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    ApplicationDraftWrite:
-      type: object
-      properties:
-        application_id:
-          type: string
-          format: uuid
-          nullable: true
-        draft_data: {}
     ApplicationEnvelopeResponse:
       type: object
       description: |-
@@ -17859,6 +17137,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ApplicationGrade'
+        partial:
+          type: boolean
     ApplicationGradesResponse:
       type: object
       properties:
@@ -18027,14 +17307,12 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         assignment_version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         status:
           type: string
           maxLength: 32
@@ -18089,8 +17367,10 @@ components:
         admin_feedback:
           type: string
           nullable: true
+          readOnly: true
         last_payment_audit_notes:
           type: string
+          nullable: true
           readOnly: true
         review_started_at:
           type: string
@@ -18137,6 +17417,7 @@ components:
           format: date-time
           nullable: true
       required:
+      - admin_feedback
       - age
       - application_fee
       - application_number
@@ -18582,9 +17863,8 @@ components:
           nullable: true
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         regulatory_body:
           type: string
@@ -19151,8 +18431,13 @@ components:
           readOnly: true
         file_url:
           type: string
-          readOnly: true
           nullable: true
+          description: |-
+            A freshly signed URL, never the stored key (design R4-a).
+
+            A signing failure yields ``null`` and an ERROR log; the student opener
+            signs separately and shows its own state.
+          readOnly: true
         file_size:
           type: integer
           readOnly: true
@@ -19269,30 +18554,6 @@ components:
       - verified_at
       - verified_by
       - version
-    DocumentAction:
-      type: object
-      properties:
-        message:
-          type: string
-        status:
-          type: string
-        reference_id:
-          type: string
-          format: uuid
-      required:
-      - message
-      - reference_id
-      - status
-    DocumentActionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DocumentAction'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     DocumentResponse:
       type: object
       properties:
@@ -19411,34 +18672,6 @@ components:
       required:
       - intake_id
       - program_id
-    EmailAccount:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        provider:
-          type: string
-        email:
-          type: string
-          format: email
-        status:
-          type: string
-      required:
-      - email
-      - id
-      - provider
-      - status
-    EmailAccountResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EmailAccount'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     EmailActionResponse:
       type: object
       properties:
@@ -19449,66 +18682,6 @@ components:
           default: true
       required:
       - data
-    EmailMessage:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        thread_id:
-          type: string
-          format: uuid
-        direction:
-          type: string
-        sender:
-          type: string
-          format: email
-        recipient:
-          type: string
-          format: email
-        subject:
-          type: string
-        body_preview:
-          type: string
-        classification:
-          type: string
-      required:
-      - body_preview
-      - classification
-      - direction
-      - id
-      - recipient
-      - sender
-      - subject
-      - thread_id
-    EmailMessageListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EmailMessagePage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    EmailMessagePage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/EmailMessage'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
     EmailSend:
       type: object
       properties:
@@ -19534,51 +18707,6 @@ components:
           default: true
       required:
       - data
-    EmailThread:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        subject:
-          type: string
-        thread_key:
-          type: string
-        status:
-          type: string
-      required:
-      - id
-      - status
-      - subject
-      - thread_key
-    EmailThreadListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/EmailThreadPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    EmailThreadPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/EmailThread'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
     ErrorResponse:
       type: object
       properties:
@@ -19686,30 +18814,6 @@ components:
       required:
       - data
       - success
-    GeneratedText:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        content:
-          type: string
-        status:
-          type: string
-      required:
-      - content
-      - id
-      - status
-    GeneratedTextResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/GeneratedText'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     HealthStatus:
       type: object
       properties:
@@ -19808,9 +18912,8 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         semester:
           type: string
@@ -19834,15 +18937,13 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         is_active:
           type: boolean
@@ -20281,13 +19382,37 @@ components:
           default: true
       required:
       - data
+    OcrOptIn:
+      type: object
+      description: 'The opt-in set: the institutions whose students get OCR suggestions.'
+      properties:
+        institution_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - institution_ids
+    OcrOptInResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OcrOptIn'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
     OfficialDocumentEmailRequest:
       type: object
       description: Optional recipient override for the official-document email (R13.5).
       properties:
         email:
-          type: string
-          format: email
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
     OfficialDocumentJob:
       type: object
       description: The committed durable job, as published (R13.11).
@@ -20836,9 +19961,8 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         sections: {}
         tokens:
           nullable: true
@@ -21310,9 +20434,8 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           readOnly: true
           nullable: true
         eligibility_notes:
@@ -21487,9 +20610,8 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         semester:
           type: string
@@ -21513,15 +20635,13 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         is_active:
           type: boolean
@@ -21545,9 +20665,12 @@ components:
         Protected fields are excluded from the writable set entirely.
       properties:
         full_name:
-          type: string
-          maxLength: 255
-          minLength: 2
+          oneOf:
+          - type: string
+            maxLength: 255
+            minLength: 2
+          - type: string
+            maxLength: 0
         phone:
           type: string
           maxLength: 20
@@ -21602,9 +20725,8 @@ components:
           readOnly: true
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -21612,9 +20734,8 @@ components:
           readOnly: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -21668,9 +20789,8 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -21678,9 +20798,8 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -21948,14 +21067,14 @@ components:
           $ref: '#/components/schemas/PlatformMetaDeveloper'
         api_version:
           type: string
-        status:
-          type: string
+        features:
+          $ref: '#/components/schemas/PlatformMetaFeatures'
       required:
       - api_version
       - creator
       - developer
+      - features
       - product
-      - status
     PlatformMetaCreator:
       type: object
       properties:
@@ -21974,6 +21093,13 @@ components:
       required:
       - name
       - url
+    PlatformMetaFeatures:
+      type: object
+      properties:
+        jobs_ops:
+          type: boolean
+      required:
+      - jobs_ops
     PlatformMetaResponse:
       type: object
       properties:
@@ -22008,9 +21134,8 @@ components:
           readOnly: true
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -22018,9 +21143,8 @@ components:
           readOnly: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -22083,9 +21207,8 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -22093,9 +21216,8 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -22315,50 +21437,19 @@ components:
         policy:
           type: object
           additionalProperties: {}
+        ocr_available:
+          type: boolean
+          description: True when the application's institution has opted in to OCR
+            grade suggestions (decision D4).
       required:
       - application_id
       - application_status
       - configuration_version
       - missing_required
+      - ocr_available
       - policy
       - requirements
       - satisfied
-    ResumeAsset:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        asset_type:
-          type: string
-        target_role:
-          type: string
-        status:
-          type: string
-        updated_at:
-          type: string
-          format: date-time
-      required:
-      - asset_type
-      - id
-      - name
-      - status
-      - target_role
-      - updated_at
-    ResumeListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ResumeAsset'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     ReviewWorkspaceResponse:
       type: object
       description: Documents the workspace payload shape (design §11.1) for the schema.
@@ -23030,271 +22121,6 @@ components:
       required:
       - message
       - updated
-    V2ApplicationDetail:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        status:
-          type: string
-        program:
-          type: string
-        institution:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          nullable: true
-      required:
-      - created_at
-      - id
-      - institution
-      - program
-      - status
-      - updated_at
-    V2ApplicationDetailEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: true
-        data:
-          $ref: '#/components/schemas/V2ApplicationDetail'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - data
-      - meta
-    V2Document:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        document_type:
-          type: string
-        file_name:
-          type: string
-        status:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-          nullable: true
-      required:
-      - created_at
-      - document_type
-      - file_name
-      - id
-      - status
-    V2DocumentListEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: true
-        data:
-          $ref: '#/components/schemas/V2DocumentPage'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - data
-      - meta
-    V2DocumentPage:
-      type: object
-      properties:
-        page:
-          type: integer
-        page_size:
-          type: integer
-        total_count:
-          type: integer
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/V2Document'
-      required:
-      - page
-      - page_size
-      - results
-      - total_count
-    V2ErrorBody:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        fields:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-        retryable:
-          type: boolean
-      required:
-      - code
-      - message
-      - retryable
-    V2ErrorEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: false
-        error:
-          $ref: '#/components/schemas/V2ErrorBody'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - error
-      - meta
-    V2FeeResolution:
-      type: object
-      properties:
-        amount:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        currency:
-          type: string
-        residency_category:
-          type: string
-        source:
-          type: string
-        provider_fee_estimate:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        customer_total:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        bearer:
-          type: string
-        is_binding_quote:
-          type: boolean
-      required:
-      - amount
-      - bearer
-      - currency
-      - customer_total
-      - is_binding_quote
-      - provider_fee_estimate
-      - residency_category
-      - source
-    V2FeeResolutionEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: true
-        data:
-          $ref: '#/components/schemas/V2FeeResolution'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - data
-      - meta
-    V2Meta:
-      type: object
-      properties:
-        request_id:
-          type: string
-          format: uuid
-          nullable: true
-        api_version:
-          type: string
-          default: v2
-      required:
-      - request_id
-    V2Program:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        code:
-          type: string
-          nullable: true
-        is_active:
-          type: boolean
-      required:
-      - code
-      - id
-      - is_active
-      - name
-    V2ProgramListEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: true
-        data:
-          $ref: '#/components/schemas/V2ProgramPage'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - data
-      - meta
-    V2ProgramPage:
-      type: object
-      properties:
-        page:
-          type: integer
-        page_size:
-          type: integer
-        total_count:
-          type: integer
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/V2Program'
-      required:
-      - page
-      - page_size
-      - results
-      - total_count
-    V2SessionData:
-      type: object
-      properties:
-        authenticated:
-          type: boolean
-        id:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-        first_name:
-          type: string
-        last_name:
-          type: string
-        role:
-          type: string
-      required:
-      - authenticated
-    V2SessionEnvelope:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: true
-        data:
-          $ref: '#/components/schemas/V2SessionData'
-        meta:
-          $ref: '#/components/schemas/V2Meta'
-      required:
-      - data
-      - meta
     WithdrawalReason:
       type: object
       properties:

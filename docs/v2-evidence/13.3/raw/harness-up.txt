@@ -1,6 +1,0 @@
- Container mihas-v2-harness-beat-1  Started
-[36m[harness][0m waiting for the backend to become healthy (schema + seed)…
-[32m[harness] ✓ backend healthy[0m
-[36m[harness][0m waiting for the edge (Caddy) to serve the SPA…
-[32m[harness] ✓ edge serving SPA at http://localhost:8090[0m
-[32m[harness] ✓ harness up. Edge: http://localhost:8090  Mailpit: http://localhost:58025[0m

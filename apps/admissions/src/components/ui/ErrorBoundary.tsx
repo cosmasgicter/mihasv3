@@ -123,7 +123,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   className="min-h-touch min-w-touch"
                 >
                   <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Try Again
+                  Try again
                 </Button>
                 {copy.offerReload && (
                   <Button
@@ -131,7 +131,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     variant="outline"
                     className="min-h-touch min-w-touch"
                   >
-                    Reload Page
+                    Reload page
                   </Button>
                 )}
               </div>

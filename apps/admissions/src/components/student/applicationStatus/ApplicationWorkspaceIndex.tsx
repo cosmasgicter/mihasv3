@@ -150,7 +150,7 @@ export function ApplicationWorkspaceIndex() {
 
   const seo = (
     <Seo
-      title={brandedPageTitle('Application Status', brandName)}
+      title={brandedPageTitle('Application status', brandName)}
       description="Track the status and progress of your admissions applications."
       path={pathFor('student.status')}
       siteName={brandName}
@@ -162,7 +162,7 @@ export function ApplicationWorkspaceIndex() {
     return (
       <>
         {seo}
-        <PageShell title="Application Status" eyebrow="Application Status" tone="student">
+        <PageShell title="Application status" eyebrow="Application status" tone="student">
           <div className="space-y-6" role="status" aria-label="Loading your applications">
             <Skeleton className="h-8 w-40 rounded-full" />
             <SkeletonCard />
@@ -177,7 +177,7 @@ export function ApplicationWorkspaceIndex() {
     return (
       <>
         {seo}
-        <PageShell title="Application Status" eyebrow="Application Status" tone="student">
+        <PageShell title="Application status" eyebrow="Application status" tone="student">
           <ErrorDisplay
             variant="section"
             title="We could not load your applications"
@@ -195,8 +195,8 @@ export function ApplicationWorkspaceIndex() {
       <>
         {seo}
         <PageShell
-          title="Application Status"
-          eyebrow="Application Status"
+          title="Application status"
+          eyebrow="Application status"
           subtitle="You have not started an application yet."
           tone="student"
         >
@@ -225,14 +225,14 @@ export function ApplicationWorkspaceIndex() {
     <>
       {seo}
       <PageShell
-        title="Application Status"
-        eyebrow="Application Status"
+        title="Application status"
+        eyebrow="Application status"
         subtitle={`You have ${choices.length} applications. Choose the one you want to open.`}
         tone="student"
       >
         <SectionCard
           title="Your applications"
-          description="Each one opens its own workspace — status, next action, documents and history."
+          description="Each one opens its own workspace. Status, next action, documents and history."
         >
           <ul className="divide-y divide-border" data-testid="status-index-choices">
             {choices.map((choice) => (
@@ -245,13 +245,13 @@ export function ApplicationWorkspaceIndex() {
                       label, at AA on its own wash (task 11.5).
                     */}
                     <StatusPill status={choice.status} />
-                    <p className="mt-1 break-words text-sm font-semibold text-foreground sm:text-base">
+                    <p className="mt-1 break-words text-base font-semibold text-foreground">
                       {choice.program}
                     </p>
-                    <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                    <p className="mt-0.5 break-words text-base sm:text-sm text-muted-foreground">
                       {choice.applicationNumber ? `#${choice.applicationNumber}` : 'Not yet submitted'}
-                      {choice.intake ? ` — ${choice.intake}` : ''}
-                      {choice.updatedAt ? ` — last activity ${formatDate(choice.updatedAt)}` : ''}
+                      {choice.intake ? `: ${choice.intake}` : ''}
+                      {choice.updatedAt ? `: last activity ${formatDate(choice.updatedAt)}` : ''}
                     </p>
                   </div>
                   <Button asChild variant="outline" className="min-h-touch w-full shrink-0 sm:w-auto">

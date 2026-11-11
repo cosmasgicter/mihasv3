@@ -9,10 +9,6 @@ import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
 
-const getInstitutionName = (code?: string) => {
-  const value = code?.trim()
-  return value || 'Not specified'
-}
 
 interface SubmissionSuccessProps {
   submittedApplication: SubmittedApplicationSummary
@@ -25,7 +21,7 @@ interface SubmissionSuccessProps {
 }
 
 const formatPaymentStatusLabel = (status?: string | null) => {
-  if (!status) return 'Pending Payment'
+  if (!status) return 'Pending payment'
   return status
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
@@ -56,17 +52,17 @@ const getPaymentStatusDescription = (status?: string | null) => {
     case 'verified':
     case 'paid':
     case 'successful':
-      return 'Payment verified — you are all set.'
+      return 'Payment verified: you are all set.'
     case 'deferred':
-      return 'Payment deferred — you can pay anytime from the payment page.'
+      return 'Payment deferred: you can pay anytime from the payment page.'
     case 'rejected':
-      return 'Payment issue detected — please contact support.'
+      return 'Payment issue detected: please contact support.'
     case null:
     case undefined:
-      return 'Payment is still pending — complete it later from the student payment page.'
+      return 'Payment is still pending. Complete it later from the student payment page.'
     case 'pending_review':
     default:
-      return 'Payment submitted — awaiting verification by admissions.'
+      return 'Payment submitted: awaiting verification by admissions.'
   }
 }
 
@@ -99,10 +95,10 @@ const SubmissionSuccess = ({
               <X className="h-4 w-4 text-foreground" />
             </button>
             <Skeleton className="mx-auto h-12 w-12 rounded-full" />
-            <p className="mt-4 text-sm font-medium text-foreground">
-              {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
+            <p className="mt-4 text-base sm:text-sm font-medium text-foreground">
+              {persistingSlip ? 'Generating application slip…' : 'Preparing your slip…'}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">
               You can close this and download the slip later.
             </p>
           </div>
@@ -130,8 +126,8 @@ const SubmissionSuccess = ({
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application Submitted</h2>
-        <p className="text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
+        <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application submitted</h2>
+        <p className="text-base sm:text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
 
         {/*
           admissions-v2 task 10.5 (R13.12, STU-22): this block used to print the
@@ -142,9 +138,9 @@ const SubmissionSuccess = ({
           for, with the real tracking credential offered as a command underneath.
         */}
         <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 mb-6">
-          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Application Number</span>
+          <span data-text-role="caption" className="block text-sm sm:text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Application number</span>
           <span className="block font-mono text-xl font-bold text-foreground tracking-wide">{submittedApplication.applicationNumber}</span>
-          <span className="block text-xs text-muted-foreground mt-1">Quote this when you contact the admissions office.</span>
+          <span data-text-role="caption" className="block text-sm sm:text-xs text-muted-foreground mt-1">Quote this when you contact the admissions office.</span>
           {submittedApplication.applicationId && (
             <TrackingLinkAction
               applicationId={submittedApplication.applicationId}
@@ -156,65 +152,67 @@ const SubmissionSuccess = ({
 
         {/* Application details */}
         <div className={`rounded-lg border border-border/70 bg-muted/30 p-4 mb-6 ${animateClasses.slideUp}`}>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Application Details</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Application details</h3>
           {/* The application number is the headline above; not repeated here. */}
-          <dl className="space-y-2 text-sm">
+          <dl className="space-y-2 text-base sm:text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Program</dt>
+              <dt className="text-muted-foreground">Programme</dt>
               <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Institution</dt>
-              <dd className="font-semibold text-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</dd>
-            </div>
+            {submittedApplication.institution?.trim() && (
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Institution</dt>
+                <dd className="font-semibold text-foreground">{submittedApplication.institution.trim()}</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Payment</dt>
               <dd>
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-semibold ${getPaymentStatusStyles(submittedApplication.paymentStatus)}`}
+                <span data-text-role="caption"
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full border text-sm sm:text-xs font-semibold ${getPaymentStatusStyles(submittedApplication.paymentStatus)}`}
                 >
                   {formatPaymentStatusLabel(submittedApplication.paymentStatus)}
                 </span>
               </dd>
             </div>
           </dl>
-          <p className="text-xs text-muted-foreground mt-3">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
+          <p className="text-base sm:text-sm text-muted-foreground mt-3">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
         </div>
 
         {/* Slip actions */}
         <div className="flex flex-col gap-2 mb-6 sm:flex-row">
           <Button onClick={onDownload} loading={slipLoading} className="flex-1 min-h-[48px] touch-manipulation bg-success hover:bg-success/90">
             <Download className="h-4 w-4 mr-2" />
-            Download Slip
+            Download slip
           </Button>
           <Button variant="outline" onClick={onEmail} loading={emailLoading} className="flex-1 min-h-[48px] touch-manipulation">
             <Mail className="h-4 w-4 mr-2" />
-            Email Slip
+            Email slip
           </Button>
         </div>
 
         {/* Next steps list */}
         <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">What happens next</h3>
-          <ol className="space-y-3 text-sm">
+          <ol className="space-y-3 text-base sm:text-sm">
             <li className="flex items-start gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">1</span>
+              <span data-text-role="caption" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm sm:text-xs font-semibold text-primary">1</span>
               <span className="text-foreground">A confirmation email will be sent to your registered address.</span>
             </li>
             {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
               <li className="flex items-start gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-warning/10 text-xs font-semibold text-warning">2</span>
+                <span data-text-role="caption" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-warning/10 text-sm sm:text-xs font-semibold text-warning">2</span>
                 {/* Task 8.3 (R12.3): after submission the payment page owns the
                     fee, so the hand-off names that page rather than the wizard. */}
                 <span className="text-foreground">Complete your payment on the payment page when you are ready.</span>
               </li>
             )}
             <li className="flex items-start gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '3' : '2'}</span>
+              <span data-text-role="caption" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm sm:text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '3' : '2'}</span>
               <span className="text-foreground">Track your application status by signing in, or with the tracking link above.</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '4' : '3'}</span>
+              <span data-text-role="caption" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm sm:text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '4' : '3'}</span>
               <span className="text-foreground">The admissions team will review and notify you of the outcome.</span>
             </li>
           </ol>
@@ -223,11 +221,11 @@ const SubmissionSuccess = ({
         {/* Navigation links */}
         <div className="mt-6 space-y-2">
           <Link to="/track-application">
-            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track Application Status</Button>
+            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track application status</Button>
           </Link>
           {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
             <Link to="/student/payment">
-              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete Payment</Button>
+              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete payment</Button>
             </Link>
           )}
           <Link to="/student/dashboard">

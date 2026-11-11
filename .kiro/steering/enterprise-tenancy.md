@@ -8,7 +8,7 @@ inclusion: always
 future university or college are tenants — example `Institution` records, never
 the platform identity or platform owner.** This file is the authoritative
 steering reference for the tenant authority model. Spec of record:
-`.kiro/specs/enterprise-tenant-authority/`.
+`.kiro/specs/_archived/enterprise-tenant-authority/`.
 
 The single non-negotiable principle:
 
@@ -44,7 +44,7 @@ Rules:
 ## Capability Model
 
 Capabilities — not role strings — drive frontend and backend authorization.
-There are **17 `platform.*`** capabilities (held by Super_Admins) and **17
+There are **16 `platform.*`** capabilities (held by Super_Admins) and **17
 `tenant.*`** capabilities (derived per institution for non-super-admins). The
 authoritative catalogue lives in
 `backend/apps/catalog/services.py:AdminCapabilityService` (`PLATFORM_CAPABILITIES`
@@ -53,7 +53,7 @@ and `TENANT_CAPABILITIES`) and is registered in `docs/canonical-truth-map.md`.
 - **Platform (`platform.*`)**: tenant read_all/create/update/deactivate,
   domain.manage, asset.manage, template.manage, document.manage,
   canonical_program.manage, program_assignment.manage, intake.manage,
-  user.create_global, user.manage_all, access_grant.manage, audit.read_all,
+  user.manage_all, access_grant.manage, audit.read_all,
   routing.simulate_all, settings.manage.
 - **Tenant (`tenant.*`)**: profile read/request_change, application
   read/review/export, document read/verify, payment read/verify, staff
@@ -172,8 +172,7 @@ A Tenant_Admin who cannot directly mutate protected configuration (profile,
 program offering, or domain) **requests** the change through the durable
 `TenantChangeRequest` workflow (`backend/apps/catalog/change_request_service.py`;
 V2 routes under `/api/v2/admin/change-requests/`). This is the closure of
-finding TEN-06 — the tenant console's "request change" affordance is a real
-submit/review/apply workflow, not explanatory text.
+finding TEN-06 — the tenant console's "request change" affordance is a backend workflow with six routes and no frontend caller, dormant by decision D5 (confirmed 2026-11-08).
 
 - **State machine** (`TenantChangeRequestStateMachine`, design §6.4):
   `draft → submitted → approved → applied`, `submitted → rejected`,
@@ -223,8 +222,9 @@ submit/review/apply workflow, not explanatory text.
 The canonical online draft model is **true multi-draft**:
 `Application(status='draft')` is the draft record. The `Application.id` is the
 draft id used for resume, uploads, grades, payment protection, and deletion.
-`ApplicationDraft` / `/api/v1/applications/draft/` is compatibility/cache
-metadata only and must not become a parallel lifecycle.
+The `ApplicationDraft` model is compatibility/cache metadata only (its
+`/api/v1/applications/draft/` endpoint was removed and answers 404); it must not
+become a parallel lifecycle.
 
 - Start-new intent is explicit: `/student/application-wizard?mode=new`
   (legacy aliases `?new=true` and `?fresh=1` normalize to this). New mode never
@@ -247,8 +247,8 @@ metadata only and must not become a parallel lifecycle.
 
 - Document requirements resolve by tenant + program + intake context.
 - Official PDFs use the backend official-document pipeline and the tenant's
-  logo/signature/template/profile when configured. Frontend `@/lib/pdf` renderers
-  are legacy/dev-preview only for official-record purposes.
+  logo/signature/template/profile when configured. There is no frontend PDF
+  renderer (the `@/lib/pdf` stack was removed by platform-simplification task 14.1).
 - **Neutral fallback only.** A missing tenant branding asset falls back to the
   neutral Beanola asset (`InstitutionContextService.BEANOLA_BRAND`) — **never**
   to MIHAS or KATC assets.

@@ -597,10 +597,10 @@ describe('Admin Dashboard page verification', () => {
   })
 
   it('renders activity feed with normalized Django recent_activity', async () => {
-    await renderAndWaitForText('Recent Activity')
+    await renderAndWaitForText('Recent activity')
 
     const text = container.textContent || ''
-    expect(text).toContain('Recent Activity')
+    expect(text).toContain('Recent activity')
     // Activity messages are derived from Django action + entity_type
     expect(text).toContain('submitted application')
     expect(text).toContain('approved application')
@@ -611,13 +611,13 @@ describe('Admin Dashboard page verification', () => {
   })
 
   it('renders quick actions, counting only what a real metric supplies', async () => {
-    await renderAndWaitForText('Quick Actions')
+    await renderAndWaitForText('Quick actions')
 
     const text = container.textContent || ''
-    expect(text).toContain('Quick Actions')
+    expect(text).toContain('Quick actions')
     expect(text).toContain('Applications')
     expect(text).toContain('12 pending')
-    expect(text).toContain('Programs')
+    expect(text).toContain('Programmes')
     expect(text).toContain('Users')
     // `staff_accounts_total` counts accounts in scope, not applicants (MAINT-02).
     expect(text).toContain('150 accounts')

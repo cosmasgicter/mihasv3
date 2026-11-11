@@ -2,9 +2,9 @@
   "summary": {
     "total_endpoints": 196,
     "endpoints_with_issues": 101,
-    "total_issues": 883,
+    "total_issues": 884,
     "errors": 1,
-    "warnings": 809,
+    "warnings": 810,
     "info": 73,
     "score": 87.19
   },
@@ -5712,6 +5712,13 @@
       "category": "naming",
       "message": "Property 'api_version' in schema 'PlatformMeta' should use camelCase",
       "path": "/components/schemas/PlatformMeta/properties/api_version",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'jobs_ops' in schema 'PlatformMetaFeatures' should use camelCase",
+      "path": "/components/schemas/PlatformMetaFeatures/properties/jobs_ops",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

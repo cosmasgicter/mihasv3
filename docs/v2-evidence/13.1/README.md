@@ -1,5 +1,7 @@
 # Task 13.1 — Run the complete functional and quality gate
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · Phase 13, first bullet
 Requirements: **R17, R18.1-R18.4**
 Findings: **GOV-04, GOV-05**

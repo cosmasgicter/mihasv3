@@ -40,7 +40,7 @@ import * as path from 'path';
 // ── Source paths ────────────────────────────────────────────────────────
 
 const SRC = path.resolve(__dirname, '../../src');
-const SLIP_SERVICE_PATH = path.resolve(SRC, 'lib/slipService.ts');
+const SLIP_SERVICE_PATH = path.resolve(SRC, 'lib/slipService.ts'); // deleted by task 14.9
 const OFFICIAL_DOCUMENTS_PATH = path.resolve(SRC, 'services/officialDocuments.ts');
 
 // ── Constants ───────────────────────────────────────────────────────────
@@ -104,22 +104,24 @@ describe('Property 9: the slip email has one authority and no hardcoded dead end
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('slipService.ts does not contain hardcoded "not implemented" error', () => {
-    expect(fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8')).not.toContain(HARDCODED_ERROR);
+  it('the client slip helper is gone, so it cannot hold a second email path', () => {
+    // platform-simplification task 14.9 (D15 item i) deleted lib/slipService.ts
+    // and lib/applicationSlipStorage.ts. The module that once held the dead end
+    // no longer exists, which is the strongest form of "no second email path".
+    expect(fs.existsSync(SLIP_SERVICE_PATH)).toBe(false);
   });
 
   /**
-   * The client holds no slip-email request of its own — the retired route is
-   * gone from it and was not replaced by a second call.
+   * The original defect: a hardcoded "not implemented" refusal. Absent from
+   * every client module, not only the one that used to hold it.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('slipService.ts no longer calls the retired email-slip route', () => {
-    const code = readCode(SLIP_SERVICE_PATH);
-    expect(code).not.toContain(RETIRED_ROUTE);
-    // …and it no longer holds a transport at all, which is the structural reason
-    // it cannot grow a second email path back.
-    expect(code).not.toContain('apiClient');
+  it('no client module contains the hardcoded "not implemented" error', () => {
+    const offenders = walk(SRC)
+      .filter((file) => fs.readFileSync(file, 'utf-8').includes(HARDCODED_ERROR))
+      .map((file) => path.relative(SRC, file));
+    expect(offenders).toEqual([]);
   });
 
   /**
@@ -150,47 +152,18 @@ describe('Property 9: the slip email has one authority and no hardcoded dead end
 
   /**
    * FUNCTIONAL PROPERTY TEST:
-   * For any valid email and application id, the client neither builds the
-   * retired route nor returns the hardcoded refusal — it answers with a reason
-   * that names the successor.
+   * For any application id, no client module builds the retired route.
    *
    * **Validates: Requirements 1.10, 1.11**
    */
-  it('a sendEmail request is answered with a reason, for any recipient', async () => {
-    const raw = fs.readFileSync(SLIP_SERVICE_PATH, 'utf-8');
-    const code = readCode(SLIP_SERVICE_PATH);
-
-    await fc.assert(
-      fc.asyncProperty(emailArb, appIdArb, async (email, appId) => {
-        // Neither the old dead end nor the retired route, whoever the recipient
-        // is and whichever application it is for — both are properties of the
-        // module, and the generators assert that they do not depend on the input.
-        expect(raw).not.toContain(HARDCODED_ERROR);
+  it('no client module builds the retired route, for any application', () => {
+    const code = walk(SRC).map((file) => readCode(file)).join('\n');
+    fc.assert(
+      fc.property(emailArb, appIdArb, (email, appId) => {
         expect(code).not.toContain(`/${appId}/${RETIRED_ROUTE}/`);
-        expect(code).not.toContain(RETIRED_ROUTE);
         expect(email).toContain('@');
-
-        // The request is refused *with a reason*, and the reason points at the
-        // one authority. That is the property: not silence, and not a lie.
-        expect(code).toContain('emailError =');
-        expect(code).toContain('official-document service');
       }),
       { numRuns: 30 },
     );
-  });
-
-  /**
-   * `emailed` is never asserted true by this module, because it never sends.
-   *
-   * This inverts the original case ("sets emailed=true on a successful backend
-   * response"): after 10.6 a `true` here would be a claim the module cannot
-   * substantiate, which is the same class of defect Property 9 was written for.
-   *
-   * **Validates: Requirements 1.10, 1.11**
-   */
-  it('slipService.ts never reports a slip as emailed', () => {
-    const code = readCode(SLIP_SERVICE_PATH);
-    expect(code).toContain('const emailed = false');
-    expect(code.includes('emailed = true') || code.includes('emailed=true')).toBe(false);
   });
 });

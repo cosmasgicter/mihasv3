@@ -19,7 +19,10 @@ silently drop the envelope.
 import uuid
 
 import pytest
+from django.test import override_settings
 from rest_framework.test import APIClient
+
+from tests.jobs_ops_urls import reload_jobs_ops_urlconf
 
 from apps.accounts.authentication import JWTUser
 
@@ -38,7 +41,18 @@ def _client_for(role="admin"):
     return client
 
 
+@pytest.fixture
+def jobs_ops_routes_on():
+    """The Zoho connect route is a jobs-ops route: it is mounted only with the flag on
+    (platform-simplification task 12.1). The old test assumed it was always mounted."""
+    with override_settings(ENABLE_JOBS_OPS_ROUTES=True):
+        reload_jobs_ops_urlconf()
+        yield
+    reload_jobs_ops_urlconf()
+
+
 @pytest.mark.django_db
+@pytest.mark.usefixtures("jobs_ops_routes_on")
 class TestZohoConnectViewEnvelope:
     """POST /api/v1/email/accounts/zoho/connect/ returns the standard envelope."""
 

@@ -49,7 +49,7 @@ export default function ContactPage() {
     <PublicLayout>
       <Seo
         title="Contact Admissions | Beanola"
-        description="Reach the Beanola admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
+        description="Reach the Beanola admissions team for application help, programme guidance, payment questions, and international student support. WhatsApp is fastest."
         path="/contact"
       />
       <div className="bg-muted">
@@ -68,7 +68,7 @@ export default function ContactPage() {
                 Reach the admissions team
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
+                Stuck on the application, not sure which programme to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
               </p>
             </div>
 
@@ -81,7 +81,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-wider text-success">Fastest response</p>
-                    <p className="text-base text-foreground">WhatsApp — usually within an hour on working days</p>
+                    <p className="text-base text-foreground">WhatsApp: usually within an hour on working days</p>
                   </div>
                 </div>
                 <Button asChild size="lg" className="min-h-touch bg-success text-white hover:bg-success/90 sm:w-auto">
@@ -103,7 +103,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
                   <p className="font-medium text-foreground">{contactInfo.admissionsPhone}</p>
                 </div>
               </a>
@@ -116,7 +116,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
                   <p className="font-medium text-foreground">{contactInfo.supportPhone}</p>
                 </div>
               </a>
@@ -129,7 +129,7 @@ export default function ContactPage() {
                   <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</p>
                   <p className="font-medium text-foreground truncate">{contactInfo.email}</p>
                 </div>
               </a>
@@ -139,7 +139,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.admissionsAddress}</p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.supportAddress}</p>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function ContactPage() {
                   <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Hours of operation</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Hours of operation</p>
                   <p className="text-sm font-medium text-foreground">Mon–Fri: 08:00–17:00</p>
                   <p className="text-sm text-muted-foreground">Sat: 08:00–12:00</p>
                 </div>
@@ -181,7 +181,7 @@ export default function ContactPage() {
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <Button asChild size="lg" className="min-h-touch w-full sm:w-auto">
-                      <a href={draftUrl}>Open Email App</a>
+                      <a href={draftUrl}>Open email app</a>
                     </Button>
                     <Button
                       type="button"
@@ -190,7 +190,7 @@ export default function ContactPage() {
                       className="min-h-touch w-full sm:w-auto"
                       onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
                     >
-                      Edit Message
+                      Edit message
                     </Button>
                   </div>
                 </div>
@@ -221,14 +221,14 @@ export default function ContactPage() {
                 />
                 <div className="w-full">
                   <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
-                    Message <span className="text-destructive ml-1">*</span>
+                    Message
                   </label>
                   <textarea
                     id="contact-message"
                     autoComplete="off"
                     placeholder="How can we help?"
                     rows={5}
-                    className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
+                    className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
                     aria-invalid={!!errors.message}
                     aria-describedby={errors.message ? 'contact-message-error' : undefined}
                     {...register('message')}
@@ -240,7 +240,7 @@ export default function ContactPage() {
                   )}
                 </div>
                 <Button type="submit" size="lg" className="min-h-touch w-full">
-                  {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
+                  {submitState === 'draft_ready' ? 'Update email draft' : 'Prepare email draft'}
                 </Button>
               </form>
             </div>

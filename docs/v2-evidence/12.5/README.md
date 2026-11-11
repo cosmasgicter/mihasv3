@@ -1,5 +1,7 @@
 # Task 12.5 — Run the final grep-loop canonical-path review
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · Phase 12, final bullet
 Requirements: **R1, R2, R3, R7, R11, R14-R16**
 Findings: all relevant cleanup findings

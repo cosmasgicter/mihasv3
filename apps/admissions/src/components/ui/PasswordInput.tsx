@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 
 export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string
   error?: string
   helperText?: string
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, label, error, helperText, id, ...props }, ref) => {
+  ({ className, label, error, helperText, optional, id, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
     const generatedId = React.useId()
     const inputId = id ?? generatedId
@@ -19,9 +22,9 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor={inputId} className="block text-base sm:text-sm font-medium text-foreground mb-2">
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         <div className="relative">
@@ -51,7 +54,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
+            className="absolute right-1 top-1/2 inline-flex min-h-touch min-w-touch -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
@@ -64,14 +67,14 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         {error && (
           <p
             id={errorId}
-            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1 text-base sm:text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1 text-sm text-muted-foreground">
+          <p id={helperId} className="mt-1 text-base sm:text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

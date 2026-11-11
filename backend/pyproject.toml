@@ -6,10 +6,10 @@
 # runtime dependencies from requirements.txt, then running it in place. This is
 # how it is actually built and run everywhere:
 #
-#   * backend/Dockerfile        → `pip install -r requirements.txt`, `COPY . .`,
+#   * backend/Dockerfile        → `pip install --require-hashes -r requirements.txt`, `COPY . .`,
 #                                  then `uvicorn config.asgi:application`
-#   * .github/workflows/ci.yml  → `pip install -r requirements.txt`
-#   * backend-governance.yml    → `pip install -r requirements.txt`
+#   * .github/workflows/ci.yml  → `pip install --require-hashes -r requirements-dev.txt`
+#   * backend-governance.yml    → `pip install --require-hashes -r requirements-dev.txt`
 #
 # The flat layout (apps/, config/, schema/, scripts/, tests/) is an application
 # source tree, not a set of library packages to distribute. There is therefore

@@ -49,9 +49,9 @@ export default function AuthCallbackPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">Authentication Failed</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">Authentication failed</h3>
               <p className="text-sm text-foreground mb-4">{error}</p>
-              <p className="text-xs text-foreground">Redirecting to sign in page...</p>
+              <p className="text-xs text-foreground">Redirecting to sign in page…</p>
             </div>
           </div>
           </div>

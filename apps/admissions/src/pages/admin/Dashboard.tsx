@@ -220,9 +220,9 @@ export default function AdminDashboard() {
         />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication required</h2>
             <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
-            <Button onClick={() => { window.location.href = '/auth/signin' }}>Sign In</Button>
+            <Button onClick={() => { window.location.href = '/auth/signin' }}>Sign in</Button>
           </div>
         </div>
       </>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
         />
         <PageShell
           title="Admin dashboard"
-          eyebrow="Operations Overview"
+          eyebrow="Operations overview"
           subtitle="Your account is not yet linked to a school."
           maxWidth="4xl"
           tone="admin"
@@ -270,8 +270,8 @@ export default function AdminDashboard() {
 
   const isGlobal = scope === 'global'
   const overviewSubtitle = isGlobal
-    ? 'Admissions volume and queue pressure across every school. Each number states what it counts.'
-    : 'Applications and queue pressure for your school. Each number states what it counts.'
+    ? 'Admissions volume and queue pressure across every school.'
+    : 'Applications and queue pressure for your school.'
 
   // Every number the page renders comes from the registry. `metrics[key]` is
   // `undefined` until a read lands and absent whenever its source failed, and
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
       />
       <PageShell
         title={`Welcome back, ${adminFirstName}`}
-        eyebrow={isGlobal ? 'Cross-school Overview' : 'Your School Overview'}
+        eyebrow={isGlobal ? 'Cross-school Overview' : 'Your school overview'}
         subtitle={overviewSubtitle}
         maxWidth="7xl"
         tone="admin"
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
               loading={refreshing}
             >
               {!refreshing && <RefreshCw className="h-4 w-4" />}
-              {refreshing ? 'Refreshing...' : 'Refresh'}
+              {refreshing ? 'Refreshing…' : 'Refresh'}
             </Button>
           </div>
         )}

@@ -19,7 +19,7 @@
  * The journey, on the Personal step of a resumed draft:
  *
  *   1. the student changes the town. One command (key K1, on version v) is sent,
- *      and the action bar says "Saving..." for as long as it is in flight;
+ *      and the action bar says "Saving…" for as long as it is in flight;
  *   2. while it is in flight the student keeps typing — a new town, character by
  *      character, then a next-of-kin name. Nothing blocks: every keystroke lands,
  *      and none of them is sent yet (one command at a time);
@@ -238,7 +238,7 @@ test('slow draft writes: typing never blocks, saving and retrying are shown in w
   await town.fill(townA);
   await firstPatchSeen;
   expect(attempts).toHaveLength(1);
-  await expect(actionBar.getByText('Saving...', { exact: true }), 'the in-flight save is shown in words').toBeVisible();
+  await expect(actionBar.getByText('Saving…', { exact: true }), 'the in-flight save is shown in words').toBeVisible();
   // The unsent edit is on this device while the server's answer is outstanding.
   await expect
     .poll(() => storedDraftRecordKeys(page), { timeout: 10_000, message: 'the pending edit is held in the outbox' })
@@ -257,7 +257,7 @@ test('slow draft writes: typing never blocks, saving and retrying are shown in w
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('alertdialog')).toHaveCount(0);
   expect(attempts, 'nothing more is sent while one command is in flight').toHaveLength(1);
-  await expect(actionBar.getByText('Saving...', { exact: true }), 'the first command is still in flight').toBeVisible();
+  await expect(actionBar.getByText('Saving…', { exact: true }), 'the first command is still in flight').toBeVisible();
 
   // 3. The client gives up on K1; the machine replays it, shown as retrying.
   const retrying = actionBar.getByTestId('wizard-save-retrying');

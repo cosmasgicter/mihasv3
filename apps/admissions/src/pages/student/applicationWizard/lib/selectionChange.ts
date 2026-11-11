@@ -220,7 +220,7 @@ export function resolveSelectionChangeRecovery(
         code,
         title: 'This application changed somewhere else',
         message:
-          'This application was updated in another tab or device. Reload it and choose again — nothing you entered here is lost.',
+          'This application was updated in another tab or device. Reload it and choose again. Nothing you entered here is lost.',
         retryable: false,
         actions: [{ action: 'reload-draft', label: 'Reload this application' }, KEEP_EDITING],
       }
@@ -265,7 +265,7 @@ export function resolveSelectionChangeRecovery(
         code: null,
         title: "We couldn't change your programme selection",
         message:
-          'We could not change your programme and intake just now. Your saved details are unchanged — try again, or contact admissions for help.',
+          'We could not change your programme and intake just now. Your saved details are unchanged. Try again, or contact admissions for help.',
         retryable: true,
         actions: [{ action: 'retry', label: 'Try again' }, KEEP_EDITING, CONTACT_ADMISSIONS],
       }

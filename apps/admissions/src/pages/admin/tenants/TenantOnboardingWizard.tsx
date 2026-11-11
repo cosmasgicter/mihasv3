@@ -119,7 +119,7 @@ const STEPS: StepDef[] = [
   { key: 'domains', label: 'Domains', icon: Globe2 },
   { key: 'templates', label: 'Application templates', icon: LayoutTemplate },
   { key: 'documents', label: 'Required documents', icon: ListChecks },
-  { key: 'programs', label: 'Program offerings', icon: GraduationCap },
+  { key: 'programs', label: 'Programme offerings', icon: GraduationCap },
   { key: 'intakes', label: 'Intake & capacity', icon: ScrollText },
   { key: 'fees', label: 'Fees', icon: Coins },
   { key: 'routing', label: 'Routing simulation', icon: Route },
@@ -282,7 +282,7 @@ function CountNote({ count, singular, plural }: { count: number; singular: strin
   const noun = count === 1 ? singular : plural ?? `${singular}s`
   return (
     <p className="text-sm text-muted-foreground">
-      {count > 0 ? `${count} ${noun} configured.` : `No ${plural ?? `${singular}s`} configured yet — this step is optional.`}
+      {count > 0 ? `${count} ${noun} configured.` : `No ${plural ?? `${singular}s`} configured yet: this step is optional.`}
     </p>
   )
 }
@@ -509,7 +509,7 @@ export function TenantOnboardingWizard() {
       setCreatedDomain(domain ?? null)
       setHostnameDraft('')
       invalidateTenants()
-      toast.success('Domain added — publish the DNS record to verify it')
+      toast.success('Domain added: publish the DNS record to verify it')
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not added')),
   })
@@ -572,7 +572,7 @@ export function TenantOnboardingWizard() {
       setInviteDraft({ full_name: '', email: '' })
       invalidateTenants()
       membershipsQuery.refetch()
-      toast.success('Invitation sent — the admin will set their own password via email')
+      toast.success('Invitation sent: the admin will set their own password via email')
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Tenant admin was not invited')),
   })
@@ -690,7 +690,7 @@ export function TenantOnboardingWizard() {
     { icon: ImageIcon, label: 'Logo asset', value: hasActiveLogo ? 'Active logo configured' : 'Upload an active logo', ok: hasActiveLogo, required: true },
     { icon: ImageIcon, label: 'Signature asset', value: hasActiveSignature ? 'Active signature configured' : 'Upload an active signature', ok: hasActiveSignature, required: true },
     { icon: FileStack, label: 'Document profile', value: hasDocumentProfile ? `${documentProfiles.length} profile version${documentProfiles.length === 1 ? '' : 's'}` : 'Configure at least one document profile', ok: hasDocumentProfile, required: true },
-    { icon: GraduationCap, label: 'Program offerings', value: hasOffering ? `${offerings.length} active` : 'Assign at least one active offering', ok: hasOffering, required: true },
+    { icon: GraduationCap, label: 'Programme offerings', value: hasOffering ? `${offerings.length} active` : 'Assign at least one active offering', ok: hasOffering, required: true },
     { icon: UserPlus, label: 'Tenant admin', value: hasTenantAdmin ? 'Scoped admin available' : 'Invite or scope a tenant admin', ok: hasTenantAdmin, required: true },
   ]
   const backendReadiness = readinessQuery.data
@@ -794,7 +794,7 @@ export function TenantOnboardingWizard() {
                           Save colours
                         </Button>
                       </div>
-                      <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+                      <div className="space-y-3 rounded-lg bg-muted p-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-sm font-medium text-foreground">Official document assets</p>
                           <div className="flex flex-wrap gap-2">
@@ -867,14 +867,14 @@ export function TenantOnboardingWizard() {
                             )}
                           </dl>
                           <p className="text-xs text-muted-foreground">
-                            Verification runs automatically once DNS propagates. You can finish onboarding now — the tenant and its configuration are already saved.
+                            Verification runs automatically once DNS propagates. You can finish onboarding now. The tenant and its configuration are already saved.
                           </p>
                         </div>
                       )}
 
                       <div className="grid gap-2 sm:grid-cols-2">
                         {domains.map((domain) => (
-                          <div key={domain.id} className="rounded-lg border border-border bg-background p-3">
+                          <div key={domain.id} className="rounded-lg bg-muted p-3">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="break-words text-sm font-medium text-foreground">{domain.hostname}</p>
@@ -923,7 +923,7 @@ export function TenantOnboardingWizard() {
                       <CountNote count={templates.length} singular="template" />
                       <div className="space-y-2">
                         {templates.map((tpl) => (
-                          <div key={tpl.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                          <div key={tpl.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                             <div className="min-w-0">
                               <p className="break-words text-sm font-medium text-foreground">{tpl.name}</p>
                               <p className="text-xs text-muted-foreground">{tpl.document_type} · v{tpl.version}</p>
@@ -979,7 +979,7 @@ export function TenantOnboardingWizard() {
                       <CountNote count={requiredDocuments.length} singular="required document" plural="required documents" />
                       <div className="space-y-2">
                         {requiredDocuments.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                          <div key={doc.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                             <div className="min-w-0">
                               <p className="break-words text-sm font-medium text-foreground">{doc.label}</p>
                               <p className="text-xs text-muted-foreground">{doc.document_type}</p>
@@ -993,7 +993,7 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'programs' && (
                     <>
-                      <StepHeading title="Program offerings" description="Assign canonical Beanola programs to this school as offerings. This is a real canonical mutation saved to this tenant — no manual database edit and no legacy string identifiers." />
+                      <StepHeading title="Programme offerings" description="Assign canonical Beanola programmes to this school as offerings. This is a real canonical mutation saved to this tenant. No manual database edit and no legacy string identifiers." />
                       <WizardProgramsStep institutionId={institutionId!} />
                     </>
                   )}
@@ -1007,21 +1007,21 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'fees' && (
                     <>
-                      <StepHeading title="Fees" description="Configure the canonical application fee per offering and residency. Students are quoted this exact server amount at payment — never an invented or hardcoded fee." />
+                      <StepHeading title="Fees" description="Configure the canonical application fee per offering and residency. Students are quoted this exact server amount at payment. Never an invented or hardcoded fee." />
                       <WizardFeesStep institutionId={institutionId!} />
                     </>
                   )}
 
                   {step.key === 'routing' && (
                     <>
-                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a program + intake. Read-only — no application is created." />
+                      <StepHeading title="Routing simulation" description="Dry-run how a real applicant would be routed to this school's offerings for a programme + intake. Read-only. No application is created." />
                       <RoutingSimulatorBody institutionId={institutionId!} institutionName={tenantName} />
                     </>
                   )}
 
                   {step.key === 'invite' && (
                     <>
-                      <StepHeading title="Tenant-admin invitation" description="Invite the tenant administrator by email and scope a membership to this tenant only. They set their own password via a single-use link — you never set or see a password. They will see no other school's data (R16.2/R16.3)." />
+                      <StepHeading title="Tenant-admin invitation" description="Invite the tenant administrator by email and scope a membership to this tenant only. They set their own password via a single-use link. You never set or see a password. They will see no other school's data (R16.2/R16.3)." />
                       {inviteCompleted ? (
                         <div className="flex items-start gap-2 rounded-lg border border-success/25 bg-success/5 p-3 text-sm text-foreground">
                           <Check className="mt-0.5 h-4 w-4 text-success" aria-hidden="true" />
@@ -1067,7 +1067,7 @@ export function TenantOnboardingWizard() {
                         ))}
                       </dl>
 
-                      <div className="space-y-2 rounded-lg border border-border bg-background p-3">
+                      <div className="space-y-2 rounded-lg bg-muted p-3">
                         <p className="text-sm font-medium text-foreground">Domain activation</p>
                         {domains.length === 0 ? (
                           <p className="text-sm text-muted-foreground">No domain to activate. You can add one on the Domains step.</p>
@@ -1104,7 +1104,7 @@ export function TenantOnboardingWizard() {
                             })}
                             <p className="flex items-start gap-2 text-xs text-muted-foreground">
                               <CircleDashed className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                              DNS verification is asynchronous. Activation unlocks once a domain reaches Verified — you can finish now and activate later from the console.
+                              DNS verification is asynchronous. Activation unlocks once a domain reaches Verified. You can finish now and activate later from the console.
                             </p>
                           </div>
                         )}
@@ -1157,7 +1157,7 @@ export function TenantOnboardingWizard() {
 
 function ReviewRow({ icon: Icon, label, value, ok, required = false }: { icon: LucideIcon; label: string; value: string; ok: boolean; required?: boolean }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+    <div className="flex items-center gap-3 rounded-lg bg-background p-3">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>

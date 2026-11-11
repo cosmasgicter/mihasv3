@@ -28,7 +28,7 @@ function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: Aut
   // Screen reader text for all states (always rendered for aria-live)
   const srText =
     status === 'saving'
-      ? 'Saving...'
+      ? 'Saving…'
       : status === 'saved'
         ? 'Saved'
         : status === 'error'
@@ -39,13 +39,13 @@ function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: Aut
     <div
       aria-live="polite"
       role="status"
-      className={`inline-flex items-center gap-1.5 text-sm ${className}`}
+      className={`inline-flex items-center gap-1.5 text-base sm:text-sm ${className}`}
     >
       {/* Visual indicator */}
       {status === 'saving' && (
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
           <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse" />
-          Saving...
+          Saving…
         </span>
       )}
 
@@ -90,7 +90,7 @@ function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: Aut
             <button
               type="button"
               onClick={onRetry}
-              className="ml-1 inline-flex items-center gap-1 min-h-[44px] min-w-[44px] min-h-touch min-w-touch justify-center rounded-md bg-destructive/10 px-2 text-sm font-medium text-destructive hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-fast"
+              className="ml-1 inline-flex items-center gap-1 min-h-[44px] min-w-[44px] min-h-touch min-w-touch justify-center rounded-md bg-destructive/10 px-2 text-base sm:text-sm font-medium text-destructive hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-fast"
               aria-label="Retry save"
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />

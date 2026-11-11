@@ -170,6 +170,11 @@ DATABASES = {
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
 CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+# Redis database for the refresh-token JTI blacklist (apps/accounts/tokens.py).
+# Defaults to the broker URL, so production keeps today's Redis database unless
+# this variable is set. Test runs override it per xdist worker (see the
+# ``_is_testing`` block below, task 6.3).
+JTI_REDIS_URL = os.environ.get("JTI_REDIS_URL", CELERY_BROKER_URL)
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_RESULT_SERIALIZER = "json"
@@ -182,10 +187,6 @@ from celery.schedules import crontab  # noqa: E402
 CELERY_BEAT_SCHEDULE_FILENAME = "/tmp/celerybeat-schedule"
 
 CELERY_BEAT_SCHEDULE = {
-    "keep-alive": {
-        "task": "apps.common.tasks.keep_alive_task",
-        "schedule": 240.0,  # Every 4 minutes — prevents Koyeb cold starts (free tier sleeps after ~5m inactivity)
-    },
     "check-uptime": {
         "task": "apps.common.tasks.check_uptime_task",
         "schedule": 900.0,  # Every 15 minutes (was 5m — reduced to conserve Upstash free-tier Redis requests)
@@ -597,7 +598,7 @@ Protected endpoints accept either:
 # ---------------------------------------------------------------------------
 
 # Zoho SMTP (primary outbound email)
-EMAIL_HOST = os.environ.get('ZOHO_SMTP_HOST', 'smtp.zoho.com')
+EMAIL_HOST = os.environ.get('ZOHO_SMTP_HOST', 'localhost')
 EMAIL_PORT = int(os.environ.get('ZOHO_SMTP_PORT', '465'))
 EMAIL_HOST_USER = os.environ.get('ZOHO_SMTP_USERNAME', '')
 EMAIL_HOST_PASSWORD = os.environ.get('ZOHO_SMTP_PASSWORD', '')
@@ -614,13 +615,11 @@ ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@beanola.com")
 # Uptime monitoring — internal health check URL
 # ---------------------------------------------------------------------------
 
-HEALTH_CHECK_URL = os.environ.get(
-    "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"
-)
+# Empty by default: no non-production settings module may ping a production host.
+# ``prod.py`` sets today's production values explicitly; the scheduled tasks
+# return early when the value is empty.
+HEALTH_CHECK_URL = os.environ.get("HEALTH_CHECK_URL", "")
 
-KEEP_ALIVE_URL = os.environ.get(
-    "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"
-)
 
 # ---------------------------------------------------------------------------
 # Password hashing
@@ -724,7 +723,7 @@ JOBS_OPS_AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flas
 JOBS_OPS_AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
 # deepseek-v3: complex reasoning
 JOBS_OPS_AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
     "true",
@@ -883,6 +882,33 @@ if _is_testing:
             "LOCATION": "beanola-test-cache",
         }
     }
+    # Test isolation (task 6.3, R7.4). These are SETTINGS, not conftest values,
+    # because pytest-django loads settings and calls ``django.setup()`` before any
+    # ``conftest.py`` is imported.
+    #
+    # Celery: an in-memory broker and a cache result backend, so no ``apply_async``
+    # reaches a shared Redis. The result backend used to be ``REDIS_URL`` and
+    # subscribed over pubsub for every ``apply_async`` that did not ignore its result.
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+    # JTI blacklist: one Redis database per xdist worker. Database 8 is the
+    # non-xdist run; worker ``gwN`` uses 9 + N. Redis has 16 databases (0-15), so
+    # 7 workers (gw0..gw6, databases 9-15) is the most that fit.
+    _MAX_XDIST_WORKERS = 7
+    _xdist_workers = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", "0") or 0)
+    if _xdist_workers > _MAX_XDIST_WORKERS:
+        raise ImproperlyConfigured(
+            f"PYTEST_XDIST_WORKER_COUNT={_xdist_workers} exceeds the limit of "
+            f"{_MAX_XDIST_WORKERS}: each worker needs its own Redis database for "
+            "the JTI blacklist and Redis has 16 (databases 9-15 are available)."
+        )
+    _xdist_worker = os.environ.get("PYTEST_XDIST_WORKER", "")
+    _jti_db = 8 + (int(_xdist_worker[2:]) + 1 if _xdist_worker.startswith("gw") and _xdist_worker[2:].isdigit() else 0)
+    from urllib.parse import urlsplit as _urlsplit
+
+    JTI_REDIS_URL = _urlsplit(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))._replace(
+        path=f"/{_jti_db}"
+    ).geturl()
 
 # Enforced after the final settings module is loaded, by
 # ``apps.common.apps.CommonConfig.ready()``. Calling the validator while this

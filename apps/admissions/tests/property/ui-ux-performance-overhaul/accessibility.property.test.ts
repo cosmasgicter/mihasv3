@@ -315,11 +315,12 @@ describe('Property 7: Form Input Touch Target Minimum', () => {
     const passwordSource = formInputSources.get('PasswordInput')
     expect(passwordSource, 'PasswordInput source must be loaded').toBeDefined()
 
-    // The toggle button uses p-2 padding which provides adequate touch target
+    // Task 24.6: the toggle sets its own 44 x 44 px box (`p-2` around a 20 px icon
+    // measured 36 x 36 px in the rendered gate, so it no longer counts).
     const hasMinHeight =
-      passwordSource!.includes('min-h-[44px]') || passwordSource!.includes('h-11') || passwordSource!.includes('h-12') || passwordSource!.includes('p-2')
+      passwordSource!.includes('min-h-[44px]') || passwordSource!.includes('h-11') || passwordSource!.includes('h-12') || passwordSource!.includes('min-h-touch')
     const hasMinWidth =
-      passwordSource!.includes('w-11') || passwordSource!.includes('w-12') || passwordSource!.includes('min-w-[44px]') || passwordSource!.includes('p-2')
+      passwordSource!.includes('w-11') || passwordSource!.includes('w-12') || passwordSource!.includes('min-w-[44px]') || passwordSource!.includes('min-w-touch')
 
     expect(
       hasMinHeight,

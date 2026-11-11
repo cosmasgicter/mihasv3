@@ -9,12 +9,18 @@ function renderMarkup(element: React.ReactElement) {
 }
 
 describe('Input UI/a11y consistency', () => {
-  it('shows required marker in the same pattern as other form controls', () => {
-    const document = renderMarkup(
+  it('marks a required field by attribute and an optional one in words (task 24.4, R16.5)', () => {
+    const required = renderMarkup(
       <Input id="email" label="Email" required />
     )
+    // No asterisk: `required` and `aria-required` carry it.
+    expect(required.body.textContent).not.toContain('*')
+    expect(required.querySelector('input')?.getAttribute('aria-required')).toBe('true')
 
-    expect(document.body.textContent).toContain('*')
+    const optional = renderMarkup(
+      <Input id="nick" label="Nickname" optional />
+    )
+    expect(optional.body.textContent).toContain('(optional)')
   })
 
   it('only sets aria-invalid when an error exists', () => {

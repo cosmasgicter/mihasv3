@@ -44,7 +44,7 @@ describe('AutoSaveIndicator accessibility', () => {
 
     const statusRegion = document.querySelector('[role="status"]')
     expect(statusRegion).not.toBeNull()
-    expect(statusRegion?.textContent).toContain('Saving...')
+    expect(statusRegion?.textContent).toContain('Saving…')
   })
 
   it('renders nothing visible when idle', () => {

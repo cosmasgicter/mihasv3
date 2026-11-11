@@ -25,11 +25,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ApplicationDetailModal } from '@/components/admin/applications/ApplicationDetailModal'
+import { ApplicationReviewWorkspace } from '@/components/admin/applications/ApplicationReviewWorkspace'
 import {
   NO_WORKSPACE_CAPABILITIES,
   type ReviewWorkspace,
@@ -283,9 +283,10 @@ function renderWorkspace(workspace: ReviewWorkspace = buildWorkspace()) {
   })
   return render(
     <QueryClientProvider client={client}>
-      <ApplicationDetailModal
-        application={rosterRow}
-        show
+      <ApplicationReviewWorkspace
+        applicationId="app-1"
+        seed={rosterRow}
+        layout="pane"
         updating={null}
         onClose={vi.fn()}
         onSendNotification={vi.fn()}
@@ -295,7 +296,16 @@ function renderWorkspace(workspace: ReviewWorkspace = buildWorkspace()) {
   )
 }
 
+/** The section list that replaced the tabs (task 30.2): one nav, one button per section. */
+const sectionList = () => screen.getByRole('navigation', { name: 'Review sections' })
 const reads = () => requests.filter((r) => r.method === 'GET')
+/**
+ * The detail read. Every section is rendered on open since task 30.2, so the
+ * official-documents list (a different resource, the one other per-application
+ * read the spec allows) is requested with it instead of when a Documents tab is
+ * chosen. "One read" is a claim about the detail query, so it counts that one.
+ */
+const detailReads = () => reads().filter((r) => r.endpoint === '/admin/applications/app-1/')
 const writes = () => requests.filter((r) => r.method !== 'GET')
 
 /**
@@ -329,9 +339,14 @@ describe('the review workspace is one read (R8.5)', () => {
     renderWorkspace()
     await screen.findByText('Chipo Banda')
 
-    await waitFor(() => expect(reads().length).toBeGreaterThan(0))
-    expect(reads()).toHaveLength(1)
-    expect(reads()[0]!.endpoint).toBe('/admin/applications/app-1/')
+    await waitFor(() => expect(detailReads().length).toBeGreaterThan(0))
+    expect(detailReads()).toHaveLength(1)
+    // Anything else is the official-documents list and nothing else.
+    expect(
+      reads()
+        .filter((r) => r.endpoint !== '/admin/applications/app-1/')
+        .map((r) => r.endpoint),
+    ).toEqual(['/applications/app-1/official-documents/'])
   })
 
   it('issues none of the six retired per-application reads', async () => {
@@ -355,16 +370,18 @@ describe('the review workspace is one read (R8.5)', () => {
     }
   })
 
-  it('renders the deterministic readiness checklist and no AI tab', async () => {
+  it('renders the deterministic readiness checklist and no AI section', async () => {
     renderWorkspace()
     await screen.findByText('Chipo Banda')
 
-    // The tab list itself: "AI" is gone, "Readiness" is there.
-    const tabs = screen.getAllByRole('tab').map((tab) => tab.getAttribute('id'))
-    expect(tabs).toContain('tab-readiness')
-    expect(tabs).not.toContain('tab-ai')
-
-    fireEvent.click(screen.getByRole('tab', { name: /readiness/i }))
+    // The section list itself: "AI" is gone, "Readiness" is there.
+    await workspaceLoaded()
+    const names = within(sectionList())
+      .getAllByRole('button')
+      .map((button) => button.textContent ?? '')
+    expect(names).toContain('Readiness')
+    expect(names.join(' ')).not.toMatch(/\bAI\b/)
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /readiness/i }))
     expect(await screen.findByTestId('review-readiness')).toBeTruthy()
     expect(screen.getByTestId('readiness-check-payment_gate').getAttribute('data-state')).toBe(
       'satisfied',
@@ -373,43 +390,37 @@ describe('the review workspace is one read (R8.5)', () => {
       screen.getByTestId('readiness-check-required_documents').getAttribute('data-state'),
     ).toBe('blocked')
     // Still one read: switching tabs does not fetch a section.
-    expect(reads()).toHaveLength(1)
+    expect(detailReads()).toHaveLength(1)
   })
 
   it('says readiness is unavailable rather than showing an empty checklist', async () => {
     renderWorkspace(buildWorkspace({ readiness: null }))
     await screen.findByText('Chipo Banda')
-    fireEvent.click(screen.getByRole('tab', { name: /readiness/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /readiness/i }))
 
     expect(await screen.findByTestId('readiness-unavailable')).toBeTruthy()
     expect(screen.queryByTestId('review-readiness')).toBeNull()
   })
 
   /**
-   * Every tab keeps its name at every breakpoint.
+   * Every section is a button with visible text and a heading (task 30.2, R17.7).
    *
-   * The visible label is `hidden sm:inline` and the icon is `aria-hidden`, so
-   * under `sm` each tab used to expose *no* accessible name — seven anonymous
-   * tabs on the mobile review surface. The name now comes from the control's own
-   * `aria-label`, which no breakpoint can hide. Found by the mobile browser
-   * journey (R8.7), pinned here so a later refactor cannot quietly drop it.
+   * The tabs needed an `aria-label` because their text was hidden under `sm`.
+   * The section list shows its text at every width, so the accessible name is the
+   * visible text (WCAG 2.5.3) with nothing to keep in step, and each of the seven
+   * sections has a heading to land on.
    */
-  it('names every tab independently of the breakpoint that hides the label', async () => {
+  it('names every section by its visible text and gives each a heading', async () => {
     renderWorkspace()
     await workspaceLoaded()
-
-    const tabs = screen.getAllByRole('tab')
-    expect(tabs.length).toBeGreaterThan(1)
-    for (const tab of tabs) {
-      const label = tab.getAttribute('aria-label')
-      expect(label, `tab ${tab.getAttribute('id')} has no accessible name`).toBeTruthy()
-      // The name is the same string the label renders, so WCAG 2.5.3 holds where
-      // the text is on screen rather than the name diverging from it.
-      expect(tab.textContent).toContain(label)
+    const buttons = within(sectionList()).getAllByRole('button')
+    expect(buttons).toHaveLength(7)
+    for (const button of buttons) {
+      expect(button.getAttribute('aria-label')).toBeNull()
+      expect(button.textContent?.trim()).toBeTruthy()
     }
-    // And each of the seven is addressable by that name.
     for (const name of [
-      'Personal',
+      'Overview',
       'Readiness',
       'Academic',
       'Documents',
@@ -417,11 +428,17 @@ describe('the review workspace is one read (R8.5)', () => {
       'Interview',
       'History',
     ]) {
-      expect(screen.getByRole('tab', { name }), `no tab named ${name}`).toBeTruthy()
+      expect(
+        within(sectionList()).getByRole('button', { name }),
+        `no section button named ${name}`,
+      ).toBeTruthy()
+      expect(
+        screen.getByRole('heading', { level: 2, name }),
+        `no section heading named ${name}`,
+      ).toBeTruthy()
     }
   })
 })
-
 describe('every write is a versioned command (R8.4)', () => {
   it('sends the version the read returned with an amendment decision', async () => {
     renderWorkspace()
@@ -491,14 +508,14 @@ describe('every write is a versioned command (R8.4)', () => {
   it('refetches after a version conflict instead of only reporting a failure', async () => {
     renderWorkspace()
     await screen.findByText('Chipo Banda')
-    expect(reads()).toHaveLength(1)
+    expect(detailReads()).toHaveLength(1)
 
     commandError = { status: 409, code: 'VERSION_CONFLICT' }
     fireEvent.click(await screen.findByTestId('amendment-approve-amd-1'))
 
     // The conflict means someone else decided first: the workspace is re-read so
     // the newer decision is what the reviewer sees.
-    await waitFor(() => expect(reads().length).toBeGreaterThan(1))
+    await waitFor(() => expect(detailReads().length).toBeGreaterThan(1))
   })
 
   it('never sends a command body without a version', async () => {
@@ -536,7 +553,7 @@ describe('evidence, payment, and interview are workspace commands too (R8.3/R8.4
   it('verifies a document as a versioned command, not a panel-owned fetch', async () => {
     renderWorkspace()
     await workspaceLoaded()
-    fireEvent.click(screen.getByRole('tab', { name: /documents/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /documents/i }))
 
     fireEvent.click(await screen.findByTestId('document-verify-doc-1'))
 
@@ -557,7 +574,7 @@ describe('evidence, payment, and interview are workspace commands too (R8.3/R8.4
       }),
     )
     await workspaceLoaded()
-    fireEvent.click(screen.getByRole('tab', { name: /documents/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /documents/i }))
 
     // The document is still readable — this is a read-and-deny, not a hide.
     expect(await screen.findByText('nrc.pdf')).toBeTruthy()
@@ -611,7 +628,7 @@ describe('evidence, payment, and interview are workspace commands too (R8.3/R8.4
   it('schedules an interview as a versioned command', async () => {
     renderWorkspace()
     await workspaceLoaded()
-    fireEvent.click(screen.getByRole('tab', { name: /interview/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /interview/i }))
 
     fireEvent.change(await screen.findByLabelText(/interview date/i), {
       target: { value: '2026-10-01T10:00' },
@@ -648,7 +665,7 @@ describe('evidence, payment, and interview are workspace commands too (R8.3/R8.4
       }),
     )
     await workspaceLoaded()
-    fireEvent.click(screen.getByRole('tab', { name: /interview/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /interview/i }))
     fireEvent.click(await screen.findByTestId('interview-save'))
 
     await waitFor(() => expect(writes()).toHaveLength(1))
@@ -659,7 +676,7 @@ describe('evidence, payment, and interview are workspace commands too (R8.3/R8.4
   it('offers no interview form without the review grant', async () => {
     renderWorkspace(buildWorkspace({ capabilities: { ...NO_WORKSPACE_CAPABILITIES } }))
     await workspaceLoaded()
-    fireEvent.click(screen.getByRole('tab', { name: /interview/i }))
+    fireEvent.click(within(sectionList()).getByRole('button', { name: /interview/i }))
 
     expect(await screen.findByTestId('interview-read-only')).toBeTruthy()
     expect(screen.queryByTestId('interview-save')).toBeNull()
@@ -718,7 +735,7 @@ describe('the source cannot regress to the retired shapes', () => {
   it('the workspace component holds no multi-call composition and no raw client', () => {
     // The file *documents* the shapes it replaced, so the scan starts after the
     // leading module docstring: what matters is the code, not the history note.
-    const whole = read('src/components/admin/applications/ApplicationDetailModal.tsx')
+    const whole = read('src/components/admin/applications/ApplicationReviewWorkspace.tsx')
     const source = whole.slice(whole.indexOf('*/') + 2)
 
     // The six-call composition and its merge.

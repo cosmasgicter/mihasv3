@@ -176,12 +176,12 @@ export default function NotificationSettings() {
           <div className="flex min-w-0 items-start gap-3">
             {showIcon && <ChannelIcon channelKey={row.key} />}
             <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-base sm:text-sm font-medium text-foreground">
                 {PREFERENCE_LABELS[row.key] ?? row.key}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">{row.definition}</p>
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">{row.definition}</p>
               {rowRejection && (
-                <p className="mt-2 text-xs font-medium text-destructive" role="alert">
+                <p className="mt-2 text-base sm:text-sm font-medium text-destructive" role="alert">
                   {rowRejection.reason}
                 </p>
               )}
@@ -191,8 +191,8 @@ export default function NotificationSettings() {
           {row.configurable ? (
             <div className="flex shrink-0 items-center gap-2">
               {justSaved && (
-                <span
-                  className="inline-flex items-center gap-1 text-xs font-medium text-success"
+                <span data-text-role="caption"
+                  className="inline-flex items-center gap-1 text-sm sm:text-xs font-medium text-success"
                   role="status"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -203,7 +203,7 @@ export default function NotificationSettings() {
                 checked={row.enabled}
                 disabled={isBusy}
                 onCheckedChange={(next) => handleToggle(row, next)}
-                aria-label={`${PREFERENCE_LABELS[row.key] ?? row.key} — ${
+                aria-label={`${PREFERENCE_LABELS[row.key] ?? row.key}: ${
                   row.enabled ? 'on' : 'off'
                 }`}
                 data-testid={`preference-switch-${row.key}`}
@@ -213,8 +213,8 @@ export default function NotificationSettings() {
             // A mandatory row is a fact about the platform, so it is stated with
             // its reason. It is deliberately not a disabled switch: a greyed-out
             // toggle reads as a control the student failed to use.
-            <span
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
+            <span data-text-role="caption"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 text-sm sm:text-xs font-semibold text-muted-foreground"
               data-testid={`preference-always-on-${row.key}`}
             >
               <Lock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -309,7 +309,7 @@ export default function NotificationSettings() {
               {schema.unsupported_fields.length > 0 && (
                 <SectionCard
                   title="What this platform does not do"
-                  description="These are named so their absence is explained rather than assumed."
+                  description="Settings you might look for that are not available here."
                   icon={<Info className="h-5 w-5" />}
                   padding="sm"
                 >
@@ -317,7 +317,7 @@ export default function NotificationSettings() {
                     {schema.unsupported_fields.map((entry) => (
                       <li
                         key={entry.field}
-                        className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground"
+                        className="rounded-lg border border-dashed border-border px-3 py-2 text-base sm:text-sm text-muted-foreground"
                       >
                         <span className="font-medium text-foreground">
                           {PREFERENCE_LABELS[entry.field] ?? entry.field}
@@ -330,7 +330,7 @@ export default function NotificationSettings() {
               )}
 
               <SectionCard title="Need something changed?" padding="sm">
-                <p className="text-sm text-muted-foreground">{SUPPORT_SENTENCE}</p>
+                <p className="text-base sm:text-sm text-muted-foreground">{SUPPORT_SENTENCE}</p>
                 <div className="mt-3">
                   {support.isExternal ? (
                     <Button asChild variant="outline" size="sm" className="min-h-touch">

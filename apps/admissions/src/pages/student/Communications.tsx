@@ -37,6 +37,7 @@ import {
   XCircle,
  Settings,
  Trash2,
+ History,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Seo } from '@/components/seo/Seo'
@@ -169,7 +170,7 @@ export default function Communications() {
  const result = await notificationService.retryDelivery(messageId)
  setRetryNotices((prev) => ({
  ...prev,
- [messageId]: `Queued again — attempt ${result?.attempts ?? 2}.`,
+ [messageId]: `Queued again: attempt ${result?.attempts ?? 2}.`,
  }))
  invalidate()
  } catch (err) {
@@ -245,6 +246,12 @@ export default function Communications() {
  </Button>
  )}
  <Button asChild variant="outline" size="sm" className="min-h-touch">
+ <Link to={pathFor('student.history')} data-testid="open-activity-history">
+ <History className="h-4 w-4"/>
+ Activity history
+ </Link>
+ </Button>
+ <Button asChild variant="outline" size="sm" className="min-h-touch">
  <Link to={pathFor('student.notifications')} data-testid="open-notification-settings">
  <Settings className="h-4 w-4"/>
  Notification settings
@@ -261,12 +268,12 @@ export default function Communications() {
             padding="sm"
           >
             <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col gap-1 text-sm">
+              <label className="flex flex-col gap-1 text-base sm:text-sm">
                 <span className="font-medium text-muted-foreground">Type</span>
                 <select
                   value={typeFilter}
                   onChange={handleTypeChange}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -275,12 +282,12 @@ export default function Communications() {
                   ))}
                 </select>
               </label>
-              <label className="flex flex-col gap-1 text-sm">
+              <label className="flex flex-col gap-1 text-base sm:text-sm">
                 <span className="font-medium text-muted-foreground">Status</span>
                 <select
                   value={readFilter}
                   onChange={handleReadChange}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {READ_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -326,11 +333,12 @@ export default function Communications() {
           {!isLoading && !error && notifications.length === 0 && (
             <EmptyState
               icon={<Inbox className="h-12 w-12" />}
-              heading="No communications"
+              headingLevel="h2"
+              heading={typeFilter || readFilter ? 'No messages match these filters' : 'No messages yet'}
               description={
                 typeFilter || readFilter
-                  ? 'No notifications match your current filters. Try adjusting them.'
-                  : "Nothing here yet — we'll let you know when there's something important."
+                  ? 'Clear or change the filters to see your other messages.'
+                  : 'Messages from your school about your applications, payments and interviews appear here.'
               }
             />
           )}
@@ -385,24 +393,24 @@ export default function Communications() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
+                          <p className={`text-base sm:text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
                             {title}
                           </p>
                           {!isRead && (
                             <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Unread" />
                           )}
                         </div>
-                        <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
+                        <p className="mt-0.5 text-base sm:text-sm text-muted-foreground line-clamp-2">
                           {message}
                         </p>
                         <div className="mt-1 flex items-center gap-3">
-                          <time className="text-xs text-muted-foreground" dateTime={createdAt}>
+                          <time data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground" dateTime={createdAt}>
                             {formatRelative(createdAt)}
                           </time>
                           {safeActionUrl && (
-                            <a
+                            <a data-text-role="caption"
                               href={safeActionUrl}
-                              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                              className="inline-flex items-center gap-1 text-sm sm:text-xs font-medium text-primary hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <ExternalLink className="h-3 w-3" />
@@ -446,7 +454,7 @@ export default function Communications() {
           {/* Pagination */}
           {!isLoading && !error && totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm text-muted-foreground">
                 Page {pagination.page} of {totalPages}
               </p>
               <div className="flex gap-2">

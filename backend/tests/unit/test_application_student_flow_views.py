@@ -17,7 +17,6 @@ from apps.applications.student_draft_views import (
     ApplicationDetailView,
     ApplicationDraftDetailView,
     ApplicationDraftListView,
-    ApplicationDraftView,
 )
 from apps.applications.student_submission_views import (
     ApplicationGradesView,
@@ -584,127 +583,6 @@ class TestStudentPostSubmissionMutationGuards:
 
         assert response.status_code == 403
         assert response.data["code"] == "INSUFFICIENT_PERMISSIONS"
-
-
-class TestApplicationDraftView:
-    def setup_method(self):
-        self.factory = APIRequestFactory()
-
-    @patch("apps.applications.student_draft_views.ApplicationDraft.objects")
-    @patch("apps.applications.student_draft_views.Application.objects")
-    def test_student_cannot_save_draft_for_another_students_application(
-        self,
-        mock_app_objects,
-        mock_draft_objects,
-    ):
-        user_id = uuid.uuid4()
-        app_id = uuid.uuid4()
-        student = _student_user(user_id=user_id)
-        application = _make_application(app_id=app_id, status="draft", user_id=uuid.uuid4())
-        mock_app_objects.only.return_value.get.return_value = application
-
-        request = _auth_request(
-            self.factory,
-            "post",
-            "/api/v1/applications/draft/",
-            student,
-            data={"application_id": str(app_id), "draft_data": {"program": "Nursing"}},
-            format="json",
-        )
-        response = ApplicationDraftView.as_view()(request)
-
-        assert response.status_code == 403
-        assert response.data["code"] == "INSUFFICIENT_PERMISSIONS"
-        mock_draft_objects.update_or_create.assert_not_called()
-
-    @patch("apps.applications.student_draft_views.ApplicationDraft.objects")
-    @patch("apps.applications.student_draft_views.Application.objects")
-    def test_save_draft_for_missing_application_returns_404(
-        self,
-        mock_app_objects,
-        mock_draft_objects,
-    ):
-        app_id = uuid.uuid4()
-        student = _student_user()
-        mock_app_objects.only.return_value.get.side_effect = Application.DoesNotExist
-
-        request = _auth_request(
-            self.factory,
-            "post",
-            "/api/v1/applications/draft/",
-            student,
-            data={"application_id": str(app_id), "draft_data": {"program": "Nursing"}},
-            format="json",
-        )
-        response = ApplicationDraftView.as_view()(request)
-
-        assert response.status_code == 404
-        assert response.data["code"] == "NOT_FOUND"
-        mock_draft_objects.update_or_create.assert_not_called()
-
-    @patch("apps.applications.student_draft_views.ApplicationDraft.objects")
-    @patch("apps.applications.student_draft_views.Application.objects")
-    def test_save_draft_with_malformed_application_id_returns_400(
-        self,
-        mock_app_objects,
-        mock_draft_objects,
-    ):
-        from django.core.exceptions import ValidationError as DjangoValidationError
-
-        student = _student_user()
-        mock_app_objects.only.return_value.get.side_effect = DjangoValidationError("bad uuid")
-
-        request = _auth_request(
-            self.factory,
-            "post",
-            "/api/v1/applications/draft/",
-            student,
-            data={"application_id": "not-a-uuid", "draft_data": {"program": "Nursing"}},
-            format="json",
-        )
-        response = ApplicationDraftView.as_view()(request)
-
-        assert response.status_code == 400
-        assert response.data["code"] == "VALIDATION_ERROR"
-        mock_draft_objects.update_or_create.assert_not_called()
-
-    def test_save_draft_rejects_oversized_snapshot_payload(self):
-        student = _student_user()
-        request = _auth_request(
-            self.factory,
-            "post",
-            "/api/v1/applications/draft/",
-            student,
-            data={"draft_data": {"body": "x" * ((512 * 1024) + 1)}},
-            format="json",
-        )
-
-        response = ApplicationDraftView.as_view()(request)
-
-        assert response.status_code == 413
-        assert response.data["error"]["code"] == "DRAFT_TOO_LARGE"
-
-    def test_save_draft_rejects_deeply_nested_snapshot_payload(self):
-        student = _student_user()
-        nested = {}
-        cursor = nested
-        for index in range(12):
-            cursor["child"] = {}
-            cursor = cursor["child"]
-
-        request = _auth_request(
-            self.factory,
-            "post",
-            "/api/v1/applications/draft/",
-            student,
-            data={"draft_data": nested},
-            format="json",
-        )
-
-        response = ApplicationDraftView.as_view()(request)
-
-        assert response.status_code == 400
-        assert response.data["error"]["code"] == "DRAFT_TOO_NESTED"
 
 
 class TestApplicationDraftListView:

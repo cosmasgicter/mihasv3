@@ -130,7 +130,7 @@ export const PAYMENT_ERROR_COPY: Record<PaymentStableCode, PaymentErrorCopy> = {
   },
   FEE_UNAVAILABLE: {
     title: 'Fee not available',
-    body: 'We could not look up the fee for this program. Please try again later.',
+    body: 'We could not look up the fee for this programme. Please try again later.',
   },
   FEE_NOT_CONFIGURED: {
     title: 'Fee not configured',

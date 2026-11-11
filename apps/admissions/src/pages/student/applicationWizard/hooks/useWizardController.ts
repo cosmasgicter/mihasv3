@@ -237,6 +237,10 @@ const useWizardController = (): UseWizardControllerResult => {
   const applicationId = draftSnapshot.applicationId
   const [ocrDocumentId, setOcrDocumentId] = useState<string | null>(null)
   const startOcrPollingRef = useRef<((documentId?: string | null) => void) | null>(null)
+  // OCR is opt-in per institution (platform-simplification task 18.2, D4). The
+  // required-documents contract says whether this application's school opted
+  // in; until it says so, the wizard never calls extract and never polls.
+  const ocrAvailableRef = useRef(false)
   const markOcrExtractRejectedRef = useRef<((error?: unknown) => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
@@ -408,7 +412,6 @@ const useWizardController = (): UseWizardControllerResult => {
       setValue('program', resolvedId, { shouldValidate: true })
     }
   }, [programs, selectedProgram, findProgramId, setValue])
-  const clearValidationError = useCallback(() => setError(''), [])
 
   const {
     wizardCatalogContext,
@@ -445,12 +448,7 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadStates,
     uploadedFiles,
     markUploadedFile,
-  } = useApplicationFileUploads({
-    userId: user?.id,
-    applicationId,
-    onValidationError: setError,
-    onValidationClear: clearValidationError
-  })
+  } = useApplicationFileUploads()
 
   const clearStaleApplicationReference = useCallback((staleApplicationId: string, message?: string) => {
     clearStaleApplicationDraftReference(staleApplicationId)
@@ -639,6 +637,10 @@ const useWizardController = (): UseWizardControllerResult => {
         if (documentType !== 'result_slip') {
           return
         }
+        if (!ocrAvailableRef.current) {
+          // The school has not opted in: manual grade entry only (R11.3).
+          return
+        }
         // Optional deterministic grade assistance — never authoritative, and a
         // failure here never blocks the upload (R11.4, task 7.5).
         setOcrDocumentId(documentId)
@@ -667,6 +669,8 @@ const useWizardController = (): UseWizardControllerResult => {
    * replace the advisory readiness with the server readiness query, at which
    * point this bridge goes away.
    */
+  const ocrAvailable = requiredDocuments.contract?.ocrAvailable === true
+  ocrAvailableRef.current = ocrAvailable
   useEffect(() => {
     const contract = requiredDocuments.contract
     if (!contract) return
@@ -955,14 +959,14 @@ const useWizardController = (): UseWizardControllerResult => {
 
   // Auto-start OCR polling on draft restore when result slip exists but no grades loaded
   useEffect(() => {
-    if (ocrDocumentId && ocrStatus === 'idle' && selectedGrades.length === 0 && subjects.length > 0) {
+    if (ocrAvailable && ocrDocumentId && ocrStatus === 'idle' && selectedGrades.length === 0 && subjects.length > 0) {
       startOcrPolling(ocrDocumentId)
     }
-  }, [ocrDocumentId, ocrStatus, selectedGrades.length, subjects.length, startOcrPolling])
+  }, [ocrAvailable, ocrDocumentId, ocrStatus, selectedGrades.length, subjects.length, startOcrPolling])
 
   const retryOcr = useCallback((documentId?: string | null) => {
     const docId = documentId || ocrDocumentId
-    if (!docId) return
+    if (!docId || !ocrAvailableRef.current) return
     documentService
       .extract({ documentId: docId, force: true })
       .catch((err) => logger.warn('OCR retry request failed', toError(err)))

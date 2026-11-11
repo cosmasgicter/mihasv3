@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/dateFormat'
 import { Seo } from '@/components/seo/Seo'
 import { usePortalBrand } from '@/hooks/usePortalBrand'
 import { brandedPageTitle } from '@/lib/tenantBrandCopy'
+import { resolveTenantSupportContact } from '@/lib/tenantSupport'
 import { 
   Calendar, 
   Clock, 
@@ -73,12 +74,12 @@ function getModeIcon(mode: Interview['mode']) {
 function getModeLabel(mode: Interview['mode']): string {
   switch (mode) {
     case 'virtual':
-      return 'Virtual Meeting'
+      return 'Virtual meeting'
     case 'phone':
-      return 'Phone Call'
+      return 'Phone call'
     case 'in_person':
     default:
-      return 'In Person'
+      return 'In person'
   }
 }
 
@@ -177,7 +178,12 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 export default function InterviewPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { brandName } = usePortalBrand()
+  const { brandName, supportEmail } = usePortalBrand()
+  const support = resolveTenantSupportContact({
+    supportEmail,
+    brandName,
+    subject: 'Interview reschedule request',
+  })
   const {
     data: interviews = [],
     isLoading,
@@ -232,13 +238,13 @@ export default function InterviewPage() {
     return (
       <>
       <Seo
-        title={brandedPageTitle('My Interview', brandName)}
+        title={brandedPageTitle('My interview', brandName)}
         description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
         siteName={brandName}
         noindex
       />
-      <PageShell title="Interview Schedule" subtitle="Loading interview information...">
+      <PageShell title="Interview schedule" subtitle="Loading interview information…">
         <div className="space-y-6" role="status" aria-label="Loading interview information">
           <div className="rounded-lg border border-primary/20 bg-card p-6">
             <div className="space-y-2">
@@ -272,14 +278,14 @@ export default function InterviewPage() {
   return (
     <>
       <Seo
-        title={brandedPageTitle('My Interview', brandName)}
+        title={brandedPageTitle('My interview', brandName)}
         description="View your scheduled interviews and prepare for your admission process."
         path="/student/interview"
         siteName={brandName}
         noindex
       />
     <PageShell
-      title="Interview Schedule"
+      title="Interview schedule"
       subtitle="View your scheduled interviews and prepare for your admission process."
       eyebrow="Interview"
       tone="student"
@@ -288,7 +294,7 @@ export default function InterviewPage() {
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-base sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
@@ -315,7 +321,7 @@ export default function InterviewPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  Upcoming Interviews
+                  Upcoming interviews
                 </CardTitle>
                 <CardDescription>
                   Interviews scheduled for the future
@@ -338,7 +344,7 @@ export default function InterviewPage() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5 text-muted-foreground" />
-                  Past Interviews
+                  Past interviews
                 </CardTitle>
                 <CardDescription>
                   Previously scheduled interviews
@@ -357,38 +363,48 @@ export default function InterviewPage() {
           {/* Empty State */}
           {/* @requirements 3.4 - Display appropriate empty state message */}
           {interviews.length === 0 && !error && (
+            // Not every programme interviews, so this promises no invitation; it says
+            // what fills the page (task 31.2, R21.4, R20.1).
+            <EmptyState
+              icon={<Calendar className="h-12 w-12" />}
+              headingLevel="h2"
+              heading="No interviews scheduled"
+              description="If your school schedules an interview, its date, time and how to attend appear here."
+              action={{
+                label: 'Return to Dashboard',
+                onClick: () => navigate('/student/dashboard'),
+                variant: 'outline',
+              }}
+            />
+          )}
+
+          {/* Help card: a reschedule prompt only when there is an interview to move,
+              with the support contact from the resolved tenant (tasks 27.2, 27.3). */}
+          {interviews.length > 0 && (
             <Card className="bg-muted/30">
               <CardContent className="pt-6">
-                <EmptyState
-                  icon={<Calendar className="h-12 w-12" />}
-                  heading="No Scheduled Interviews"
-                  description="You don't have any interviews scheduled yet. Once your application is reviewed, you'll receive an interview invitation."
-                  action={{
-                    label: 'Return to Dashboard',
-                    onClick: () => navigate('/student/dashboard'),
-                    variant: 'outline',
-                  }}
-                />
+                <div className="text-center">
+                  <p className="text-base sm:text-sm text-muted-foreground mb-2">
+                    Need to reschedule your interview?
+                  </p>
+                  <p className="text-base sm:text-sm text-muted-foreground">
+                    {support.isExternal ? (
+                      <>
+                        Contact the admissions office at{' '}
+                        <a href={support.href} className="inline-flex min-h-touch items-center text-primary hover:underline">
+                          {support.email}
+                        </a>
+                      </>
+                    ) : (
+                      <Link to={support.href} className="inline-flex min-h-touch items-center text-primary hover:underline">
+                        Contact admissions
+                      </Link>
+                    )}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
-
-          {/* Help Card */}
-          <Card className="bg-muted/30">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Need to reschedule your interview?
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Contact the admissions office at{' '}
-                  <a href="mailto:admissions@beanola.com" className="text-primary hover:underline">
-                    admissions@beanola.com
-                  </a>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
     </PageShell>
     </>
@@ -438,11 +454,11 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
         <div className="flex-1 min-w-0 space-y-3">
           {/* Program Name */}
           <p className="font-semibold text-foreground truncate">
-            {interview.program_name || 'Application Interview'}
+            {interview.program_name || 'Application interview'}
           </p>
           
           {/* Date, Time, Mode -- compact row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base sm:text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-4 w-4 flex-shrink-0" />
               {date}
@@ -451,7 +467,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
               <Clock className="h-4 w-4 flex-shrink-0" />
               {time}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+            <span data-text-role="caption" className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-sm sm:text-xs font-medium text-foreground">
               {getModeIcon(interview.mode)}
               {getModeLabel(interview.mode)}
             </span>
@@ -459,7 +475,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
           {/* Location / link detail */}
           {modeDetail && (
-            <p className="text-sm text-muted-foreground flex items-start gap-1.5 break-words">
+            <p className="text-base sm:text-sm text-muted-foreground flex items-start gap-1.5 break-words">
               <span className="shrink-0 mt-0.5">{modeDetail.icon}</span>
               <span className="min-w-0 break-words">{modeDetail.text}</span>
             </p>
@@ -473,7 +489,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
           {/* Reminder copy for upcoming */}
           {isUpcoming && (
-            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-base sm:text-sm text-muted-foreground">
               Please arrive 10 minutes early. Bring your NRC or passport for identification.
             </p>
           )}
@@ -493,7 +509,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
                 rel="noopener noreferrer"
               >
                 <Video className="h-4 w-4 mr-2" />
-                Join Meeting
+                Join meeting
                 <ExternalLink className="h-3.5 w-3.5 ml-2" />
               </a>
             </Button>

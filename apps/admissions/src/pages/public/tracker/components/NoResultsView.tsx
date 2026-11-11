@@ -46,7 +46,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
             onClick={onTryAgain}
           >
             <Search className="h-5 w-5 mr-2" aria-hidden="true" />
-            Try Again
+            Try again
           </Button>
           <Button asChild size="lg" className="min-h-touch">
             <Link to="/auth/signup">

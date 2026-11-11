@@ -102,18 +102,25 @@ export function isPaymentResolvedForApproval(paymentStatus?: string | null) {
   return (APPROVAL_PAYMENT_STATUSES as readonly string[]).includes(paymentStatus ?? '')
 }
 
+/**
+ * How a settled payment is described to a student (task 28.2, R13.4): the ways they
+ * can pay, not the name of the provider that carries it. The one place this label
+ * lives, so no screen prints "Processed via Lenco".
+ */
+export const PAYMENT_CHANNEL_LABEL = 'Mobile money or card'
+
 export function getPaymentStatusLabel(paymentStatus?: string | null) {
   switch (normalizePaymentStatus(paymentStatus)) {
     case 'verified':
       return 'Verified'
     case 'rejected':
-      return 'Payment Rejected'
+      return 'Payment rejected'
     case 'pending_review':
-      return 'Awaiting Payment Review'
+      return 'Awaiting payment review'
     case 'deferred':
       return 'Deferred'
     default:
-      return 'Awaiting Payment'
+      return 'Awaiting payment'
   }
 }
 
@@ -347,10 +354,10 @@ export const PAYMENT_WAITING_STATES: Record<
   },
   provider_processing: {
     title: 'Confirming with your provider',
-    body: "Your payment is with your mobile money provider. There's nothing to do — we'll update this page as soon as they confirm.",
+    body: "Your payment is with your mobile money provider. There's nothing to do. We'll update this page as soon as they confirm.",
     studentActionable: false,
     timeoutSeconds: 600,
-    onTimeout: 'Still confirming. You can safely leave this page and check back — we will not charge you twice.',
+    onTimeout: 'Still confirming. You can safely leave this page and check back. We will not charge you twice.',
   },
 }
 

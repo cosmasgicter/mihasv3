@@ -124,7 +124,7 @@ class TestIdentityDocumentRequired(SimpleTestCase):
                 "An NRC or Passport document must be uploaded before submission.",
             )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -151,7 +151,7 @@ class TestIdentityDocumentRequired(SimpleTestCase):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -208,7 +208,7 @@ class TestPaymentGateEnforcement(SimpleTestCase):
                 "Payment must be completed before submitting the application.",
             )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -236,7 +236,7 @@ class TestPaymentGateEnforcement(SimpleTestCase):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -290,7 +290,7 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
                 "This application has already been submitted.",
             )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -318,7 +318,7 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -373,7 +373,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             mock_app_qs.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -415,7 +415,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             mock_history_qs.filter.return_value.order_by.return_value.first.return_value = MagicMock()
             mock_intake_qs.filter.return_value.first.return_value = None
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -455,7 +455,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             mock_transition.return_value = "submitted"
             mock_intake_qs.filter.return_value.first.return_value = None
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)

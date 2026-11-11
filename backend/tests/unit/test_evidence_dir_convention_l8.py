@@ -369,35 +369,27 @@ def test_the_three_spellings_share_one_run_scoped_root():
     assert "docs/v2-evidence" not in RUN_SCOPED_EVIDENCE_ROOT
 
 
-def test_ci_still_publishes_task_0_4s_evidence_deliberately():
-    """L8's default must not silently break the job that PRODUCES 0.4's evidence.
+def test_ci_publishes_the_smoke_run_as_an_artefact_only():
+    """The smoke job writes a run-scoped directory and uploads it; it never writes a tracked path.
 
-    ``v2-harness-smoke.yml`` uploads ``docs/v2-evidence/0.4/`` as its CI artifact. With the
-    default flipped to run-scoped, that directory would be empty on a fresh checkout
-    (``docs/v2-evidence/`` is untracked), and the upload would find nothing — a gate that
-    reports success while publishing an empty artifact. A CI smoke run is precisely the
-    deliberate case, so the workflow opts in explicitly.
+    Task 11.3 (platform-simplification requirements 4.1, 4.2) untracked the raw artefacts under
+    ``docs/v2-evidence/``. This replaces the L8 assertion that the job opted in to writing
+    ``docs/v2-evidence/0.4/`` (``V2_EVIDENCE_TASK_DIRS``): that assertion encoded the behaviour the
+    spec intentionally changes. The new one pins the opposite and that the upload still finds
+    something to publish.
     """
     assert _SMOKE_WORKFLOW.exists(), "the harness smoke workflow is missing"
     src = _SMOKE_WORKFLOW.read_text(encoding="utf-8")
-    assert "docs/v2-evidence/0.4/" in src, (
-        "the workflow no longer uploads 0.4's evidence; if that is deliberate, this guard "
-        "should change with it"
+    code = "\n".join(line for line in src.splitlines() if not line.lstrip().startswith("#"))
+    assert EVIDENCE_TASK_DIRS_ENV not in code, (
+        f"v2-harness-smoke.yml sets {EVIDENCE_TASK_DIRS_ENV}: the job would write into a tracked path"
     )
-    assert EVIDENCE_TASK_DIRS_ENV in src, (
-        f"v2-harness-smoke.yml uploads docs/v2-evidence/0.4/ but does not set "
-        f"{EVIDENCE_TASK_DIRS_ENV}, so after L8 the harness writes run-scoped and the "
-        f"upload publishes an empty artifact"
+    assert "docs/v2-evidence" not in code, "the smoke job must not name a tracked evidence path"
+    assert "path: apps/admissions/test-results/harness-evidence/" in code, (
+        "the job must upload the run-scoped evidence root as its artefact"
     )
-    # The flag must be on the step that RUNS the harness, not merely present in a comment.
-    # Split on the `run:` line specifically: the workflow's own header comment also names
-    # `bash harness/bin/harness smoke`, and splitting on the bare command found that first.
-    assert "run: bash harness/bin/harness smoke" in src
-    tail = src.split("run: bash harness/bin/harness smoke")[0][-400:]
-    assert f"{EVIDENCE_TASK_DIRS_ENV}: " in tail, (
-        f"{EVIDENCE_TASK_DIRS_ENV} appears in the workflow but not as env on the step that "
-        f"runs `harness/bin/harness smoke`"
-    )
+    assert "V2_EVIDENCE_RUN_ID" in code
+    assert "run: bash harness/bin/harness smoke" in code
 
 
 @pytest.mark.parametrize("spec_name,task_id", sorted(_SCREENSHOT_SPECS.items()))

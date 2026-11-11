@@ -24,10 +24,10 @@ export function StatusIcon({ status, size = 'md', animated = false, className }:
   }
 
   const iconMap = {
-    approved: { Icon: Trophy, color: 'text-accent' },
+    approved: { Icon: Trophy, color: 'text-accent-foreground' },
     rejected: { Icon: XCircle, color: 'text-destructive' },
     under_review: { Icon: Target, color: 'text-primary' },
-    submitted: { Icon: Rocket, color: 'text-accent' },
+    submitted: { Icon: Rocket, color: 'text-accent-foreground' },
     pending: { Icon: Clock, color: 'text-foreground' },
     warning: { Icon: AlertTriangle, color: 'text-warning' }
   }

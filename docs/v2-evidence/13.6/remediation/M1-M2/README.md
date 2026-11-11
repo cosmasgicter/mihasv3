@@ -1,5 +1,7 @@
 # Task 13.6 remediation — M1 and M2
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · remediation items **M1** and
 **M2** of [`docs/v2-evidence/13.6/README.md`](../../README.md) Part II §18.1
 Requirements: **R15.3–R15.4** (additive expand, no rewrite, bounded locks), **R9.2**

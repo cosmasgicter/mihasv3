@@ -17,7 +17,7 @@ from apps.applications.admin_amendment_views import ApplicationAmendmentReviewVi
 from apps.applications.student_amendment_views import ApplicationAmendmentView
 
 
-_AO = "apps.applications.views.Application.objects"
+_AO = "apps.applications.models.Application.objects"
 
 
 def _user(uid=None):

@@ -43,7 +43,7 @@ export function ResourceList({
   return (
     <div className="space-y-2">
       {items.slice(0, limit).map(item => (
-        <div key={item.id} className="rounded-lg border border-border bg-background p-3">
+        <div key={item.id} className="rounded-lg bg-muted p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
               {item.previewUrl && (
@@ -100,7 +100,7 @@ export function ChecklistItem({
   count: number
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+    <div className="flex items-center gap-3 rounded-lg bg-background p-3">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
@@ -193,7 +193,7 @@ export function TokenChips({
           ))}
         </ul>
       ) : (
-        <p className="text-xs text-muted-foreground">No entries — applies to all.</p>
+        <p className="text-xs text-muted-foreground">No entries: applies to all.</p>
       )}
     </div>
   )

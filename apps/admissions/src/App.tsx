@@ -24,34 +24,10 @@ const DeferredGlobalFeedback = lazy(() => import('@/components/DeferredGlobalFee
 const AuthenticatedRouteShell = lazy(() => import('@/components/AuthenticatedRouteShell').then((mod) => ({ default: mod.AuthenticatedRouteShell })))
 const PublicApplicationTracker = lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = lazy(() => import('@/pages/ContactPage'))
+const ForSchoolsPage = lazy(() => import('@/pages/public/ForSchoolsPage'))
 const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
-
-// DEV-ONLY: live PDF document previews.
-//
-// The `import.meta.env.DEV` guard has to sit on the **`lazy(() => import(…))`
-// expression**, not only on the `<Route>` that renders it. admissions-v2 task
-// 12.4 measured what happens when it sits only on the route: Vite replaces
-// `import.meta.env.DEV` with `false` and Rollup does drop the two unreachable
-// `<Route>` elements — but these two module-scope `lazy()` calls survive, so the
-// dynamic imports were still emitted and the **production** bundle shipped
-// `AcceptanceLetterPreview-*.js`, `DocumentPreview-*.js` and the 1.43 MB
-// `vendor-react-pdf-*.js` engine they pull, to every student on every device.
-// The comment that used to sit here claimed they were "tree-shaken out of
-// production builds"; the build output said otherwise.
-//
-// With the guard on the expression, `false ? lazy(() => import(…)) : null` is
-// dead code and the dynamic import goes with it, so `@/lib/pdf` stays a
-// dev/preview-only surface **by measurement** rather than by convention (the
-// steering rule in `tech.md`: frontend `@/lib/pdf` is legacy/preview-only and
-// must not be reachable from a student/admin official flow). The previews
-// themselves are unchanged in `bun run dev`.
-// Pinned by `tests/unit/devPreviewChunkAbsence.test.ts`.
-const AcceptanceLetterPreview = import.meta.env.DEV
-  ? lazy(() => import('@/pages/dev/AcceptanceLetterPreview'))
-  : null
-const DocumentPreview = import.meta.env.DEV ? lazy(() => import('@/pages/dev/DocumentPreview')) : null
 
 function App() {
   useEffect(() => {
@@ -228,15 +204,10 @@ function RouteAwareApp() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/track-application" element={<PublicApplicationTracker />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/404" element={<NotFoundPage />} />
-              {AcceptanceLetterPreview ? (
-                <Route path="/dev/acceptance-letter" element={<AcceptanceLetterPreview />} />
-              ) : null}
-              {DocumentPreview ? (
-                <Route path="/dev/documents" element={<DocumentPreview />} />
-              ) : null}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

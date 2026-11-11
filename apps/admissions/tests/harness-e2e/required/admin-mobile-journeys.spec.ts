@@ -825,7 +825,7 @@ test('the tenant console offers scoped selectors, not UUID fields, at 390', asyn
   await expectNoOverflow(page, 'the tenant console');
 
   // The required-documents form's two replaced fields are populated selectors.
-  const offeringSelect = page.getByLabel('Program offering', { exact: true });
+  const offeringSelect = page.getByLabel('Programme offering', { exact: true });
   const canonicalSelect = page.getByLabel('Canonical program', { exact: true });
   if (await offeringSelect.count()) {
     await expect(offeringSelect.first()).toBeVisible();

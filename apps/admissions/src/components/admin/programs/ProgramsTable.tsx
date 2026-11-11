@@ -27,14 +27,14 @@ export function ProgramsTable({
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
           <GraduationCap className="h-10 w-10" aria-hidden="true" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">No Programs Yet</h2>
+        <h2 className="text-2xl font-bold text-foreground">No programmes yet</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-          Build the institution catalog first, then add the academic programs students can apply for.
+          Build the institution catalog first, then add the academic programmes students can apply for.
         </p>
         <div className="mt-6 flex justify-center">
           <Button onClick={activeInstitutions.length > 0 ? onCreateProgram : onCreateInstitution}>
             <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-            {activeInstitutions.length > 0 ? 'Create First Program' : 'Create Institution First'}
+            {activeInstitutions.length > 0 ? 'Create first programme' : 'Create institution first'}
           </Button>
         </div>
       </div>
@@ -46,7 +46,7 @@ export function ProgramsTable({
       columns={[
         {
           key: 'name',
-          header: 'Program',
+          header: 'Programme',
           priority: 'always',
           render: (_value, row) => (
             <span className="font-semibold text-foreground">{row.name}</span>
@@ -112,7 +112,7 @@ export function ProgramsTable({
         },
       ]}
       data={programs}
-      caption="Academic programs"
+      caption="Academic programmes"
       loading={false}
     />
   )

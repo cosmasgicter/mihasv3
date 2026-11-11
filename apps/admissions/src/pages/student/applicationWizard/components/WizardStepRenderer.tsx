@@ -130,7 +130,6 @@ export function WizardStepRenderer({
             onRetryPrograms={onRetryPrograms}
             onRetryIntakes={onRetryIntakes}
             intakes={intakes}
-            title={currentStepConfig.title}
             getFieldAriaDescribedBy={getFieldAriaDescribedBy}
           />
         </ErrorBoundary>
@@ -143,7 +142,6 @@ export function WizardStepRenderer({
           onError={error => reportError(error, { step: 'assignedSchool' })}
         >
           <AssignedSchoolStep
-            title={currentStepConfig.title}
             preview={assignmentPreview ?? null}
             isLoading={assignmentPreviewLoading}
             error={assignmentPreviewError}
@@ -165,7 +163,6 @@ export function WizardStepRenderer({
             hasAutoPopulatedData={hasAutoPopulatedData}
             completionPercentage={completionPercentage}
             missingFields={missingFields}
-            title={currentStepConfig.title}
             getFieldAriaDescribedBy={getFieldAriaDescribedBy}
           />
         </ErrorBoundary>
@@ -175,7 +172,6 @@ export function WizardStepRenderer({
       return (
         <ErrorBoundary level="section" onError={error => reportError(error, { step: 'education' })}>
           <EducationStep
-            title={currentStepConfig.title}
             subjects={subjects}
             selectedProgram={selectedProgramDetails?.name}
             selectedGrades={selectedGrades}
@@ -210,13 +206,12 @@ export function WizardStepRenderer({
               <AlertDescription>
                 {assignedSchoolLabel}
                 {assignmentPreview?.program_name || submittedApplication?.program
-                  ? ` — ${assignmentPreview?.program_name || submittedApplication?.program}`
+                  ? `: ${assignmentPreview?.program_name || submittedApplication?.program}`
                   : ''}
               </AlertDescription>
             </Alert>
           )}
           <PaymentStep
-            title={currentStepConfig.title}
             form={typedForm}
             applicationId={applicationId}
             applicationNumber={submittedApplication?.applicationNumber ?? null}
@@ -232,7 +227,6 @@ export function WizardStepRenderer({
       return (
         <ErrorBoundary level="section" onError={error => reportError(error, { step: 'submit' })}>
           <SubmitStep
-            title={currentStepConfig.title}
             form={typedForm}
             subjects={subjects}
             selectedGrades={selectedGrades}

@@ -44,6 +44,7 @@ from apps.catalog.subject_catalog import SUBJECT_ALIASES, SUBJECT_CATALOG_VERSIO
 from apps.documents import document_evidence as evidence
 from apps.documents import grade_extraction
 from apps.documents.models import ApplicationDocument, ApplicationGrade, DocumentVerificationEvent
+from tests.ocr_fixtures import opt_in_ocr
 from tests.tenant_fixtures import build_document, build_subject, build_tenant_world
 
 pytestmark = pytest.mark.django_db
@@ -228,6 +229,7 @@ class _FakePIL:
 def test_extraction_writes_no_grade_rows():
     """The whole point of R11.4: a read is a suggestion, not application data."""
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     build_subject(name="Mathematics", code="MATH")
     build_subject(name="Biology", code="BIO")
     document = build_document(application=world.application, document_type="result_slip")
@@ -246,6 +248,7 @@ def test_extraction_writes_no_grade_rows():
 
 def test_extraction_never_touches_a_manually_entered_grade():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     math = build_subject(name="Mathematics", code="MATH")
     build_subject(name="Biology", code="BIO")
     manual = ApplicationGrade.objects.create(
@@ -267,6 +270,7 @@ def test_extraction_never_touches_a_manually_entered_grade():
 def test_extraction_state_is_structured_and_verification_notes_untouched():
     """R11.7: machine output lives in its own record, not a reviewer's field."""
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     build_subject(name="Mathematics", code="MATH")
     build_subject(name="Biology", code="BIO")
     reviewer_note = "Checked against the original. Legible."
@@ -296,6 +300,7 @@ def test_extraction_state_is_structured_and_verification_notes_untouched():
 
 def test_re_extraction_appends_history_rather_than_rewriting_it():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     build_subject(name="Mathematics", code="MATH")
     build_subject(name="Biology", code="BIO")
     document = build_document(application=world.application, document_type="result_slip")
@@ -317,6 +322,7 @@ def test_re_extraction_appends_history_rather_than_rewriting_it():
 
 def test_no_candidates_are_stored_for_a_non_result_document():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     document = build_document(application=world.application, document_type="nrc")
 
     _run_extraction(document, text="REPUBLIC OF ZAMBIA\nNATIONAL REGISTRATION CARD\n")
@@ -327,6 +333,7 @@ def test_no_candidates_are_stored_for_a_non_result_document():
 
 def test_unreadable_slip_leaves_the_student_on_manual_entry():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     document = build_document(application=world.application, document_type="result_slip")
 
     _run_extraction(document, text="   \n\n")
@@ -338,6 +345,7 @@ def test_unreadable_slip_leaves_the_student_on_manual_entry():
 
 def test_slip_with_no_confirmable_candidate_reports_no_grades():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     document = build_document(application=world.application, document_type="result_slip")
 
     _run_extraction(document, text="1. Mathmatics 4\n2. Bilogy 5\n")
@@ -366,6 +374,7 @@ def _student_client(world) -> APIClient:
 
 def test_document_info_publishes_candidates_and_drops_the_ai_aliases():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     build_subject(name="Mathematics", code="MATH")
     build_subject(name="Biology", code="BIO")
     document = build_document(application=world.application, document_type="result_slip")
@@ -397,6 +406,7 @@ def test_document_info_publishes_candidates_and_drops_the_ai_aliases():
 
 def test_document_info_extraction_is_null_before_any_read():
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     document = build_document(application=world.application, document_type="result_slip")
 
     response = _student_client(world).get(f"/api/v1/documents/{document.id}/info/")
@@ -407,6 +417,7 @@ def test_document_info_extraction_is_null_before_any_read():
 def test_historical_ai_blob_is_read_only_provenance_not_a_candidate():
     """Design §18: preserve pre-7.4 extraction as labeled provenance."""
     world = build_tenant_world()
+    opt_in_ocr(world.institution)
     document = build_document(
         application=world.application,
         document_type="result_slip",

@@ -1,5 +1,7 @@
 # Task 5.1 Evidence — Retire legacy catalog writes from the frontend
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R7.1-R7.5, R14.7 · Findings: TEN-03, DATA-01, API-02_
 _Required_Evidence: source/telemetry proof of zero first-party legacy catalog
 callers + the strict V2 catalog services/hooks + backend/frontend verification

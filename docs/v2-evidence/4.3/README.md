@@ -1,5 +1,7 @@
 # Task 4.3 — Make onboarding configuration steps real canonical mutations
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · Requirements **R4.2,
 R4.5–R4.7, R6.3, R7.3** · Findings **TEN-02, TEN-03, TEN-05, TEN-07** · Design
 §6.1 (aggregate/states), §6.2 (readiness invariants), §7 (canonical catalog &

@@ -1,5 +1,7 @@
 # Task 13.4 — Rehearse data migration, rollback, and operational recovery
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` · Phase 13, fourth bullet
 Requirements: **R15, R17, R18.3–R18.7**
 Findings: **DATA-03, DATA-07, DATA-08, DATA-09, DATA-10, DATA-11**

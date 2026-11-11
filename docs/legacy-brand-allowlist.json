@@ -1,6 +1,6 @@
 {
   "description": "Brand_Allowlist (R2.2/R2.3/R2.4, R10.2). The small, reviewed set of single files permitted to contain the legacy brand strings MIHAS / KATC / Mukuba / Kalulushi and legacy MIHAS domains. Every other file under apps/admissions/src, apps/admissions/index.html, backend/apps, and backend/config is scanned by the brand drift guards (backend/tests/unit/test_brand_drift_guard.py and apps/admissions/tests/unit/brandDriftGuard.test.ts) and must NOT contain these strings. Paths are repo-root-relative and each entry names a SINGLE file (R2.3 — no whole-directory entries). Each entry is classified as exactly one of the four allowed classes (R2.2) and states why it cannot be removed yet. A new entry is a deliberate decision that the strings are legitimate tenant data, an allowlisted historical reference, named legacy-compatibility code with a guard, or a dev/PDF-preview fixture not reachable from official-download paths (R2.4) — never a reintroduced platform fallback.",
-  "legacyExceptionPolicy": "Every entry is in exactly one of two populations, decided per entry by admissions-v2 task 12.5 pass 2 (2026-10-09, finding GATE-13.6-01) under the user's authorization, on behalf of this register's owning spec (beanola-production-readiness: Property 28 in both brand guards, and its task 3.2 wrote each entry's reason; the register was created by multi-tenant-beanola-remediation R10). (1) A Legacy_Exception carries 'owner' and 'removeBy'. 'removeBy' is task 12.2's announced window, backend/apps/common/compatibility_register.py COMPATIBILITY_SURFACES['catalog.legacy_institution_write'].end_date; test_brand_drift_guard.py fails if it drifts from that register, and both brand guards fail once the window closes, naming the two legitimate answers (remove the strings and the entry, or announce a new window in compatibility_register.py on purpose). The nine client-preview entries share the window of documentFlowDriftGuard's PREVIEW_ALLOWLIST, whose five modules are @/lib/pdf's only importers. (2) An entry that is permanent by design carries 'owner', a 'reviewBucket' from task 12.5's vocabulary (canonical, test-fixture, immutable-evidence or comment) and 'permanentBecause', and NO removal date — a date on it would assert a removal nobody intends. Both populations stay staleness-checked. Owners are records, not inventions: beanola-production-readiness for the entries its review wrote, platform-admissions (admissions-v2's owner string in compatibility_register.py) for the three admissions-v2 registered. Evidence: docs/v2-evidence/12.5/README.md section 13.",
+  "legacyExceptionPolicy": "Every entry is in exactly one of two populations, decided per entry by admissions-v2 task 12.5 pass 2 (2026-10-09, finding GATE-13.6-01) under the user's authorization, on behalf of this register's owning spec (beanola-production-readiness: Property 28 in both brand guards, and its task 3.2 wrote each entry's reason; the register was created by multi-tenant-beanola-remediation R10). (1) A Legacy_Exception carries 'owner' and 'removeBy'. 'removeBy' is task 12.2's announced window, backend/apps/common/compatibility_register.py COMPATIBILITY_SURFACES['catalog.legacy_institution_write'].end_date; test_brand_drift_guard.py fails if it drifts from that register, and both brand guards fail once the window closes, naming the two legitimate answers (remove the strings and the entry, or announce a new window in compatibility_register.py on purpose). The nine client-preview entries were removed with @/lib/pdf and the /dev previews (platform-simplification task 14.1). (2) An entry that is permanent by design carries 'owner', a 'reviewBucket' from task 12.5's vocabulary (canonical, test-fixture, immutable-evidence or comment) and 'permanentBecause', and NO removal date — a date on it would assert a removal nobody intends. Both populations stay staleness-checked. Owners are records, not inventions: beanola-production-readiness for the entries its review wrote, platform-admissions (admissions-v2's owner string in compatibility_register.py) for the three admissions-v2 registered. Evidence: docs/v2-evidence/12.5/README.md section 13.",
   "classifications": [
     "seeded tenant data",
     "historical archived document",
@@ -91,69 +91,6 @@
       "permanentBecause": "Prose, permanent by design: the brand string is in the _generate_reference docstring, which states that reconciliation joins on the exact stored reference and never on the prefix. No MIHAS-specific code exists to remove; historical MIHAS- references are permanent payment records matched by value. Half 5 classifies the hit as a comment.",
       "classification": "named legacy-compatibility code with a guard",
       "reason": "Comment noting legacy MIHAS- payment references remain matchable by value (backward compatibility). No new MIHAS- references are generated. Cannot be removed: existing payment records carry MIHAS- references that must stay matchable."
-    },
-    {
-      "path": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Dev-only, non-official document preview harness with MIHAS/KATC sample fixtures. Route /dev/documents is import.meta.env.DEV-gated in App.tsx and tree-shaken from prod; not reachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Dev-only, non-official acceptance-letter preview harness with MIHAS/KATC sample fixtures. Route /dev/acceptance-letter is import.meta.env.DEV-gated and tree-shaken from prod; not reachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client-side preview/draft acceptance profiles (MIHAS RN, KATC COG, KATC EHT). Preview/draft only; backend tenant profiles are the official source. The client @/lib/pdf barrel is unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview/draft renderer docstring referencing the historical MIHAS/KATC official letters it reproduces. Preview/draft only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/documents/intakeSchedule.ts",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview intake-schedule docstring referencing MIHAS/KATC's two annual intakes. Preview content only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview receipt docstring referencing the MIHAS FINANCE OFFICE tagline. Preview content only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/documents/types.ts",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview PDF type docstrings with MIHAS/KATC examples. Preview content only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/theme/index.ts",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview PDF theme: MIHAS/KATC registered as preview tenant data, with info@mihas.edu.zm / info@katc.edu.zm tenant contacts. Unknown institutions fall back to a Beanola-generic preview; MIHAS is never silently rendered for an unknown school (R2.5). Preview-only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",
-      "owner": "beanola-production-readiness",
-      "removeBy": "2027-02-07",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview signature block referencing the shared MIHAS/KATC Managing Director signatory. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/locationOptions.ts",

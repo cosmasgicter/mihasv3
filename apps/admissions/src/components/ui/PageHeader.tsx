@@ -19,21 +19,23 @@ export interface PageHeaderProps {
  stats?: PageHeaderStat[]
  children?: React.ReactNode
  className?: string
- variant?: 'gradient' | 'surface' | 'subtle'
+ variant?: 'gradient' | 'surface' | 'subtle' | 'plain'
  align?: 'start' | 'center'
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
  gradient: 'bg-gradient-vibrant text-primary-foreground border-card/20 shadow-lg',
  surface: 'bg-card text-foreground border border-border shadow-md',
- subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg '
+ subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg ',
+ // Inside a surface that is already a card (task 31.3, R21.5).
+ plain: 'text-foreground'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
  primary: 'bg-primary/5 border-primary/30 text-primary',
  secondary: 'bg-secondary/5 border-input/30 text-secondary-foreground',
  success: 'bg-success/10 border-success/30 text-success',
- warning: 'bg-warning/10 border-warning/30 text-accent',
+ warning: 'bg-warning/10 border-warning/30 text-accent-foreground',
  neutral: 'bg-muted border-border text-foreground'
 }
 
@@ -119,7 +121,7 @@ export function PageHeader({
 							 <div className="min-w-0 space-y-3">
 								 <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
 								 {description && (
-									 <p className={cn('break-words', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+									 <p className={cn('max-w-prose break-words', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
 								 )}
 								 {children}
 							 </div>

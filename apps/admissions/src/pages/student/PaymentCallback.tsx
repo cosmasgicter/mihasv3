@@ -58,7 +58,7 @@ export default function PaymentCallback() {
       }
 
       setStatus('pending')
-      setMessage('Your payment is being processed. You can close this tab and return to your application — your status will update automatically.')
+      setMessage('Your payment is being processed. You can close this tab and return to your application. Your status will update automatically.')
     }
 
     verify()
@@ -101,7 +101,7 @@ export default function PaymentCallback() {
 
         <Link
           to="/student/dashboard"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 min-h-touch text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 min-h-touch text-base sm:text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <ArrowLeft className="h-4 w-4" />Return to application
         </Link>

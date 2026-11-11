@@ -8,6 +8,23 @@ import { useLocation } from 'react-router-dom'
 const scrollPositions = new Map<string, number>()
 
 /**
+ * Paths that render inside another route's page and so share its scroll
+ * position (platform-simplification task 30.2, R17.2). Opening or closing an
+ * application's review keeps the admin queue where it was: the review route
+ * renders the queue's own page, so it is one place for scrolling purposes.
+ */
+const SHARED_SCROLL_PARENTS = ['/admin/applications']
+
+export function scrollKeyForPath(pathname: string): string {
+  for (const parent of SHARED_SCROLL_PARENTS) {
+    if (pathname.startsWith(`${parent}/`) && !pathname.slice(parent.length + 1).includes('/')) {
+      return parent
+    }
+  }
+  return pathname
+}
+
+/**
  * Preserves and restores `window.scrollY` across route navigations.
  *
  * When the route changes, the current scroll position is saved for the
@@ -27,7 +44,8 @@ const scrollPositions = new Map<string, number>()
  * Requirements: 4.6, 11.6
  */
 export function useScrollRestoration(_key?: string): void {
-  const { pathname } = useLocation()
+  const { pathname: locationPathname } = useLocation()
+  const pathname = scrollKeyForPath(locationPathname)
   const prevPathRef = useRef<string>(pathname)
   const rafRef = useRef<number | null>(null)
 

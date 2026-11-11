@@ -35,9 +35,6 @@ PUBLIC_ENDPOINT_CLASSIFICATIONS = {
     "apps.catalog.intake_views.IntakeListCreateView": "health_meta_catalog_public_read",
     "apps.catalog.subject_views.SubjectListView": "health_meta_catalog_public_read",
     "apps.catalog.institution_views.InstitutionListCreateView": "health_meta_catalog_public_read",
-    # V2's representative catalogue list is the same deliberate public-read
-    # surface as the canonical V1 catalogue endpoints.
-    "apps.common.v2.demo_views.V2ProgramListView": "health_meta_catalog_public_read",
     # …and the shim paths, kept alongside (see the note above).
     "apps.catalog.views.CatalogContextView": "health_meta_catalog_public_read",
     "apps.catalog.views.CanonicalProgramListView": "health_meta_catalog_public_read",
@@ -59,9 +56,6 @@ PUBLIC_ENDPOINT_CLASSIFICATIONS = {
     "apps.accounts.auth_views.SessionView": "auth_password_public_flow",
     "apps.accounts.password_views.PasswordResetRequestView": "auth_password_public_flow",
     "apps.accounts.password_views.PasswordResetConfirmView": "auth_password_public_flow",
-    # The V2 session probe may answer an anonymous caller, matching the V1
-    # SessionView classification.
-    "apps.common.v2.demo_views.V2SessionView": "auth_password_public_flow",
     # Public invitee handoff: the not-yet-authenticated invitee sets their own
     # password by consuming the emailed single-use token (task 4.2, R4.3).
     "apps.catalog.staff_invitation_views.StaffInvitationAcceptView": "auth_password_public_flow",

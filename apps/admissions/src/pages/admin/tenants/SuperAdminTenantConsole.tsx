@@ -36,6 +36,7 @@ import {
 
 import { Seo } from '@/components/seo/Seo'
 import { Button } from '@/components/ui/Button'
+import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -142,6 +143,10 @@ export function SuperAdminTenantConsole() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // True while the blank quick-create form is open. Without it the effect below
+  // re-selected the first school as soon as "Quick create" cleared the
+  // selection, so the blank form never appeared (found in task 30.6).
+  const [isCreating, setIsCreating] = useState(false)
   const [form, setForm] = useState<TenantFormState>(emptyForm)
 
   const institutionsQuery = useQuery({
@@ -156,10 +161,10 @@ export function SuperAdminTenantConsole() {
   const selectedTenant = institutions.find(item => item.id === selectedId) || null
 
   useEffect(() => {
-    if (!selectedId && institutions.length > 0) {
+    if (!selectedId && !isCreating && institutions.length > 0) {
       setSelectedId(institutions[0]!.id)
     }
-  }, [institutions, selectedId])
+  }, [institutions, selectedId, isCreating])
 
   useEffect(() => {
     if (selectedTenant) {
@@ -200,6 +205,7 @@ export function SuperAdminTenantConsole() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] })
       setForm(emptyForm)
       setSelectedId(null)
+      setIsCreating(false)
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Institution was not saved')),
   })
@@ -240,6 +246,7 @@ export function SuperAdminTenantConsole() {
 
   const handleNew = () => {
     setSelectedId(null)
+    setIsCreating(true)
     setForm(emptyForm)
   }
 
@@ -260,14 +267,15 @@ export function SuperAdminTenantConsole() {
       >
         <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
           <Button type="button" onClick={() => navigate(pathFor('admin.tenantOnboarding'))}>
-            <Rocket className="h-4 w-4" aria-hidden="true" /> New institution (wizard)
+            {/* The complete onboarding path, so it is the one primary control (task 30.6, R17.11). */}
+            <Rocket className="h-4 w-4" aria-hidden="true" /> Set up a new school
           </Button>
         </div>
-        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <TenantListPanel
             institutions={institutions}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={(id) => { setIsCreating(false); setSelectedId(id) }}
             onNew={handleNew}
             isError={institutionsQuery.isError}
             error={institutionsQuery.error}
@@ -275,7 +283,7 @@ export function SuperAdminTenantConsole() {
             onRetry={() => institutionsQuery.refetch()}
           />
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <SectionCard
               title={selectedTenant ? 'School profile' : 'New school'}
               description="Branding and admissions contact details used by white-label portals and official documents."
@@ -302,20 +310,57 @@ export function SuperAdminTenantConsole() {
                 </div>
               ) : undefined}
             >
-              <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-                <Input value={form.name} onChange={event => setForm(prev => ({ ...prev, name: event.target.value }))} placeholder="Short name" aria-label="Short name" />
-                <Input value={form.code} onChange={event => setForm(prev => ({ ...prev, code: event.target.value }))} placeholder="Code" aria-label="Institution code" />
-                <Input value={form.full_name} onChange={event => setForm(prev => ({ ...prev, full_name: event.target.value }))} placeholder="Legal/full name" aria-label="Full name" className="md:col-span-2" />
-                <Input value={form.brand_name} onChange={event => setForm(prev => ({ ...prev, brand_name: event.target.value }))} placeholder="Display brand name" aria-label="Brand name" />
-                <Input value={form.slug} onChange={event => setForm(prev => ({ ...prev, slug: event.target.value }))} placeholder="school-slug" aria-label="Slug" />
-                <Input value={form.email} onChange={event => setForm(prev => ({ ...prev, email: event.target.value }))} placeholder="Main email" aria-label="Main email" />
-                <Input value={form.admissions_email} onChange={event => setForm(prev => ({ ...prev, admissions_email: event.target.value }))} placeholder="Admissions email" aria-label="Admissions email" />
-                <Input value={form.support_email} onChange={event => setForm(prev => ({ ...prev, support_email: event.target.value }))} placeholder="Support email" aria-label="Support email" />
-                <Input value={form.phone} onChange={event => setForm(prev => ({ ...prev, phone: event.target.value }))} placeholder="Phone" aria-label="Phone" />
-                <Input value={form.website} onChange={event => setForm(prev => ({ ...prev, website: event.target.value }))} placeholder="Website" aria-label="Website" />
-                <div className="flex gap-3">
-                  <Input value={form.primary_color} onChange={event => setForm(prev => ({ ...prev, primary_color: event.target.value }))} aria-label="Primary color" />
-                  <Input value={form.secondary_color} onChange={event => setForm(prev => ({ ...prev, secondary_color: event.target.value }))} aria-label="Secondary color" />
+              {/* Every field has a visible label; a placeholder is never the only one (task 30.6, R17.10). */}
+              <form className="grid min-w-0 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-name">Short name</Label>
+                  <Input id="tenant-name" value={form.name} onChange={event => setForm(prev => ({ ...prev, name: event.target.value }))} placeholder="Short name" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-code">Institution code</Label>
+                  <Input id="tenant-code" value={form.code} onChange={event => setForm(prev => ({ ...prev, code: event.target.value }))} placeholder="Code" />
+                </div>
+                <div className="min-w-0 space-y-1.5 md:col-span-2">
+                  <Label htmlFor="tenant-full-name">Full name</Label>
+                  <Input id="tenant-full-name" value={form.full_name} onChange={event => setForm(prev => ({ ...prev, full_name: event.target.value }))} placeholder="Legal/full name" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-brand-name">Brand name</Label>
+                  <Input id="tenant-brand-name" value={form.brand_name} onChange={event => setForm(prev => ({ ...prev, brand_name: event.target.value }))} placeholder="Display brand name" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-slug">Slug</Label>
+                  <Input id="tenant-slug" value={form.slug} onChange={event => setForm(prev => ({ ...prev, slug: event.target.value }))} placeholder="school-slug" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-email">Main email</Label>
+                  <Input id="tenant-email" value={form.email} onChange={event => setForm(prev => ({ ...prev, email: event.target.value }))} placeholder="Main email" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-admissions-email">Admissions email</Label>
+                  <Input id="tenant-admissions-email" value={form.admissions_email} onChange={event => setForm(prev => ({ ...prev, admissions_email: event.target.value }))} placeholder="Admissions email" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-support-email">Support email</Label>
+                  <Input id="tenant-support-email" value={form.support_email} onChange={event => setForm(prev => ({ ...prev, support_email: event.target.value }))} placeholder="Support email" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-phone">Phone</Label>
+                  <Input id="tenant-phone" value={form.phone} onChange={event => setForm(prev => ({ ...prev, phone: event.target.value }))} placeholder="Phone" />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="tenant-website">Website</Label>
+                  <Input id="tenant-website" value={form.website} onChange={event => setForm(prev => ({ ...prev, website: event.target.value }))} placeholder="Website" />
+                </div>
+                <div className="grid min-w-0 grid-cols-2 gap-3">
+                  <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="tenant-primary-color">Primary colour</Label>
+                    <Input id="tenant-primary-color" value={form.primary_color} onChange={event => setForm(prev => ({ ...prev, primary_color: event.target.value }))} />
+                  </div>
+                  <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="tenant-secondary-color">Secondary colour</Label>
+                    <Input id="tenant-secondary-color" value={form.secondary_color} onChange={event => setForm(prev => ({ ...prev, secondary_color: event.target.value }))} />
+                  </div>
                 </div>
                 <div className="md:col-span-2 flex justify-end">
                   <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>

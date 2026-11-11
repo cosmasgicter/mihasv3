@@ -77,21 +77,25 @@ export function ApplicationsTable({
           {onSelectionChange && (
             <div className="mb-4 rounded-lg border border-border bg-card p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.length === applications.length && applications.length > 0}
-                    onChange={handleSelectAll}
-                    className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
-                  />
+                {/* The label is the hit area and the name (task 30.4, R17.4). */}
+                <label className="flex min-h-touch cursor-pointer items-center gap-3">
+                  <span className="inline-flex min-h-touch min-w-touch items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.length === applications.length && applications.length > 0}
+                      onChange={handleSelectAll}
+                      className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
+                    />
+                  </span>
                   <span className="text-sm font-medium text-foreground">
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
                   </span>
-                </div>
+                </label>
                 {selectedIds.length > 0 && (
                   <button
+                    type="button"
                     onClick={() => onSelectionChange([])}
-                    className="text-sm text-foreground hover:text-foreground"
+                    className="min-h-touch rounded-lg px-2 text-sm text-foreground hover:bg-muted"
                   >
                     Clear selection
                   </button>

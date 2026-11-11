@@ -160,7 +160,7 @@ describe('Feature: enterprise-tenant-authority, Property 22: Desktop/mobile navi
         if (caps.isSuperAdmin) {
           expectedLabel = 'Tenants'
         } else if (caps.isTenantAdmin && caps.can(TENANT_PROFILE_READ)) {
-          expectedLabel = 'My School'
+          expectedLabel = 'My school'
         } else {
           expectedLabel = null
         }

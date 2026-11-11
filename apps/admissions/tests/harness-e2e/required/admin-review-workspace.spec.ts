@@ -30,8 +30,8 @@
  *
  *   1. **Tenant_Admin — one read.** Opening an application issues exactly one
  *      request for it, and none of the six retired per-application reads.
- *   2. **Tenant_Admin — deterministic readiness.** The readiness tab renders the
- *      server's checks, there is no "AI" tab, and no call to `/admin-summary/`.
+ *   2. **Tenant_Admin — deterministic readiness.** The readiness section renders the
+ *      server's checks, there is no "AI" section, and no call to `/admin-summary/`.
  *   3. **Tenant_Admin — a versioned decision.** The decision command carries the
  *      version the read published, and a second command replaying the *old*
  *      version is refused with 409 while the application stays as the first
@@ -434,19 +434,23 @@ test('a Tenant_Admin opens an application with one read and none of the six reti
 
   // The sections the six retired calls used to supply are all on screen.
   await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Program Information' })).toBeVisible();
-  await page.getByRole('tab', { name: /documents/i }).click();
-  await expect(page.getByRole('tab', { name: /documents/i })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
-  await page.getByRole('tab', { name: /history/i }).click();
-  await page.getByRole('tab', { name: /payment/i }).click();
-  await page.getByRole('tab', { name: /interview/i }).click();
-  await page.getByRole('tab', { name: /academic/i }).click();
-
-  // One detail read for the whole workspace, and visiting every tab does not add
-  // another: the sections are already in hand.
+  await expect(page.getByRole('heading', { name: 'Programme information' })).toBeVisible();
+  /*
+   * Task 30.2 (platform-simplification R17.7): the seven tabs are sections with a
+   * section list. Each section is reached through that list and its heading is
+   * on screen; the claim this proves is unchanged: the sections are already in
+   * hand, so reaching them adds no read.
+   */
+  const sections = page.getByRole('navigation', { name: 'Review sections' });
+  for (const name of ['Documents', 'History', 'Payment', 'Interview', 'Academic']) {
+    await sections.getByRole('button', { name, exact: true }).click();
+    await expect(
+      page.getByRole('heading', { level: 2, name, exact: true }),
+      `the ${name} section should be reachable`,
+    ).toBeInViewport();
+  }
+  // One detail read for the whole workspace, and visiting every section does not
+  // add another: the sections are already in hand.
   expect(
     detailReads,
     `the workspace should read once, got: ${detailReads.join(', ')}`,
@@ -463,7 +467,7 @@ test('a Tenant_Admin opens an application with one read and none of the six reti
    *
    * `AdminOfficialDocumentsPanel` lists *issued official artefacts* — a
    * different resource with its own canonical route and its own issuance policy
-   * (task 10.4), fetched only when the Documents tab is opened. It is not part of
+   * (task 10.4), fetched with the Documents section. It is not part of
    * the detail composition this task replaced, so it is named here rather than
    * folded into the count: an allowance that is written down is a decision, and
    * one that is hidden in a loose assertion is not.
@@ -480,7 +484,7 @@ test('a Tenant_Admin opens an application with one read and none of the six reti
 // 2. Deterministic readiness, and no model (R11.3, R11.1)
 // ---------------------------------------------------------------------------
 
-test('the readiness tab is deterministic and there is no AI tab', async ({ page, gate }) => {
+test('the readiness section is deterministic and there is no AI section', async ({ page, gate }) => {
   const world = seeded!;
   await loginAs(page, world.tenantAdmin);
 
@@ -493,10 +497,11 @@ test('the readiness tab is deterministic and there is no AI tab', async ({ page,
 
   await openWorkspace(page, world.assignedApplicantName);
 
-  const tabs = await page.getByRole('tab').allTextContents();
-  expect(tabs.join(' ')).not.toMatch(/\bAI\b/);
-
-  await page.getByRole('tab', { name: /readiness/i }).click();
+  const sections = page.getByRole('navigation', { name: 'Review sections' });
+  const names = await sections.getByRole('button').allTextContents();
+  expect(names.join(' ')).not.toMatch(/\bAI\b/);
+  expect(names.map((name) => name.trim())).toContain('Readiness');
+  await sections.getByRole('button', { name: 'Readiness', exact: true }).click();
   await expect(page.getByTestId('review-readiness')).toBeVisible();
 
   // The named R11.3 facts, from the server's own evaluators.
@@ -698,5 +703,30 @@ test('a read-only Tenant_Admin reads the workspace and is refused the command by
     },
   );
   expect(refused.status(), 'a read-only actor must be refused the decision').toBe(403);
+  expect(gate.consoleErrors, 'no console errors').toEqual([]);
+});
+
+// ---------------------------------------------------------------------------
+// 7. Metric definitions open from the keyboard (platform-simplification 30.5, R17.9)
+// ---------------------------------------------------------------------------
+test('a metric definition opens with Enter and closes with Space, from the keyboard', async ({
+  page,
+  gate,
+}) => {
+  const world = seeded!;
+  await loginAs(page, world.tenantAdmin);
+  await page.goto(APPLICATIONS_URL, { waitUntil: 'domcontentloaded' });
+  const info = page.getByRole('button', { name: 'About Decision queue' });
+  await expect(info).toBeVisible({ timeout: 30_000 });
+  const definition = page.locator(`#${await info.getAttribute('aria-controls')}`);
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await expect(definition).toBeHidden();
+  await info.focus();
+  await page.keyboard.press('Enter');
+  await expect(info).toHaveAttribute('aria-expanded', 'true');
+  await expect(definition).toBeVisible();
+  await page.keyboard.press('Space');
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await expect(definition).toBeHidden();
   expect(gate.consoleErrors, 'no console errors').toEqual([]);
 });

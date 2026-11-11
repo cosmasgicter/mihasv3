@@ -1,5 +1,7 @@
 # Task 5.4 Evidence — Replace fee defaults/name lookup with canonical fee schedules
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R7.4, R7.5, R12.1, R12.2_
 _Findings: DATA-05, STU-08_
 _Design: design.md §7.1 (Canonical Catalog — FeeSchedule ownership + one-active-fee invariant); §6.2 (Readiness Invariants — "exactly one applicable active application fee for each enabled residency path"); §10.1 (Fee Quote — "There is no K150/USD20 default. Missing or ambiguous configuration returns FEE_NOT_CONFIGURED")._

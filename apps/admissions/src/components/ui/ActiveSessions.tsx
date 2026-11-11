@@ -4,7 +4,6 @@ import { Monitor, RefreshCw, ShieldCheck, Smartphone, Tablet } from 'lucide-reac
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import {
   type DeviceSession,
@@ -80,6 +79,7 @@ function getDeviceMeta(info: SessionDeviceInfo, ipAddress?: string | null) {
   return parts.join(' • ')
 }
 
+/** Rendered inside the Settings security section, so it is not a card of its own (task 31.3, R21.5). */
 export function ActiveSessions() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<DeviceSession[]>([])
@@ -199,7 +199,7 @@ export function ActiveSessions() {
 
   if (loading) {
     return (
-      <Card className="p-4">
+      <div className="pt-4">
         <div className="animate-pulse">
           <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
@@ -207,25 +207,25 @@ export function ActiveSessions() {
             <div className="h-3 bg-skeleton rounded w-5/6"></div>
           </div>
         </div>
-      </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="p-4">
+    <div className="pt-4">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Active Sessions</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg font-semibold">Active sessions</h3>
+          <p className="text-base sm:text-sm text-muted-foreground">
             Review devices that are signed in to your account and revoke any session you do not recognize.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
-          <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm font-medium text-foreground">
+          <div className="rounded-lg bg-muted/50 px-3 py-2 text-base sm:text-sm font-medium text-foreground">
             {sortedSessions.length} active session{sortedSessions.length === 1 ? '' : 's'}
           </div>
           {lastSyncedLabel && (
-            <p className="text-xs text-muted-foreground">Last synced {lastSyncedLabel}</p>
+            <p className="text-base sm:text-sm text-muted-foreground">Last synced {lastSyncedLabel}</p>
           )}
         </div>
       </div>
@@ -235,8 +235,8 @@ export function ActiveSessions() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-success" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Current device protected</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm font-semibold text-foreground">Current device protected</p>
+              <p className="text-base sm:text-sm text-muted-foreground">
                 This page stays signed in on{' '}
                 <span className="font-medium text-foreground">
                   {getDeviceHeadline(normalizeDeviceInfo(currentSession.device_info))}
@@ -249,7 +249,7 @@ export function ActiveSessions() {
       )}
 
       {hasSessionAccessIssue && (
-        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-warning-foreground">
+        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-base sm:text-sm text-foreground">
           Session details are temporarily unavailable. Your current session remains active.
         </div>
       )}
@@ -257,7 +257,7 @@ export function ActiveSessions() {
       {sortedSessions.length === 0 ? (
         <div className="text-center py-4">
           <p className="text-foreground mb-2">No active sessions were found for this account.</p>
-          <p className="text-sm text-foreground">Your current device will appear here after your next authenticated refresh.</p>
+          <p className="text-base sm:text-sm text-foreground">Your current device will appear here after your next authenticated refresh.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -278,16 +278,16 @@ export function ActiveSessions() {
                   <DeviceIcon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                   <div>
                     <div className="flex items-center space-x-2">
-                      <p className="font-medium text-sm">
+                      <p className="font-medium text-base sm:text-sm">
                         {headline}
                         {session.is_current && (
-                          <span className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-xs rounded-full">
+                          <span data-text-role="caption" className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-sm sm:text-xs rounded-full">
                             Current session
                           </span>
                         )}
                       </p>
                     </div>
-                    <p className="text-xs text-foreground">
+                    <p className="text-base sm:text-sm text-foreground">
                       {meta ? `${meta} • ` : ''}
                       Signed in {formatDistanceFromNow(new Date(session.created_at))} •{' '}
                       Last active {formatDistanceFromNow(new Date(session.last_activity))}
@@ -303,7 +303,7 @@ export function ActiveSessions() {
                     disabled={terminating === session.id}
                     className="text-destructive hover:text-error hover:bg-destructive/5"
                   >
-                    {terminating === session.id ? 'Terminating...' : 'Terminate'}
+                    {terminating === session.id ? 'Terminating…' : 'Terminate'}
                   </Button>
                 )}
               </div>
@@ -321,7 +321,7 @@ export function ActiveSessions() {
             disabled={terminatingAll || otherSessionsCount === 0}
             className="w-full"
           >
-            {terminatingAll ? 'Terminating All...' : 'Terminate All Other Sessions'}
+            {terminatingAll ? 'Terminating all…' : 'Terminate all other sessions'}
           </Button>
         )}
         <Button
@@ -332,9 +332,9 @@ export function ActiveSessions() {
           className="w-full"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Sessions
+          Refresh sessions
         </Button>
       </div>
-    </Card>
+    </div>
   )
 }

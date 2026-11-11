@@ -58,7 +58,7 @@ const TRACKER_ERROR_COPY: Record<TrackerErrorCode, string> = {
   TRACKING_SECRET_REQUIRED:
     'That looks like an application number, which no longer opens public tracking. Sign in and choose "Get tracking link" on your application, then use that link here.',
   NOT_FOUND:
-    'That tracking link is not valid. It may have been replaced by a newer one — sign in to get the current link.',
+    'That tracking link is not valid. It may have been replaced by a newer one. Sign in to get the current link.',
   RATE_LIMITED:
     'Too many tracking attempts from this connection. Please wait a few minutes and try again with your tracking link.',
   UNKNOWN: 'An error occurred while searching. Please try again.',

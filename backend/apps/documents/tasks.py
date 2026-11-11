@@ -216,6 +216,21 @@ def extract_document_text_task(self, document_id, force=False):
         logger.info("Document %s already has extracted text, skipping", document_id)
         return
 
+    # Run-time re-check of the OCR opt-in (platform-simplification task 18.1,
+    # D4): the institution may have opted out after the job was queued. The
+    # extract endpoint set ``extraction_state='pending'`` before enqueueing; it
+    # is cleared back to "no job", which the client reads as "scanning is not
+    # available for this upload" and stops polling (SJR clause 2.15).
+    from apps.documents.ocr_policy import is_ocr_enabled_for_application
+
+    if not is_ocr_enabled_for_application(getattr(document, "application", None)):
+        logger.info("Document %s: OCR is not enabled for its institution, skipping", document_id)
+        if document.extraction_state == "pending":
+            ApplicationDocument.objects.filter(id=document.id, extraction_state="pending").update(
+                extraction_state=None
+            )
+        return {"status": "not_enabled", "document_id": str(document_id)}
+
     # admissions-v2 task 7.3 (R11.7): extraction state lives in
     # ``extraction_state``; it must never overwrite a human reviewer's decision.
     # Before this change a re-extract set ``verification_status = None`` and then

@@ -85,8 +85,8 @@ afterEach(cleanup)
 
 describe('brandedPageTitle — the visible brand is resolved, never a literal', () => {
   it('appends the resolved brand a tenant host produced', () => {
-    expect(brandedPageTitle('Activity History', 'Mwenda School of Health')).toBe(
-      'Activity History | Mwenda School of Health',
+    expect(brandedPageTitle('Activity history', 'Mwenda School of Health')).toBe(
+      'Activity history | Mwenda School of Health',
     )
   })
 
@@ -94,20 +94,20 @@ describe('brandedPageTitle — the visible brand is resolved, never a literal', 
     // `usePortalBrand` already defaults to Beanola while context loads, on the
     // shared portal, and on any resolution failure. That default *is* R2.3's
     // fail-closed neutral context, so the helper needs no fallback of its own.
-    expect(brandedPageTitle('Activity History', 'Beanola Admissions')).toBe(
-      'Activity History | Beanola Admissions',
+    expect(brandedPageTitle('Activity history', 'Beanola Admissions')).toBe(
+      'Activity history | Beanola Admissions',
     )
   })
 
   it('renders the page alone rather than a dangling separator when no brand resolved', () => {
     for (const empty of [undefined, null, '', '   ']) {
-      expect(brandedPageTitle('Activity History', empty)).toBe('Activity History')
+      expect(brandedPageTitle('Activity history', empty)).toBe('Activity history')
     }
   })
 
   it('does not brand a title twice', () => {
-    expect(brandedPageTitle('Activity History | Beanola Admissions', 'Beanola Admissions')).toBe(
-      'Activity History | Beanola Admissions',
+    expect(brandedPageTitle('Activity history | Beanola Admissions', 'Beanola Admissions')).toBe(
+      'Activity history | Beanola Admissions',
     )
   })
 
@@ -277,7 +277,7 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
   it('no admissions source calls a retired generative endpoint', () => {
     for (const page of [
       'src/pages/student/applicationWizard/steps/SubmitStep.tsx',
-      'src/components/admin/applications/ApplicationDetailModal.tsx',
+      'src/components/admin/applications/ApplicationReviewWorkspace.tsx',
       'src/components/admin/applications/ReviewReadinessPanel.tsx',
     ]) {
       const code = readCode(page)
@@ -286,7 +286,10 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
   })
 
   it('navigation names no AI page', () => {
-    const code = readCode('src/components/navigation/Breadcrumbs.tsx')
+    // Breadcrumbs.tsx (no importer) was removed by platform-simplification task
+    // 14.4; the navigation that renders is tenantNav.ts.
+    expect(existsSync(resolve(process.cwd(), 'src/components/navigation/Breadcrumbs.tsx'))).toBe(false)
+    const code = readCode('src/components/navigation/tenantNav.ts')
     expect(code).not.toMatch(/ai-insights|AI Insights/)
   })
 })
@@ -298,12 +301,13 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
 describe('fake real-time and unbuilt affordances are gone', () => {
   it('the animated real-time metrics widget no longer exists', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/admin/RealtimeMetricsDisplay.tsx'))).toBe(false)
-    expect(readCode('src/components/admin/index.ts')).not.toContain('RealtimeMetricsDisplay')
+    // The admin barrel that re-exported it was removed by task 14.4 (no importer).
+    expect(existsSync(resolve(process.cwd(), 'src/components/admin/index.ts'))).toBe(false)
   })
 
   it('the panel with the disabled "Coming soon" export no longer exists', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/admin/QuickActionsPanel.tsx'))).toBe(false)
-    expect(readCode('src/components/admin/index.ts')).not.toContain('QuickActionsPanel')
+    expect(existsSync(resolve(process.cwd(), 'src/components/admin/index.ts'))).toBe(false)
   })
 
   it('no admissions surface offers a channel the platform cannot send', () => {
@@ -432,7 +436,7 @@ describe('no card inside a card, and no raw palette step', () => {
     // alone" is enforced by the component rather than restated per call site.
     //
     // Read over the block's module set (task 12.1, MAINT-01): the payment half's
-    // three labels — "Awaiting Payment", "Deferred", "Verified" — moved into
+    // three labels — "Awaiting payment", "Deferred", "Verified" — moved into
     // `PaymentDecisionControls.tsx` together with the branches that render them.
     // The claim is about what the block states, not about which of its files holds
     // the line.
@@ -440,13 +444,13 @@ describe('no card inside a card, and no raw palette step', () => {
     for (const label of [
       'Approved',
       'Rejected',
-      'Conditionally Approved',
+      'Conditionally approved',
       'Waitlisted',
       'Enrolled',
       'Withdrawn',
       'Expired',
-      'Enrollment Expired',
-      'Awaiting Payment',
+      'Enrollment expired',
+      'Awaiting payment',
       'Deferred',
       'Verified',
     ]) {
@@ -590,18 +594,20 @@ describe('a tone-coloured label is never painted on a wash of its own tone', () 
   })
 
   it('the two canonical primitives put the tone in the fill and the border', () => {
+    // Platform-simplification task 23.1 moved the tone classes into the one shared map,
+    // `src/lib/statusTone.ts`; the primitives adopt it. The rule is unchanged: the fill
+    // and the border carry the tone, and the label is the high-contrast one.
+    const map = readCode('src/lib/statusTone.ts')
+    for (const tone of ['info', 'warning', 'destructive', 'success']) {
+      expect(map, `statusTone.ts: ${tone} lost its fill`).toMatch(new RegExp(`bg-${tone}/10`))
+      expect(map, `statusTone.ts: ${tone} lost its border`).toMatch(new RegExp(`border-${tone}/40`))
+    }
+    expect(map).toContain('text-foreground')
     for (const file of ['src/components/ui/StatusPill.tsx', 'src/components/ui/StatusBadge.tsx']) {
-      const code = readCode(file)
-      for (const tone of ['info', 'warning', 'destructive', 'success']) {
-        expect(code, `${file}: ${tone} lost its fill`).toMatch(new RegExp(`bg-${tone}/10`))
-        expect(code, `${file}: ${tone} lost its border`).toMatch(new RegExp(`border-${tone}/40`))
-      }
-      // …and the label is the high-contrast one.
-      expect(code).toContain('text-foreground')
+      expect(readCode(file), `${file} must adopt the shared map`).toContain('toneSurfaceClasses(')
     }
   })
 })
-
 // ---------------------------------------------------------------------------
 // 8. The tracker result strip: one help heading, real links, 44 px (R16.2/R16.5)
 // ---------------------------------------------------------------------------

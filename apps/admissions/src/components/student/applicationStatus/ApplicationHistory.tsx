@@ -93,7 +93,7 @@ interface ApplicationHistoryProps {
 export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps) {
   if (isLoading) {
     return (
-      <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+      <p className="text-base sm:text-sm text-muted-foreground" role="status" aria-live="polite">
         Loading this application&rsquo;s history&hellip;
       </p>
     )
@@ -114,24 +114,24 @@ export function ApplicationHistory({ rows, isLoading }: ApplicationHistoryProps)
     <ol className="space-y-3" data-testid="application-status-history">
       {rows.map((row) => (
         <li key={row.id} className="rounded-lg border border-border px-4 py-3">
-          <p className="text-sm font-semibold text-foreground">{transitionLabel(row)}</p>
+          <p className="text-base sm:text-sm font-semibold text-foreground">{transitionLabel(row)}</p>
           {/*
             The server's own timestamp, rendered through the repo's single
             formatter. `formatTimestamp` answers "Not available" for a null,
             which is the honest reading of a legacy row with no recorded time —
             not today's date.
           */}
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">
             {formatTimestamp(row.created_at ?? '')}
           </p>
           {row.changed_by_name && (
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <p className="mt-1 flex items-center gap-1.5 text-base sm:text-sm text-muted-foreground">
               <UserIcon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <span>{row.changed_by_name}</span>
             </p>
           )}
           {row.notes && (
-            <p className="mt-2 break-words rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+            <p className="mt-2 break-words rounded-md bg-muted px-3 py-2 text-base sm:text-sm text-foreground">
               {row.notes}
             </p>
           )}

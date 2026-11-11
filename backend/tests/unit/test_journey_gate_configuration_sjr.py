@@ -71,17 +71,24 @@ def test_journey_gate_command_exports_the_four_values_and_runs_every_stage_in_or
         assert line in body
     command = re.search(r"\n  journey-gate\)\n(.*?)\n    ;;", script, re.DOTALL)
     assert command, "the journey-gate command is missing"
-    stages = [line.strip() for line in command.group(1).splitlines() if line.strip()]
-    assert stages[:8] == [
+    stages = [
+        line.strip()
+        for line in command.group(1).splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    # Platform-simplification task 11.1 (decision D2): the gate brings the stack up through
+    # the documented setup script, once, in place of its own build_spa, compose_up and
+    # wait_healthy. The four exported values reach it through the environment.
+    assert stages[:6] == [
         "export_gate_switches",
-        "build_spa",
-        "compose_up",
-        "wait_healthy",
+        'bash "${HARNESS_DIR}/bin/local-setup.sh"',
         "ensure_browser",
         "storage_check",
         "edge_check",
         "run_journey_gate",
     ]
+    for own_bring_up in ("build_spa", "compose_up", "wait_healthy"):
+        assert own_bring_up not in stages, "the stack must be brought up once, by local-setup.sh"
     assert "drain_check" in stages
 
 
@@ -126,9 +133,10 @@ def test_workflow_triggers_have_no_path_filter():
 
 def test_workflow_has_the_two_required_jobs_and_never_continues_on_error():
     workflow = _workflow()
-    assert set(workflow["jobs"]) == {"journey-gate", "local-stack-storage"}
+    # platform-simplification task 22.5 adds the second blocking job, `rendered-design-gate`.
+    assert set(workflow["jobs"]) == {"journey-gate", "rendered-design-gate"}
     assert workflow["jobs"]["journey-gate"]["timeout-minutes"] == 45
-    assert workflow["jobs"]["local-stack-storage"]["timeout-minutes"] == 15
+    assert workflow["jobs"]["rendered-design-gate"]["timeout-minutes"] == 45
     assert "continue-on-error" not in WORKFLOW.read_text()
     for job in workflow["jobs"].values():
         assert "continue-on-error" not in job
@@ -160,19 +168,11 @@ def test_gate_job_runs_the_command_uploads_evidence_and_tears_down():
     assert steps["Dump harness logs on failure"]["if"].startswith("failure()")
 
 
-def test_local_stack_job_copies_the_template_and_checks_private_storage():
-    text = WORKFLOW.read_text()
-    assert "cp .env.local.test.example .env.local.test" in text
-    assert "docker-compose.local-test.yml" in text
-    assert "storage_roundtrip_check --expect-private" in text
-    assert "down -v" in text
-
-
 # --- the relevance script: both required checks report on unrelated changes -----------
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
-@pytest.mark.parametrize("job", ["journey-gate", "local-stack-storage"])
+@pytest.mark.parametrize("job", ["journey-gate", "rendered-design-gate"])
 @pytest.mark.parametrize(
     "changed, expected",
     [
@@ -222,3 +222,33 @@ def test_relevance_step_runs_the_gate_for_dispatch_and_for_a_push_without_a_usab
         env = {**os.environ, "EVENT_NAME": event, "BASE_REF": "", "BEFORE_SHA": before, "GITHUB_OUTPUT": str(output)}
         subprocess.run(["bash", "-c", step["run"]], cwd=tmp, env=env, check=True, capture_output=True)
         assert output.read_text().strip() == "relevant=true"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git is required")
+@pytest.mark.parametrize(
+    "job, expected", [("journey-gate", "false"), ("rendered-design-gate", "true")]
+)
+def test_rendered_scripts_prefix_is_relevant_only_to_the_rendered_gate(job, expected):
+    """Task 22.5: `scripts/rendered-` is one more prefix for the rendered gate only."""
+    step = next(s for s in _workflow()["jobs"][job]["steps"] if s.get("id") == "changes")
+    with tempfile.TemporaryDirectory() as tmp:
+
+        def git(*args):
+            subprocess.run(["git", *args], cwd=tmp, check=True, capture_output=True)
+
+        git("init", "-q", "-b", "main")
+        git("config", "user.email", "ci@example.invalid")
+        git("config", "user.name", "ci")
+        Path(tmp, "README").write_text("base")
+        git("add", ".")
+        git("commit", "-qm", "base")
+        git("update-ref", "refs/remotes/origin/main", "HEAD")
+        git("checkout", "-qb", "pr")
+        Path(tmp, "scripts").mkdir()
+        Path(tmp, "scripts", "rendered-gate-rules.ts").write_text("changed")
+        git("add", "-A")
+        git("commit", "-qm", "pr")
+        output = Path(tmp, "github-output")
+        env = {**os.environ, "EVENT_NAME": "pull_request", "BASE_REF": "main", "BEFORE_SHA": "", "GITHUB_OUTPUT": str(output)}
+        subprocess.run(["bash", "-c", step["run"]], cwd=tmp, env=env, check=True, capture_output=True)
+        assert output.read_text().strip() == f"relevant={expected}"

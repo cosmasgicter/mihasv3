@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, GraduationCap, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
+import { buildSubjectOptions } from '../lib/subjectOptions'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { ExtractedResultsCard } from '@/components/student/ExtractedResultsCard'
 import { RequiredDocumentsPanel } from '@/components/student/RequiredDocumentsPanel'
@@ -19,7 +20,6 @@ import { rateLimitMessage } from '@/lib/rateLimitCopy'
 import { validateLiveGrades, type RowDiagnostic } from '../lib/liveGradeValidation'
 
 interface EducationStepProps {
-  title: string
   subjects: Grade12Subject[]
   selectedProgram?: string
   selectedGrades: SubjectGrade[]
@@ -55,7 +55,6 @@ interface EducationStepProps {
 }
 
 const EducationStep = ({
-  title,
   subjects,
   selectedProgram,
   selectedGrades,
@@ -143,77 +142,8 @@ const EducationStep = ({
   const diagnosticsByIndex: RowDiagnostic[] = liveValidation.diagnostics
 
   // Subject options for CanonicalSelect
-  const getSubjectOptions = (currentSubjectId: string) => {
-    const usedSubjects = getUsedSubjects()
-
-    // Group subjects by level, then by category within each level
-    const grade12 = subjects.filter(s => !s.level || s.level === 'grade12')
-    const alevel = subjects.filter(s => s.level === 'alevel')
-
-    const categoryOrder = ['core', 'sciences', 'commercial', 'humanities', 'technology', 'practical', 'languages']
-    // Plain-text category labels. Emoji are not used as structural icons
-    // (DESIGN.md §5 / R7.5); these are option-group headings inside a native
-    // select where Lucide JSX cannot render, so plain text is the canonical fix.
-    const categoryLabels: Record<string, string> = {
-      core: 'Core Subjects',
-      sciences: 'Sciences',
-      commercial: 'Commercial',
-      humanities: 'Humanities',
-      technology: 'Technology & Technical',
-      practical: 'Practical & Creative',
-      languages: 'Languages',
-    }
-
-    const buildGroupedOptions = (list: typeof subjects) => {
-      const grouped = new Map<string, typeof subjects>()
-      for (const s of list) {
-        const cat = s.category || 'other'
-        if (!grouped.has(cat)) grouped.set(cat, [])
-        grouped.get(cat)!.push(s)
-      }
-
-      const options: Array<{ value: string; label: string; disabled?: boolean }> = []
-      // R11.5: every server subject must be reachable. Known categories keep their
-      // curated order; anything else (a tenant category, a new ECZ grouping) lands
-      // in a trailing group rather than disappearing from the selector.
-      const orderedCategories = [
-        ...categoryOrder.filter(cat => grouped.has(cat)),
-        ...Array.from(grouped.keys()).filter(cat => !categoryOrder.includes(cat)).sort(),
-      ]
-      for (const cat of orderedCategories) {
-        const items = grouped.get(cat)
-        if (!items || items.length === 0) continue
-        options.push({
-          value: `__cat_${cat}`,
-          label: categoryLabels[cat] || 'Other Subjects',
-          disabled: true,
-        })
-        for (const subject of items.sort((a, b) => a.name.localeCompare(b.name))) {
-          const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
-          options.push({
-            value: subject.id,
-            label: `  ${subject.name}${isUsed ? ' (Already selected)' : ''}`,
-            disabled: isUsed,
-          })
-        }
-      }
-      return options
-    }
-
-    const options: Array<{ value: string; label: string; disabled?: boolean }> = []
-
-    if (grade12.length > 0) {
-      options.push({ value: '__header_grade12', label: '━━ Grade 12 (ECZ) ━━', disabled: true })
-      options.push(...buildGroupedOptions(grade12))
-    }
-    if (alevel.length > 0) {
-      options.push({ value: '__header_alevel', label: '━━ A-Level (GCE Advanced) ━━', disabled: true })
-      options.push(...buildGroupedOptions(alevel))
-    }
-
-    return options
-  }
-
+  const getSubjectOptions = (currentSubjectId: string) =>
+    buildSubjectOptions(subjects, getUsedSubjects(), currentSubjectId)
   // Grade options for CanonicalSelect
   const gradeOptions = [
     { value: '1', label: '1 (A+)' },
@@ -233,12 +163,11 @@ const EducationStep = ({
       className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${animateClasses.fadeIn}`}
       data-testid="education-step"
     >
-      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
         {/* OCR progress indicator */}
         {ocrStatus === 'polling' && (
-          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary animate-in fade-in duration-300">
+          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-base sm:text-sm text-primary animate-in fade-in duration-300">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             <span>Scanning your result slip for grades…</span>
           </div>
@@ -260,35 +189,35 @@ const EducationStep = ({
           />
         )}
         {ocrStatus === 'applied' && ocrAppliedCount && ocrAppliedCount > 0 && (
-          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
+          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-base sm:text-sm text-green-600 animate-in fade-in duration-300" role="status">
             <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             <span>Added {ocrAppliedCount} confirmed subject{ocrAppliedCount > 1 ? 's' : ''}. Check each grade below and edit anything that is wrong.</span>
           </div>
         )}
         {ocrStatus === 'dismissed' && (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
-            <span>Suggestions dismissed. Add your subjects below — your upload is still saved.</span>
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 text-base sm:text-sm text-muted-foreground animate-in fade-in duration-300" role="status">
+            <span>Suggestions dismissed. Add your subjects below. Your upload is still saved.</span>
           </div>
         )}
         {ocrStatus === 'failed' && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-base sm:text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
             <span>
               {ocrFailureReason === 'server_failed'
-                ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually — your upload is still saved.'
+                ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually. Your upload is still saved.'
                 : ocrFailureReason === 'skipped'
                   ? 'Your file is too large for automatic scanning. Please add your subjects manually below.'
                   : ocrFailureReason === 'no_text'
                     ? 'We couldn\'t read any text from your result slip. Make sure the image is clear and well-lit, then try again.'
                     : ocrFailureReason === 'rate_limited'
-                    ? `${rateLimitMessage(ocrRetryAfterSeconds ?? null)} You can add your subjects manually below — your upload is still saved.`
+                    ? `${rateLimitMessage(ocrRetryAfterSeconds ?? null)} You can add your subjects manually below. Your upload is still saved.`
                     : ocrFailureReason === 'not_started' || ocrFailureReason === 'missing'
-                    ? 'Automatic grade scanning is not available for this upload. Please add your subjects manually below — your upload is still saved.'
+                    ? 'Automatic grade scanning is not available for this upload. Please add your subjects manually below. Your upload is still saved.'
                     : ocrFailureReason === 'no_grades_matched'
                       ? 'We found text in your result slip but couldn\'t match it to the subject catalogue confidently enough to suggest anything. Please add your subjects manually below.'
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
             </span>
             {onRetryOcr && (
-              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
+              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-base sm:text-sm font-medium text-primary underline underline-offset-2 hover:text-link-hover">
                 Retry scan
               </button>
             )}
@@ -296,7 +225,7 @@ const EducationStep = ({
         )}
 
         <fieldset className="border-none p-0 m-0">
-          <legend className="sr-only">Education Details</legend>
+          <legend className="sr-only">Education details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             {/*
               Tokens, AA, and never colour alone (GATE-13.3-12, 13.6 §8.1 item L6).
@@ -310,7 +239,7 @@ const EducationStep = ({
               meaning for anyone who cannot use the hue.
             */}
             <div className="min-w-0">
-              <h3 className="text-md font-medium text-foreground">Grade 12 Subjects</h3>
+              <h2 className="text-md font-medium text-foreground">Grade 12 Subjects</h2>
               {/*
                 The counter is its own line, not a parenthetical (13.6 §8.1 item L6).
 
@@ -324,7 +253,7 @@ const EducationStep = ({
               */}
               <p
                 className={cn(
-                  'mt-1 inline-flex items-center gap-1.5 text-sm font-semibold',
+                  'mt-1 inline-flex items-center gap-1.5 text-base sm:text-sm font-semibold',
                   uniqueValidSubjectCount < 5 ? 'text-destructive' : 'text-success',
                 )}
               >
@@ -351,9 +280,9 @@ const EducationStep = ({
 
           {selectedGrades.length === 0 && (
             <div className={`mb-6 flex flex-col items-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
-              <GraduationCap className="h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
+              <GraduationCap className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <p className="mt-4 text-base font-semibold text-foreground">Add your Grade 12 subjects to continue</p>
-              <p className="mt-1 text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
               <Button
                 type="button"
                 onClick={event => {
@@ -378,7 +307,7 @@ const EducationStep = ({
 
           {selectedProgram && recommendedSubjects.length > 0 && (
             <div
-              className={`mb-4 p-3 bg-primary/5 border border-primary/30 rounded-lg ${animateClasses.slideUp}`}
+              className={`mb-4 p-3 bg-primary/5 rounded-lg ${animateClasses.slideUp}`}
             >
               {/*
                 GATE-13.3-12, continued. Two rows on this one panel:
@@ -394,12 +323,12 @@ const EducationStep = ({
                 7.2 : 1). `h4` is unchanged — it follows the `h3` above it, so it
                 skips no level.
               */}
-              <h4 className="text-sm font-medium text-accent-foreground mb-2">
+              <h3 className="text-sm font-medium text-accent-foreground mb-2">
                 Recommended subjects for {selectedProgram}:
-              </h4>
+              </h3>
               <div className="flex flex-wrap gap-1">
                 {recommendedSubjects.map((subject, index) => (
-                  <span key={index} className="px-2 py-1 bg-accent text-accent-foreground text-xs rounded">
+                  <span data-text-role="caption" key={index} className="px-2 py-1 bg-accent text-accent-foreground text-sm sm:text-xs rounded">
                     {subject}
                   </span>
                 ))}
@@ -408,7 +337,7 @@ const EducationStep = ({
           )}
 
           {selectedGrades.length > 0 && (
-            <div className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-foreground uppercase tracking-wide">
+            <div data-text-role="caption" className="hidden sm:grid grid-cols-12 gap-3 mb-2 text-sm sm:text-xs font-medium text-foreground uppercase tracking-wide">
               <div className="col-span-6">Subject</div>
               <div className="col-span-3">Grade</div>
               <div className="col-span-3">Action</div>
@@ -441,7 +370,7 @@ const EducationStep = ({
               >
                 {/* Subject Select */}
                 <div className="sm:col-span-6">
-                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
+                  <label className="block text-base sm:text-sm font-medium text-foreground mb-1 sm:hidden">
                     Subject
                   </label>
                   <CanonicalSelect
@@ -449,17 +378,17 @@ const EducationStep = ({
                     onChange={(value) => updateGrade(index, 'subject_id', value)}
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
-                    placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
+                    placeholder={subjects.length === 0 ? 'Loading subjects…' : 'Select subject'}
                     aria-label={`Subject ${index + 1}`}
                     error={isDuplicate || diagnostic === 'unresolved_subject'}
                   />
                   {isDuplicate && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       This subject is already selected in another row.
                     </p>
                   )}
                   {!isDuplicate && subjectHint && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       {subjectHint}
                     </p>
                   )}
@@ -467,7 +396,7 @@ const EducationStep = ({
 
                 {/* Grade Select */}
                 <div className="sm:col-span-3">
-                  <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
+                  <label className="block text-base sm:text-sm font-medium text-foreground mb-1 sm:hidden">
                     Grade
                   </label>
                   <CanonicalSelect
@@ -478,7 +407,7 @@ const EducationStep = ({
                     aria-label={`Grade for subject ${index + 1}`}
                   />
                   {gradeHint && (
-                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                    <p className="mt-1 text-base sm:text-sm font-medium text-destructive" role="alert">
                       {gradeHint}
                     </p>
                   )}
@@ -538,10 +467,10 @@ const EducationStep = ({
         </fieldset>
 
         <fieldset className="border-none p-0 m-0">
-          <legend className="sr-only">Document Uploads</legend>
+          <legend className="sr-only">Document uploads</legend>
           <div className="mb-4">
-            <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h2 className="text-md font-medium text-foreground">Upload your documents</h2>
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">
               {uploadIntro}
             </p>
           </div>

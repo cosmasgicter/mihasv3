@@ -1,9 +1,0 @@
-]633;E;echo "=== manage.py check — real backend/.env, TESTING NOT exported, REDIS_URL NOT substituted ===";ca588055-80c0-4fed-a382-de7d84e17e7d]633;C=== manage.py check — real backend/.env, TESTING NOT exported, REDIS_URL NOT substituted ===
-(either produces a spurious django_ratelimit.E003)
-TESTING in env: <unset>
-0
-/home/cosmas/Downloads/mihasv3/backend/config/settings/base.py:29: UserWarning: SECRET_KEY not set — using insecure default (dev/test only)
-  warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
-LENCO_API_SECRET_KEY is not set — payment processing will be unavailable.
-System check identified no issues (1 silenced).
-EXIT=0

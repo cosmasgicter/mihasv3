@@ -1,5 +1,7 @@
 # Module sizes — the 18 modules task 12.1 touched
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Line counts, `wc -l`. "Before" is the working tree at dispatch; "after" is the
 candidate. The whole-surface numbers and the cycle count are in
 `size-dependency-before.txt` / `size-dependency-after.txt`.

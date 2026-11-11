@@ -6,6 +6,7 @@ import uuid
 
 from django.test import Client, SimpleTestCase, override_settings
 from django.urls import clear_url_caches
+from tests.jobs_ops_urls import reload_jobs_ops_urlconf
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
@@ -14,7 +15,7 @@ os.environ["TESTING"] = "1"
 def _reload_urlconf():
     import config.urls
 
-    importlib.reload(config.urls)
+    reload_jobs_ops_urlconf()
     clear_url_caches()
 
 
@@ -49,6 +50,8 @@ class JobsOpsEndpointTests(SimpleTestCase):
         self.assertEqual(payload["creator"]["name"], "Cosmas Kanchepa")
         self.assertEqual(payload["developer"]["name"], "Beanola Technologies")
         self.assertEqual(payload["developer"]["url"], "https://beanola.com")
+        self.assertEqual(payload["features"], {"jobs_ops": True})
+        self.assertNotIn("status", payload)
 
     def test_jobs_list_is_public_and_returns_seeded_results(self):
         response = self.client.get("/api/v1/jobs/")

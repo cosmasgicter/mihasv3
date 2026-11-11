@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CreditCard, Clock, Zap } from 'lucide-react'
+import { Clock, Zap } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -12,11 +12,10 @@ import { FeeQuoteRefusal } from '@/components/student/FeeQuoteRefusal'
 import { isPaymentResolvedForProgress, type PaymentPhase } from '@/lib/paymentStatus'
 import { PAYMENT_ERROR_COPY } from '@/lib/paymentErrorCodes'
 import { PAYMENT_NEXT_ACTION_COPY } from '@/lib/paymentNextActions'
-import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount } from '@/lib/serverAmount'
+import { formatExpiryTime, formatServerAmount, isNonZeroServerAmount, residencyRateLabel } from '@/lib/serverAmount'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
 interface PaymentStepProps {
-  title: string
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
@@ -28,7 +27,6 @@ interface PaymentStepProps {
 }
 
 const PaymentStep = ({
-  title,
   form,
   applicationId,
   polledStatus = null,
@@ -128,9 +126,6 @@ const PaymentStep = ({
 
   return (
     <SectionCard
-      title={title}
-      description="Pay the application fee to continue."
-      icon={<CreditCard className="h-5 w-5" />}
       className={animateClasses.fadeIn}
       contentClassName="space-y-6"
       data-testid="payment-step"
@@ -139,10 +134,10 @@ const PaymentStep = ({
         <legend className="sr-only">Payment</legend>
 
         {/* Fee display — every value below is rendered exactly as the server sent it */}
-        <div className="rounded-lg border border-border bg-card p-5" data-testid="fee-quote-panel">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
+        <div className="rounded-lg bg-muted p-5" data-testid="fee-quote-panel">
+          <div className="flex flex-wrap-reverse items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 basis-56">
+              <p className="text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
               {quoteLoading ? (
                 <div className="mt-2 space-y-2" role="status" aria-label="Preparing fee">
                   <Skeleton className="h-7 w-32" />
@@ -152,10 +147,10 @@ const PaymentStep = ({
  <FeeQuoteRefusal error={quoteError} onRefresh={refreshQuote} className="mt-1"/>
               ) : quote ? (
                 <>
-                  <p className="mt-1 text-2xl font-bold text-foreground" data-testid="fee-quote-total">
+                  <p className="mt-1 font-mono text-2xl font-bold text-foreground" data-testid="fee-quote-total">
  {formatServerAmount(quote.total_amount, quote.currency)}
  </p>
-                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <div data-text-role="caption" className="mt-2 space-y-1 text-sm sm:text-xs text-muted-foreground">
  <div className="flex justify-between gap-6">
  <span>Application fee</span>
  <span>{formatServerAmount(quote.base_amount, quote.currency)}</span>
@@ -176,17 +171,17 @@ const PaymentStep = ({
  </div>
  {quoteExpired ? (
  <div className="mt-3 space-y-1" role="status">
- <p className="text-sm text-foreground" data-testid="fee-quote-expired">
+ <p className="text-base sm:text-sm text-foreground" data-testid="fee-quote-expired">
  {PAYMENT_ERROR_COPY.QUOTE_EXPIRED.body}
  </p>
  <button
- type="button" className="min-h-touch text-sm font-medium text-primary underline" onClick={refreshQuote}
+ type="button" className="min-h-touch text-base sm:text-sm font-medium text-primary underline" onClick={refreshQuote}
  data-testid="fee-quote-refresh">
  {PAYMENT_NEXT_ACTION_COPY.refresh_quote.label}
  </button>
  </div>
  ) : expiryLabel ? (
- <p className="mt-3 text-xs text-muted-foreground" data-testid="fee-quote-expiry">
+ <p className="mt-3 text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-expiry">
  This price is held until {expiryLabel}.
  </p>
  ) : null}
@@ -194,14 +189,14 @@ const PaymentStep = ({
               ) : (
  /* No quote yet, and therefore no price. The step says so rather
  than showing a placeholder amount (finding STU-08). */
- <p className="mt-1 text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
- Save your a pplication to see the fee for your programme.
+ <p className="mt-1 text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-unavailable">
+ Save your application to see the fee for your programme.
  </p>
               )}
             </div>
-            {quote?.residency_category && (
-              <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
-                {quote.residency_category}
+            {residencyRateLabel(quote?.residency_category) && (
+              <span data-text-role="caption" className="rounded-full bg-muted px-3 py-1.5 text-sm sm:text-xs font-medium text-muted-foreground">
+                {residencyRateLabel(quote?.residency_category)}
               </span>
             )}
           </div>
@@ -241,7 +236,7 @@ const PaymentStep = ({
         {/* Pay Later — visible card option */}
         {!isPaymentSettledForWizard && !deferred && quote && applicationId && (
           <div className="space-y-2">
-            {deferError && <p className="text-sm text-destructive text-center">{deferError}</p>}
+            {deferError && <p className="text-base sm:text-sm text-destructive text-center">{deferError}</p>}
 
             {!deferConfirm ? (
               <button
@@ -255,25 +250,25 @@ const PaymentStep = ({
                     <Clock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Pay Later</p>
-                    <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
+                    <p className="text-base sm:text-sm font-semibold text-foreground">Pay later</p>
+                    <p className="text-base sm:text-sm text-muted-foreground">Can't pay right now? Submit your application and pay anytime from the payment page.</p>
                   </div>
                 </div>
               </button>
             ) : (
               <div className={`rounded-lg border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
-                <p className="text-sm text-foreground">You can submit now and pay anytime from the payment page.</p>
+                <p className="text-base sm:text-sm text-foreground">You can submit now and pay anytime from the payment page.</p>
                 <div className="mt-3 flex items-center gap-3">
                   <button
                     type="button"
-                    className="min-h-touch rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                    className="min-h-touch rounded-lg border border-border px-4 py-2 text-base sm:text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                     onClick={() => setDeferConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="min-h-touch rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                    className="min-h-touch rounded-lg bg-primary px-4 py-2 text-base sm:text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                     disabled={deferring}
                     onClick={handleDefer}
                   >
@@ -287,7 +282,7 @@ const PaymentStep = ({
  {/* Dev payment bypass — only in development with VITE_PAYMENT_DEV_BYPASS=true */}
         {showDevBypass && applicationId && (
           <div className="space-y-2">
-            {devBypassError && <p className="text-sm text-destructive text-center">{devBypassError}</p>}
+            {devBypassError && <p className="text-base sm:text-sm text-destructive text-center">{devBypassError}</p>}
             <button
               type="button"
               className="w-full rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50"
@@ -300,10 +295,10 @@ const PaymentStep = ({
                   <Zap className="h-5 w-5 text-orange-700" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-orange-700">
+                  <p className="text-base sm:text-sm font-semibold text-orange-700">
                     {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
-                  <p className="text-xs text-orange-600/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
+                  <p className="text-base sm:text-sm text-orange-600/70">Bypass Lenco gateway: dev only, tree-shaken from production builds.</p>
  </div>
  </div>
  </button>

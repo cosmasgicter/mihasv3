@@ -9,7 +9,6 @@ import ipaddress
 import json
 import logging
 import uuid
-from decimal import Decimal
 
 from django.conf import settings
 from django.db import IntegrityError
@@ -720,32 +719,14 @@ class FeeResolveView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Task 8.1: the provider fee comes from the SERVER's provider-fee policy —
-        # the same authority that mints a quote — so this preview and the binding
-        # quote can never disagree, and the client still computes nothing
-        # (STU-08, R12.1). This endpoint is a preview only: it takes no application
-        # id, so it cannot bind, expire, or be redeemed. The authoritative money
-        # contract is POST /api/v1/payments/quote/.
-        from apps.documents.fee_quote_service import provider_fee_policy
+        # The estimate is built by the same helper the assignment preview uses
+        # (task 26.4), from the SERVER's provider-fee policy: the authority that mints
+        # a quote. This endpoint is a preview only: it takes no application id, so it
+        # cannot bind, expire, or be redeemed. The authoritative money contract is
+        # POST /api/v1/payments/quote/ (STU-08, R12.1).
+        from apps.documents.fee_quote_service import fee_preview_payload
 
-        policy = provider_fee_policy()
-        base_amount = Decimal(str(resolved.amount))
-        provider_fee_estimate = policy.compute(base_amount)
-        customer_total = base_amount + provider_fee_estimate
-
-        return Response({
-            "success": True,
-            "data": {
-                "amount": str(resolved.amount),
-                "currency": resolved.currency,
-                "residency_category": resolved.residency_category,
-                "source": resolved.source,
-                "provider_fee_estimate": str(provider_fee_estimate),
-                "customer_total": str(customer_total),
-                "bearer": policy.bearer,
-                "is_binding_quote": False,
-            },
-        })
+        return Response({"success": True, "data": fee_preview_payload(resolved)})
 
 
 class ProgramFeeViewSet(ModelViewSet):

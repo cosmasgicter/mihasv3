@@ -12,6 +12,7 @@
  * Requirements: 2.3, 9.1, 9.5
  */
 
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 import * as React from 'react'
 import {
   Select as RadixSelect,
@@ -51,6 +52,8 @@ export interface CanonicalSelectProps {
   helperText?: string
   /** Whether the field is required */
   required?: boolean
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
   'aria-label'?: string
   'aria-describedby'?: string
   /** Additional aria-describedby ids to merge with the component's own (Req 17.2) */
@@ -71,6 +74,7 @@ export function CanonicalSelect({
   label,
   helperText,
   required = false,
+  optional = false,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
   extraDescribedBy,
@@ -125,11 +129,11 @@ export function CanonicalSelect({
             className="px-4"
           >
             <span className="flex min-w-0 max-w-full flex-col">
-              <span className="line-clamp-2 break-words text-sm leading-tight sm:line-clamp-1 sm:text-base">
+              <span className="line-clamp-2 break-words text-base leading-tight sm:line-clamp-1">
                 {option.label}
               </span>
               {option.description ? (
-                <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
+                <span data-text-role="caption" className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
                   {option.description}
                 </span>
               ) : null}
@@ -151,23 +155,23 @@ export function CanonicalSelect({
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-sm font-medium text-foreground"
+          className="block text-base sm:text-sm font-medium text-foreground"
         >
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {optional && !required && <OptionalMarker />}
         </label>
       )}
 
       {selectElement}
 
       {errorMessage && (
-        <p id={errorId} className="mt-1 text-sm text-destructive" role="alert">
+        <p id={errorId} className="mt-1 text-base sm:text-sm text-destructive" role="alert">
           {errorMessage}
         </p>
       )}
 
       {helperText && !errorMessage && (
-        <p id={helperId} className="mt-1 text-sm text-muted-foreground">
+        <p id={helperId} className="mt-1 text-base sm:text-sm text-muted-foreground">
           {helperText}
         </p>
       )}

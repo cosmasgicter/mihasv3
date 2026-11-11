@@ -150,8 +150,8 @@ export function buildDuplicateDraftConflictDecision({
     program,
     intake,
     message: normalizedExistingId
-      ? 'You already have a draft for this program and intake. Continue that draft, choose a different intake, or cancel this new application.'
-      : 'You already have a draft for this program and intake. Continue the existing draft, choose a different intake, or cancel this new application.',
+      ? 'You already have a draft for this programme and intake. Continue that draft, choose a different intake, or cancel this new application.'
+      : 'You already have a draft for this programme and intake. Continue the existing draft, choose a different intake, or cancel this new application.',
   }
 }
 

@@ -48,7 +48,7 @@ interface AuthShellProps {
 
 const DEFAULT_TRUST_NOTE = (
   <p className="text-center text-xs text-muted-foreground">
-    Your session lasts 7 days. We never share your information.
+    You stay signed in on this device until your session ends. Sign out on a shared device.
   </p>
 )
 
@@ -66,7 +66,7 @@ export function AuthShell({
         {/* Brand identity - top-center, calm */}
         <Link
           to="/"
-          className="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
+          className="mx-auto mb-10 flex min-h-touch items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
           aria-label="Beanola home"
         >
           <img
@@ -142,9 +142,9 @@ export function AuthShellLink({
     <Link
       to={to}
       className={cn(
-        'rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex min-h-touch items-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         emphasis === 'default'
-          ? 'text-primary hover:text-primary/80'
+          ? 'text-primary hover:text-link-hover'
           : 'text-muted-foreground hover:text-foreground',
       )}
     >

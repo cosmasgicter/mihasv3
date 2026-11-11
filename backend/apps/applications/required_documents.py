@@ -109,6 +109,11 @@ LEGACY_PLATFORM_DOCUMENT_TYPES: tuple[str, ...] = (
 )
 
 #: Requirement source labels published in the contract.
+#: The states a required-document row can be in. The frontend's
+#: ``documentStatePresentation`` has an entry for each (drift-guarded by
+#: ``tests/unit/documentStatePresentation.test.ts``, task 26.5).
+DOCUMENT_STATES = ("missing", "uploaded", "verified")
+
 SOURCE_TENANT = "tenant"
 SOURCE_PLATFORM = "platform"
 
@@ -402,7 +407,7 @@ def build_contract(application, *, allow_live_resolution: bool = True) -> dict[s
             for entry in history.get(candidate_type, [])
         ]
         if document is None:
-            row["state"] = "missing"
+            row["state"] = DOCUMENT_STATES[0]  # "missing"
             row["document"] = None
             if row["required"]:
                 missing_required.append(
@@ -440,7 +445,22 @@ def build_contract(application, *, allow_live_resolution: bool = True) -> dict[s
             "max_size_bytes": PLATFORM_MAX_UPLOAD_BYTES,
             "accepted_mime_types": list(PLATFORM_ACCEPTED_MIME_TYPES),
         },
+        # Whether this application's institution has opted in to OCR grade
+        # suggestions (platform-simplification task 18.2, decision D4). The
+        # wizard calls extract and polls only when this is true.
+        "ocr_available": _ocr_available(application),
     }
+
+
+def _ocr_available(application) -> bool:
+    """Never blocks the contract: a policy read failure means "not available"."""
+    try:
+        from apps.documents.ocr_policy import is_ocr_enabled_for_application
+
+        return bool(is_ocr_enabled_for_application(application))
+    except Exception:  # pragma: no cover - the contract must still publish
+        logger.warning("OCR availability read failed; publishing ocr_available=false")
+        return False
 
 
 # ---------------------------------------------------------------------------

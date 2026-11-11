@@ -1,335 +1,114 @@
-// @ts-nocheck
 /**
- * Landing Page Verification Test
+ * Landing Page Verification Test (task 33.1, D10 option A)
  *
- * Verifies the landing page renders its key content sections without errors.
- * The LandingPage uses static constants (stats, features, accreditations, programs)
- * rather than API calls, so the test focuses on section rendering.
- *
- * Requirements: 8.1, 8.10, 8.11, 8.12
+ * Renders the real landing page: the hero and the three lower sections. Only the
+ * layout shell, the SEO head and the catalogue/brand hooks are replaced. The old
+ * version of this file asserted text that its own mock of the sections supplied;
+ * this one reads what the page actually renders.
  */
-
-import React from 'react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import React, { act } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { createRoot } from 'react-dom/client'
-import { act } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-// ── Polyfill window.matchMedia for jsdom ──────────────────────────────
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
-
-// ── Polyfill scrollIntoView for jsdom ─────────────────────────────────
 Element.prototype.scrollIntoView = vi.fn()
 
-// ── Mock IntersectionObserver for scroll-reveal components ────────────
-class MockIntersectionObserver {
-  observe = vi.fn()
-  unobserve = vi.fn()
-  disconnect = vi.fn()
-  constructor(callback: IntersectionObserverCallback) {
-    // Immediately trigger with all entries as intersecting so content renders
-    setTimeout(() => {
-      callback(
-        [{ isIntersecting: true, target: document.createElement('div') }] as unknown as IntersectionObserverEntry[],
-        this as unknown as IntersectionObserver
-      )
-    }, 0)
-  }
-}
-Object.defineProperty(window, 'IntersectionObserver', {
-  writable: true,
-  value: MockIntersectionObserver,
-})
-
-// ── Mock react-router-dom ──────────────────────────────────────────────
-const mockLocation = {
-  pathname: '/',
-  search: '',
-  hash: '',
-  state: null,
-}
-
-vi.mock('react-router-dom', () => ({
-  Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
-    <a href={to} {...rest}>{children}</a>
-  ),
-  useLocation: () => mockLocation,
-}))
-
-// ── Mock heavy child components ───────────────────────────────────────
-vi.mock('@/components/seo/Seo', () => ({
-  Seo: () => null,
-}))
-
+vi.mock('@/components/seo/Seo', () => ({ Seo: () => null }))
 vi.mock('@/components/layout/PublicLayout', () => ({
-  PublicLayout: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="public-layout">{children}</div>
-  ),
+  PublicLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="public-layout">{children}</div>,
+}))
+vi.mock('@/hooks/useDeferredHydration', () => ({ useDeferredHydration: () => true }))
+vi.mock('@/lib/speculativePrefetch', () => ({ onLandingMount: () => {} }))
+vi.mock('@/lib/routePreload', () => ({
+  preloadAuthRoutes: () => Promise.resolve(),
+  scheduleLikelyAuthRoutePreload: () => () => {},
+}))
+vi.mock('@/hooks/useLandingProgrammes', () => ({
+  useLandingProgrammes: () => ({
+    rows: [
+      { key: 'a:i1', programmeName: 'Diploma in Nursing', schoolNames: ['School A'], intakeId: 'i1', intakeName: 'January 2027', closesOn: null },
+    ],
+    isLoading: false,
+    errorMessage: null,
+    retry: () => {},
+  }),
+}))
+vi.mock('@/hooks/usePortalBrand', () => ({
+  usePortalBrand: () => ({ brandName: 'Beanola Admissions', supportEmail: null, offeringInstitutionId: undefined, isLoading: false }),
 }))
 
-vi.mock('@/hooks/useDeferredHydration', () => ({
-  useDeferredHydration: () => true,
-}))
-
-// ── Mock smoothui components to render children directly ──────────────
-vi.mock('@/components/smoothui', () => ({
-  ScrollReveal: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="scroll-reveal" className={className}>{children}</div>
-  ),
-  StaggerReveal: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="stagger-reveal" className={className}>{children}</div>
-  ),
-  StaggerItem: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="stagger-item">{children}</div>
-  ),
-  AnimatedCounter: ({ value, suffix }: { value: number; suffix: string }) => (
-    <span>{value}{suffix}</span>
-  ),
-  TextEffect: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="text-effect">{children}</div>
-  ),
-  ShinyText: ({ text }: { text: string }) => (
-    <span data-testid="shiny-text">{text}</span>
-  ),
-  InfiniteGrid: () => <div data-testid="infinite-grid" />,
-  TextRotate: ({ phrases }: { phrases: string[] }) => (
-    <span data-testid="text-rotate">{phrases[0]}</span>
-  ),
-  useReducedMotion: () => false,
-}))
-
-vi.mock('@/components/smoothui/shape-landing-hero', () => ({
-  ShapeLandingHero: ({ headline, description, primaryCta, secondaryCta }: any) => (
-    <section data-testid="shape-landing-hero">
-      <h1>{headline}</h1>
-      <p>{description}</p>
-      <a href={primaryCta.href}>{primaryCta.label}</a>
-      <a href={secondaryCta.href}>{secondaryCta.label}</a>
-    </section>
-  ),
-}))
-
-// ── Mock logApiError (no-op for tests) ────────────────────────────────
-vi.mock('@/lib/apiErrorLogger', () => ({
-  logApiError: vi.fn(),
-}))
-
-// ── Mock LandingPageSections statically to avoid lazy loading issues ──
-vi.mock('@/components/landing/LandingPageSections', () => ({
-  LandingPageSections: () => (
-    <>
-      <div data-testid="stats-mock">
-        300+ 92% Graduates working in Zambian hospitals Get hired within 12 months
-      </div>
-      <div data-testid="features-mock">
-        Why students pick Beanola Learn from Working Professionals A diploma that is registered before you walk out 92% of our graduates are hired within a year
-      </div>
-      <div data-testid="accreditation-mock">
-        Your diploma gets you registered NMCZ Accredited HPCZ Accredited ECZ Recognized UNZA Affiliated
-      </div>
-      <div data-testid="programs-mock">
-        Three diplomas. Three career paths. Program-first admissions Shared Beanola portal Diploma in Clinical Medicine Diploma in Registered Nursing
-      </div>
-      <div data-testid="how-it-works-mock">
-        How the application works Create your account Pay the application fee shown for your programme
-      </div>
-      <div data-testid="eligibility-mock">
-        What you need to apply ECZ Grade 12 certificate Cambridge certificate accepted NRC or passport
-      </div>
-      <div data-testid="accommodation-mock">
-        Coming from out of town? We have a bed for you. On-campus housing available
-      </div>
-      <div data-testid="international-mock">
-        Applying from outside Zambia? Pay in USD from anywhere
-      </div>
-      <div data-testid="cta-mock">
-        The current intake is open Start Your Application
-      </div>
-    </>
-  ),
-}))
-
-// ── Import the component under test ───────────────────────────────────
 import LandingPage from '@/pages/LandingPage'
 
 describe('Landing page verification', () => {
   let container: HTMLDivElement
   let root: ReturnType<typeof createRoot>
 
-  beforeEach(() => {
-    mockLocation.pathname = '/'
-    mockLocation.search = ''
-    mockLocation.hash = ''
-    mockLocation.state = null
-
+  beforeEach(async () => {
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
+    await act(async () => {
+      root.render(
+        <MemoryRouter>
+          <LandingPage />
+        </MemoryRouter>,
+      )
+    })
+    // The lower sections are a lazy chunk; wait for the first one.
+    for (let i = 0; i < 100 && !container.querySelector('#programs'); i += 1) {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
+    }
   })
 
   afterEach(() => {
     root.unmount()
     container.remove()
-    vi.clearAllMocks()
   })
 
-  async function renderAndWait(timeout = 5000) {
-    await act(async () => {
-      root.render(<LandingPage />)
-    })
+  it('has one heading level 1 and exactly the four decided sections', () => {
+    expect(container.querySelectorAll('h1')).toHaveLength(1)
+    const sectionIds = Array.from(container.querySelectorAll('section')).map((s) => s.id)
+    expect(sectionIds).toEqual(['hero', 'programs', 'what-you-need', 'how-it-works'])
+  })
 
-    const startTime = Date.now()
-    while (Date.now() - startTime < timeout) {
-      if (container.textContent?.includes('The current intake is open')) {
-        await act(async () => {
-          await new Promise((r) => setTimeout(r, 0))
-        })
-        return
-      }
-      await act(async () => {
-        await new Promise((r) => setTimeout(r, 10))
-      })
+  it('keeps both hero actions, marked for the rendered gate, pointing at sign-up and the programme list', () => {
+    const primary = container.querySelector('[data-landing-action="primary"]') as HTMLAnchorElement
+    const secondary = container.querySelector('[data-landing-action="secondary"]') as HTMLAnchorElement
+    expect(primary.getAttribute('href')).toBe('/auth/signup')
+    expect(primary.textContent).toContain('Start your application')
+    expect(secondary.getAttribute('href')).toBe('#programs')
+    expect(secondary.textContent).toContain('See open programmes')
+  })
+
+  it('lists the open programme with its school and an Apply link', () => {
+    const programs = container.querySelector('#programs')!
+    expect(programs.textContent).toContain('Diploma in Nursing')
+    expect(programs.textContent).toContain('School A')
+    expect(programs.querySelector('a[href="/auth/signup"]')?.textContent).toContain('Apply')
+  })
+
+  it('says what a student needs and how the application works, as lists', () => {
+    const needs = container.querySelector('#what-you-need')!
+    for (const item of ['NRC or passport', 'Grade 12 results', 'Mobile money or card']) {
+      expect(needs.textContent).toContain(item)
     }
-  }
-
-  // ── Hero section ────────────────────────────────────────────────────
-
-  it('renders without errors and shows the hero heading', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Apply to the right school from one admissions portal.')
+    const steps = container.querySelectorAll('#how-it-works ol > li')
+    expect(steps).toHaveLength(4)
   })
 
-  it('renders the hero CTA buttons with correct links', async () => {
-    await renderAndWait()
-    const html = container.innerHTML || ''
-    expect(html).toContain('/auth/signup')
-    expect(html).toContain('#programs')
+  it('carries no school-buyer, tenant or engineering copy and no invented number', () => {
+    const text = (container.textContent ?? '').toLowerCase()
+    for (const phrase of ['super admin', 'tenant', 'white-label', 'onboard colleges', 'institution profile', 'k150', 'usd 20']) {
+      expect(text).not.toContain(phrase)
+    }
+    expect(text).not.toMatch(/\d{2,}\s*%/)
   })
 
-  // ── Stats section ───────────────────────────────────────────────────
-
-  it('renders the stats section with animated counters', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('300+')
-    expect(text).toContain('92%')
-    expect(text).toContain('Graduates working in Zambian hospitals')
-    expect(text).toContain('Get hired within 12 months')
-  })
-
-  // ── Features section ────────────────────────────────────────────────
-
-  it('renders the features section with all feature cards', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Why students pick Beanola')
-    expect(text).toContain('Learn from Working Professionals')
-    expect(text).toContain('A diploma that is registered before you walk out')
-    expect(text).toContain('92% of our graduates are hired within a year')
-  })
-
-  // ── Accreditation section ───────────────────────────────────────────
-
-  it('renders the accreditation section with all accreditation cards', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Your diploma gets you registered')
-    expect(text).toContain('NMCZ Accredited')
-    expect(text).toContain('HPCZ Accredited')
-    expect(text).toContain('ECZ Recognized')
-    expect(text).toContain('UNZA Affiliated')
-  })
-
-  // ── Programs section ────────────────────────────────────────────────
-
-  it('renders the programs section with program cards', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Three diplomas. Three career paths.')
-    expect(text).toContain('Program-first admissions')
-    expect(text).toContain('Shared Beanola portal')
-    expect(text).toContain('Diploma in Clinical Medicine')
-    expect(text).toContain('Diploma in Registered Nursing')
-  })
-
-  // ── How It Works section ────────────────────────────────────────────
-
-  it('renders the how-it-works section with four steps and fee callout', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('How the application works')
-    expect(text).toContain('Create your account')
-    expect(text).toContain('Pay the application fee')
-    // Task 8.1 (STU-08): the landing page no longer asserts a K150 / USD 20 fee.
-    // The amount is quoted by the server per offering and residency, so hardcoding
-    // it here would be wrong for any differently-priced offering or tenant.
-    expect(text).not.toContain('K150')
-    expect(text).not.toContain('USD 20')
-  })
-
-  // ── Eligibility section ─────────────────────────────────────────────
-
-  it('renders the eligibility section with requirements', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('What you need to apply')
-    expect(text).toContain('ECZ Grade 12 certificate')
-    expect(text).toContain('Cambridge certificate accepted')
-    expect(text).toContain('NRC or passport')
-  })
-
-  // ── Accommodation section ───────────────────────────────────────────
-
-  it('renders the accommodation section', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Coming from out of town? We have a bed for you.')
-    expect(text).toContain('On-campus housing available')
-  })
-
-  // ── International students section ──────────────────────────────────
-
-  it('renders the international students section', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('Applying from outside Zambia?')
-    expect(text).toContain('Pay in USD from anywhere')
-  })
-
-  // ── CTA section ─────────────────────────────────────────────────────
-
-  it('renders the CTA section with apply link', async () => {
-    await renderAndWait()
-    const text = container.textContent || ''
-    expect(text).toContain('The current intake is open')
-    expect(text).toContain('Start Your Application')
-    const html = container.innerHTML || ''
-    // CTA links to signup
-    expect(html).toContain('/auth/signup')
-  })
-
-  // ── Hash-based scroll ───────────────────────────────────────────────
-
-  it('renders all sections when location has a hash', async () => {
-    mockLocation.hash = '#programs'
-    await renderAndWait()
-    const text = container.textContent || ''
-    // Page should still render all sections
-    expect(text).toContain('Apply to the right school from one admissions portal.')
-    expect(text).toContain('Three diplomas. Three career paths.')
+  it('puts no card inside a card: the sections use no card surface (bg-card) at all', () => {
+    expect(container.querySelectorAll('section [class~="bg-card"]')).toHaveLength(0)
   })
 })

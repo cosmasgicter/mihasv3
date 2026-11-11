@@ -8,6 +8,10 @@
  *   3. unhandled page exceptions        — window.onerror / unhandled rejections.
  *   4. unasserted failed requests       — any requestfailed or HTTP >= 400 whose
  *                                         error path was not explicitly allowed.
+ *   5. outside hosts                    — any request, navigation, popup or CSP
+ *                                         refusal that names a host outside the
+ *                                         stack (task 3.7, R1.11). Allowances do
+ *                                         not apply to this gate.
  *
  * A failed call is only acceptable when the test declares it via
  * `gate.allowRequest(...)` (that declaration IS the "asserted error path" from
@@ -19,6 +23,7 @@
  * adapter's broker + payment observer.
  */
 import { test as base, expect, type Page } from '@playwright/test';
+import { OutsideHostLog } from './helpers/outside-hosts';
 
 type Matcher = string | RegExp;
 
@@ -58,6 +63,12 @@ export class HarnessGate {
    * violation on their own.
    */
   readonly cancelledRequests: string[] = [];
+  /**
+   * Hosts outside the stack that the browser tried to reach (task 3.7). Recorded
+   * from the browser context, so a popup is covered, whatever `allowRequest` or
+   * `allowConsole` say. Hosts only, never full URLs.
+   */
+  readonly outsideHosts = new OutsideHostLog();
 
   private allowedConsole: Matcher[] = [];
   private allowedRequests: Matcher[] = [];
@@ -112,17 +123,27 @@ export class HarnessGate {
         violations.push(`failed request [${req.status}]: ${req.url}${req.detail ? ` (${req.detail})` : ''}`);
       }
     }
+    // The fifth gate: no allowance applies.
+    violations.push(...this.outsideHosts.violations());
     return violations;
   }
 }
 
-function attach(page: Page, gate: HarnessGate): void {
+async function attach(page: Page, gate: HarnessGate): Promise<void> {
+  const context = page.context();
   page.on('console', (msg) => {
     if (msg.type() === 'error' || msg.type() === 'warning') gate.consoleErrors.push(msg.text());
   });
   page.on('pageerror', (err) => gate.pageErrors.push(err?.stack || String(err)));
-  page.on('requestfailed', (req) => {
+  // The request listeners live on the browser CONTEXT, not the page, so a popup is
+  // covered too (harness specs open popups). No Playwright route is registered: a
+  // route turns interception on for every request and the HTTP cache off.
+  context.on('request', (req) => gate.outsideHosts.note(req.url(), 'request'));
+  context.on('requestfailed', (req) => {
     const errorText = req.failure()?.errorText;
+    // A name-resolution failure counts: it is a request to an outside host that
+    // the browser refused to resolve. Only ERR_ABORTED is a cancellation.
+    gate.outsideHosts.note(req.url(), errorText ? `failed: ${errorText}` : 'failed');
     if (errorText === CANCELLED_BY_BROWSER) {
       gate.cancelledRequests.push(req.url());
       return;
@@ -133,6 +154,18 @@ function attach(page: Page, gate: HarnessGate): void {
       detail: errorText,
     });
   });
+  // A request the harness CSP refuses never reaches the network, and the browser
+  // reports it as a securitypolicyviolation whose blockedURI is the target.
+  await context.exposeFunction('__harnessCspViolation', (blockedUri: string) =>
+    gate.outsideHosts.note(String(blockedUri), 'refused by CSP'),
+  );
+  await context.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (event) => {
+      const report = (window as unknown as { __harnessCspViolation?: (uri: string) => void })
+        .__harnessCspViolation;
+      if (typeof report === 'function') report(event.blockedURI);
+    });
+  });
   page.on('response', (resp) => {
     const status = resp.status();
     // 5xx and 4xx are both "failed calls"; 4xx that is a documented anonymous
@@ -140,14 +173,13 @@ function attach(page: Page, gate: HarnessGate): void {
     if (status >= 400) gate.failedRequests.push({ url: resp.url(), status });
   });
 }
-
 export const test = base.extend<{ gate: HarnessGate; statusAwareDefaults: boolean }>({
   // Off everywhere except the journey gate's Playwright config (`use: { statusAwareDefaults: true }`).
   statusAwareDefaults: [false, { option: true }],
   gate: [
     async ({ page, statusAwareDefaults }, use) => {
       const gate = new HarnessGate(statusAwareDefaults);
-      attach(page, gate);
+      await attach(page, gate);
       await use(gate);
       const violations = gate.collectViolations();
       if (violations.length > 0) {

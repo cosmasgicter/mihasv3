@@ -206,7 +206,6 @@ SHIMS = {
     # -- added by task 12.5
     "apps.accounts.admin_views": APPS_ROOT / "accounts" / "admin_views.py",
     "apps.accounts.batch_views": APPS_ROOT / "accounts" / "batch_views.py",
-    "apps.applications.views": APPS_ROOT / "applications" / "views.py",
     "apps.documents.views": APPS_ROOT / "documents" / "views.py",
 }
 
@@ -252,11 +251,10 @@ SHIM_BLOCKER_BUDGET = {
     # test files that import or ``@patch`` through the old path. That is a
     # smaller, purely mechanical removal than the catalog pair's — and it is now
     # a number a future task can watch fall rather than a sentence in a
-    # docstring. ``apps.applications.views`` has 19 test dependents, the largest
-    # of the six, which is exactly why nobody had converted it.
+    # docstring. ``apps.applications.views`` (19 test dependents, the largest)
+    # was removed by platform-simplification task 14.3.
     "apps.accounts.admin_views": {"production_importers": 1, "test_files": 11},
     "apps.accounts.batch_views": {"production_importers": 0, "test_files": 2},
-    "apps.applications.views": {"production_importers": 0, "test_files": 19},
     "apps.documents.views": {"production_importers": 0, "test_files": 10},
 }
 

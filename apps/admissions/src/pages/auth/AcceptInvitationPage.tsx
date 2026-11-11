@@ -196,7 +196,7 @@ export default function AcceptInvitationPage() {
           ) : null}
 
           <Button type="submit" className="w-full min-h-[48px]" variant="primary" size="lg" loading={acceptMutation.isPending}>
-            {acceptMutation.isPending ? 'Setting password...' : 'Accept invitation'}
+            {acceptMutation.isPending ? 'Setting password…' : 'Accept invitation'}
           </Button>
         </form>
       </AuthShell>

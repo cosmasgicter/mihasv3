@@ -259,8 +259,8 @@ test('a new application, once attached: a refresh on Personal, Assigned school a
   };
   await pick(/programme/i, offering.programName);
   await pick(/intake/i, offering.intakeName);
-  await page.getByRole('button', { name: /continue to assigned school/i }).click();
-  const toPersonal = page.getByRole('button', { name: /continue to personal/i });
+  await page.getByRole('button', { name: /^next step$/i }).click();
+  const toPersonal = page.getByRole('button', { name: /^next step$/i });
   await expect(toPersonal).toBeEnabled({ timeout: 60_000 });
   await toPersonal.click();
   await expect(wizardStepLine(page)).toHaveText('Step 3 of 6', { timeout: 60_000 });

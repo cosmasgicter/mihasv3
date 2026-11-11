@@ -509,8 +509,8 @@ describe('Feature: website-ui-ux-fix, Property 9: ErrorBoundary renders recovery
         // 2. The button triggers handleReload (which calls window.location.reload)
         expect(pageLevelBlock).toMatch(/onClick=\{this\.handleReload\}/);
 
-        // 3. The button text says "Reload Page"
-        expect(pageLevelBlock).toContain('Reload Page');
+        // 3. The button text says "Reload page"
+        expect(pageLevelBlock).toContain('Reload page');
 
         // 4. The button includes a RefreshCw icon
         expect(pageLevelBlock).toContain('RefreshCw');

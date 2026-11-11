@@ -59,7 +59,7 @@ const RECONCILIATION_PRESENTATION: Record<
   uncollected: {
     label: 'Still owed',
     tone: 'warning',
-    hint: 'Fees were deferred or the attempt expired — nothing was charged.',
+    hint: 'Fees were deferred or the attempt expired. Nothing was charged.',
   },
   attention_required: {
     label: 'Needs attention',

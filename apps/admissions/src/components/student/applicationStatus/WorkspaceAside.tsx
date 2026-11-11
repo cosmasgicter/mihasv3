@@ -20,7 +20,7 @@ import {
   DetailRow,
 } from '@/components/student/applicationStatus/ApplicationDetailsSection'
 import { NextActionCards } from '@/components/student/applicationStatus/NextActionCards'
-import { formatDate } from '@/lib/dateFormat'
+import { formatDateOrNull } from '@/lib/dateFormat'
 import { enrollmentReadinessOf } from '@/lib/enrollmentReadiness'
 import { pathFor } from '@/routes/routeRegistry'
 import type { ApplicationWithDetails } from '@/types/database'
@@ -53,20 +53,20 @@ export function WorkspaceAside({
       </SectionCard>
 
       {paymentReviewNote && (
-        <SectionCard title="Latest payment review note" description="Use this guidance if you need to correct or complete payment." icon={<CreditCard className="h-5 w-5" />}>
-          <p className="text-sm text-foreground">{paymentReviewNote}</p>
+        <SectionCard title="Latest note from admissions" description="Read this before you continue with your application." icon={<CreditCard className="h-5 w-5" />}>
+          <p className="text-base sm:text-sm text-foreground">{paymentReviewNote}</p>
         </SectionCard>
       )}
 
       <SectionCard title="Quick information" description="Essential application details at a glance." icon={<User className="h-5 w-5" />}>
-        <dl className="space-y-3 text-sm">
-          <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
-          <DetailRow label="Program" value={application.program || 'Not provided'} />
+        <dl className="space-y-3 text-base sm:text-sm">
+          <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : null} />
+          <DetailRow label="Programme" value={application.program} />
           {/* Task 10.6 parity: the retired workspace named the institution. */}
           <DetailRow label="Institution" value={institutionLabel} />
-          <DetailRow label="Intake" value={application.intake || 'Not provided'} />
-          <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)} />
-          <DetailRow label="Last updated" value={formatDate(application.updated_at)} />
+          <DetailRow label="Intake" value={application.intake} />
+          <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDateOrNull(application.status === 'draft' ? application.created_at : application.submitted_at)} />
+          <DetailRow label="Last updated" value={formatDateOrNull(application.updated_at)} />
         </dl>
       </SectionCard>
 

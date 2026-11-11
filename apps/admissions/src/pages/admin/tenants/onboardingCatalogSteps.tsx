@@ -122,15 +122,15 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
       setCode('')
       invalidate()
       offeringsQuery.refetch()
-      toast.success('Program assigned to this school')
+      toast.success('Programme assigned to this school')
     },
-    onError: (error) => toast.error(tenantErrorMessage(error, 'Program was not assigned')),
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Programme was not assigned')),
   })
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
     if (!canonicalId) {
-      toast.error('Choose a canonical program to assign')
+      toast.error('Choose a canonical programme to assign')
       return
     }
     if (!name.trim() || !code.trim()) {
@@ -143,32 +143,32 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
   return (
     <div className="space-y-5">
       <StepIntro>
-        Assign a canonical Beanola program to this school. That creates the school&apos;s own
-        offering — routing, fees, and required documents attach to it. The canonical program is
+        Assign a canonical Beanola programme to this school. That creates the school&apos;s own
+        offering. Routing, fees, and required documents attach to it. The canonical programme is
         the only write authority; pick it from the list rather than pasting an identifier.
       </StepIntro>
 
       {canonicalQuery.isError ? (
-        <ErrorDisplay message="Could not load canonical programs." onRetry={() => canonicalQuery.refetch()} />
+        <ErrorDisplay message="Could not load canonical programmes." onRetry={() => canonicalQuery.refetch()} />
       ) : (
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
           <label className="space-y-1.5 text-sm sm:col-span-2">
-            <span className="font-medium text-foreground">Canonical program</span>
+            <span className="font-medium text-foreground">Canonical programme</span>
             <select
               value={canonicalId}
               onChange={(e) => setCanonicalId(e.target.value)}
               className={TENANT_SELECT_CLASS}
-              aria-label="Canonical program"
+              aria-label="Canonical programme"
               disabled={canonicalQuery.isLoading}
             >
-              <option value="">Select a canonical program…</option>
+              <option value="">Select a canonical programme…</option>
               {canonicalPrograms.map((program) => {
                 const assigned = assignedCanonicalIds.has(program.id)
                 return (
                   <option key={program.id} value={program.id}>
                     {program.name}
                     {program.code ? ` (${program.code})` : ''}
-                    {assigned ? ' — already assigned' : ''}
+                    {assigned ? ': already assigned' : ''}
                   </option>
                 )
               })}
@@ -176,7 +176,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Offering name</span>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="School-facing program name" aria-label="Offering name" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="School-facing programme name" aria-label="Offering name" />
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Offering code</span>
@@ -184,7 +184,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           </label>
           <div className="sm:col-span-2 flex justify-end">
             <Button type="submit" loading={assignMutation.isPending} disabled={!canonicalId}>
-              <Plus className="h-4 w-4" aria-hidden="true" /> Assign program
+              <Plus className="h-4 w-4" aria-hidden="true" /> Assign programme
             </Button>
           </div>
         </form>
@@ -195,7 +195,7 @@ export function WizardProgramsStep({ institutionId }: { institutionId: string })
           {offerings.length > 0 ? `${offerings.length} offering${offerings.length === 1 ? '' : 's'} assigned` : 'No offerings assigned yet'}
         </p>
         {offerings.map((offering) => (
-          <div key={offering.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+          <div key={offering.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
             <div className="min-w-0">
               <p className="break-words text-sm font-medium text-foreground">{offering.name}</p>
               <p className="text-xs text-muted-foreground">{offering.code}</p>
@@ -310,7 +310,7 @@ export function WizardIntakesStep({ institutionId }: { institutionId: string }) 
           }}
         />
       ) : !hasOfferings ? (
-        <StepIntro>Assign at least one program offering first, then return here to link intakes.</StepIntro>
+        <StepIntro>Assign at least one programme offering first, then return here to link intakes.</StepIntro>
       ) : (
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
           <label className="space-y-1.5 text-sm">
@@ -366,7 +366,7 @@ export function WizardIntakesStep({ institutionId }: { institutionId: string }) 
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Linked this session</p>
           {linked.map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+            <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
               <div className="min-w-0">
                 <p className="break-words text-sm font-medium text-foreground">{item.offeringName}</p>
                 <p className="text-xs text-muted-foreground">{item.intakeName}</p>
@@ -456,14 +456,14 @@ export function WizardFeesStep({ institutionId }: { institutionId: string }) {
     <div className="space-y-5">
       <StepIntro>
         Set the canonical fee for an offering and residency. The backend returns this exact amount
-        as an expiring quote at payment time — students never see an invented or hardcoded fee. One
+        as an expiring quote at payment time. Students never see an invented or hardcoded fee. One
         active fee is allowed per offering, type, and residency.
       </StepIntro>
 
       {offeringsQuery.isError ? (
         <ErrorDisplay message="Could not load offerings." onRetry={() => offeringsQuery.refetch()} />
       ) : !hasOfferings ? (
-        <StepIntro>Assign at least one program offering first, then return here to price it.</StepIntro>
+        <StepIntro>Assign at least one programme offering first, then return here to price it.</StepIntro>
       ) : (
         <>
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
@@ -534,7 +534,7 @@ export function WizardFeesStep({ institutionId }: { institutionId: string }) {
                 <p className="text-sm text-muted-foreground">No fees configured for this offering yet.</p>
               ) : (
                 fees.map((fee) => (
-                  <div key={fee.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
+                  <div key={fee.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                     <div className="min-w-0">
                       <p className="break-words text-sm font-medium text-foreground">
                         {fee.currency} {fee.amount}

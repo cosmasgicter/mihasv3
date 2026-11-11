@@ -52,7 +52,7 @@ export function ErrorDisplay({
     keeps the glyph and the label optically centred inside it.
   */
   const linkTargetClass =
-    'inline-flex min-h-touch items-center gap-1 rounded-md text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+    'inline-flex min-h-touch items-center gap-1 rounded-md text-base sm:text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
   const SectionHeading = headingLevel
 
   if (variant === 'inline') {
@@ -60,7 +60,7 @@ export function ErrorDisplay({
       <div
         role="alert"
         aria-live="assertive"
-        className={cn('flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm', className)}
+        className={cn('flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-base sm:text-sm', className)}
       >
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" aria-hidden="true" />
         <div className="flex flex-col gap-1">
@@ -84,7 +84,7 @@ export function ErrorDisplay({
                 className={cn(linkTargetClass, 'font-medium text-primary')}
               >
                 <ArrowLeft className="h-3 w-3" aria-hidden="true" />
-                Go Back
+                Go back
               </button>
             )}
             <a
@@ -92,7 +92,7 @@ export function ErrorDisplay({
               className={cn(linkTargetClass, 'text-muted-foreground hover:text-foreground')}
             >
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              Contact Support
+              Contact support
             </a>
           </div>
         </div>
@@ -118,20 +118,20 @@ export function ErrorDisplay({
         {title && (
           <SectionHeading className="text-lg font-semibold text-foreground">{title}</SectionHeading>
         )}
-        <p className="max-w-md text-sm text-muted-foreground">{message}</p>
+        <p className="max-w-md text-base sm:text-sm text-muted-foreground">{message}</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-x-3 pt-1">
         {onRetry && (
           <Button onClick={onRetry} variant="default" size="default" className="min-h-touch">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-            Try Again
+            Try again
           </Button>
         )}
         {!onRetry && onGoBack && (
           <Button onClick={onGoBack} variant="outline" size="default" className="min-h-touch">
             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-            Go Back
+            Go back
           </Button>
         )}
         <a
@@ -139,7 +139,7 @@ export function ErrorDisplay({
           className={cn(linkTargetClass, 'px-2 text-muted-foreground hover:text-foreground')}
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          Contact Support
+          Contact support
         </a>
       </div>
     </div>

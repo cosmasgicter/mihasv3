@@ -15,6 +15,7 @@ from apps.common.views import APIHomeView
 from apps.documents.urls import (
     document_urlpatterns,
     fee_admin_urlpatterns,
+    ocr_admin_urlpatterns,
     payment_urlpatterns,
     program_fee_urlpatterns,
 )
@@ -53,6 +54,8 @@ urlpatterns = [
     path("api/v1/admin/", include("apps.common.template_urls")),
     # Scoped fee administration report (admissions-v2 task 8.4, ADM-06)
     path("api/v1/admin/", include((fee_admin_urlpatterns, "fee-admin"))),
+    # OCR opt-in command (platform-simplification task 18.1, decision D4)
+    path("api/v1/admin/", include((ocr_admin_urlpatterns, "ocr-admin"))),
     # One scoped applications query + aggregate contract (task 9.1, ADM-01)
     path("api/v1/admin/", include("apps.applications.admin_urls")),
     # Notification endpoints

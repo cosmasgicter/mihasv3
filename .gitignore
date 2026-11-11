@@ -231,3 +231,25 @@ Cost_Accounting_*.docx
 
 # Personal — Benard Besa campaign manifesto (not part of the platform)
 besa/
+
+# Agent run directories (platform-simplification task 3.6, R4.4)
+.agents/tasks/
+
+# Raw evidence artefacts a run produces (task 11.3, D2 option B). They stay in git history;
+# READMEs, JSON, YAML, CSV, Python, shell and TypeScript files under docs/v2-evidence/ stay tracked.
+docs/v2-evidence/**/*.zip
+docs/v2-evidence/**/*.png
+docs/v2-evidence/**/*.txt
+docs/v2-evidence/**/*.log
+docs/v2-evidence/**/*.jsonl
+docs/v2-evidence/**/*.err
+docs/v2-evidence/**/*.exit
+docs/v2-evidence/**/*.xml
+docs/v2-evidence/**/*.html
+docs/v2-evidence/**/*.js
+docs/v2-evidence/**/*.css
+docs/v2-evidence/**/*.ttf
+docs/v2-evidence/**/*.svg
+docs/v2-evidence/**/*.webmanifest
+docs/v2-evidence/**/*.before
+docs/v2-evidence/**/*.after

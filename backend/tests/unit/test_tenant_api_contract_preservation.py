@@ -76,7 +76,7 @@ from apps.catalog.admin_views import (
 )
 
 # Official-document generation view classes
-from apps.applications.views import (
+from apps.applications.document_views import (
     AcceptanceLetterView,
     ApplicationSlipView,
     ConditionalOfferView,

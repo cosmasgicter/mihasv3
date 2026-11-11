@@ -25,6 +25,7 @@ export type ProductRouteId =
   | 'public.home'
   | 'public.trackApplication'
   | 'public.contact'
+  | 'public.forSchools'
   | 'public.terms'
   | 'public.privacy'
   | 'auth.signIn'
@@ -49,6 +50,7 @@ export type ProductRouteId =
   | 'admin.dashboard'
   | 'admin.profile'
   | 'admin.applications'
+  | 'admin.applicationReview'
   | 'admin.programs'
   | 'admin.tenants'
   | 'admin.tenantOnboarding'
@@ -61,6 +63,12 @@ export type ProductRouteId =
 
 export interface RouteNavMetadata {
   label: string
+  /**
+   * The short label navigation shows, on desktop and mobile alike (task 31.1,
+   * R21.1). It is the control's visible text and its accessible name. Falls back
+   * to `label`; the page title and the mobile header keep `label`.
+   */
+  navLabel?: string
   icon: LucideIcon
   desktop?: boolean
   mobile?: boolean
@@ -118,6 +126,12 @@ export const ROUTES = {
     guard: 'public',
     skeletonType: 'none',
   },
+  publicForSchools: {
+    id: 'public.forSchools',
+    path: '/for-schools',
+    guard: 'public',
+    skeletonType: 'none',
+  },
   publicTerms: {
     id: 'public.terms',
     path: '/terms',
@@ -136,7 +150,7 @@ export const ROUTES = {
     aliases: ['/signin', '/login'],
     guard: 'public',
     skeletonType: 'auth',
-    nav: { label: 'Sign In', icon: User, mobile: true, order: 30, section: 'public' },
+    nav: { label: 'Sign in', icon: User, mobile: true, order: 30, section: 'public' },
   },
   authSignUp: {
     id: 'auth.signUp',
@@ -189,7 +203,35 @@ export const ROUTES = {
     path: '/student/dashboard',
     guard: 'student',
     skeletonType: 'dashboard',
-    nav: { label: 'Dashboard', icon: Home, desktop: true, mobile: true, order: 10, section: 'student' },
+    // Three student destinations (task 34.1, D16 option A, R21.3): "My application",
+    // "Messages" and "Account". The routes below that carry a `nav` without
+    // `desktop`/`mobile` keep their page label and icon but are no longer
+    // navigation entries; the destination that contains them stays highlighted
+    // through `activeMatchPaths`. No route is removed, so every URL still resolves.
+    nav: {
+      label: 'Dashboard',
+      navLabel: 'My application',
+      icon: Home,
+      desktop: true,
+      mobile: true,
+      order: 10,
+      section: 'student',
+      activeMatchPaths: [
+        '/student/dashboard',
+        '/student/application-wizard',
+        '/apply',
+        '/student/applications/new',
+        '/student/status',
+        '/student/application-status',
+        '/application',
+        '/student/application',
+        '/student/documents',
+        '/student/payment',
+        '/student/payments',
+        '/student/interview',
+        '/student/interviews',
+      ],
+    },
   },
   studentApplicationWizard: {
     id: 'student.applicationWizard',
@@ -200,8 +242,6 @@ export const ROUTES = {
     nav: {
       label: 'Apply',
       icon: FileText,
-      desktop: true,
-      mobile: true,
       order: 20,
       section: 'student',
       activeMatchPaths: ['/student/application-wizard', '/apply'],
@@ -227,16 +267,15 @@ export const ROUTES = {
     guard: 'student',
     skeletonType: 'detail',
     nav: {
-      label: 'Application Status',
+      label: 'Application status',
+      navLabel: 'Status',
       icon: BriefcaseBusiness,
-      // Task 3.18 (R5-c, finding B-04): the documents card lives on this page, so
-      // omitting it from the desktop sidebar left a desktop student with no
-      // one-activation route to their documents. Mobile already listed it.
-      desktop: true,
-      mobile: true,
+      // Task 3.18 (R5-c, finding B-04) required a one-activation route to the
+      // documents card on this page. Task 34.1 (D16) replaced the entry with "My
+      // application": the dashboard lists each application and links to this
+      // workspace, so documents stay within two activations of the dashboard.
       order: 80,
       section: 'student',
-      activeMatchPaths: ['/student/status'],
     },
   },
   /**
@@ -263,12 +302,13 @@ export const ROUTES = {
     skeletonType: 'detail',
     nav: {
       label: 'Profile & Settings',
+      navLabel: 'Account',
       icon: Settings,
       desktop: true,
       mobile: true,
       order: 70,
       section: 'student',
-      activeMatchPaths: ['/student/settings', '/student/profile'],
+      activeMatchPaths: ['/student/settings', '/student/profile', '/settings', '/student/notifications'],
     },
   },
   studentNotifications: {
@@ -278,7 +318,7 @@ export const ROUTES = {
     path: '/student/notifications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Notification settings', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
+    nav: { label: 'Notification settings', navLabel: 'Alerts', icon: Bell, order: 60, section: 'student' },
   },
   studentPayment: {
     id: 'student.payment',
@@ -286,7 +326,7 @@ export const ROUTES = {
     aliases: ['/student/payments'],
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Payment', icon: CreditCard, desktop: true, mobile: true, order: 30, section: 'student' },
+    nav: { label: 'Payment', icon: CreditCard, order: 30, section: 'student' },
   },
   studentInterview: {
     id: 'student.interview',
@@ -294,7 +334,7 @@ export const ROUTES = {
     aliases: ['/student/interviews'],
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Interview', icon: Calendar, desktop: true, mobile: true, order: 40, section: 'student' },
+    nav: { label: 'Interview', icon: Calendar, order: 40, section: 'student' },
   },
   studentCommunications: {
     id: 'student.communications',
@@ -304,14 +344,23 @@ export const ROUTES = {
     path: '/student/communications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Communications', icon: MessageSquare, desktop: true, mobile: true, order: 25, section: 'student' },
+    nav: {
+      label: 'Communications',
+      navLabel: 'Messages',
+      icon: MessageSquare,
+      desktop: true,
+      mobile: true,
+      order: 25,
+      section: 'student',
+      activeMatchPaths: ['/student/communications', '/student/history'],
+    },
   },
   studentHistory: {
     id: 'student.history',
     path: '/student/history',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Activity History', icon: FileSearch, desktop: true, order: 26, section: 'student' },
+    nav: { label: 'Activity history', navLabel: 'History', icon: FileSearch, order: 26, section: 'student' },
   },
   adminHome: {
     id: 'admin.home',
@@ -324,7 +373,7 @@ export const ROUTES = {
     path: '/admin/dashboard',
     guard: 'admin',
     skeletonType: 'dashboard',
-    nav: { label: 'Dashboard', icon: LayoutDashboard, desktop: true, mobile: true, order: 10, section: 'main' },
+    nav: { label: 'Dashboard', navLabel: 'Home', icon: LayoutDashboard, desktop: true, mobile: true, order: 10, section: 'main' },
   },
   adminProfile: {
     id: 'admin.profile',
@@ -338,7 +387,19 @@ export const ROUTES = {
     path: '/admin/applications',
     guard: 'admin',
     skeletonType: 'admin-table',
-    nav: { label: 'Applications', icon: FileText, desktop: true, mobile: true, order: 20, section: 'main' },
+    nav: { label: 'Applications', navLabel: 'Apps', icon: FileText, desktop: true, mobile: true, order: 20, section: 'main' },
+  },
+  /**
+   * One application's review (platform-simplification task 30.2, R17.2). Rendered
+   * by the same page as the queue, so the queue's filters, selection and scroll
+   * survive opening and closing a review. No navigation entry: it is reached from
+   * a queue row and is not a place to go.
+   */
+  adminApplicationReview: {
+    id: 'admin.applicationReview',
+    path: '/admin/applications/:applicationId',
+    guard: 'admin',
+    skeletonType: 'admin-table',
   },
   adminPrograms: {
     id: 'admin.programs',
@@ -346,7 +407,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Programs', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
+    nav: { label: 'Programmes', navLabel: 'Courses', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
   },
   adminTenants: {
     id: 'admin.tenants',
@@ -383,7 +444,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Audit Trail', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
+    nav: { label: 'Audit trail', navLabel: 'Audit', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
   },
   adminProgramFees: {
     id: 'admin.programFees',
@@ -391,7 +452,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Program Fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
+    nav: { label: 'Programme fees', navLabel: 'Fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
   },
   adminSettings: {
     id: 'admin.settings',
@@ -536,6 +597,11 @@ function matchesPathPattern(pathname: string, pattern: string): boolean {
   if (patternSegments.length !== pathSegments.length) return false
 
   return patternSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index])
+}
+
+/** The label navigation shows for a route: its `navLabel`, else its `label` (task 31.1). */
+export function navLabelFor(route: ProductRouteDefinition): string {
+  return route.nav?.navLabel ?? route.nav?.label ?? ''
 }
 
 export function matchesRoutePath(pathname: string, route: ProductRouteDefinition): boolean {

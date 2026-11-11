@@ -14,6 +14,22 @@ Three design skills are installed at the project level and should be invoked whe
 | **ui-ux-pro-max** | `.kiro/skills/ui-ux-pro-max/` | Design-system selection, color palette + font pairing recommendations by product type, 99 UX guidelines lookup, 25 chart-type recommendations, stack-specific best practices. CSV-backed search via `python3 .kiro/skills/ui-ux-pro-max/scripts/search.py`. |
 | **design-for-ai** | `.kiro/skills/design-for-ai/` | Visual design fundamentals from David Kadavy's *Design for Hackers*: typography, proportions, composition, visual hierarchy, color theory and color science. CHECKER mode audits existing designs against 7 chapters; APPLIER mode walks 6-phase build (foundation → structure → typography → composition → color → technical). Sub-commands `brand`, `color`, `design`, `exam`, `flow`, `fonts`, `hone` in `.kiro/skills/design-for-ai/commands/`. |
 
+## Kept skill set
+The repository keeps exactly 17 vendored skills (decision D6, option B; pruned by
+platform-simplification task 15.1). Each has one real copy:
+
+- In `.kiro/skills/`: `a11y-audit`, `agentic-engineering-workflow`,
+  `api-design-reviewer` (its linter runs in CI through `backend/scripts/api_quality.sh`),
+  `code-structure-cleanup`, `content-humanizer`, `copy-editing`, `copywriting`,
+  `design-for-ai`, `grep-loop-review-workflow`, `impeccable`, `screenshot`,
+  `senior-architect`, `source-code-context`, `spec-driven-workflow`,
+  `tech-debt-tracker`, `ui-ux-pro-max`.
+- `neon-postgres` is a symlink in `.kiro/skills/` whose only copy is
+  `.agents/skills/neon-postgres`.
+
+`.agents/skills.json` names `.kiro/skills` as the skill root. Add a skill only
+together with the steering line that says why it is kept.
+
 ## Always load context first
 
 Both skills read these two files at the project root before any design work:
@@ -29,7 +45,7 @@ Impeccable provides a loader: `node .kiro/skills/impeccable/scripts/load-context
 - When invoking Impeccable, name the sub-command explicitly: `audit`, `polish`, `critique`, `clarify`, `layout`, `typeset`, `colorize`, `bolder`, `quieter`, `delight`, `harden`, `optimize`, `distill`, `adapt`, `animate`, `extract`, `live`, `onboard`, `overdrive`, `teach`, `document`, `shape`, `craft`. Loading the matching reference file under `.kiro/skills/impeccable/reference/` is non-negotiable.
 - When invoking ui-ux-pro-max, prefer `--design-system` first for full recommendations, then `--domain` searches for specific dimensions (`product`, `style`, `color`, `typography`, `landing`, `chart`, `ux`, `react`).
 - When invoking design-for-ai, choose CHECKER (audit) or APPLIER (build) mode and load the matching chapter under `.kiro/skills/design-for-ai/references/`. The 7 chapters are: typography (3), tech-and-culture (4), proportions (5), composition (6), visual hierarchy (7), color science (8), color theory (9). Plus foundations, ai-tells, checklists, motion, interaction, responsive, techniques.
-- All three skills must respect the existing canonical truth map (`docs/canonical-truth-map.md`). Do not invent design tokens — read from `apps/admissions/src/styles/design-tokens.css` and `apps/admissions/src/design-system/tokens.colors.cjs`.
+- All three skills must respect the existing canonical truth map (`docs/canonical-truth-map.md`). Do not invent design tokens — read from `apps/admissions/src/styles/design-tokens.css` and `apps/admissions/src/design-system/tokens.colors.json`.
 
 ## Hard guardrails (already enforced)
 

@@ -43,7 +43,7 @@ function generateLabel(uiState: OfficialDocumentUiState, hasLatest: boolean): st
     case 'failed':
       return 'Retry'
     case 'setup_required':
-      return 'Setup Required'
+      return 'Setup required'
     case 'ready':
       return 'Regenerate'
     default:
@@ -182,7 +182,7 @@ export function AdminOfficialDocumentsPanel({ applicationId }: AdminOfficialDocu
         <h4 className="text-sm font-semibold text-foreground">Official documents</h4>
       </div>
       <ErrorDisplay message={loadError ?? ''} variant="inline" />
-      <p className="text-xs text-muted-foreground">
+      <p className="max-w-prose text-xs text-muted-foreground">
         Generation queues the official backend document and shows its status. Documents are scoped to
         the schools you can access.
       </p>

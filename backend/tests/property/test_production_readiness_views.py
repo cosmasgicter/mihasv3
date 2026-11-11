@@ -14,9 +14,10 @@ from hypothesis import strategies as st
 
 
 # ---------------------------------------------------------------------------
-# Canonical list of all view classes that must be importable from
-# apps.applications.views after the split.  This list is derived from
-# the URL configuration in apps/applications/urls.py.
+# Canonical list of all view classes that must be importable from the split
+# view modules (the ``apps.applications.views`` shim was removed by
+# platform-simplification task 14.3).  This list is derived from the URL
+# configuration in apps/applications/urls.py.
 # ---------------------------------------------------------------------------
 
 EXPECTED_VIEW_CLASSES = [
@@ -32,7 +33,6 @@ EXPECTED_VIEW_CLASSES = [
     "ApplicationDetailView",
     "ApplicationDetailsView",
     "ApplicationDocumentsView",
-    "ApplicationDraftView",
     "ApplicationExportView",
     "ApplicationFeeWaiverView",
     "ApplicationGradesView",
@@ -52,94 +52,68 @@ EXPECTED_VIEW_CLASSES = [
     "FinanceReceiptView",
 ]
 
-# Shared helpers that must also be importable from views.py
-EXPECTED_HELPERS = [
-    "_with_payment_summary",
-    "_generate_application_number",
-    "_generate_tracking_code",
-    "_enqueue_document_task",
-    "build_audit_network_fields",
+# The split modules URL routing imports from; a view class must be found in one.
+SPLIT_VIEW_MODULES = [
+    "apps.applications.student_views",
+    "apps.applications.admin_views",
+    "apps.applications.interview_views",
+    "apps.applications.document_views",
+    "apps.applications.public_views",
 ]
+# Shared helpers and where they live now.
+EXPECTED_HELPERS = {
+    "_with_payment_summary": "apps.applications._view_helpers",
+    "_generate_application_number": "apps.applications._view_helpers",
+    "_generate_tracking_code": "apps.applications._view_helpers",
+    "_enqueue_document_task": "apps.applications._view_helpers",
+    "build_audit_network_fields": "apps.common.audit_network",
+}
+def _find_view_class(class_name):
+    for module_name in SPLIT_VIEW_MODULES:
+        attr = getattr(importlib.import_module(module_name), class_name, None)
+        if attr is not None:
+            return attr
+    return None
 
 
-class TestViewReexportsPreserveAllClassNames(SimpleTestCase):
-    """Property 12: View Re-exports Preserve All Class Names
+class TestViewClassesStayImportableFromSplitModules(SimpleTestCase):
+    """Property 12: every view class stays importable by name from the split modules
 
-    *For any* view class that existed in the original applications/views.py
-    module, that class SHALL be importable from apps.applications.views
-    after the split, preserving the same class name and interface.
-
+    *For any* view class in the URL configuration, that class SHALL be importable
+    from one of the split view modules with the same class name.
     **Validates: Requirements 7.2, 7.4**
     """
 
     @given(idx=st.integers(min_value=0, max_value=len(EXPECTED_VIEW_CLASSES) - 1))
     @settings(max_examples=20)
-    def test_view_class_importable_from_views_module(self, idx):
-        """Every expected view class is importable from apps.applications.views."""
+    def test_view_class_importable_from_split_modules(self, idx):
         class_name = EXPECTED_VIEW_CLASSES[idx]
-        views_module = importlib.import_module("apps.applications.views")
-        attr = getattr(views_module, class_name, None)
-        self.assertIsNotNone(
-            attr,
-            f"{class_name} is not importable from apps.applications.views",
-        )
-        self.assertTrue(
-            inspect.isclass(attr),
-            f"{class_name} is not a class in apps.applications.views",
-        )
+        attr = _find_view_class(class_name)
+        self.assertIsNotNone(attr, f"{class_name} is not importable from the split view modules")
+        self.assertTrue(inspect.isclass(attr), f"{class_name} is not a class")
 
     def test_all_expected_view_classes_present(self):
-        """Deterministic check: every expected view class exists in views module."""
-        views_module = importlib.import_module("apps.applications.views")
-        missing = []
-        for name in EXPECTED_VIEW_CLASSES:
-            if not hasattr(views_module, name):
-                missing.append(name)
-        self.assertEqual(
-            missing,
-            [],
-            f"Missing view classes in apps.applications.views: {missing}",
-        )
+        missing = [n for n in EXPECTED_VIEW_CLASSES if _find_view_class(n) is None]
+        self.assertEqual(missing, [], f"Missing view classes in the split modules: {missing}")
 
     def test_all_expected_helpers_present(self):
-        """Deterministic check: shared helpers are importable from views module."""
-        views_module = importlib.import_module("apps.applications.views")
-        missing = []
-        for name in EXPECTED_HELPERS:
-            if not hasattr(views_module, name):
-                missing.append(name)
-        self.assertEqual(
-            missing,
-            [],
-            f"Missing helpers in apps.applications.views: {missing}",
-        )
+        missing = [
+            name
+            for name, module_name in EXPECTED_HELPERS.items()
+            if not hasattr(importlib.import_module(module_name), name)
+        ]
+        self.assertEqual(missing, [], f"Missing helpers: {missing}")
 
-    def test_views_module_under_100_lines(self):
-        """Requirement 7.5: views.py must be under 100 lines (re-exports only)."""
-        import os
-        views_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-            "apps", "applications", "views.py",
-        )
-        with open(views_path) as f:
-            line_count = sum(1 for _ in f)
-        self.assertLess(
-            line_count,
-            100,
-            f"views.py has {line_count} lines, expected < 100",
-        )
+    def test_the_applications_views_shim_is_gone(self):
+        with self.assertRaises(ImportError):
+            importlib.import_module("apps.applications.views")
 
     @given(idx=st.integers(min_value=0, max_value=len(EXPECTED_VIEW_CLASSES) - 1))
     @settings(max_examples=20)
     def test_view_classes_are_api_views(self, idx):
-        """Every view class should be a subclass of APIView."""
         from rest_framework.views import APIView
 
         class_name = EXPECTED_VIEW_CLASSES[idx]
-        views_module = importlib.import_module("apps.applications.views")
-        cls = getattr(views_module, class_name, None)
+        cls = _find_view_class(class_name)
         if cls is not None:
-            self.assertTrue(
-                issubclass(cls, APIView),
-                f"{class_name} is not a subclass of APIView",
-            )
+            self.assertTrue(issubclass(cls, APIView), f"{class_name} is not a subclass of APIView")

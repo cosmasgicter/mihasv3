@@ -56,7 +56,7 @@ export function useApprovalActionCommands({
     // Prevent approval without verified payment.
     if (newStatus === 'approved' && !isPaymentResolved) {
       await confirmDialog.confirm({
-        title: 'Payment Not Settled',
+        title: 'Payment not settled',
         message: 'This application cannot be approved until the payment is paid or deferred. Please resolve payment first.',
         confirmText: 'OK',
         variant: 'danger'
@@ -67,7 +67,7 @@ export function useApprovalActionCommands({
     // Confirm critical actions
     if (newStatus === 'rejected') {
       const confirmed = await confirmDialog.confirm({
-        title: 'Reject Application',
+        title: 'Reject application',
         message: 'This application will be rejected. The applicant will be notified.',
         confirmText: 'Reject',
         variant: 'danger'
@@ -77,7 +77,7 @@ export function useApprovalActionCommands({
 
     if (newStatus === 'approved') {
       const confirmed = await confirmDialog.confirm({
-        title: 'Approve Application',
+        title: 'Approve application',
         message: 'The applicant will be notified of approval. This action cannot be undone.',
         confirmText: 'Approve',
         variant: 'info'
@@ -94,7 +94,7 @@ export function useApprovalActionCommands({
       logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
       // Show error to user
       await confirmDialog.confirm({
-        title: 'Update Failed',
+        title: 'Update failed',
         message: toError(error).message || 'Failed to update application status. Please try again.',
         confirmText: 'OK',
         variant: 'danger'
@@ -141,9 +141,9 @@ export function useApprovalActionCommands({
       const errorMessage = toError(error).message
       const isNoPaymentRecord = errorMessage.includes('PAYMENT_RECORD_REQUIRED') || errorMessage.toLowerCase().includes('no payment record')
       await confirmDialog.confirm({
-        title: isNoPaymentRecord ? 'No Payment Record' : 'Update Failed',
+        title: isNoPaymentRecord ? 'No payment record' : 'Update failed',
         message: isNoPaymentRecord
-          ? 'No payment record found — the student must initiate payment first.'
+          ? 'No payment record found. The student must initiate payment first.'
           : errorMessage || 'Failed to update payment status. Please try again.',
         confirmText: 'OK',
         variant: 'danger'

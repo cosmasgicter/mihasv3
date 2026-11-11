@@ -4,6 +4,7 @@ const MARKETING_PUBLIC_ROUTES = new Set([
   pathFor('public.home'),
   pathFor('notFound'),
   pathFor('public.contact'),
+  pathFor('public.forSchools'),
   pathFor('public.privacy'),
   pathFor('public.terms'),
   pathFor('public.trackApplication'),

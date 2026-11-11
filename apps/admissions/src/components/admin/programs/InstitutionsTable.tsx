@@ -29,14 +29,14 @@ export function InstitutionsTable({
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Building2 className="h-10 w-10" aria-hidden="true" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">No Institutions Yet</h2>
+        <h2 className="text-2xl font-bold text-foreground">No institutions yet</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-          Add institutions here first so program setup, admissions routing, and student applications stay aligned.
+          Add institutions here first so programme setup, admissions routing, and student applications stay aligned.
         </p>
         <div className="mt-6 flex justify-center">
           <Button onClick={onCreate}>
             <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-            Create First Institution
+            Create first institution
           </Button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export function InstitutionsTable({
         },
         {
           key: 'id',
-          header: 'Active Programs',
+          header: 'Active programmes',
           priority: 'desktop',
           render: (_value, row) => (
             <span className="text-sm text-muted-foreground">

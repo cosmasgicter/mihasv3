@@ -62,9 +62,9 @@ export function WizardErrorSummary({ errors, onFieldClick, className = '' }: Wiz
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-destructive">
+          <h2 className="text-sm font-semibold text-destructive">
             Please fix {errors.length} error{errors.length > 1 ? 's' : ''} to continue
-          </h3>
+          </h2>
           <ul className="mt-2 space-y-1">
             {errors.map((err) => (
               <li key={err.field}>
@@ -72,7 +72,7 @@ export function WizardErrorSummary({ errors, onFieldClick, className = '' }: Wiz
                   type="button"
                   id={`wizard-error-${err.field}`}
                   onClick={() => focusField(err.field)}
-                  className="text-sm text-destructive underline underline-offset-2 hover:text-destructive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm text-left"
+                  className="text-base sm:text-sm text-destructive underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm text-left"
                 >
                   {err.label}: {err.message}
                 </button>

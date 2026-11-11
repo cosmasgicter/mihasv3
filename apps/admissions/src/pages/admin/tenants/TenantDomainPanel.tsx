@@ -53,7 +53,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const createMutation = useMutation({
     mutationFn: (host: string) => tenantAdminService.createDomain(institutionId, { hostname: host, is_active: true }),
     onSuccess: () => {
-      toast.success('Domain added — publish the DNS records to verify it')
+      toast.success('Domain added: publish the DNS records to verify it')
       setHostname('')
       invalidate()
     },
@@ -81,7 +81,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const retryMutation = useMutation({
     mutationFn: (domainId: string) => tenantAdminService.retryDomain(institutionId, domainId),
     onSuccess: () => {
-      toast.success('Verification restarted — publish the DNS records if you have not already')
+      toast.success('Verification restarted: publish the DNS records if you have not already')
       invalidate()
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Verification could not be restarted')),
@@ -90,7 +90,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
   const approveMutation = useMutation({
     mutationFn: (domainId: string) => tenantAdminService.approveDomain(institutionId, domainId),
     onSuccess: () => {
-      toast.success('Domain approved — activate it to start routing')
+      toast.success('Domain approved: activate it to start routing')
       invalidate()
     },
     onError: (error) => toast.error(tenantErrorMessage(error, 'Domain was not approved')),
@@ -162,7 +162,7 @@ export function TenantDomainPanel({ institutionId }: { institutionId: string }) 
 
           <div className="grid gap-2 sm:grid-cols-2">
             {domains.map((domain) => (
-              <div key={domain.id} className="rounded-lg border border-border bg-background p-3">
+              <div key={domain.id} className="rounded-lg bg-muted p-3">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">

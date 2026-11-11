@@ -10,8 +10,8 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
   if (!isPopulated) return null
 
   return (
-    <div
-      className="inline-flex items-center space-x-1 text-xs text-success-foreground bg-success/10 px-2 py-1 rounded-full border border-success/30 animate-scale-in"
+    <div data-text-role="caption"
+      className="inline-flex items-center space-x-1 text-sm sm:text-xs text-foreground bg-success/10 px-2 py-1 rounded-full border border-success/30 animate-scale-in"
     >
       <CheckCircle className="h-3 w-3" />
       <span>Auto-filled from profile</span>
@@ -28,10 +28,10 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
   const [expanded, setExpanded] = useState(false)
 
   const getColor = () => {
-    if (completionPercentage >= 100) return 'bg-success/10 text-success-foreground border-success/30'
-    if (completionPercentage >= 80) return 'bg-success/10 text-success-foreground border-success/30'
-    if (completionPercentage >= 60) return 'bg-warning/10 text-warning-foreground border-warning/30'
-    return 'bg-destructive/10 text-destructive-foreground border-destructive/30'
+    if (completionPercentage >= 100) return 'bg-success/10 text-foreground border-success/30'
+    if (completionPercentage >= 80) return 'bg-success/10 text-foreground border-success/30'
+    if (completionPercentage >= 60) return 'bg-warning/10 text-foreground border-warning/30'
+    return 'bg-destructive/10 text-foreground border-destructive/30'
   }
 
   const hasMissing = completionPercentage < 100 && missingFields.length > 0
@@ -41,7 +41,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
       <button
         type="button"
         onClick={hasMissing ? () => setExpanded(!expanded) : undefined}
-        className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium animate-fade-in ${getColor()} ${hasMissing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+        className={`inline-flex min-h-touch items-center space-x-2 px-3 py-1 rounded-full border text-base sm:text-sm font-medium animate-fade-in ${getColor()} ${hasMissing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
         aria-expanded={hasMissing ? expanded : undefined}
         aria-label={`Profile ${completionPercentage}% complete${hasMissing ? `. ${missingFields.length} field${missingFields.length === 1 ? '' : 's'} missing. Click to see details.` : ''}`}
       >
@@ -59,12 +59,12 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
           className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-border bg-card shadow-lg p-3"
           role="tooltip"
         >
-          <p className="text-xs font-semibold text-muted-foreground mb-2">
+          <p className="text-base sm:text-sm font-semibold text-muted-foreground mb-2">
             Missing fields ({missingFields.length}):
           </p>
           <ul className="space-y-1">
             {missingFields.map(({ key, label }) => (
-              <li key={key} className="flex items-center gap-2 text-sm text-foreground">
+              <li key={key} className="flex items-center gap-2 text-base sm:text-sm text-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
                 {label}
               </li>

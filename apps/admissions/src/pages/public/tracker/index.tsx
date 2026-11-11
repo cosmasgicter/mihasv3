@@ -97,7 +97,7 @@ export default function PublicApplicationTracker() {
         (STU-22) — the credential is the tracking link.
       */}
       <Seo
-        title={brandedPageTitle('Track Your Application', brandName)}
+        title={brandedPageTitle('Track your application', brandName)}
         description="Check the status of a submitted application with the tracking link its owner shared."
         path="/track-application"
         siteName={brandName}
@@ -107,11 +107,11 @@ export default function PublicApplicationTracker() {
         <Container size="lg" className="space-y-8 sm:space-y-10">
           <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
             <PageHeader
-              variant="surface"
+              variant="plain"
               icon={<Search className="h-6 w-6" aria-hidden="true" />}
-              title="Track Your Application"
+              title="Track your application"
               description="Check the status of a submitted application with its tracking link. No sign-in required."
-              className="border-0 bg-transparent p-0 shadow-none"
+              className="p-0"
             />
           </div>
 

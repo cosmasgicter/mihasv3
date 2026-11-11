@@ -4,10 +4,10 @@
  * Property 6: Preservation — Non-Auth Errors Still Show Application Not Found
  *
  * These tests verify EXISTING correct behavior that must be preserved:
- * 1. 404 errors from `getById()` show "Application Not Found" on unfixed code
+ * 1. 404 errors from `getById()` show "Application not found" on unfixed code
  * 2. Valid session + valid app ID loads the full status page on unfixed code
  * 3. For any non-AuthenticationError thrown by `getById()`, the error display
- *    shows "Application Not Found" with the error message
+ *    shows "Application not found" with the error message
  *
  * All tests MUST PASS on UNFIXED code.
  *
@@ -53,7 +53,7 @@ const APPLICATION_SERVICE_PATH = path.resolve(
 /** Generate random non-auth error types that getById() might throw */
 const nonAuthErrorArb: fc.Arbitrary<Error> = fc.oneof(
   fc.constant(new Error('Application not found or access denied')),
-  fc.constant(new Error('Not Found')),
+  fc.constant(new Error('Not found')),
   fc.constant(new Error('Network error')),
   fc.constant(new Error('Internal server error')),
   fc.constant(Object.assign(new Error('HTTP 404'), { status: 404 })),
@@ -98,21 +98,21 @@ describe('Property 6: Preservation — Non-Auth Errors Still Show Application No
 
   /**
    * STRUCTURAL TEST: The ApplicationStatus component renders ErrorDisplay
-   * with "Application Not Found" title when there is an error.
+   * with "Application not found" title when there is an error.
    *
    * This verifies the error rendering path exists on both unfixed and
    * fixed code.
    *
    * **Validates: Requirements 3.3, 3.4**
    */
-  it('ApplicationStatus renders ErrorDisplay with "Application Not Found" title', () => {
+  it('ApplicationStatus renders ErrorDisplay with "Application not found" title', () => {
     // This one is about *rendering*, so it reads the page rather than the hook
     // (admissions-v2 task 12.1): the read moved, the error branch did not.
     const source = fs.readFileSync(APPLICATION_STATUS_PAGE_PATH, 'utf-8');
 
     // The component must render ErrorDisplay with the correct title
     expect(source).toContain('ErrorDisplay');
-    expect(source).toContain('Application Not Found');
+    expect(source).toContain('Application not found');
 
     // The error message fallback must include "Application not found"
     expect(source).toContain("error || 'Application not found or access denied'");
@@ -204,7 +204,7 @@ describe('Property 6: Preservation — Non-Auth Errors Still Show Application No
         expect(thrownError).not.toBeInstanceOf(AuthenticationError);
 
         // The component renders ErrorDisplay when error is truthy,
-        // showing "Application Not Found" as the title
+        // showing "Application not found" as the title
         // and the error message (or fallback) as the message.
         // This is verified structurally above; here we confirm the
         // error derivation produces a usable string.

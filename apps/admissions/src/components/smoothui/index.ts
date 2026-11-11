@@ -1,13 +1,7 @@
 /**
  * SmoothUI Components Index
- * Re-exports all SmoothUI-style animated components
+ * Re-exports the SmoothUI-style components the product still uses
  */
-
-// Animated counter for statistics
-export { 
-  AnimatedCounter, 
-  SimpleCounter 
-} from './animated-counter';
 
 // Animated form inputs
 export { AnimatedInput } from './animated-input';

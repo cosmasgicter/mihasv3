@@ -1,0 +1,9 @@
+{
+  "description": "Files loaded by convention rather than by import.",
+  "entries": [
+    {
+      "module": "apps/admissions/src/vite-env.d.ts",
+      "reason": "Vite ambient type declarations are picked up by tsconfig, not imported."
+    }
+  ]
+}

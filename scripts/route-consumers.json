@@ -1,0 +1,83 @@
+{
+  "description": "External_Consumer_List: routes with a real outside consumer. Each entry must name a mounted route; a stale entry fails scripts/routes_report.py.",
+  "entries": [
+    {
+      "route": "/api/v1/payments/webhook/lenco/",
+      "consumer": "Lenco payment gateway (outside caller, HMAC-signed)",
+      "owner": "platform payments owner",
+      "reason": "Lenco calls this URL; the webhook URL is registered with the provider, so no first-party code names it."
+    },
+    {
+      "route": "/api/v1/schema/",
+      "consumer": "OpenAPI tooling (schema export, type generation, CI drift checks)",
+      "owner": "platform backend owner",
+      "reason": "Read by scripts/generate-api-types.sh and the schema CI step, not by the frontend source."
+    },
+    {
+      "route": "/api/v1/docs/",
+      "consumer": "Developers reading the API documentation",
+      "owner": "platform backend owner",
+      "reason": "Swagger UI page served by drf-spectacular; opened in a browser, never called by code."
+    },
+    {
+      "route": "/api/v1/redoc/",
+      "consumer": "Developers reading the API documentation",
+      "owner": "platform backend owner",
+      "reason": "Redoc page served by drf-spectacular; opened in a browser, never called by code."
+    },
+    {
+      "route": "/api/v1/errors/report/",
+      "consumer": "Legacy error-report clients (backwards compatibility)",
+      "owner": "platform backend owner",
+      "reason": "Kept for backwards compatibility per the error-monitoring steering; the frontend reports through the Sentry SDK and no first-party caller names the route. Removal needs usage evidence."
+    },
+    {
+      "route": "/api/v1/email/webhooks/delivery/",
+      "consumer": "Email provider delivery callbacks",
+      "owner": "platform backend owner",
+      "reason": "pending D1.b: decision on whether the delivery webhook stays; the route is left unchanged until the user answers."
+    },
+    {
+      "route": "/api/v2/admin/change-requests/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/approve/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/cancel/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/reject/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v2/admin/change-requests/*/submit/",
+      "consumer": "None today: the tenant change-request workflow is built (service, state machine, outbox emitters) but the tenant console does not call it yet (finding TEN-06)",
+      "owner": "platform tenant-authority owner",
+      "reason": "dormant by decision D5 (option C): the workflow stays mounted for the follow-up that wires the console; the three *.request_change capabilities stay in the catalogue (requirement 8.3)"
+    },
+    {
+      "route": "/api/v1/admin/documents/ocr-opt-in/",
+      "consumer": "operator, through the API",
+      "owner": "platform documents owner",
+      "reason": "D4 opt-in command; no UI in this spec"
+    }
+  ]
+}

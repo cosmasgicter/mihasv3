@@ -23,7 +23,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index =
   >
     <div className={`flex-shrink-0 rounded-lg p-2.5 ${iconBg}`}>{icon}</div>
     <div className="flex-1 min-w-0">
-      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
       <div className="text-sm font-semibold text-foreground mt-1 break-words">{value}</div>
     </div>
   </div>
@@ -33,13 +33,13 @@ export const ApplicationInfoGrid: React.FC<ApplicationInfoGridProps> = ({ applic
   <div className={`space-y-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
     <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
       <Info className="h-5 w-5 text-primary" />
-      Application Details
+      Application details
     </h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <InfoCard icon={<FileText className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Application Number" value={<span className="font-mono">{application.application_number}</span>} index={0} />
-      <InfoCard icon={<GraduationCap className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Program" value={displayValue(application.program_name, 'Program unavailable')} index={1} />
-      <InfoCard icon={<Calendar className="h-4 w-4 text-warning" />} iconBg="bg-warning/10" label="Intake Period" value={displayValue(application.intake_name, 'Intake unavailable')} index={2} />
-      <InfoCard icon={<Clock className="h-4 w-4 text-orange-600" />} iconBg="bg-orange-100" label="Submitted On" value={application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'} index={3} />
+      <InfoCard icon={<FileText className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Application number" value={<span className="font-mono">{application.application_number}</span>} index={0} />
+      <InfoCard icon={<GraduationCap className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Programme" value={displayValue(application.program_name, 'Programme unavailable')} index={1} />
+      <InfoCard icon={<Calendar className="h-4 w-4 text-warning" />} iconBg="bg-warning/10" label="Intake period" value={displayValue(application.intake_name, 'Intake unavailable')} index={2} />
+      <InfoCard icon={<Clock className="h-4 w-4 text-orange-600" />} iconBg="bg-orange-100" label="Submitted on" value={application.submitted_at ? formatDisplayDate(application.submitted_at) : 'Not submitted yet'} index={3} />
       <InfoCard icon={<MapPin className="h-4 w-4 text-indigo-600" />} iconBg="bg-indigo-100" label="Institution" value={getInstitutionName(application.institution)} index={4} />
     </div>
   </div>

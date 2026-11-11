@@ -53,8 +53,8 @@ const FRAMER_MOTION_IMPORT = /from\s+['"]framer-motion['"]/;
  * one file keeps the property test enforceable everywhere else without
  * forcing a costly hand-rolled CSS reimplementation of every primitive.
  *
- * The landing-page hero now uses CSS-only `hero-enter` / `hero-float`
- * animations, so it is deliberately not exempted from this guard.
+ * The landing-page hero carries no animation (task 33.1), so it is
+ * deliberately not exempted from this guard.
  */
 const FRAMER_MOTION_ALLOWLIST = [
   'src/components/motion/index.tsx',

@@ -509,7 +509,7 @@ describe('ApplicationHistory renders the platform\u2019s own rows', () => {
         ]}
       />,
     )
-    expect(screen.getByText(/Submitted \u2192 Under Review/)).toBeTruthy()
+    expect(screen.getByText(/Submitted \u2192 Under review/)).toBeTruthy()
     expect(screen.getByText('A. Reviewer')).toBeTruthy()
     expect(screen.getByText('Assigned to the nursing panel.')).toBeTruthy()
   })

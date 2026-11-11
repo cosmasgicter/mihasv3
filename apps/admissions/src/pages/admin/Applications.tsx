@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   FiltersPanel,
   ApplicationsTable,
   ApplicationsTableView,
   ApplicationsSkeleton,
-  ApplicationDetailModal
+  ApplicationReviewWorkspace
 } from '@/components/admin/applications'
 import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
+import { ReviewNotFound } from '@/components/admin/applications/ReviewNotFound'
 import { RosterPagination } from '@/components/admin/applications/RosterPagination'
 import {
   APPLICATION_FILTER_KEYS,
@@ -25,6 +26,7 @@ import type {
 import type { FilterSelectOption } from '@/components/admin/applications/FiltersPanel'
 import type { ApplicationWithDetails } from '@/components/admin/applications/applicationDetailTypes'
 import { Button } from '@/components/ui/Button'
+import { pathFor } from '@/routes/routeRegistry'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
@@ -34,6 +36,8 @@ import { reportError } from '@/lib/errorReporter'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
+import { useAdminQueueViewStore, resolveQueueView } from '@/stores/adminQueueViewStore'
+import { useQueueWidthBand } from '@/hooks/admin/useQueueWidthBand'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
@@ -55,6 +59,8 @@ import type { StatusCommandOptions } from '@/types/statusCommand'
 // within the inclusive range 30–50. The card grid switches to the virtualized
 // renderer once the loaded application count exceeds this value.
 export const ADMIN_CARD_VIRTUALIZATION_THRESHOLD = 40
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * A server facet rendered as a select's options (task 9.1, ADM-01).
@@ -175,26 +181,6 @@ const getErrorStatus = (error: unknown): number =>
     ? error.status
     : 0
 
-function useIsMobileViewport() {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.innerWidth < 640
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined
-
-    const mediaQuery = window.matchMedia('(max-width: 639px)')
-    const handleChange = () => setIsMobile(mediaQuery.matches)
-
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
-  return isMobile
-}
-
 export default function Applications() {
   const {
     filters,
@@ -278,16 +264,32 @@ export default function Applications() {
 
   const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
   const [isExportingRoster, setIsExportingRoster] = useState(false)
-  const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
-  const [showDetails, setShowDetails] = useState(false)
+  /*
+    The review is the route (task 30.2, R17.2): `/admin/applications/:applicationId`
+    renders this same page, so the queue's filters (in the query string), its
+    selection and its scroll position stay where they were while a review is open.
+  */
+  const { applicationId: routeApplicationId } = useParams<{ applicationId?: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const reviewId = routeApplicationId ?? null
+  const reviewIdIsValid = reviewId !== null && UUID_PATTERN.test(reviewId)
+  const selectedApplication = reviewIdIsValid ? reviewId : null
+  const showDetails = selectedApplication !== null
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [modalLoading, setModalLoading] = useState<{
     notification: boolean
   }>({ notification: false })
   const [showFilters, setShowFilters] = useState(false)
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
-  const isMobileViewport = useIsMobileViewport()
+  // The view is the admin's choice when there is one, otherwise the width
+  // band's default (task 30.1, R17.1). A resize never writes the choice.
+  const widthBand = useQueueWidthBand()
+  const chosenView = useAdminQueueViewStore(state => state.chosenView)
+  const setChosenView = useAdminQueueViewStore(state => state.setChosenView)
+  const effectiveViewMode = resolveQueueView(widthBand, chosenView)
+  const viewMode = effectiveViewMode
+  const setViewMode = setChosenView
 
   // Filter options are the server's facets over the whole filtered set, not a
   // `Set` harvested from the rows this page happened to load (ADM-01). An
@@ -304,13 +306,6 @@ export default function Applications() {
   const confirmDialog = useConfirmDialog()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const effectiveViewMode = isMobileViewport ? 'cards' : viewMode
-
-  useEffect(() => {
-    if (isMobileViewport && viewMode === 'table') {
-      setViewMode('cards')
-    }
-  }, [isMobileViewport, viewMode])
   // Track which application is currently being updated (for virtualized grid)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
@@ -344,14 +339,18 @@ export default function Applications() {
   }, [exportRoster, isExportingRoster, showError, showInfo, showSuccess])
 
   const handleViewDetails = useCallback((applicationId: string) => {
-    setSelectedApplication(applicationId)
-    setShowDetails(true)
-  }, [])
+    navigate(`${pathFor('admin.applications')}/${applicationId}${location.search}`)
+  }, [navigate, location.search])
 
+  const reviewHref = useCallback(
+    (applicationId: string) => `${pathFor('admin.applications')}/${applicationId}${location.search}`,
+    [location.search],
+  )
+
+  // Back to the queue with the same query string, so the filters are unchanged.
   const handleCloseDetails = useCallback(() => {
-    setShowDetails(false)
-    setSelectedApplication(null)
-  }, [])
+    navigate(`${pathFor('admin.applications')}${location.search}`)
+  }, [navigate, location.search])
 
   const selectedApp = useMemo(() => {
     if (!selectedApplication) return null
@@ -442,11 +441,11 @@ export default function Applications() {
       setUpdatingPaymentId(applicationId)
       const result = await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
 
-      // Handle advisory warning (no payment proof uploaded)
+      // Handle advisory warning (payment not verified)
       if (isWarningResult(result)) {
         const confirmed = await confirmDialog.confirm({
-          title: 'Payment Warning',
-          message: result.message || 'No payment proof uploaded. Proceed anyway?',
+          title: 'Payment warning',
+          message: result.message || 'Payment has not been verified. Proceed anyway?',
           confirmText: 'Proceed',
           cancelText: 'Cancel',
           variant: 'danger'
@@ -548,7 +547,7 @@ export default function Applications() {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable) return
-      if (showDetails) {
+      if (reviewId) {
         if (e.key === 'Escape') { handleCloseDetails(); e.preventDefault() }
         return
       }
@@ -562,7 +561,46 @@ export default function Applications() {
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [showDetails, handleCloseDetails, handleRefresh])
+  }, [reviewId, handleCloseDetails, handleRefresh])
+
+  const reviewWorkspace = reviewIdIsValid && reviewId ? (
+    <ApplicationReviewWorkspace
+      applicationId={reviewId}
+      seed={selectedApp}
+      layout={widthBand === 'wide' ? 'pane' : 'page'}
+      updating={null}
+      onClose={handleCloseDetails}
+      onSendNotification={handleSendNotification}
+      onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
+    />
+  ) : null
+  const reviewPane = widthBand === 'wide' && reviewId ? (reviewWorkspace ?? <ReviewNotFound asPage={false} />) : null
+
+  // Below 1024px the review is the whole page, with a way back that keeps the
+  // queue's query string (task 30.3, R17.3).
+  if (reviewId && widthBand !== 'wide') {
+    return (
+      <>
+        <Seo
+          title="Application review | Beanola Admissions"
+          description="Review one admissions application."
+          path="/admin/applications"
+          noindex
+        />
+        {reviewWorkspace ?? <ReviewNotFound asPage />}
+        <ConfirmAlertDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={confirmDialog.handleCancel}
+          onConfirm={confirmDialog.handleConfirm}
+          title={confirmDialog.options.title}
+          message={confirmDialog.options.message}
+          confirmText={confirmDialog.options.confirmText}
+          cancelText={confirmDialog.options.cancelText}
+          variant={confirmDialog.options.variant}
+        />
+      </>
+    )
+  }
 
   return (
     <>
@@ -574,8 +612,8 @@ export default function Applications() {
       />
     <PageShell
       title="Applications"
-      eyebrow="Admissions Review"
-      subtitle="Review intake volume, payment proof, and decision readiness from a single triage surface built for fast, accurate approvals."
+      eyebrow="Admissions review"
+      subtitle="Review intake volume, payment status and decision readiness in one place."
       maxWidth="7xl"
       tone="admin"
       metrics={metrics}
@@ -614,7 +652,7 @@ export default function Applications() {
             variant="ghost"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="sm:hidden"
+            className="min-w-touch sm:hidden"
             aria-label="Toggle filters"
             aria-expanded={showFilters}
           >
@@ -624,6 +662,7 @@ export default function Applications() {
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
+            className="min-w-touch"
             aria-label="Refresh applications"
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -644,9 +683,9 @@ export default function Applications() {
               <div className="absolute right-0 top-full mt-2 z-50 w-52 rounded-lg border border-border bg-card p-3 shadow-md text-xs">
                 <p className="font-semibold text-foreground mb-2">Keyboard shortcuts</p>
                 <div className="space-y-1.5 text-muted-foreground">
-                  <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">R</kbd></div>
-                  <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">/</kbd></div>
-                  <div className="flex justify-between"><span>Close modal</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd></div>
+                  <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">R</kbd></div>
+                  <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">/</kbd></div>
+                  <div className="flex justify-between"><span>Close review</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Esc</kbd></div>
                 </div>
               </div>
             )}
@@ -656,6 +695,11 @@ export default function Applications() {
     >
       {/* Filters and content */}
       <div className="px-4 py-4 pb-28 sm:px-6 sm:pb-4">
+      <div
+        className={reviewPane ? 'grid grid-cols-[minmax(420px,2fr)_minmax(0,3fr)] items-start gap-6' : undefined}
+        data-review-layout={reviewPane ? 'split' : undefined}
+      >
+      <div className="min-w-0">
         {/*
           Export bar. One button, because there is one export: the server's
           page-independent CSV over the whole filtered set. It appears only when
@@ -735,6 +779,7 @@ export default function Applications() {
           data-roster-filters="desktop"
         >
           <FiltersPanel
+            narrow={Boolean(reviewPane)}
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
             paymentFilter={filters.paymentFilter}
@@ -759,7 +804,7 @@ export default function Applications() {
         {error && (
           <div className="mb-6">
             <ErrorDisplay
-              title="Error Loading Applications"
+              title="Error loading applications"
               message={error}
               onRetry={handleRefresh}
               variant="inline"
@@ -790,6 +835,7 @@ export default function Applications() {
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
+            reviewHref={reviewHref}
             onStatusUpdate={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<void>}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
@@ -841,15 +887,13 @@ export default function Applications() {
           onBulkAction={handleBulkAction as (action: string, ids: string[]) => Promise<void>}
           onClearSelection={() => setSelectedIds([])}
         />
-
-        <ApplicationDetailModal
-          application={selectedApp}
-          show={showDetails}
-          updating={null}
-          onClose={handleCloseDetails}
-          onSendNotification={handleSendNotification}
-          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
-        />
+      </div>
+      {reviewPane && (
+        <aside aria-label="Application review" className="sticky top-4 min-w-0">
+          {reviewPane}
+        </aside>
+      )}
+      </div>
       </div>
     </PageShell>
     <ConfirmAlertDialog

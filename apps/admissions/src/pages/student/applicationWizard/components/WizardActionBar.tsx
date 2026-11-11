@@ -41,6 +41,7 @@
  * colour alone. A conflict offers the two resolutions design §8.2 names — reload
  * the newer version, or explicitly keep the student's own changes on top of it.
  */
+import { useId } from 'react'
 import { ArrowLeft, ArrowRight, HardDrive, RefreshCw, Save, Send, WifiOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
@@ -51,7 +52,7 @@ import type { WizardDraftSaveStatus } from '@/lib/wizardDraftController'
 import { previousButtonLabel, saveNowLabel } from '../steps/config'
 
 export interface WizardActionBarProps {
-  /** Label of the previous step, for the back control's accessible name. */
+  /** Title of the previous step, for the back control's description. */
   previousStepTitle: string | null
   /** Label of the next step, for the forward control's accessible name. */
   nextStepTitle: string | null
@@ -97,6 +98,10 @@ export function WizardActionBar({
   isOnline,
   keyboardOpen,
 }: WizardActionBarProps) {
+  // The visible text is each button's name (WCAG 2.5.3); where it goes is the description.
+  const idBase = useId()
+  const previousTargetId = `${idBase}-previous-target`
+  const nextTargetId = `${idBase}-next-target`
   const indicatorStatus: 'idle' | 'saving' | 'saved' | 'error' =
     saveStatus === 'conflict' || saveStatus === 'error'
       ? 'error'
@@ -122,17 +127,17 @@ export function WizardActionBar({
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <div className="flex min-w-0 items-center gap-2">
           {showOfflineBadge && (
-            <span
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-warning"
+            <span data-text-role="caption"
+              className="inline-flex items-center gap-1.5 text-sm sm:text-xs font-medium text-warning"
               data-testid="wizard-offline-badge"
             >
               <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Offline — saved on this device
+              Offline: saved on this device
             </span>
           )}
           {!showOfflineBadge && saveStatus === 'retrying' && (
             <span
-              className="inline-flex min-h-[24px] items-center gap-1.5 text-sm text-warning"
+              className="inline-flex min-h-[24px] items-center gap-1.5 text-base sm:text-sm text-warning"
               data-testid="wizard-save-retrying"
               role="status"
               aria-live="polite"
@@ -146,7 +151,7 @@ export function WizardActionBar({
           )}
           {!showOfflineBadge && saveStatus === 'saved-local' && (
             <span
-              className="inline-flex min-h-[24px] items-center gap-1.5 text-sm text-muted-foreground"
+              className="inline-flex min-h-[24px] items-center gap-1.5 text-base sm:text-sm text-muted-foreground"
               data-testid="wizard-save-local"
               role="status"
               aria-live="polite"
@@ -179,7 +184,7 @@ export function WizardActionBar({
 
       {alertMessage && (
         <div className="mb-2 flex flex-wrap items-center gap-2" role="alert">
-          <p className="min-w-0 flex-1 break-words text-xs font-medium text-destructive">
+          <p className="min-w-0 flex-1 break-words text-base sm:text-sm font-medium text-destructive">
             {saveError}
           </p>
           {saveStatus === 'conflict' && onReloadConflict && (
@@ -209,7 +214,7 @@ export function WizardActionBar({
 
       {politeMessage && (
         <p
-          className="mb-2 min-w-0 break-words text-xs text-muted-foreground"
+          className="mb-2 min-w-0 break-words text-base sm:text-sm text-muted-foreground"
           data-testid="wizard-save-detail"
         >
           {saveError}
@@ -230,11 +235,16 @@ export function WizardActionBar({
               onClick={onPrev}
               disabled={loading}
               className="min-h-touch"
-              aria-label={`Go back to ${previousStepTitle}`}
+              aria-describedby={previousTargetId}
             >
-              <ArrowLeft className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-              <span className="hidden sm:inline">{previousButtonLabel}</span>
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>{previousButtonLabel}</span>
             </Button>
+          )}
+          {previousStepTitle && (
+            <span id={previousTargetId} className="sr-only">
+              Goes to {previousStepTitle}
+            </span>
           )}
         </div>
 
@@ -248,11 +258,11 @@ export function WizardActionBar({
               className="min-h-touch max-w-full whitespace-normal text-left"
             >
               {loading ? (
-                'Submitting...'
+                'Submitting…'
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" aria-hidden="true" />
-                  Submit Application
+                  Submit application
                 </>
               )}
             </Button>
@@ -264,7 +274,7 @@ export function WizardActionBar({
               loading={loading}
               disabled={loading || nextDisabled}
               className="min-h-touch max-w-full whitespace-normal text-left"
-              aria-label={`Continue to ${nextStepTitle ?? 'next step'}`}
+              aria-describedby={nextStepTitle ? nextTargetId : undefined}
             >
               {loading ? (
                 nextLabel
@@ -275,6 +285,11 @@ export function WizardActionBar({
                 </>
               )}
             </Button>
+          )}
+          {!isLastStep && nextStepTitle && (
+            <span id={nextTargetId} className="sr-only">
+              Goes to {nextStepTitle}
+            </span>
           )}
         </div>
       </div>

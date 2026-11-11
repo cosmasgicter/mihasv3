@@ -1,7 +1,0 @@
-
-Running 1 test using 1 worker
-
-  ✓  1 [chromium-required] › tests/harness-e2e/required/admin-user-directory.spec.ts:227:1 › the role select offers whole-set counts, not the loaded rows (1.7s)
-
-  1 passed (15.7s)
-EXIT=0

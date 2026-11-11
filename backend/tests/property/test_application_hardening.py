@@ -286,7 +286,7 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         1. Pass notes containing [FORCE-BYPASS] to transition_application_status
         2. Store {"force_bypass": true} in the history changes JSONB
         3. Log a warning"""
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         mock_request = MagicMock()
         mock_request.data = {
@@ -373,7 +373,7 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
     ):
         """When force=False, the notes must NOT contain [FORCE-BYPASS]
         and no force_bypass changes should be stored."""
-        from apps.applications.views import ApplicationReviewView
+        from apps.applications.admin_review_views import ApplicationReviewView
 
         mock_request = MagicMock()
         mock_request.data = {

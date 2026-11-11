@@ -174,10 +174,10 @@ const IntakeFormFields = ({
         <option value="2">Semester 2 (July)</option>
       </select>
     </div>
-    <Input label="Start Date" type="date" {...register('start_date')} error={errors.start_date?.message} required />
-    <Input label="End Date" type="date" {...register('end_date')} error={errors.end_date?.message} required />
-    <Input label="Application Deadline" type="date" {...register('application_deadline')} error={errors.application_deadline?.message} required />
-    <Input label="Max Capacity" type="number" {...register('max_capacity')} error={errors.max_capacity?.message} required />
+    <Input label="Start date" type="date" {...register('start_date')} error={errors.start_date?.message} required />
+    <Input label="End date" type="date" {...register('end_date')} error={errors.end_date?.message} required />
+    <Input label="Application deadline" type="date" {...register('application_deadline')} error={errors.application_deadline?.message} required />
+    <Input label="Max capacity" type="number" {...register('max_capacity')} error={errors.max_capacity?.message} required />
   </div>
 )
 
@@ -321,7 +321,7 @@ export default function AdminIntakes() {
       />
     <PageShell
       title="Intakes"
-      eyebrow="Admissions Calendar"
+      eyebrow="Admissions calendar"
       subtitle="Manage admission intakes, windows, deadlines, and readiness for upcoming cohorts."
       maxWidth="7xl"
       tone="admin"
@@ -345,7 +345,7 @@ export default function AdminIntakes() {
             </Button>
           </Link>
           <Button onClick={openCreate} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" /> Add Intake
+            <Plus className="h-4 w-4 mr-2" /> Add intake
           </Button>
         </div>
       }
@@ -375,7 +375,7 @@ export default function AdminIntakes() {
                   variant="outline" 
                   className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5"
                 >
-                  Try Again
+                  Try again
                 </Button>
               </div>
             ) : intakes.length === 0 ? (
@@ -383,13 +383,13 @@ export default function AdminIntakes() {
                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Calendar className="h-10 w-10" aria-hidden="true" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-2">No intakes yet</h2>
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate}>
                   <Plus className="h-5 w-5 mr-2" aria-hidden="true" />
-                  Create First Intake
+                  Create first intake
                 </Button>
               </div>
             ) : (
@@ -470,7 +470,7 @@ export default function AdminIntakes() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium ${bg} ${text}`}
                           title={label}
-                          aria-label={`${enrollment} of ${row.max_capacity} enrolled — ${label}`}
+                          aria-label={`${enrollment} of ${row.max_capacity} enrolled: ${label}`}
                         >
                           <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
                           <span>{enrollment}/{row.max_capacity}</span>
@@ -542,7 +542,7 @@ export default function AdminIntakes() {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Intake</DialogTitle>
+            <DialogTitle>Create intake</DialogTitle>
             <DialogDescription>Enter intake details below.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(createIntake)}>
@@ -573,7 +573,7 @@ export default function AdminIntakes() {
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Intake</DialogTitle>
+            <DialogTitle>Edit intake</DialogTitle>
             <DialogDescription>Update intake details below.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(updateIntake)}>
@@ -604,7 +604,7 @@ export default function AdminIntakes() {
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Intake</DialogTitle>
+            <DialogTitle>Delete intake</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete "{currentIntake?.name}"? This action cannot be undone.
             </DialogDescription>

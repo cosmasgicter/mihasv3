@@ -212,7 +212,7 @@ describe('Admin intakes page verification', () => {
   it('renders the Add Intake button', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Add Intake')
+    expect(text).toContain('Add intake')
   })
 
   // ── Empty state ─────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ describe('Admin intakes page verification', () => {
 
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('No Intakes Yet')
+    expect(text).toContain('No intakes yet')
   })
 
   // ── Error state ─────────────────────────────────────────────────────

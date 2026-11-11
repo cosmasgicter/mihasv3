@@ -128,7 +128,7 @@ export function NextActionCards({
         >
           <div className="space-y-3" data-testid={`enrollment-${enrollment.state}`}>
             {enrollment.deadline && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-sm text-muted-foreground">
                 Deadline:{' '}
                 <time dateTime={enrollment.deadline} className="text-foreground">
                   {new Date(enrollment.deadline).toLocaleDateString(undefined, { dateStyle: 'medium' })}
@@ -138,7 +138,7 @@ export function NextActionCards({
             )}
 
             {enrollment.state === 'blocked' && enrollmentNote && (
-              <p className="flex items-start gap-2 text-sm text-warning-foreground">
+              <p className="flex items-start gap-2 text-base sm:text-sm text-foreground">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" aria-hidden="true" />
                 <span data-testid="enrollment-blocker">{enrollmentNote.message}</span>
               </p>
@@ -151,7 +151,7 @@ export function NextActionCards({
                 disabled={enrollPending}
                 className="w-full sm:w-auto"
               >
-                {enrollPending ? 'Confirming\u2026' : 'Confirm Enrollment'}
+                {enrollPending ? 'Confirming\u2026' : 'Confirm enrollment'}
               </Button>
             )}
 
@@ -160,7 +160,7 @@ export function NextActionCards({
               least one, so this surface never dead-ends — 6.5's rule.
             */}
             {!enrollment.can_confirm && enrollment.allowed_actions.length > 0 && (
-              <ul className="space-y-1 text-sm text-muted-foreground">
+              <ul className="space-y-1 text-base sm:text-sm text-muted-foreground">
                 {enrollment.allowed_actions.map(action => (
                   <li key={action.action} className="flex items-start gap-2">
                     <Clock className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -170,7 +170,7 @@ export function NextActionCards({
               </ul>
             )}
 
-            {enrollError && <p className="text-sm text-error">{enrollError}</p>}
+            {enrollError && <p className="text-base sm:text-sm text-error">{enrollError}</p>}
           </div>
         </SectionCard>
       )}
@@ -182,7 +182,7 @@ export function NextActionCards({
           icon={<Clock className="h-5 w-5 text-amber-600" />}
         >
           {waitlistPosition && waitlistPosition.position > 0 && (
-            <p className="text-sm font-medium text-amber-800">
+            <p className="text-base sm:text-sm font-medium text-amber-800">
               Position {waitlistPosition.position} of {waitlistPosition.total}
             </p>
           )}

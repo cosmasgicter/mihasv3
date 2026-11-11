@@ -2,11 +2,11 @@
  * TenantListPanel (enterprise-tenant-authority, task 13.2).
  *
  * The school/tenant selector for the tenant consoles. Authority-aware:
- *   - A Super_Admin sees **all** tenants and the **"New institution"** control
+ *   - A Super_Admin sees **all** tenants and the **"Quick create (profile only)"** control (was "New institution", task 30.6)
  *     (R12.2), gated on the `platform.tenant.create` capability.
  *   - A non-super-admin (if this panel is ever rendered for them) sees **only**
  *     the institutions passed in (the backend already scopes the list to their
- *     memberships/grants) and **never** the "New institution" control
+ *     memberships/grants) and **never** the quick-create control
  *     (R12.3, R12.4).
  *
  * On a backend 403 loading the list it renders a precise authorization message
@@ -48,17 +48,18 @@ export function TenantListPanel({
 }: TenantListPanelProps) {
   const { can } = useCapabilities()
 
-  // R12.2 / R12.4: the "New institution" control is shown only to an actor with
+  // R12.2 / R12.4: the quick-create control is shown only to an actor with
   // the platform tenant-create capability — never to a tenant-admin.
   const canCreate = Boolean(onNew) && can('platform.tenant.create')
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-foreground">{heading}</h2>
+    <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="min-w-0 text-base font-semibold text-foreground">{heading}</h2>
         {canCreate && (
-          <Button type="button" size="sm" onClick={onNew}>
-            <Plus className="h-4 w-4" aria-hidden="true" /> New institution
+          /* Secondary: the wizard is the primary path; this opens the blank inline profile form (task 30.6, R17.11). */
+          <Button type="button" size="sm" variant="secondary" onClick={onNew}>
+            <Plus className="h-4 w-4" aria-hidden="true" /> Quick create (profile only)
           </Button>
         )}
       </div>
@@ -82,8 +83,9 @@ export function TenantListPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">{tenant.brand_name || tenant.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{tenant.full_name || tenant.name}</p>
+                  {/* Wrapped, not truncated: a long school name is not cut off at 390 px (task 30.6, R17.12). */}
+                  <p className="break-words text-sm font-semibold text-foreground">{tenant.brand_name || tenant.name}</p>
+                  <p className="break-words text-sm text-muted-foreground">{tenant.full_name || tenant.name}</p>
                 </div>
                 <StatusBadge
                   tone={tenant.is_active === false ? 'muted' : 'success'}

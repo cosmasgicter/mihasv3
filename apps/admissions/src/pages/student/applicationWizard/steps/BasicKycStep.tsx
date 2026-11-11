@@ -17,7 +17,6 @@ interface BasicKycStepProps {
   hasAutoPopulatedData: boolean
   completionPercentage: number
   missingFields?: { key: string; label: string }[]
-  title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
   getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
 }
@@ -33,7 +32,6 @@ const BasicKycStep = ({
   hasAutoPopulatedData,
   completionPercentage,
   missingFields,
-  title,
   getFieldAriaDescribedBy
 }: BasicKycStepProps) => {
   const {
@@ -50,34 +48,33 @@ const BasicKycStep = ({
       className={`overflow-visible bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        {hasAutoPopulatedData && (
+      {hasAutoPopulatedData && (
+        <div className="mb-4 flex">
           <ProfileCompletionBadge completionPercentage={completionPercentage} missingFields={missingFields} />
-        )}
-      </div>
+        </div>
+      )}
 
       {hasAutoPopulatedData && (
         <div
-          className={`mb-4 p-3 bg-accent/10 border border-accent rounded-lg ${shouldAnimate ? animateClasses.slideUp : ''}`}
+          className={`mb-4 p-3 bg-accent/10 rounded-lg ${shouldAnimate ? animateClasses.slideUp : ''}`}
         >
-          <div className="flex items-center space-x-2 text-sm text-accent-foreground">
+          <div className="flex items-center space-x-2 text-base sm:text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">Profile details pre-filled</span>
           </div>
-          <p className="text-xs text-foreground mt-1">
+          <p className="text-base sm:text-sm text-foreground mt-1">
             Review them before continuing.
           </p>
         </div>
       )}
 
       <fieldset className="border-none p-0 m-0">
-        <legend className="sr-only">Personal Information</legend>
+        <legend className="sr-only">Personal information</legend>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
             <AnimatedInput
               {...register('full_name', { onBlur: () => trigger('full_name') })}
-              label="Full Name *"
+              label="Full name"
               autoComplete="name"
               error={errors.full_name?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('full_name')}
@@ -87,7 +84,7 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(1) : undefined}>
             <AnimatedInput
               {...register('nrc_number')}
-              label="NRC Number"
+              label="NRC number"
               placeholder="e.g., 123456/78/9"
               autoComplete="off"
               inputMode="text"
@@ -100,7 +97,7 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(2) : undefined}>
             <AnimatedInput
               {...register('passport_number')}
-              label="Passport Number"
+              label="Passport number"
               autoComplete="off"
               error={errors.passport_number?.message}
               helperText="NRC or Passport required"
@@ -112,7 +109,7 @@ const BasicKycStep = ({
               type="date"
               autoComplete="bday"
               {...register('date_of_birth')}
-              label="Date of Birth *"
+              label="Date of birth"
               max={new Date().toISOString().split('T')[0]}
               error={errors.date_of_birth?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('date_of_birth')}
@@ -141,7 +138,7 @@ const BasicKycStep = ({
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              label="Phone Number *"
+              label="Phone number"
               placeholder="e.g., +260971234567"
               helperText="Use digits only after +260; spaces are removed automatically."
               error={errors.phone?.message}
@@ -155,7 +152,7 @@ const BasicKycStep = ({
               inputMode="email"
               autoComplete="email"
               {...register('email', { onBlur: () => trigger('email') })}
-              label="Email Address *"
+              label="Email address"
               error={errors.email?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('email')}
             />
@@ -184,7 +181,8 @@ const BasicKycStep = ({
             <AnimatedInput
               {...register('next_of_kin_name')}
               autoComplete="off"
-              label="Next of Kin Name (Optional)"
+              label="Next of kin name"
+              optional
               error={errors.next_of_kin_name?.message}
             />
           </div>
@@ -195,7 +193,8 @@ const BasicKycStep = ({
               type="tel"
               inputMode="tel"
               autoComplete="off"
-              label="Next of Kin Phone (Optional)"
+              label="Next of kin phone"
+              optional
               error={errors.next_of_kin_phone?.message}
             />
           </div>

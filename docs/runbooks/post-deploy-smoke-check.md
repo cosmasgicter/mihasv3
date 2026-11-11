@@ -2,6 +2,8 @@
 
 ## Purpose
 
+> Note (2026-11-09, platform-simplification task 11.4): the launch rollup this runbook mentions below was removed; `run-smoke-gate.py` remains as a by-hand probe of a deployed target. See `docs/runbooks/launch-verification.md`.
+
 Run this immediately after production deploys to catch obvious
 regressions before users do. The May 2026 `application_documents`
 schema-drift incident (hand-written SQL not applied to the DB before
@@ -244,8 +246,7 @@ curl -fsS -o /dev/null -w '%{http_code}\n' https://api.beanola.com/health/ready/
 ```
 
 Both must return `200`. `/health/live/` is the lightweight liveness probe
-(also the target of the `keep_alive_task` Celery Beat job, every 4 minutes,
-and the external UptimeRobot monitor). `/health/ready/` is the deeper
+(also the target of the external UptimeRobot monitor). `/health/ready/` is the deeper
 readiness probe (DB + Redis connectivity) — the target of the internal
 `check_uptime_task` (every 15 minutes) and what a healthy post-deploy state
 must return before declaring the rollout safe.

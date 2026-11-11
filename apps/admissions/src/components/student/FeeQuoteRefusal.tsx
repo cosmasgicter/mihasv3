@@ -46,13 +46,13 @@ export function FeeQuoteRefusal({ error, onRefresh, className }: FeeQuoteRefusal
 
   return (
     <div className={`space-y-2 ${className ?? ''}`.trim()} role="alert" data-testid="fee-quote-refusal">
-      <p className="text-sm text-destructive" data-testid="fee-quote-error">
+      <p className="text-base sm:text-sm text-destructive" data-testid="fee-quote-error">
         {error.message}
       </p>
       {canRetryHere ? (
         <button
           type="button"
-          className="min-h-touch text-sm font-medium text-primary underline"
+          className="min-h-touch text-base sm:text-sm font-medium text-primary underline"
           onClick={onRefresh}
           data-testid="fee-quote-retry"
         >
@@ -60,7 +60,7 @@ export function FeeQuoteRefusal({ error, onRefresh, className }: FeeQuoteRefusal
         </button>
       ) : (
         guidance && (
-          <p className="text-sm text-muted-foreground" data-testid="fee-quote-guidance">
+          <p className="text-base sm:text-sm text-muted-foreground" data-testid="fee-quote-guidance">
             {guidance}
           </p>
         )

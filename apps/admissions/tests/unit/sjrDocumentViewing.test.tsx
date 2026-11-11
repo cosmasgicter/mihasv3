@@ -173,8 +173,11 @@ describe('the wizard panel (clause 1.20)', () => {
 })
 
 describe('desktop navigation (clause 1.21)', () => {
-  it('lists Application Status in the desktop sidebar', () => {
-    expect(ROUTES.studentStatus.nav?.desktop).toBe(true)
+  it('keeps the documents within two activations of the dashboard (task 34.1 replaced the Status entry, D16)', () => {
+    // "My application" is the dashboard and stays highlighted on the workspace; the
+    // dashboard's application rows link to that workspace, which owns the documents card.
+    expect(ROUTES.studentDashboard.nav?.desktop).toBe(true)
+    expect(ROUTES.studentDashboard.nav?.activeMatchPaths).toContain(ROUTES.studentStatus.path)
   })
 })
 

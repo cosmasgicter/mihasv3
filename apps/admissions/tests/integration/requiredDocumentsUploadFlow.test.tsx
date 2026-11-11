@@ -134,7 +134,7 @@ describe('required-document upload flow (R11.6-R11.8)', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Upload Nursing Council eligibility letter')).toBeTruthy(),
     )
-    expect(screen.getByText(/PDF up to 2MB/)).toBeTruthy()
+    expect(screen.getByText(/PDF, up to 2 MB/)).toBeTruthy()
     expect(request).toHaveBeenCalledWith(CONTRACT_ENDPOINT)
   })
 
@@ -145,7 +145,7 @@ describe('required-document upload flow (R11.6-R11.8)', () => {
     })
 
     render(<Harness />)
-    await waitFor(() => expect(screen.getByText(/PDF up to 2MB/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/PDF, up to 2 MB/)).toBeTruthy())
 
     const oversize = new File([new Uint8Array(3 * 1024 * 1024)], 'letter.pdf', {
       type: 'application/pdf',
@@ -200,7 +200,7 @@ describe('required-document upload flow (R11.6-R11.8)', () => {
     })
 
     render(<Harness />)
-    await waitFor(() => expect(screen.getByText(/PDF up to 2MB/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/PDF, up to 2 MB/)).toBeTruthy())
 
     await selectFile(pdf('council-letter.pdf'))
 
@@ -228,7 +228,7 @@ describe('required-document upload flow (R11.6-R11.8)', () => {
     })
 
     render(<Harness />)
-    await waitFor(() => expect(screen.getByText(/PDF up to 2MB/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/PDF, up to 2 MB/)).toBeTruthy())
     await selectFile(pdf('council-letter.pdf'))
 
     // Initial attempt + one silent retry, then a visible, retryable failure.

@@ -1,5 +1,7 @@
 # Task 7.1 Evidence — Seed and enforce the canonical subject/grade contract
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R11.4-R11.5_
 _Findings: STU-11_
 _Design: design.md §9.2 (Grades — "The subject catalog is seeded and versioned by

@@ -55,6 +55,7 @@ const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
 const AdminProgramFees = React.lazy(() => import('@/pages/admin/ProgramFees'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
+const ForSchoolsPage = React.lazy(() => import('@/pages/public/ForSchoolsPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
 export interface RouteConfig {
@@ -95,6 +96,7 @@ export const routes: RouteConfig[] = [
   fromRegistry('public.home', LandingPage),
   fromRegistry('public.trackApplication', PublicApplicationTracker, { lazy: true }),
   fromRegistry('public.contact', ContactPage, { lazy: true }),
+  fromRegistry('public.forSchools', ForSchoolsPage, { lazy: true }),
   fromRegistry('public.terms', TermsPage, { lazy: true }),
   fromRegistry('public.privacy', PrivacyPage, { lazy: true }),
   fromRegistry('auth.signIn', SignInPage, { lazy: true }),
@@ -158,6 +160,7 @@ export const routes: RouteConfig[] = [
   fromRegistry('admin.dashboard', AdminDashboard, { lazy: true }),
   fromRegistry('admin.profile', AdminSettings, { lazy: true }),
   fromRegistry('admin.applications', AdminApplications, { lazy: true }),
+  fromRegistry('admin.applicationReview', AdminApplications, { lazy: true }),
   fromRegistry('admin.programs', AdminPrograms, { lazy: true }),
   fromRegistry('admin.tenants', AdminTenants, { lazy: true }),
   // Super-admin-only tenant onboarding wizard. The frontend guard blocks

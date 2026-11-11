@@ -106,7 +106,7 @@ or request changes according to their scoped capabilities.
 | `components/student/DownloadReceiptButton.tsx` | `useOfficialDocument('payment_receipt')` | Canonical student receipt surface. | Keep; remove any competing receipt buttons that use local PDF hooks. |
 | `hooks/useAdminOfficialDocuments.ts` | `officialDocumentService` | Canonical admin document hook. | Keep and use as the only admin generation/download path. |
 | `components/admin/applications/AdminOfficialDocumentsPanel.tsx` | `useAdminOfficialDocuments` | Canonical admin panel. | Keep; ensure modal/page actions point here instead of legacy handlers. |
-| `components/admin/applications/ApplicationDetailModal.tsx` | Documents tab renders `AdminOfficialDocumentsPanel`; legacy header generation buttons removed. | Canonical admin document surface. | Keep document generation/download inside the official panel. |
+| `components/admin/applications/ApplicationReviewWorkspace.tsx` | Documents tab renders `AdminOfficialDocumentsPanel`; legacy header generation buttons removed. | Canonical admin document surface. | Keep document generation/download inside the official panel. |
 | `pages/admin/Applications.tsx` | Legacy modal generate handlers removed. | Canonical admin path delegates to modal official panel. | Keep legacy `applicationService.generate*` methods unused until service cleanup/deprecation. |
 | `services/applications.ts` `generate*` methods | Legacy generation endpoints | Legacy service methods. | Remove after admin callers migrate, or mark deprecated and block new imports. |
 | `pages/dev/hooks/useDocumentGeneration.ts` | Client `@/lib/pdf` rendering | Dev-only local renderer; no production callers found. | Keep behind dev namespace or delete after preview tests migrate. |
@@ -133,8 +133,8 @@ override an explicit new/resume intent.
 | `GET /api/v1/applications/?mine=true&status=draft` | Existing list of online drafts. | Canonical multi-draft list API. |
 | `POST /api/v1/applications/` with `status='draft'` | Creates online draft application. | Canonical online draft create API. |
 | `GET/PATCH/DELETE /api/v1/applications/{id}/` | Existing draft detail/update/delete. | Canonical selected-draft resume/update/delete API; delete remains blocked when resolved payment activity exists. |
-| `GET /api/v1/applications/draft/` | Returns latest `ApplicationDraft` row for current user. | Compatibility-only; do not use for production wizard routing. Deprecate after callers are removed. |
-| `POST /api/v1/applications/draft/` | Upserts by user/application id into `ApplicationDraft`. | Compatibility-only local payload backup; must not create a second lifecycle. |
+| `GET /api/v1/applications/draft/` | Removed (task 14.2); answers 404. | Use `/api/v1/applications/drafts/`. |
+| `POST /api/v1/applications/draft/` | Removed (task 14.2); answers 404. | Use `/api/v1/applications/drafts/`. |
 | Duplicate conflict | Some frontend persistence can adopt `existing_id`. | Must require explicit user choice: continue existing, start different program/intake, or cancel. |
 
 Draft lifecycle rules:

@@ -32,6 +32,7 @@ from pathlib import Path
 
 import pytest
 from django.urls import clear_url_caches
+from tests.jobs_ops_urls import reload_jobs_ops_urlconf
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _SCRIPTS_DIR = _REPO_ROOT / "scripts"
@@ -61,13 +62,13 @@ def full_surface_catalogue(settings):
 
     previous = getattr(settings, "ENABLE_JOBS_OPS_ROUTES", False)
     settings.ENABLE_JOBS_OPS_ROUTES = True
-    importlib.reload(config.urls)
+    reload_jobs_ops_urlconf()
     clear_url_caches()
     try:
         catalogue = inv.build_backend_route_catalogue(_REPO_ROOT)
     finally:
         settings.ENABLE_JOBS_OPS_ROUTES = previous
-        importlib.reload(config.urls)
+        reload_jobs_ops_urlconf()
         clear_url_caches()
 
     assert catalogue.get("available") is True, catalogue.get("error")

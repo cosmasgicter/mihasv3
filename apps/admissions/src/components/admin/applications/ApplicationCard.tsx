@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { FileText, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
+import { AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
 import { AdminRecordActions } from '@/components/admin/AdminRecordActions'
@@ -11,6 +11,7 @@ import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { formatDate } from '@/lib/dateFormat'
+import { documentStateText } from '@/lib/adminQueueText'
 import { StatusPill } from '@/components/ui/StatusPill'
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 import type { StatusCommandOptions } from '@/types/statusCommand'
@@ -81,27 +82,10 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     return <StatusPill status={status} size="sm" />
   }, [])
 
-  // Internalized getPaymentBadge function with useCallback
-  const getPaymentBadge = useCallback((paymentStatus: string) => {
-    const normalizedStatus = normalizePaymentStatus(paymentStatus)
-    const paymentConfig = {
-      not_paid: { color: 'bg-muted/80 text-muted-foreground', icon: Clock },
-      pending_review: { color: 'bg-warning/10 text-warning', icon: Clock },
-      verified: { color: 'bg-success/10 text-success', icon: CheckCircle },
-      rejected: { color: 'bg-destructive/10 text-destructive', icon: XCircle },
-      deferred: { color: 'bg-warning/10 text-warning', icon: AlertTriangle }
-    }
-
-    const config = paymentConfig[normalizedStatus]
-    const Icon = config.icon
-
-    return (
-      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.color}`}>
-        <Icon className="h-3 w-3 shrink-0" />
-        <span className="min-w-0 break-words">{getPaymentStatusLabel(normalizedStatus)}</span>
-      </span>
-    )
-  }, [])
+  // Payment is plain text (task 30.4, R17.5): the row's one badge is the
+  // application status.
+  const paymentText = getPaymentStatusLabel(normalizePaymentStatus(app.payment_status))
+  const documentsText = documentStateText(app.current_document_count, app.verified_document_count)
 
   const handleSendMessage = async (data: CommunicationData) => {
     try {
@@ -130,7 +114,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         throw new Error('SMS delivery is not available yet')
       }
 
-      showSuccess('Message Sent', 'Your message has been sent successfully')
+      showSuccess('Message sent', 'Your message has been sent successfully')
     } catch {
       throw new Error('Failed to send message')
     }
@@ -142,7 +126,6 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     return 'text-error'
   }
 
-  const documentsCount = [app.result_slip_url, app.extra_kyc_url].filter(Boolean).length
 
   /**
    * How many commands the decision block contributes to this row's disclosure
@@ -189,14 +172,17 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     }`}>
       {/* Selection Checkbox */}
       {onSelect && (
-        <div className="absolute right-4 top-4">
-          <input
-            aria-label={`Select application ${app.application_number}`}
-            type="checkbox"
-            checked={isSelected}
-            onChange={(e) => onSelect(app.id, e.target.checked)}
-            className="h-4 w-4 rounded-md border-2 border-input text-primary checked:bg-primary checked:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
-          />
+        <div className="absolute right-1 top-1">
+          {/* 44 x 44 hit area, the checkbox and its label measured together (task 30.4, R17.4). */}
+          <label className="inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center">
+            <input
+              aria-label={`Select application ${app.application_number}`}
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => onSelect(app.id, e.target.checked)}
+              className="h-4 w-4 rounded-md border-2 border-input text-primary checked:bg-primary checked:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
+            />
+          </label>
         </div>
       )}
       {/* Header */}
@@ -232,11 +218,11 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         is the token the rest of the roster row already uses.
       */}
       {app.isDraft && (
-        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
+        <div className="mb-4 rounded-lg bg-warning/5 p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-              <span className="min-w-0 break-words text-sm font-medium text-warning">Draft Application</span>
+              <span className="min-w-0 break-words text-sm font-medium text-warning">Draft application</span>
             </div>
             <div className="min-w-0 break-words text-xs text-muted-foreground">
               Last updated: {formatDate(app.lastUpdated)}
@@ -309,8 +295,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {/* Payment & Grades */}
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
-          {getPaymentBadge(app.payment_status)}
+          <div className="text-xs text-muted-foreground mb-1">Payment status</div>
+          <div className="text-sm font-medium text-foreground">{paymentText}</div>
           {/*
             The amounts are printed only when the server sent them. The scoped
             roster contract (task 9.1) does not carry money — `application_fee`
@@ -331,7 +317,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           {normalizePaymentStatus(app.payment_status) === 'deferred' && (
             <div className="mt-1 flex items-center gap-1 text-xs text-warning">
               <Phone className="h-3 w-3" />
-              <span>Contact Student</span>
+              <span>Contact student</span>
             </div>
           )}
         </div>
@@ -358,9 +344,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       </div>
 
       {app.last_payment_audit_notes && (
-        <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
+        <div className="mb-4 rounded-lg bg-warning/5 p-3">
           <div className="mb-1 text-xs font-medium uppercase tracking-wide text-warning">
-            Latest Payment Review Note
+            Latest payment review note
           </div>
           <div className="text-sm text-foreground break-words">
             {app.last_payment_audit_notes}
@@ -369,9 +355,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       )}
 
       {app.grades_summary && (
-        <div className="mb-4 rounded-lg border border-border bg-muted p-3">
+        <div className="mb-4 rounded-lg bg-muted p-3">
           <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
-            Grades Summary
+            Grades summary
           </div>
           <div className="text-sm text-foreground whitespace-pre-line break-words">
             {app.grades_summary}
@@ -379,11 +365,11 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         </div>
       )}
 
-      {/* Documents */}
-      {documentsCount > 0 && (
-        <div className="mb-4 flex min-w-0 items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 p-2">
-          <FileText className="h-4 w-4 shrink-0 text-primary" />
-          <span className="min-w-0 break-words text-sm text-info-strong">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
+      {/* Documents, as plain text from the server's counts (task 30.4, R17.5). */}
+      {documentsText && (
+        <div className="mb-4">
+          <div className="mb-1 text-xs text-muted-foreground">Documents</div>
+          <div className="text-sm font-medium text-foreground">{documentsText}</div>
         </div>
       )}
 
@@ -456,7 +442,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-card/80 ">
           <div className="flex items-center gap-2 text-sm text-foreground">
             <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-            <span>Updating...</span>
+            <span>Updating…</span>
           </div>
         </div>
       )}

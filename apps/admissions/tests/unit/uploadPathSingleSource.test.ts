@@ -2,10 +2,10 @@
  * Single upload path guard (student-journey-repair task 3.7, design R2-d, clause 2.10).
  *
  * `requiredDocumentsService.upload` -> `apiClient.upload` is the only upload
- * transport. Four older stacks remain in the tree, dead at HEAD 4a6c4ef; their
- * deletion is owned by Spec B S2 (DEC-1). Until then this scan freezes them: it
- * names every offending file and line, so a new reference to a dead path fails
- * here instead of quietly reviving a second timeout/retry/validation stack.
+ * transport. The four older stacks were deleted by platform-simplification task
+ * 14.9; this scan stays and names every offending file and line, so a new
+ * reference to a deleted path fails here instead of quietly reviving a second
+ * timeout/retry/validation stack.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -43,26 +43,18 @@ function find(pattern: RegExp): Array<{ rel: string; line: number }> {
 const report = (hits: Array<{ rel: string; line: number }>) =>
   hits.map((hit) => `${hit.rel}:${hit.line}`)
 
-// Dead at HEAD 4a6c4ef; deletion owned by Spec B S2 (DEC-1).
+// The dead stacks were deleted by platform-simplification task 14.9 (D15 item i):
+// `documentService.upload`, `useWizardFileUploads`, `uploadApplicationFile`
+// (with `lib/storage.ts`) and `applicationSlipStorage` (with `slipService.ts`).
+// Nothing is frozen any more, so the only module allowed to name the upload
+// endpoint is the live service, and no module may name a deleted path.
 const FROZEN_UPLOAD_LITERAL_MODULES = new Set([
   'services/requiredDocuments.ts', // the live path
-  'services/documents.ts',
-  'lib/storage.ts',
-  'lib/applicationSlipStorage.ts',
 ])
-
-// Dead at HEAD 4a6c4ef; deletion owned by Spec B S2 (DEC-1).
-const FROZEN_DEAD_REFERENCES: Record<string, string[]> = {
-  'lib/storage.ts': ['uploadApplicationFile'],
-  'lib/slipService.ts': ['applicationSlipStorage'],
-  'pages/student/applicationWizard/hooks/useApplicationFileUploads.ts': ['uploadApplicationFile'],
-  'pages/student/applicationWizard/hooks/wizard/index.ts': ['useWizardFileUploads'],
-  'pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts': ['useWizardFileUploads'],
-}
+const FROZEN_DEAD_REFERENCES: Record<string, string[]> = {}
 const DEAD_SYMBOLS = /documentService\.upload|useWizardFileUploads|uploadApplicationFile|applicationSlipStorage/
-
 describe('upload path single source (R2-d)', () => {
-  it("'/documents/upload/' appears only in the live service and the three frozen dead modules", () => {
+  it("'/documents/upload/' appears only in the live service", () => {
     const offenders = find(/\/documents\/upload\//).filter(
       (hit) => !FROZEN_UPLOAD_LITERAL_MODULES.has(hit.rel),
     )

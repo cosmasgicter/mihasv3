@@ -1,5 +1,7 @@
 # Task 1.5 Evidence — Generate the V2 TypeScript client from candidate OpenAPI
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 _Requirements: R14.2-R14.6 · Findings: API-02, API-04_
 _Required_Evidence: generated-client reproducibility diff, typecheck, architecture test._
 

@@ -277,8 +277,8 @@ describe('the applications roster row (ADM-01)', () => {
     expect(source).toContain('additionalOverflowCount={decisionCommandCount}')
     expect(source).toContain('applicationDecisionCommandCount')
     // R16.5: the row used to carry a third control whose only behaviour was
-    // `onViewDetails` again, under a document icon, beside "View Details".
-    expect(source).not.toContain('title="Result Slip"')
+    // `onViewDetails` again, under a document icon, beside "View details".
+    expect(source).not.toContain('title="Result slip"')
     expect(source.match(/onViewDetails\(app\.id\)/g)?.length).toBe(1)
   })
 })

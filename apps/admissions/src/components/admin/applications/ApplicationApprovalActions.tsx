@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { formatApplicationStatus } from '@/types/applicationStatus'
-import { isPaymentResolvedForApproval, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { isPaymentResolvedForApproval, normalizePaymentStatus, getPaymentStatusLabel } from '@/lib/paymentStatus'
 import type { StatusCommandOptions } from '@/types/statusCommand'
 import { ConditionsDialog } from '@/components/admin/applications/ConditionsDialog'
 import { useState } from 'react'
@@ -108,13 +108,13 @@ export function ApplicationApprovalActions({
     <div className="space-y-3">
       {showStatusSummary && (
         <div className="grid gap-2 sm:grid-cols-2">
-          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
+          <div className="rounded-lg bg-muted/90 px-3 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
             <p className="mt-1 text-sm font-semibold text-foreground">{formatApplicationStatus(currentStatus)}</p>
           </div>
-          <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
+          <div className="rounded-lg bg-muted/90 px-3 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{getPaymentStatusLabel(normalizedPaymentStatus)}</p>
           </div>
         </div>
       )}
@@ -122,7 +122,7 @@ export function ApplicationApprovalActions({
       {/* Application Status Controls */}
       <div>
         <label className="mb-2 block text-xs font-medium text-foreground">
-          Application Status
+          Application status
         </label>
         <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
@@ -134,7 +134,7 @@ export function ApplicationApprovalActions({
               */}
               {showStatusSummary && (
               <div className="flex-1 rounded-lg border border-border bg-muted py-3 text-center">
-                <StatusBadge tone="neutral" label="Draft — not yet submitted" />
+                <StatusBadge tone="neutral" label="Draft: not yet submitted" />
               </div>
               )}
               <Button
@@ -143,7 +143,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : 'Force Submit'}
+                {updatingStatus ? 'Updating…' : 'Force submit'}
               </Button>
             </>
           )}
@@ -155,7 +155,7 @@ export function ApplicationApprovalActions({
               disabled={updatingStatus || disabled}
               className="sm:col-span-2"
             >
-              {updatingStatus ? 'Updating...' : (
+              {updatingStatus ? 'Updating…' : (
                 <>
                   <Clock className="h-3 w-3" />
                   Review
@@ -173,7 +173,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -186,7 +186,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -199,7 +199,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className={`w-full ${OUTLINE_INFO}`}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Conditional
@@ -212,7 +212,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className={`w-full ${OUTLINE_WARNING}`}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Waitlist
@@ -236,7 +236,7 @@ export function ApplicationApprovalActions({
             <>
               {showStatusSummary && (
               <div className="sm:col-span-2 text-center py-2">
-                <StatusBadge tone="info" icon={Clock} label="Conditionally Approved" />
+                <StatusBadge tone="info" icon={Clock} label="Conditionally approved" />
               </div>
               )}
               <Button
@@ -246,7 +246,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -259,7 +259,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -283,7 +283,7 @@ export function ApplicationApprovalActions({
                 className="w-full"
                 title={!isPaymentResolved ? 'Payment must be paid or deferred first' : 'Approve application'}
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Approve
@@ -296,7 +296,7 @@ export function ApplicationApprovalActions({
                 disabled={updatingStatus || disabled}
                 className="w-full"
               >
-                {updatingStatus ? 'Updating...' : (
+                {updatingStatus ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -326,7 +326,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'enrollment_expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <StatusBadge tone="warning" icon={Clock} label="Enrollment Expired" />
+              <StatusBadge tone="warning" icon={Clock} label="Enrollment expired" />
             </div>
           )}
         </div>

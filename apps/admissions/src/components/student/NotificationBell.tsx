@@ -84,7 +84,8 @@ export function NotificationBell() {
         <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         {unreadCount > 0 && (
           <span
-            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground shadow-sm"
+            data-text-role="caption"
+            className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center rounded-full bg-destructive text-sm font-bold leading-none text-destructive-foreground shadow-sm"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -114,7 +115,7 @@ export function NotificationBell() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold text-foreground text-sm">Notifications</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-base sm:text-sm text-muted-foreground mt-0.5">
                     {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
                   </p>
                 </div>
@@ -124,7 +125,7 @@ export function NotificationBell() {
                       variant="ghost"
                       size="sm"
                       onClick={handleMarkAllRead}
-                      className="text-xs text-primary hover:bg-primary/10 min-h-touch"
+                      className="text-base sm:text-sm text-primary hover:bg-primary/10 min-h-touch"
                       data-testid="mark-all-read"
                     >
                       Mark all read
@@ -152,13 +153,13 @@ export function NotificationBell() {
               {loading ? (
                 <div className="p-6 text-center" role="status" aria-label="Loading notifications">
                   <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-muted animate-pulse" aria-hidden="true" />
-                  <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
+                  <p className="text-muted-foreground text-base sm:text-sm mt-2">Loading notifications…</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" aria-hidden="true" />
-                  <p className="font-medium text-foreground text-sm">No new notifications</p>
-                  <p className="text-xs mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
+                  <Bell className="h-10 w-10 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
+                  <p className="font-medium text-foreground text-base sm:text-sm">No new notifications</p>
+                  <p className="text-base sm:text-sm mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
                 </div>
               ) : (
                 <div className="py-1">
@@ -181,7 +182,7 @@ export function NotificationBell() {
                 <div className="flex items-center justify-center">
                   <Link
                     to={isAdmin ? '/admin/dashboard' : '/student/communications'}
-                    className="text-xs font-medium text-primary hover:underline min-h-touch inline-flex items-center"
+                    className="text-base sm:text-sm font-medium text-primary hover:underline min-h-touch inline-flex items-center"
                     onClick={() => setShowPanel(false)}
                   >
                     View all

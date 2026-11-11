@@ -93,7 +93,7 @@ export default function SignUpPage() {
       return result;
     },
     onSuccess: () => {
-      setSuccess('Account created. Opening your dashboard...');
+      setSuccess('Account created. Opening your dashboard…');
       void preloadStudentWorkspaceRoute('signup-success');
 
       redirectTimerRef.current = window.setTimeout(() => {
@@ -181,7 +181,7 @@ export default function SignUpPage() {
             Start your journey with Beanola.{' '}
             <Link
               to="/auth/signin"
-              className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+              className="font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
               Already have an account? Sign in
             </Link>
@@ -340,14 +340,14 @@ export default function SignUpPage() {
             variant="primary"
             size="lg"
           >
-            {signUpMutation.isPending ? 'Creating account...' : 'Create account'}
+            {signUpMutation.isPending ? 'Creating account…' : 'Create account'}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>{' '}
             and{' '}
-            <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+            <Link to="/privacy" className="text-primary hover:underline">Privacy policy</Link>.
           </p>
         </form>
       </AuthShell>

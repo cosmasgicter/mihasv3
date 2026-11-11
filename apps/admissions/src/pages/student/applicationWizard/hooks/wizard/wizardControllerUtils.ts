@@ -93,7 +93,7 @@ export const buildWizardIntakeDisplayName = (intake: Intake & { year?: number })
   const yearString = Number.isFinite(intake.year) ? String(intake.year) : ''
   const includesYear = yearString && normalizedName.includes(yearString)
   const nameWithYear = includesYear ? normalizedName : `${normalizedName} ${yearString}`.trim()
-  return (nameWithYear || normalizedName || yearString || 'Upcoming Intake').trim()
+  return (nameWithYear || normalizedName || yearString || 'Upcoming intake').trim()
 }
 
 export const resolveWizardIntakeIdentity = (

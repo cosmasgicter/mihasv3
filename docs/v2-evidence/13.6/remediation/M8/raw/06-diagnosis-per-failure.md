@@ -1,5 +1,7 @@
 # M8 — diagnosis, one row per in-scope failure
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 Written **before** any fix. Every verdict names the artifact or document it was
 read from, and every "the code is right" / "the test is right" call cites the
 owning task's own evidence rather than a summary that quotes it.

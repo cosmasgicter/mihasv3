@@ -44,7 +44,8 @@ inclusion: always
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Framework | Django 5 + Django REST Framework | Active server implementation |
-| Runtime | Python 3.12+ | Repo config targets Python 3.12+ |
+| Runtime | Python 3.12+ | Repo config targets Python 3.12+; host virtual environments use Python 3.12 (not 3.14, which may lack wheels) |
+| Dependencies | pip-tools locks with hashes | `backend/requirements.in` (runtime) and `requirements-dev.in` (tests) compile to `requirements.txt` and `requirements-dev.txt`; the image installs `requirements.txt` only |
 | App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
 | Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
@@ -73,6 +74,10 @@ inclusion: always
 | `bun run type-check:jobs-ops` | Type-check the jobs-ops app |
 | `bun run lint:jobs-ops` | Lint the jobs-ops app |
 
+### Local stack
+
+The documented local stack is the isolated harness under `harness/` (decision D2). `bash harness/bin/local-setup.sh` is the one bring-up path: it checks Docker with Compose v2, Bun, Git, curl and python3 3.8 or later (exit 3 naming a missing tool), installs from the lockfile, and starts the stack from an empty database. `LOCAL-TESTING.md` is its guide, `bash harness/bin/harness down` wipes it, and `bash harness/bin/harness journey-gate` brings up the same stack through the same script.
+
 ### Admissions App
 
 | Command | Purpose |
@@ -96,6 +101,9 @@ inclusion: always
 | Command | Purpose |
 |---------|---------|
 | `cd backend && python3 -m pytest` | Run backend tests |
+| `docker run --rm -v "$PWD/backend:/w" -w /w python:3.12-slim sh -c "pip install -q pip-tools==7.6.2 && pip-compile --generate-hashes --strip-extras requirements.in && pip-compile --generate-hashes --strip-extras requirements-dev.in"` | Recompile both locks after editing a `.in` file (same image as production; run from the repository root) |
+| `cd backend && pip install --require-hashes -r requirements-dev.txt` | Install the test environment from the lock (`requirements.txt` for runtime only) |
+| `python3 scripts/check_requirements_lock.py` | Lock freshness: recompiles in a temporary copy and fails on any diff or a package pinned at two versions |
 | `cd backend && python3 manage.py check` | Django system checks |
 | `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` | Generate and verify OpenAPI schema |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
@@ -129,12 +137,13 @@ The frontend and backend share a single, unified API contract. There is no compa
 - The admissions frontend calls `***REMOVED***` directly (cross-origin with `credentials: 'include'`). Vercel free tier does not support external rewrites, so there is no same-origin proxy. In local dev, Vite proxies `/api` to the backend.
 - DRF authentication classes are the sole authority for setting `request.user`. The `JWTAuthenticationMiddleware` does NOT authenticate — it only flags expired tokens so 403→401 conversion fires for the frontend refresh interceptor.
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
+- Email verification is not part of the sign-up or submission flow, by decision D8 (option B): there is no verify-email endpoint, route or enforcement, and a new account is usable at once. See the module note in `backend/apps/common/email_links.py`.
 - Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
 - CSRF is required for state-changing requests in authenticated flows. CSRF tokens are validated at the `JWTCookieAuthentication` layer (not middleware). The frontend bootstrap session call (`GET /api/v1/auth/session/?refresh_csrf=1`) requests a fresh token when the in-memory store is empty (e.g. after page refresh). CSRF recovery uses the `?refresh_csrf=1` query parameter (not a custom header) to avoid CORS preflight issues on cross-origin requests. `x-csrf-token`, `x-csrf-recovery`, and `idempotency-key` are all in `CORS_ALLOW_HEADERS`. CSRF tokens are issued by `SessionView` and `RefreshView` in the `X-CSRF-Token` response header. The frontend stores them in-memory only (never localStorage). After a page refresh the in-memory token is lost, so the bootstrap session call includes `?refresh_csrf=1` to force a fresh token. The CSRF recovery flow (`recoverCsrfAndRetry`) also uses `?refresh_csrf=1` instead of a custom header to avoid CORS preflight issues on cross-origin requests.
 - The student, admin and generic route guards (`StudentRoute`, `AdminRoute`, `ProtectedRoute`) make one refresh attempt through `useSessionRestoreOnce` before redirecting to sign-in, showing "Restoring your session" meanwhile. No attempt follows a sign-out, a cross-tab logout or an auth-failure cascade (`suppressSessionRestore()`), and public pages never refresh. The bootstrap session read (`fetchSessionData`) still never POSTs refresh.
 - `CORS_ALLOW_HEADERS` includes `x-csrf-token`, `x-csrf-recovery`, `idempotency-key`, and `cache-control` in addition to the `corsheaders` defaults.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format against `APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX` patterns, returning 400 with `INVALID_FORMAT` for bad formats and descriptive 404 messages for valid-format codes not found.
-- Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
+- Every jobs-ops route is off unless `ENABLE_JOBS_OPS_ROUTES` is on (decision D1, option B): the jobs, job-applications, outreach, automation, integrations, analytics and reports includes under `/api/v1/`, and the seven seed routes under `/api/v1/email/` and `/api/v1/documents/`, answer 404 while it is off. `POST /api/v1/email/send/` stays mounted either way (the admissions admin email action calls it). The email delivery webhook under `/api/v1/email/` stays mounted as before until decision D1.b is answered (`scripts/route-consumers.json`, "pending D1.b").
 
 ## Conventions For New Code
 
@@ -176,7 +185,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 Beanola owns the Platform; MIHAS/KATC are example tenants. The full model lives
 in `.kiro/steering/enterprise-tenancy.md`; the rules below are the engineering
 conventions every backend and frontend change must follow. Spec of record:
-`.kiro/specs/enterprise-tenant-authority/`.
+`.kiro/specs/_archived/enterprise-tenant-authority/`.
 
 - **Centralized authorization is mandatory.** Resolve every authority decision
   through `AdminCapabilityService` (`backend/apps/catalog/services.py`) and the
@@ -211,7 +220,7 @@ conventions every backend and frontend change must follow. Spec of record:
 - **Tenant-sensitive writes and failed authorizations are audited** via
   `TenantAuditService` (`backend/apps/catalog/tenant_audit_service.py`), with
   SHA-256-redacted IP/user-agent and no raw PII.
-- **Capability catalogue + routes are canonical.** The 17 `platform.*` / 17
+- **Capability catalogue + routes are canonical.** The 16 `platform.*` / 17
   `tenant.*` strings and the canonical admin/onboarding/school-console routes,
   backend tenant API paths, deprecated legacy catalog write paths, and the domain
   context endpoint are registered in `docs/canonical-truth-map.md`. Register new
@@ -237,7 +246,7 @@ The platform uses Lenco as its payment gateway for application fees. Key compone
 | `WebhookEventLog` model | `backend/apps/documents/models.py` | Audit trail for all webhook events |
 | `PaymentForm` | `apps/admissions/src/components/student/PaymentForm.tsx` | Shared payment form with mobile money + card method selection |
 | `useLencoWidget` | `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading |
-| `useFeeResolver` | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook |
+| `useFeeQuote` | `apps/admissions/src/hooks/useFeeQuote.ts` | Frontend fee hook: shows the server-authored fee quote (replaced `useFeeResolver`) |
 | `usePaymentStatus` | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
 | `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Wizard payment step: mobile money (primary), card widget (secondary), defer option |
 | `PaymentAuditService` | `backend/apps/documents/payment_audit_service.py` | Payment audit writes + PII redaction; single source of truth for `audit_logs.entity_type='payment'` rows. See `docs/adrs/ADR-003-reuse-audit-logs.md`. |
@@ -333,22 +342,21 @@ Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/
 
 ## Document and Email Generation
 
-There are two document-generation categories, but only one official-document
+There are two document-generation categories, and one official-document
 authority:
 
 | System | Scope | Engine | Entry point |
 |--------|-------|--------|-------------|
 | Official student/admin documents | Application slip, payment receipt, acceptance letter, conditional offer, and future tenant-branded official records | Backend renderers + tenant `InstitutionDocumentProfile` / `InstitutionAsset` config | `GET/POST /api/v1/applications/{id}/official-documents/{document_type}/` via `apps/admissions/src/services/officialDocuments.ts` |
-| Frontend PDF previews | Dev-only or explicitly non-official previews | `@react-pdf/renderer` v4 | `apps/admissions/src/pages/dev/*` and tightly scoped preview helpers only |
 | Admin large-table exports | Audit trail, applications roster | `jspdf` + `jspdf-autotable` (+ `pdf-lib` for user export) | `@/lib/auditExports`, `@/lib/exportUtils` |
 
 **Rules:**
 - Any new **official** student/admin document must be rendered by the backend
   official-document pipeline and configured through tenant document profiles and
-  assets. Do not add a production official-document caller to `@/lib/pdf`.
-- Frontend `@/lib/pdf` code is legacy/preview-only unless a specific
-  non-official preview use case is documented. It must not be reachable from
-  student/admin official download or email flows.
+  assets. There is no browser-side official-document renderer: the client
+  `@react-pdf` stack (`@/lib/pdf` and the `/dev` preview pages) was removed by
+  platform-simplification task 14.1. Do not reintroduce one;
+  `documentFlowDriftGuard.test.ts` fails on any `@/lib/pdf` reference.
 - Any new **admin tabular export** that stays in admin-only flows can continue
   to use `jspdf`.
 - Never mix official documents and table exports — official records need stored
@@ -363,8 +371,8 @@ Transactional emails use a Python component system at `backend/apps/common/email
 See `docs/runbooks/canonical-multi-tenant-alignment.md`,
 `backend/apps/common/email/README.md`, and the official-document sections in
 `docs/canonical-truth-map.md` for the current authority. Historical React-PDF
-docs explain the legacy/preview implementation, not the production official
-document authority.
+docs describe a removed implementation, not the production official document
+authority.
 
 ## Error Monitoring
 
@@ -445,15 +453,14 @@ State-changing endpoints use the `@idempotent` decorator (`backend/apps/common/i
 
 ## Celery Beat Periodic Tasks
 
-Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoid duplicate dispatches). The schedule is defined in `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`:
+Celery Beat runs as one dedicated instance (exactly 1, to avoid duplicate dispatches); `infrastructure.md` describes the production host. The schedule is the 21 entries of `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`; the table below lists the entries it documented before Spec A and the later additions are in that file (a table pinned to the schedule is task 4.4 of the platform-simplification spec):
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to /health/live/ to prevent Koyeb cold starts |
 | `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
-| `cleanup_idempotency_keys` | Daily at 03:00 UTC | Purge expired idempotency key records |
+| `cleanup_idempotency_keys_task` | Daily at 03:00 UTC | Purge expired idempotency key records |
 | `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments, expires payments > 24h, max 50 per run |
 | `process_pending_emails_task` | Every 120 seconds (2 minutes) | Sweep stale pending EmailQueue rows |
 | `intake_manager_task` | Daily at 04:00 UTC | Ensures at least 2 open intakes exist following the Jan/Jul pattern |
@@ -466,8 +473,12 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 | `deferred_payment_reminder_task` | Daily at 11:00 UTC | Reminds students who deferred payment to complete it |
 | `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-completes interviews whose scheduled time has passed |
 | `interview_reminder_task` | Every 3600 seconds (1 hour) | Sends reminder notifications for interviews within next 24 hours |
+| `condition_reminder_task` | Daily at 06:30 UTC | Chases a conditional-admission deadline before it lands |
+| `sweep_pending_domain_verifications_task` | Every 300 seconds (5 minutes) | Re-dispatches committed-but-undispatched domain verification jobs after a broker outage |
+| `sweep_pending_official_document_jobs_task` | Every 300 seconds (5 minutes) | Re-dispatches committed-but-undispatched official-document generation jobs after a broker outage |
+| `reconcile_document_storage_task` | Every 900 seconds (15 minutes) | Deletes staged document objects whose metadata commit never landed, retries deferred compensation, marks exhausted rows orphaned |
 
-Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in `backend/apps/applications/tasks.py`. Intake tasks in `backend/apps/catalog/tasks.py`.
+Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in the `backend/apps/applications/tasks/` package. Intake tasks in `backend/apps/catalog/tasks.py`.
 
 ## Uptime Monitoring
 
@@ -490,7 +501,7 @@ integration on the platform belongs to **jobs-ops**.
 | Surface | Where | Model | Boundary |
 |---------|-------|-------|----------|
 | Jobs-ops match scoring, resume tailoring, outreach drafting, posting analysis | `backend/apps/jobs/ai_service.py` | Vercel AI Gateway (`JOBS_OPS_AI_MODEL_*`) | jobs-ops only |
-| Admissions grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` → `apps/documents/grade_extraction.py` | **server-side Tesseract**, no model | admissions; deterministic |
+| Admissions grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` → `apps/documents/grade_extraction.py` | **server-side Tesseract**, no model | admissions; deterministic; **opt-in per institution** (D4, task 18): runs only for schools in `documents.ocr_enabled_institution_ids` (`apps/documents/ocr_policy.py`), changed through `/api/v1/admin/documents/ocr-opt-in/`; elsewhere extract answers 409 `OCR_NOT_ENABLED` and the wizard offers manual entry only |
 | Admissions review readiness | `apps/applications` review-workspace query | none — deterministic evaluator | admissions |
 | Student submission summary | wizard review step | none — composed from stored fields + validation | admissions |
 
@@ -500,7 +511,7 @@ integration on the platform belongs to **jobs-ops**.
   (gpt-4o-mini), `JOBS_OPS_AI_MODEL_SMART` (deepseek-v3). The **env var** names
   are unchanged (`AI_GATEWAY_API_KEY`, `AI_MODEL_*`) so no deployment was
   re-keyed; only the Django setting names moved.
-- `openai` is declared in `backend/requirements.txt` under an explicit
+- `openai` is declared in `backend/requirements.in` (locked into `requirements.txt`) under an explicit
   **jobs-ops-only** section. Its single importer in the whole backend is
   `apps/jobs/ai_service.py`. It is not a platform dependency and must not become
   one.
@@ -530,19 +541,18 @@ isolation proven by deleting the other product is not isolation.
 
 ## Current Jobs Ops State
 
-- `apps/jobs-ops` is a real operator dashboard, not a placeholder shell.
-- Search and recommendation filtering are implemented in the jobs inbox.
-- Major views have loading states.
+- `apps/jobs-ops` is a frontend over scaffold APIs. Its backend routes are off by default behind `ENABLE_JOBS_OPS_ROUTES` (`config/urls.py:69`) and serve seed data when on.
+- Decision D1 is confirmed as a freeze (2026-11-08) and implemented (platform-simplification tasks 12.1 and 12.2), except that the email delivery webhook step waits for the D1.b answer. While `ENABLE_JOBS_OPS_ROUTES` is off, the metadata endpoint reports `features.jobs_ops: false` and the jobs-ops frontend renders one "Jobs-ops is not enabled" state (`FeatureGate` at the router root, `src/app/FeatureGate.tsx`) that names the setting and fires no feature request.
+- Search and recommendation filtering exist in the jobs inbox, and the major views have loading states.
 - Backend jobs-ops domains exist for jobs, outreach, automation, integrations, analytics, and reports.
-- Schema generation is currently clean.
-- Verified backend suites currently include application endpoints, notification endpoints, and jobs-ops endpoint coverage.
+- Several jobs-ops reads need a session: analytics views use `IsAdmin` (`apps/analytics/views.py`) and the email thread and message reads use `IsAuthenticated` (`apps/integrations/email_views.py`). `apps/jobs-ops/src/auth/` holds only `AuthContext.tsx` and `ProtectedRoute.tsx` (a no-op passthrough) and the app has no sign-in page, so without a session from the admissions app those requests answer 401. How each page renders that 401 was not re-checked in task 9.3.
 
 ## Verification Expectations
 
 - Run relevant backend pytest suites when you change Django code.
 - Startup refusal for missing required variables (prod and staging) is proven by `backend/tests/unit/test_startup_env_validation.py`, which starts real subprocesses.
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
-- Changes under `apps/admissions/`, `backend/` or `harness/` run the blocking student journey gate (`.github/workflows/student-journey-gate.yml`; locally `bash harness/bin/harness journey-gate`). It uses real object storage with a private bucket, 20 s signed URLs and the rate limiter on, and fails on any 429 or 5xx on any page or popup, any console error, any unsigned storage URL, a missing throttle or an accessibility violation on the surfaces it covers. Its jobs `journey-gate` and `local-stack-storage` are meant to be required checks on `main`; setting that is an operator step in repository settings and is recorded as pending until done. The broad matrix (`harness smoke`) keeps today's harness settings.
+- Changes under `apps/admissions/`, `backend/` or `harness/` run the blocking student journey gate (`.github/workflows/student-journey-gate.yml`; locally `bash harness/bin/harness journey-gate`). It uses real object storage with a private bucket, 20 s signed URLs and the rate limiter on, and fails on any 429 or 5xx on any page or popup, any console error, any unsigned storage URL, a missing throttle or an accessibility violation on the surfaces it covers. Its one job, `journey-gate`, is meant to be a required check on `main`; setting that is an operator step in repository settings and is recorded as pending until done. The storage round trip on the documented local stack (`storage_roundtrip_check --expect-private`) runs inside it; the separate `local-stack-storage` job and the local-test, local-real and default compose stacks were retired by platform-simplification task 11.2 (decision D2). The broad matrix (`harness smoke`) keeps today's harness settings.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.
 - When modifying `ErrorDisplay`, `Settings.tsx`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
@@ -556,21 +566,22 @@ The following security measures were applied during the April 2026 full reposito
 - Batch user import now creates an `AuditLog` entry with `action=user_batch_import` for every batch operation. Per-row savepoints handle `IntegrityError` races without discarding the entire batch. Role-level validation prevents creating users with roles above the actor's own.
 - Bulk notification retry no longer re-sends emails for already-processed notifications. The task retries with only the remaining unprocessed IDs.
 - `ApplicationReviewView` payment gate now checks the full `_RESOLVED_PAYMENT_STATUSES` tuple (including `verified`, `paid`, `deferred`) instead of a subset.
-- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only the example templates remain tracked: `.env.example`, `.env.scripts.example`, `apps/admissions/.env.example`, `backend/.env.example`, `backend/.env.local.test.example` and `deploy/.env.prod.example`. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
+- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only the example templates remain tracked: `.env.example`, `.env.scripts.example`, `apps/admissions/.env.example`, `backend/.env.example` and `deploy/.env.prod.example`. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
 
 ### Known Open Issues (from AUDIT-REPORT-2026-04-24.md)
 
-These findings are documented but not yet fixed:
+Re-verified at HEAD on 2026-11-09. Fixed items stay listed with the place that fixed them.
 
-- `cleanup-idempotency-keys` Celery Beat task uses a bare task name instead of a dotted module path.
-- `SessionView.get()` returns non-envelope format for unauthenticated users.
-- Several catalog, analytics, and integrations views return raw data without the `{"success": true, "data": ...}` envelope.
-- `PaymentVerifyView` and `PaymentInitiateView` lack per-user rate limiting.
-- `IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.
-- `AuditMiddleware` does not populate `entity_id` from URL path segments.
-- `ReadOnlyMiddleware` queries the database on every write request when the env var is not set.
-- ~~Jobs-ops frontend has no auth refresh interceptor or session management.~~ **Resolved (2026-07-11).** `apps/jobs-ops/src/services/api/client.ts` already implements a 401-triggered token refresh with single-retry, in-memory CSRF token storage attached to state-changing requests, and CSRF-error recovery via `?refresh_csrf=1`. `apps/jobs-ops/src/auth/AuthContext.tsx` bootstraps the session and revalidates on tab-visibility regain (`useVisibilityRevalidation`). Verified via `apps/jobs-ops/tests/unit/apiClient.test.ts` and `authContext.test.ts` (31 tests passing). Fixed two stale tests in `router.test.ts` that asserted a hard sign-in redirect — `ProtectedRoute` is an intentional no-op passthrough (jobs-ops renders standalone; reads are public scaffold routes, writes are backend-policy-gated), and those tests predated that architecture decision.
-- 7 SQL scripts in `backend/scripts/` are fully applied and stale (safe to archive).
-- `idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.
+- ~~`cleanup-idempotency-keys` Celery Beat task uses a bare task name.~~ **Fixed:** the entry uses `apps.common.tasks.cleanup_idempotency_keys_task` (`config/settings/base.py:252-253`).
+- ~~`SessionView.get()` returns non-envelope format for unauthenticated users.~~ **Fixed:** it returns `{"success": true, "data": {"authenticated": false}}` (`apps/accounts/auth_views.py`, `SessionView`).
+- Several catalog, analytics, and integrations views return raw data without the envelope. **Unverified view by view:** the default `EnvelopeRenderer` (`apps/common/renderers.py`) wraps any DRF response that lacks a `success` key; non-DRF responses were not audited.
+- ~~`PaymentVerifyView` and `PaymentInitiateView` lack per-user rate limiting.~~ **Fixed:** both carry `throttle_scope` (`apps/documents/payment_query_views.py:540`, `payment_widget_views.py:151`).
+- ~~`IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.~~ **Fixed:** the class no longer exists in `backend/apps`.
+- ~~`AuditMiddleware` does not populate `entity_id`.~~ **Fixed:** `_extract_entity_id` (`apps/common/middleware.py:553`).
+- ~~`ReadOnlyMiddleware` queries the database on every write request.~~ **Fixed:** the env var is read once at init and there is no database query (`apps/common/readonly.py`).
+- ~~Jobs-ops frontend has no auth refresh interceptor or session management.~~ **Resolved (2026-07-11).** `apps/jobs-ops/src/services/api/client.ts` implements a 401-triggered token refresh with a single retry, in-memory CSRF storage and CSRF-error recovery via `?refresh_csrf=1`; `apps/jobs-ops/src/auth/AuthContext.tsx` bootstraps the session. `ProtectedRoute` is an intentional no-op passthrough.
+- ~~7 SQL scripts in `backend/scripts/` are fully applied and stale.~~ **Not re-counted.** Scripts there are additive and applied by `apply_sql_migrations`; archiving is not part of this spec.
+- ~~`idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.~~ **Gone:** the file is not in `backend/scripts/` (`docs/security-api-audit-2026-04.md`, BUG-016).
+- **Open (new):** the generic admin settings endpoints (`apps/accounts/admin_settings_views.py`) let any `admin` role read every setting (`IsAdmin`, `:224`, `:314`, `:388`, `:449`) and gate writes on the super-admin role string (`_settings_write_forbidden`, `:60`), while the route registry and `scripts/authority_matrix_registry.py:454-457` describe them as super-admin and `platform.settings.manage` surfaces. Re-gating them is a capability change that needs its own decision.
 
 See `AUDIT-REPORT-2026-04-24.md` and `all-files.txt` for the full file-by-file audit inventory.

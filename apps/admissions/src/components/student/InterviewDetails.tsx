@@ -43,9 +43,9 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="w-5 h-5" />
-          Interview Scheduled
+          Interview scheduled
         </h3>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor()}`}>
+        <span data-text-role="caption" className={`px-3 py-1 rounded-full text-sm sm:text-xs font-semibold ${getStatusColor()}`}>
           {interview.status.toUpperCase()}
         </span>
       </div>
@@ -55,32 +55,32 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
           <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
           <div>
             <p className="font-medium">Date & Time</p>
-            <p className="text-sm text-muted-foreground">{formatDate(interview.scheduled_at)}</p>
+            <p className="text-base sm:text-sm text-muted-foreground">{formatDate(interview.scheduled_at)}</p>
           </div>
         </div>
 
         <div className="flex items-start gap-3">
           {getIcon()}
           <div>
-            <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting Link' : 'Location'}</p>
+            <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting link' : 'Location'}</p>
             {interview.mode === 'virtual' ? (
               meetingLink ? (
-                <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-base sm:text-sm text-primary hover:underline">
                   {meetingLink}
                 </a>
               ) : (
-                <p className="text-sm text-muted-foreground">Meeting link will be shared by admissions.</p>
+                <p className="text-base sm:text-sm text-muted-foreground">Meeting link will be shared by admissions.</p>
               )
             ) : (
-              <p className="text-sm text-muted-foreground">{interview.location || 'Location to be confirmed'}</p>
+              <p className="text-base sm:text-sm text-muted-foreground">{interview.location || 'Location to be confirmed'}</p>
             )}
           </div>
         </div>
 
         {interview.notes && (
           <div className="bg-muted p-3 rounded-lg">
-            <p className="text-sm font-medium mb-1">Additional Notes</p>
-            <p className="text-sm text-muted-foreground">{interview.notes}</p>
+            <p className="text-base sm:text-sm font-medium mb-1">Additional notes</p>
+            <p className="text-base sm:text-sm text-muted-foreground">{interview.notes}</p>
           </div>
         )}
       </div>

@@ -11,7 +11,9 @@
  * deterministically). They assert the console *wiring*, not a reimplementation:
  *
  *   1. Super_Admin  — the console lists ALL tenants and shows the
- *      "New institution" control gated on `platform.tenant.create` (R12.2).
+ *      quick-create control gated on `platform.tenant.create` (R12.2). Its label
+ *      was "New institution" until platform-simplification task 30.6 (R17.11)
+ *      relabelled it "Quick create (profile only)"; the gate is unchanged.
  *   2. Tenant_Admin — the school console shows ONLY the assigned institution(s)
  *      and NO "New institution" control (R12.3, R12.4).
  *   3. Backend 403  — a panel fed a rejected `tenantAdminService` query (and the
@@ -25,7 +27,7 @@
  *
  * **Validates: Requirements R12.2, R12.3, R12.4, R12.7**
  */
-import { render, cleanup, waitFor } from '@testing-library/react'
+import { render, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -224,7 +226,7 @@ describe('console split — Super_Admin', () => {
     // The create control is rendered for a platform owner holding
     // `platform.tenant.create` (exact match avoids the "New institution
     // (wizard)" launcher button).
-    expect(getByRole('button', { name: /^New institution$/ })).toBeTruthy()
+    expect(getByRole('button', { name: /^Quick create \(profile only\)$/ })).toBeTruthy()
   })
 
   it('R12.2: hides the "New institution" control when platform.tenant.create is absent', async () => {
@@ -236,7 +238,49 @@ describe('console split — Super_Admin', () => {
     const { findByText, queryByRole } = renderTree(<AdminTenants />)
     await findByText('MIHAS Admissions')
 
-    expect(queryByRole('button', { name: /^New institution$/ })).toBeNull()
+    expect(queryByRole('button', { name: /^Quick create \(profile only\)$/ })).toBeNull()
+  })
+})
+
+// ── 1b. Labels, buttons and wrapping (platform-simplification task 30.6) ────
+describe('console labels and buttons — Super_Admin (R17.10-R17.12)', () => {
+  beforeEach(() => {
+    capabilityState.current = superAdminCaps()
+  })
+
+  it('R17.10: every school-profile field has a visible label', async () => {
+    listInstitutions.mockResolvedValue({ institutions: [MIHAS, KATC], totalCount: 2 })
+    const { findByText, container } = renderTree(<AdminTenants />)
+    await findByText('MIHAS Admissions')
+    const form = container.querySelector('form') as HTMLFormElement
+    const inputs = Array.from(form.querySelectorAll('input'))
+    expect(inputs.length).toBe(12)
+    for (const input of inputs) {
+      const label = form.querySelector(`label[for="${input.id}"]`)
+      expect(label, `no visible label for ${input.id || input.placeholder}`).not.toBeNull()
+      expect(label?.className).not.toMatch(/sr-only/)
+      expect(input.getAttribute('aria-label')).toBeNull()
+    }
+  })
+
+  it('R17.11: the two create controls say what they do, and only the wizard is primary', async () => {
+    listInstitutions.mockResolvedValue({ institutions: [MIHAS], totalCount: 1 })
+    const { findByRole, getByRole } = renderTree(<AdminTenants />)
+    const wizard = await findByRole('button', { name: 'Set up a new school' })
+    const quick = getByRole('button', { name: 'Quick create (profile only)' })
+    expect(quick.className).toContain('bg-secondary')
+    expect(wizard.className).not.toContain('bg-secondary')
+    // Quick create opens the blank inline form, whose submit reads "Create school".
+    fireEvent.click(quick)
+    expect(await findByRole('button', { name: 'Create school' })).toBeTruthy()
+  })
+
+  it('R17.12: school names wrap instead of being cut off', async () => {
+    listInstitutions.mockResolvedValue({ institutions: [MIHAS], totalCount: 1 })
+    const { findByText } = renderTree(<AdminTenants />)
+    const name = await findByText('MIHAS Admissions')
+    expect(name.className).toContain('break-words')
+    expect(name.className).not.toContain('truncate')
   })
 })
 
@@ -262,7 +306,7 @@ describe('console split — Tenant_Admin', () => {
 
     // R12.4: a non-super-admin never sees a "New institution" control — neither
     // the list-panel control nor the wizard launcher.
-    expect(queryByRole('button', { name: /new institution/i })).toBeNull()
+    expect(queryByRole('button', { name: /quick create|set up a new school|new institution/i })).toBeNull()
   })
 })
 

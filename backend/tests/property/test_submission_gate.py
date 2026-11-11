@@ -86,7 +86,7 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
                 "Payment must be completed before submitting the application.",
             )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -148,7 +148,7 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
             mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -199,7 +199,7 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
                 "Payment must be completed before submitting the application.",
             )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
@@ -257,7 +257,7 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
                     "Payment must be completed before submitting the application.",
                 )
 
-            from apps.applications.views import ApplicationReviewView
+            from apps.applications.admin_review_views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)

@@ -424,7 +424,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           </div>
           <p className="text-xl font-bold text-green-700">Payment confirmed!</p>
           <p className="mt-1 text-lg font-semibold text-green-600">{chargedAmountLabel}</p>
-          <p className="mt-3 text-sm text-muted-foreground">Continuing to next step…</p>
+          <p className="mt-3 text-base sm:text-sm text-muted-foreground">Continuing to next step…</p>
         </div>
         <style>{`
           @keyframes confetti-fall {
@@ -480,7 +480,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
  : isMobileMoneyPending
  ? 'Check your phone' : 'Confirming your payment'}
  </p>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-base sm:text-sm text-muted-foreground">
  {waiting ? (
  waiting.body
  ) : !startedHere ? (
@@ -497,24 +497,24 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             <div className="mx-auto mt-6 max-w-xs space-y-3 text-left">
               {['Open your phone', 'Enter your PIN', 'Confirm the payment'].map((step, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
-                  <span className="text-sm text-foreground">{step}</span>
+                  <span data-text-role="caption" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm sm:text-xs font-bold text-primary">{i + 1}</span>
+                  <span className="text-base sm:text-sm text-foreground">{step}</span>
  </div>
  ))}
  </div>
  )}
 
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div data-text-role="caption" className="mt-6 flex items-center justify-center gap-2 text-sm sm:text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />
             Checking automatically…
           </div>
 
           {momoError && (
-            <p className="mt-3 text-sm text-muted-foreground">{momoError}</p>
+            <p className="mt-3 text-base sm:text-sm text-muted-foreground">{momoError}</p>
           )}
 
           {pendingElapsed >= retryAfterSeconds && (
-            <p className="mt-4 text-sm text-muted-foreground" data-testid="payment-pending-timeout">
+            <p className="mt-4 text-base sm:text-sm text-muted-foreground" data-testid="payment-pending-timeout">
  {waiting ? waiting.onTimeout : 'Taking too long?'}{' '}
  {studentMustAct && (
  <button type="button" className="font-medium text-primary underline" onClick={handleRetry}>
@@ -525,7 +525,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           )}
 
           <Button type="button" variant="outline" size="sm" className="mt-4 min-h-touch" onClick={async () => { await syncPendingPayment() }}>
-            <RefreshCw className="mr-1 h-3 w-3" />{studentMustAct ? "I've approved — check now" : 'Check payment now'}
+            <RefreshCw className="mr-1 h-3 w-3" />{studentMustAct ? "I've approved: check now" : 'Check payment now'}
           </Button>
         </div>
         <style>{`
@@ -545,14 +545,14 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
       <div className="space-y-4" data-testid="payment-form">
         <div className={`rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center ${animateClasses.scaleIn}`}>
           {errorInfo.type === 'network' ? (
-            <WifiOff className="mx-auto mb-3 h-10 w-10 text-destructive/70" />
+            <WifiOff className="mx-auto mb-3 h-10 w-10 text-destructive" />
           ) : (
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <CreditCard className="h-6 w-6 text-destructive" />
             </div>
           )}
           <p className="text-lg font-bold text-foreground">Payment unsuccessful</p>
-          <p className="mt-2 text-sm text-muted-foreground">{errorInfo.message}</p>
+          <p className="mt-2 text-base sm:text-sm text-muted-foreground">{errorInfo.message}</p>
           <Button ref={retryRef} type="button" variant="outline" size="default" className="mt-5" onClick={handleRetry}>
             <RefreshCw className="mr-2 h-4 w-4" />Try again
           </Button>
@@ -584,9 +584,9 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             <Smartphone className="h-6 w-6" />
           </div>
           <div>
-            <p className={`font-semibold ${paymentMethod === 'mobile-money' ? 'text-foreground' : ''}`}>Mobile Money</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Pay with Airtel or MTN mobile money</p>
-            <p className="mt-1 text-xs text-muted-foreground/70">Instant · No card needed</p>
+            <p className={`font-semibold ${paymentMethod === 'mobile-money' ? 'text-foreground' : ''}`}>Mobile money</p>
+            <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">Pay with Airtel or MTN mobile money</p>
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">Instant · No card needed</p>
           </div>
         </button>
 
@@ -609,26 +609,26 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
           </div>
           <div>
             <p className={`font-semibold ${paymentMethod === 'card' ? 'text-foreground' : ''}`}>Card</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Pay with Visa or Mastercard</p>
-            <p className="mt-1 text-xs text-muted-foreground/70">Secure card payment</p>
+            <p className="mt-0.5 text-base sm:text-sm text-muted-foreground">Pay with Visa or Mastercard</p>
+            <p className="mt-1 text-base sm:text-sm text-muted-foreground">Secure card payment</p>
           </div>
         </button>
       </div>
 
       {/* Mobile Money Form */}
       {paymentMethod === 'mobile-money' && (
-        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg bg-card/50 p-5">
           <div className="flex flex-wrap items-center gap-2" aria-label="Supported mobile money networks">
-            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+            <span data-text-role="caption" className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-sm sm:text-xs font-semibold text-red-700">
               Airtel Money
             </span>
-            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700">
+            <span data-text-role="caption" className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-sm sm:text-xs font-semibold text-yellow-700">
               MTN MoMo
             </span>
           </div>
 
           <div>
-            <label htmlFor="momo-phone" className="block text-sm font-medium text-foreground mb-2">
+            <label htmlFor="momo-phone" className="block text-base sm:text-sm font-medium text-foreground mb-2">
               Mobile money number
             </label>
             <div className="relative">
@@ -650,7 +650,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
               />
  </div>
             {(phoneValidationError || momoError) && (
-              <p className="mt-1.5 text-xs text-destructive">{momoError || phoneValidationError}</p>
+              <p className="mt-1.5 text-base sm:text-sm text-destructive">{momoError || phoneValidationError}</p>
             )}
  {/* No client-side operator badge: the network is derived server-side
  (task 8.1, design §10.2). A prefix the platform does not support is
@@ -670,7 +670,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             {momoLoading ? 'Sending payment request…' : `Pay ${chargedAmountLabel}`}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-base sm:text-sm text-muted-foreground">
             You'll receive a prompt on your phone to approve the payment.
           </p>
         </div>
@@ -678,9 +678,9 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
 
       {/* Card Payment */}
       {paymentMethod === 'card' && (
-        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg bg-card/50 p-5">
           {!isScriptLoaded && !widgetLoading && (
-            <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-base sm:text-sm">
               <p className="text-muted-foreground">{widgetLoadError || 'The card payment module is loading…'}</p>
               <Button type="button" variant="outline" size="sm" className="mt-3 min-h-touch" onClick={retryWidgetLoad}>
                 <RefreshCw className="mr-2 h-3 w-3" />Retry
@@ -688,7 +688,7 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             </div>
           )}
 
-          {cardInitiateError && <p className="text-sm text-destructive">{cardInitiateError}</p>}
+          {cardInitiateError && <p className="text-base sm:text-sm text-destructive">{cardInitiateError}</p>}
 
           <Button
             type="button"
@@ -703,13 +703,13 @@ const isPaymentFailed = paymentStatus === 'failed'|| polledStatus === 'failed'/*
             {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${chargedAmountLabel} by card`}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-base sm:text-sm text-muted-foreground">
             A secure payment window will open. Your card details are never stored on our servers.
           </p>
         </div>
       )}
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-base sm:text-sm text-muted-foreground">
         Payments are processed securely by Lenco.
       </p>
     </div>

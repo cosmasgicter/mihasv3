@@ -1,16 +1,19 @@
 import React from 'react'
 import { AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OptionalMarker } from '@/components/ui/OptionalMarker'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   helperText?: string
   icon?: React.ReactNode
+  /** Marks the field "(optional)" in its label; required fields carry no mark. */
+  optional?: boolean
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, helperText, icon, optional, type = 'text', ...props }, ref) => {
     const generatedId = React.useId()
     const inputId = props.id ?? generatedId
 
@@ -22,9 +25,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-2">
+          <label htmlFor={inputId} className="block text-base sm:text-sm font-medium text-foreground mb-2">
             {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
+            {optional && !props.required && <OptionalMarker />}
           </label>
         )}
         <div className="relative">
@@ -61,7 +64,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-1 flex items-center gap-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1 flex items-center gap-1.5 text-base sm:text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -69,7 +72,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="mt-1 text-sm text-muted-foreground">
+          <p id={`${inputId}-helper`} data-text-role="caption" className="mt-1 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

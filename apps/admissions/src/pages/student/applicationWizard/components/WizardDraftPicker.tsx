@@ -128,9 +128,9 @@ export function WizardDraftPicker({
       {error && <ErrorDisplay message={error} />}
 
       {loading && drafts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Loading your saved applications…</p>
+        <p className="text-base sm:text-sm text-muted-foreground">Loading your saved applications…</p>
       ) : visible.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base sm:text-sm text-muted-foreground">
           You have no saved applications yet. Starting a new one will save as you go.
         </p>
       ) : (
@@ -186,7 +186,7 @@ export function WizardDraftPicker({
                       {draft.draft_name}
                     </p>
                     {draft.updated_at && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <p className="mt-1 flex items-center gap-1.5 text-base sm:text-sm text-muted-foreground">
                         <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         Last saved {formatTimestamp(draft.updated_at)}
                       </p>
@@ -194,7 +194,7 @@ export function WizardDraftPicker({
                     <div className="mt-3 flex flex-wrap gap-2">
                       {isCurrent ? (
                         <span
-                          className="inline-flex min-h-touch items-center rounded-lg border border-primary/30 bg-primary/5 px-3 text-sm font-semibold text-primary"
+                          className="inline-flex min-h-touch items-center rounded-lg border border-primary/30 bg-primary/5 px-3 text-base sm:text-sm font-semibold text-primary"
                           data-testid="wizard-draft-current"
                         >
                           Open now
@@ -259,9 +259,9 @@ export function WizardDraftPicker({
         <FilePlus2 className="h-4 w-4 mr-2" aria-hidden="true" />
         Start a new application
       </Button>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-base sm:text-sm text-muted-foreground">
         A new application does not restore or change any saved draft. Drafts with payment activity
-        cannot be deleted here — continue the draft or contact admissions.
+        cannot be deleted here. Continue the draft or contact admissions.
       </p>
 
       <ConfirmAlertDialog

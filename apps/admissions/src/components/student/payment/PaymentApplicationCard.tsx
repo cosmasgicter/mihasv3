@@ -275,7 +275,7 @@ export function PaymentApplicationCard({
           <h3 className="truncate text-base font-semibold text-foreground">
             {app.program || 'Application'}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base sm:text-sm text-muted-foreground">
             {app.application_number ? `${app.application_number} · ` : ''}
             {formatApplicationStatus(app.status)}
           </p>
@@ -285,7 +285,7 @@ export function PaymentApplicationCard({
             <StatusBadge label={presentation.label} tone={presentation.tone} size="md" />
           </span>
           {displayedAmount && (
-            <span className="font-mono text-sm font-semibold text-foreground" data-testid="payment-amount">
+            <span className="font-mono text-base sm:text-sm font-semibold text-foreground" data-testid="payment-amount">
               {/* The ledger records the application fee the school is owed. The
                   provider adds its own customer-borne fee at collection time, so
                   this is not necessarily the figure the handset showed — naming
@@ -307,18 +307,18 @@ export function PaymentApplicationCard({
         className="space-y-3 rounded-lg bg-muted px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         data-testid="payment-state-detail"
       >
-        <p className="text-sm text-foreground">{presentation.detail}</p>
+        <p className="text-base sm:text-sm text-foreground">{presentation.detail}</p>
 
         {/* The spent wait budget, described for the phase it was spent in. */}
         {recovery.timeoutNotice && (
-          <p className="text-sm text-muted-foreground" data-testid="payment-wait-timeout">
+          <p className="text-base sm:text-sm text-muted-foreground" data-testid="payment-wait-timeout">
             {recovery.timeoutNotice}
           </p>
         )}
 
         {/* An admissions note on a rejected payment is the reason, so it is shown. */}
         {app.last_payment_audit_notes && isFailureState && (
-          <p className="text-sm text-foreground">
+          <p className="text-base sm:text-sm text-foreground">
             <span className="font-semibold">Admissions note:</span> {app.last_payment_audit_notes}
           </p>
         )}
@@ -384,19 +384,19 @@ export function PaymentApplicationCard({
       {payFormOpen && (
         <div className="space-y-3" data-testid="payment-inline-form">
           {quoteLoading && (
-            <p className="text-sm text-muted-foreground" role="status">
+            <p className="text-base sm:text-sm text-muted-foreground" role="status">
               Preparing your fee…
             </p>
           )}
           {quoteError && <FeeQuoteRefusal error={quoteError} onRefresh={refreshQuote} />}
           {quote && quoteExpired && (
             <div className="space-y-1" role="status">
-              <p className="text-sm text-foreground" data-testid="payment-quote-expired">
+              <p className="text-base sm:text-sm text-foreground" data-testid="payment-quote-expired">
                 {PAYMENT_ERROR_COPY.QUOTE_EXPIRED.body}
               </p>
               <button
                 type="button"
-                className="min-h-touch text-sm font-medium text-primary underline"
+                className="min-h-touch text-base sm:text-sm font-medium text-primary underline"
                 onClick={refreshQuote}
                 data-testid="payment-quote-refresh"
               >
@@ -423,7 +423,7 @@ export function PaymentApplicationCard({
           )}
           <button
             type="button"
-            className="min-h-touch text-sm font-medium text-muted-foreground underline"
+            className="min-h-touch text-base sm:text-sm font-medium text-muted-foreground underline"
             onClick={() => setPayFormOpen(false)}
             data-testid="payment-close-form"
           >
@@ -437,7 +437,7 @@ export function PaymentApplicationCard({
         <div className="space-y-2">
           <button
             type="button"
-            className="inline-flex min-h-touch items-center gap-1 text-sm font-medium text-foreground"
+            className="inline-flex min-h-touch items-center gap-1 text-base sm:text-sm font-medium text-foreground"
             onClick={() => setHistoryOpen((open) => !open)}
             aria-expanded={historyOpen}
             data-testid="payment-history-toggle"
@@ -454,7 +454,7 @@ export function PaymentApplicationCard({
               {ordered.map((record) => (
                 <li
                   key={record.id}
-                  className="flex flex-col gap-1 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-1 py-2 text-base sm:text-sm sm:flex-row sm:items-center sm:justify-between"
                   data-payment-row-status={record.status}
                 >
                   <span className="flex flex-wrap items-center gap-2">
@@ -463,7 +463,7 @@ export function PaymentApplicationCard({
                       {formatLedgerAmount(record.amount, record.currency) || '—'}
                     </span>
                   </span>
-                  <span className="text-xs text-muted-foreground">{formatTimestamp(record.created_at)}</span>
+                  <span data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground">{formatTimestamp(record.created_at)}</span>
                 </li>
               ))}
             </ul>
@@ -471,7 +471,7 @@ export function PaymentApplicationCard({
         </div>
       )}
       {ordered.length === 0 && (
-        <p className="text-sm text-muted-foreground">No payment attempts recorded for this application yet.</p>
+        <p className="text-base sm:text-sm text-muted-foreground">No payment attempts recorded for this application yet.</p>
       )}
     </article>
   )

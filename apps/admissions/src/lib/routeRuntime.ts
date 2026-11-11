@@ -7,6 +7,7 @@ const LIGHTWEIGHT_PUBLIC_ROUTES = new Set([
   '/auth/signin',
   '/auth/signup',
   '/contact',
+  '/for-schools',
   '/login',
   '/privacy',
   '/signin',

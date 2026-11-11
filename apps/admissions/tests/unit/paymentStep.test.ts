@@ -120,7 +120,6 @@ function renderWithState(state: { quoteLoading: boolean; quote: FeeQuote | null 
   const Harness = () => {
     const form = useForm<WizardFormData>({ defaultValues: DEFAULT_FORM_VALUES })
     return createElement(PaymentStep, {
-      title: 'Payment',
       form,
       applicationId: 'app-1',
       applicationNumber: 'MIHAS-2026-0001',
@@ -170,7 +169,7 @@ describe('Property 12: Payment form visibility matches server quote state', () =
     const markup = renderWithState({ quoteLoading: false, quote: SERVER_QUOTE })
     expect(markup).toContain('data-testid="payment-form"')
     expect(markup).toContain('data-testid="pay-momo-button"')
-    expect(markup).toContain('Mobile Money')
+    expect(markup).toContain('Mobile money')
     expect(markup).toContain('data-testid="pay-later-button"')
   })
 

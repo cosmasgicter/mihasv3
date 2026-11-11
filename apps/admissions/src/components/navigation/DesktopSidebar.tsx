@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -8,10 +8,12 @@ import { cn } from '@/lib/utils'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { adminNavRoutes, pathFor, studentNavRoutes } from '@/routes/routeRegistry'
+import { adminNavRoutes, pathFor, studentNavRoutes, navLabelFor } from '@/routes/routeRegistry'
 
 interface NavItem {
   to: string
+  /** Extra path prefixes that keep this item highlighted (task 34.1). */
+  activeMatchPaths?: string[]
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   label: string
 }
@@ -38,7 +40,7 @@ const adminSections: NavSection[] = (['main', 'management', 'system'] as const)
       .map((route) => ({
         to: route.path,
         icon: route.nav!.icon,
-        label: route.nav!.label,
+        label: navLabelFor(route),
       })),
   }))
   .filter((section) => section.items.length > 0)
@@ -48,13 +50,15 @@ const studentLinks: NavItem[] = studentNavRoutes()
   .map((route) => ({
     to: route.path,
     icon: route.nav!.icon,
-    label: route.nav!.label,
+    label: navLabelFor(route),
+    activeMatchPaths: route.nav?.activeMatchPaths,
   }))
 
-const isRouteActive = (currentPath: string, itemPath: string) => {
-  if (itemPath === pathFor('student.applicationWizard')) {
-    return currentPath === pathFor('student.applicationWizard') || currentPath === '/apply'
-  }
+const pathIsUnder = (currentPath: string, prefix: string) =>
+  currentPath === prefix || currentPath.startsWith(`${prefix}/`)
+
+const isRouteActive = (currentPath: string, itemPath: string, activeMatchPaths?: string[]) => {
+  if (activeMatchPaths?.some((prefix) => pathIsUnder(currentPath, prefix))) return true
 
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`)
 }
@@ -117,7 +121,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'px-2' : 'px-4'
       )}>
         <div className={cn(
-          'relative flex items-center rounded-lg border border-white/10 bg-card/5 shadow-sm transition-all duration-200',
+          'relative flex items-center rounded-lg bg-card/5 transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Beanola Admissions">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm" aria-hidden="true">
@@ -126,7 +130,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
               <span className="block truncate text-base font-bold text-white transition-opacity duration-200 motion-reduce:transition-none">
                 {isAdmin ? 'Beanola Admin' : 'Beanola Student'}
               </span>
@@ -187,7 +191,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           <div className="space-y-1">
             {!collapsed && (
               <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/80">
-                Student Workspace
+                Student workspace
               </div>
             )}
             {studentLinks.map((item) => (
@@ -195,39 +199,13 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 key={item.to}
                 item={item}
                 collapsed={collapsed}
-                isActive={isRouteActive(location.pathname, item.to)}
+                isActive={isRouteActive(location.pathname, item.to, item.activeMatchPaths)}
               />
             ))}
           </div>
         )}
       </nav>
 
-      {/* Footer with system status */}
-      <div className={cn(
-        'border-t border-white/10',
-        collapsed ? 'p-2' : 'p-4'
-      )}>
-        {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-white/80 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/20 text-white">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="font-semibold text-white">Workspace ready</p>
-              <p className="text-xs text-white/80">Navigation synced</p>
-            </div>
-          </div>
-        ) : (
-          <Tooltip content="Workspace ready" side="right">
-            <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-success/20 text-white shadow-sm">
-                <Sparkles className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <span className="sr-only">Workspace ready</span>
-            </div>
-          </Tooltip>
-        )}
-      </div>
     </aside>
   )
 })

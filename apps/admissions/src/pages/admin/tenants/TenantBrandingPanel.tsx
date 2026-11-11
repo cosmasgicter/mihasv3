@@ -221,7 +221,7 @@ export function TenantBrandingPanel({ institutionId }: { institutionId: string }
                   >
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
                     <div className="min-w-0 space-y-1">
-                      <p className="font-semibold text-foreground">Warning — SVG will not render in official PDFs</p>
+                      <p className="font-semibold text-foreground">Warning: SVG will not render in official PDFs</p>
                       <p className="text-muted-foreground">
                         Backend-generated PDF documents (acceptance letters, receipts, application slips) cannot
                         rasterise SVG logos or signatures. The renderer records an

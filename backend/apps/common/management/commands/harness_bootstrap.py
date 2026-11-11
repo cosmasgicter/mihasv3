@@ -46,6 +46,8 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
+from apps.common.local_database import require_local_database
+
 
 class Command(BaseCommand):
     help = "Bootstrap a fresh throwaway DB for the local V2 E2E harness (schema + subjects + super-admin)."
@@ -64,14 +66,8 @@ class Command(BaseCommand):
         parser.add_argument("--skip-subjects", action="store_true", default=False)
 
     def handle(self, *args, **opts):
-        # Refuse to run against anything that looks like a real/production DB.
-        db_url = os.environ.get("DATABASE_URL", "")
-        for danger in ("neon.tech", "amazonaws.com", "rds.", "beanola.com"):
-            if danger in db_url:
-                raise CommandError(
-                    f"harness_bootstrap refuses to run: DATABASE_URL points at a "
-                    f"non-local host ({danger!r}). The harness is local-only."
-                )
+        # Allowlist, first: refuse anything that is not a Local_Database (task 6.6, R1.5).
+        require_local_database("harness_bootstrap")
 
         password = opts.get("superadmin_password")
         if not password:

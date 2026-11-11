@@ -1,442 +1,172 @@
-# LOCAL TESTING — safe, isolated, never touches production
+# LOCAL TESTING: one stack, isolated, never touches production
 
-This sets up a **throwaway copy** of the backend on your own machine so you can
-test changes without any risk to:
+This runs the whole student journey on your own machine against a **throwaway**
+stack: real object storage, captured email, a stand-in for the payment provider
+and the scheduled background jobs. Nothing here reads `backend/.env` (which points
+at the Neon authoring database) and nothing reaches the live site.
 
-- the **live site** students are applying on (`api.mihas.edu.zm`, the EC2 box)
-- the **Neon** authoring database
+> Golden rule: while testing locally you only run the commands in this file. You
+> never run anything against the EC2 server or Neon.
 
-Everything below runs on **localhost only** with its **own throwaway database**.
-You can wipe it and start over any time. **No git commits are involved.**
-
-> Golden rule: while testing locally you only ever run the commands in this
-> file. You never run anything against the EC2 server or Neon.
-
----
-
-## What makes this safe (the isolation)
-
-| Concern | How it's isolated |
-|--------|-------------------|
-| Database | A separate local Postgres (`mihas_localtest`) in its own Docker volume. Not Neon, not production. |
-| Secrets / env | Uses `backend/.env.local.test` only. It never reads `backend/.env` (which points at Neon). |
-| Payments / email / AI | Faked or disabled in `.env.local.test` — nothing leaves your machine. |
-| Object storage | A private MinIO container (`mihas-localtest` bucket, no anonymous policy, credentials fixed and fictional, bound to `127.0.0.1:9000`). Uploads, document viewing and signed URLs work locally; nothing reaches R2. |
-| Ports | Bound to `127.0.0.1` only (Postgres 5433, Redis 6380, API 8000, MinIO 9000/9001). |
-| Project name | Runs under the Docker project `mihas-localtest`, separate from any other stack. |
+The stack lives under `harness/` and is driven by one command, `harness/bin/harness`.
+`harness/bin/local-setup.sh` is the one way to bring it up.
 
 ---
 
 ## Prerequisites (one time)
 
-- Docker Desktop (or Docker Engine) running.
-- Bun installed (for the frontend) — https://bun.sh.
-- A terminal opened at the repo root: `cd ~/Downloads/mihasv3`.
+| Tool | Why |
+|------|-----|
+| Docker with Compose v2 | runs the stack (`docker compose`) |
+| Bun | installs and builds the admissions app |
+| Git | the repository |
+| curl | the script's health waits |
+| python3 3.8 or later | the drain check (standard library only) |
 
----
+The setup script checks each one before it starts anything. If one is missing it
+exits with code 3 and names it.
 
-## PART 1 — Start the backend (API + DB + Redis + worker)
+## Start the stack
 
-First create your env file from the tracked template (placeholders only; the real file is gitignored):
-
-```bash
-cd backend
-cp .env.local.test.example .env.local.test
-```
-
-If you already have a `.env.local.test`, delete its `USE_LOCAL_FILE_STORAGE` and `CELERY_TASK_ALWAYS_EAGER` lines: nothing reads either of them. Storage comes from the MinIO in the compose file.
+From the repository root:
 
 ```bash
-# Build and start the isolated stack (own project name + env file).
-docker compose -p mihas-localtest \
-  -f docker-compose.local-test.yml \
-  --env-file .env.local.test \
-  up -d --build
+bash harness/bin/local-setup.sh
 ```
 
-Wait ~20 seconds, then confirm the services (postgres, redis, minio, web, celery) are healthy/up; `minio-setup` exits after creating the bucket:
+The script is shown here in full. A test (`scripts/tests/test_local_setup_doc.py`)
+fails if this block and the file differ, so the document cannot drift from what runs.
+
+<!-- local-setup -->
+```bash
+#!/usr/bin/env bash
+# The one local bring-up path (platform-simplification task 11.1, requirements 1.1 and 1.10).
+#
+#   bash harness/bin/local-setup.sh
+#
+# Checks the five prerequisites before it starts anything, installs the JavaScript
+# dependencies from the lockfile, then brings the isolated harness stack up from an empty
+# database. It sets no variable of its own: whatever the caller exported reaches
+# `harness/bin/harness`, which reads every value as ${VAR:-default}.
+# A missing tool exits 3 and names the tool.
+set -euo pipefail
+SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+need() {
+  command -v "$1" >/dev/null 2>&1 || { echo "local-setup: missing prerequisite: $1 ($2)" >&2; exit 3; }
+}
+need docker "Docker with Compose v2"
+docker compose version >/dev/null 2>&1 || { echo "local-setup: missing prerequisite: docker compose (Compose v2)" >&2; exit 3; }
+need bun "Bun, https://bun.sh"
+need git "Git"
+need curl "curl"
+need python3 "python3 3.8 or later"
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' \
+  || { echo "local-setup: missing prerequisite: python3 3.8 or later" >&2; exit 3; }
+cd "${REPO_ROOT}"
+bun install --frozen-lockfile
+exec bash harness/bin/harness up
+```
+
+It builds the admissions app, starts a fresh stack on an **empty database** and
+seeds the demo data with `harness_seed_tenants`. No manual database step is needed.
+Every start begins empty, because `down` wipes the volumes.
+
+| What | Where |
+|------|-------|
+| The app (edge) | http://localhost:8090 |
+| Backend API | http://localhost:8000 |
+| Captured email (Mailpit) | http://localhost:58025 |
+| Object storage console (MinIO) | http://localhost:59001 |
+| Postgres | 127.0.0.1:55432 |
+| Redis | 127.0.0.1:56379 |
+
+If one of those ports is taken, Docker reports the conflict and the script exits
+non-zero. Stop the other stack, or remap the port with a second compose file
+named in `HARNESS_COMPOSE_OVERRIDE`.
+
+If your shell already exports `VITE_LENCO_WIDGET_URL`, `VITE_API_BASE_URL` or
+`VITE_GLITCHTIP_DSN`, unset them first. The harness uses your value over its own,
+and its host check then fails the build and names the host.
+
+## Sign in as the seeded people
+
+- **Tenant admins:** `admin@mihas.localhost` and `admin@katc.localhost` (the two
+  example tenants), with `HARNESS_TENANT_ADMIN_PASSWORD` from `harness/harness.env`.
+  That value is for this local stack only.
+- **Platform admin:** `HARNESS_SUPERADMIN_EMAIL` and `HARNESS_SUPERADMIN_PASSWORD`
+  from the same file.
+- **A student:** register in the app at http://localhost:8090. The verification
+  email arrives in Mailpit.
+
+The seeded MIHAS and KATC records are example tenants. Each has an open intake
+and a local application fee, so a student has something to apply to and pay for.
+
+## Where each concern goes (what leaves your machine)
+
+Nothing on this stack contacts an outside host.
+
+| Concern | Destination on the stack |
+|---------|--------------------------|
+| Storage | MinIO (private bucket, no anonymous policy, fictional credentials) |
+| Email | Mailpit |
+| Payment API | the Lenco-shaped adapter (`LENCO_API_BASE_URL`, `harness/harness.env`) |
+| Card widget | a stub script the adapter serves; it opens and reports closed, charging nothing |
+| Error reporting | nowhere. The backend has no DSN, and the frontend's DSN names `harness-invalid.localhost`, a loopback host where nothing listens |
+
+Browser runs launch Chromium so that a host name outside the stack does not
+resolve, and the harness fails a run that tries to reach one. A literal IP
+address outside loopback cannot be stopped that way; the gate detects it and
+fails the run.
+
+## Run the checks
+
+Check the stack with the student journey gate (builds, starts, runs, drains):
 
 ```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml ps
+bash harness/bin/harness journey-gate
 ```
 
-### 1a. Prove it's NOT pointing at Neon (do this once to reassure yourself)
+Other commands:
 
 ```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 -c "import os; u=os.environ['DATABASE_URL']; print(u); assert 'neon' not in u and 'localtest' in u, 'NOT ISOLATED'; print('OK: local throwaway DB, not Neon')"
-```
-You should see `OK: local throwaway DB, not Neon`. If it errors, stop and tell me.
-
----
-
-## PART 2 — Create the database schema (empty — no production data)
-
-This builds the tables from the repo's SQL, with **zero applicant data**.
-
-```bash
-# 2a. Full base schema (creates all tables incl. migration_history).
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest < scripts/00_full_schema.sql
-
-# 2b. The migration-history prerequisite (adds the checksum column the
-#     auto-runner needs).
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest < scripts/2026_05_22_migration_history_extend.sql
-
-# 2c. Apply the remaining SQL migrations in order (idempotent).
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py apply_sql_migrations
+bash harness/bin/harness smoke      # build, start, strict browser projects, evidence
+bash harness/bin/harness ps         # service status
+bash harness/bin/harness logs web   # tail a service's log
+bash harness/bin/harness drain      # assert background jobs drained
 ```
 
-Confirm the schema is healthy (this is the same check the server runs on boot):
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py check
-```
-
-Prove object storage works (write, read, sign, fetch, delete against the private bucket). It prints `OK` on success:
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py storage_roundtrip_check --expect-private
-```
-
-> Seed reference data (subjects) so dropdowns aren't empty:
-> ```bash
-> docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
->   python3 manage.py seed_subjects
-> ```
-
-Seed two example tenants so there is an offering a student can apply to. This creates the MIHAS and KATC example records on `mihas.localhost` and `katc.localhost`, each with an open intake and a local application fee in `program_fees`. It refuses production settings and non-local databases. Use a local-only password of your own:
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py harness_seed_tenants --tenant-admin-password '<local value>'
-```
-
----
-
-## PART 3 — Run the backend test suite
-
-Tests run against the local DB, never Neon.
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 -m pytest tests/unit tests/property -q
-```
-
-Run a single area while iterating, e.g. the multi-tenant work:
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 -m pytest tests/ -k "tenant or assignment or scope or canonical" -q
-```
-
-Django system + schema checks:
-
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py check
-docker compose -p mihas-localtest -f docker-compose.local-test.yml exec web \
-  python3 manage.py spectacular --file /tmp/schema.yaml
-```
-
----
-
-## PART 4 — Run the frontend against your local backend
-
-In a **second terminal**:
+Backend and frontend tests run on your machine against a throwaway Postgres, not
+against this stack and never against Neon (see `docs/runbooks/local-parity.md`):
 
 ```bash
 cd apps/admissions
-bun install            # first time only
-bun run dev
-```
-
-- The dev server prints a URL (usually `http://localhost:5173`).
-- Its `/api` calls proxy to your **local** backend at `127.0.0.1:8000` by
-  default — NOT the live API. (Don't create a `.env.local` with
-  `VITE_API_BASE_URL=https://api.mihas.edu.zm`; that's only for production.)
-
-Frontend checks while iterating:
-
-```bash
-cd apps/admissions
-bun run type-check
 bun run lint
-bun run test          # vitest unit/property
-bun run build         # production build sanity
+bun run test
+bun run build
 ```
 
----
-
-## PART 5 — (Optional) End-to-end / browser testing
-
-With the backend (Part 1–2) and frontend (Part 4) running, point Playwright at
-the local URL. Run from wherever your E2E specs live, e.g.:
+## Tear down
 
 ```bash
-# example — adjust to your spec location
-npx playwright test --config <your-playwright-config>
-```
-Use the local `http://localhost:5173` as the base URL, never the live domain.
-
----
-
-## PART 6 — Tear down / reset
-
-Stop the stack but keep the database:
-```bash
-cd backend
-docker compose -p mihas-localtest -f docker-compose.local-test.yml stop
+bash harness/bin/harness down     # stops the stack and wipes its volumes
 ```
 
-Start it again later:
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml start
-```
+## When testing is done
 
-**Wipe everything** (throwaway DB included) for a clean slate:
-```bash
-docker compose -p mihas-localtest -f docker-compose.local-test.yml down -v
-```
-Then redo Part 1 and Part 2 to rebuild fresh.
-
----
-
-## When testing + QA is done (the ONLY time you go near production)
-
-Only after you're satisfied locally:
+Only after you are satisfied locally:
 
 1. Review your changes: `git status` then `git diff`.
-2. Commit + push (this triggers the deploy pipeline that builds images).
-3. Follow `deploy/RUNBOOK.md` for the production release + post-deploy smoke
-   check.
+2. Commit and push to a branch, and open a pull request.
+3. Follow `deploy/RUNBOOK.md` for a production release and the post-deploy
+   smoke check.
 
-Until then, nothing you do locally can affect the students applying on the live
-site.
-
----
+Until then, nothing you do locally can affect the students applying on the live site.
 
 ## Troubleshooting
 
-- **Port already in use (5433/6380/8000):** something else is using it. Either
-  stop that, or change the left-hand port in `docker-compose.local-test.yml`.
-- **`MIGRATION_HISTORY_NOT_EXTENDED`:** you skipped Part 2b — run it, then 2c.
-- **`web` keeps restarting:** check logs:
-  `docker compose -p mihas-localtest -f docker-compose.local-test.yml logs web`
-- **Want to confirm isolation again:** re-run the check in Part 1a.
-
-
----
-
-
-# PART R — REAL-MONEY mode (production Lenco, K1 self-payments)
-
-This is the **fully real** profile: production Lenco (`api.lenco.co`), **live**
-keys, **real money**. The plan is to set every fee to **K1** and pay yourself
-(you own the Lenco account, so funds come back; you only lose the transaction
-fee). Production security + payment/AI hardening are ON.
-
-Files (unchanged from the realistic profile, now pointed at live Lenco):
-- settings `config.settings.local_real`, backend env `backend/.env.local.real`
-- compose `backend/docker-compose.local-real.yml` (project `mihas-localreal`)
-- frontend env `apps/admissions/.env.local`
-
-## R0 — The ONE rule that protects live students: do not touch the webhook
-
-Your **production** backend (`api.mihas.edu.zm`) is the registered Lenco
-**webhook** receiver for real applicants. Lenco typically allows **one global
-webhook URL per account**. If you repoint it at your laptop, **every live
-student's payment confirmation would be diverted to your machine** and silently
-break on production. So:
-
-> **DO NOT add, change, or register a webhook URL in the Lenco dashboard for
-> local testing. Leave it exactly as it is (pointing at production).**
-
-This is safe because this codebase confirms payments **two** ways, and only one
-needs a webhook:
-
-| Path | Direction | Needs webhook? | Used locally |
-|------|-----------|----------------|--------------|
-| Webhook | Lenco → backend (push) | yes | ❌ NO (leave production's alone) |
-| **Verify** | backend → Lenco API (pull) | **no** | ✅ yes (manual, instant) |
-| **Poll task** | backend → Lenco API (pull) | **no** | ✅ yes (beat, every 10 min) |
-
-`PUBLIC_WEBHOOK_BASE_URL` is intentionally left **empty** in
-`backend/.env.local.real` so nothing tries to register a local webhook. Your K1
-payments confirm via verify/poll instead — same final result, zero risk to
-production.
-
-## R1 — Fill the LIVE keys
-
-In `backend/.env.local.real`:
-```
-LENCO_API_BASE_URL=https://api.lenco.co/access/v2/   # already set
-LENCO_API_SECRET_KEY=<your LIVE secret key>
-LENCO_PUBLIC_KEY=<your LIVE public key>
-```
-In `apps/admissions/.env.local`:
-```
-VITE_LENCO_PUBLIC_KEY=<your LIVE public key>          # same as backend
-VITE_LENCO_WIDGET_URL=https://pay.lenco.co/js/v1/inline.js   # already set
-```
-Email: fill the Mailtrap SMTP block (or switch to the console backend). The
-crypto keys and DB stay local — do **not** change `DATABASE_URL`.
-
-## R2 — Start + seed (same as before, with the realistic compose)
-
-```bash
-cd backend
-docker compose -p mihas-localreal -f docker-compose.local-real.yml \
-  --env-file .env.local.real up -d --build
-
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest < scripts/00_full_schema.sql
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest < scripts/2026_05_22_migration_history_extend.sql
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web \
-  python3 manage.py apply_sql_migrations
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web \
-  python3 manage.py seed_subjects
-```
-
-Confirm it's pointed at REAL Lenco but the LOCAL DB:
-```bash
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web \
-  python3 -c "import django; django.setup(); from django.conf import settings as s; \
-print('LENCO', s.LENCO_API_BASE_URL); print('DB', s.DATABASES['default']['NAME'])"
-# expect: LENCO https://api.lenco.co/...   DB mihas_localtest
-```
-
-## R3 — Set every fee to K1 (so real payments cost ~K1)
-
-The fee resolver reads `program_fees` (per program + residency) only;
-`programs.application_fee` is not a fee source. Fees come from `program_fees`
-rows, which `harness_seed_tenants` creates for the example tenants. Set them to
-1.00 so everything is K1:
-
-```bash
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest <<'SQL'
--- Make the program-level fallback K1 for every program.
-UPDATE programs SET application_fee = 1.00;
-
--- Make every explicit program_fee row K1 (both local + international).
-UPDATE program_fees SET amount = 1.00, currency = 'ZMW' WHERE fee_type = 'application';
-
--- If a program has no application fee row yet, add K1 rows for both residencies.
-INSERT INTO program_fees (id, program_id, fee_type, residency_category, amount, currency, is_active, created_at, updated_at)
-SELECT gen_random_uuid(), p.id, 'application', r.cat, 1.00, 'ZMW', true, now(), now()
-FROM programs p
-CROSS JOIN (VALUES ('local'), ('international')) AS r(cat)
-WHERE NOT EXISTS (
-  SELECT 1 FROM program_fees f
-  WHERE f.program_id = p.id AND f.fee_type = 'application' AND f.residency_category = r.cat
-);
-
-SELECT p.code, f.residency_category, f.amount, f.currency
-FROM program_fees f JOIN programs p ON p.id = f.program_id
-WHERE f.fee_type = 'application' ORDER BY p.code LIMIT 20;
-SQL
-```
-The final `SELECT` should show `1.00 ZMW` for each program. (This only edits
-your **local throwaway DB** — production fees are untouched.)
-
-## R4 — Make a real K1 payment and confirm it
-
-1. Frontend (2nd terminal): `cd apps/admissions && bun run dev` → open
-   `http://localhost:5173`.
-2. Go through the wizard to payment. The fee should read **K1**. Pay with a
-   **real** card / mobile-money number — real K1 leaves and arrives in your
-   Lenco account.
-3. **Confirm without a webhook** — two options:
-   - **Instant:** call verify on the payment (it pulls status from Lenco):
-     ```bash
-     # find the latest pending payment id
-     docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-       psql -U postgres -d mihas_localtest -c \
-       "SELECT id, status, amount FROM payments ORDER BY created_at DESC LIMIT 3;"
-     # the frontend's 'check status' button hits POST /api/v1/payments/{id}/verify/,
-     # or the poll task will pick it up automatically (next step).
-     ```
-   - **Automatic:** the `beat` service runs `poll_pending_payments_task` every
-     10 minutes and verifies pending payments against Lenco. Just wait, or watch:
-     ```bash
-     docker compose -p mihas-localreal -f docker-compose.local-real.yml logs -f celery beat
-     ```
-4. Verify it landed as a confirmed payment with tenant settlement metadata:
-   ```bash
-   docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-     psql -U postgres -d mihas_localtest -c \
-     "SELECT id, status, amount, currency, metadata->>'collector' AS collector FROM payments ORDER BY created_at DESC LIMIT 5;"
-   ```
-   Expect `status = successful` (after verify/poll) and `collector = beanola`.
-5. Cross-check the money actually moved in your **Lenco dashboard** (Collections).
-
-## R5 — Reset / stop
-
-```bash
-cd backend
-docker compose -p mihas-localreal -f docker-compose.local-real.yml down -v   # wipe local DB
-```
-You do **not** need to undo anything in Lenco because you never changed the
-webhook. Live keys stay only in your local gitignored env file.
-
-## R6 — Real-money safety checklist (tick before paying)
-
-- [ ] `DATABASE_URL` in `.env.local.real` is `...@postgres:5432/mihas_localtest`
-      (local), NOT Neon. Verified by the R2 check command.
-- [ ] You did **NOT** change the Lenco webhook URL (production still owns it).
-- [ ] `PUBLIC_WEBHOOK_BASE_URL` is empty.
-- [ ] Fees are K1 (R3 `SELECT` shows `1.00`).
-- [ ] You're paying **yourself** (your own Lenco account receives it).
-- [ ] `.env.local.real` and `apps/admissions/.env.local` are gitignored (never
-      committed — your live keys must not enter git).
-
-## R7 — What this proves
-
-Identical to production in every way that matters: prod settings + hardening,
-real Lenco API + widget + money movement, real status transitions confirmed via
-the same verify/poll code production uses, Celery worker + beat, real email. The
-only differences are the database (local throwaway) and that payment
-confirmation comes via verify/poll instead of the production webhook — which is
-exactly the safeguard that keeps live students unaffected.
-
----
-
-## R8 — Known bootstrap gotcha (already worked around)
-
-On a fresh local DB, `apply_sql_migrations` fails on
-`2026_05_22_fk_index_backfill.sql` with:
-
-> `CREATE INDEX CONCURRENTLY cannot run inside a transaction block`
-
-The file has 15 `CREATE INDEX CONCURRENTLY` statements; the runner sends them
-as one batch, which Postgres rejects. (Production was migrated via the EC2
-restore path, so it never hit this.) Work around it once, per fresh DB:
-
-```bash
-cd backend
-# 1. apply the indexes via psql (runs statements individually, autocommit)
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest -v ON_ERROR_STOP=1 < scripts/2026_05_22_fk_index_backfill.sql
-# 2. mark it applied so the runner skips it
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec -T postgres \
-  psql -U postgres -d mihas_localtest -c \
-  "INSERT INTO migration_history (migration_name, applied_at) VALUES ('2026_05_22_fk_index_backfill.sql', now()) ON CONFLICT (migration_name) DO NOTHING;"
-# 3. apply all top-level migrations (the tenant migration is now at the top
-#    level — backend/scripts/2026_06_08_01_multi_tenant_beanola_admissions.sql —
-#    so the runner applies it automatically; no separate manual step needed)
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web \
-  python3 manage.py apply_sql_migrations
-# 4. seed + verify
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web python3 manage.py seed_subjects
-docker compose -p mihas-localreal -f docker-compose.local-real.yml exec web python3 manage.py check_schema_drift
-```
-
-> NOTE: this is a real `apply_sql_migrations` bug worth fixing later (run
-> CONCURRENTLY files statement-by-statement in autocommit). Out of scope for
-> "no commits" testing — documented here so the local bring-up is unblocked.
+- **Port already in use (55432, 56379, 8000, 8090, 58025, 59000):** another
+  stack holds it. Stop that stack, or remap with `HARNESS_COMPOSE_OVERRIDE`.
+- **The backend does not become healthy:** `bash harness/bin/harness logs web`.
+- **The MinIO setup job fails:** `bash harness/bin/harness logs minio-setup`.
+- **An ARM machine:** not verified here. The adapter image builds locally either way.

@@ -1,6 +1,0 @@
-
-Running 1 test using 1 worker
-
-  ✓  1 [mobile-required] › tests/harness-e2e/required/design-system-defluff.spec.ts:664:1 › every surface this task changed passes an axe WCAG A/AA scan (22.1s)
-
-  1 passed (31.7s)

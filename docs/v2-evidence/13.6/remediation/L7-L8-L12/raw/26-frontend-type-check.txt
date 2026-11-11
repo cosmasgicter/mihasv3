@@ -1,5 +1,0 @@
-]633;E;echo;66a840ef-d16a-4bfe-9094-88e79b2f05fa]633;C
-### 2026-08-14T17:02:36Z type-check
-$ cd apps/admissions && bun run type-check
-$ tsc -p tsconfig.build.json --noEmit
-TYPE-CHECK EXIT=0

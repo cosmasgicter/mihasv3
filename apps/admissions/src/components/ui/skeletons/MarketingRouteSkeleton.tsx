@@ -1,6 +1,6 @@
 /**
  * MarketingRouteSkeleton — the above-the-fold placeholder shown on
- * public routes (`/`, `/contact`, `/terms`, `/privacy`, `/404`) while
+ * public routes (`/`, `/contact`, `/for-schools`, `/terms`, `/privacy`, `/404`) while
  * their lazy chunk (LandingPage, ContactPage, etc.) downloads.
  *
  * Before this existed, the Suspense fallback on those routes was
@@ -45,7 +45,7 @@ export const MarketingRouteSkeleton: FC = () => {
         </div>
       </header>
 
-      {/* Hero silhouette — approximates ShapeLandingHero's above-the-fold shape */}
+      {/* Hero silhouette — approximates the landing hero's above-the-fold shape */}
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-6 px-4 py-16 text-center sm:px-6">
         <div className="h-4 w-32 rounded-full bg-primary/20" aria-hidden />
         <div className="space-y-3">
@@ -62,7 +62,7 @@ export const MarketingRouteSkeleton: FC = () => {
         </div>
       </section>
 
-      <span className="sr-only">Loading page — please wait a moment…</span>
+      <span className="sr-only">Loading page: please wait a moment…</span>
     </div>
   )
 }

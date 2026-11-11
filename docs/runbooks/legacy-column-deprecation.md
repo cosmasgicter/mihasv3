@@ -1,5 +1,7 @@
 # Legacy Column Deprecation Runbook
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 90-day deprecation cycle for columns identified in AUDIT-REPORT-2026-04-24.md (SSP-001, SSP-002, SSP-003).
 
 ## Timeline

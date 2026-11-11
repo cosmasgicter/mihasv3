@@ -1,4 +1,0 @@
-Warnings: 3 (3 unique)
-Errors:   116 (26 unique)
-
-SPECTACULAR_EXIT=0

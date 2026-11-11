@@ -218,7 +218,7 @@ export function ToastContainer() {
 
   return (
     <div
-      className="toast-container fixed top-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
+      className="toast-container fixed top-[4.5rem] left-4 right-4 md:top-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
       data-toast-container
     >
       {/* Assertive region for error/warning toasts (Req 19.5) */}
@@ -307,16 +307,16 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         <Icon className={cn('h-5 w-5 flex-shrink-0 mt-0.5', iconStyles[toast.type])} aria-hidden="true" />
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">{toast.title}</p>
+          <p className="text-base sm:text-sm font-medium">{toast.title}</p>
           {toast.message && (
-            <p className="text-sm mt-1 opacity-80">{toast.message}</p>
+            <p className="text-base sm:text-sm mt-1 opacity-80">{toast.message}</p>
           )}
 
           {toast.action && (
             <button
               onClick={handleRetry}
               className={cn(
-                'mt-2 inline-flex items-center gap-1.5 text-sm font-medium',
+                'mt-2 inline-flex items-center gap-1.5 text-base sm:text-sm font-medium',
                 'rounded-md px-3 py-1.5 transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring',
                 'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-[44px] min-w-[44px] min-h-touch min-w-touch'

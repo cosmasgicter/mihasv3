@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useSafeArea } from './SafeAreaProvider'
 import { usePrefetch } from '@/hooks/usePrefetch'
-import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { navLabelFor, pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 export interface BottomNavItem {
   /** Route path */
@@ -100,7 +100,7 @@ const bottomNavItemFromRoute = (
   options: { label?: string; requiresAuth?: boolean } = {},
 ): BottomNavItem => ({
   href: route.path,
-  label: options.label ?? route.nav!.label,
+  label: options.label ?? navLabelFor(route),
   icon: route.nav!.icon,
   requiresAuth: options.requiresAuth,
   activeMatchPaths: route.nav?.activeMatchPaths,
@@ -108,9 +108,8 @@ const bottomNavItemFromRoute = (
 
 export const defaultStudentNavItems: BottomNavItem[] = [
   bottomNavItemFromRoute(routeById('student.dashboard'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.payment'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.interview'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.settings'), { label: 'Settings', requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.communications'), { requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.settings'), { requiresAuth: true }),
 ]
 
 export const defaultPublicNavItems: BottomNavItem[] = [
@@ -139,7 +138,7 @@ function BottomNavLink({
   const prefetchProps = hasImport ? prefetch : {}
   const baseClassName = cn(
     'flex flex-1 flex-col items-center justify-center',
-    'min-h-[44px] min-w-[44px] px-3 py-2',
+    'min-h-[44px] min-w-[44px] px-1 py-2',
     'rounded-lg',
     'transition-colors duration-150',
     'touch-manipulation select-none',
@@ -188,11 +187,12 @@ function BottomNavLink({
           {item.badge !== undefined && item.badge > 0 && (
             <span
               aria-hidden="true"
+              data-text-role="caption"
               className={cn(
                 'absolute -top-1 -right-1',
-                'min-w-[18px] h-[18px] px-1',
+                'h-5 min-w-5 px-1',
                 'flex items-center justify-center',
-                'text-[10px] font-bold',
+                'text-sm font-bold leading-none',
                 'bg-destructive text-destructive-foreground',
                 'rounded-full'
               )}
@@ -202,7 +202,7 @@ function BottomNavLink({
           )}
         </div>
         {!iconOnly && (
-          <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
+          <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -225,11 +225,12 @@ function BottomNavLink({
         {item.badge !== undefined && item.badge > 0 && (
           <span
             aria-hidden="true"
+            data-text-role="caption"
             className={cn(
               'absolute -top-1 -right-1',
-              'min-w-[18px] h-[18px] px-1',
+              'h-5 min-w-5 px-1',
               'flex items-center justify-center',
-              'text-[10px] font-bold',
+              'text-sm font-bold leading-none',
               'bg-destructive text-destructive-foreground',
               'rounded-full'
             )}
@@ -239,7 +240,7 @@ function BottomNavLink({
         )}
       </div>
       {!iconOnly && (
-        <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
+        <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -345,7 +346,7 @@ export function BottomNavigation({
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
               'flex flex-1 flex-col items-center justify-center rounded-lg',
-              'min-h-[44px] min-w-[44px] px-3 py-2',
+              'min-h-[44px] min-w-[44px] px-1 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',
               // Same token pair and reason as `BottomNavLink` above (GATE-13.3-12).
@@ -359,7 +360,7 @@ export function BottomNavigation({
           >
             <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')} aria-hidden="true" />
             {!isNarrowViewport && (
-              <span aria-hidden="true" className={cn('mt-1 max-w-full truncate text-xs font-semibold', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')}>
+              <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')}>
                 More
               </span>
             )}

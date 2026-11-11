@@ -98,7 +98,7 @@ export const PAYMENT_RECOVERY_PRESENTATION: Record<PaymentUiState, PaymentRecove
     tone: 'info',
     detail: PAYMENT_WAITING_STATES.action_required.body,
     action: 'check_status',
-    actionLabel: "I've approved — check now",
+    actionLabel: "I've approved: check now",
     allowsInitiate: false,
   },
   provider_processing: {
@@ -185,7 +185,7 @@ export const PAYMENT_RECOVERY_PRESENTATION: Record<PaymentUiState, PaymentRecove
     label: 'Payments unavailable',
     tone: 'warning',
     detail:
-      'Payments are temporarily unavailable. Nothing has been charged — check back shortly and your fee will still be here.',
+      'Payments are temporarily unavailable. Nothing has been charged. Check back shortly and your fee will still be here.',
     action: 'check_status',
     actionLabel: 'Check again',
     allowsInitiate: false,

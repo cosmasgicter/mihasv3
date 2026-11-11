@@ -26,8 +26,8 @@ export interface CanonicalProfileFields {
  * Each entry maps a field key to a human-readable label.
  */
 export const REQUIRED_PROFILE_FIELDS = [
-  { key: 'first_name', label: 'First Name' },
-  { key: 'last_name', label: 'Last Name' },
+  { key: 'first_name', label: 'First name' },
+  { key: 'last_name', label: 'Last name' },
   { key: 'email', label: 'Email' },
   { key: 'phone', label: 'Phone' },
   { key: 'date_of_birth', label: 'Date of Birth' },

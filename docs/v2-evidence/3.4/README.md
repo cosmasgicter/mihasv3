@@ -1,5 +1,7 @@
 # Task 3.4 — Validate every tenant foreign key (evidence index)
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 **Spec:** `.kiro/specs/admissions-v2-canonical-rebuild/` — task **3.4**
 **Requirements:** R15.3–R15.4, R18.7
 **Findings:** DATA-07 (June tenant FKs added `NOT VALID`; no validation migration)

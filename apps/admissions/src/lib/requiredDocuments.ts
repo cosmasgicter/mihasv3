@@ -99,6 +99,12 @@ export interface RequiredDocumentsContract {
   requirements: RequiredDocumentRequirement[]
   missingRequired: Array<{ documentType: string; label: string }>
   satisfied: boolean
+  /**
+   * The application's institution has opted in to OCR grade suggestions
+   * (platform-simplification task 18.2, decision D4). `false` unless the server
+   * says `true`: the wizard calls extract and polls only when this is set.
+   */
+  ocrAvailable: boolean
 }
 
 /**
@@ -307,6 +313,7 @@ export function parseRequiredDocumentsContract(raw: unknown): RequiredDocumentsC
     requirements,
     missingRequired,
     satisfied: missingRequired.length === 0,
+    ocrAvailable: payload.ocr_available === true,
   }
 }
 
@@ -341,13 +348,27 @@ export function acceptAttribute(requirement: RequiredDocumentRequirement): strin
  * student, and listing them separately made the hint read like two choices.
  */
 export function constraintHint(requirement: RequiredDocumentRequirement): string {
+  return `${constraintTypes(requirement)} up to ${formatConstraintSize(requirement.maxSizeBytes)}`
+}
+
+function constraintTypes(requirement: RequiredDocumentRequirement): string {
   const labels = requirement.acceptedExtensions
     .map((extension) => extension.replace('.', '').toUpperCase())
     .map((label) => (label === 'JPEG' ? 'JPG' : label))
     .filter((label, index, all) => all.indexOf(label) === index)
-  const types =
-    labels.length > 1 ? `${labels.slice(0, -1).join(', ')} or ${labels[labels.length - 1]}` : labels[0] ?? 'PDF'
-  return `${types} up to ${formatConstraintSize(requirement.maxSizeBytes)}`
+  return labels.length > 1
+    ? `${labels.slice(0, -1).join(', ')} or ${labels[labels.length - 1]}`
+    : labels[0] ?? 'PDF'
+}
+
+/**
+ * The file rules as the upload control shows them, once (task 25.4, R15.6):
+ * "PDF, JPG or PNG, up to 10 MB". The same facts as {@link constraintHint}, which
+ * keeps the server's "10MB" spelling for the rejection messages that mirror it.
+ */
+export function uploadRulesText(requirement: RequiredDocumentRequirement): string {
+  const size = formatConstraintSize(requirement.maxSizeBytes).replace(/(\d)([A-Za-z]+)$/, '$1 $2')
+  return `${constraintTypes(requirement)}, up to ${size}`
 }
 
 /** "That file is 3MB. <Label> must be 2MB or smaller." */

@@ -43,7 +43,7 @@ const wizardCode = stripComments(wizardSource)
 const wizardSurface = [
   'index.tsx',
   'components/WizardActionBar.tsx',
-  'components/WizardContextPanel.tsx',
+  'components/WizardStillNeeded.tsx',
   'components/WizardDraftPicker.tsx',
   'components/WizardProgressSummary.tsx',
   'components/WizardStepRenderer.tsx',

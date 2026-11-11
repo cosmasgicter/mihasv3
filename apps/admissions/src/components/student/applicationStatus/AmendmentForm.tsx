@@ -7,7 +7,7 @@ const AMENDABLE_FIELDS = [
   { key: 'email', label: 'Email' },
   { key: 'address_line_1', label: 'Address Line 1' },
   { key: 'address_line_2', label: 'Address Line 2' },
-  { key: 'residence_town', label: 'Residence Town' },
+  { key: 'residence_town', label: 'Residence town' },
   { key: 'next_of_kin_name', label: 'Next of Kin Name' },
   { key: 'next_of_kin_phone', label: 'Next of Kin Phone' },
 ] as const
@@ -37,7 +37,7 @@ const PHONE_AMENDMENT_FIELDS = new Set(['phone', 'next_of_kin_phone'])
  * wider than this form.
  */
 const CONTROL_CLASS =
-  'w-full min-h-touch rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+  'w-full min-h-touch rounded-md border border-input bg-card px-3 py-2 text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 interface AmendmentFormProps {
   amendField: string
@@ -67,7 +67,7 @@ export function AmendmentForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label htmlFor="amend-field" className="block text-sm font-medium text-foreground mb-1">Field to amend</label>
+        <label htmlFor="amend-field" className="block text-base sm:text-sm font-medium text-foreground mb-1">Field to amend</label>
         <select
           id="amend-field"
           value={amendField}
@@ -81,7 +81,7 @@ export function AmendmentForm({
         </select>
       </div>
       <div>
-        <label htmlFor="amend-value" className="block text-sm font-medium text-foreground mb-1">New value</label>
+        <label htmlFor="amend-value" className="block text-base sm:text-sm font-medium text-foreground mb-1">New value</label>
         <input
           id="amend-value"
           type={amendField === 'email' ? 'email' : 'text'}
@@ -93,7 +93,7 @@ export function AmendmentForm({
         />
       </div>
       <div>
-        <label htmlFor="amend-reason" className="block text-sm font-medium text-foreground mb-1">Reason for change</label>
+        <label htmlFor="amend-reason" className="block text-base sm:text-sm font-medium text-foreground mb-1">Reason for change</label>
         <textarea
           id="amend-reason"
           value={amendReason}
@@ -104,10 +104,10 @@ export function AmendmentForm({
         />
       </div>
       {amendError && (
-        <p className="text-sm text-destructive" role="alert" aria-live="assertive">{amendError}</p>
+        <p className="text-base sm:text-sm text-destructive" role="alert" aria-live="assertive">{amendError}</p>
       )}
       {amendSuccess && (
-        <p className="text-sm text-success" role="status" aria-live="polite">{amendSuccess}</p>
+        <p className="text-base sm:text-sm text-success" role="status" aria-live="polite">{amendSuccess}</p>
       )}
       <Button
         type="submit"

@@ -942,7 +942,9 @@ class AdminCapabilityService:
     code never compares raw role strings (R1.5).
     """
 
-    # --- Platform capability catalogue (R2.5) — 17 ``platform.*`` strings ---
+    # --- Platform capability catalogue (R2.5) — 16 ``platform.*`` strings ---
+    # ``platform.user.create_global`` was removed by platform-simplification task
+    # 17.1 (decision D3): no endpoint enforced it and no frontend gate read it.
     PLATFORM_CAPABILITIES: frozenset[str] = frozenset(
         {
             "platform.tenant.read_all",
@@ -956,7 +958,6 @@ class AdminCapabilityService:
             "platform.canonical_program.manage",
             "platform.program_assignment.manage",
             "platform.intake.manage",
-            "platform.user.create_global",
             "platform.user.manage_all",
             "platform.access_grant.manage",
             "platform.audit.read_all",

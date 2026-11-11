@@ -28,7 +28,6 @@ from apps.applications.models import (
     Application,
     ApplicationAmendment,
     ApplicationCondition,
-    ApplicationDraft,
     ApplicationInterview,
     ApplicationStatusHistory,
 )
@@ -60,8 +59,6 @@ from rest_framework.throttling import UserRateThrottle
 
 from ._view_helpers import (
     ApplicationConditionSerializer,
-    ApplicationDraftResponseSerializer,
-    ApplicationDraftWriteSerializer,
     ApplicationListResponseSerializer,
     ApplicationDocumentsResponseSerializer,
     ApplicationGradeMutationResponseSerializer,
@@ -93,17 +90,6 @@ def _get_owned_draft_application(request, application_id):
     except (Application.DoesNotExist, DjangoValidationError):
         return None
     return application
-
-
-def _json_depth(obj, current=0, max_depth=11):
-    """Return nesting depth of a JSON-like structure. Stops early if exceeds max_depth."""
-    if current > max_depth:
-        return current
-    if isinstance(obj, dict):
-        return max((_json_depth(v, current + 1, max_depth) for v in obj.values()), default=current)
-    if isinstance(obj, list):
-        return max((_json_depth(item, current + 1, max_depth) for item in obj), default=current)
-    return current
 
 
 APPLICATION_DRAFT_UPDATE_REQUEST_SCHEMA = {
@@ -825,95 +811,3 @@ class ApplicationDraftChangeSelectionView(APIView):
         payload["required_documents"] = result.application.requirements_snapshot or []
         payload["change_summary"] = result.summary()
         return Response({"success": True, "data": payload})
-
-
-@extend_schema_view(
-    get=extend_schema(
-        operation_id="applications_draft_retrieve",
-        tags=["applications"],
-        responses={
-            200: OpenApiResponse(response=ApplicationDraftResponseSerializer),
-            404: OpenApiResponse(response=ErrorResponseSerializer),
-        },
-    ),
-    post=extend_schema(
-        operation_id="applications_draft_save",
-        tags=["applications"],
-        request=ApplicationDraftWriteSerializer,
-        responses={
-            200: OpenApiResponse(response=ApplicationDraftResponseSerializer),
-            201: OpenApiResponse(response=ApplicationDraftResponseSerializer),
-        },
-    ),
-)
-class ApplicationDraftView(APIView):
-    """Deprecated compatibility endpoint for latest wizard snapshot payloads.
-
-    Do not use this endpoint for production multi-draft routing. Canonical
-    online drafts are ``Application(status='draft')`` rows exposed through
-    ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
-    """
-
-    permission_classes = [IsAuthenticated]
-    serializer_class = ApplicationDraftWriteSerializer
-
-    def get(self, request):
-        from apps.applications.serializers import ApplicationDraftSerializer
-
-        user_id = str(request.user.id)
-        draft = ApplicationDraft.objects.filter(user_id=user_id).order_by("-updated_at").first()
-        if not draft:
-            return Response({"success": False, "error": "No draft found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"success": True, "data": ApplicationDraftSerializer(draft).data})
-
-    def post(self, request):
-        import json as _json
-        from apps.applications.serializers import ApplicationDraftSerializer
-
-        user_id = str(request.user.id)
-        draft_data = request.data.get("draft_data", {})
-
-        # --- Input validation: size and depth caps (DoS prevention) ---
-        MAX_DRAFT_DATA_BYTES = 512 * 1024  # 512KB
-        try:
-            serialized = _json.dumps(draft_data)
-        except (TypeError, ValueError):
-            return Response(
-                {"success": False, "error": {"code": "INVALID_DRAFT_DATA", "message": "draft_data must be JSON-serializable"}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if len(serialized.encode("utf-8")) > MAX_DRAFT_DATA_BYTES:
-            return Response(
-                {"success": False, "error": {"code": "DRAFT_TOO_LARGE", "message": f"draft_data exceeds {MAX_DRAFT_DATA_BYTES} bytes"}},
-                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            )
-        if _json_depth(draft_data) > 10:
-            return Response(
-                {"success": False, "error": {"code": "DRAFT_TOO_NESTED", "message": "draft_data exceeds maximum nesting depth of 10"}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        application_id = request.data.get("application_id")
-        if application_id:
-            try:
-                application = Application.objects.only("id", "user_id").get(id=application_id)
-            except DjangoValidationError:
-                return Response(
-                    {"success": False, "error": "Invalid application id", "code": "VALIDATION_ERROR"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except Application.DoesNotExist:
-                return Response(
-                    {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            role = getattr(request.user, "role", "student")
-            if role not in ("admin", "super_admin") and str(application.user_id) != user_id:
-                return Response(
-                    {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
-        draft, created = ApplicationDraft.objects.update_or_create(user_id=user_id, application_id=application_id, defaults={"draft_data": draft_data})
-        resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        return Response({"success": True, "data": ApplicationDraftSerializer(draft).data}, status=resp_status)

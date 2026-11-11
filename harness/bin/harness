@@ -82,9 +82,13 @@ export VITE_API_BASE_URL="${VITE_API_BASE_URL:-https://apply.beanola.com}"
 export VITE_APP_BASE_URL="${VITE_APP_BASE_URL:-http://localhost:8090}"
 export VITE_SITE_URL="${VITE_SITE_URL:-http://localhost:8090}"
 export VITE_APP_VERSION="${VITE_APP_VERSION:-2.0.0-harness}"
+# The card option's widget is a stub the adapter serves same-origin through Caddy
+# (/__lenco/*), so a local build never loads the live widget from an outside host.
+# Lives here, not in the app, so production builds are unaffected.
+export VITE_LENCO_WIDGET_URL="${VITE_LENCO_WIDGET_URL:-/__lenco/js/v1/inline.js}"
 # Dummy DSN so the prod-mode env validation passes; errors-only + a clean run
 # means Sentry/GlitchTip performs zero network calls.
-export VITE_GLITCHTIP_DSN="${VITE_GLITCHTIP_DSN:-https://[email protected]/1}"
+export VITE_GLITCHTIP_DSN="${VITE_GLITCHTIP_DSN:-https://harness@harness-invalid.localhost/1}"
 
 log()  { printf '\033[36m[harness]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[32m[harness] ✓ %s\033[0m\n' "$*"; }
@@ -96,6 +100,10 @@ build_spa() {
   ( cd "${REPO_ROOT}" && bun install --frozen-lockfile >/dev/null 2>&1 || bun install >/dev/null 2>&1 || true )
   ( cd "${ADMISSIONS_DIR}" && bun run build )
   [ -f "${ADMISSIONS_DIR}/dist/index.html" ] || { err "SPA build produced no dist/index.html"; exit 1; }
+  # A local build must name no host outside the stack (task 3.7, R1.11). A preconnect
+  # is not a request Playwright can see, so it is checked statically.
+  ( cd "${REPO_ROOT}" && bun run ./scripts/check-local-build-hosts.ts "${ADMISSIONS_DIR}/dist/index.html" ) \
+    || { err "the SPA build names a host outside the stack"; exit 1; }
   ok "SPA build output ready"
 }
 
@@ -289,9 +297,9 @@ case "${cmd}" in
   e2e)   ensure_browser; run_required; run_gatecheck; drain_check ;;
   journey-gate)
     export_gate_switches
-    build_spa
-    compose_up
-    wait_healthy
+    # The documented bring-up (task 11.1, D2): the stack the gate tests is the stack
+    # LOCAL-TESTING.md builds. The four gate values above reach it through the environment.
+    bash "${HARNESS_DIR}/bin/local-setup.sh"
     ensure_browser
     storage_check
     edge_check

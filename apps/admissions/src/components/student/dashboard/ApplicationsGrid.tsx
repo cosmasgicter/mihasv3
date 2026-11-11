@@ -166,10 +166,10 @@ export function ApplicationsGrid({
                 key={intake.id}
                 className="flex flex-col gap-1 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
               >
-                <span className="break-words text-sm font-medium text-foreground">
+                <span className="break-words text-base sm:text-sm font-medium text-foreground">
                   {intake.name}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span data-text-role="caption" className="text-sm sm:text-xs text-muted-foreground">
                   Closes{' '}
                   <time dateTime={intake.application_deadline}>
                     {formatDate(intake.application_deadline)}
@@ -197,15 +197,15 @@ export function ApplicationsGrid({
               getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]),
             )}
           />
-          <ProfileFact label="Email" value={sanitizeForDisplay(user?.email) || 'Not provided'} />
+          <ProfileFact label="Email" value={sanitizeForDisplay(user?.email)} />
           <ProfileFact
             label="Phone"
-            value={sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
+            value={sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, ''))}
           />
           <ProfileFact
             label="Residence"
             value={sanitizeForDisplay(
-              getBestValue(profile?.address, metadata.address, 'Not provided'),
+              getBestValue(profile?.address, metadata.address, ''),
             )}
           />
         </dl>
@@ -218,10 +218,12 @@ export function ApplicationsGrid({
 }
 
 function ProfileFact({ label, value }: { label: string; value: string }) {
+  // A missing value is left out, not printed as "Not provided" (task 26.5, R14.6).
+  if (!value || value.trim().length === 0) return null
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium text-foreground">{value}</dd>
+      <dt className="text-base sm:text-sm font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 break-words text-base sm:text-sm font-medium text-foreground">{value}</dd>
     </div>
   )
 }

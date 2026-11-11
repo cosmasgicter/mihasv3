@@ -56,7 +56,7 @@ export function SendNotificationModal({
     <Dialog open={show} onOpenChange={handleOpenChange}>
       <DialogContent size="sm" className="z-[70]">
         <DialogHeader>
-          <DialogTitle>Send Notification</DialogTitle>
+          <DialogTitle>Send notification</DialogTitle>
         </DialogHeader>
 
         <div className="mb-4 p-3 bg-muted rounded-lg">
@@ -77,7 +77,7 @@ export function SendNotificationModal({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter notification title..."
+              placeholder="Enter notification title…"
               className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
               required
             />
@@ -90,7 +90,7 @@ export function SendNotificationModal({
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter your message to the student..."
+              placeholder="Enter your message to the student…"
               rows={4}
               className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
               required
@@ -108,7 +108,7 @@ export function SendNotificationModal({
               className="flex items-center gap-2"
             >
               <Send className="h-4 w-4" />
-              Send Notification
+              Send notification
             </Button>
           </DialogFooter>
         </form>

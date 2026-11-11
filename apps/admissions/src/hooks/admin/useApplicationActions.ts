@@ -27,7 +27,7 @@ export function useApplicationActions() {
 
   const deleteApplication = async (applicationId: string) => {
     const confirmed = await confirmDialog.confirm({
-      title: 'Delete Application',
+      title: 'Delete application',
       message: 'This application will be permanently deleted.',
       confirmText: 'Delete',
       variant: 'danger'

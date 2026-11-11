@@ -1,5 +1,7 @@
 # Task 1.6 Evidence — Email-Verification Contract + Centralized Email Links
 
+> Raw evidence artefacts were removed from the tree on 2026-11-09; they remain in git history at commit `f19289a4d1e2`. Paths named below that point at them resolve at https://github.com/cosmasgicter/mihasv3/tree/f19289a4d1e2ad539bc667ab1649356049d7f8e2/docs/v2-evidence.
+
 **Spec:** `.kiro/specs/admissions-v2-canonical-rebuild/`
 **Task:** 1.6 — Implement or deliberately remove the unimplemented
 email-verification contract

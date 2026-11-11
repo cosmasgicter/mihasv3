@@ -53,7 +53,7 @@ export function RoutingSimulatorPanel({
   return (
     <SectionCard
       title="Test routing"
-      description="Dry-run the real assignment service for a program + intake. The result matches exactly what a real submission would route — no application is created."
+      description="Dry-run the real assignment service for a programme + intake. The result matches exactly what a real submission would route. No application is created."
       icon={<Route className="h-5 w-5" />}
     >
       <RoutingSimulatorBody institutionId={institutionId} institutionName={institutionName} />
@@ -123,7 +123,7 @@ export function RoutingSimulatorBody({
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
     if (!form.program_id || !form.intake_id) {
-      toast.error('Choose a program and an intake to simulate')
+      toast.error('Choose a programme and an intake to simulate')
       return
     }
     setResult(null)
@@ -136,7 +136,7 @@ export function RoutingSimulatorBody({
     <>
       {loadError ? (
         <ErrorDisplay
-          message="Could not load programs or intakes for the simulator."
+          message="Could not load programmes or intakes for the simulator."
           onRetry={() => {
             if (programsQuery.isError) programsQuery.refetch()
             if (intakesQuery.isError) intakesQuery.refetch()
@@ -146,15 +146,15 @@ export function RoutingSimulatorBody({
         <div className="space-y-5">
           <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
             <label className="space-y-1.5 text-sm">
-              <span className="font-medium text-foreground">Canonical program</span>
+              <span className="font-medium text-foreground">Canonical programme</span>
               <select
                 value={form.program_id}
                 onChange={event => setForm(prev => ({ ...prev, program_id: event.target.value }))}
                 className={TENANT_SELECT_CLASS}
-                aria-label="Canonical program"
+                aria-label="Canonical programme"
                 disabled={programsQuery.isLoading}
               >
-                <option value="">Select a program…</option>
+                <option value="">Select a programme…</option>
                 {programs.map(program => (
                   <option key={program.id} value={program.id}>{program.name}</option>
                 ))}
@@ -234,7 +234,7 @@ function RoutingSimulationOutcome({ result }: { result: RoutingSimulationResult 
           <StatusBadge tone="warning" label={result.error?.code || 'NO_ELIGIBLE_OFFERING'} />
         </div>
         <p className="text-sm text-foreground">
-          {result.error?.message || 'No active school offering is available for this program and intake.'}
+          {result.error?.message || 'No active school offering is available for this programme and intake.'}
         </p>
         <p className="text-xs text-muted-foreground">
           A real applicant with these inputs would see a recoverable next step (choose another intake or contact admissions), never a dead-end.
@@ -277,7 +277,7 @@ function RoutingSimulationOutcome({ result }: { result: RoutingSimulationResult 
         </div>
 
         <div className="min-w-0">
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Program</dt>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Programme</dt>
           <dd className="break-words text-sm text-foreground">{result.program_name || '—'}</dd>
         </div>
 

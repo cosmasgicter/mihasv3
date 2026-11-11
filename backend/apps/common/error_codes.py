@@ -636,6 +636,20 @@ ERROR_CODES.update({
         "message": "Text extraction is temporarily unavailable",
         "category": "document",
     },
+    # platform-simplification task 18.1 (D4): the document's institution has not
+    # opted in to OCR, so the extract call enqueues nothing.
+    "OCR_NOT_ENABLED": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "Automatic grade reading is not turned on for this school",
+        "category": "document",
+    },
+    # platform-simplification task 18.1: the generic settings endpoints refuse a
+    # key a dedicated command owns (the OCR opt-in).
+    "KEY_MANAGED_ELSEWHERE": {
+        "http_status": status.HTTP_403_FORBIDDEN,
+        "message": "This setting is changed through its own command",
+        "category": "common",
+    },
 })
 
 # --- Document ---

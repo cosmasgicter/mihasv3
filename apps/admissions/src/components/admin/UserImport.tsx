@@ -431,7 +431,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               <div className="flex justify-center gap-8">
                 <div className="text-center">
                   <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <CheckCircle className="h-6 w-6 text-accent" aria-hidden="true" />
+                    <CheckCircle className="h-6 w-6 text-accent-foreground" aria-hidden="true" />
                   </div>
                   <p className="text-2xl font-bold text-foreground" data-testid="import-created-count">
                     {result.created}

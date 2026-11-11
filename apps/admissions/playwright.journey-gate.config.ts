@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { harnessLaunchOptions } from './tests/harness-e2e/helpers/host-resolver';
 import {
   evidenceDirRelative,
   EVIDENCE_RUN_ID_ENV,
@@ -52,6 +53,8 @@ export default defineConfig({
     trace: 'on',
     screenshot: 'only-on-failure',
     ignoreHTTPSErrors: true,
+    // Outside host names do not resolve in the browser (task 3.7, R1.11).
+    launchOptions: harnessLaunchOptions,
     actionTimeout: 30_000,
     navigationTimeout: 60_000,
     // Journey-gate fixture mode: 429 and 5xx are never "allowed" by URL.

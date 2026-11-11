@@ -80,13 +80,13 @@ export function NextActionPanel({
         names; wrapped text is not.
       */}
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-        <p className="break-words text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="break-words text-base sm:text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Next action
         </p>
         {nextAction && (
-          <span
+          <span data-text-role="caption"
             data-testid="next-action-application"
-            className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground"
+            className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-sm sm:text-xs font-semibold text-muted-foreground"
           >
             <StateIcon status={nextAction.applicationStatus} />
             <span className="break-words">{formatApplicationStatus(nextAction.applicationStatus)}</span>
@@ -109,7 +109,7 @@ export function NextActionPanel({
       {heading.detail && (
         <p
           data-testid="next-action-detail"
-          className="mt-2 max-w-2xl break-words text-sm leading-6 text-muted-foreground"
+          className="mt-2 max-w-2xl break-words text-base sm:text-sm leading-6 text-muted-foreground"
         >
           {heading.detail}
         </p>
@@ -158,7 +158,7 @@ export function NextActionPanel({
         ) : nextAction?.href && !leadsElsewhere ? (
           // The action is on this page (task 11.3). Say where, and let the section
           // that owns the command own it — one action, one control.
-          <p data-testid="next-action-on-this-page" className="text-sm text-muted-foreground">
+          <p data-testid="next-action-on-this-page" className="text-base sm:text-sm text-muted-foreground">
             The control for this is on this page, below.
           </p>
         ) : nextAction?.href ? (
@@ -218,13 +218,13 @@ export function NextActionPanel({
               {action.href ? (
                 <Link
                   to={action.href}
-                  className="inline-flex min-h-touch items-center gap-2 rounded-md text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="inline-flex min-h-touch items-center gap-2 rounded-md text-base sm:text-sm font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   {action.label}
                 </Link>
               ) : (
-                <span className="inline-flex min-h-touch items-center gap-2 text-sm text-muted-foreground">
+                <span className="inline-flex min-h-touch items-center gap-2 text-base sm:text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   {action.label}
                 </span>

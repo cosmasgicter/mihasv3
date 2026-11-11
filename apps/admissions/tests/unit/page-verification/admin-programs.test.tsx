@@ -223,7 +223,7 @@ describe('Admin programs page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Programs & Institutions')
+    expect(text).toContain('Programmes & Institutions')
   })
 
   it('renders the page subtitle', async () => {
@@ -245,9 +245,9 @@ describe('Admin programs page verification', () => {
   it('renders the summary cards with program and institution counts', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Total Programs')
+    expect(text).toContain('Total programmes')
     expect(text).toContain('Institutions')
-    expect(text).toContain('Archived Institutions')
+    expect(text).toContain('Archived institutions')
   })
 
   // ── Programs tab with table data ────────────────────────────────────
@@ -275,7 +275,7 @@ describe('Admin programs page verification', () => {
   it('renders the programs and institutions tab triggers', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Programs')
+    expect(text).toContain('Programmes')
     expect(text).toContain('Institutions')
   })
 
@@ -287,7 +287,7 @@ describe('Admin programs page verification', () => {
 
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('No Programs Yet')
+    expect(text).toContain('No programmes yet')
   })
 
   // ── Error state ─────────────────────────────────────────────────────
@@ -301,6 +301,6 @@ describe('Admin programs page verification', () => {
     // React Query will show error state — the page should still render
     // without crashing. The page heading should still be visible.
     const text = container.textContent || ''
-    expect(text).toContain('Programs & Institutions')
+    expect(text).toContain('Programmes & Institutions')
   })
 })

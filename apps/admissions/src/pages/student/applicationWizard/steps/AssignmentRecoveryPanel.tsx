@@ -62,11 +62,11 @@ const AssignmentRecoveryPanel = ({
         return interestRecorded ? (
           <p
             key="interest-list"
-            className="inline-flex items-center gap-2 text-sm font-medium text-success"
+            className="inline-flex items-center gap-2 text-base sm:text-sm font-medium text-success"
             role="status"
           >
             <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            You&apos;re on the interest list — we&apos;ll be in touch if a place opens.
+            Reminder saved on this device. It does not tell admissions, so contact them to ask about a place.
           </p>
         ) : (
           <Button
@@ -78,7 +78,7 @@ const AssignmentRecoveryPanel = ({
             className="w-full justify-start sm:w-auto"
           >
             <BellRing className="mr-2 h-4 w-4" aria-hidden="true" />
-            Join the interest list
+            Remind me on this device
           </Button>
         )
       case 'contact-admissions':
@@ -109,10 +109,10 @@ const AssignmentRecoveryPanel = ({
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 space-y-1.5">
-          <h3 id="assignment-recovery-heading" className="text-base font-semibold text-foreground">
+          <h2 id="assignment-recovery-heading" className="text-base font-semibold text-foreground">
             {guidance.title}
-          </h3>
-          <p className="text-sm text-muted-foreground">{guidance.message}</p>
+          </h2>
+          <p className="text-base sm:text-sm text-muted-foreground">{guidance.message}</p>
         </div>
       </div>
 

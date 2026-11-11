@@ -76,7 +76,7 @@ export function PaymentDecisionControls({
     <>
       <div>
         <label className="mb-2 block text-xs font-medium text-foreground">
-          Payment Status
+          Payment status
         </label>
         {!canVerifyPayment ? (
           <p
@@ -92,7 +92,7 @@ export function PaymentDecisionControls({
             <div className="sm:col-span-2 grid gap-2">
             {showStatusSummary && (
             <div className={`text-center py-2 space-y-1 ${STATUS_CALLOUT}`}>
-              <StatusBadge tone="warning" icon={Clock} label="Awaiting Payment" />
+              <StatusBadge tone="warning" icon={Clock} label="Awaiting payment" />
             </div>
             )}
               <Button
@@ -101,7 +101,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={`w-full ${OUTLINE_SUCCESS}`}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Mark as Paid
@@ -119,7 +119,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={OUTLINE_SUCCESS}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Verify
@@ -132,7 +132,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className="w-full"
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
@@ -145,7 +145,7 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className={`${OUTLINE_WARNING} sm:col-span-2`}
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <Clock className="h-3 w-3" />
                     Defer
@@ -162,10 +162,10 @@ export function PaymentDecisionControls({
               disabled={updatingPayment || disabled}
               className="sm:col-span-2"
             >
-              {updatingPayment ? 'Updating...' : (
+              {updatingPayment ? 'Updating…' : (
                 <>
                   <RotateCcw className="h-3 w-3" />
-                  Reopen Review
+                  Reopen review
                 </>
               )}
             </Button>
@@ -184,10 +184,10 @@ export function PaymentDecisionControls({
                 disabled={updatingPayment || disabled}
                 className="w-full"
               >
-                {updatingPayment ? 'Updating...' : (
+                {updatingPayment ? 'Updating…' : (
                   <>
                     <RotateCcw className="h-3 w-3" />
-                    Reopen Review
+                    Reopen review
                   </>
                 )}
               </Button>
@@ -235,7 +235,7 @@ export function PaymentDecisionControls({
               onClick={onSubmitDecision}
               disabled={updatingPayment}
             >
-              {updatingPayment ? 'Saving...' : paymentReviewCopy.confirmText}
+              {updatingPayment ? 'Saving…' : paymentReviewCopy.confirmText}
             </Button>
           </DialogFooter>
         </DialogContent>

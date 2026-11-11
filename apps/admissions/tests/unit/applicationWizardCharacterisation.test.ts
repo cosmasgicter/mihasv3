@@ -105,9 +105,9 @@ describe('wizard characterisation: the step table is the state machine (R10.2)',
 
   /**
    * The rendered step names are load-bearing beyond this surface: another lane's
-   * browser spec (`ocr-manual-fallback.spec.ts`) reaches the next control by
-   * `Continue to ${progressTitle}`, so a renamed `progressTitle` silently breaks
-   * a journey this task does not own.
+   * browser spec (`ocr-manual-fallback.spec.ts`) reaches a step through the
+   * progress control named `Step ${id}: ${progressTitle}`, so a renamed
+   * `progressTitle` silently breaks a journey this task does not own.
    */
   it('names each step for the control that navigates to it', () => {
     expect(wizardSteps.map(step => step.progressTitle)).toEqual([
@@ -119,8 +119,8 @@ describe('wizard characterisation: the step table is the state machine (R10.2)',
       'Review',
     ])
     expect(wizardSteps.every(step => step.title.length > 0)).toBe(true)
-    expect(wizardSteps.every(step => step.description.length > 0)).toBe(true)
-    expect(saveNowLabel).toBe('Save Now')
+    expect(wizardSteps.every(step => step.instruction.length > 0)).toBe(true)
+    expect(saveNowLabel).toBe('Save now')
     expect(previousButtonLabel).toBe('Previous')
   })
 

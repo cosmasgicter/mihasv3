@@ -60,7 +60,7 @@ interface AmendmentHistoryProps {
 export function AmendmentHistory({ amendments, totalCount, isLoading }: AmendmentHistoryProps) {
   if (isLoading) {
     return (
-      <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+      <p className="text-base sm:text-sm text-muted-foreground" role="status" aria-live="polite">
         Loading your amendment requests…
       </p>
     )
@@ -86,29 +86,29 @@ export function AmendmentHistory({ amendments, totalCount, isLoading }: Amendmen
           >
             <div className="mt-0.5 flex-shrink-0">{statusIcon(amendment)}</div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-base sm:text-sm font-medium text-foreground">
                 {amendmentFieldLabel(amendment.field_name)}
                 <span className="font-normal text-muted-foreground"> to </span>
                 <span className="break-words">{amendment.new_value}</span>
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-base sm:text-sm text-muted-foreground">
                 Requested {formatTimestamp(amendment.requested_at ?? '')}
                 {amendment.reviewed_at && ` \u2022 Reviewed ${formatTimestamp(amendment.reviewed_at)}`}
               </p>
-              <span
-                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass(amendment)}`}
+              <span data-text-role="caption"
+                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-sm sm:text-xs font-medium ${badgeClass(amendment)}`}
               >
                 {amendment.status.toUpperCase()}
               </span>
               {amendment.status_definition && (
-                <p className="mt-2 text-xs text-muted-foreground">{amendment.status_definition}</p>
+                <p className="mt-2 text-base sm:text-sm text-muted-foreground">{amendment.status_definition}</p>
               )}
             </div>
           </li>
         ))}
       </ul>
       {typeof totalCount === 'number' && totalCount > amendments.length && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-base sm:text-sm text-muted-foreground">
           Showing {amendments.length} of {totalCount} requests.
         </p>
       )}

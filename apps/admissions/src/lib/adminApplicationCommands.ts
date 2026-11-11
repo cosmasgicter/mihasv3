@@ -53,7 +53,7 @@ export function applicationStatusCommands(
 ): AdminApplicationCommand[] {
   switch (status) {
     case 'draft':
-      return [{ id: 'status:submitted', label: 'Force Submit', kind: 'status', target: 'submitted' }]
+      return [{ id: 'status:submitted', label: 'Force submit', kind: 'status', target: 'submitted' }]
     case 'submitted':
       return [{ id: 'status:under_review', label: 'Review', kind: 'status', target: 'under_review' }]
     case 'under_review':
@@ -106,7 +106,7 @@ export function applicationPaymentCommands(
       return [
         {
           id: 'payment:pending_review',
-          label: 'Reopen Review',
+          label: 'Reopen review',
           kind: 'payment',
           target: 'pending_review',
         },

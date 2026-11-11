@@ -36,7 +36,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
 
   return (
     <SectionCard
-      title="Find Your Application"
+      title="Find your application"
       description="Paste the tracking link issued for your application to check its status."
       icon={<Search className="h-5 w-5" />}
       headerVariant="default"
@@ -72,7 +72,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               className="h-14 min-h-touch w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? 'Searching…' : 'Search'}
             </Button>
           </div>
           {/*
@@ -81,7 +81,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             more — a tracking link is — so the hint names the link, and the cards
             below say where to get one instead of where to find the number.
           */}
-          <p id="tracker-search-hint" className="mt-2 text-sm text-muted-foreground">
+          <p id="tracker-search-hint" className="mt-2 max-w-prose text-sm text-muted-foreground">
             Your tracking link looks like <span className="font-mono">TRK-XXXXXXXX-XXXXXXXXXXXXXXXXXXXX</span>. An application number will not open tracking.
           </p>
           
@@ -102,21 +102,21 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Get Your Link</h3>
+              <h3 className="text-sm font-semibold text-foreground">Get your link</h3>
               <p className="mt-0.5 text-sm text-muted-foreground">Sign in and choose &ldquo;Get tracking link&rdquo; on your application</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
+              <h3 className="text-sm font-semibold text-foreground">Format example</h3>
               <p className="mt-0.5 break-all text-sm font-mono text-muted-foreground">TRK-4KP2M9XT-9QW3RT7VZ2KDN8YH6JF4</p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             student gets. What they get is the current recorded status without
             signing in, which is worth saying plainly.
           */}
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+          <div className="flex items-start gap-3 rounded-lg bg-muted p-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
               <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>

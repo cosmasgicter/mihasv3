@@ -5,8 +5,8 @@ import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 
 const sections = [
-  { id: 'information-collected', title: 'Information We Collect' },
-  { id: 'how-used', title: 'How Information Is Used' },
+  { id: 'information-collected', title: 'Information we collect' },
+  { id: 'how-used', title: 'How information is used' },
   { id: 'access-protection', title: 'Access and Protection' },
   { id: 'questions', title: 'Questions or Requests' },
 ] as const
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           <PageHeader
             variant="surface"
             icon={<Shield className="h-6 w-6" aria-hidden="true" />}
-            title="Privacy Policy"
+            title="Privacy policy"
             description="This page outlines how applicant information is handled when you create an account, submit application details, and use the public admissions tools."
           />
 

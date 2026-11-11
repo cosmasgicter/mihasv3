@@ -64,6 +64,7 @@ const ROUTE_SURFACES: RouteSurface[] = [
   { path: '/', file: 'pages/LandingPage.tsx' },
   { path: '/track-application', file: 'pages/public/tracker/index.tsx' },
   { path: '/contact', file: 'pages/ContactPage.tsx' },
+  { path: '/for-schools', file: 'pages/public/ForSchoolsPage.tsx' },
   { path: '/terms', file: 'pages/TermsPage.tsx' },
   { path: '/privacy', file: 'pages/PrivacyPage.tsx' },
   { path: '/auth/signin', file: 'pages/auth/SignInPage.tsx' },

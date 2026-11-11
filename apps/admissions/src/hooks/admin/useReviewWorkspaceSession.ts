@@ -42,6 +42,11 @@ import type { StatusCommandOptions } from '@/types/statusCommand'
 
 interface UseReviewWorkspaceSessionInput {
   application: ApplicationWithDetails | null
+  /**
+   * The id to read when the review is opened by address and there is no roster
+   * row to seed it from (task 30.2). A seed's own id wins when both are given.
+   */
+  applicationId?: string | null
   show: boolean
   onUpdateStatus: (
     id: string,
@@ -52,6 +57,7 @@ interface UseReviewWorkspaceSessionInput {
 
 export function useReviewWorkspaceSession({
   application,
+  applicationId: explicitApplicationId = null,
   show,
   onUpdateStatus,
 }: UseReviewWorkspaceSessionInput) {
@@ -67,7 +73,7 @@ export function useReviewWorkspaceSession({
   const [feeWaiverOpen, setFeeWaiverOpen] = useState(false)
   const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
 
-  const applicationId = application?.id ?? null
+  const applicationId = application?.id ?? explicitApplicationId
   const {
     data: workspace,
     isLoading,

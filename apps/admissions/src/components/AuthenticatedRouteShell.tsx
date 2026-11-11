@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { matchPath, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { scrollKeyForPath } from '@/hooks/useScrollRestoration'
 import '@/styles/legibility.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -98,7 +99,7 @@ function renderRoute(route: RouteConfig) {
     routeElement = (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center p-8">
-          <h2 className="mb-4 text-xl font-semibold text-foreground">Page Not Found</h2>
+          <h2 className="mb-4 text-xl font-semibold text-foreground">Page not found</h2>
           <p className="text-muted-foreground">The requested page could not be loaded.</p>
         </div>
       </div>
@@ -159,7 +160,12 @@ function RoutedAuthenticatedApp() {
 
   useEffect(() => {
     if (prevPathRef.current !== location.pathname) {
+      const samePage = scrollKeyForPath(prevPathRef.current) === scrollKeyForPath(location.pathname)
       prevPathRef.current = location.pathname
+      // Opening or closing a review beside the queue is not a new page: the
+      // workspace moves focus itself (task 30.2), and refocusing <main> here
+      // would pull the queue's scroll back to the top.
+      if (samePage) return
       const mainContent = document.getElementById(APP_MAIN_CONTENT_ID) || document.querySelector('main') || document.querySelector('h1')
       if (mainContent && mainContent instanceof HTMLElement) {
         mainContent.focus({ preventScroll: false })

@@ -123,45 +123,27 @@ describe('dead dependency removal (task 12.4, R11.9)', () => {
   })
 })
 
-describe('dev-only PDF preview payload (task 12.4, R11.9 / R16.5)', () => {
-  const app = read('src/App.tsx')
-
-  it('guards the lazy import expression, not only the route element', () => {
-    // The distinction is the whole finding. With the guard only on `<Route>`,
-    // Vite replaces `import.meta.env.DEV` with `false`, Rollup drops the two
-    // unreachable routes — and the module-scope `lazy(() => import(…))` calls
-    // survive, so the dynamic imports are still emitted. The production build
-    // shipped `AcceptanceLetterPreview-*.js`, `DocumentPreview-*.js` and the
-    // 1.43 MB `vendor-react-pdf-*.js` engine they pull. Measured, not assumed:
-    // docs/v2-evidence/12.4/raw/dist-name-diff.txt.
-    for (const preview of ['@/pages/dev/AcceptanceLetterPreview', '@/pages/dev/DocumentPreview']) {
-      const guarded = new RegExp(
-        `import\\.meta\\.env\\.DEV[\\s\\S]{0,80}?lazy\\(\\(\\)\\s*=>\\s*import\\('${preview.replace(/[/@]/g, '\\$&')}'\\)\\)`
-      )
-      expect(app, `${preview} must be behind the DEV guard at the import expression`).toMatch(guarded)
-    }
+describe('client PDF stack removed (platform-simplification task 14.1, D15 item a)', () => {
+  // Task 12.4 had put the two dev previews behind a DEV guard at the import
+  // expression so production stopped shipping the 1.43 MB `vendor-react-pdf`
+  // engine. Task 14.1 deleted the previews, `@/lib/pdf` and the dependency, so
+  // the guard has nothing left to guard; what it protected is now asserted
+  // directly.
+  it('App.tsx imports no dev preview page', () => {
+    expect(read('src/App.tsx')).not.toMatch(/@\/pages\/dev\//)
   })
-
-  it('keeps the dev previews themselves — this is a bundling fix, not a deletion', () => {
-    // The steering rule allows `@/lib/pdf` exactly here: "Frontend `@/lib/pdf`
-    // code is legacy/preview-only unless a specific non-official preview use
-    // case is documented." The previews are that documented case and they still
-    // work in `bun run dev`; what changed is that students no longer download
-    // them.
-    expect(fs.existsSync(path.join(ADMISSIONS_ROOT, 'src/pages/dev/AcceptanceLetterPreview.tsx'))).toBe(true)
-    expect(fs.existsSync(path.join(ADMISSIONS_ROOT, 'src/pages/dev/DocumentPreview.tsx'))).toBe(true)
-    expect(fs.existsSync(path.join(ADMISSIONS_ROOT, 'src/lib/pdf/index.ts'))).toBe(true)
+  it('the dev previews, @/lib/pdf and @react-pdf/renderer are gone', () => {
+    expect(fs.existsSync(path.join(ADMISSIONS_ROOT, 'src/pages/dev'))).toBe(false)
+    expect(fs.existsSync(path.join(ADMISSIONS_ROOT, 'src/lib/pdf'))).toBe(false)
+    const pkg = JSON.parse(read('package.json')) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> }
+    expect({ ...pkg.dependencies, ...pkg.devDependencies }).not.toHaveProperty('@react-pdf/renderer')
   })
-
   it('no production module reaches for @/lib/pdf', () => {
     // R7.1/R7.3/R7.4 and the steering rule: official documents come from the
     // backend pipeline through `@/services/officialDocuments`, never a client
-    // render. `@/lib/pdf` may be imported only by a dev preview, its own
-    // internals, the sample renderer script, or a test.
-    const allowedPrefixes = ['src/pages/dev/', 'src/lib/pdf/', 'src/lib/slipService.ts']
+    // render.
     const offenders = sourceFiles(path.join(ADMISSIONS_ROOT, 'src'))
       .map((file) => path.relative(ADMISSIONS_ROOT, file))
-      .filter((relative) => !allowedPrefixes.some((prefix) => relative.startsWith(prefix)))
       .filter((relative) => {
         const contents = read(relative)
         return /(?:from|import\()\s*['"]@\/lib\/pdf/.test(contents)
@@ -169,7 +151,6 @@ describe('dev-only PDF preview payload (task 12.4, R11.9 / R16.5)', () => {
     expect(offenders).toEqual([])
   })
 })
-
 describe('one mobile bottom navigation (task 12.4, R16.3 / R16.5)', () => {
   it('has no second, unrendered mobile bottom-nav implementation', () => {
     // `src/components/navigation/MobileBottomNav.tsx` had **zero** importers.
