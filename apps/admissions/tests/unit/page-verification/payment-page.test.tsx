@@ -454,7 +454,7 @@ describe('Payment page verification', () => {
 
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('No application fees yet')
+    expect(text).toContain('No payments yet')
     expect(text).toContain('Once you submit an application')
   })
 
@@ -479,7 +479,8 @@ describe('Payment page verification', () => {
     const text = container.textContent || ''
     // The fee for a draft is paid in the wizard, and the page says so instead of
     // showing an empty history.
-    expect(text).toContain('Your application fee is paid in the application form')
+    expect(text).toContain('Nothing to pay here yet')
+    expect(text).toContain('on the payment step of the form')
     expect(text).toContain('Continue your application')
   })
 

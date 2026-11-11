@@ -23,7 +23,7 @@
 import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, CreditCard, FileText, Mail, Wallet } from 'lucide-react'
+import { ArrowLeft, CreditCard, FileText, Mail } from 'lucide-react'
 
 import { Seo } from '@/components/seo/Seo'
 import { Button } from '@/components/ui/Button'
@@ -267,31 +267,30 @@ export default function PaymentPage() {
 
           {/* Drafts are the wizard's job — hand the student back to it (R12.3). */}
           {orderedApplications.length === 0 && firstDraftId && !appsError && (
-            <SectionCard title="Nothing to pay here yet" icon={<Wallet className="h-5 w-5" aria-hidden="true" />}>
-              <EmptyState
-                icon={<CreditCard />}
-                heading="Your application fee is paid in the application form"
-                description="You have an application in progress. The fee. And the option to pay later. Is on the payment step, just before you submit."
-                action={{
-                  label: 'Continue your application',
-                  onClick: () => navigate(studentApplicationResumePath(firstDraftId)),
-                }}
-              />
-            </SectionCard>
+            // One heading and one sentence saying what fills this page (task 31.2, R21.4).
+            <EmptyState
+              icon={<CreditCard />}
+              headingLevel="h2"
+              heading="Nothing to pay here yet"
+              description="Your application is still in progress. Its fee, and the option to pay later, are on the payment step of the form, just before you submit."
+              action={{
+                label: 'Continue your application',
+                onClick: () => navigate(studentApplicationResumePath(firstDraftId)),
+              }}
+            />
           )}
 
           {orderedApplications.length === 0 && !firstDraftId && !appsError && (
-            <SectionCard title="No payments yet" icon={<Wallet className="h-5 w-5" aria-hidden="true" />}>
-              <EmptyState
-                icon={<CreditCard />}
-                heading="No application fees yet"
-                description="Once you submit an application, its fee and every payment attempt against it appear here."
-                action={{
-                  label: 'Start an application',
-                  onClick: () => navigate(studentApplicationNewPath()),
-                }}
-              />
-            </SectionCard>
+            <EmptyState
+              icon={<CreditCard />}
+              headingLevel="h2"
+              heading="No payments yet"
+              description="Once you submit an application, its fee and every payment attempt against it appear here."
+              action={{
+                label: 'Start an application',
+                onClick: () => navigate(studentApplicationNewPath()),
+              }}
+            />
           )}
 
           {/* Support — resolved from tenant context, with a neutral platform fallback */}

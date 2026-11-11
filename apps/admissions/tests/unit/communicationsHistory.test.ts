@@ -114,7 +114,7 @@ describe('CommunicationsPage source structure', () => {
 
   it('uses EmptyState component for empty notifications', () => {
     expect(commSource).toContain('<EmptyState')
-    expect(commSource).toMatch(/No communications/)
+    expect(commSource).toMatch(/No messages yet/)
   })
 
   it('uses ErrorDisplay component for fetch failures', () => {
@@ -172,7 +172,7 @@ describe('ActivityTimeline (History) source structure', () => {
 
   it('uses EmptyState component for empty history', () => {
     expect(historySource).toContain('<EmptyState')
-    expect(historySource).toMatch(/No activity history/)
+    expect(historySource).toMatch(/No activity yet/)
   })
 
   it('uses ErrorDisplay component for fetch failures', () => {

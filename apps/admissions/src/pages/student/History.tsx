@@ -108,8 +108,9 @@ export default function History() {
           {isEmpty && (
             <EmptyState
               icon={<Clock className="h-12 w-12" />}
-              heading="No activity history"
-              description="There is no activity history for your applications yet. Updates will appear here as your applications progress."
+              headingLevel="h2"
+              heading="No activity yet"
+              description="Each change to your applications, such as a submission, a payment or a decision, appears here."
             />
           )}
 

@@ -363,20 +363,19 @@ export default function InterviewPage() {
           {/* Empty State */}
           {/* @requirements 3.4 - Display appropriate empty state message */}
           {interviews.length === 0 && !error && (
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <EmptyState
-                  icon={<Calendar className="h-12 w-12" />}
-                  heading="No scheduled interviews"
-                  description="You don't have any interviews scheduled yet. Once your application is reviewed, you'll receive an interview invitation."
-                  action={{
-                    label: 'Return to Dashboard',
-                    onClick: () => navigate('/student/dashboard'),
-                    variant: 'outline',
-                  }}
-                />
-              </CardContent>
-            </Card>
+            // Not every programme interviews, so this promises no invitation; it says
+            // what fills the page (task 31.2, R21.4, R20.1).
+            <EmptyState
+              icon={<Calendar className="h-12 w-12" />}
+              headingLevel="h2"
+              heading="No interviews scheduled"
+              description="If your school schedules an interview, its date, time and how to attend appear here."
+              action={{
+                label: 'Return to Dashboard',
+                onClick: () => navigate('/student/dashboard'),
+                variant: 'outline',
+              }}
+            />
           )}
 
           {/* Help card: a reschedule prompt only when there is an interview to move,

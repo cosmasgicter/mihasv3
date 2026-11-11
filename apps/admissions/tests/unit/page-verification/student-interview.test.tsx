@@ -249,7 +249,7 @@ describe('Student interview page verification', () => {
 
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('No scheduled interviews')
+    expect(text).toContain('No interviews scheduled')
   })
 
   // ── Error state ─────────────────────────────────────────────────────

@@ -326,11 +326,12 @@ export default function Communications() {
           {!isLoading && !error && notifications.length === 0 && (
             <EmptyState
               icon={<Inbox className="h-12 w-12" />}
-              heading="No communications"
+              headingLevel="h2"
+              heading={typeFilter || readFilter ? 'No messages match these filters' : 'No messages yet'}
               description={
                 typeFilter || readFilter
-                  ? 'No notifications match your current filters. Try adjusting them.'
-                  : "Nothing here yet: we'll let you know when there's something important."
+                  ? 'Clear or change the filters to see your other messages.'
+                  : 'Messages from your school about your applications, payments and interviews appear here.'
               }
             />
           )}
