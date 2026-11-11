@@ -87,7 +87,9 @@ describe('metric definitions are a disclosure (R17.9)', () => {
     expect(document.activeElement).toBe(button)
     // jsdom does not turn Enter or Space into a click; every browser does for a
     // native <button type="button">, so the keyboard path is the click handler.
-    // What this asserts is that the control is that native, focusable button.
+    // What this asserts is that the control is that native, focusable button; the
+    // browser keyboard path (Enter opens, Space closes) is the required harness
+    // spec admin-review-workspace.spec.ts, test 7.
     fireEvent.click(button)
     expect(button.getAttribute('aria-expanded')).toBe('true')
     expect(button.className).toMatch(/min-h-touch/)

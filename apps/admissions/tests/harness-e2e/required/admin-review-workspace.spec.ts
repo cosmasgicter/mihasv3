@@ -705,3 +705,28 @@ test('a read-only Tenant_Admin reads the workspace and is refused the command by
   expect(refused.status(), 'a read-only actor must be refused the decision').toBe(403);
   expect(gate.consoleErrors, 'no console errors').toEqual([]);
 });
+
+// ---------------------------------------------------------------------------
+// 7. Metric definitions open from the keyboard (platform-simplification 30.5, R17.9)
+// ---------------------------------------------------------------------------
+test('a metric definition opens with Enter and closes with Space, from the keyboard', async ({
+  page,
+  gate,
+}) => {
+  const world = seeded!;
+  await loginAs(page, world.tenantAdmin);
+  await page.goto(APPLICATIONS_URL, { waitUntil: 'domcontentloaded' });
+  const info = page.getByRole('button', { name: 'About Decision queue' });
+  await expect(info).toBeVisible({ timeout: 30_000 });
+  const definition = page.locator(`#${await info.getAttribute('aria-controls')}`);
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await expect(definition).toBeHidden();
+  await info.focus();
+  await page.keyboard.press('Enter');
+  await expect(info).toHaveAttribute('aria-expanded', 'true');
+  await expect(definition).toBeVisible();
+  await page.keyboard.press('Space');
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await expect(definition).toBeHidden();
+  expect(gate.consoleErrors, 'no console errors').toEqual([]);
+});
