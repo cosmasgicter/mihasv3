@@ -153,6 +153,15 @@ export function storedDraftRecordKeys(page: Page): Promise<string[]> {
   );
 }
 
+/**
+ * What the wizard's progress row reads at step N of 6: "Step N of 6 · P%" (task 25.1,
+ * R16). The step and total are exact; only the percentage, a view number that moves
+ * with the draft, is matched by shape.
+ */
+export function wizardStepText(step: number): RegExp {
+  return new RegExp(`^Step ${step} of 6 · \\d{1,3}%$`);
+}
+
 /** The wizard's own "Step N of 6" line. */
 export function wizardStepLine(page: Page) {
   return page.getByTestId('wizard-progress-summary').locator('p').first();

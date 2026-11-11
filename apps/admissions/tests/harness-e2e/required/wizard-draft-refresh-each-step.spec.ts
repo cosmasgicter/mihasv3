@@ -59,6 +59,7 @@ import {
   unwrapEnvelope,
   waitForNetworkQuiet,
   wizardStepLine,
+  wizardStepText,
   type WizardOffering,
 } from '../helpers/wizard-draft';
 
@@ -129,7 +130,7 @@ async function refreshAndVerify(
   journey: string,
 ): Promise<void> {
   // The page before the refresh: on the step, settled, answers shown.
-  await expect(wizardStepLine(page)).toHaveText(`Step ${step} of 6`, { timeout: 60_000 });
+  await expect(wizardStepLine(page)).toHaveText(wizardStepText(step), { timeout: 60_000 });
   await waitForNetworkQuiet(page);
   await expectAnswersShown(page, step, x);
   expect(new URL(page.url()).searchParams.get('step'), 'the address bar names the step being refreshed').toBe(
@@ -146,10 +147,10 @@ async function refreshAndVerify(
   try {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
-    await expect(wizardStepLine(page)).toHaveText(`Step ${step} of 6`, { timeout: 60_000 });
+    await expect(wizardStepLine(page)).toHaveText(wizardStepText(step), { timeout: 60_000 });
     await waitForNetworkQuiet(page);
     // Still there once everything the reload started has finished.
-    await expect(wizardStepLine(page)).toHaveText(`Step ${step} of 6`);
+    await expect(wizardStepLine(page)).toHaveText(wizardStepText(step));
     await expectAnswersShown(page, step, x);
   } finally {
     page.off('request', onRequest);
@@ -184,7 +185,7 @@ async function stepBack(page: Page, toStep: number): Promise<void> {
   const back = page.getByRole('button', { name: /^(previous|go back to )/i }).first();
   await expect(back).toBeEnabled({ timeout: 30_000 });
   await back.click();
-  await expect(wizardStepLine(page)).toHaveText(`Step ${toStep} of 6`, { timeout: 30_000 });
+  await expect(wizardStepLine(page)).toHaveText(wizardStepText(toStep), { timeout: 30_000 });
 }
 
 test('a resumed draft: a refresh on each of the six steps reopens the same application on that step, writing nothing', async ({
@@ -222,7 +223,7 @@ test('a resumed draft: a refresh on each of the six steps reopens the same appli
   });
   await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
   // The derived resume step: Review, because the fee is deferred.
-  await expect(wizardStepLine(page)).toHaveText('Step 6 of 6', { timeout: 60_000 });
+  await expect(wizardStepLine(page)).toHaveText(wizardStepText(6), { timeout: 60_000 });
   test.info().annotations.push({
     type: 'resumed draft: derived resume step',
     description: 'Step 6 (Review): resolveDraftResumeStepId sends a draft with a deferred fee to Review',
@@ -263,7 +264,7 @@ test('a new application, once attached: a refresh on Personal, Assigned school a
   const toPersonal = page.getByRole('button', { name: /^next step$/i });
   await expect(toPersonal).toBeEnabled({ timeout: 60_000 });
   await toPersonal.click();
-  await expect(wizardStepLine(page)).toHaveText('Step 3 of 6', { timeout: 60_000 });
+  await expect(wizardStepLine(page)).toHaveText(wizardStepText(3), { timeout: 60_000 });
 
   const fullName = `Refresh New Student ${Date.now()}`;
   const town = `Refresh new town ${Date.now()}`;
