@@ -11,7 +11,12 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../src')
-const files = ['lib/constants/landing.ts', 'components/landing/LandingPageSections.tsx', 'pages/LandingPage.tsx']
+const files = [
+  'lib/constants/landing.ts',
+  'components/landing/LandingHero.tsx',
+  'components/landing/LandingPageSections.tsx',
+  'pages/LandingPage.tsx',
+]
 const strip = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
 const copy = files.map(f => strip(readFileSync(path.join(SRC, f), 'utf8'))).join('\n').toLowerCase()
@@ -32,6 +37,8 @@ describe('landing copy', () => {
     'hostel matrons',
     'we enroll students from',
     'tuition and accommodation invoices',
+    'school-buyer',
+    'white-label',
   ])('does not say %s', phrase => {
     expect(copy).not.toContain(phrase)
   })
@@ -42,11 +49,13 @@ describe('landing copy', () => {
   })
 
   it('gives both hero actions the same width rule on a phone', () => {
-    const hero = readFileSync(path.join(SRC, 'components/smoothui/shape-landing-hero.tsx'), 'utf8')
+    const hero = readFileSync(path.join(SRC, 'components/landing/LandingHero.tsx'), 'utf8')
     for (const marker of ['data-landing-action="primary"', 'data-landing-action="secondary"']) {
       expect(hero).toContain(marker)
     }
-    // The primary link and both secondary variants carry w-full sm:w-auto.
-    expect(hero.match(/w-full items-center justify-center gap-2 rounded-lg font-(semibold|medium) sm:w-auto/g)).toHaveLength(3)
+    // Both actions share one base rule that carries w-full sm:w-auto.
+    expect(hero).toContain('w-full')
+    expect(hero.match(/\bactionBase,/g)).toHaveLength(2)
+    expect(hero).toMatch(/actionBase =[\s\S]*?sm:w-auto/)
   })
 })

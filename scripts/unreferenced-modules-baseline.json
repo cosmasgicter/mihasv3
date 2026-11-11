@@ -10,12 +10,12 @@
       "reason": "Imported only by a drift-guard test as the backend mirror fixture, never by application code."
     },
     {
-      "module": "apps/admissions/src/components/smoothui/animated-counter.tsx",
-      "reason": "Only the landing's stats section used it; task 29.1 removed that section. Kept, not deleted, until D10 decides the landing (task 33.2 deletes it with the barrel exports)."
+      "module": "apps/admissions/src/components/motion/scroll-reveal.tsx",
+      "reason": "Its only product importer was the landing's old sections (task 33.1, D10 option A rebuilt them as rows and lists). Not named by task 33.2, so kept; the next scroll-driven reveal uses it again or a later cleanup deletes it."
     },
     {
       "module": "apps/admissions/src/components/smoothui/index.ts",
-      "reason": "Its only landing importer was the stats section (task 29.1). Kept until D10 decides the landing; task 33.2 deletes the barrel exports after a git grep finds no product import."
+      "reason": "Nothing imports the barrel; the product imports its modules by path. Task 33.2 removed the hero and counter exports after git grep found no product import of AnimatedCounter, SimpleCounter or ShapeLandingHero. Left in place because AnimatedInput and the page transitions are still exported."
     },
     {
       "module": "apps/admissions/src/components/ui/OptimizedImage.tsx",

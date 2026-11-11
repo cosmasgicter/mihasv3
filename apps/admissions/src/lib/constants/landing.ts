@@ -5,35 +5,11 @@
  * @requirements 16.4
  */
 
-import {
-  Users,
-  Award,
-  BookOpen,
-  Home,
-  Globe,
-  FileCheck,
-  GraduationCap,
-} from '@/components/icons';
 import type { LucideIcon } from 'lucide-react';
 
 // ============================================================================
 // Types
 // ============================================================================
-
-
-export interface FeatureItem {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  gradient: string;
-}
-
-export interface AccreditationItem {
-  title: string;
-  org: string;
-  desc: string;
-}
-
 
 export interface QuickLinkItem {
   name: string;
@@ -67,86 +43,8 @@ export const contactInfo = {
 /** Each label is written once and names no count or date the page does not show. */
 export const LANDING_ACTIONS = {
   start: 'Start your application',
-  explore: 'Explore programmes',
+  explore: 'See open programmes',
 } as const;
-// ============================================================================
-// Features
-// ============================================================================
-
-export const features: FeatureItem[] = [
-  {
-    icon: Users,
-    title: 'Apply once, let the platform route it',
-    description:
-      'Students choose a programme and submit one clean application. Beanola handles the institution, intake, payment, and document rules configured behind the scenes.',
-    gradient: 'from-primary to-primary/60',
-  },
-  {
-    icon: Award,
-    title: 'Institution-specific approvals and documents',
-    description:
-      'Each school keeps its own logo, signature, bank details, programme templates, and accreditation wording, so official documents match the institution that owns the offer.',
-    gradient: 'from-secondary to-secondary/60',
-  },
-  {
-    icon: BookOpen,
-    title: 'One operations view for many schools',
-    description:
-      'Super admins can onboard colleges and universities, assign programmes, and grant staff access only to the data they are allowed to see.',
-    gradient: 'from-accent to-accent/60',
-  },
-];
-
-// ============================================================================
-// Accreditations
-// ============================================================================
-
-export const accreditations: AccreditationItem[] = [
-  {
-    title: 'Tenant-managed accreditation',
-    org: 'Institution profile configuration',
-    desc: 'Accreditation labels are configured per school and programme instead of being hardcoded into the platform.',
-  },
-  {
-    title: 'Programme-specific rules',
-    org: 'Programme and intake catalogue',
-    desc: 'Shared programmes can be assigned to one school or many schools while keeping each offer tied to the correct tenant.',
-  },
-  {
-    title: 'Applicant document checks',
-    org: 'Eligibility and admissions workflow',
-    desc: 'Schools can define the documents, grades, and review steps needed for each intake.',
-  },
-  {
-    title: 'Official document automation',
-    org: 'Beanola document profiles',
-    desc: 'Offer letters, slips, and receipts use the selected school profile, logo, signature, and approved template.',
-  },
-];
-
-// ============================================================================
-// Application Fees
-// ============================================================================
-
-export interface ApplicationFeeItem {
-  audience: string;
-  amount: string;
-  note: string;
-}
-
-export const applicationFees: ApplicationFeeItem[] = [
-  {
-    audience: 'Zambian students',
-    amount: 'Shown before checkout',
-    note: 'Each school can configure its application fee. Mobile money and card options are shown when available.',
-  },
-  {
-    audience: 'International students',
-    amount: 'Shown before checkout',
-    note: 'International fees and currencies are displayed before payment. SADC and international applicants are supported.',
-  },
-];
-
 // ============================================================================
 // How It Works (application timeline)
 // ============================================================================
@@ -185,116 +83,16 @@ export const howItWorksSteps: HowItWorksStep[] = [
 ];
 
 // ============================================================================
-// Eligibility Requirements
-// ============================================================================
-
-export interface EligibilityItem {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
-
-export const eligibilityItems: EligibilityItem[] = [
-  {
-    icon: GraduationCap,
-    title: 'ECZ Grade 12 certificate',
-    description:
-      'We accept ECZ School Certificate and GCE. Specific grade requirements vary by programme. Full details show up inside your application.',
-  },
-  {
-    icon: FileCheck,
-    title: 'Cambridge certificate accepted',
-    description:
-      "If you sat Cambridge IGCSE or A-Levels instead of ECZ, you can enter those grades. The application's eligibility check accepts both.",
-  },
-  {
-    icon: FileCheck,
-    title: 'NRC or passport',
-    description:
-      'Zambian applicants upload an NRC. International applicants upload a passport. One clear photo is enough.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Programme-specific requirements',
-    description:
-      'Required subjects, grades, certificates, and supporting documents are configured by programme and shown before you submit.',
-  },
-];
-
-// ============================================================================
-// International Students
-// ============================================================================
-
-export interface InternationalHighlight {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
-
-export const internationalHighlights: InternationalHighlight[] = [
-  {
-    icon: Globe,
-    title: 'Open to SADC and beyond',
-    description:
-      'Applicants from outside Zambia use the same application. International applicants upload a passport instead of an NRC.',
-  },
-  {
-    icon: Award,
-    title: 'Pay in USD from anywhere',
-    description:
-      'International applicants pay by card, and your exact application fee is shown before you pay.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Institution-specific recognition',
-    description:
-      'Recognition, accreditation, and progression details are displayed from the selected school and programme profile.',
-  },
-  {
-    icon: Users,
-    title: 'Ask before you apply',
-    description:
-      'If you have questions about documents or arrival, use the contact page to reach admissions.',
-  },
-];
-
-// ============================================================================
-// Accommodation & Campus Life
-// ============================================================================
-
-export interface AccommodationHighlight {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
-
-export const accommodationHighlights: AccommodationHighlight[] = [
-  {
-    icon: Home,
-    title: 'Housing is arranged by the school',
-    description:
-      'Contact the school you are applying to about accommodation options and fees.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Campus details from each school',
-    description:
-      'Lecture venues, labs, libraries, dining, and placement information are published by the institution offering the programme.',
-  },
-];
-
-// ============================================================================
 // Quick Links
 // ============================================================================
 
 export const quickLinks: QuickLinkItem[] = [
-  { name: 'About us', href: '#features', eventName: 'landing_footer_about_click' },
   { name: 'Programmes', href: '#programs', eventName: 'landing_footer_programs_click' },
+  { name: 'What you need', href: '#what-you-need' },
   { name: 'How it works', href: '#how-it-works' },
-  { name: 'International students', href: '#international' },
-  { name: 'Accommodation', href: '#accommodation' },
   { name: 'Track application', href: '/track-application' },
   { name: 'Contact', href: '/contact' },
+  { name: 'For schools', href: '/for-schools' },
 ];
 
 // ============================================================================

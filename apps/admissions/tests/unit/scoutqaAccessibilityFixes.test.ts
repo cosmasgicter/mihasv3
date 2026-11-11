@@ -89,6 +89,8 @@ vi.mock('@/components/icons', () => ({
   CheckCircle: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
   GraduationCap: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
   Building2: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
+  ArrowRight: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
+  BookOpen: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -98,7 +100,7 @@ vi.mock('@/components/icons', () => ({
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
-import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero'
+import { LandingHero } from '@/components/landing/LandingHero'
 
 // ---------------------------------------------------------------------------
 // Pure function mirroring tracker error logic (same as property test)
@@ -250,34 +252,13 @@ describe('11.2 aria-label values on auth form fields', () => {
 // 11.3 — Landing page contrast verification (Requirements 9.1–9.2)
 // ---------------------------------------------------------------------------
 
-const mockHeroProps = {
-  headline: 'Test Headline',
-  description: 'Test description',
-  rotatingPhrases: ['Phrase 1', 'Phrase 2'],
-  primaryCta: { label: 'Apply Now', href: '/auth/signup' },
-  secondaryCta: { label: 'See Our Programs', href: '#programs' },
-  proofPanel: {
-    image: { src: '/test.jpg', alt: 'Test image', width: 640, height: 480 },
-    eyebrow: 'Test Eyebrow',
-    title: 'Test Title',
-    description: 'Test panel description',
-    badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
-    highlights: [
-      { value: '100+', label: 'Students' },
-      { value: '10+', label: 'Programs' },
-      { value: '5+', label: 'Partners' },
-    ],
-    checklist: ['Item 1', 'Item 2'],
-  },
-}
-
 describe('11.3 Landing page contrast verification', () => {
-  it('secondary CTA ("See Our Programs") uses foreground token contrast classes', () => {
+  it('secondary CTA ("See open programmes") uses foreground token contrast classes', () => {
     const { container, cleanup } = renderToDOM(
-      React.createElement(ShapeLandingHero, mockHeroProps),
+      React.createElement(LandingHero),
     )
-    // The secondary CTA is an <a> with aria-label="See Our Programs"
-    const secondaryCta = container.querySelector('a[aria-label="See Our Programs"]') as HTMLElement
+    // The secondary CTA is the <a data-landing-action="secondary"> (task 33.1 replaced the vendored hero)
+    const secondaryCta = container.querySelector('a[data-landing-action="secondary"]') as HTMLElement
     expect(secondaryCta).not.toBeNull()
     expect(secondaryCta.className).toContain('text-foreground')
     cleanup()
@@ -285,7 +266,7 @@ describe('11.3 Landing page contrast verification', () => {
 
   it('claims no recognition: no accreditation chip, no Recognized by strip, no metric row (task 29.1, R12.1)', () => {
     const { container, cleanup } = renderToDOM(
-      React.createElement(ShapeLandingHero, mockHeroProps),
+      React.createElement(LandingHero),
     )
     const text = container.textContent ?? ''
     expect(text).not.toContain('Government accredited')

@@ -13,7 +13,7 @@ describe('auth route preload and session race contracts', () => {
     const routePreload = readSource('lib/routePreload.ts')
     const landingPage = readSource('pages/LandingPage.tsx')
     const publicHeader = readSource('components/layout/PublicSiteHeader.tsx')
-    const hero = readSource('components/smoothui/shape-landing-hero.tsx')
+    const hero = readSource('components/landing/LandingHero.tsx')
 
     expect(routePreload).toContain("import('@/components/AuthenticatedRouteShell')")
     expect(routePreload).toContain("import('@/pages/auth/SignInPage')")

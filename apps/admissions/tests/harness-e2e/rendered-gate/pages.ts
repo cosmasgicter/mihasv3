@@ -200,6 +200,15 @@ export const AUDITED_PAGES: AuditedPage[] = [
     },
   },
   {
+    id: '/for-schools',
+    auth: 'public',
+    url: () => '/for-schools',
+    ready: async (page) => {
+      await settled(page);
+      await expect(page.getByRole('heading', { level: 1, name: 'For schools' })).toBeVisible({ timeout: 45_000 });
+    },
+  },
+  {
     id: '/auth/signin',
     auth: 'public',
     url: () => '/auth/signin',

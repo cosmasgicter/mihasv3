@@ -32,8 +32,6 @@ const requiredSelectors = [
   '.bg-primary',
   '.text-foreground',
   '.animate-fade-in-up',
-  '.motion-safe\\:animate-hero-enter',
-  '.motion-safe\\:animate-hero-float',
 ];
 const missingSelectors = requiredSelectors.filter((selector) => !result.css.includes(selector));
 

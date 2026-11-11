@@ -1,19 +1,15 @@
 /**
- * LandingPage - Single-source landing sections with SmoothUI animations
- * 
- * @requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9
- * Landing sections are intentionally defined in this page to avoid duplicate block patterns.
+ * LandingPage - the student-facing landing (D10 option A, task 33.1).
+ *
+ * Four sections: hero, open programmes, what you need, how it works. School-buyer
+ * content lives on /for-schools. The lower sections load after first paint.
  */
 
 import { Suspense, lazy, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero';
-import { 
-  ArrowRight, BookOpen,
-} from '@/components/icons';
+import { LandingHero } from '@/components/landing/LandingHero';
 import { Seo } from '@/components/seo/Seo';
-import { LANDING_ACTIONS } from '@/lib/constants/landing';
 import { prefersReducedMotion } from '@/lib/animation-config';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 import { onLandingMount } from '@/lib/speculativePrefetch';
@@ -56,37 +52,14 @@ const landingStructuredData = [
   }
 ];
 
-/** Rotating phrases displayed in the hero via TextRotate */
-const heroRotatingPhrases = [
-  'College programmes',
-  'University programmes',
-  'Professional courses',
-];
-
 function LandingSectionsFallback() {
   return (
-    <div aria-hidden="true">
-      <section className="bg-muted py-12 sm:py-16 lg:py-20">
-        <div className="container-responsive px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-12 max-w-3xl space-y-4 text-center">
-            <div className="mx-auto h-8 w-3/4 animate-pulse rounded bg-card sm:h-10" />
-            <div className="mx-auto h-5 w-2/3 animate-pulse rounded bg-card/80" />
-          </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-lg border border-border bg-card p-6 shadow-sm">
-                <div className="mb-5 h-16 w-16 animate-pulse rounded-lg bg-muted" />
-                <div className="mb-3 h-6 w-2/3 animate-pulse rounded bg-muted" />
-                <div className="space-y-2">
-                  <div className="h-4 w-full animate-pulse rounded bg-muted/80" />
-                  <div className="h-4 w-11/12 animate-pulse rounded bg-muted/80" />
-                  <div className="h-4 w-4/5 animate-pulse rounded bg-muted/80" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    <div aria-hidden="true" className="py-12 sm:py-14 lg:py-16">
+      <div className="container-responsive space-y-4 px-4 sm:px-6 lg:px-8">
+        <div className="h-8 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
+        <div className="h-16 w-full animate-pulse rounded bg-muted" />
+      </div>
     </div>
   )
 }
@@ -117,35 +90,11 @@ export default function LandingPage() {
     <PublicLayout>
       <Seo
         title="Beanola Admissions | Apply to Partner College and University Programmes"
-        description="Apply online through Beanola Admissions. Choose a programme and intake first, then Beanola routes your application to the right school."
+        description="Apply online through Beanola Admissions. Choose an open programme and intake, upload your documents, and track your application."
         path="/"
         structuredData={landingStructuredData}
       />
-      <ShapeLandingHero
-        headline="Apply to the right school from one admissions portal."
-        description="Beanola lets students choose a programme and intake first, then routes the application to the configured school before payment and submission."
-        rotatingPhrases={heroRotatingPhrases}
-        primaryCta={{
-          label: LANDING_ACTIONS.start,
-          href: '/auth/signup',
-          icon: <ArrowRight className="w-5 h-5" />,
-        }}
-        secondaryCta={{
-          label: LANDING_ACTIONS.explore,
-          href: '#programs',
-          icon: <BookOpen className="w-5 h-5" />,
-        }}
-        proofPanel={{
-          eyebrow: 'Programme first. School assigned clearly.',
-          title: 'Start now. Finish when your documents are ready.',
-          description: 'Save your progress, upload documents, confirm payment, and review the assigned school before submission.',
-          checklist: [
-            'One shared application form across configured schools and offerings.',
-            'White-label school portals can filter choices to that school.',
-            'Beanola tags every payment by school and offering for reporting.',
-          ],
-        }}
-      />
+      <LandingHero />
       {showDeferredSections ? (
         <Suspense fallback={<LandingSectionsFallback />}>
           <LandingPageSections />

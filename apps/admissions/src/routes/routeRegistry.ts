@@ -25,6 +25,7 @@ export type ProductRouteId =
   | 'public.home'
   | 'public.trackApplication'
   | 'public.contact'
+  | 'public.forSchools'
   | 'public.terms'
   | 'public.privacy'
   | 'auth.signIn'
@@ -122,6 +123,12 @@ export const ROUTES = {
   publicContact: {
     id: 'public.contact',
     path: '/contact',
+    guard: 'public',
+    skeletonType: 'none',
+  },
+  publicForSchools: {
+    id: 'public.forSchools',
+    path: '/for-schools',
     guard: 'public',
     skeletonType: 'none',
   },

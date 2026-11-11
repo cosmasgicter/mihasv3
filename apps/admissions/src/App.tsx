@@ -24,6 +24,7 @@ const DeferredGlobalFeedback = lazy(() => import('@/components/DeferredGlobalFee
 const AuthenticatedRouteShell = lazy(() => import('@/components/AuthenticatedRouteShell').then((mod) => ({ default: mod.AuthenticatedRouteShell })))
 const PublicApplicationTracker = lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = lazy(() => import('@/pages/ContactPage'))
+const ForSchoolsPage = lazy(() => import('@/pages/public/ForSchoolsPage'))
 const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
@@ -203,6 +204,7 @@ function RouteAwareApp() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/track-application" element={<PublicApplicationTracker />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/404" element={<NotFoundPage />} />
