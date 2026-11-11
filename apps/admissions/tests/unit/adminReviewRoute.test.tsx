@@ -180,3 +180,12 @@ describe('an address that is not an application', () => {
   })
 })
 
+describe('the bottom navigation stays off the review page (task 30.3)', () => {
+  it('AppLayout drops the bottom bar on the review route', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { resolve } = await import('node:path')
+    const layout = readFileSync(resolve(process.cwd(), 'src/components/navigation/AppLayout.tsx'), 'utf8')
+    expect(layout).toContain("matchesRoutePath(location.pathname, routeById('admin.applicationReview'))")
+    expect(layout).toMatch(/isAdminReviewRoute \? null : \(\s*<BottomNavigation/)
+  })
+})

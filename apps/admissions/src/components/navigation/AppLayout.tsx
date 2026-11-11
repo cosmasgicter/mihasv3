@@ -27,7 +27,7 @@ import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { matchesRoutePath, pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -159,6 +159,9 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const isStudentRoute = location.pathname.startsWith('/student')
   const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith(pathFor('student.applicationWizard'))
+  // The review page carries its own sticky decision bar; the bottom navigation
+  // would sit over it (task 30.3, R17.3).
+  const isAdminReviewRoute = matchesRoutePath(location.pathname, routeById('admin.applicationReview'))
   const handleBack = () => {
     const action = resolveBackAction({
       isWizardRoute,
@@ -311,11 +314,13 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
       {/* Canonical bottom navigation — mobile only */}
       {!isWizardRoute && (
-        <BottomNavigation
-          items={navItems}
-          isAuthenticated
-          overflowMode
-        />
+        isAdminReviewRoute ? null : (
+          <BottomNavigation
+            items={navItems}
+            isAuthenticated
+            overflowMode
+          />
+        )
       )}
     </div>
   )
