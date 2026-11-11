@@ -9,6 +9,10 @@ import { designTokens } from '@/design-system/tokens'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { getDisplayName } from '@/lib/userDisplayName'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+
+/** The super-admin shell's persistent scope label (task 30.5, R17.8). */
+export const PLATFORM_SCOPE_LABEL = 'Platform admin · all schools'
 
 export const Header = React.memo(function Header() {
   const { user, isAdmin } = useAuth()
@@ -16,6 +20,10 @@ export const Header = React.memo(function Header() {
   const { collapsed } = useSidebar()
   const { isMobile } = useResponsive()
   const scrollDirection = useScrollDirection()
+  // The backend's `is_super_admin`, never a role string: the platform shell is
+  // marked so a super admin always knows their actions reach every school.
+  const { isSuperAdmin } = useCapabilities()
+  const platformShell = isAdmin && isSuperAdmin
 
   if (!user) return null
 
@@ -33,11 +41,15 @@ export const Header = React.memo(function Header() {
 
   return (
     <header
-      className="fixed top-0 z-50 hidden border-b border-border/40 bg-background transition-transform duration-300 app-safe-area md:block"
+      className={`fixed top-0 z-50 hidden border-b transition-transform duration-300 app-safe-area md:block ${
+        platformShell ? 'border-transparent' : 'border-border/40 bg-background'
+      }`}
       style={{
         ...headerStyle,
-        transform: transformValue
+        transform: transformValue,
+        ...(platformShell ? { backgroundColor: designTokens.colors.admin.text } : {}),
       }}
+      data-shell-scope={platformShell ? 'platform' : undefined}
     >
       <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
@@ -57,6 +69,11 @@ export const Header = React.memo(function Header() {
               <p className="truncate text-sm font-semibold text-foreground">{fullName}</p>
             </div>
           </div>
+          {platformShell && (
+            <p className="truncate text-sm font-semibold text-white" data-testid="platform-scope-label">
+              {PLATFORM_SCOPE_LABEL}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

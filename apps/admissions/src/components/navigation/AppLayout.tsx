@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/ui/BottomNavigation'
 import { MobilePageHeader } from '@/components/ui/MobilePageHeader'
 import { DesktopSidebar } from './DesktopSidebar'
-import { Header } from './Header'
+import { Header, PLATFORM_SCOPE_LABEL } from './Header'
 import { useAuth } from '@/contexts/AuthContext'
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
@@ -286,6 +286,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
           showBack={showBack}
           onBack={handleBack}
           actions={mobileActions}
+          scopeLabel={isAdmin && caps.isSuperAdmin ? PLATFORM_SCOPE_LABEL : undefined}
         />
 
         <main

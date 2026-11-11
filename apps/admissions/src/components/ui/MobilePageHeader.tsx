@@ -1,12 +1,19 @@
 import React from 'react'
 import { ArrowLeft } from '@/components/icons'
 import { cn } from '@/lib/utils'
+import { designTokens } from '@/design-system/tokens'
 
 export interface MobilePageHeaderProps {
   title: string
   showBack?: boolean
   onBack?: () => void
   actions?: React.ReactNode
+  /**
+   * A persistent scope label, e.g. "Platform admin · all schools" (task 30.5,
+   * R17.8). When set, the bar uses the dark `adminColors.text` surface so the
+   * super-admin shell is visibly distinct from the tenant-admin one.
+   */
+  scopeLabel?: string
   className?: string
 }
 
@@ -15,15 +22,19 @@ export function MobilePageHeader({
   showBack,
   onBack,
   actions,
+  scopeLabel,
   className,
 }: MobilePageHeaderProps) {
+  const dark = Boolean(scopeLabel)
   return (
     <header
       className={cn(
         'fixed left-0 right-0 top-0 z-40 flex h-16 items-center md:hidden',
-        'border-b border-border/60 bg-background shadow-sm',
+        dark ? 'border-b border-transparent shadow-sm' : 'border-b border-border/60 bg-background shadow-sm',
         className
       )}
+      style={dark ? { backgroundColor: designTokens.colors.admin.text } : undefined}
+      data-shell-scope={dark ? 'platform' : undefined}
     >
       {/* Left: back button or spacer */}
       <div className="flex w-14 flex-shrink-0 items-center justify-center">
@@ -31,7 +42,10 @@ export function MobilePageHeader({
           <button
             type="button"
             onClick={onBack}
-            className="flex min-h-touch min-w-touch items-center justify-center rounded-lg text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={cn(
+              'flex min-h-touch min-w-touch items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              dark ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-accent'
+            )}
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -56,9 +70,16 @@ export function MobilePageHeader({
         with the page's own. `aria-hidden` would be wrong (a sighted screen-magnifier
         user reads it); demoting it to `h3` would still precede the `h1`.
       */}
-      <p className="flex-1 truncate px-2 text-center text-base font-bold tracking-tight text-foreground">
-        {title}
-      </p>
+      {dark ? (
+        <div className="min-w-0 flex-1 px-2 text-center">
+          <p className="text-xs font-semibold text-white">{scopeLabel}</p>
+          <p className="truncate text-base font-bold tracking-tight text-white">{title}</p>
+        </div>
+      ) : (
+        <p className="flex-1 truncate px-2 text-center text-base font-bold tracking-tight text-foreground">
+          {title}
+        </p>
+      )}
 
       {/* Right: actions slot or spacer */}
       <div className="flex-shrink-0 min-w-touch pr-2 flex items-center justify-end">
