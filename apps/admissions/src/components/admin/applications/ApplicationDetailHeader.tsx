@@ -31,11 +31,11 @@ export function ApplicationDetailHeader({ application, onClose, variant = 'close
           </div>
           <div className="min-w-0 flex-1">
             {/* As a page the applicant's name is the page heading; beside the queue it is not. */}
-            <Heading className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
+            <Heading className="break-words text-base font-bold text-foreground sm:text-xl">
               {application.full_name}
             </Heading>
             <div className="flex flex-wrap items-center gap-2 text-xs text-foreground sm:gap-3 sm:text-sm">
-              <span className="font-mono truncate">#{application.application_number}</span>
+              <span className="break-all font-mono">#{application.application_number}</span>
               <span className="text-foreground hidden sm:inline">•</span>
               <div className="flex items-center gap-1">
                 {getStatusIcon(application.status)}

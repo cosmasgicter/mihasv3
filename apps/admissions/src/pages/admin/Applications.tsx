@@ -779,6 +779,7 @@ export default function Applications() {
           data-roster-filters="desktop"
         >
           <FiltersPanel
+            narrow={Boolean(reviewPane)}
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
             paymentFilter={filters.paymentFilter}

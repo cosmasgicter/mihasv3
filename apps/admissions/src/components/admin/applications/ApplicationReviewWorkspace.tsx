@@ -278,7 +278,9 @@ export function ApplicationReviewWorkspace({
 
   const rootClassName =
     layout === 'pane'
-      ? 'flex max-h-[calc(100dvh-7rem)] min-h-[32rem] flex-col overflow-hidden rounded-lg border border-border bg-card'
+      // Not a card: a bordered column beside the queue, so the sections inside it
+      // are one container deep (task 31.3, R21.5).
+      ? 'flex max-h-[calc(100dvh-2rem)] min-h-[32rem] flex-col overflow-hidden bg-card'
       : 'flex h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-card'
 
   return (
@@ -731,7 +733,7 @@ export function ApplicationReviewWorkspace({
       </div>
 
       {detail && (
-        <div className="max-h-[45dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:max-h-none sm:p-5 sm:pb-5">
+        <div className="max-h-[40dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-5 sm:pb-5">
           {can.review_decision ? (
             <ApplicationApprovalActions
               applicationId={detail.id}

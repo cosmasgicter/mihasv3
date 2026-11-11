@@ -57,6 +57,11 @@ interface FiltersPanelProps {
    * own id namespace. The default is empty so the desktop ids are unchanged.
    */
   idPrefix?: string
+  /**
+   * Stack every control in one column. Used beside an open review, where the
+   * queue column is narrow whatever the viewport (task 30.2).
+   */
+  narrow?: boolean
   onFilterChange: (key: keyof ApplicationFilters, value: string) => void
 }
 
@@ -79,6 +84,7 @@ export function FiltersPanel({
   programOptions = [],
   institutionOptions = [],
   idPrefix = '',
+  narrow = false,
   onFilterChange
 }: FiltersPanelProps) {
   /** This instance's id for a control, so two panels never collide. */
@@ -157,8 +163,8 @@ export function FiltersPanel({
         simplification task 30.4, R17.6). Filter state stays in the URL, so a
         hidden filter that a link applied is still applied and still counted.
       */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <div className="md:col-span-2">
+      <div className={narrow ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-1 gap-3 md:grid-cols-5'}>
+        <div className={narrow ? undefined : 'md:col-span-2'}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -238,7 +244,7 @@ export function FiltersPanel({
         <div
           id={controlId('more-filters')}
           hidden={!showMore}
-          className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4"
+          className={showMore ? `mt-3 grid grid-cols-1 gap-3 ${narrow ? '' : 'md:grid-cols-4'}` : 'hidden'}
         >
         <div>
           <label htmlFor={controlId('draft-filter')} className="sr-only">Draft filter</label>
