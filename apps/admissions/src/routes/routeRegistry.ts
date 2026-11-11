@@ -367,7 +367,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Programmes', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
+    nav: { label: 'Programmes', navLabel: 'Courses', icon: GraduationCap, desktop: true, mobile: true, order: 40, section: 'management' },
   },
   adminTenants: {
     id: 'admin.tenants',

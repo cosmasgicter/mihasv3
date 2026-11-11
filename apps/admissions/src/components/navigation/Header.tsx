@@ -77,7 +77,8 @@ export const Header = React.memo(function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* On the dark platform bar the menu keeps its light surface, so its dark text stays readable (AA). */}
+        <div className={`flex flex-shrink-0 items-center gap-2 sm:gap-3 ${platformShell ? 'rounded-lg bg-background px-2' : ''}`}>
           {!isAdmin && <NotificationBell />}
           <UserMenu />
         </div>

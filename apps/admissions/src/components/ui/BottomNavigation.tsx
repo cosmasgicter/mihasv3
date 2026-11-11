@@ -203,7 +203,7 @@ function BottomNavLink({
           )}
         </div>
         {!iconOnly && (
-          <span aria-hidden="true" className={cn('mt-1 max-w-full break-words text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
+          <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -241,7 +241,7 @@ function BottomNavLink({
         )}
       </div>
       {!iconOnly && (
-        <span aria-hidden="true" className={cn('mt-1 max-w-full break-words text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
+        <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isActive ? 'text-accent-foreground' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -361,7 +361,7 @@ export function BottomNavigation({
           >
             <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')} aria-hidden="true" />
             {!isNarrowViewport && (
-              <span aria-hidden="true" className={cn('mt-1 max-w-full break-words text-center text-xs font-semibold leading-tight', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')}>
+              <span aria-hidden="true" className={cn('mt-1 max-w-full whitespace-nowrap text-center text-xs font-semibold leading-tight', isMoreActive || isMoreOpen ? 'text-accent-foreground' : 'text-muted-foreground')}>
                 More
               </span>
             )}
