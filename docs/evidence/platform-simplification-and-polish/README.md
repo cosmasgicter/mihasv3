@@ -324,3 +324,70 @@ Run with a fresh harness stack per comparison (the admin queue's row positions d
 - `StatusPill`, `StatusBadge`, `Badge` captions `text-sm sm:text-xs` with `data-text-role="caption"`; walk of `text-xs` in student pages and components (139 edits by element: paragraph, list item, label or button to `text-base sm:text-sm`; other intrinsic elements to caption). No "other" exceptions were needed. Also a 390 px overflow regression from 24.1 on the super-admin school list fixed (`grid-cols-[minmax(0,1fr)]`, wrapping header row); the one remaining clipped long school name is a baseline entry for 30.6.
 ### 24.8 BLOCKED (D17)
 - Not touched. The 44 px guardrail is unchanged; the four D17 entries stay with their reason.
+
+## G7 (tasks 25 to 29): wizard chrome, truthful status, honest promises, developer artefacts, landing
+Verified at 4fa821a41 on a fresh harness stack: rendered gate 38/38 visits, compare PASS (baseline 534 to 476: 60 fixed entries deleted, 8 re-keyed, 2 added with the documented Inter reason); journey gate PASS. Screenshots are viewport-only at DSF 1 and stay in the run directory.
+### 25.1 One heading and one instruction per step (R15.1, 15.7, 22.5): b168ac0b3
+- The step title is the page H1, with its instruction beside it from the one step config. Removed: the Application Flow eyebrow, the Student Application card, each step's duplicate title and intro, the mobile Back to Dashboard row. The back arrow uses history only for an in-app previous entry (`wizardBackNavigation.test.ts`).
+### 25.2 One "Still needed" list (R15.3, 15.7, 22.2, 22.13): 531375c30
+- `WizardStillNeeded` lists the current step's failing readiness items with Go to field, keeps the platform check (task 6.5 blockers) as its own section, and carries Switch application and Start a new application. It is a disclosure below the form on mobile and one rail card on desktop. Removed: Step Checklist, Application Preview, Step notes, Your applications, and their unused builder and copy constants.
+### 25.3 Accessible names contain visible text (R15.4): 7eb940da1
+- Previous and Next step are named by their visible text, and the destination moved to `aria-describedby`. The journey-gate and required harness specs reach the control as "Next step" (selector-only edits).
+### 25.4 Heading order and one statement of the file rules (R15.5, 15.6): 07143607f
+- The header account name is no longer an H2, step headings start at H2, and requirement headings are H3 (`wizardHeadingOrder.test.ts`). The upload control states "PDF, JPG or PNG, up to 10 MB" once.
+### 25.5 First field in the first mobile screen (R15.2): 0a581fe68
+- On a phone the header is just the app bar, the H1 and instruction, and one progress row; the bar animates with `scaleX`. The rendered gate's wizard first-control measurement reports no finding on any wizard step at 390x844, and there are no baseline entries for it.
+### 25.6 Property 7 (R15.4): 196f5bed1
+### 25.7 Unique education option keys (R15.8, C-18): 5df21279c
+- `__cat_<group>_<category>` values. The builder is now a pure module with a unit test covering both groups.
+### 26.1 Stepper and percentage from one Readiness (R14.1, 14.2): e8805aae5
+- The percentage is floor(passing/total) of `wizardReadiness`, and `stepStates` come from the same object. A visited step with failing items shows the warning icon plus the word Incomplete. `useOverallProgress` and the index-before-current shortcut are removed.
+### 26.2 Incomplete alert only after a Continue attempt (R14.4): 22fb52fad
+### 26.3 Next actions in wizard step order (R14.3): 39b4d9384
+- `build_next_actions` stable-sorts by `STEP_RANK`, with submit leading when the application can be submitted. Property 3 is in the backend property file. OpenAPI regenerated with no diff.
+### 26.4 Full fee estimate on the assigned-school step (R14.5, 22.2, 22.4, 22.13): e10c4785b, follow-up 0513bdf92
+- `fee_preview_payload` (fee_quote_service) serves both resolve-fee and the assignment preview, using the quote mint's `_money`, so the estimate total equals the minted quote. The single payment path and the ownership split are unchanged: the wizard estimates before submission and the payment step confirms. The follow-up sets the total line in Inter instead of monospace.
+### 26.5 Missing data is not shown as a value (R14.6, 14.7, 14.8, 22.10): 310e933ac
+- Missing values are left out, not printed as "Not provided" or "Not available". `documentStatePresentation` is the one document-state map, with a drift guard against the backend `DOCUMENT_STATES`, registered in the truth map.
+### 26.6 Status properties (R14.1 to 14.3, 14.5): 056dacfdf
+- Properties 1 and 2 are frontend; Properties 3 and 10 are in `backend/tests/property/test_platform_simplification_properties.py`.
+### 27.1 Promise inventory (R20.1): 6d849f293 (landing rows: 29.3, ac44151fb)
+| Statement (before) | Backing code | Result |
+|---|---|---|
+| Interest list: "We will contact you if a place opens" | Stored in this browser only; no backend call | False. Now "Reminder saved on this device. It does not tell admissions…" |
+| Settings: phone "Reused for SMS notification delivery", "SMS delivery uses the phone number" | No SMS sender (only email and the in-app inbox) | False. Removed; the notice card names the inbox and the account email |
+| Landing: "Takes 2 minutes", "30 minutes" | No measurement | Unsourced. Removed (29.3) |
+| Landing: "You also get an email and an SMS", "We review within a few working days" | Email only; no review SLA promised to students | False. Now "you get an email when something changes" |
+| Landing: "we will convert" Cambridge results | Eligibility engine accepts both; there is no conversion service | Overstated. Now "the eligibility check accepts both" |
+| Landing: room booking, visa letters, USD tuition invoices | No housing, visa or tuition feature | False. Rewritten as "contact the school" |
+| "Your progress is saved automatically" | Wizard auto-save (draft outbox) | True, kept |
+| "Your exact application fee is shown before you pay" | Fee quote mint + payment step | True, kept |
+| "You see every update in the portal" | Status page + notification polling | True, kept |
+- Test changed: `AssignmentRecoveryPanel.test.tsx` pinned the old interest-list wording; it now pins the new sentence (2 assertions before and after).
+### 27.2 Support contact from the tenant resolver (R20.2): d131672a1
+- `Interview.tsx` uses `resolveTenantSupportContact`. New test `noHardcodedStudentEmail.test.ts` fails if a student surface hardcodes an email address.
+### 27.3 Trust note, admin subtitle, workspace label, reschedule prompt (R20.3 to 20.5): landed in d131672a1
+- Deviation: these edits went into the 27.2 commit instead of their own; history is not rewritten. `git log -S` traces each one to d131672a1:
+  - `AuthShell.tsx`: "Your session lasts 7 days. We never share your information." became "You stay signed in on this device until your session ends. Sign out on a shared device." (Spec A's sessions: 30-minute access token with refresh, so the fixed 7-day claim was wrong).
+  - `Applications.tsx` subtitle: "payment proof" became "payment status".
+  - `WorkspaceAside.tsx`: "Latest payment review note" became "Latest note from admissions", because the note is the admin's review note, not only about payment.
+  - `Interview.tsx`: the reschedule prompt renders only when `interviews.length > 0` (covered in `page-verification/student-interview.test.tsx`).
+- Observation, not changed: `Applications.tsx:449` still has a fallback string "No payment proof uploaded. Proceed anyway?", used only when the review API returns no message. It is admin-facing and outside 27.3's named lines; it is recorded for 31.x/30.x.
+### 27.4 Letter copy (R20.6, D9 option C): 4fa821a41
+- Spec A `[R7.4]` is in base: e7589a18f (5.4 student surface for a letter the school has not set up) is an ancestor of HEAD. This spec writes no new letter copy. The one existing letter promise (`landing.ts:123`, school profile and template) does not promise neutral fallback branding, and it moves with the school-buyer content in 33.2. New test `letterCopyAlignment.test.ts` fails on any rejection-letter mention, any "letter is ready" or fallback-branding claim, or a letter type beyond `acceptance_letter`/`conditional_offer`.
+### 27.5 Developer self-narration removed (R20.7): f63445266
+- New test `noDeveloperNarration.test.ts` checks the quoted phrases.
+### 28.1 Fixed sidebar status removed (R13.1): 6b8f0263f
+- Removal safety: "Workspace ready / Navigation synced" existed only in `DesktopSidebar.tsx` (both variants); `git grep` finds no other use. The build badge still renders only in development and on the footer diagnostics path; the gate's 22.6 build-badge check had 0 hits in 38 visits. The admin data-sources strip is untouched. New test `desktopSidebarNoStatusBlock.test.ts`.
+### 28.2 Plain labels (R13.4): f7705b127, follow-ups 8ba237a0a, 0513bdf92
+- `residencyRateLabel` (serverAmount.ts) gives "Zambian applicant rate" / "International applicant rate"; `PAYMENT_CHANNEL_LABEL` (paymentStatus.ts) gives "Mobile money or card". The follow-ups fix what the longer label caused at 390 px: the chip's 4 px padding (rendered gate cramped-padding, NEW) and the chip squeezing the fee breakdown (seen in the screenshot). The fee header now wraps.
+### 29.1 Unsourced claims, logos and false links removed (R12.1, 12.6): 008736e2c
+- Removed the stats section and constant, the "Government accredited" chip, the "Recognized by" strip, the hero metric row (and `institutionFacts`), the regulator and university logos, and the social links. The smoothui barrel, animated-counter and OptimizedImage are now unreachable and are recorded in `scripts/unreferenced-modules-baseline.json` with D10 reasons; 33.2 deletes them. Tests changed: `page-verification/student-interview.test.tsx` and `scoutqaAccessibilityFixes.test.ts` pinned the removed badges and the hardcoded interview address; they now assert their absence.
+### 29.2 Programmes from the catalogue (R12.2, 12.7): 907e1e4d1
+- Rows come from `catalogService.getCanonicalPrograms` per open intake, scoped by the portal context, with loading, error, 429 and closed states (`landingProgrammes.test.tsx`).
+### 29.3 Calls to action, mobile widths, landing copy (R12.7, 12.8, 20.1): ac44151fb
+- Both hero actions are full width on a phone and keep their `data-landing-action` markers. New test `landingHonestCopy.test.ts`.
+### G7 rendered-gate re-baseline: f939eec4d, 0513bdf92
+- 60 fixed entries deleted (nested-cards 37, layout-transition 12, icon-tile-stack 4, line-length 4, all-caps-body 2, action-width 1). 8 assigned-school nested-cards entries re-keyed: their selector moved from `div:nth-of-type(2)` to `div:nth-of-type(1)` when 25.1 removed the step header; it is the same finding and 31.3 still owns it. 2 `single-font` entries added with the reason every other Inter-only page carries. No new hard-guardrail entry.
+### G7 existing tests changed (assertion encoded copy or markup this group intentionally changed)
+EducationStep, SubmitStep, applicationWizardCharacterisation, educationStepRequiredDocuments, paymentStep, wizardMobileRecomposition, applicationWizardUxGuard, requiredDocumentsPanel, requiredDocumentsContract, requiredDocumentsUploadFlow (integration), wizardProperties (Property 13 now supplies stepStates), wizardProgressStates, applicationWorkspaceDecomposition, AssignmentRecoveryPanel, page-verification/student-interview, scoutqaAccessibilityFixes, assignedSchoolFeeEstimate; harness: journey-steps, student-journey-gate, wizard-draft helper, ocr-manual-fallback, student-wizard-characterisation, student-wizard-mobile, two-tenant-adversarial-matrix, wizard-draft-offline-outbox, wizard-draft-refresh-each-step, wizard-draft-two-tab (selector "Next step"). Counted per file: no file has fewer assertions than before.

@@ -666,7 +666,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - _Requirements: 16.10, 19.7, 19.9_
 
 - [ ] 25. Wizard chrome (Impeccable `distill`, `layout`)
-  - [ ] 25.1 One heading and one instruction per step
+  - [x] 25.1 One heading and one instruction per step
     - Remove the "Application Flow" eyebrow and the "Student Application" title card (`index.tsx:836-900`).
     - Add `instruction` beside each step's `title` in the existing step definition list, and drop each step's duplicate `SectionCard` title.
     - On mobile, remove the "Back to Dashboard" row, and on the wizard route make the app bar's back arrow go back in history only when the previous entry is inside the app, and to the dashboard otherwise (`AppLayout.tsx:158-161`, design §12.4). Add a test for both cases.
@@ -674,75 +674,75 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.1, 15.7, 22.5_
 
-  - [ ] 25.2 Merge the rails into one "Still needed" list
+  - [x] 25.2 Merge the rails into one "Still needed" list
     - Create `WizardStillNeeded` (design §12.4) from the current step's failing Readiness items, plus the "Switch application" and "Start a new application" actions.
     - On mobile, collapse it below the form. Remove Step Checklist, Application Preview, Step notes and "Your applications".
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.3, 15.7, 22.2, 22.13_
 
-  - [ ] 25.3 Make accessible names contain the visible text
+  - [x] 25.3 Make accessible names contain the visible text
     - In `WizardActionBar.tsx:233,267`, use the visible text as the name, and move the destination step to `aria-describedby`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.4_
 
-  - [ ] 25.4 Fix heading order and repeated file rules
+  - [x] 25.4 Fix heading order and repeated file rules
     - Make the app header's account name (`components/navigation/Header.tsx:52`) a labelled non-heading element, and start step content headings at H2. `PageShell`'s dev guard must report no violation on any step.
     - Show the file rules once per upload control.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.5, 15.6_
 
-  - [ ] 25.5 Reach the first field in the first mobile screen
+  - [x] 25.5 Reach the first field in the first mobile screen
     - Reduce the mobile header to the app bar, the H1 and instruction, and one progress row (design §12.4).
     - Animate the progress bar with `transform: scaleX()` instead of `width`.
     - Confirm with task 22.4's measurement that, with the page at the top, the first form control's whole box sits between the app bar and the sticky action bar on every step.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.2_
 
-  - [ ] 25.6 Write the label-in-name property test
+  - [x] 25.6 Write the label-in-name property test
     - **Property 7: Accessible name contains visible text**
     - **Validates: Requirements 15.4**
     - Test in `apps/admissions/tests/property/platformSimplificationPolish.property.test.ts` using fast-check.
 
-  - [ ] 25.7 Give the education step's options unique keys
+  - [x] 25.7 Give the education step's options unique keys
     - In `EducationStep.tsx:183`, add the group to each category header's value (`__cat_${group}_${cat}`), so the ECZ and A-Level headers no longer repeat in one list (C-18).
     - Add a unit test that renders both groups and asserts unique option values.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.8_
 
 - [ ] 26. Truthful status (Impeccable `clarify`, `harden`)
-  - [ ] 26.1 Drive the stepper and the percentage from the one Readiness
+  - [x] 26.1 Drive the stepper and the percentage from the one Readiness
     - Replace `useOverallProgress` in `index.tsx:227-233` with progress from Spec A's Readiness.
     - Pass `stepStates` to `EnhancedProgressIndicator`, removing the shortcut at `:294` and `:359`, and show "Incomplete" with its icon on visited failing steps.
     - Delete `useOverallProgress.ts` once nothing imports it.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 14.1, 14.2_
 
-  - [ ] 26.2 Show the incomplete alert only after a Continue attempt
+  - [x] 26.2 Show the incomplete alert only after a Continue attempt
     - Add `continueAttemptedSteps` to the wizard state, and change the alert condition at `index.tsx:1036-1039`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 14.4_
 
-  - [ ] 26.3 Order next actions by wizard step (backend)
+  - [x] 26.3 Order next actions by wizard step (backend)
     - Stable-sort the actions in `build_next_actions` (`readiness_service.py:1231`) by `STEP_RANK` (design §12.3).
     - Update the readiness tests that assert the old order, and record the order in the truth map's readiness row.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 14.3_
 
-  - [ ] 26.4 Show the full fee estimate on the assigned-school step
+  - [x] 26.4 Show the full fee estimate on the assigned-school step
     - Extract `fee_preview_payload` into `apps/documents/fee_quote_service.py`, quantising the base, the fee and the total with the quote mint's `_money` (design §12.3), and use it in `FeeResolveView` and `AssignmentPreviewView`.
     - Show the total, the breakdown and the estimate note in `AssignedSchoolStep.tsx`, through `formatServerAmount` only.
     - Update `AssignmentPreviewFee` (`services/catalog.ts:128`) and the generated types, and regenerate the schema.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 14.5, 22.2, 22.4, 22.13_
 
-  - [ ] 26.5 Stop rendering missing data as values
+  - [x] 26.5 Stop rendering missing data as values
     - Remove "Started on Not available", "Last updated: Not available" and the interview section on drafts, and every other placeholder that renders missing data as a value on a student surface, found by searching student pages and components for "Not available" and "Not provided".
     - Add the `documentStatePresentation` map, with a Lucide icon per state in place of the `✓` glyph, and use it on Spec A's document list. Register it in the truth map with a drift guard that fails if a backend document state has no entry.
     - Render nothing in `WizardProgressSummary`'s `notEvaluatedYet` branch.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 14.6, 14.7, 14.8, 22.10_
 
-  - [ ] 26.6 Write the status property tests
+  - [x] 26.6 Write the status property tests
     - **Property 1: Progress equals passing items over total**
     - **Validates: Requirements 14.2**
     - **Property 2: A step is complete exactly when its items pass**
@@ -755,62 +755,62 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Backend tests in `backend/tests/property/test_platform_simplification_properties.py` using hypothesis.
 
 - [ ] 27. Honest promises (copywriting, content-humanizer, copy-editing)
-  - [ ] 27.1 Inventory every promise and fix the false ones in the app
+  - [x] 27.1 Inventory every promise and fix the false ones in the app
     - Build the copy inventory (design §12.8) in the evidence summary, with the code that backs or does not back each statement.
     - Rewrite every in-app promise that no feature backs. Task 29.3 rewrites the landing's.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.1_
 
-  - [ ] 27.2 Take support contacts from the tenant resolver
+  - [x] 27.2 Take support contacts from the tenant resolver
     - Replace the hardcoded address (`Interview.tsx:385-386`) with the Tenant_Support_Resolver, and add a test that no student surface hardcodes an email address. `student-payment-interview-pages` has no open task on `Interview.tsx` (its six open tasks are optional navigation and payment-detection tests), so there is nothing to coordinate.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.2_
 
-  - [ ] 27.3 Fix the trust note, the admin subtitle, the workspace label and the reschedule prompt
+  - [x] 27.3 Fix the trust note, the admin subtitle, the workspace label and the reschedule prompt
     - Rewrite `AuthShell.tsx:51` to match Spec A's delivered session behaviour.
     - Remove "payment proof" from `Applications.tsx:577`, and rename `WorkspaceAside.tsx:56`'s label unless the note is about payment.
     - Render `Interview.tsx:381`'s prompt only when an interview exists.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.3, 20.4, 20.5_
 
-  - [ ] 27.4 [Decision D9 confirmed 2026-11-08 (option C); blocked until Spec A's `[R7.4]` is merged] Align letter copy with the decided letter option
+  - [x] 27.4 [Decision D9 confirmed 2026-11-08 (option C); blocked until Spec A's `[R7.4]` is merged] Align letter copy with the decided letter option
     - Start only after Spec A's letter-copy clause `[R7.4]` is merged, and record that commit in the evidence summary.
     - Make every letter mention this spec writes agree with the chosen option and with Spec A's letter copy, and add no rejection-letter mention unless D9 adds the type.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.6_
 
-  - [ ] 27.5 Remove developer self-narration
+  - [x] 27.5 Remove developer self-narration
     - Remove the strings the critique quotes from notification settings, settings and the admin dashboards, and any similar ones the copy inventory finds.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.7_
 
 - [ ] 28. Developer artefacts
-  - [ ] 28.1 Remove the fixed sidebar status
+  - [x] 28.1 Remove the fixed sidebar status
     - Delete the "Workspace ready / Navigation synced" block, both variants (`DesktopSidebar.tsx:210-228`). Keep the admin dashboard's derived data-sources strip.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 13.1_
 
-  - [ ] 28.2 Map raw values to plain labels
+  - [x] 28.2 Map raw values to plain labels
     - Map the residency code shown next to the fee, and "Processed via Lenco", to the labels in design §12.2. Each mapping lives in the module that owns the value.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 13.4_
 
 - [ ] 29. Landing, decision-independent part (Impeccable `distill`, `clarify`; copywriting)
-  - [ ] 29.1 Remove unsourced claims, logos and false links
+  - [x] 29.1 Remove unsourced claims, logos and false links
     - Remove the stats section and constant, the "Government accredited" chip, the "Recognized by" strip, the hero metric row, the regulator and university logos on the feature tiles, and the three social links (design §12.1).
     - Remove the availability and identity claims: change the closing heading "The current intake is open. You can start tonight." (`LandingPageSections.tsx:449`) to "Start your application", drop "Takes about 30 minutes…" from its paragraph (`:452`), and remove "Because we teach the job, not just the theory." (`:81`), "We enroll students from Namibia…" (`landing.ts:289`) and "Campus security, hostel matrons … Our staff …" (`landing.ts:344`). Leave the sections they sit in for task 33.1.
     - If removing the stats section leaves the `components/smoothui` barrel or its modules unreachable, add baseline entries tied to D10 instead of deleting them.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.1, 12.6_
 
-  - [ ] 29.2 List programmes from the catalogue
+  - [x] 29.2 List programmes from the catalogue
     - Replace the hardcoded `programs` constant with catalogue data scoped by the portal context (design §12.1), with the empty, error and 429 states.
     - Give each programme row an "Apply" button that links to `/auth/signup` with no query parameter, and name the programme and school in the row's text. `SignUpPage` reads no query parameter, so nothing is promised that sign-up does not keep.
     - Point each button's `aria-describedby` at the ids of its row's programme and school text, so the "Apply" links stay distinguishable to assistive technology (WCAG 2.4.4) with the visible label unchanged, and add a unit test that every "Apply" link has a description naming its programme.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.2, 12.7_
 
-  - [ ] 29.3 Fix the call-to-action labels, headings, mobile widths and landing copy
+  - [x] 29.3 Fix the call-to-action labels, headings, mobile widths and landing copy
     - Build every call-to-action label from data, remove counts that the page does not show, and give both hero buttons `w-full sm:w-auto`, keeping their `data-landing-action` markers from task 22.4. Confirm with the gate's `measure/first-control` and `measure/action-width` records that the primary action is in the first screen and both actions are equally wide at 390 × 844, and delete those baseline entries.
     - Rewrite the landing promises that break Requirement 20.1 (`landing.ts:233,258,332`).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
