@@ -34,6 +34,8 @@ import { reportError } from '@/lib/errorReporter'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
+import { useAdminQueueViewStore, resolveQueueView } from '@/stores/adminQueueViewStore'
+import { useQueueWidthBand } from '@/hooks/admin/useQueueWidthBand'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
@@ -175,26 +177,6 @@ const getErrorStatus = (error: unknown): number =>
     ? error.status
     : 0
 
-function useIsMobileViewport() {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.innerWidth < 640
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined
-
-    const mediaQuery = window.matchMedia('(max-width: 639px)')
-    const handleChange = () => setIsMobile(mediaQuery.matches)
-
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
-  return isMobile
-}
-
 export default function Applications() {
   const {
     filters,
@@ -286,8 +268,14 @@ export default function Applications() {
     notification: boolean
   }>({ notification: false })
   const [showFilters, setShowFilters] = useState(false)
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
-  const isMobileViewport = useIsMobileViewport()
+  // The view is the admin's choice when there is one, otherwise the width
+  // band's default (task 30.1, R17.1). A resize never writes the choice.
+  const widthBand = useQueueWidthBand()
+  const chosenView = useAdminQueueViewStore(state => state.chosenView)
+  const setChosenView = useAdminQueueViewStore(state => state.setChosenView)
+  const effectiveViewMode = resolveQueueView(widthBand, chosenView)
+  const viewMode = effectiveViewMode
+  const setViewMode = setChosenView
 
   // Filter options are the server's facets over the whole filtered set, not a
   // `Set` harvested from the rows this page happened to load (ADM-01). An
@@ -304,13 +292,6 @@ export default function Applications() {
   const confirmDialog = useConfirmDialog()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const effectiveViewMode = isMobileViewport ? 'cards' : viewMode
-
-  useEffect(() => {
-    if (isMobileViewport && viewMode === 'table') {
-      setViewMode('cards')
-    }
-  }, [isMobileViewport, viewMode])
   // Track which application is currently being updated (for virtualized grid)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
