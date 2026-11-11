@@ -816,14 +816,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.7, 12.8, 20.1_
 
-- [ ] 30. Admin review workspace (Impeccable `layout`, `distill`, `harden`)
-  - [ ] 30.1 Open the queue as a table on wide screens
+- [x] 30. Admin review workspace (Impeccable `layout`, `distill`, `harden`)
+  - [x] 30.1 Open the queue as a table on wide screens
     - Read the view in `Applications.tsx:288` from a new in-memory Zustand store, `stores/adminQueueViewStore.ts` (design §12.6): below 640 px always `cards`; from 640 px the admin's chosen view if any; with no choice, `table` at 1024 px and wider and `cards` from 640 to 1023 px.
     - Add tests for each width band, with and without a choice, and for the choice surviving a round trip to the review route.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.1_
 
-  - [ ] 30.2 Add the review route and the split pane
+  - [x] 30.2 Add the review route and the split pane
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
     - Register `/admin/applications/:applicationId`, and extract `ApplicationReviewWorkspace` from `ApplicationDetailModal.tsx` with every control, guard and confirmation.
     - Render the pane beside the queue at 1024 px and wider, keeping the queue's scroll position, filters and selection.
@@ -833,50 +833,50 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.2, 17.7, 22.1, 22.2, 22.13_
 
-  - [ ] 30.3 Open the review as a page on narrow screens
+  - [x] 30.3 Open the review as a page on narrow screens
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
     - Render the same route full page below 1024 px, with a back control that keeps the queue's query string. Hide the bottom navigation on that route.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.3_
 
-  - [ ] 30.4 Fix the row targets, the badges and the filters
+  - [x] 30.4 Fix the row targets, the badges and the filters
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
     - Give rows at least 44 px of height, wrap each checkbox in a 44 × 44 px label (the gate measures the two together), show one status badge per row with payment and documents as text, and put all but four filters behind "More filters (n)".
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.4, 17.5, 17.6_
 
-  - [ ] 30.5 Mark the super-admin shell, and move the metric explanations
+  - [x] 30.5 Mark the super-admin shell, and move the metric explanations
     - Add the "Platform admin · all schools" bar using `adminColors` tokens.
     - Move the metric explanations into a disclosure: a 44 px info button with `aria-expanded` and `aria-controls` that shows the definition below the metric on tap, click, Enter or Space (design §12.6). Do not use `Tooltip`, which does not open on tap. Add a test that the definition opens by click and by keyboard.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.8, 17.9_
 
-  - [ ] 30.6 Fix the tenant console's labels, buttons and clipping
+  - [x] 30.6 Fix the tenant console's labels, buttons and clipping
     - Add visible labels to the school-profile form (`SuperAdminTenantConsole.tsx:306-318`).
     - Relabel and restyle the two create buttons (design §12.6), and collapse the grid below 768 px so nothing clips.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.10, 17.11, 17.12_
 
-- [ ] 31. Navigation and empty states (Impeccable `clarify`, `layout`)
-  - [ ] 31.1 Give desktop and mobile one navigation with full labels
+- [x] 31. Navigation and empty states (Impeccable `clarify`, `layout`)
+  - [x] 31.1 Give desktop and mobile one navigation with full labels
     - Read both from `routeRegistry.ts`, give `studentStatus` `desktop: true` unless Spec A's R5.3 already did, add short `navLabel`s, and remove `truncate` from every label span, the More button's included (`BottomNavigation.tsx:205,242,362`).
     - Make `navLabel` feed both the visible span and the control's accessible name, so the name keeps containing the visible text (Requirement 15.4): today `accessibleName` is built from `item.label` (`BottomNavigation.tsx:169-171`, set at `:183,218`) while the visible span is `aria-hidden` (`:205,242`). Keep its count suffix. Give the desktop sidebar the same `navLabel` for its text and its name (`DesktopSidebar.tsx:46-52`).
     - Check the labels with the rendered gate's font-size, clipped-text and overflow rules, which measure the `aria-hidden` label spans: each shows in full in its slot at 390 px at 12 px or larger. Without `truncate` a label that does not fit spills out of its slot, which the clipped-text rule reports, or widens its `flex-1` item (`:141`) and pushes the last item past the viewport's edge, which the overflow rule reports (design §12.8). There is no character cap. Delete the navigation's clipped-text and overflow baseline entries this fixes.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 21.1, 21.2, 15.4_
 
-  - [ ] 31.2 Make every empty state teach the next step
+  - [x] 31.2 Make every empty state teach the next step
     - Rewrite each student empty state with one heading and a sentence saying what fills it, through `EmptyState`.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 21.4_
 
-  - [ ] 31.3 Flatten nested cards and name each mobile page
+  - [x] 31.3 Flatten nested cards and name each mobile page
     - Flatten card-in-card on every page of the Audited_Page_Set except the landing, the admin pages included; task 33.1 flattens the landing. Take the mobile header title from the route registry label.
     - Delete the nested-cards baseline entries this fixes.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 21.5, 21.6_
 
-- [ ] 32. Checkpoint: P2 decision-independent work
+- [x] 32. Checkpoint: P2 decision-independent work
   - The rendered gate and axe are green against the shrunken baseline, every remaining baseline entry has a reason, and the Journey_Gate is still green.
   - List the tasks still waiting for Spec A: tasks 30.2–30.4 for `[R7.2]` and `[R7.3]`, and task 27.4 for `[R7.4]`.
   - List the hard-guardrail baseline entries that remain (Requirement 19.9: `measure/hit-area`, `measure/font-size` on student routes, `measure/overflow`, `measure/clipped-text` inside a `nav` element, `impeccable/nested-cards`, `impeccable/low-contrast` and `axe/color-contrast`); each must be gone by task 36. Name the task that removes each remaining `measure/hit-area` entry: 24.8 (links inside running text, D17) or 30.4 (the admin queue's rows and checkboxes); task 24.6 leaves no other.
