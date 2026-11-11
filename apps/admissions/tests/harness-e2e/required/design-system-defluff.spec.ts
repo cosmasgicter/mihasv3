@@ -500,8 +500,8 @@ test('the tracker resolves its brand and support from tenant context', async ({
   // R2.2 / R2.3: the title carries the brand the platform resolved. On a host with
   // no tenant domain that is the neutral Beanola brand — never a guessed school.
   const title = await page.title();
-  expect(title, 'the tracker title should carry the resolved brand').toContain(
-    'Track Your Application',
+  expect(title, 'the tracker title should carry the resolved brand').toBe(
+    'Track your application | Beanola Admissions',
   );
   expect(title, 'and it should not name an example tenant').not.toMatch(/MIHAS|KATC/i);
   const siteName = await page
