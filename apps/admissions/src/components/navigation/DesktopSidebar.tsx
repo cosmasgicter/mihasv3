@@ -12,6 +12,8 @@ import { adminNavRoutes, pathFor, studentNavRoutes, navLabelFor } from '@/routes
 
 interface NavItem {
   to: string
+  /** Extra path prefixes that keep this item highlighted (task 34.1). */
+  activeMatchPaths?: string[]
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   label: string
 }
@@ -49,12 +51,14 @@ const studentLinks: NavItem[] = studentNavRoutes()
     to: route.path,
     icon: route.nav!.icon,
     label: navLabelFor(route),
+    activeMatchPaths: route.nav?.activeMatchPaths,
   }))
 
-const isRouteActive = (currentPath: string, itemPath: string) => {
-  if (itemPath === pathFor('student.applicationWizard')) {
-    return currentPath === pathFor('student.applicationWizard') || currentPath === '/apply'
-  }
+const pathIsUnder = (currentPath: string, prefix: string) =>
+  currentPath === prefix || currentPath.startsWith(`${prefix}/`)
+
+const isRouteActive = (currentPath: string, itemPath: string, activeMatchPaths?: string[]) => {
+  if (activeMatchPaths?.some((prefix) => pathIsUnder(currentPath, prefix))) return true
 
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`)
 }
@@ -195,7 +199,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
                 key={item.to}
                 item={item}
                 collapsed={collapsed}
-                isActive={isRouteActive(location.pathname, item.to)}
+                isActive={isRouteActive(location.pathname, item.to, item.activeMatchPaths)}
               />
             ))}
           </div>

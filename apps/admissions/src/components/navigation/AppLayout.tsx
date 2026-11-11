@@ -27,7 +27,7 @@ import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { matchesRoutePath, navLabelFor, pathFor, routeByPath, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { matchesRoutePath, navLabelFor, pathFor, routeByPath, routeById, studentNavRoutes, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -108,21 +108,12 @@ const adminNavItems = [
  * inbox was settings. Navigation rules are identical on desktop and mobile, so
  * "one inbox, reachable" has to hold on both.
  *
- * The order follows `routeRegistry` (`student.communications` is `order: 25`),
- * and each label is the registry's own, so the two entries read as what they are:
- * "Communications" is where messages are, "Notification settings" is where the
- * switches are.
+ * Task 34.1 (D16 option A, R21.3): the list is read from the registry and holds
+ * three destinations, "My application", "Messages" and "Account". The routes
+ * they contain stay live and keep their destination highlighted through
+ * `activeMatchPaths`.
  */
-const studentNavItems = [
-  navItemFromRoute(routeById('student.dashboard')),
-  navItemFromRoute(routeById('student.applicationWizard')),
-  navItemFromRoute(routeById('student.communications')),
-  navItemFromRoute(routeById('student.payment')),
-  navItemFromRoute(routeById('student.interview')),
-  navItemFromRoute(routeById('student.notifications')),
-  navItemFromRoute(routeById('student.settings')),
-  navItemFromRoute(routeById('student.status')),
-]
+const studentNavItems = studentNavRoutes().map(navItemFromRoute)
 
 const studentLogoutNavItem = { href: pathFor('auth.signIn'), label: 'Logout', icon: LogOut }
 

@@ -108,9 +108,8 @@ const bottomNavItemFromRoute = (
 
 export const defaultStudentNavItems: BottomNavItem[] = [
   bottomNavItemFromRoute(routeById('student.dashboard'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.payment'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.interview'), { requiresAuth: true }),
-  bottomNavItemFromRoute(routeById('student.settings'), { label: 'Settings', requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.communications'), { requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.settings'), { requiresAuth: true }),
 ]
 
 export const defaultPublicNavItems: BottomNavItem[] = [

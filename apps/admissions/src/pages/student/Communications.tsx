@@ -37,6 +37,7 @@ import {
   XCircle,
  Settings,
  Trash2,
+ History,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Seo } from '@/components/seo/Seo'
@@ -244,6 +245,12 @@ export default function Communications() {
               Mark all read
  </Button>
  )}
+ <Button asChild variant="outline" size="sm" className="min-h-touch">
+ <Link to={pathFor('student.history')} data-testid="open-activity-history">
+ <History className="h-4 w-4"/>
+ Activity history
+ </Link>
+ </Button>
  <Button asChild variant="outline" size="sm" className="min-h-touch">
  <Link to={pathFor('student.notifications')} data-testid="open-notification-settings">
  <Settings className="h-4 w-4"/>

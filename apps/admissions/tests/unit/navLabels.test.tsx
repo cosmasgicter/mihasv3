@@ -16,15 +16,36 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), 'utf8')
 
 describe('navLabel', () => {
   it('is the short label, falling back to the page label', () => {
-    expect(navLabelFor(routeById('student.dashboard'))).toBe('Home')
+    expect(navLabelFor(routeById('student.dashboard'))).toBe('My application')
     expect(navLabelFor(routeById('student.status'))).toBe('Status')
     expect(navLabelFor(routeById('student.payment'))).toBe('Payment')
     // The page title keeps the full label.
     expect(routeById('student.status').nav?.label).toBe('Application status')
   })
 
-  it('keeps the status page on the desktop sidebar', () => {
-    expect(studentNavRoutes().some((route) => route.id === 'student.status' && route.nav?.desktop)).toBe(true)
+  it('offers exactly three student destinations on desktop and mobile (task 34.1, D16 option A, R21.3)', () => {
+    const routes = studentNavRoutes()
+    expect(routes.map((route) => navLabelFor(route))).toEqual(['My application', 'Messages', 'Account'])
+    expect(routes.every((route) => route.nav?.desktop && route.nav?.mobile)).toBe(true)
+  })
+
+  it('keeps every route a destination replaced live, and highlights its destination', () => {
+    const mine = routeById('student.dashboard').nav?.activeMatchPaths ?? []
+    for (const id of ['student.applicationWizard', 'student.status', 'student.payment', 'student.interview'] as const) {
+      const route = routeById(id)
+      expect(route.path.length).toBeGreaterThan(1)
+      expect(mine.some((prefix) => route.path === prefix || route.path.startsWith(`${prefix}/`))).toBe(true)
+    }
+    const account = routeById('student.settings').nav?.activeMatchPaths ?? []
+    expect(account).toContain(routeById('student.notifications').path)
+    const messages = routeById('student.communications').nav?.activeMatchPaths ?? []
+    expect(messages).toContain(routeById('student.history').path)
+  })
+
+  it('reaches the documents within two activations of the dashboard', () => {
+    // 1: My application (dashboard). 2: the application row's link to the workspace, which owns the documents.
+    expect(read('src/components/student/ApplicationListItem.tsx')).toContain('studentApplicationWorkspacePath(application.id)')
+    expect(routeById('student.status').path).toBe('/student/status')
   })
 
   it('feeds both the sidebar and the bottom bar; no hand-written overrides remain', () => {

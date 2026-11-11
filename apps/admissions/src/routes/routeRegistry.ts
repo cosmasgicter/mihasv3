@@ -203,7 +203,35 @@ export const ROUTES = {
     path: '/student/dashboard',
     guard: 'student',
     skeletonType: 'dashboard',
-    nav: { label: 'Dashboard', navLabel: 'Home', icon: Home, desktop: true, mobile: true, order: 10, section: 'student' },
+    // Three student destinations (task 34.1, D16 option A, R21.3): "My application",
+    // "Messages" and "Account". The routes below that carry a `nav` without
+    // `desktop`/`mobile` keep their page label and icon but are no longer
+    // navigation entries; the destination that contains them stays highlighted
+    // through `activeMatchPaths`. No route is removed, so every URL still resolves.
+    nav: {
+      label: 'Dashboard',
+      navLabel: 'My application',
+      icon: Home,
+      desktop: true,
+      mobile: true,
+      order: 10,
+      section: 'student',
+      activeMatchPaths: [
+        '/student/dashboard',
+        '/student/application-wizard',
+        '/apply',
+        '/student/applications/new',
+        '/student/status',
+        '/student/application-status',
+        '/application',
+        '/student/application',
+        '/student/documents',
+        '/student/payment',
+        '/student/payments',
+        '/student/interview',
+        '/student/interviews',
+      ],
+    },
   },
   studentApplicationWizard: {
     id: 'student.applicationWizard',
@@ -214,8 +242,6 @@ export const ROUTES = {
     nav: {
       label: 'Apply',
       icon: FileText,
-      desktop: true,
-      mobile: true,
       order: 20,
       section: 'student',
       activeMatchPaths: ['/student/application-wizard', '/apply'],
@@ -244,14 +270,12 @@ export const ROUTES = {
       label: 'Application status',
       navLabel: 'Status',
       icon: BriefcaseBusiness,
-      // Task 3.18 (R5-c, finding B-04): the documents card lives on this page, so
-      // omitting it from the desktop sidebar left a desktop student with no
-      // one-activation route to their documents. Mobile already listed it.
-      desktop: true,
-      mobile: true,
+      // Task 3.18 (R5-c, finding B-04) required a one-activation route to the
+      // documents card on this page. Task 34.1 (D16) replaced the entry with "My
+      // application": the dashboard lists each application and links to this
+      // workspace, so documents stay within two activations of the dashboard.
       order: 80,
       section: 'student',
-      activeMatchPaths: ['/student/status'],
     },
   },
   /**
@@ -278,13 +302,13 @@ export const ROUTES = {
     skeletonType: 'detail',
     nav: {
       label: 'Profile & Settings',
-      navLabel: 'Profile',
+      navLabel: 'Account',
       icon: Settings,
       desktop: true,
       mobile: true,
       order: 70,
       section: 'student',
-      activeMatchPaths: ['/student/settings', '/student/profile'],
+      activeMatchPaths: ['/student/settings', '/student/profile', '/settings', '/student/notifications'],
     },
   },
   studentNotifications: {
@@ -294,7 +318,7 @@ export const ROUTES = {
     path: '/student/notifications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Notification settings', navLabel: 'Alerts', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
+    nav: { label: 'Notification settings', navLabel: 'Alerts', icon: Bell, order: 60, section: 'student' },
   },
   studentPayment: {
     id: 'student.payment',
@@ -302,7 +326,7 @@ export const ROUTES = {
     aliases: ['/student/payments'],
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Payment', icon: CreditCard, desktop: true, mobile: true, order: 30, section: 'student' },
+    nav: { label: 'Payment', icon: CreditCard, order: 30, section: 'student' },
   },
   studentInterview: {
     id: 'student.interview',
@@ -310,7 +334,7 @@ export const ROUTES = {
     aliases: ['/student/interviews'],
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Interview', icon: Calendar, desktop: true, mobile: true, order: 40, section: 'student' },
+    nav: { label: 'Interview', icon: Calendar, order: 40, section: 'student' },
   },
   studentCommunications: {
     id: 'student.communications',
@@ -320,14 +344,23 @@ export const ROUTES = {
     path: '/student/communications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Communications', navLabel: 'Inbox', icon: MessageSquare, desktop: true, mobile: true, order: 25, section: 'student' },
+    nav: {
+      label: 'Communications',
+      navLabel: 'Messages',
+      icon: MessageSquare,
+      desktop: true,
+      mobile: true,
+      order: 25,
+      section: 'student',
+      activeMatchPaths: ['/student/communications', '/student/history'],
+    },
   },
   studentHistory: {
     id: 'student.history',
     path: '/student/history',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Activity history', navLabel: 'History', icon: FileSearch, desktop: true, order: 26, section: 'student' },
+    nav: { label: 'Activity history', navLabel: 'History', icon: FileSearch, order: 26, section: 'student' },
   },
   adminHome: {
     id: 'admin.home',

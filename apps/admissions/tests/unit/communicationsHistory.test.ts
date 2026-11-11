@@ -82,8 +82,10 @@ describe('Navigation links', () => {
     expect(studentNav.map((route) => route.path)).toContain('/student/communications')
   })
 
-  it('DesktopSidebar includes /student/history link', () => {
-    expect(studentNav.map((route) => route.path)).toContain('/student/history')
+  it('History is inside the Messages destination, not a fourth navigation entry (task 34.1, D16)', () => {
+    expect(studentNav.map((route) => route.path)).not.toContain('/student/history')
+    expect(routeById('student.communications').nav?.activeMatchPaths).toContain('/student/history')
+    expect(readSource('pages/student/Communications.tsx')).toContain("pathFor('student.history')")
   })
 
   it('Communications link has a label', () => {
@@ -99,9 +101,10 @@ describe('Navigation links', () => {
     expect(routeById('student.communications').nav?.desktop).toBe(true)
   })
 
-  it('History link is in the studentLinks array', () => {
+  it('History keeps its route, label and section, and is no navigation entry of its own', () => {
     expect(routeById('student.history').nav?.section).toBe('student')
-    expect(routeById('student.history').nav?.desktop).toBe(true)
+    expect(routeById('student.history').nav?.desktop).toBeFalsy()
+    expect(routeById('student.history').path).toBe('/student/history')
   })
 })
 
