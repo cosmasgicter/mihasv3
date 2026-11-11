@@ -46,6 +46,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - If Spec A's harness work has already restored a parseable DSN, keep its value if it names a `.localhost` host and add only the test. If Spec A allowed the "Invalid Sentry Dsn" console text instead, remove that allowance in this task.
     - Record in the evidence summary which of these applied.
     - _Requirements: 1.12_
+    - Test edit (fix pass 2026-11-09): `two-tenant-adversarial-matrix.spec.ts` F3 (`allowHarnessNoise`). Old: allowed only `glitchtip`, so the reporter's envelope to `harness-invalid.localhost` failed the gate. New: also `gate.allowRequest("harness-invalid.localhost")`, the convention 13 other specs use. Reason: the task-1.3 DSN is deliberately unreachable and F3 causes a conflict on purpose; the general no-outside-host gate is unchanged.
 
 - [ ] 2. Checkpoint: start condition for the rest of this spec
   - Confirm that Spec A's Journey_Gate is green and blocking in CI on main, and record the commit id and run link in the evidence summary.
@@ -625,6 +626,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Change user-facing "Program" and "Programs" to "Programme" and "Programmes", and change title-case headings, buttons, labels and navigation items to sentence case. Leave identifiers alone.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.3, 16.4_
+    - Test edit (fix pass 2026-11-09): `design-system-defluff.spec.ts` tracker test. Old: title `toContain('Track Your Application')`. New: title `toBe('Track your application | Beanola Admissions')`. Reason: sentence case is this task's requirement (16.4); the new assertion is an exact match, stronger than before.
 
   - [x] 24.4 Use one optional-field marker
     - Implement "(optional)" in the shared label or field primitive, remove the required-field asterisks, and keep `required` and `aria-required`.
@@ -673,6 +675,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Keep the six steps, autosave, the draft picker and the save-status text. The Submit button keeps its `@idempotent` request and `submit-<applicationId>` key, and the wizard keeps pay-or-defer only (Requirements 22.2 and 22.13); `submitIdempotency.test.ts`, `applicationSubmitIdempotencyHeaders.test.ts` and `paymentOwnershipSplit.test.tsx` pass unchanged.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.1, 15.7, 22.5_
+    - Test edit (fix pass 2026-11-09): `wizard-draft-refresh-each-step.spec.ts` (6 call sites) via new `wizardStepText(n)` in `helpers/wizard-draft.ts`. Old: progress line `toHaveText('Step N of 6')`. New: `/^Step N of 6 · \d{1,3}%$/`. Reason: the one progress row now reads "Step N of 6 · P%"; step and total stay exact, only the moving percentage is matched by shape.
 
   - [x] 25.2 Merge the rails into one "Still needed" list
     - Create `WizardStillNeeded` (design §12.4) from the current step's failing Readiness items, plus the "Switch application" and "Start a new application" actions.
@@ -822,6 +825,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Add tests for each width band, with and without a choice, and for the choice surviving a round trip to the review route.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.1_
+    - Test edits (fix pass 2026-11-09): `admin-applications-roster.spec.ts`. `visibleRowIds` old: read `aria-label` of `input[aria-label^="Select application "]`; new: reads each visible checkbox's accessible name (`aria-label` on a card, the wrapping `<label>` in the table), same `Select application <number>` names. `loadedRowText` old: `article` rows; new: `article, tr` rows holding that checkbox. Facet test old: poll `not.toContain(secondary)` then `toContain(primary)`; new: one poll requiring both, then both asserted (the table renders no rows while refreshing, so the old poll could pass on an empty frame). Reason: the queue opens as a table from 1024 px (17.1).
 
   - [x] 30.2 Add the review route and the split pane
     - Start only after Spec A's `[R7.2]` and `[R7.3]` clauses are merged, and record that commit in the evidence summary.
@@ -844,12 +848,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Give rows at least 44 px of height, wrap each checkbox in a 44 × 44 px label (the gate measures the two together), show one status badge per row with payment and documents as text, and put all but four filters behind "More filters (n)".
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.4, 17.5, 17.6_
+    - Test edits (fix pass 2026-11-09): `admin-mobile-journeys.spec.ts` roster test. Old: mobile sheet carries `> 4` visible controls. New: exactly 4 before opening "More filters", then after opening more than 4 and equal to the desktop panel's control count. Reason: four filters on show is this task's requirement (17.6); the new assertion also proves no filter was lost on mobile. `admin-applications-roster.spec.ts` `filterControl` old: returned the control directly; new: opens "More filters" (asserting `aria-expanded` false first) when the control is behind it, on desktop and mobile. `admin-applications-roster.spec.ts` `portfolioTotal`: see 30.5.
 
   - [x] 30.5 Mark the super-admin shell, and move the metric explanations
     - Add the "Platform admin · all schools" bar using `adminColors` tokens.
     - Move the metric explanations into a disclosure: a 44 px info button with `aria-expanded` and `aria-controls` that shows the definition below the metric on tap, click, Enter or Space (design §12.6). Do not use `Tooltip`, which does not open on tap. Add a test that the definition opens by click and by keyboard.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 17.8, 17.9_
+    - Test edits (fix pass 2026-11-09): `admin-applications-roster.spec.ts` `portfolioTotal`: old `following-sibling::div[1]` of the label `<p>`; new `../following-sibling::div[1]` (the label now shares a row with the info button). Same value asserted. `admin-dashboard-metrics.spec.ts` MAINT-02: old read the definition as always-visible text; new clicks `About Staff accounts enabled` first, then asserts the same three strings (`staff accounts enabled`, `enabled to sign in`, `the platform does not measure presence`). Reason: definitions now sit behind the disclosure (17.9).
 
   - [x] 30.6 Fix the tenant console's labels, buttons and clipping
     - Add visible labels to the school-profile form (`SuperAdminTenantConsole.tsx:306-318`).
