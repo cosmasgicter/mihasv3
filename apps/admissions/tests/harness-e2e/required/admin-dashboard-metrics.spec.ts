@@ -294,6 +294,9 @@ test.describe('the admin dashboard states what it measured (task 9.2, ADM-02)', 
 
     // Lower-cased because `innerText` honours `text-transform`, and the headline
     // metric labels are rendered uppercase.
+    // The tile's definition sits behind its 44 px "About" button (task 30.5, R17.9),
+    // so it is opened the way an operator opens it, then read in full.
+    await page.getByRole('button', { name: 'About Staff accounts enabled' }).click();
     const body = (await page.locator('body').innerText()).toLowerCase();
     expect(body).not.toContain('active users online');
     expect(body).not.toMatch(/\d+ active users/);

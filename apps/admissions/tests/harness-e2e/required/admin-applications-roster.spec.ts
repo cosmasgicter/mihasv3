@@ -266,22 +266,42 @@ function recordRosterRequests(page: Page): string[] {
  * instead of asserting a layout.
  */
 async function filterControl(page: Page, baseId: string): Promise<Locator> {
-  const desktop = page.locator(`[data-roster-filters="desktop"] #${baseId}`);
+  const panel = page.locator('[data-roster-filters="desktop"]');
+  const desktop = panel.locator(`#${baseId}`);
   if (await desktop.isVisible()) return desktop;
+  // Desktop panel showing, filter behind "More filters (n)" (task 30.4, R17.6).
+  if (await panel.isVisible()) {
+    const more = panel.getByRole('button', { name: /^More filters/ });
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await more.click();
+    await expect(desktop).toBeVisible();
+    return desktop;
+  }
 
   const sheet = page.locator('[data-roster-filters="mobile"]');
   if (!(await sheet.isVisible())) {
     await page.getByRole('button', { name: 'Toggle filters' }).click();
     await expect(sheet).toBeVisible();
   }
-  return sheet.locator(`#mobile-${baseId}`);
+  const control = sheet.locator(`#mobile-${baseId}`);
+  // Four filters on show, the rest behind "More filters (n)" (task 30.4, R17.6):
+  // a filter that is not on show is opened the way an operator opens it.
+  if (!(await control.isVisible())) {
+    const more = sheet.getByRole('button', { name: /^More filters/ });
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await more.click();
+    await expect(control).toBeVisible();
+  }
+  return control;
 }
 
 /** The rendered "Portfolio" headline value, e.g. "26 total". */
 async function portfolioTotal(page: Page): Promise<string> {
   const tile = page.locator('p', { hasText: /^Portfolio$/ }).first();
   await expect(tile).toBeVisible();
-  const value = tile.locator('xpath=following-sibling::div[1]');
+  // The label and its definition button share a row (task 30.5, R17.9), so the
+  // value is the row's following sibling, not the label's.
+  const value = tile.locator('xpath=../following-sibling::div[1]');
   await expect(value).toBeVisible();
   return ((await value.textContent()) || '').trim();
 }
@@ -294,18 +314,25 @@ async function portfolioTotal(page: Page): Promise<string> {
  */
 async function visibleRowIds(page: Page): Promise<string[]> {
   await expect(page.getByTestId('roster-page-indicator')).toBeVisible();
+  // Each row's checkbox is named "Select application <number>": by `aria-label`
+  // on a card, by its wrapping `<label>` in the table the queue opens as from
+  // 1024 px (task 30.1, R17.1). The accessible name is read either way.
   return page.evaluate(() =>
-    Array.from(document.querySelectorAll('input[aria-label^="Select application "]'))
-      .map((node) => (node.getAttribute('aria-label') || '').replace('Select application ', '').trim())
+    Array.from(document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
+      .filter((node) => node.getClientRects().length > 0)
+      .map((node) => node.getAttribute('aria-label') || node.labels?.[0]?.textContent || '')
+      .filter((name) => name.startsWith('Select application '))
+      .map((name) => name.replace('Select application ', '').trim())
       .filter(Boolean),
   );
 }
 
 /** The text of every roster row card currently on screen. */
 async function loadedRowText(page: Page): Promise<string> {
+  // A card (`article`) below 1024 px, a table row (`tr`) from 1024 px (task 30.1).
   const rows = await page
-    .locator('article')
-    .filter({ has: page.locator('input[aria-label^="Select application "]') })
+    .locator('article, tr')
+    .filter({ has: page.getByRole('checkbox', { name: /^Select application / }) })
     .allTextContents();
   return rows.join(' ');
 }
@@ -516,10 +543,19 @@ test.describe('The applications roster is one scoped server query (R8.1, ADM-01)
 
     // Poll the rendered rows rather than the request: the request proves the
     // filter reached the server, and only the re-render proves it came back.
+    // Both halves in one poll: while the table refreshes it renders no rows, and
+    // "no secondary row" alone would pass on that empty frame (task 30.1).
     await expect
-      .poll(() => loadedRowText(page), { timeout: 30_000 })
-      .not.toContain(secondaryOfferingName);
+      .poll(
+        async () => {
+          const text = await loadedRowText(page);
+          return text.includes(primaryOfferingName) && !text.includes(secondaryOfferingName);
+        },
+        { timeout: 30_000, message: 'the rendered rows should be the primary offering only' },
+      )
+      .toBe(true);
     expect(await loadedRowText(page)).toContain(primaryOfferingName);
+    expect(await loadedRowText(page)).not.toContain(secondaryOfferingName);
 
     // …and the select still offers the offering the operator just filtered out,
     // with its own whole-set count. The facet for a dimension is computed with

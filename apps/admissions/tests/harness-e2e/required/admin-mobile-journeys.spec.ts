@@ -406,10 +406,23 @@ test('the applications roster keeps its filters, its pages and every command at 
   await expect(sheet).toBeVisible();
   // Every filter the desktop panel offers is in the sheet: same component, its own
   // control-id namespace (so a label cannot resolve to the hidden desktop twin).
+  // Four filters on show, the rest behind "More filters (n)" (task 30.4, R17.6):
+  // the sheet opens with exactly four, and opening the disclosure reveals every
+  // other control the desktop panel carries.
   expect(
     await sheet.locator('select:visible, input:visible').count(),
-    'the mobile filter sheet should carry the roster filters',
-  ).toBeGreaterThan(4);
+    'the mobile filter sheet shows four filters before "More filters" is opened',
+  ).toBe(4);
+  const moreFilters = sheet.getByRole('button', { name: /^More filters/ });
+  await expect(moreFilters).toHaveAttribute('aria-expanded', 'false');
+  await moreFilters.click();
+  await expect(moreFilters).toHaveAttribute('aria-expanded', 'true');
+  const mobileFilterCount = await sheet.locator('select:visible, input:visible').count();
+  expect(mobileFilterCount, 'More filters reveals the rest of the roster filters').toBeGreaterThan(4);
+  expect(
+    mobileFilterCount,
+    'the mobile sheet carries every filter the desktop panel carries',
+  ).toBe(await page.locator('[data-roster-filters="desktop"]').locator('select, input').count());
 
   const before = rosterRequests.length;
   await sheet.locator('#mobile-status-filter').selectOption('submitted');
