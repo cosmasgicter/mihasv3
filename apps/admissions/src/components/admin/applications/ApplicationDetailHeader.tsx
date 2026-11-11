@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/Button'
-import { XCircle, User, Clock, CheckCircle, Eye, AlertCircle } from 'lucide-react'
+import { XCircle, User, Clock, CheckCircle, Eye, AlertCircle, ArrowLeft } from 'lucide-react'
 import type { ApplicationWithDetails } from './applicationDetailTypes'
 import { formatApplicationStatus } from '@/types/applicationStatus'
 
 interface ApplicationDetailHeaderProps {
   application: ApplicationWithDetails
   onClose: () => void
+  /** `close` is the pane's X; `back` is the full-page review's way back to the queue. */
+  variant?: 'close' | 'back'
 }
 
 function getStatusIcon(status: string) {
@@ -18,7 +20,8 @@ function getStatusIcon(status: string) {
   }
 }
 
-export function ApplicationDetailHeader({ application, onClose }: ApplicationDetailHeaderProps) {
+export function ApplicationDetailHeader({ application, onClose, variant = 'close' }: ApplicationDetailHeaderProps) {
+  const Heading = variant === 'back' ? 'h1' : 'h2'
   return (
     <div className="flex-shrink-0 border-b border-border bg-card p-4 sm:p-6">
       <div className="flex items-center justify-between gap-2">
@@ -27,9 +30,10 @@ export function ApplicationDetailHeader({ application, onClose }: ApplicationDet
             <User className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
+            {/* As a page the applicant's name is the page heading; beside the queue it is not. */}
+            <Heading className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
               {application.full_name}
-            </h2>
+            </Heading>
             <div className="flex flex-wrap items-center gap-2 text-xs text-foreground sm:gap-3 sm:text-sm">
               <span className="font-mono truncate">#{application.application_number}</span>
               <span className="text-foreground hidden sm:inline">•</span>
@@ -40,15 +44,27 @@ export function ApplicationDetailHeader({ application, onClose }: ApplicationDet
             </div>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="h-11 w-11 flex-shrink-0 rounded-lg border border-border bg-card p-0 hover:bg-muted"
-          aria-label="Close application details"
-        >
-          <XCircle className="h-5 w-5" />
-        </Button>
+        {variant === 'back' ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="min-h-touch flex-shrink-0 gap-1.5"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to applications
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-11 w-11 flex-shrink-0 rounded-lg border border-border bg-card p-0 hover:bg-muted"
+            aria-label="Close application details"
+          >
+            <XCircle className="h-5 w-5" />
+          </Button>
+        )}
       </div>
     </div>
   )

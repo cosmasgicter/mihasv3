@@ -1,6 +1,12 @@
 /**
  * The admin review workspace (Admissions V2, task 9.4).
  *
+ * Platform-simplification task 30.2 (R17.2, R17.7): this was `ApplicationDetailModal`,
+ * a dialog over the queue. It is now the body of the `/admin/applications/:applicationId`
+ * route, rendered beside the queue (`layout="pane"`, 1024 px and wider) or as a page
+ * (`layout="page"`). Every control, guard and confirmation is kept; the seven tabs
+ * became sections with a section list, and the decision bar sticks to the bottom.
+ *
  * Spec: `.kiro/specs/admissions-v2-canonical-rebuild/` task 9.4 — "Build one
  * deterministic admin review workspace".
  * Requirements: **R8.3** (every command enforces the authority matrix in the
@@ -43,7 +49,7 @@
  *    shown at all, even though both commands existed on the backend. An admin
  *    path that cannot be reached is not a completed path (R8.3).
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
   AlertTriangle,
@@ -72,8 +78,6 @@ import { Skeleton } from '@/components/ui'
 import { formatDate } from '@/lib/dateFormat'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus } from '@/types/applicationStatus'
-import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { toError } from '@/lib/toError'
 
 import { AdminOfficialDocumentsPanel } from './AdminOfficialDocumentsPanel'
@@ -105,10 +109,15 @@ import type { StatusCommandOptions } from '@/types/statusCommand'
 // The workspace
 // ---------------------------------------------------------------------------
 
-interface ApplicationDetailModalProps {
-  application: ApplicationWithDetails | null
-  show: boolean
+interface ApplicationReviewWorkspaceProps {
+  /** The application to review (the route's `:applicationId`). */
+  applicationId: string
+  /** The queue row, when the review was opened from it; the read replaces it. */
+  seed: ApplicationWithDetails | null
+  /** `pane` beside the queue (1024 px and wider), `page` as a full page below. */
+  layout: 'pane' | 'page'
   updating: string | null
+  /** Close the pane, or go back to the queue from the page. */
   onClose: () => void
   onSendNotification: (title: string, message: string) => Promise<void>
   onUpdateStatus: (
@@ -118,8 +127,12 @@ interface ApplicationDetailModalProps {
   ) => Promise<unknown>
 }
 
-const TABS = [
-  { id: 'overview', label: 'Personal', icon: User },
+/**
+ * The seven sections, in reading order. They were tabs; the labels are the same
+ * words, so nothing a reviewer knows is renamed.
+ */
+export const REVIEW_SECTIONS = [
+  { id: 'overview', label: 'Overview', icon: User },
   { id: 'readiness', label: 'Readiness', icon: ClipboardCheck },
   { id: 'grades', label: 'Academic', icon: GraduationCap },
   { id: 'documents', label: 'Documents', icon: FileText },
@@ -128,29 +141,70 @@ const TABS = [
   { id: 'history', label: 'History', icon: History },
 ] as const
 
-type TabId = (typeof TABS)[number]['id']
+type SectionId = (typeof REVIEW_SECTIONS)[number]['id']
 
-export function ApplicationDetailModal({
-  application,
-  show,
+const sectionDomId = (id: SectionId) => `review-section-${id}`
+
+function ReviewSection({
+  id,
+  title,
+  children,
+}: {
+  id: SectionId
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section
+      id={sectionDomId(id)}
+      aria-labelledby={`${sectionDomId(id)}-heading`}
+      data-review-section={id}
+      className="scroll-mt-4 space-y-4"
+    >
+      <h2
+        id={`${sectionDomId(id)}-heading`}
+        className="text-base font-semibold text-foreground sm:text-lg"
+      >
+        {title}
+      </h2>
+      {children}
+    </section>
+  )
+}
+
+/** True when the backend answered 404, which it does for "not yours" and "not there". */
+const isNotAvailable = (error: unknown): boolean =>
+  Boolean(
+    error &&
+      typeof error === 'object' &&
+      'status' in error &&
+      (error as { status?: unknown }).status === 404,
+  )
+
+export function ApplicationReviewWorkspace({
+  applicationId: routeApplicationId,
+  seed,
+  layout,
   updating,
   onClose,
   onSendNotification,
   onUpdateStatus,
-}: ApplicationDetailModalProps) {
-  const [isClient, setIsClient] = useState(false)
-  const [activeTab, setActiveTab] = useState<TabId>('overview')
+}: ApplicationReviewWorkspaceProps) {
+  const [activeSection, setActiveSection] = useState<SectionId>('overview')
   const [showNotificationModal, setShowNotificationModal] = useState(false)
-  const focusTrapRef = useFocusTrap(show && !!application)
-  useEscapeKey(show && !!application, onClose)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   /*
     One read, eleven versioned commands, and the state those commands own
     (task 12.1, MAINT-01). Extracted verbatim into `useReviewWorkspaceSession`;
-    what stays here is the sheet — its tab, its focus trap, its notification modal
-    and its markup.
+    what stays here is the layout, the section list and the markup.
   */
-  const session = useReviewWorkspaceSession({ application, show, onUpdateStatus })
+  const session = useReviewWorkspaceSession({
+    application: seed,
+    applicationId: routeApplicationId,
+    show: true,
+    onUpdateStatus,
+  })
   const {
     applicationId,
     workspace,
@@ -158,7 +212,6 @@ export function ApplicationDetailModal({
     isError,
     workspaceError,
     command,
-    resetCommandState,
     refreshWorkspace,
     detail,
     documents,
@@ -187,142 +240,140 @@ export function ApplicationDetailModal({
     handlePaymentWarningConfirm,
   } = session
 
+  const rootRef = useRef<HTMLElement>(null)
+
+  // A different application starts at the top, and focus moves to the review
+  // (task 30.2): the shell does not refocus <main> for a review, because beside
+  // the queue that would scroll the queue away. As a page (task 30.3) the window
+  // also starts at the top.
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setActiveSection('overview')
+    scrollRef.current?.scrollTo?.({ top: 0 })
+    if (layout === 'page' && typeof window !== 'undefined') window.scrollTo?.(0, 0)
+    rootRef.current?.focus({ preventScroll: layout === 'pane' })
+  }, [applicationId, layout])
 
+  // Keep the section list's current item in step with what is on screen.
   useEffect(() => {
-    setActiveTab('overview')
-  }, [applicationId, show, resetCommandState])
-
-  if (!show || !application || !detail) return null
-
-  if (!isClient) {
-    return (
-      <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
-        <div className="flex h-dvh max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
-          <div className="flex-shrink-0 border-b border-border bg-card p-4 sm:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
-                <Skeleton className="h-10 w-10 flex-shrink-0 rounded-lg sm:h-12 sm:w-12" />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-              </div>
-              <Skeleton className="h-8 w-8" />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="space-y-4">
-              <Skeleton className="h-32 rounded-lg" />
-              <Skeleton className="h-48 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </div>
+    const root = scrollRef.current
+    if (!root || !workspace || typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+        const id = visible?.target.getAttribute('data-review-section') as SectionId | null
+        if (id) setActiveSection(id)
+      },
+      { root, rootMargin: '0px 0px -65% 0px' },
     )
+    root.querySelectorAll('[data-review-section]').forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [workspace])
+
+  const goToSection = (id: SectionId) => {
+    setActiveSection(id)
+    document.getElementById(sectionDomId(id))?.scrollIntoView?.({ block: 'start' })
   }
 
-  return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
-      <div
-        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Application details for ${detail.full_name}`}
-        data-testid="review-workspace"
-        data-workspace-version={workspace?.version ?? ''}
-        className="flex h-dvh max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
-      >
-        <ApplicationDetailHeader application={detail} onClose={onClose} />
+  const rootClassName =
+    layout === 'pane'
+      ? 'flex max-h-[calc(100dvh-7rem)] min-h-[32rem] flex-col overflow-hidden rounded-lg border border-border bg-card'
+      : 'flex h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-card'
 
-        <div className="flex-shrink-0 overflow-x-auto border-b border-border bg-card">
-          <div className="flex min-w-max px-2 sm:px-6" role="tablist" aria-label="Application details">
-            {TABS.map((tab) => {
-              const Icon = tab.icon
+  return (
+    <section
+      ref={rootRef}
+      tabIndex={-1}
+      data-testid="review-workspace"
+      data-workspace-version={workspace?.version ?? ''}
+      data-review-layout={layout}
+      aria-label={detail ? `Application review for ${detail.full_name}` : 'Application review'}
+      className={`${rootClassName} focus:outline-none`}
+    >
+      {detail ? (
+        <ApplicationDetailHeader
+          application={detail}
+          onClose={onClose}
+          variant={layout === 'page' ? 'back' : 'close'}
+        />
+      ) : (
+        <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-border bg-card p-4 sm:p-6">
+          <h1 className="text-base font-semibold text-foreground sm:text-xl">Application review</h1>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            {layout === 'page' ? 'Back to applications' : 'Close'}
+          </Button>
+        </div>
+      )}
+
+      {workspace && detail && (
+        <nav
+          aria-label="Review sections"
+          className="flex-shrink-0 overflow-x-auto border-b border-border bg-card"
+        >
+          <ul className="flex min-w-max gap-1 px-2 sm:px-6">
+            {REVIEW_SECTIONS.map((section) => {
+              const Icon = section.icon
+              const current = activeSection === section.id
               return (
-                <button
-                  key={tab.id}
-                  id={`tab-${tab.id}`}
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  aria-controls={`panel-${tab.id}`}
-                  /*
-                   * The label below is `hidden sm:inline` and the icon is
-                   * `aria-hidden`, so under `sm` this tab had **no accessible
-                   * name at all** — seven unlabelled tabs on the mobile review
-                   * surface (WCAG 4.1.2). Naming the control explicitly keeps the
-                   * name at every breakpoint, and because it is the same string
-                   * the label renders, "Label in Name" (2.5.3) holds where the
-                   * text is visible.
-                   */
-                  aria-label={tab.label}
-                  tabIndex={activeTab === tab.id ? 0 : -1}
-                  onClick={() => setActiveTab(tab.id)}
-                  onKeyDown={(e) => {
-                    const ids = TABS.map((t) => t.id)
-                    const cur = ids.indexOf(tab.id)
-                    let next = -1
-                    if (e.key === 'ArrowRight') next = (cur + 1) % ids.length
-                    else if (e.key === 'ArrowLeft') next = (cur - 1 + ids.length) % ids.length
-                    else if (e.key === 'Home') next = 0
-                    else if (e.key === 'End') next = ids.length - 1
-                    if (next >= 0) {
-                      e.preventDefault()
-                      setActiveTab(ids[next]!)
-                      document.getElementById(`tab-${ids[next]}`)?.focus()
-                    }
-                  }}
-                  className={`flex min-h-touch min-w-touch items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="hidden min-w-0 sm:inline">{tab.label}</span>
-                </button>
+                <li key={section.id}>
+                  <button
+                    type="button"
+                    onClick={() => goToSection(section.id)}
+                    aria-current={current ? 'true' : undefined}
+                    className={`flex min-h-touch min-w-touch items-center justify-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium leading-tight transition-colors ${
+                      current
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <span>{section.label}</span>
+                  </button>
+                </li>
               )
             })}
-          </div>
-        </div>
+          </ul>
+        </nav>
+      )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/50">
-          <div
-            id={`panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${activeTab}`}
-            className="p-4 sm:p-6"
-          >
-            {isLoading ? (
-              <div
-                className="flex items-center justify-center py-12"
-                role="status"
-                aria-label="Loading application details"
-              >
-                <div className="w-full max-w-lg space-y-4">
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  <Skeleton className="h-48 w-full rounded-lg" />
-                </div>
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-muted/50">
+        <div className="p-4 sm:p-6">
+          {isLoading ? (
+            <div
+              className="flex items-center justify-center py-12"
+              role="status"
+              aria-label="Loading application details"
+            >
+              <div className="w-full max-w-lg space-y-4">
+                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-48 w-full rounded-lg" />
               </div>
-            ) : isError || !workspace ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6" role="alert">
-                <p className="text-sm font-semibold text-foreground">
-                  This application could not be loaded
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {toError(workspaceError).message ||
-                    'The review workspace is unavailable for this application.'}
-                </p>
-                <Button size="sm" variant="outline" className="mt-3" onClick={refreshWorkspace}>
-                  Try again
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {activeTab === 'overview' && (
-                  <div className="space-y-6">
+            </div>
+          ) : isError && isNotAvailable(workspaceError) ? (
+            <div className="rounded-lg border border-border bg-card p-6" role="alert" data-testid="review-not-available">
+              <p className="text-sm font-semibold text-foreground">This application is not available</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                It may have been removed, or it may not be part of the schools you work with.
+              </p>
+            </div>
+          ) : isError || !workspace || !detail ? (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6" role="alert">
+              <p className="text-sm font-semibold text-foreground">
+                This application could not be loaded
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {toError(workspaceError).message ||
+                  'The review workspace is unavailable for this application.'}
+              </p>
+              <Button size="sm" variant="outline" className="mt-3" onClick={refreshWorkspace}>
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <ReviewSection id="overview" title="Overview">
+                <div className="space-y-6">
                     <CapacityWarning
                       intake_capacity={workspace.assignment.intake_capacity}
                       intake_enrollment={workspace.assignment.intake_enrollment}
@@ -617,41 +668,22 @@ export function ApplicationDetailModal({
                       busy={command.isPending}
                       onReview={handleConditionReview}
                     />
-                  </div>
-                )}
 
-                {activeTab === 'readiness' && (
+                </div>
+              </ReviewSection>
+
+              <ReviewSection id="readiness" title="Readiness">
                   <ReviewReadinessPanel
                     readiness={workspace.readiness}
                     definition={workspace.definitions.readiness}
                   />
-                )}
+              </ReviewSection>
 
-                {activeTab === 'payment' && (
-                  <ApplicationDetailPayment
-                    application={detail}
-                    applicationData={{ application: detail, interview: currentInterview }}
-                    paymentRecords={paymentRecords}
-                    loadingPayments={false}
-                    onShowNotificationModal={() => setShowNotificationModal(true)}
-                  />
-                )}
+              <ReviewSection id="grades" title="Academic">
+                <GradesDisplay grades={grades} loading={false} />
+              </ReviewSection>
 
-                {activeTab === 'interview' && (
-                  <ApplicationDetailInterview
-                    application={detail}
-                    applicationData={{ application: detail, interview: currentInterview }}
-                    canManage={can.manage_interview}
-                    busy={command.isPending}
-                    onSchedule={handleInterviewSchedule}
-                    onUpdate={handleInterviewUpdate}
-                    onCancel={handleInterviewCancel}
-                  />
-                )}
-
-                {activeTab === 'grades' && <GradesDisplay grades={grades} loading={false} />}
-
-                {activeTab === 'documents' && (
+              <ReviewSection id="documents" title="Documents">
                   <div className="space-y-6">
                     <ApplicationDetailDocuments
                       documents={documents}
@@ -666,16 +698,39 @@ export function ApplicationDetailModal({
                       <AdminOfficialDocumentsPanel applicationId={workspace.application_id} />
                     </div>
                   </div>
-                )}
+              </ReviewSection>
 
-                {activeTab === 'history' && (
+              <ReviewSection id="payment" title="Payment">
+                  <ApplicationDetailPayment
+                    application={detail}
+                    applicationData={{ application: detail, interview: currentInterview }}
+                    paymentRecords={paymentRecords}
+                    loadingPayments={false}
+                    onShowNotificationModal={() => setShowNotificationModal(true)}
+                  />
+              </ReviewSection>
+
+              <ReviewSection id="interview" title="Interview">
+                  <ApplicationDetailInterview
+                    application={detail}
+                    applicationData={{ application: detail, interview: currentInterview }}
+                    canManage={can.manage_interview}
+                    busy={command.isPending}
+                    onSchedule={handleInterviewSchedule}
+                    onUpdate={handleInterviewUpdate}
+                    onCancel={handleInterviewCancel}
+                  />
+              </ReviewSection>
+
+              <ReviewSection id="history" title="History">
                   <ApplicationDetailTimeline history={statusHistory} loading={false} />
-                )}
-              </div>
-            )}
-          </div>
+              </ReviewSection>
+            </div>
+          )}
         </div>
+      </div>
 
+      {detail && (
         <div className="max-h-[45dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:max-h-none sm:p-5 sm:pb-5">
           {can.review_decision ? (
             <ApplicationApprovalActions
@@ -710,12 +765,12 @@ export function ApplicationDetailModal({
             </Button>
             <div className="ml-auto">
               <Button variant="outline" size="sm" onClick={onClose}>
-                Close
+                {layout === 'page' ? 'Back to applications' : 'Close'}
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {paymentWarning && (
         <div className="fixed inset-0 z-modal-stacked flex items-center justify-center bg-scrim/60 p-4">
@@ -748,13 +803,15 @@ export function ApplicationDetailModal({
         </div>
       )}
 
-      <SendNotificationModal
-        show={showNotificationModal}
-        applicationNumber={detail.application_number}
-        studentName={detail.full_name}
-        onClose={() => setShowNotificationModal(false)}
-        onSend={onSendNotification}
-      />
-    </div>
+      {detail && (
+        <SendNotificationModal
+          show={showNotificationModal}
+          applicationNumber={detail.application_number}
+          studentName={detail.full_name}
+          onClose={() => setShowNotificationModal(false)}
+          onSend={onSendNotification}
+        />
+      )}
+    </section>
   )
 }

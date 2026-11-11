@@ -33,7 +33,7 @@ describe('admin route + action parity checklist', () => {
 
   it('keeps approval controls reachable from both card and table admin application flows', () => {
     const appCardSource = readSource('src/components/admin/applications/ApplicationCard.tsx')
-    const appDetailModalSource = readSource('src/components/admin/applications/ApplicationDetailModal.tsx')
+    const appDetailModalSource = readSource('src/components/admin/applications/ApplicationReviewWorkspace.tsx')
     const appTableViewSource = readSource('src/components/admin/applications/ApplicationsTableView.tsx')
     const adminApplicationsPage = readSource('src/pages/admin/Applications.tsx')
 

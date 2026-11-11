@@ -287,8 +287,9 @@ export const AUDITED_PAGES: AuditedPage[] = [
     prepare: async (page) => {
       await page.getByRole('button', { name: /open review/i }).first().click();
       await expect(page.getByTestId('review-workspace')).toBeVisible({ timeout: 30_000 });
-      // The dialog fades and zooms in (200 ms); a capture or an axe pass taken mid-fade
-      // measures a translucent dialog over the scrim. Wait until it is fully opaque.
+      // The review is a route (task 30.2): the page fades in on the route change
+      // (200 ms), and a capture or an axe pass taken mid-fade measures a
+      // translucent page. Wait until it is fully opaque.
       await page.waitForFunction(() => {
         const el = document.querySelector('[data-testid="review-workspace"]');
         if (!el) return false;

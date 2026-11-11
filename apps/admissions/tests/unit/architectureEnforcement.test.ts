@@ -127,7 +127,7 @@ const LEGACY_EXCEPTION_REMOVE_BY = '2027-02-07'
 const LEGACY_EXCEPTIONS: readonly LegacyException[] = [
   // Admin pages/components — migrated by Phase 8/9 (settlement, review workspace, users)
   // ProgramFees.tsx migrated to the canonical catalog service in task 5.1 (R14.3/R14.5).
-  // ApplicationDetailModal.tsx migrated by admissions-v2 task 9.4 (R8.5): it
+  // ApplicationReviewWorkspace.tsx (was ApplicationDetailModal.tsx, task 30.2) migrated by admissions-v2 task 9.4 (R8.5): it
   // reads the one workspace query through `services/admin/reviewWorkspace` and
   // issues each write as a versioned command there — no raw client, no endpoint
   // literal, no six-call composition.

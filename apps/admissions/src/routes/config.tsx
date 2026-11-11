@@ -158,6 +158,7 @@ export const routes: RouteConfig[] = [
   fromRegistry('admin.dashboard', AdminDashboard, { lazy: true }),
   fromRegistry('admin.profile', AdminSettings, { lazy: true }),
   fromRegistry('admin.applications', AdminApplications, { lazy: true }),
+  fromRegistry('admin.applicationReview', AdminApplications, { lazy: true }),
   fromRegistry('admin.programs', AdminPrograms, { lazy: true }),
   fromRegistry('admin.tenants', AdminTenants, { lazy: true }),
   // Super-admin-only tenant onboarding wizard. The frontend guard blocks

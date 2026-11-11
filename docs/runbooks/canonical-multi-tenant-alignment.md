@@ -106,7 +106,7 @@ or request changes according to their scoped capabilities.
 | `components/student/DownloadReceiptButton.tsx` | `useOfficialDocument('payment_receipt')` | Canonical student receipt surface. | Keep; remove any competing receipt buttons that use local PDF hooks. |
 | `hooks/useAdminOfficialDocuments.ts` | `officialDocumentService` | Canonical admin document hook. | Keep and use as the only admin generation/download path. |
 | `components/admin/applications/AdminOfficialDocumentsPanel.tsx` | `useAdminOfficialDocuments` | Canonical admin panel. | Keep; ensure modal/page actions point here instead of legacy handlers. |
-| `components/admin/applications/ApplicationDetailModal.tsx` | Documents tab renders `AdminOfficialDocumentsPanel`; legacy header generation buttons removed. | Canonical admin document surface. | Keep document generation/download inside the official panel. |
+| `components/admin/applications/ApplicationReviewWorkspace.tsx` | Documents tab renders `AdminOfficialDocumentsPanel`; legacy header generation buttons removed. | Canonical admin document surface. | Keep document generation/download inside the official panel. |
 | `pages/admin/Applications.tsx` | Legacy modal generate handlers removed. | Canonical admin path delegates to modal official panel. | Keep legacy `applicationService.generate*` methods unused until service cleanup/deprecation. |
 | `services/applications.ts` `generate*` methods | Legacy generation endpoints | Legacy service methods. | Remove after admin callers migrate, or mark deprecated and block new imports. |
 | `pages/dev/hooks/useDocumentGeneration.ts` | Client `@/lib/pdf` rendering | Dev-only local renderer; no production callers found. | Keep behind dev namespace or delete after preview tests migrate. |

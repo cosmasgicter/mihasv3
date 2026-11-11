@@ -179,17 +179,19 @@ export function ApplicationsTableView({
     },
   ], [formatDate, getPointsColor]);
 
-  // Row actions renderer
+  // Row actions renderer. Same label as the card's command (task 30.2): both
+  // open the review route, so they carry one name.
   const rowActions = useCallback((row: ApplicationSummary) => (
     <button
+      type="button"
       onClick={(e) => {
         e.stopPropagation();
         onViewDetails(row.id);
       }}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+      className="inline-flex min-h-touch items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
     >
-      <Eye className="h-4 w-4" />
-      View
+      <Eye className="h-4 w-4" aria-hidden="true" />
+      Open review
     </button>
   ), [onViewDetails]);
 

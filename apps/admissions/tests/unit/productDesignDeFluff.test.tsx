@@ -277,7 +277,7 @@ describe('the admissions frontend makes no generative-AI claim or call', () => {
   it('no admissions source calls a retired generative endpoint', () => {
     for (const page of [
       'src/pages/student/applicationWizard/steps/SubmitStep.tsx',
-      'src/components/admin/applications/ApplicationDetailModal.tsx',
+      'src/components/admin/applications/ApplicationReviewWorkspace.tsx',
       'src/components/admin/applications/ReviewReadinessPanel.tsx',
     ]) {
       const code = readCode(page)

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   FiltersPanel,
   ApplicationsTable,
   ApplicationsTableView,
   ApplicationsSkeleton,
-  ApplicationDetailModal
+  ApplicationReviewWorkspace
 } from '@/components/admin/applications'
 import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
 import { RosterPagination } from '@/components/admin/applications/RosterPagination'
@@ -25,6 +25,7 @@ import type {
 import type { FilterSelectOption } from '@/components/admin/applications/FiltersPanel'
 import type { ApplicationWithDetails } from '@/components/admin/applications/applicationDetailTypes'
 import { Button } from '@/components/ui/Button'
+import { pathFor } from '@/routes/routeRegistry'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
@@ -57,6 +58,8 @@ import type { StatusCommandOptions } from '@/types/statusCommand'
 // within the inclusive range 30–50. The card grid switches to the virtualized
 // renderer once the loaded application count exceeds this value.
 export const ADMIN_CARD_VIRTUALIZATION_THRESHOLD = 40
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * A server facet rendered as a select's options (task 9.1, ADM-01).
@@ -177,6 +180,29 @@ const getErrorStatus = (error: unknown): number =>
     ? error.status
     : 0
 
+/**
+ * An `:applicationId` that is not a UUID is not an application anywhere: the
+ * not-found page, which reveals nothing (task 30.2, R17.2). A masked 404 from the
+ * backend is handled inside the workspace.
+ */
+function ReviewNotFound() {
+  const { search } = useLocation()
+  return (
+    <div className="mx-auto max-w-xl p-6" data-testid="review-not-found">
+      <h1 className="text-xl font-semibold text-foreground">Application not found</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        This address does not match an application.
+      </p>
+      <Link
+        to={`${pathFor('admin.applications')}${search}`}
+        className="mt-4 inline-flex min-h-touch items-center text-sm font-medium text-primary underline"
+      >
+        Back to applications
+      </Link>
+    </div>
+  )
+}
+
 export default function Applications() {
   const {
     filters,
@@ -260,8 +286,18 @@ export default function Applications() {
 
   const { success: showSuccess, error: showError, info: showInfo } = useToastStore()
   const [isExportingRoster, setIsExportingRoster] = useState(false)
-  const [selectedApplication, setSelectedApplication] = useState<string | null>(null)
-  const [showDetails, setShowDetails] = useState(false)
+  /*
+    The review is the route (task 30.2, R17.2): `/admin/applications/:applicationId`
+    renders this same page, so the queue's filters (in the query string), its
+    selection and its scroll position stay where they were while a review is open.
+  */
+  const { applicationId: routeApplicationId } = useParams<{ applicationId?: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const reviewId = routeApplicationId ?? null
+  const reviewIdIsValid = reviewId !== null && UUID_PATTERN.test(reviewId)
+  const selectedApplication = reviewIdIsValid ? reviewId : null
+  const showDetails = selectedApplication !== null
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [modalLoading, setModalLoading] = useState<{
@@ -325,14 +361,13 @@ export default function Applications() {
   }, [exportRoster, isExportingRoster, showError, showInfo, showSuccess])
 
   const handleViewDetails = useCallback((applicationId: string) => {
-    setSelectedApplication(applicationId)
-    setShowDetails(true)
-  }, [])
+    navigate(`${pathFor('admin.applications')}/${applicationId}${location.search}`)
+  }, [navigate, location.search])
 
+  // Back to the queue with the same query string, so the filters are unchanged.
   const handleCloseDetails = useCallback(() => {
-    setShowDetails(false)
-    setSelectedApplication(null)
-  }, [])
+    navigate(`${pathFor('admin.applications')}${location.search}`)
+  }, [navigate, location.search])
 
   const selectedApp = useMemo(() => {
     if (!selectedApplication) return null
@@ -529,7 +564,7 @@ export default function Applications() {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable) return
-      if (showDetails) {
+      if (reviewId) {
         if (e.key === 'Escape') { handleCloseDetails(); e.preventDefault() }
         return
       }
@@ -543,7 +578,46 @@ export default function Applications() {
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [showDetails, handleCloseDetails, handleRefresh])
+  }, [reviewId, handleCloseDetails, handleRefresh])
+
+  const reviewWorkspace = reviewIdIsValid && reviewId ? (
+    <ApplicationReviewWorkspace
+      applicationId={reviewId}
+      seed={selectedApp}
+      layout={widthBand === 'wide' ? 'pane' : 'page'}
+      updating={null}
+      onClose={handleCloseDetails}
+      onSendNotification={handleSendNotification}
+      onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
+    />
+  ) : null
+  const reviewPane = widthBand === 'wide' && reviewId ? (reviewWorkspace ?? <ReviewNotFound />) : null
+
+  // Below 1024px the review is the whole page, with a way back that keeps the
+  // queue's query string (task 30.3, R17.3).
+  if (reviewId && widthBand !== 'wide') {
+    return (
+      <>
+        <Seo
+          title="Application review | Beanola Admissions"
+          description="Review one admissions application."
+          path="/admin/applications"
+          noindex
+        />
+        {reviewWorkspace ?? <ReviewNotFound />}
+        <ConfirmAlertDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={confirmDialog.handleCancel}
+          onConfirm={confirmDialog.handleConfirm}
+          title={confirmDialog.options.title}
+          message={confirmDialog.options.message}
+          confirmText={confirmDialog.options.confirmText}
+          cancelText={confirmDialog.options.cancelText}
+          variant={confirmDialog.options.variant}
+        />
+      </>
+    )
+  }
 
   return (
     <>
@@ -628,7 +702,7 @@ export default function Applications() {
                 <div className="space-y-1.5 text-muted-foreground">
                   <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">R</kbd></div>
                   <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">/</kbd></div>
-                  <div className="flex justify-between"><span>Close modal</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Esc</kbd></div>
+                  <div className="flex justify-between"><span>Close review</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Esc</kbd></div>
                 </div>
               </div>
             )}
@@ -638,6 +712,11 @@ export default function Applications() {
     >
       {/* Filters and content */}
       <div className="px-4 py-4 pb-28 sm:px-6 sm:pb-4">
+      <div
+        className={reviewPane ? 'grid grid-cols-[minmax(420px,2fr)_minmax(0,3fr)] items-start gap-6' : undefined}
+        data-review-layout={reviewPane ? 'split' : undefined}
+      >
+      <div className="min-w-0">
         {/*
           Export bar. One button, because there is one export: the server's
           page-independent CSV over the whole filtered set. It appears only when
@@ -823,15 +902,13 @@ export default function Applications() {
           onBulkAction={handleBulkAction as (action: string, ids: string[]) => Promise<void>}
           onClearSelection={() => setSelectedIds([])}
         />
-
-        <ApplicationDetailModal
-          application={selectedApp}
-          show={showDetails}
-          updating={null}
-          onClose={handleCloseDetails}
-          onSendNotification={handleSendNotification}
-          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: StatusCommandOptions) => Promise<unknown>}
-        />
+      </div>
+      {reviewPane && (
+        <aside aria-label="Application review" className="sticky top-4 min-w-0">
+          {reviewPane}
+        </aside>
+      )}
+      </div>
       </div>
     </PageShell>
     <ConfirmAlertDialog

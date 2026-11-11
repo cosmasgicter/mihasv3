@@ -49,6 +49,7 @@ export type ProductRouteId =
   | 'admin.dashboard'
   | 'admin.profile'
   | 'admin.applications'
+  | 'admin.applicationReview'
   | 'admin.programs'
   | 'admin.tenants'
   | 'admin.tenantOnboarding'
@@ -339,6 +340,18 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     nav: { label: 'Applications', icon: FileText, desktop: true, mobile: true, order: 20, section: 'main' },
+  },
+  /**
+   * One application's review (platform-simplification task 30.2, R17.2). Rendered
+   * by the same page as the queue, so the queue's filters, selection and scroll
+   * survive opening and closing a review. No navigation entry: it is reached from
+   * a queue row and is not a place to go.
+   */
+  adminApplicationReview: {
+    id: 'admin.applicationReview',
+    path: '/admin/applications/:applicationId',
+    guard: 'admin',
+    skeletonType: 'admin-table',
   },
   adminPrograms: {
     id: 'admin.programs',
