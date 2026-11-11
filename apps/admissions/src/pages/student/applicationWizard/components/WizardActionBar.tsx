@@ -225,6 +225,11 @@ export function WizardActionBar({
         `flex-wrap` and `whitespace-normal` are the 200%-text fix, added because the
         browser run measured the primary control extending 36 px past the bar at a
         32 px root font: clipped text is the failure R16.8 names, wrapped text is not.
+        The back control carries a visible word since task 25.3 (R15.4), and a button's
+        minimum width is its icon, gap, longest word and padding on one line. At a
+        32 px root that is wider than the bar, so its icon wraps above the word
+        (`flex-wrap`) and, as a last resort, the word itself may break rather than
+        extend past the bar (`overflow-wrap: anywhere`). Unchanged at normal size.
       */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
@@ -234,11 +239,11 @@ export function WizardActionBar({
               variant="outline"
               onClick={onPrev}
               disabled={loading}
-              className="min-h-touch"
+              className="min-h-touch max-w-full flex-wrap gap-x-2 px-3"
               aria-describedby={previousTargetId}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>{previousButtonLabel}</span>
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <span className="[overflow-wrap:anywhere]">{previousButtonLabel}</span>
             </Button>
           )}
           {previousStepTitle && (
