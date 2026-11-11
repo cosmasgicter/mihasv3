@@ -125,6 +125,8 @@ function allowHarnessNoise(gate: {
   allowConsole: (p: string | RegExp) => unknown;
 }) {
   gate.allowRequest("glitchtip");
+  // The harness DSN host (task 1.3): the reporter sends the deliberate conflict here.
+  gate.allowRequest("harness-invalid.localhost");
   gate.allowRequest("/api/v1/payments/quote/");
   gate.allowRequest("pay.lenco.co");
   gate.allowConsole("pay.lenco.co");
