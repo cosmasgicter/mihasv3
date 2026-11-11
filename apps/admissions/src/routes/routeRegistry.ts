@@ -62,6 +62,12 @@ export type ProductRouteId =
 
 export interface RouteNavMetadata {
   label: string
+  /**
+   * The short label navigation shows, on desktop and mobile alike (task 31.1,
+   * R21.1). It is the control's visible text and its accessible name. Falls back
+   * to `label`; the page title and the mobile header keep `label`.
+   */
+  navLabel?: string
   icon: LucideIcon
   desktop?: boolean
   mobile?: boolean
@@ -190,7 +196,7 @@ export const ROUTES = {
     path: '/student/dashboard',
     guard: 'student',
     skeletonType: 'dashboard',
-    nav: { label: 'Dashboard', icon: Home, desktop: true, mobile: true, order: 10, section: 'student' },
+    nav: { label: 'Dashboard', navLabel: 'Home', icon: Home, desktop: true, mobile: true, order: 10, section: 'student' },
   },
   studentApplicationWizard: {
     id: 'student.applicationWizard',
@@ -229,6 +235,7 @@ export const ROUTES = {
     skeletonType: 'detail',
     nav: {
       label: 'Application status',
+      navLabel: 'Status',
       icon: BriefcaseBusiness,
       // Task 3.18 (R5-c, finding B-04): the documents card lives on this page, so
       // omitting it from the desktop sidebar left a desktop student with no
@@ -264,6 +271,7 @@ export const ROUTES = {
     skeletonType: 'detail',
     nav: {
       label: 'Profile & Settings',
+      navLabel: 'Profile',
       icon: Settings,
       desktop: true,
       mobile: true,
@@ -279,7 +287,7 @@ export const ROUTES = {
     path: '/student/notifications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Notification settings', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
+    nav: { label: 'Notification settings', navLabel: 'Alerts', icon: Bell, desktop: true, mobile: true, order: 60, section: 'student' },
   },
   studentPayment: {
     id: 'student.payment',
@@ -305,14 +313,14 @@ export const ROUTES = {
     path: '/student/communications',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Communications', icon: MessageSquare, desktop: true, mobile: true, order: 25, section: 'student' },
+    nav: { label: 'Communications', navLabel: 'Inbox', icon: MessageSquare, desktop: true, mobile: true, order: 25, section: 'student' },
   },
   studentHistory: {
     id: 'student.history',
     path: '/student/history',
     guard: 'student',
     skeletonType: 'detail',
-    nav: { label: 'Activity history', icon: FileSearch, desktop: true, order: 26, section: 'student' },
+    nav: { label: 'Activity history', navLabel: 'History', icon: FileSearch, desktop: true, order: 26, section: 'student' },
   },
   adminHome: {
     id: 'admin.home',
@@ -325,7 +333,7 @@ export const ROUTES = {
     path: '/admin/dashboard',
     guard: 'admin',
     skeletonType: 'dashboard',
-    nav: { label: 'Dashboard', icon: LayoutDashboard, desktop: true, mobile: true, order: 10, section: 'main' },
+    nav: { label: 'Dashboard', navLabel: 'Home', icon: LayoutDashboard, desktop: true, mobile: true, order: 10, section: 'main' },
   },
   adminProfile: {
     id: 'admin.profile',
@@ -339,7 +347,7 @@ export const ROUTES = {
     path: '/admin/applications',
     guard: 'admin',
     skeletonType: 'admin-table',
-    nav: { label: 'Applications', icon: FileText, desktop: true, mobile: true, order: 20, section: 'main' },
+    nav: { label: 'Applications', navLabel: 'Apps', icon: FileText, desktop: true, mobile: true, order: 20, section: 'main' },
   },
   /**
    * One application's review (platform-simplification task 30.2, R17.2). Rendered
@@ -396,7 +404,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Audit trail', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
+    nav: { label: 'Audit trail', navLabel: 'Audit', icon: FileSearch, desktop: true, mobile: true, order: 80, section: 'system' },
   },
   adminProgramFees: {
     id: 'admin.programFees',
@@ -404,7 +412,7 @@ export const ROUTES = {
     guard: 'admin',
     skeletonType: 'admin-table',
     requiresSuperAdmin: true,
-    nav: { label: 'Programme fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
+    nav: { label: 'Programme fees', navLabel: 'Fees', icon: DollarSign, desktop: true, order: 60, section: 'management' },
   },
   adminSettings: {
     id: 'admin.settings',
@@ -549,6 +557,11 @@ function matchesPathPattern(pathname: string, pattern: string): boolean {
   if (patternSegments.length !== pathSegments.length) return false
 
   return patternSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index])
+}
+
+/** The label navigation shows for a route: its `navLabel`, else its `label` (task 31.1). */
+export function navLabelFor(route: ProductRouteDefinition): string {
+  return route.nav?.navLabel ?? route.nav?.label ?? ''
 }
 
 export function matchesRoutePath(pathname: string, route: ProductRouteDefinition): boolean {

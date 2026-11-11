@@ -27,7 +27,7 @@ import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { matchesRoutePath, pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
+import { matchesRoutePath, navLabelFor, pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -73,9 +73,11 @@ const backRoutes = new Set([
   pathFor('admin.programFees'),
 ])
 
-const navItemFromRoute = (route: ProductRouteDefinition, labelOverride?: string) => ({
+// The registry's `navLabel` is the one label: visible text and accessible name,
+// on the bottom bar and in the sidebar alike (task 31.1, R21.1, R15.4).
+const navItemFromRoute = (route: ProductRouteDefinition) => ({
   href: route.path,
-  label: labelOverride ?? route.nav!.label,
+  label: navLabelFor(route),
   icon: route.nav!.icon,
   activeMatchPaths: route.nav?.activeMatchPaths ?? [],
 })
@@ -84,12 +86,12 @@ const navItemFromRoute = (route: ProductRouteDefinition, labelOverride?: string)
  *  render time from the shared capability-gated helper (R13.4). */
 const adminNavItems = [
   navItemFromRoute(routeById('admin.dashboard')),
-  navItemFromRoute(routeById('admin.applications'), 'Apps'),
+  navItemFromRoute(routeById('admin.applications')),
   navItemFromRoute(routeById('admin.programs')),
   navItemFromRoute(routeById('admin.intakes')),
   navItemFromRoute(routeById('admin.users')),
-  navItemFromRoute(routeById('admin.programFees'), 'Fees'),
-  navItemFromRoute(routeById('admin.audit'), 'Audit'),
+  navItemFromRoute(routeById('admin.programFees')),
+  navItemFromRoute(routeById('admin.audit')),
   navItemFromRoute(routeById('admin.settings')),
 ]
 

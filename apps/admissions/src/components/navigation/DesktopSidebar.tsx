@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
-import { adminNavRoutes, pathFor, studentNavRoutes } from '@/routes/routeRegistry'
+import { adminNavRoutes, pathFor, studentNavRoutes, navLabelFor } from '@/routes/routeRegistry'
 
 interface NavItem {
   to: string
@@ -38,7 +38,7 @@ const adminSections: NavSection[] = (['main', 'management', 'system'] as const)
       .map((route) => ({
         to: route.path,
         icon: route.nav!.icon,
-        label: route.nav!.label,
+        label: navLabelFor(route),
       })),
   }))
   .filter((section) => section.items.length > 0)
@@ -48,7 +48,7 @@ const studentLinks: NavItem[] = studentNavRoutes()
   .map((route) => ({
     to: route.path,
     icon: route.nav!.icon,
-    label: route.nav!.label,
+    label: navLabelFor(route),
   }))
 
 const isRouteActive = (currentPath: string, itemPath: string) => {
