@@ -672,13 +672,6 @@
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
   },
   {
-    "rule": "impeccable/line-length",
-    "page": "/",
-    "viewport": "1440x900",
-    "selector": "#programs > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1)",
-    "reason": "Today's finding; running text gets max-w-prose in task 24.5 where it is student or public copy."
-  },
-  {
     "rule": "impeccable/overused-font",
     "page": "/",
     "viewport": "1440x900",
@@ -1185,5 +1178,75 @@
     "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > header:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
     "reason": "Link inside running text; waits for decision D17 (task 24.8).",
     "inRunningText": true
+  },
+  {
+    "rule": "impeccable/ai-color-palette",
+    "page": "/for-schools",
+    "viewport": "1440x900",
+    "selector": "body",
+    "reason": "Matches --color-link-visited (#7c3aed, 4.54:1), the visited-link token in design-tokens.css; not a purple accent. Existing token, left as is. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/ai-color-palette",
+    "page": "/for-schools",
+    "viewport": "390x844",
+    "selector": "body",
+    "reason": "Matches --color-link-visited (#7c3aed, 4.54:1), the visited-link token in design-tokens.css; not a purple accent. Existing token, left as is. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/gradient-text",
+    "page": "/for-schools",
+    "viewport": "1440x900",
+    "selector": "body",
+    "reason": "Page-level match on the boot-screen preloader shimmer style in index.html (before-JS wordmark). Not owned by tasks 22 to 24; reported to the user as an open item. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/gradient-text",
+    "page": "/for-schools",
+    "viewport": "390x844",
+    "selector": "body",
+    "reason": "Page-level match on the boot-screen preloader shimmer style in index.html (before-JS wordmark). Not owned by tasks 22 to 24; reported to the user as an open item. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/layout-transition",
+    "page": "/for-schools",
+    "viewport": "1440x900",
+    "selector": "#public-mobile-menu",
+    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/layout-transition",
+    "page": "/for-schools",
+    "viewport": "390x844",
+    "selector": "#public-mobile-menu",
+    "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt. Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/overused-font",
+    "page": "/for-schools",
+    "viewport": "1440x900",
+    "selector": "body",
+    "reason": "Inter is the documented product font (DESIGN.md; the tech steering fixes its fallback chain). Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/overused-font",
+    "page": "/for-schools",
+    "viewport": "390x844",
+    "selector": "body",
+    "reason": "Inter is the documented product font (DESIGN.md; the tech steering fixes its fallback chain). Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/single-font",
+    "page": "/for-schools",
+    "viewport": "1440x900",
+    "selector": "body",
+    "reason": "Inter is the single documented product font (DESIGN.md; tech steering fixes its fallback chain). Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
+  },
+  {
+    "rule": "impeccable/single-font",
+    "page": "/for-schools",
+    "viewport": "390x844",
+    "selector": "body",
+    "reason": "Inter is the single documented product font (DESIGN.md; tech steering fixes its fallback chain). Same shell-level cause as on /; the new /for-schools page (task 33.2) shares the public layout."
   }
 ]

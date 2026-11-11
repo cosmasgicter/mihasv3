@@ -422,3 +422,252 @@ Student/admin official download and email flows should consume
 | `apps/admissions/tests/unit/pdf/acceptanceLetter.test.tsx` | Acceptance letter tests (both variants, 1/3/10 conditions) |
 | `backend/tests/unit/test_email_component_system.py` | 21 tests: tokens, shell, components, XSS safety, backward-compat shim |
 | `backend/tests/unit/test_email_messages.py` | 23 tests: per-message rendering, currency variants, dispatcher registry |
+
+## Platform simplification and polish (Spec B): files added and removed
+
+Recorded by task 36 against the base `fix/student-journey-repair` (merge-base to the head of `feat/platform-simplification-and-polish`). Regenerate with `git diff --name-status <base>...HEAD` and keep `A` and `D` rows. The raw evidence directories are removed from the tree only, not purged from history (D2, D11).
+
+### Removed in bulk
+
+| Path prefix | Files removed | Task |
+|---|---|---|
+| `.agenthub/` | 8 | D15 removals, see tasks.md |
+| `.agents/` | 142 | see tasks.md |
+| `.kiro/skills/` | 3807 | 8.2 (skills pruned to the keep list) |
+| `apps/admissions/src/lib/pdf/` | 31 | D15 removals, see tasks.md |
+| `apps/admissions/tests/unit/pdf/` | 12 | D15 removals, see tasks.md |
+| `docs/v2-evidence/` | 2270 | 11.1 (raw artefacts untracked, D2) |
+| `scripts/agenthub/` | 6 | D15 removals, see tasks.md |
+| `scripts/launch-verification/` | 12 | D15 removals, see tasks.md |
+
+### Removed individually
+
+- `===`
+- `apps/admissions/scripts/render-pdf-samples.tsx`
+- `apps/admissions/src/components/8starlabs/index.ts`
+- `apps/admissions/src/components/8starlabs/timeline.tsx`
+- `apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx`
+- `apps/admissions/src/components/admin/index.ts`
+- `apps/admissions/src/components/auth/index.ts`
+- `apps/admissions/src/components/motion/Confetti.tsx`
+- `apps/admissions/src/components/navigation/BaseNavigation.tsx`
+- `apps/admissions/src/components/navigation/Breadcrumbs.tsx`
+- `apps/admissions/src/components/navigation/index.ts`
+- `apps/admissions/src/components/smoothui/animated-counter.tsx`
+- `apps/admissions/src/components/smoothui/shape-landing-hero.tsx`
+- `apps/admissions/src/components/ui/AppShellSkeleton.tsx`
+- `apps/admissions/src/components/ui/AuthLoadingOverlay.tsx`
+- `apps/admissions/src/components/ui/DataPopulationConfirmation.tsx`
+- `apps/admissions/src/components/ui/FocusTrap.tsx`
+- `apps/admissions/src/components/ui/FormError.tsx`
+- `apps/admissions/src/components/ui/FormFeedback.tsx`
+- `apps/admissions/src/components/ui/InlineLoader.tsx`
+- `apps/admissions/src/components/ui/LoadingButton.tsx`
+- `apps/admissions/src/components/ui/LoadingFallback.tsx`
+- `apps/admissions/src/components/ui/LoadingOverlay.tsx`
+- `apps/admissions/src/components/ui/LoadingSpinner.tsx`
+- `apps/admissions/src/components/ui/PageLoadingFallback.tsx`
+- `apps/admissions/src/components/ui/ProgressIndicator.tsx`
+- `apps/admissions/src/components/ui/Radio.tsx`
+- `apps/admissions/src/components/ui/SafeHtml.tsx`
+- `apps/admissions/src/components/ui/SaveStatusIndicator.tsx`
+- `apps/admissions/src/components/ui/Spinner.tsx`
+- `apps/admissions/src/components/ui/Stepper.tsx`
+- `apps/admissions/src/components/ui/form-radio-group.tsx`
+- `apps/admissions/src/forms/applicationSchema.ts`
+- `apps/admissions/src/hooks/auth/useRoleVerification.ts`
+- `apps/admissions/src/hooks/queries/index.ts`
+- `apps/admissions/src/hooks/queries/useApplicationDataQueries.ts`
+- `apps/admissions/src/hooks/queries/useApplicationQueries.ts`
+- `apps/admissions/src/hooks/useApplicationSubmit.ts`
+- `apps/admissions/src/hooks/useStyleInjection.ts`
+- `apps/admissions/src/hooks/useUserManagement.ts`
+- `apps/admissions/src/lib/applicationSlip.ts`
+- `apps/admissions/src/lib/applicationSlip.types.ts`
+- `apps/admissions/src/lib/applicationSlipStorage.ts`
+- `apps/admissions/src/lib/applicationStats.ts`
+- `apps/admissions/src/lib/gradeValidation.ts`
+- `apps/admissions/src/lib/institutionFacts.ts`
+- `apps/admissions/src/lib/slipService.ts`
+- `apps/admissions/src/lib/storage.ts`
+- `apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx`
+- `apps/admissions/src/pages/dev/DocumentPreview.tsx`
+- `apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts`
+- `apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts`
+- `apps/admissions/src/pages/student/applicationWizard/components/ApplicationPreview.tsx`
+- `apps/admissions/src/pages/student/applicationWizard/components/StepChecklist.tsx`
+- `apps/admissions/src/pages/student/applicationWizard/components/WizardContextPanel.tsx`
+- `apps/admissions/src/pages/student/applicationWizard/constants.ts`
+- `apps/admissions/src/pages/student/applicationWizard/hooks/useOverallProgress.ts`
+- `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/index.ts`
+- `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts`
+- `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/useWizardFileUploads.ts`
+- `apps/admissions/src/pages/student/applicationWizard/hooks/wizard/utils/wizardUtils.ts`
+- `apps/admissions/src/pages/student/applicationWizard/lib/wizardChecklist.ts`
+- `apps/admissions/src/services/csrfManager.ts`
+- `apps/admissions/src/types/application.ts`
+- `apps/admissions/src/types/dashboard.ts`
+- `apps/admissions/src/types/eligibility.ts`
+- `apps/admissions/src/types/eligibilityAssessment.ts`
+- `apps/admissions/src/types/errors.ts`
+- `apps/admissions/src/types/users.ts`
+- `apps/admissions/tests/property/applicationStats.property.test.ts`
+- `apps/admissions/tests/property/keyboard-navigation.property.test.tsx`
+- `apps/admissions/tests/property/style-injection.property.test.tsx`
+- `apps/admissions/tests/property/test_bug5_preservation.test.ts`
+- `apps/admissions/tests/unit/appShellSkeleton.test.tsx`
+- `apps/admissions/tests/unit/applicationStats.test.ts`
+- `apps/admissions/tests/unit/documentUploadPayload.test.ts`
+- `apps/admissions/tests/unit/shapeLandingHero.test.tsx`
+- `apps/admissions/tests/unit/slipServiceEmail.test.ts`
+- `apps/admissions/tests/unit/useApplicationSubmitSafety.test.ts`
+- `apps/admissions/tests/unit/useDocumentGeneration.test.tsx`
+- `apps/student-portal/README.md`
+- `apps/student-portal/package.json`
+- `apps/website/README.md`
+- `apps/website/package.json`
+- `backend/.env.local.test.example`
+- `backend/apps/applications/views.py`
+- `backend/apps/common/v2/demo_views.py`
+- `backend/docker-compose.local-real.yml`
+- `backend/docker-compose.local-test.yml`
+- `backend/docker-compose.yml`
+- `backend/tests/integration/test_agenthub_smoke.py`
+- `backend/tests/integration/test_launch_verification_rollup_store.py`
+- `backend/tests/property/test_launch_verification_migration.py`
+- `backend/tests/property/test_launch_verification_onboarding.py`
+- `backend/tests/property/test_launch_verification_operational.py`
+- `backend/tests/property/test_launch_verification_performance.py`
+- `backend/tests/property/test_launch_verification_rollup.py`
+- `backend/tests/unit/test_agenthub_layout.py`
+- `backend/tests/unit/test_board_manager.py`
+- `backend/tests/unit/test_dag_analyzer.py`
+- `backend/tests/unit/test_hub_init.py`
+- `backend/tests/unit/test_launch_verification_migration_recorder.py`
+- `backend/tests/unit/test_launch_verification_operational_checker.py`
+- `backend/tests/unit/test_launch_verification_suite_collector.py`
+- `backend/tests/unit/test_result_ranker.py`
+- `docs/launch-evidence/launch-readiness.md`
+- `docs/launch-evidence/rollup.json`
+- `scripts/check-pdf-chunk-load.mjs`
+
+### Added
+
+- `apps/admissions/playwright.rendered-gate.config.ts`
+- `apps/admissions/scripts/resourceHints.ts`
+- `apps/admissions/scripts/stack-hosts.ts`
+- `apps/admissions/src/components/admin/applications/ReviewNotFound.tsx`
+- `apps/admissions/src/components/landing/LandingHero.tsx`
+- `apps/admissions/src/components/navigation/backNavigation.ts`
+- `apps/admissions/src/components/ui/OptionalMarker.tsx`
+- `apps/admissions/src/hooks/admin/useQueueWidthBand.ts`
+- `apps/admissions/src/hooks/useLandingProgrammes.ts`
+- `apps/admissions/src/lib/adminQueueText.ts`
+- `apps/admissions/src/lib/constants/landingRequirements.ts`
+- `apps/admissions/src/lib/documentStatePresentation.ts`
+- `apps/admissions/src/lib/landingProgrammes.ts`
+- `apps/admissions/src/lib/statusTone.ts`
+- `apps/admissions/src/pages/public/ForSchoolsPage.tsx`
+- `apps/admissions/src/pages/student/applicationWizard/components/WizardStillNeeded.tsx`
+- `apps/admissions/src/pages/student/applicationWizard/lib/subjectOptions.ts`
+- `apps/admissions/src/pages/student/applicationWizard/lib/wizardFieldFocus.ts`
+- `apps/admissions/src/pages/student/applicationWizard/lib/wizardProgress.ts`
+- `apps/admissions/src/stores/adminQueueViewStore.ts`
+- `apps/admissions/tests/harness-e2e/gatecheck/outside-host-csp.gate.spec.ts`
+- `apps/admissions/tests/harness-e2e/gatecheck/outside-host-navigation.gate.spec.ts`
+- `apps/admissions/tests/harness-e2e/gatecheck/outside-host-popup.gate.spec.ts`
+- `apps/admissions/tests/harness-e2e/helpers/host-resolver.ts`
+- `apps/admissions/tests/harness-e2e/helpers/outside-hosts.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/global-setup.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/impeccable.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/measure.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/pages.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/rendered-gate.spec.ts`
+- `apps/admissions/tests/harness-e2e/rendered-gate/selector.ts`
+- `apps/admissions/tests/property/platformSimplificationPolish.property.test.ts`
+- `apps/admissions/tests/unit/adminQueueRows.test.tsx`
+- `apps/admissions/tests/unit/adminQueueView.test.ts`
+- `apps/admissions/tests/unit/adminReviewRoute.test.tsx`
+- `apps/admissions/tests/unit/adminShellAndMetrics.test.tsx`
+- `apps/admissions/tests/unit/assignedSchoolFeeEstimate.test.tsx`
+- `apps/admissions/tests/unit/checkLocalBuildHosts.test.ts`
+- `apps/admissions/tests/unit/desktopSidebarNoStatusBlock.test.ts`
+- `apps/admissions/tests/unit/documentStatePresentation.test.ts`
+- `apps/admissions/tests/unit/harnessDsnDefault.test.ts`
+- `apps/admissions/tests/unit/landingHonestCopy.test.ts`
+- `apps/admissions/tests/unit/landingProgrammes.test.tsx`
+- `apps/admissions/tests/unit/letterCopyAlignment.test.ts`
+- `apps/admissions/tests/unit/navLabels.test.tsx`
+- `apps/admissions/tests/unit/noDeveloperNarration.test.ts`
+- `apps/admissions/tests/unit/noHardcodedStudentEmail.test.ts`
+- `apps/admissions/tests/unit/ocrAvailableContract.test.ts`
+- `apps/admissions/tests/unit/optionalFieldMarker.test.tsx`
+- `apps/admissions/tests/unit/outsideHostLog.test.ts`
+- `apps/admissions/tests/unit/renderedGateRoles.test.ts`
+- `apps/admissions/tests/unit/renderedGateSelector.test.ts`
+- `apps/admissions/tests/unit/resourceHints.test.ts`
+- `apps/admissions/tests/unit/textTokenAlpha.test.ts`
+- `apps/admissions/tests/unit/unreferencedModules.test.ts`
+- `apps/admissions/tests/unit/wizardBackNavigation.test.ts`
+- `apps/admissions/tests/unit/wizardFieldFocus.test.ts`
+- `apps/admissions/tests/unit/wizardHeadingOrder.test.ts`
+- `apps/admissions/tests/unit/wizardProgressStates.test.tsx`
+- `apps/jobs-ops/src/app/FeatureGate.tsx`
+- `apps/jobs-ops/src/app/JobsOpsNotEnabled.tsx`
+- `apps/jobs-ops/tests/unit/featureGate.test.tsx`
+- `apps/jobs-ops/tests/unit/platformMeta.test.ts`
+- `backend/apps/common/local_database.py`
+- `backend/apps/documents/ocr_opt_in_views.py`
+- `backend/apps/documents/ocr_policy.py`
+- `backend/requirements-dev.in`
+- `backend/requirements-dev.txt`
+- `backend/requirements.in`
+- `backend/tests/integration/test_unmanaged_table_cleanup.py`
+- `backend/tests/jobs_ops_urls.py`
+- `backend/tests/ocr_fixtures.py`
+- `backend/tests/property/test_platform_simplification_properties.py`
+- `backend/tests/unit/test_email_send_route_without_jobs_ops.py`
+- `backend/tests/unit/test_empty_frontend_url_links.py`
+- `backend/tests/unit/test_jobs_ops_route_gating_12_1.py`
+- `backend/tests/unit/test_local_database_rule.py`
+- `backend/tests/unit/test_ocr_available_contract_18_2.py`
+- `backend/tests/unit/test_ocr_opt_in_18_1.py`
+- `backend/tests/unit/test_removed_capability_grant_17_1.py`
+- `backend/tests/unit/test_roster_document_counts_30_4.py`
+- `backend/tests/unit/test_settings_outbound_defaults.py`
+- `backend/tests/unit/test_steering_beat_table.py`
+- `backend/tests/unit/test_test_settings_isolation.py`
+- `docs/archive/steering-history-2026.md`
+- `docs/evidence/platform-simplification-and-polish/17.3-merge-table-draft.md`
+- `docs/evidence/platform-simplification-and-polish/8.1-capability-inventory.md`
+- `docs/evidence/platform-simplification-and-polish/8.2-skill-keep-list.md`
+- `docs/evidence/platform-simplification-and-polish/8.3-d15-items.md`
+- `docs/evidence/platform-simplification-and-polish/README.md`
+- `harness/bin/local-setup.sh`
+- `scripts/capability_inventory.py`
+- `scripts/check-local-build-hosts.ts`
+- `scripts/check_backend_image.py`
+- `scripts/check_doc_paths.py`
+- `scripts/check_requirements_lock.py`
+- `scripts/doc-paths-allowlist.json`
+- `scripts/evidence_refs.py`
+- `scripts/rendered-design-baseline.json`
+- `scripts/rendered-gate-compare.ts`
+- `scripts/rendered-gate-rules.ts`
+- `scripts/route-consumers.json`
+- `scripts/routes-report-baseline.json`
+- `scripts/routes_report.py`
+- `scripts/skill-paths-baseline.json`
+- `scripts/skill_keep_list.py`
+- `scripts/spec-status-exceptions.json`
+- `scripts/tests/test_backend_lock_scripts.py`
+- `scripts/tests/test_capability_inventory.py`
+- `scripts/tests/test_check_doc_paths.py`
+- `scripts/tests/test_evidence_refs.py`
+- `scripts/tests/test_local_setup_doc.py`
+- `scripts/tests/test_local_setup_prereqs.py`
+- `scripts/tests/test_routes_report.py`
+- `scripts/tests/test_skill_keep_list.py`
+- `scripts/unreferenced-modules-allowlist.json`
+- `scripts/unreferenced-modules-baseline.json`
+- `scripts/unreferenced-modules.ts`

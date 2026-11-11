@@ -884,8 +884,8 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - Ask the user if questions arise.
   - _Requirements: 18.1, 19.4, 19.5, 19.9, 22.8_
 
-- [ ] 33. Landing restructure (D10)
-  - [ ] 33.1 [Decision D10 confirmed 2026-11-08 (option A)] Restructure the landing for the decided audience
+- [x] 33. Landing restructure (D10)
+  - [x] 33.1 [Decision D10 confirmed 2026-11-08 (option A)] Restructure the landing for the decided audience
     - Option A: four sections (design §12.1), with no school-buyer, tenant or engineering copy.
     - Option B: keep the school-facing sections with sourced claims only, and flatten their nested cards in place.
     - Option C: the hero and the programme list only.
@@ -894,15 +894,15 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.3, 12.4, 12.8, 21.5_
 
-  - [ ] 33.2 [Decision D10 confirmed 2026-11-08 (option A)] Move school-buyer content and retire the vendored hero
+  - [x] 33.2 [Decision D10 confirmed 2026-11-08 (option A)] Move school-buyer content and retire the vendored hero
     - Option A: create `apps/admissions/src/pages/public/ForSchoolsPage.tsx`, register it, link it from the footer, and remove the `smoothui` hero, `AnimatedCounter` and the chip float from the landing.
     - Then delete their files and their exports from `components/smoothui/index.ts` once `git grep` finds no product import of each export name. The barrel keeps its modules reachable, so the unreachable-module check alone may never list them. Delete their baseline entries from task 29.1 in the same change.
     - Option C: retire the vendored hero only, the same way.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 12.4, 12.5_
 
-- [ ] 34. Navigation size (D16)
-  - [ ] 34.1 [Decision D16 confirmed 2026-11-08 (option A)] Consolidate the student navigation
+- [x] 34. Navigation size (D16)
+  - [x] 34.1 [Decision D16 confirmed 2026-11-08 (option A)] Consolidate the student navigation
     - Option A: three destinations, "My application", "Messages" and "Account" (design §12.8), with every existing URL still resolving and documents within two activations of the dashboard.
     - Option B: the five-item version.
     - Update `tenantNav.test.ts` and the route registry tests.
