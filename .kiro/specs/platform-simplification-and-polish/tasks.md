@@ -665,7 +665,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path, under option A or B: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Option C changes nothing production serves.
     - _Requirements: 16.10, 19.7, 19.9_
 
-- [ ] 25. Wizard chrome (Impeccable `distill`, `layout`)
+- [x] 25. Wizard chrome (Impeccable `distill`, `layout`)
   - [x] 25.1 One heading and one instruction per step
     - Remove the "Application Flow" eyebrow and the "Student Application" title card (`index.tsx:836-900`).
     - Add `instruction` beside each step's `title` in the existing step definition list, and drop each step's duplicate `SectionCard` title.
@@ -709,7 +709,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 15.8_
 
-- [ ] 26. Truthful status (Impeccable `clarify`, `harden`)
+- [x] 26. Truthful status (Impeccable `clarify`, `harden`)
   - [x] 26.1 Drive the stepper and the percentage from the one Readiness
     - Replace `useOverallProgress` in `index.tsx:227-233` with progress from Spec A's Readiness.
     - Pass `stepStates` to `EnhancedProgressIndicator`, removing the shortcut at `:294` and `:359`, and show "Incomplete" with its icon on visited failing steps.
@@ -754,7 +754,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - **Validates: Requirements 14.5**
     - Backend tests in `backend/tests/property/test_platform_simplification_properties.py` using hypothesis.
 
-- [ ] 27. Honest promises (copywriting, content-humanizer, copy-editing)
+- [x] 27. Honest promises (copywriting, content-humanizer, copy-editing)
   - [x] 27.1 Inventory every promise and fix the false ones in the app
     - Build the copy inventory (design §12.8) in the evidence summary, with the code that backs or does not back each statement.
     - Rewrite every in-app promise that no feature backs. Task 29.3 rewrites the landing's.
@@ -784,7 +784,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 20.7_
 
-- [ ] 28. Developer artefacts
+- [x] 28. Developer artefacts
   - [x] 28.1 Remove the fixed sidebar status
     - Delete the "Workspace ready / Navigation synced" block, both variants (`DesktopSidebar.tsx:210-228`). Keep the admin dashboard's derived data-sources strip.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
@@ -795,7 +795,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 13.4_
 
-- [ ] 29. Landing, decision-independent part (Impeccable `distill`, `clarify`; copywriting)
+- [x] 29. Landing, decision-independent part (Impeccable `distill`, `clarify`; copywriting)
   - [x] 29.1 Remove unsourced claims, logos and false links
     - Remove the stats section and constant, the "Government accredited" chip, the "Recognized by" strip, the hero metric row, the regulator and university logos on the feature tiles, and the three social links (design §12.1).
     - Remove the availability and identity claims: change the closing heading "The current intake is open. You can start tonight." (`LandingPageSections.tsx:449`) to "Start your application", drop "Takes about 30 minutes…" from its paragraph (`:452`), and remove "Because we teach the job, not just the theory." (`:81`), "We enroll students from Namibia…" (`landing.ts:289`) and "Campus security, hostel matrons … Our staff …" (`landing.ts:344`). Leave the sections they sit in for task 33.1.
