@@ -49,7 +49,10 @@ permissions:
 jobs:
   journey-gate:
     name: journey-gate
-    runs-on: ubuntu-latest
+    # Pinned to ubuntu-24.04: ubuntu-latest is now Ubuntu 26.04, which Playwright 1.58.2
+    # (apps/admissions/package.json) does not support, so Chromium cannot be installed.
+    # Follow-up: upgrade Playwright to a version that supports Ubuntu 26.04, then unpin.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
