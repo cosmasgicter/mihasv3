@@ -9,10 +9,12 @@
 **Candidate base commit:** `bae29a28d9657f288b3339062adb31285959c966` (task-3.6
 tool/test files are working-tree additions — this task does not commit).
 **Schema fingerprint (release DB):**
-`sha256:a021666c5395bb8d3d7eb69ed1b3037f84221aa2188c052f3be9e9865625da6d`
-(re-emitted 2026-11-08 by student-journey-repair task 3.15, which added
-`2026_11_02_01_repair_document_snapshot_presence.sql`; see the regeneration log at
-the foot of this file. Previously `sha256:771c69eaf448…`, the
+`sha256:c6fc9372921fb8681c446de6ccee6c87f6619eeecb245889d7c52cfcc9d5fdeb`
+(re-emitted 2026-11-21 by the finish-2026-11-21 run, problem 4, which added
+`application_number_sequences_race_safe.sql`; see the regeneration log at the
+foot of this file. Before that `sha256:a021666c5395…`, re-emitted 2026-11-08 by
+student-journey-repair task 3.15, which added
+`2026_11_02_01_repair_document_snapshot_presence.sql`. Before that `sha256:771c69eaf448…`, the
 task-3.1 manifest fingerprint of the fresh-from-empty canonical-committed-path DB;
 re-emitted 2026-08-15 by 13.6 remediation item **M4** — see the regeneration log
 at the foot of this file for the two earlier fingerprints and why each moved).
@@ -234,3 +236,21 @@ that reason as well as for the new script). `apply_sql_migrations
 (33 June 2026+), `--check-freshness` reports FRESHNESS OK, and
 `test_migration_history_report_freshness.py` passes (31). The neon-default report
 was not regenerated (no Neon access in that run).
+
+### Regeneration 2026-11-21 (finish-2026-11-21, problem 4)
+
+Re-emitted by the §5 reproduction, unchanged in method, on a fresh database
+`v2_mig_history_w1` in a throwaway local Postgres 16.14 container:
+`00_full_schema.sql` → `2026_05_22_migration_history_extend.sql` →
+`apply_sql_migrations --allow-non-additive`, which applied **48 of 48** pending
+scripts with 0 failures, including the new
+`application_number_sequences_race_safe.sql` immediately after
+`application_number_sequences.sql`; a second run reported "All 48 migrations
+already applied". The report now has **50** rows (33 June 2026+);
+`--check-freshness` reports FRESHNESS OK. The new script is undated on purpose
+(its header explains why: a dated name would sort before the script whose
+function body it replaces, so on a database built from empty the old body would
+win), so the freshness gate does not require it; the report was re-emitted anyway
+so `forward_scripts_on_disk` stays exact. Every existing row's checksum is
+unchanged; the fingerprint moves only because the migration list gained a row.
+The neon-default report was not regenerated (no Neon access in this run).
