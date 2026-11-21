@@ -26,7 +26,9 @@ Steps
 -----
 1. ``migrate`` the Django-managed apps (contenttypes, sessions, admin, …).
 2. Create every ``managed = False`` table from the current models + the
-   explicit indexes/constraints (mirrors the test conftest).
+   explicit indexes/constraints (mirrors the test conftest), then install the
+   ``next_application_number`` SQL function from its ``backend/scripts/`` files
+   (``apps.common.runtime_sql_functions``).
 3. Seed the canonical subject catalogue (``seed_subjects``).
 4. Create/refresh the platform super-admin from env (bcrypt-hashed; never
    printed, never stored in plaintext).
@@ -47,6 +49,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
 from apps.common.local_database import require_local_database
+from apps.common.runtime_sql_functions import install_application_number_function
 
 
 class Command(BaseCommand):
@@ -82,6 +85,13 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE("[2/4] build managed=False schema from current models"))
         created = self._build_unmanaged_schema()
         self.stdout.write(f"      created {created} table(s) from managed=False models")
+        # The models carry no SQL functions, and this build skips the boot sweep
+        # that would create them, so install next_application_number from its
+        # scripts. Without it every create here took the racy count-based
+        # fallback (problem 4, 2026-11-21).
+        installed = install_application_number_function(connection)
+        if installed:
+            self.stdout.write(f"      installed next_application_number from {', '.join(installed)}")
 
         if not opts["skip_subjects"]:
             self.stdout.write(self.style.NOTICE("[3/5] seed canonical subjects"))

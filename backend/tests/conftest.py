@@ -494,3 +494,12 @@ def unmanaged_schema(django_db_setup, django_db_blocker):
                         f'CREATE INDEX IF NOT EXISTS "{index_name}" '
                         f'ON "{table_name}" ("{column_name}");'
                     )
+
+            # next_application_number, from the scripts that define it (not a
+            # copy). The models carry no SQL functions, so without this every
+            # application create in the suite took the count-based fallback
+            # that the boot-swept production database never uses (problem 4,
+            # 2026-11-21).
+            from apps.common.runtime_sql_functions import install_application_number_function
+
+            install_application_number_function(connection)
