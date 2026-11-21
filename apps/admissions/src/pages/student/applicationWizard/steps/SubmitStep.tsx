@@ -167,7 +167,7 @@ const SubmitStep = ({
 
   return (
     <div className={`space-y-6 ${animateClasses.fadeIn}`} data-testid="submit-step">
-      <fieldset className="border-none p-0 m-0 space-y-6">
+      <fieldset className="min-w-0 border-none p-0 m-0 space-y-6">
         <legend className="sr-only">Review and Submit</legend>
         <SectionCard
         description="Review the details below before you submit. Once the application is sent, you cannot edit it from this wizard."

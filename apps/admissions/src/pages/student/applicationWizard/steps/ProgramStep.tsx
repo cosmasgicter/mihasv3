@@ -72,7 +72,7 @@ const ProgramStep = ({
       data-testid="program-step"
     >
 
-      <fieldset className="border-none p-0 m-0">
+      <fieldset className="min-w-0 border-none p-0 m-0">
         <legend className="sr-only">Programme and intake</legend>
         <div className="grid grid-cols-1 gap-4 overflow-visible sm:gap-6">
           <div style={shouldAnimate ? staggerChild(0) : undefined}>

@@ -68,7 +68,7 @@ const BasicKycStep = ({
         </div>
       )}
 
-      <fieldset className="border-none p-0 m-0">
+      <fieldset className="min-w-0 border-none p-0 m-0">
         <legend className="sr-only">Personal information</legend>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>

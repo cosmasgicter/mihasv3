@@ -130,7 +130,7 @@ const PaymentStep = ({
       contentClassName="space-y-6"
       data-testid="payment-step"
     >
-      <fieldset className="border-none p-0 m-0 space-y-6">
+      <fieldset className="min-w-0 border-none p-0 m-0 space-y-6">
         <legend className="sr-only">Payment</legend>
 
         {/* Fee display — every value below is rendered exactly as the server sent it */}
