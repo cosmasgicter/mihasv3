@@ -175,13 +175,26 @@ async function openWizard(page: Page, applicationId: string, step?: string) {
   // And the platform's readiness has answered, so the surface under test has settled.
   // On a phone the Still needed list is a closed disclosure; open it to read the
   // platform's check, then put it back as the student would find it.
+  //
+  // The disclosure is opened until the list is on screen rather than checked once
+  // (platform-simplification task 22.5). While the wizard loads it unmounts the Still
+  // needed panel and mounts it again, once: measured in the pinned browser, the toggle
+  // was removed 374 to 709 ms after navigation and back 114 to 200 ms later. A one-shot
+  // `isVisible()` right after the preloader left could land in that gap and see no
+  // toggle, so nothing was opened and the list below was never found; a click just
+  // before the remount was undone by it. The broad matrix hit both in the pinned image.
   const stillNeededToggle = page.getByTestId('wizard-context-toggle');
-  const collapsed = await stillNeededToggle.isVisible();
-  if (collapsed) await stillNeededToggle.click();
-  await expect(page.getByTestId('wizard-current-blockers')).not.toContainText(
-    /checking what is still needed/i,
-    { timeout: 60_000 },
-  );
+  const blockers = page.getByTestId('wizard-current-blockers');
+  let collapsed = false;
+  await expect(async () => {
+    if (await blockers.isVisible()) return;
+    if (await stillNeededToggle.isVisible()) {
+      collapsed = true;
+      if ((await stillNeededToggle.getAttribute('aria-expanded')) !== 'true') await stillNeededToggle.click();
+    }
+    await expect(blockers).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 60_000 });
+  await expect(blockers).not.toContainText(/checking what is still needed/i, { timeout: 60_000 });
   if (collapsed) await stillNeededToggle.click();
 }
 
