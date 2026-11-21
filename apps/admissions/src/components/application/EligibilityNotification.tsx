@@ -32,9 +32,9 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             The heading row wraps (task 22.5). Unwrapped, its minimum width was the
             heading's longest word plus both badges: wider than this column on a
             390 px phone once the font is wider than Inter, as DejaVu Sans is on the
-            CI runner and as many students' fonts are (Inter is not shipped). That
-            widened the whole step past the card's edge. Now the badges move to the
-            next line.
+            CI runner (Inter is not shipped, so the font is whatever the device has).
+            That widened the whole step past the card's edge. Now the badges move to
+            the next line.
           */}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
             <h3 className={`min-w-0 break-words font-semibold ${

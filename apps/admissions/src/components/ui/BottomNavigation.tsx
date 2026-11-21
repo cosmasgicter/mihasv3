@@ -83,8 +83,8 @@ const ACTIVE_ITEM_TOKENS = 'bg-accent text-accent-foreground'
  * minimum (the content's width), so every item got an equal share whatever its label
  * measured, and a label that cannot wrap spilled out of its slot. With Inter
  * "My application" needs 83 px of an 83 px slot at 390 px; with DejaVu Sans, the CI
- * runner's fallback font and a common one on students' devices (Inter is not shipped),
- * it needs 99 px, and "My school" needs 67 px of 64.
+ * runner's fallback font, it needs 99 px, and "My school" needs 67 px of 64. Inter is
+ * not shipped, so a student's labels are set in whatever font the device has.
  *
  * `minmax(min-content, 1fr)` columns keep equal widths whenever the labels fit and
  * give a longer label the width it needs when they do not, taken from the others.
