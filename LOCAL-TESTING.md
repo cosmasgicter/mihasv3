@@ -131,6 +131,7 @@ Other commands:
 
 ```bash
 bash harness/bin/harness smoke      # build, start, strict browser projects, evidence
+bash harness/bin/harness rendered-gate  # build, start, rendered design gate in its pinned browser image
 bash harness/bin/harness ps         # service status
 bash harness/bin/harness logs web   # tail a service's log
 bash harness/bin/harness drain      # assert background jobs drained

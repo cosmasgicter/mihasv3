@@ -168,6 +168,71 @@ def test_gate_job_runs_the_command_uploads_evidence_and_tears_down():
     assert steps["Dump harness logs on failure"]["if"].startswith("failure()")
 
 
+# --- platform-simplification task 22.5: the rendered gate's one pinned browser -----------
+
+RENDERED_DOCKERFILE = REPO / "harness" / "rendered-gate" / "Dockerfile"
+ADMISSIONS_PACKAGE = REPO / "apps" / "admissions" / "package.json"
+
+
+def test_rendered_gate_job_runs_the_harness_command_and_installs_no_browser_of_its_own():
+    job = _workflow()["jobs"]["rendered-design-gate"]
+    assert job["runs-on"] == "ubuntu-24.04"
+    steps = {step.get("name"): step for step in job["steps"]}
+    assert steps["Run the rendered design gate and compare with the baseline"]["run"] == (
+        "bash harness/bin/harness rendered-gate"
+    )
+    runs = "\n".join(step.get("run", "") for step in job["steps"])
+    assert "playwright install" not in runs, "the browser comes from the pinned image only"
+    assert "npm install -g impeccable" not in runs, "impeccable comes from the pinned image only"
+    assert steps["Upload rendered gate screenshots and findings"]["if"].startswith("always()")
+    assert steps["Tear the harness down"]["if"].startswith("always()")
+    assert steps["Dump harness logs on failure"]["if"].startswith("failure()")
+
+
+def test_rendered_gate_image_is_pinned_and_matches_the_playwright_package():
+    import json
+
+    dockerfile = RENDERED_DOCKERFILE.read_text()
+    froms = re.findall(r"^FROM\s+(\S+)", dockerfile, re.MULTILINE)
+    assert len(froms) == 1, froms
+    match = re.fullmatch(r"mcr\.microsoft\.com/playwright:v([\d.]+)-noble@sha256:[0-9a-f]{64}", froms[0])
+    assert match, f"the gate image must be Playwright's noble image pinned by digest: {froms[0]}"
+    playwright = json.loads(ADMISSIONS_PACKAGE.read_text())["devDependencies"]["@playwright/test"]
+    assert match.group(1) == playwright, "the image's Playwright must be the one the specs run with"
+    assert re.search(r"fonts-dejavu-core=\S+", dockerfile), "the fallback font is pinned"
+    assert "impeccable@2.1.9" in dockerfile
+    assert "sha256sum -c" in dockerfile, "the detector the baseline was recorded with is verified"
+    assert "fonts-inter" not in dockerfile, "Inter is not installed: production does not ship it"
+
+
+def test_rendered_gate_command_runs_the_spec_in_the_image_and_compares_on_the_host():
+    script = HARNESS_SCRIPT.read_text()
+    command = re.search(r"\n  rendered-gate\)\n(.*?)\n    ;;", script, re.DOTALL)
+    assert command, "the rendered-gate command is missing"
+    stages = [
+        line.strip()
+        for line in command.group(1).splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    assert "export_gate_switches" not in stages, "the rendered gate runs with the limiter off"
+    assert stages[0].startswith("unset HARNESS_RATELIMIT_ENABLE ")
+    assert stages[1:6] == [
+        "build_spa",
+        "compose_up",
+        "wait_healthy",
+        "build_rendered_image",
+        "run_rendered_gate",
+    ]
+    body = re.search(r"\nrun_rendered_gate\(\) \{(.*?)\n\}", script, re.DOTALL)
+    assert body, "run_rendered_gate is missing"
+    body_text = body.group(1)
+    assert '"${RENDERED_IMAGE}" ./node_modules/.bin/playwright test -c "${RENDERED_PW_CONFIG}"' in body_text
+    assert "--network host" in body_text
+    assert "HARNESS_PW_CHANNEL" not in body_text, "no system browser inside the image"
+    assert "bun ../../scripts/rendered-gate-compare.ts" in body_text
+    assert 'RENDERED_IMAGE_DIR="${HARNESS_DIR}/rendered-gate"' in script
+
+
 # --- the relevance script: both required checks report on unrelated changes -----------
 
 

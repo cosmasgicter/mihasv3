@@ -7,6 +7,7 @@
 #   harness/bin/harness build     # build the admissions SPA (build output for Caddy)
 #   harness/bin/harness e2e       # run the strict Playwright projects only
 #   harness/bin/harness journey-gate  # the blocking student-journey gate (SJR task 4)
+#   harness/bin/harness rendered-gate # the rendered design gate in its pinned browser image
 #   harness/bin/harness drain     # assert required background jobs drained
 #   harness/bin/harness logs [svc]# tail compose logs
 #   harness/bin/harness ps        # compose service status
@@ -61,6 +62,9 @@ EVIDENCE_DIR="${REPO_ROOT}/${EVIDENCE_REL}"
 PW_CONFIG="${ADMISSIONS_DIR}/playwright.harness.config.ts"
 
 GATE_PW_CONFIG="${ADMISSIONS_DIR}/playwright.journey-gate.config.ts"
+RENDERED_PW_CONFIG="playwright.rendered-gate.config.ts"
+RENDERED_IMAGE_DIR="${HARNESS_DIR}/rendered-gate"
+RENDERED_IMAGE="mihas-harness-rendered-gate:local"
 CHECKS_DIR="${HARNESS_DIR}/checks"
 DC=(docker compose -f "${COMPOSE_FILE}")
 # Optional extra compose file, e.g. to remap host ports on a machine whose 55432 or
@@ -285,6 +289,29 @@ export_gate_switches() {
   export S3_PUBLIC_ENDPOINT_URL=http://localhost:59000
   export HARNESS_BUCKET_ANONYMOUS=none
 }
+
+# --- rendered design gate (platform-simplification task 22.5) ---------------
+# The gate's Playwright step runs in one pinned image (harness/rendered-gate/Dockerfile)
+# on every machine, CI included: Playwright 1.58.2's own Chromium build, DejaVu as the
+# fallback font and impeccable 2.1.9. A developer's own browser and fonts (Inter, a newer
+# Chrome) lay text out differently, so a pass there said nothing about the CI runner.
+# The stack runs on the host as for every other command, and the container reaches its
+# edge over the host network. The baseline comparison does not depend on fonts and runs
+# on the host.
+build_rendered_image() {
+  log "building the rendered gate's browser image (${RENDERED_IMAGE})"
+  docker build -q -t "${RENDERED_IMAGE}" "${RENDERED_IMAGE_DIR}" >/dev/null
+}
+run_rendered_gate() {
+  log "running the rendered design gate in ${RENDERED_IMAGE} (retries 0)"
+  docker run --rm --init --network host --shm-size=2g \
+    --user "$(id -u):$(id -g)" -e HOME=/tmp -e CI=true \
+    -e PLAYWRIGHT_BASE_URL="${EDGE_URL}" \
+    -v "${REPO_ROOT}:${REPO_ROOT}" -w "${ADMISSIONS_DIR}" \
+    "${RENDERED_IMAGE}" ./node_modules/.bin/playwright test -c "${RENDERED_PW_CONFIG}"
+  log "comparing the findings with scripts/rendered-design-baseline.json"
+  ( cd "${ADMISSIONS_DIR}" && bun ../../scripts/rendered-gate-compare.ts )
+}
 # --- commands -------------------------------------------------------------
 cmd="${1:-smoke}"
 case "${cmd}" in
@@ -306,6 +333,18 @@ case "${cmd}" in
     run_journey_gate
     drain_check
     ok "JOURNEY GATE PASSED - real storage, limiter on, private bucket, 20 s links, throttled uplink."
+    ;;
+  rendered-gate)
+    # A fresh stack with today's harness settings and the limiter off. The gate signs in
+    # for every authenticated page it audits, so it never runs on a stack that the
+    # journey gate's switches turned on.
+    unset HARNESS_RATELIMIT_ENABLE S3_SIGNED_URL_TTL_SECONDS S3_PUBLIC_ENDPOINT_URL HARNESS_BUCKET_ANONYMOUS
+    build_spa
+    compose_up
+    wait_healthy
+    build_rendered_image
+    run_rendered_gate
+    ok "RENDERED DESIGN GATE PASSED - pinned browser image, no finding outside the baseline."
     ;;
   smoke)
     build_spa

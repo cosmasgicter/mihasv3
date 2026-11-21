@@ -27,10 +27,13 @@ name: Student Journey Gate
 # only when the change touches apps/admissions/, backend/, harness/ or this workflow.
 # On an unrelated change the job reports success within seconds.
 #
-# A second blocking job, `rendered-design-gate` (platform-simplification task 22.5), brings
-# the same harness up, visits the Audited_Page_Set at 1440x900 and 390x844 and compares
-# axe, the measurements and impeccable's browser detector with
-# scripts/rendered-design-baseline.json. Its relevance list adds `scripts/rendered-`.
+# A second blocking job, `rendered-design-gate` (platform-simplification task 22.5), runs
+# `bash harness/bin/harness rendered-gate`: it brings the same harness up, visits the
+# Audited_Page_Set at 1440x900 and 390x844 and compares axe, the measurements and
+# impeccable's browser detector with scripts/rendered-design-baseline.json. The browser
+# runs in the pinned image built from harness/rendered-gate/Dockerfile (Playwright's own
+# Chromium, DejaVu, impeccable 2.1.9), the same image a local run uses. Its relevance
+# list adds `scripts/rendered-`.
 #
 # Making `journey-gate` a required check on `main` is a repository-settings step for the
 # operator; nothing here changes settings.
@@ -119,7 +122,9 @@ jobs:
   rendered-design-gate:
     name: rendered-design-gate
     # Pinned to ubuntu-24.04: ubuntu-latest is now Ubuntu 26.04, which Playwright 1.58.2
-    # (apps/admissions/package.json) does not support, so Chromium cannot be installed.
+    # (apps/admissions/package.json) does not support. This job's browser now runs in the
+    # pinned image (harness/rendered-gate/Dockerfile), so the runner only hosts Docker,
+    # Bun and the harness stack; the pin is kept to match the journey-gate job.
     # Follow-up: upgrade Playwright to a version that supports Ubuntu 26.04, then unpin.
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -154,27 +159,18 @@ jobs:
         if: steps.changes.outputs.relevant == 'true'
         with:
           bun-version: latest
-      # Node ships on the ubuntu-24.04 runner image; no extra action is added.
-      - name: Install impeccable (pinned) without a browser download
-        if: steps.changes.outputs.relevant == 'true'
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: '1'
-        run: npm install -g impeccable@2.1.9
-      - name: Install dependencies and the Chromium browser
+      - name: Show toolchain
         if: steps.changes.outputs.relevant == 'true'
         run: |
-          bun install --frozen-lockfile
-          cd apps/admissions
-          bunx playwright install --with-deps chromium
-      - name: Bring the harness up
-        if: steps.changes.outputs.relevant == 'true'
-        run: bash harness/bin/harness up
+          docker --version
+          docker compose version
+          bun --version
+      # Installs from the lockfile, builds the SPA, brings a fresh harness up, builds the
+      # pinned browser image, runs the gate's Playwright step in it, then compares the
+      # findings with the baseline. The same command a local run uses.
       - name: Run the rendered design gate and compare with the baseline
         if: steps.changes.outputs.relevant == 'true'
-        run: |
-          cd apps/admissions
-          bunx playwright test -c playwright.rendered-gate.config.ts
-          bun ../../scripts/rendered-gate-compare.ts
+        run: bash harness/bin/harness rendered-gate
       - name: Upload rendered gate screenshots and findings
         if: always() && steps.changes.outputs.relevant == 'true'
         uses: actions/upload-artifact@v4
