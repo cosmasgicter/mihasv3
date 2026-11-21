@@ -1,33 +1,5 @@
 [
   {
-    "rule": "axe/link-in-text-block",
-    "page": "/auth/signup",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8)."
-  },
-  {
-    "rule": "axe/link-in-text-block",
-    "page": "/auth/signup",
-    "viewport": "1440x900",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(2)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8)."
-  },
-  {
-    "rule": "axe/link-in-text-block",
-    "page": "/auth/signup",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8)."
-  },
-  {
-    "rule": "axe/link-in-text-block",
-    "page": "/auth/signup",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(2)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8)."
-  },
-  {
     "rule": "impeccable/ai-color-palette",
     "page": "/",
     "viewport": "1440x900",
@@ -1146,38 +1118,6 @@
     "viewport": "390x844",
     "selector": "[data-testid=\"submit-step\"] > fieldset:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > label:nth-of-type(1)",
     "reason": "Recorded by the first rendered-gate run (task 22.5); later tasks delete it when the surface is rebuilt."
-  },
-  {
-    "rule": "measure/hit-area",
-    "page": "/auth/signin",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > header:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8).",
-    "inRunningText": true
-  },
-  {
-    "rule": "measure/hit-area",
-    "page": "/auth/signup",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8).",
-    "inRunningText": true
-  },
-  {
-    "rule": "measure/hit-area",
-    "page": "/auth/signup",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > form:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(2)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8).",
-    "inRunningText": true
-  },
-  {
-    "rule": "measure/hit-area",
-    "page": "/auth/signup",
-    "viewport": "390x844",
-    "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > header:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
-    "reason": "Link inside running text; waits for decision D17 (task 24.8).",
-    "inRunningText": true
   },
   {
     "rule": "impeccable/ai-color-palette",
