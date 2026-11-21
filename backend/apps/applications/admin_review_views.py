@@ -74,6 +74,7 @@ from ._view_helpers import (
     ApplicationResponseSerializer,
     ApplicationReviewResponseSerializer,
     ConditionVerifyRequestSerializer,
+    _create_application_with_number,
     _generate_application_number,
     _generate_tracking_code,
     _with_payment_summary,
@@ -425,7 +426,9 @@ class ApplicationListCreateView(APIView):
             # application row (design §7.2/§9.3). The display strings above are
             # snapshots too; the canonical IDs are the sole routing authority.
             create_kwargs.update(assigned.snapshot_columns())
-        application = Application.objects.create(**create_kwargs)
+        # Retries with a fresh number if a concurrent create took this one
+        # (applications_application_number_key), rather than answering 500.
+        application = _create_application_with_number(create_kwargs, data.get('institution', ''))
         response_data = ApplicationSerializer(application).data
         response_data["assigned_school"] = {
             "id": str(assigned.institution.id),

@@ -285,6 +285,59 @@ def _generate_application_number(institution_name: str = '') -> str:
     return f"{prefix}{uuid.uuid4().hex[:5].upper()}"
 
 
+#: Attempts at inserting a new application before a collision on its number is
+#: raised. Each retry draws a fresh number.
+APPLICATION_NUMBER_INSERT_ATTEMPTS = 5
+
+#: The unique constraint on ``applications.application_number``.
+APPLICATION_NUMBER_CONSTRAINT = "applications_application_number_key"
+
+
+def _is_application_number_conflict(exc) -> bool:
+    """True when the ``IntegrityError`` ``exc`` is a duplicate application number."""
+    diag = getattr(getattr(exc, "__cause__", None), "diag", None)
+    constraint = getattr(diag, "constraint_name", None)
+    if constraint is not None:
+        return constraint == APPLICATION_NUMBER_CONSTRAINT
+    # SQLite, and drivers without diagnostics, only name the column in the message.
+    return "applications.application_number" in str(exc)
+
+
+def _create_application_with_number(create_kwargs: dict, institution_name: str = '') -> Application:
+    """Insert an application, drawing a new number if the one it holds is taken.
+
+    ``_generate_application_number`` takes the number from a per-(code, year)
+    sequence when the SQL helper exists; without it, it counts existing rows,
+    and two concurrent creates can count the same rows. The unique constraint
+    rejects the second insert. Instead of surfacing that as a 500, this retries
+    with a freshly drawn number, inside a savepoint so an enclosing transaction
+    stays usable. Bounded: after ``APPLICATION_NUMBER_INSERT_ATTEMPTS`` collisions
+    the ``IntegrityError`` is raised. Any other integrity error is raised at once.
+
+    What the bound guarantees on the count-based fallback: each collision means
+    another create succeeded with that number, so up to
+    ``APPLICATION_NUMBER_INSERT_ATTEMPTS`` concurrent creates for one code and
+    year all succeed. A number from the sequence collides only with a row that
+    was numbered outside it; the retry then takes the sequence's next value.
+    """
+    from django.db import IntegrityError, transaction
+
+    kwargs = dict(create_kwargs)
+    for attempt in range(1, APPLICATION_NUMBER_INSERT_ATTEMPTS + 1):
+        try:
+            with transaction.atomic():
+                return Application.objects.create(**kwargs)
+        except IntegrityError as exc:
+            if attempt == APPLICATION_NUMBER_INSERT_ATTEMPTS or not _is_application_number_conflict(exc):
+                raise
+            logger.warning(
+                "application number already taken; drawing another (attempt %s of %s)",
+                attempt + 1,
+                APPLICATION_NUMBER_INSERT_ATTEMPTS,
+            )
+            kwargs["application_number"] = _generate_application_number(institution_name)
+
+
 def _generate_tracking_code(institution_name: str = '') -> str:
     """Generate tracking code: TRK-{CODE}{YEAR}{RANDOM}."""
     code = _resolve_institution_code(institution_name)

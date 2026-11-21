@@ -191,3 +191,116 @@ class TestApplicationNumberGenerator:
 
         assert _FORMAT_RE.match(result), f"fallback format invariant: {result}"
         assert result.startswith(f"MIHAS{year}"), result
+
+
+class _DriverUniqueViolation(Exception):
+    """Stands in for psycopg2's UniqueViolation: carries ``diag.constraint_name``."""
+
+    def __init__(self, constraint: str):
+        from types import SimpleNamespace
+
+        super().__init__(f'duplicate key value violates unique constraint "{constraint}"')
+        self.diag = SimpleNamespace(constraint_name=constraint)
+
+
+def _integrity_error(constraint: str):
+    """An IntegrityError wrapping a driver error that names ``constraint``,
+    the way Django wraps psycopg2's."""
+    from django.db import IntegrityError
+
+    error = IntegrityError(f'duplicate key value violates unique constraint "{constraint}"')
+    error.__cause__ = _DriverUniqueViolation(constraint)
+    return error
+
+
+class TestCreateApplicationWithNumber:
+    """The bounded retry on ``applications_application_number_key`` (problem 4).
+
+    Real concurrency against PostgreSQL is covered by
+    ``tests/integration/test_application_number_concurrency.py``; these pin the
+    retry's rules without a database.
+    """
+
+    NUMBER_TAKEN = "applications_application_number_key"
+
+    def test_a_taken_number_is_replaced_and_the_insert_retried(self):
+        from apps.applications import _view_helpers
+
+        created = object()
+        with patch("apps.applications._view_helpers.Application") as model, patch(
+            "apps.applications._view_helpers._generate_application_number",
+            return_value="BNL202600002",
+        ) as generate:
+            model.objects.create.side_effect = [_integrity_error(self.NUMBER_TAKEN), created]
+            result = _view_helpers._create_application_with_number(
+                {"application_number": "BNL202600001", "full_name": "A"}, "Some School"
+            )
+
+        assert result is created
+        generate.assert_called_once_with("Some School")
+        assert [c.kwargs for c in model.objects.create.call_args_list] == [
+            {"application_number": "BNL202600001", "full_name": "A"},
+            {"application_number": "BNL202600002", "full_name": "A"},
+        ]
+
+    def test_any_other_integrity_error_is_raised_at_once(self):
+        from django.db import IntegrityError
+
+        from apps.applications import _view_helpers
+
+        with patch("apps.applications._view_helpers.Application") as model, patch(
+            "apps.applications._view_helpers._generate_application_number"
+        ) as generate:
+            model.objects.create.side_effect = _integrity_error(
+                "applications_public_tracking_code_key"
+            )
+            with pytest.raises(IntegrityError):
+                _view_helpers._create_application_with_number(
+                    {"application_number": "BNL202600001"}, ""
+                )
+
+        assert model.objects.create.call_count == 1
+        generate.assert_not_called()
+
+    def test_the_retry_is_bounded(self):
+        from django.db import IntegrityError
+
+        from apps.applications import _view_helpers
+
+        attempts = _view_helpers.APPLICATION_NUMBER_INSERT_ATTEMPTS
+        with patch("apps.applications._view_helpers.Application") as model, patch(
+            "apps.applications._view_helpers._generate_application_number",
+            return_value="BNL202600009",
+        ) as generate:
+            model.objects.create.side_effect = _integrity_error(self.NUMBER_TAKEN)
+            with pytest.raises(IntegrityError):
+                _view_helpers._create_application_with_number(
+                    {"application_number": "BNL202600001"}, ""
+                )
+
+        assert attempts == 5
+        assert model.objects.create.call_count == attempts
+        assert generate.call_count == attempts - 1
+
+    def test_the_callers_kwargs_are_not_rewritten(self):
+        from apps.applications import _view_helpers
+
+        create_kwargs = {"application_number": "BNL202600001"}
+        with patch("apps.applications._view_helpers.Application") as model, patch(
+            "apps.applications._view_helpers._generate_application_number",
+            return_value="BNL202600002",
+        ):
+            model.objects.create.side_effect = [_integrity_error(self.NUMBER_TAKEN), object()]
+            _view_helpers._create_application_with_number(create_kwargs, "")
+
+        assert create_kwargs == {"application_number": "BNL202600001"}
+
+    def test_sqlite_is_recognised_by_its_message(self):
+        from django.db import IntegrityError
+
+        from apps.applications import _view_helpers
+
+        sqlite_style = IntegrityError("UNIQUE constraint failed: applications.application_number")
+        other = IntegrityError("UNIQUE constraint failed: applications.public_tracking_code")
+        assert _view_helpers._is_application_number_conflict(sqlite_style)
+        assert not _view_helpers._is_application_number_conflict(other)
