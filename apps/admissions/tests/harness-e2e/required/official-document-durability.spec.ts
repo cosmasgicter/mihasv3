@@ -399,6 +399,12 @@ async function documentMessages(page: Page): Promise<any[]> {
   return rows.filter((row: any) => /Application Slip available/i.test(row.title ?? ''));
 }
 
+/** A request the browser made to the storage host, recorded as the route below serves it. */
+interface StorageVisit {
+  url: string;
+  page: Page | null;
+  isNavigation: boolean;
+}
 /**
  * Let the browser follow a backend-signed storage URL inside this harness.
  *
@@ -414,16 +420,29 @@ async function documentMessages(page: Page): Promise<any[]> {
  * platform signed, and the assertion is that the browser went *there* rather than
  * to a `blob:` a client renderer produced. What is stubbed is the object store's
  * reachability, which no assertion in this file is about.
+ *
+ * Every request the route serves is recorded with the page that made it, so
+ * {@link settledPopupUrl} can tell where the popup's own navigation went.
  */
-async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<void> {
+async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<StorageVisit[]> {
   const { protocol, host } = new URL(downloadUrl);
-  await page.context().route(`${protocol}//${host}/**`, (route) =>
-    route.fulfill({
+  const visits: StorageVisit[] = [];
+  await page.context().route(`${protocol}//${host}/**`, (route) => {
+    const request = route.request();
+    let owner: Page | null = null;
+    try {
+      owner = request.frame().page();
+    } catch {
+      owner = null;
+    }
+    visits.push({ url: request.url(), page: owner, isNavigation: request.isNavigationRequest() });
+    return route.fulfill({
       status: 200,
       contentType: 'application/pdf',
       body: '%PDF-1.4\n%%EOF\n',
-    }),
-  );
+    });
+  });
+  return visits;
 }
 
 /**
@@ -438,12 +457,38 @@ async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<
  * replaces itself with the stored record. The opener is a stop on the way, not
  * the destination, so it is not "settled" either: waiting for it to leave is what
  * keeps the assertions on the popup's storage host (SJR 3.20) meaningful.
+ *
+ * Where it went is read from the popup's own navigation request to the storage
+ * host (platform-simplification task 22.5), because a browser that cannot display a
+ * PDF downloads it: the navigation never commits and `url()` stays on the opener.
+ * Playwright's bundled Chromium headless shell, which the harness runs in CI and in
+ * the pinned image, has no PDF viewer, so this wait timed out there while it passed
+ * with a desktop Chrome. The request is the same in both browsers, so the claim is
+ * unchanged: the browser opened the backend-signed stored object. A popup that
+ * commits somewhere else, a `blob:` for instance, still settles on that URL, and
+ * the callers' assertions reject it.
  */
-async function settledPopupUrl(popup: Page): Promise<string> {
+async function settledPopupUrl(popup: Page, visits: StorageVisit[]): Promise<string> {
+  let destination = '';
   await expect
-    .poll(() => popup.url(), { timeout: 30_000, message: 'the download should navigate' })
-    .not.toMatch(/^(|about:blank)$|\/student\/documents\/open(\?|$)/);
-  return popup.url();
+    .poll(
+      () => {
+        const visit = visits.find((v) => v.page === popup && v.isNavigation);
+        if (visit) {
+          destination = visit.url;
+          return true;
+        }
+        const url = popup.url();
+        if (!/^(|about:blank)$|\/student\/documents\/open(\?|$)/.test(url)) {
+          destination = url;
+          return true;
+        }
+        return false;
+      },
+      { timeout: 30_000, message: 'the download should navigate' },
+    )
+    .toBe(true);
+  return destination;
 }
 
 /** Poll the published status until it settles on `ready`. */
@@ -532,7 +577,7 @@ test('a request the broker never received is still recorded, and the dispatcher 
   // control is an "Open" link to the in-app opener (no longer a button that opens
   // a tab in code after awaits). The opener signs when it is opened and replaces
   // itself with the stored record, so the assertion is on the popup's final URL.
-  await allowStorageNavigation(page, ready.download_url);
+  const storageVisits = await allowStorageNavigation(page, ready.download_url);
   await openApplication(page, applicant.applicationId);
   const download = (await documentAction(page, SLIP)).getByRole('link', {
     name: /Open Application Slip/i,
@@ -541,7 +586,7 @@ test('a request the broker never received is still recorded, and the dispatcher 
   const popup = page.waitForEvent('popup', { timeout: 30_000 });
   await download.click();
   const opened = await popup;
-  const openedUrl = await settledPopupUrl(opened);
+  const openedUrl = await settledPopupUrl(opened, storageVisits);
   expect(
     openedUrl,
     'the browser opens the backend-signed stored object, never a locally rendered blob',
@@ -659,7 +704,7 @@ test('the one canonical email route sends the stored record and lands in the his
   ).toBeTruthy();
   await waitForReady(page, applicant.applicationId, SLIP);
   const stored = await readStatus(page, applicant.applicationId, SLIP);
-  await allowStorageNavigation(page, stored.download_url);
+  const storageVisits = await allowStorageNavigation(page, stored.download_url);
 
   await openApplication(page, applicant.applicationId);
   const slip = await documentAction(page, SLIP);
@@ -668,7 +713,7 @@ test('the one canonical email route sends the stored record and lands in the his
   await slip.getByRole('link', { name: /Open Application Slip/i }).click();
   const opened = await popup;
   expect(
-    await settledPopupUrl(opened),
+    await settledPopupUrl(opened, storageVisits),
     'the download streams the stored record',
   ).toContain(new URL(stored.download_url).host);
   await opened.close();
