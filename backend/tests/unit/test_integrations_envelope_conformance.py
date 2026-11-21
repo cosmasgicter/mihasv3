@@ -44,7 +44,8 @@ def _client_for(role="admin"):
 @pytest.fixture
 def jobs_ops_routes_on():
     """The Zoho connect route is a jobs-ops route: it is mounted only with the flag on
-    (platform-simplification task 12.1). The old test assumed it was always mounted."""
+    (platform-simplification task 12.1). The old test assumed it was always mounted.
+    The delivery webhook joined them when decision D1.b was answered (2026-11-21)."""
     with override_settings(ENABLE_JOBS_OPS_ROUTES=True):
         reload_jobs_ops_urlconf()
         yield
@@ -72,6 +73,7 @@ class TestZohoConnectViewEnvelope:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("jobs_ops_routes_on")
 class TestEmailDeliveryWebhookViewEnvelope:
     """POST /api/v1/email/webhooks/delivery/ returns the standard envelope.
 

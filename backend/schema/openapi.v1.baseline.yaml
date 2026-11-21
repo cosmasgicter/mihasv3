@@ -8937,63 +8937,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit email send
-  /api/v1/email/webhooks/delivery/:
-    post:
-      operationId: email_delivery_webhook
-      tags:
-      - email
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmailActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit email delivery webhook
   /api/v1/errors/report/:
     post:
       operationId: api_v1_errors_report_create

@@ -3484,23 +3484,6 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/email/webhooks/delivery/": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        /** Submit email delivery webhook */
-        readonly post: operations["email_delivery_webhook"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
     readonly "/api/v1/errors/report/": {
         readonly parameters: {
             readonly query?: never;
@@ -6087,11 +6070,6 @@ export interface components {
             readonly institution_id?: string | null;
             readonly assignment_version?: number;
         };
-        readonly EmailActionResponse: {
-            readonly data: components["schemas"]["IntegrationAction"];
-            /** @default true */
-            readonly success: boolean;
-        };
         readonly EmailSend: {
             /** Format: email */
             readonly recipient_email: string;
@@ -6210,12 +6188,6 @@ export interface components {
             readonly created_at: string | null;
             /** Format: date-time */
             readonly updated_at: string | null;
-        };
-        readonly IntegrationAction: {
-            readonly message: string;
-            readonly status: string;
-            /** Format: uuid */
-            readonly reference_id: string;
         };
         /** @description Validates login credentials. */
         readonly Login: {
@@ -19415,76 +19387,6 @@ export interface operations {
                     readonly "application/json": components["schemas"]["EmailSendResponse"];
                 };
             };
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Authentication required — missing or invalid credentials. */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden — the authenticated user lacks permission for this action. */
-            readonly 403: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Resource not found. */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal server error. Logged to GlitchTip. */
-            readonly 500: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    readonly email_delivery_webhook: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": components["schemas"]["IntegrationAction"];
-                readonly "application/x-www-form-urlencoded": components["schemas"]["IntegrationAction"];
-                readonly "multipart/form-data": components["schemas"]["IntegrationAction"];
-            };
-        };
-        readonly responses: {
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": components["schemas"]["EmailActionResponse"];
-                };
-            };
-            /** @description Bad request — validation error. Response body follows the platform error envelope. */
             readonly 400: {
                 headers: {
                     readonly [name: string]: unknown;

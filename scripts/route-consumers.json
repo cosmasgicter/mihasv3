@@ -33,9 +33,9 @@
     },
     {
       "route": "/api/v1/email/webhooks/delivery/",
-      "consumer": "Email provider delivery callbacks",
-      "owner": "platform backend owner",
-      "reason": "pending D1.b: decision on whether the delivery webhook stays; the route is left unchanged until the user answers."
+      "consumer": "None today: a jobs-ops scaffold for email provider delivery callbacks. No provider is registered to call it, and admissions reads delivery state from EmailQueue.status",
+      "owner": "platform jobs-ops owner",
+      "reason": "D1.b decided 2026-11-21 under the owner's full approval, option (i): mounted only when ENABLE_JOBS_OPS_ROUTES is on, like the rest of jobs-ops (D1 option B); it answers 404 while the flag is off. Its handler returns a seed payload and writes nothing."
     },
     {
       "route": "/api/v2/admin/change-requests/",

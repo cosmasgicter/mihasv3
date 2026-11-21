@@ -89,9 +89,11 @@ STUB_ROUTES: Tuple[Tuple[str, str], ...] = (
     # add them only when the flag is on (platform-simplification task 12.1). They are
     # probed by resolving the exact path. ``POST /api/v1/email/send/`` is not listed:
     # the admissions admin email action calls it, so it stays mounted whatever the flag says.
+    # The delivery webhook joined the list when decision D1.b was answered (2026-11-21).
     ("/api/v1/email/accounts/zoho/connect/", "integrations"),
     ("/api/v1/email/messages/", "integrations"),
     ("/api/v1/email/threads/", "integrations"),
+    ("/api/v1/email/webhooks/delivery/", "integrations"),
     ("/api/v1/documents/resumes/", "jobs"),
     ("/api/v1/documents/resumes/variants/", "jobs"),
     ("/api/v1/documents/cover-letters/generate/", "jobs"),

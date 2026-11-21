@@ -1,8 +1,9 @@
 """Task 12.1 (D1 option B): the jobs-ops seed and scaffold routes follow the flag.
 
-Requirements 3.3, 3.4, 3.5, 3.7. With ``ENABLE_JOBS_OPS_ROUTES`` off the seven routes do
-not resolve (404); with it on they do. ``POST /api/v1/email/send/`` resolves either way, and
-``webhooks/delivery/`` stays mounted exactly as before until decision D1.b is answered.
+Requirements 3.3, 3.4, 3.5, 3.7. With ``ENABLE_JOBS_OPS_ROUTES`` off the eight routes do
+not resolve (404); with it on they do. ``POST /api/v1/email/send/`` resolves either way.
+``webhooks/delivery/`` is the eighth: decision D1.b (option (i), decided 2026-11-21) gates
+it with the jobs-ops flag, and ``scripts/route-consumers.json`` records that answer.
 """
 from __future__ import annotations
 
@@ -23,10 +24,10 @@ GATED = (
     "/api/v1/documents/resumes/variants/",
     "/api/v1/documents/cover-letters/generate/",
     "/api/v1/documents/question-bank/answer/",
+    "/api/v1/email/webhooks/delivery/",
 )
 ALWAYS = (
     "/api/v1/email/send/",
-    "/api/v1/email/webhooks/delivery/",
     "/api/v1/documents/upload/",
 )
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -72,13 +73,14 @@ def test_always_mounted_routes_resolve_for_both_flag_values(request, fixture_nam
     assert resolve(path).func is not None
 
 
-def test_delivery_webhook_is_recorded_as_pending_d1b():
+def test_delivery_webhook_records_the_d1b_answer():
     entries = json.loads((REPO_ROOT / "scripts" / "route-consumers.json").read_text())["entries"]
     entry = next(e for e in entries if e["route"] == "/api/v1/email/webhooks/delivery/")
-    assert "pending D1.b" in entry["reason"]
+    assert "pending D1.b" not in entry["reason"]
+    assert "D1.b" in entry["reason"] and "ENABLE_JOBS_OPS_ROUTES" in entry["reason"]
 
 
-def test_scope_gate_lists_the_seven_routes():
+def test_scope_gate_lists_the_eight_routes():
     import importlib.util
 
     path = REPO_ROOT / "scripts" / "launch-verification" / "check-launch-scope.py"
