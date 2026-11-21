@@ -236,6 +236,20 @@ Each row of the critique's §6 table, re-read at this commit:
 ### 12.1 Seven routes behind the flag (R3.3, 3.5, 3.7): PARTIAL, left unticked
 - `email_urls.py` and `documents/urls.py` add the seven routes only when `ENABLE_JOBS_OPS_ROUTES` is on; `send/` always mounted. The scope gate lists the seven (14 stubs probed, 0 reachable; with the flag on it correctly fails). Schemas, lint baseline untouched (api-quality OK), `api.d.ts` regenerated, routes-report baseline cleaned. `tests/jobs_ops_urls.py` reloads the modules in the right order; seven existing tests use it. Tests for both flag values: `test_jobs_ops_route_gating_12_1.py`. Existing-test change: the Zoho envelope test turns the flag on (assertion unchanged).
 - Waiting on D1.b: `webhooks/delivery/` stays mounted, entry "pending D1.b". Production effect: the seven routes answer 404 while the flag is off. Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
+- **2026-11-21 (finish run, W3): D1.b answered and applied, so 12.1 is ticked.** Decided 2026-11-21 under the owner's full approval: option (i), gate the webhook with the jobs-ops flag.
+  - Evidence that only jobs-ops owns it:
+    - `git grep` finds no caller in `apps/admissions`, `apps/jobs-ops` or `harness`.
+    - Nothing registers it with a provider, and no settings module or env template sets `EMAIL_WEBHOOK_SECRET`.
+    - The handler writes nothing and builds its reply with `jobs_ops_seed.build_action_payload`.
+    - Admissions' delivery state comes from `EmailQueue.status` (`communication_history.py`).
+    - The route came from the jobs-ops API design (`docs/archive/legacy/design/2026-03-30-ai-job-hunting-platform-api-data-spec.md:138`).
+  - Results:
+    - `routes_report.py`: 0 offenders, 0 stale, 0 invalid consumers. The webhook is classified `consumer` through its recorded entry.
+    - The scope gate passed: 15 stubs probed, 0 reachable un-shipped.
+    - `api_quality.sh`: OK, with no breaking change, 0 spectacular errors and 0 warnings.
+    - The targeted backend tests passed on Postgres 16: 106 passed.
+    - Two existing tests changed; `tasks.md` 12.1 names them.
+  - Path in force: Deploy is disabled, so this ships with the new server's first deploy. Production effect: the webhook answers 404 while the flag is off. Rollback: revert, or turn the flag on.
 
 ### 12.2 Jobs-ops UI state (R3.6, 13.3)
 - `FeatureGate` and `JobsOpsNotEnabled` at the router root, error state with Retry. `featureGate.test.tsx` proves no feature request fires while disabled or on metadata failure. `router.test.ts` wraps routes in the gate (setup only). jobs-ops: type-check, lint, build, 41 tests pass.

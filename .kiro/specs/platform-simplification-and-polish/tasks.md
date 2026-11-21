@@ -351,14 +351,33 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Option D: keep the rollup, and add a dated note to `docs/launch-evidence/launch-readiness.md` that its "production-launch-ready, 11/11" verdict covers neither document upload nor the student journey (critique §6 row 12).
     - _Requirements: 4.5, 6.1_
 
-- [ ] 12. Jobs-ops freeze (D1)
-  - [ ] 12.1 [Decision D1 confirmed 2026-11-08 (option B); the `webhooks/delivery/` step waits for the D1.b answer, which is still open] Put every jobs-ops route behind the flag (option B)
+- [x] 12. Jobs-ops freeze (D1)
+  - [x] 12.1 [Decision D1 confirmed 2026-11-08 (option B); the `webhooks/delivery/` step waits for the D1.b answer, which is still open] Put every jobs-ops route behind the flag (option B)
     - Mount the email seed routes and the four document seed routes only when `ENABLE_JOBS_OPS_ROUTES` is on (design §3).
     - The D1.b answer is still open (recommendation: gate the webhook with the flag). Until the user answers, leave `webhooks/delivery/` mounted exactly as today, with its External_Consumer_List entry marked "pending D1.b". Then apply the answer (gate it, keep it with its secret required in production, or remove it) and record it in `scripts/route-consumers.json` (Requirement 3.5). The task is complete only when that step is done; every other step proceeds now.
     - Add the seven routes to the stub list in `check-launch-scope.py`.
     - Add tests for both flag values, and regenerate the OpenAPI baseline.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: while the flag is off, the seven seed and scaffold routes answer 404.
     - _Requirements: 3.3, 3.5, 3.7_
+    - Done 2026-11-21 (finish run, W3). D1.b was decided 2026-11-21 under the owner's full approval: option (i), gate the webhook with the jobs-ops flag. It was decided from evidence (Decision Register, D1).
+      - Its handler (`apps/integrations/email_views.py`) builds a reply with the jobs-ops seed module and writes nothing.
+      - No first-party code calls the route, and nothing in the repository registers it with a provider. `EMAIL_WEBHOOK_SECRET` is set by no settings module or env template.
+      - Admissions email delivery state comes from `EmailQueue.status` (`apps/common/communication_history.py`), not from a webhook.
+      - The route came from the AI job-hunting platform's API design (`docs/archive/legacy/design/2026-03-30-ai-job-hunting-platform-api-data-spec.md`).
+      - So only jobs-ops owns it, and nothing in admissions depends on it.
+    - The change:
+      - `email_urls.py` mounts `webhooks/delivery/` only when `ENABLE_JOBS_OPS_ROUTES` is on.
+      - `check-launch-scope.py` lists it as the eighth stub, with 15 stubs probed and 0 reachable.
+      - `scripts/route-consumers.json` records the answer; the routes report has 0 offenders.
+      - The path was removed from `openapi.v1.baseline.yaml` the way the other seven were. `openapi.v2.candidate.yaml` and `api.d.ts` were regenerated, which dropped the path and its two now-unused component schemas.
+      - The `api_quality.sh` gate shows no breaking change.
+      - `tech.md` was updated.
+    - Existing-test changes:
+      - `backend/tests/unit/test_jobs_ops_route_gating_12_1.py`. Old: the webhook was in `ALWAYS` (it resolves with either flag value), `test_delivery_webhook_is_recorded_as_pending_d1b` asserted "pending D1.b" in its consumer entry, and the scope-gate test was named for seven routes. New: the webhook is in `GATED` (404 with the flag off, resolves with it on); `test_delivery_webhook_records_the_d1b_answer` asserts that the entry names D1.b and the flag and no longer says pending; the scope-gate test is renamed for eight routes, with its assertion unchanged. Reason: the old assertions pinned the state before D1.b was decided, on purpose.
+      - `backend/tests/unit/test_integrations_envelope_conformance.py`, `TestEmailDeliveryWebhookViewEnvelope`. Setup only: it turns the flag on, as the Zoho test beside it already does. The assertions are unchanged.
+    - Deploy path in force: none. Deploy is disabled until the new server exists, so this reaches production with that server's first deploy (Spec A task 6.2).
+      - Production effect: `POST /api/v1/email/webhooks/delivery/` answers 404 while the flag is off.
+      - Rollback: revert the commit, or set `ENABLE_JOBS_OPS_ROUTES=true`, which mounts every jobs-ops route.
 
   - [x] 12.2 [Decision D1 confirmed 2026-11-08 (option B)] Show the decided jobs-ops UI state
     - Option B: add `FeatureGate` and `JobsOpsNotEnabled` at the router root (design §3), including the metadata error state with Retry. Assert in a test that no feature request fires while jobs-ops is disabled.
