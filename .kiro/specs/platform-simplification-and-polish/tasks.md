@@ -48,12 +48,13 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - _Requirements: 1.12_
     - Test edit (fix pass 2026-11-09): `two-tenant-adversarial-matrix.spec.ts` F3 (`allowHarnessNoise`). Old: allowed only `glitchtip`, so the reporter's envelope to `harness-invalid.localhost` failed the gate. New: also `gate.allowRequest("harness-invalid.localhost")`, the convention 13 other specs use. Reason: the task-1.3 DSN is deliberately unreachable and F3 causes a conflict on purpose; the general no-outside-host gate is unchanged.
 
-- [ ] 2. Checkpoint: start condition for the rest of this spec
+- [x] 2. Checkpoint: start condition for the rest of this spec
   - Confirm that Spec A's Journey_Gate is green and blocking in CI on main, and record the commit id and run link in the evidence summary.
   - Record whether Spec A's pause on automatic deploys (DEC-10) is in force, and on which path (environment approval or disabled workflow), or whether Spec A's task 6.2 has already re-enabled automatic deploys. This decides how this spec's merges reach production (Overview, "Deploy path").
   - Record the pointer for the operator who will approve Spec A task 6.2: read this spec's Deploy path entries before approving, because Spec A task 6.1's checklist does not mention them. Record too whether the pause is still in the form Spec A task 2.6 chose (an environment with required reviewers holds only while the repository is public on the Free, Pro and Team plans).
   - Ask the user if questions arise.
   - _Requirements: 1.1, 22.5, 22.7_
+  - Superseded by the owner's direction, decided 2026-11-21 under the owner's full approval. Work lands on `main` by direct push, all testing happens on this device, required-check wiring is waived, and Deploy is disabled until the new server exists, so no merge reaches production. The facts this checkpoint asked for, checked 2026-11-21 (finish run, W3): the Journey_Gate passes on `main` (run 44946354487 at `966423cdb`, informational) and passed in the canonical browser image on this device in W1 and W2; it is not a required check, because `main` has no branch protection. Spec A's DEC-10 pause in task 2.6's form was not performed (Spec A task 2.6 is superseded). The Deploy workflow is `disabled_manually`, and the `Production` environment has no protection rules. Pointer for whoever re-enables Deploy (Spec A task 6.2): read this spec's Deploy path lines first. The environment form of the pause no longer exists. Evidence summary: section 2.
 
 - [x] 3. Repository checks that land with baselines
   - [x] 3.1 Build the routes-versus-callers report

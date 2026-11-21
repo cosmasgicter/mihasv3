@@ -36,6 +36,12 @@ Recorded 2026-11-09. Nothing here was changed; this is what was found.
 
 **Pointer for the operator who approves Spec A task 6.2.** Before approving, read the `Deploy path` lines of this spec's tasks 3.7, 4.1, 4.2, 4.5, 5.1, 5.2, 7.1, 7.2, 12.2, 13.1, 14.x and 16.x in `tasks.md`; Spec A task 6.1's checklist does not mention them. Also confirm the pause is still in the form task 2.6 chose: an environment with required reviewers holds only while the repository is public on the Free, Pro and Team plans.
 
+**Addendum 2026-11-21 (finish run, W3): ticked as superseded.** Decided 2026-11-21 under the owner's full approval: work lands on `main` by direct push, testing happens on this device, required-check wiring is waived, and Deploy stays disabled until the new server exists. Read-only checks through the GitHub API on 2026-11-21:
+- The Deploy workflow's state is `disabled_manually`. Its last successful run was on 2026-07-12; every run since was skipped.
+- The `Production` environment has no protection rules, and `main` has no branch protection.
+- The Journey_Gate passes on `main`: Student Journey Gate run 44946354487 at `966423cdb`, where `journey-gate` and `rendered-design-gate` both succeeded. That run is informational, because the gate is not a required check. The gate also passed in the canonical browser image on this device in W1 and W2.
+- Spec A task 2.6 is superseded and its pause was not performed. The pointer above still applies to whoever re-enables Deploy (Spec A task 6.2).
+
 ## 3.1 Routes-versus-callers report
 
 - `scripts/routes_report.py` builds `build_backend_route_catalogue()` once with `ENABLE_JOBS_OPS_ROUTES` off and once on (inside `override_settings`, reloading `apps.common.email_urls`, `apps.documents.urls` and `config.urls`, then `clear_url_caches()`), keys routes and callers by `(version, segments)`, and gives every route one class.
