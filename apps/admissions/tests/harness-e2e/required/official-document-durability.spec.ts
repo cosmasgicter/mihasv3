@@ -61,6 +61,7 @@
  * exceptions, no unasserted failed requests. Both the desktop and the mobile
  * project run every journey.
  */
+import type { Frame } from '@playwright/test';
 import { test, expect, type APIRequestContext, type Page } from '../harness-fixtures';
 import {
   assignOffering,
@@ -402,7 +403,8 @@ async function documentMessages(page: Page): Promise<any[]> {
 /** A request the browser made to the storage host, recorded as the route below serves it. */
 interface StorageVisit {
   url: string;
-  page: Page | null;
+  /** The frame that made the request; a popup's own navigation is its main frame's. */
+  frame: Frame | null;
   isNavigation: boolean;
 }
 /**
@@ -421,7 +423,7 @@ interface StorageVisit {
  * to a `blob:` a client renderer produced. What is stubbed is the object store's
  * reachability, which no assertion in this file is about.
  *
- * Every request the route serves is recorded with the page that made it, so
+ * Every request the route serves is recorded with the frame that made it, so
  * {@link settledPopupUrl} can tell where the popup's own navigation went.
  */
 async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<StorageVisit[]> {
@@ -429,13 +431,14 @@ async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<
   const visits: StorageVisit[] = [];
   await page.context().route(`${protocol}//${host}/**`, (route) => {
     const request = route.request();
-    let owner: Page | null = null;
+    let frame: Frame | null = null;
     try {
-      owner = request.frame().page();
+      frame = request.frame();
     } catch {
-      owner = null;
+      // A service worker's request has no frame; it is never the popup's navigation.
+      frame = null;
     }
-    visits.push({ url: request.url(), page: owner, isNavigation: request.isNavigationRequest() });
+    visits.push({ url: request.url(), frame, isNavigation: request.isNavigationRequest() });
     return route.fulfill({
       status: 200,
       contentType: 'application/pdf',
@@ -464,16 +467,18 @@ async function allowStorageNavigation(page: Page, downloadUrl: string): Promise<
  * Playwright's bundled Chromium headless shell, which the harness runs in CI and in
  * the pinned image, has no PDF viewer, so this wait timed out there while it passed
  * with a desktop Chrome. The request is the same in both browsers, so the claim is
- * unchanged: the browser opened the backend-signed stored object. A popup that
- * commits somewhere else, a `blob:` for instance, still settles on that URL, and
- * the callers' assertions reject it.
+ * unchanged: the browser opened the backend-signed stored object. Only a navigation
+ * of the popup's **main frame** counts: an iframe in the popup that loaded the
+ * signed URL is not the popup going there. A popup that commits somewhere else, a
+ * `blob:` for instance, still settles on that URL, and the callers' assertions
+ * reject it.
  */
 async function settledPopupUrl(popup: Page, visits: StorageVisit[]): Promise<string> {
   let destination = '';
   await expect
     .poll(
       () => {
-        const visit = visits.find((v) => v.page === popup && v.isNavigation);
+        const visit = visits.find((v) => v.isNavigation && v.frame === popup.mainFrame());
         if (visit) {
           destination = visit.url;
           return true;
