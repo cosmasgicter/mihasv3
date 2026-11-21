@@ -163,9 +163,8 @@ test.afterAll(async () => {
  *
  * So the scan starts once no finite CSS transition or animation is running and every
  * "Saved" confirmation has finished fading. The confirmation is then hidden, and the
- * whole page is scanned as before; nothing is excluded. At rest the label is
- * #374151 on white, 10.3:1. (The rendered design gate runs with reduced motion, where
- * the label has no fade: it is shown, then hidden.)
+ * whole page is scanned as before; nothing is excluded. The label itself is measured
+ * at rest by the reduced-motion test below.
  */
 async function waitForFadesToFinish(page: Page): Promise<void> {
   await page.waitForFunction(
@@ -286,6 +285,79 @@ for (const viewport of VIEWPORTS) {
     ).toEqual([]);
   });
 }
+
+// ---------------------------------------------------------------------------
+// The auto-save confirmation, measured at rest (platform-simplification task 22.5)
+// ---------------------------------------------------------------------------
+/**
+ * `scan()` waits until "Saved" has faded before axe runs, so the sweep above always
+ * scans the wizard after the label is hidden and never measures the label itself
+ * (W2 review, finding W2-R1-4). This keeps one measurement of it at rest.
+ *
+ * With reduced motion emulated the label has no fade: `index.css` sets every
+ * transition to 0.01 ms, so "Saved" is fully opaque from the moment it appears until
+ * its 3 s timer hides it. axe's `color-contrast` rule runs on the action bar's status
+ * region inside that window. The label must be opaque before and after the scan, and
+ * axe must have evaluated it, so the check cannot pass on a hidden label.
+ */
+test('the auto-save confirmation meets AA contrast at rest (reduced motion)', async ({
+  page,
+  gate,
+}, testInfo) => {
+  allowHarnessNoise(gate);
+  const project = testInfo.project.name;
+  await loginStudent(page, world!);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of VIEWPORTS.filter((v) => v.label === '390x844' || v.label === '1280x800')) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto(`/student/application-wizard?mode=resume&draftId=${world!.draftApplicationId}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await settled(page);
+    const bar = page.getByTestId('wizard-action-bar');
+    await expect(bar).toBeVisible({ timeout: 60_000 });
+    const saved = bar.locator('[role="status"] > span').filter({ hasText: 'Saved' });
+    await expect(saved, `"Saved" is shown at rest at ${viewport.label}`).toHaveCSS('opacity', '1', {
+      timeout: 15_000,
+    });
+
+    const results = await new AxeBuilder({ page })
+      .include('[data-testid="wizard-action-bar"] [role="status"]')
+      .withRules(['color-contrast'])
+      .analyze();
+    const opacityAfter = await saved.evaluate((el) => getComputedStyle(el).opacity);
+    // The node is found by its selector: axe truncates `html`, and the label's icon
+    // path comes before its text.
+    const measured: { target: string; data: unknown }[] = [];
+    for (const node of results.passes.find((rule) => rule.id === 'color-contrast')?.nodes ?? []) {
+      const target = String(node.target[0]);
+      const text = await page.evaluate((selector) => document.querySelector(selector)?.textContent?.trim() ?? '', target);
+      if (text !== 'Saved') continue;
+      measured.push({ target, data: node.any.find((check) => check.id === 'color-contrast')?.data ?? null });
+    }
+
+    recordRow(project, {
+      kind: 'axe-at-rest',
+      project,
+      viewport: viewport.label,
+      surface: '/student/application-wizard',
+      element: 'AutoSaveIndicator "Saved" (reduced motion)',
+      opacityAfterScan: opacityAfter,
+      measured,
+      violations: results.violations.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })),
+    });
+
+    expect(opacityAfter, `the scan at ${viewport.label} ran while "Saved" was still at rest`).toBe('1');
+    expect(
+      measured.length,
+      `axe evaluated the "Saved" label at ${viewport.label}: ${JSON.stringify(results.passes.map((r) => r.id))}`,
+    ).toBeGreaterThan(0);
+    expect(
+      results.violations.map((v) => `[${v.impact}] ${v.id} @ ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`),
+      `"Saved" meets AA contrast at rest at ${viewport.label}`,
+    ).toEqual([]);
+  }
+});
 
 // ---------------------------------------------------------------------------
 // GATE-13.3-11: the unweakened claim, stated correctly
