@@ -176,16 +176,9 @@ export default function SignUpPage() {
       />
       <AuthShell
         title="Create your application account"
-        description={
-          <>
-            Start your journey with Beanola.{' '}
-            <Link
-              to="/auth/signin"
-              className="font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-            >
-              Already have an account? Sign in
-            </Link>
-          </>
+        description="Start your journey with Beanola."
+        headerAction={
+          <AuthShellLink to="/auth/signin">Already have an account? Sign in</AuthShellLink>
         }
         footer={
           <AuthShellFooter>
@@ -343,12 +336,17 @@ export default function SignUpPage() {
             {signUpMutation.isPending ? 'Creating account…' : 'Create account'}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
-            By creating an account, you agree to our{' '}
-            <Link to="/terms" className="text-primary hover:underline">Terms</Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-primary hover:underline">Privacy policy</Link>.
-          </p>
+          {/* The two links sit on their own row, not inside the sentence, so each
+              meets the 44 × 44 px target rule (decision D17, task 24.8). */}
+          <div className="space-y-1 text-center">
+            <p className="text-xs text-muted-foreground">
+              By creating an account, you agree to our Terms and Privacy policy.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-6 text-sm">
+              <AuthShellLink to="/terms">Terms</AuthShellLink>
+              <AuthShellLink to="/privacy">Privacy policy</AuthShellLink>
+            </div>
+          </div>
         </form>
       </AuthShell>
     </>

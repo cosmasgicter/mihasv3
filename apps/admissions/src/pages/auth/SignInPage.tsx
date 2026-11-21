@@ -4,7 +4,7 @@
  * @requirements 31.1, 31.3, 31.6, 31.7 - Minimal layout, center-aligned card
  */
 
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from '@/lib/zod';
@@ -220,16 +220,9 @@ export default function SignInPage() {
       <Seo title={seoConfig.title} description={seoConfig.description} path={location.pathname} />
       <AuthShell
         title="Sign in to your application"
-        description={
-          <>
-            Welcome back. Pick up where you left off.{' '}
-            <Link
-              to="/auth/signup"
-              className="font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-            >
-              New here? Create an account
-            </Link>
-          </>
+        description="Welcome back. Pick up where you left off."
+        headerAction={
+          <AuthShellLink to="/auth/signup">New here? Create an account</AuthShellLink>
         }
         footer={
           <AuthShellFooter>

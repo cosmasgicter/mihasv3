@@ -30,6 +30,13 @@ interface AuthShellProps {
   description?: ReactNode
   children: ReactNode
   /**
+   * Optional standalone action rendered on its own line under the
+   * description, for example the link to the other auth page. Keep links out
+   * of the description sentence: a link inside running text cannot meet the
+   * 44 × 44 px target rule (decision D17, confirmed 2026-11-21).
+   */
+  headerAction?: ReactNode
+  /**
    * Optional content rendered below the form, separated by a divider. Use
    * this for the secondary action links (forgot-password, create-account).
    */
@@ -55,6 +62,7 @@ const DEFAULT_TRUST_NOTE = (
 export function AuthShell({
   title,
   description,
+  headerAction,
   children,
   footer,
   trustNote = DEFAULT_TRUST_NOTE,
@@ -95,6 +103,9 @@ export function AuthShell({
             {description ? (
               <p className="text-sm text-muted-foreground sm:text-base">{description}</p>
             ) : null}
+            {headerAction ? (
+              <div className="text-sm sm:text-base">{headerAction}</div>
+            ) : null}
           </header>
 
           {children}
@@ -126,8 +137,10 @@ export function AuthShellFooter({ children }: { children: ReactNode }) {
 }
 
 /**
- * Convenience: typed link for AuthShellFooter. Same focus + hover treatment
- * across every auth page. Use this instead of a raw `<Link>`.
+ * Convenience: typed standalone link for the auth pages (footer, header
+ * action, the sign-up consent links). Same focus + hover treatment across
+ * every auth page, and a 44 × 44 px minimum target however short the label.
+ * Use this instead of a raw `<Link>`.
  */
 export function AuthShellLink({
   to,
@@ -142,7 +155,7 @@ export function AuthShellLink({
     <Link
       to={to}
       className={cn(
-        'inline-flex min-h-touch items-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex min-h-touch min-w-touch items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         emphasis === 'default'
           ? 'text-primary hover:text-link-hover'
           : 'text-muted-foreground hover:text-foreground',
