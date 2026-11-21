@@ -76,8 +76,9 @@ const MAX_NAV_ITEMS = 4
 const ACTIVE_ITEM_TOKENS = 'bg-accent text-accent-foreground'
 
 /**
- * `NAV_ROW_CLASSES`: one column per item, each at least as wide as its label
- * (platform-simplification task 22.5, Requirement 21.2).
+ * `NAV_ROW_CLASSES` and `NAV_ITEM_SIZE_CLASSES`: every item as wide as its whole
+ * label, and every item on screen (platform-simplification task 22.5,
+ * Requirement 21.2).
  *
  * The bar was a flex row of `flex-1` items. `min-w-[44px]` replaced flexbox's own
  * minimum (the content's width), so every item got an equal share whatever its label
@@ -86,12 +87,23 @@ const ACTIVE_ITEM_TOKENS = 'bg-accent text-accent-foreground'
  * runner's fallback font, it needs 99 px, and "My school" needs 67 px of 64. Inter is
  * not shipped, so a student's labels are set in whatever font the device has.
  *
- * `minmax(min-content, 1fr)` columns keep equal widths whenever the labels fit and
- * give a longer label the width it needs when they do not, taken from the others.
- * Labels stay whole and on one line (task 31.1 removed truncation), the bar keeps its
- * height, and `min-w-[44px]` still sets each item's floor.
+ * Each item starts from the same 44 px basis, grows by an equal share, never shrinks
+ * below that basis and is never narrower than its label (`min-w-min`). So the items
+ * keep equal widths while the labels fit, and a longer label takes the width it
+ * needs from the others. When the labels add up to more than the bar, the row wraps
+ * onto another line rather than pushing Logout or More past the right edge. Enlarged
+ * text does that: with the root font at 150%, DejaVu Sans sets the student's four
+ * items in 479 px. Labels stay whole and on one line (task 31.1 removed truncation).
+ *
+ * Enlarged text makes the bar taller than the 64 px `--mobile-bottom-nav-height`
+ * token, and a wrapped bar more so. The bar therefore publishes its measured height
+ * as `--bottom-nav-measured-height`, and `--bottom-nav-safe-offset` (`index.css`, the
+ * bottom padding `PageShell` reserves) uses whichever is larger, so the end of every
+ * page still scrolls clear of the bar.
  */
-const NAV_ROW_CLASSES = 'grid min-w-0 grid-flow-col auto-cols-[minmax(min-content,1fr)] items-center gap-1 px-2 pt-2'
+const NAV_ROW_CLASSES = 'flex min-w-0 flex-wrap items-center gap-1 px-2 pt-2'
+const NAV_ITEM_SIZE_CLASSES = 'flex-[1_0_44px] min-w-min min-h-[44px]'
+const NAV_MEASURED_HEIGHT_PROPERTY = '--bottom-nav-measured-height'
 
 /** Route-to-import map for prefetching route chunks on hover/focus */
 const routeImports: Record<string, () => Promise<unknown>> = {
@@ -154,10 +166,11 @@ function BottomNavLink({
   const hasImport = item.href in routeImports
   const prefetch = usePrefetch(routeImports[item.href] ?? noopImport)
   const prefetchProps = hasImport ? prefetch : {}
-  // No `flex-1`: the bar's grid sizes each item (`NAV_ROW_CLASSES`, task 22.5).
+  // Sized by `NAV_ITEM_SIZE_CLASSES`, not an equal `flex-1` share (task 22.5).
   const baseClassName = cn(
     'flex flex-col items-center justify-center',
-    'min-h-[44px] min-w-[44px] px-1 py-2',
+    NAV_ITEM_SIZE_CLASSES,
+    'px-1 py-2',
     'rounded-lg',
     'transition-colors duration-150',
     'touch-manipulation select-none',
@@ -281,6 +294,8 @@ export function BottomNavigation({
   const [isMoreOpen, setIsMoreOpen] = React.useState(false)
   const [viewportWidth, setViewportWidth] = React.useState(() => window.innerWidth)
   const moreButtonRef = React.useRef<HTMLButtonElement>(null)
+  const navRef = React.useRef<HTMLElement>(null)
+  const rowRef = React.useRef<HTMLDivElement>(null)
 
   const navItems = items || (isAuthenticated ? defaultStudentNavItems : defaultPublicNavItems)
   const visibleItems = navItems.filter(item => !item.requiresAuth || isAuthenticated)
@@ -301,6 +316,28 @@ export function BottomNavigation({
     setIsMoreOpen(false)
   }, [location.pathname])
 
+  // The bar's own height, from its top border to the end of the item rows (its
+  // bottom padding is added by `--bottom-nav-safe-offset`), published before paint
+  // and again whenever the rows change size. See `NAV_ROW_CLASSES`.
+  React.useLayoutEffect(() => {
+    const nav = navRef.current
+    const row = rowRef.current
+    if (!nav || !row) return undefined
+    const root = document.documentElement
+    const publish = () => {
+      const height = row.getBoundingClientRect().bottom - nav.getBoundingClientRect().top
+      if (height > 0) root.style.setProperty(NAV_MEASURED_HEIGHT_PROPERTY, `${Math.ceil(height)}px`)
+      else root.style.removeProperty(NAV_MEASURED_HEIGHT_PROPERTY)
+    }
+    publish()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    observer?.observe(row)
+    return () => {
+      observer?.disconnect()
+      root.style.removeProperty(NAV_MEASURED_HEIGHT_PROPERTY)
+    }
+  }, [])
+
   const isItemActive = (item: BottomNavItem) =>
     item.activeMatchPaths?.some(path => isActiveRoute(path)) ?? isActiveRoute(item.href)
 
@@ -312,6 +349,7 @@ export function BottomNavigation({
 
   return (
     <nav
+      ref={navRef}
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
         'border-t border-border/45 bg-background shadow-sm',
@@ -354,7 +392,7 @@ export function BottomNavigation({
         </>
       )}
 
-      <div className={NAV_ROW_CLASSES}>
+      <div ref={rowRef} className={NAV_ROW_CLASSES}>
         {primaryItems.map((item) => (
           <BottomNavLink key={item.href} item={item} isActive={isItemActive(item)} iconOnly={isNarrowViewport} />
         ))}
@@ -365,7 +403,8 @@ export function BottomNavigation({
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
               'flex flex-col items-center justify-center rounded-lg',
-              'min-h-[44px] min-w-[44px] px-1 py-2',
+              NAV_ITEM_SIZE_CLASSES,
+              'px-1 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',
               // Same token pair and reason as `BottomNavLink` above (GATE-13.3-12).

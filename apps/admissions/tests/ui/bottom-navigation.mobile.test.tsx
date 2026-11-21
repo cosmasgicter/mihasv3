@@ -1,5 +1,7 @@
 import React from 'react'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -144,32 +146,99 @@ describe('BottomNavigation mobile overflow', () => {
 
   /**
    * Platform-simplification task 22.5 (Requirement 21.2): each item is as wide as its
-   * label needs, whatever the font. The bar was a flex row of `flex-1` items whose
-   * `min-w-[44px]` replaced flexbox's content minimum, so every slot was an equal
-   * share and a longer label spilled out of it: the CI browser's DejaVu Sans measured
-   * "My application" at 99 px in an 83 px slot. The row is now a grid of
-   * `minmax(min-content, 1fr)` columns, so slots stay equal while the labels fit and a
-   * longer label takes the width it needs. jsdom cannot measure layout, so this pins
-   * the classes; the rendered design gate measures the result at 390 px.
+   * whole label, and every item stays on screen, whatever the font and the text size.
+   * The bar was a flex row of `flex-1` items whose `min-w-[44px]` replaced flexbox's
+   * content minimum, so every slot was an equal share and a longer label spilled out
+   * of it: the CI browser's DejaVu Sans measured "My application" at 99 px in an 83 px
+   * slot. Each item now grows from a common 44 px basis, never shrinks below it and is
+   * never narrower than its label, and the row wraps when the labels add up to more
+   * than the bar, as they do at 150% text. jsdom cannot measure layout, so this pins
+   * the classes; the rendered design gate measures the result at 390 px, and
+   * `harness-e2e/required/bottom-navigation-text-scale.spec.ts` at 150% and 200% text.
    */
-  it('sizes each item to its whole label: a min-content grid, no equal flex shares', () => {
+  it('sizes each item to its whole label and wraps the row instead of overflowing it', () => {
     const { container, unmount } = renderNav(390)
     const row = container.querySelector('nav > div:last-child')
     const rowClasses = (row?.getAttribute('class') ?? '').split(/\s+/)
-    expect(rowClasses).toEqual(
-      expect.arrayContaining(['grid', 'grid-flow-col', 'auto-cols-[minmax(min-content,1fr)]']),
-    )
-    expect(rowClasses).not.toContain('flex')
+    expect(rowClasses).toEqual(expect.arrayContaining(['flex', 'flex-wrap']))
+    expect(rowClasses).not.toContain('grid')
     const items = Array.from(row?.children ?? [])
     expect(items.length, 'four primary items and More').toBe(5)
     for (const item of items) {
       const classes = (item.getAttribute('class') ?? '').split(/\s+/)
       expect(classes, item.outerHTML.slice(0, 120)).not.toContain('flex-1')
-      expect(classes, 'the 44 px floor stays').toEqual(expect.arrayContaining(['min-h-[44px]', 'min-w-[44px]']))
+      // A common 44 px basis that never shrinks (the width floor), never narrower than
+      // the label, and the 44 px height floor.
+      expect(classes, item.outerHTML.slice(0, 120)).toEqual(
+        expect.arrayContaining(['flex-[1_0_44px]', 'min-w-min', 'min-h-[44px]']),
+      )
       const label = item.querySelector('span[aria-hidden="true"]:not([data-text-role])')
       expect(label?.getAttribute('class')).toContain('whitespace-nowrap')
       expect(label?.getAttribute('class')).not.toMatch(/\btruncate\b/)
     }
+    unmount()
+  })
+
+  /**
+   * A wrapped bar is taller than the 64 px `--mobile-bottom-nav-height` token, so the
+   * bar publishes its measured height and `index.css` reserves whichever is larger at
+   * the end of every page (`--bottom-nav-safe-offset`, read by `PageShell`). jsdom has
+   * no layout, so the two rectangles and the ResizeObserver are stubbed here.
+   */
+  it('publishes its measured height for the page padding, follows resizes and withdraws it', () => {
+    const property = '--bottom-nav-measured-height'
+    const callbacks: Array<() => void> = []
+    let disconnected = 0
+    const OriginalResizeObserver = globalThis.ResizeObserver
+    class RecordingResizeObserver {
+      constructor(callback: () => void) {
+        callbacks.push(callback)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {
+        disconnected += 1
+      }
+    }
+    globalThis.ResizeObserver = RecordingResizeObserver as unknown as typeof ResizeObserver
+    let rowBottom = 728
+    const rect = (top: number, bottom: number) =>
+      ({ top, bottom, left: 0, right: 390, width: 390, height: bottom - top, x: 0, y: top, toJSON: () => ({}) }) as DOMRect
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.tagName === 'NAV') return rect(600, 736)
+      if (this.parentElement?.tagName === 'NAV') return rect(601, rowBottom)
+      return rect(0, 0)
+    })
+    try {
+      const { unmount } = renderNav(390)
+      const root = document.documentElement
+      // From the nav's top border to the end of the rows: 728 - 600.
+      expect(root.style.getPropertyValue(property)).toBe('128px')
+      expect(callbacks.length, 'the bar watches its rows').toBe(1)
+      const [onResize] = callbacks
+      rowBottom = 836
+      act(() => onResize?.())
+      expect(root.style.getPropertyValue(property)).toBe('236px')
+      unmount()
+      expect(disconnected).toBe(1)
+      expect(root.style.getPropertyValue(property), 'withdrawn on unmount').toBe('')
+    } finally {
+      spy.mockRestore()
+      globalThis.ResizeObserver = OriginalResizeObserver
+    }
+
+    const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf-8')
+    expect(css).toMatch(
+      /--bottom-nav-safe-offset:\s*calc\(max\(var\(--mobile-bottom-nav-height\),\s*var\(--bottom-nav-measured-height,\s*0px\)\)/,
+    )
+  })
+
+  it('publishes nothing while the bar has no height (hidden at md and up)', () => {
+    const { unmount } = renderNav(390)
+    // jsdom's rectangles are all zero, which is what a `display: none` bar measures.
+    expect(document.documentElement.style.getPropertyValue('--bottom-nav-measured-height')).toBe('')
     unmount()
   })
   it('matches snapshot at 360px with text labels visible', () => {
