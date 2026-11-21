@@ -9,9 +9,8 @@ before the new file was written
 (``docs/v2-evidence/12.1/raw/backend-view-extract.py``).
 
 Split modules:
-  - ``_catalog_view_helpers.py`` - the named OpenAPI response envelopes, the read
-                                   scope resolution, and the tenant-scoped read
-                                   cache (signature + payload wrapper)
+  - ``_catalog_view_helpers.py`` - the named OpenAPI response envelopes and the
+                                   read scope resolution
   - ``context_views.py``         - ``/catalog/context/``
   - ``program_views.py``         - ``/catalog/programs/``,
                                    ``/canonical-programs/``,
@@ -36,18 +35,13 @@ from apps.catalog.subject_views import *  # noqa: F401,F403
 from apps.catalog.institution_views import *  # noqa: F401,F403
 
 # Underscore-prefixed names are excluded from wildcard imports. Re-export the
-# shared read-scope, cache and refusal helpers explicitly.
+# shared read-scope and refusal helpers explicitly.
 from apps.catalog._catalog_view_helpers import (  # noqa: F401
     _ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT,
     _CANONICAL_PROGRAM_SELECTOR_ENDPOINT,
-    _CATALOG_CACHE_TTL,
-    _CATALOG_EXPLICIT_SELECTOR_ENDPOINTS,
-    _CATALOG_NEUTRAL_SCOPE,
     _INSTITUTION_WRITE_CAPABILITIES,
     _INTAKE_FILTER_UNRESOLVED,
     _INTAKE_WRITE_CAPABILITY,
-    _cached_catalog_payload,
-    _catalog_scope_signature,
     _forbidden_response,
     _is_admin,
     _is_local_shared_host,

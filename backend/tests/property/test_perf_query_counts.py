@@ -28,9 +28,9 @@ serializing through the real ``ApplicationListSerializer`` /
 ``CanonicalProgramSerializer`` under ``CaptureQueriesContext`` so the assertion
 is faithful to production behavior.
 
-The catalog read cache flag stays OFF (``PERF_CACHE_CATALOG`` default ``False``)
-so this measures the always-on prefetch fixes, not a cache hit — the
-serialization mirrors bypass the view's cache wrapper entirely.
+The catalog read cache was removed by platform-simplification task 16.2
+(decision D7 option A), so this measures the always-on prefetch fixes; the
+serialization mirrors call the queryset and serializers directly.
 
 Backend note: the run command exercises this against the SQLite
 ``config.settings.test`` database, where Django compiles the window-function

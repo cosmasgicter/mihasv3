@@ -25,10 +25,9 @@ What it pins:
       programs grows (2 programs vs 5 programs) — it is the single ``program_set``
       prefetch query for the whole page, not one query per program (R4.4).
 
-The catalog read cache flag stays OFF (``PERF_CACHE_CATALOG`` default ``False``)
-so this measures the always-on prefetch fix and not a cache hit. The test
-bypasses the view's cache wrapper entirely by mirroring the queryset/prefetch/
-serializer directly.
+The catalog read cache was removed by platform-simplification task 16.2
+(decision D7 option A), so this measures the always-on prefetch fix. The test
+mirrors the queryset/prefetch/serializer directly.
 
 # Feature: system-performance-hardening
 Requirements: 4.4

@@ -4,30 +4,30 @@ Split out of ``apps/catalog/views.py`` by admissions-v2 task 12.1 (finding
 **MAINT-01**). Every definition here is the one that was in ``views.py``, lifted
 verbatim by ``docs/v2-evidence/12.1/raw/backend-view-extract.py``.
 
-Three concerns live here, and all three are shared by more than one endpoint:
+Two concerns live here, and both are shared by more than one endpoint:
 
 * **the response envelopes** the OpenAPI schema registers by name, so a split
   cannot rename a schema component;
 * **the read scope** — ``_is_admin`` / ``_scope_*_queryset_for_request`` /
   ``_resolve_public_request_context`` — the one place a white-label host narrows a
-  public listing to its own tenant;
-* **the read cache** — ``_catalog_scope_signature`` + ``_cached_catalog_payload``,
-  whose scope-signature rule is the guard that a query parameter cannot create a
-  cross-tenant cache key.
+  public listing to its own tenant.
+
+A third, the flag-gated read cache (``_catalog_scope_signature`` +
+``_cached_catalog_payload``), was removed by platform-simplification task 16.2
+(decision D7 option A): no environment the repository configures turned it on,
+and a local on/off measurement showed no material benefit.
 """
 
 from __future__ import annotations
 
 import logging
 
-from django.conf import settings
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.response import Response
 from drf_spectacular.utils import inline_serializer
 
 from apps.accounts.permissions import is_super_admin
-from apps.catalog.catalog_cache import CATALOG_NEUTRAL_SCOPE, catalog_institution_scope
 from apps.catalog.models import Institution
 from apps.catalog.serializers import (
     CanonicalProgramSerializer,
@@ -39,14 +39,12 @@ from apps.catalog.serializers import (
 from apps.catalog.services import (
     AdminCapabilityService,
     InstitutionContextService,
-    OfferingDirectoryService,
 )
 from apps.common.openapi_helpers import (
     MessageSerializer,
     envelope_serializer,
     paginated_serializer,
 )
-from apps.common.scoped_cache import build_scope_signature, cached_or_compute
 
 logger = logging.getLogger(__name__)
 
@@ -185,111 +183,13 @@ def _set_public_cache(response):
     return response
 
 
-#: Time-to-live for catalog read-response cache entries (R4.2: 300–600s).
-_CATALOG_CACHE_TTL = 450
-
-
-#: Stable signature segment for the neutral Beanola context / unresolved scope.
-#: Sourced from ``catalog_cache`` so the read scope and the write-path
-#: invalidation (task 14.2) stay in lockstep.
-_CATALOG_NEUTRAL_SCOPE = CATALOG_NEUTRAL_SCOPE
-
-
-# These are the only public catalog endpoints allowed to opt into an explicit
-# institution selector. Keep their cache scope decision on the same allowlist as
-# the view's tenant selector so a query cannot create a cross-tenant cache key.
+# The two public catalog endpoints allowed to opt into an explicit institution
+# selector; ``OfferingDirectoryService.resolved_institution_id`` decides, per
+# endpoint, whether a query selector is honoured (``program_views.py``).
 _CANONICAL_PROGRAM_SELECTOR_ENDPOINT = "canonical_programs"
 
 
 _ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT = "assignment_preview"
-
-
-_CATALOG_EXPLICIT_SELECTOR_ENDPOINTS = {
-    "/api/v1/catalog/canonical-programs/": _CANONICAL_PROGRAM_SELECTOR_ENDPOINT,
-    "/api/v1/catalog/assignment-preview/": _ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT,
-}
-
-
-def _catalog_scope_signature(request):
-    """Resolve the catalog cache scope signature for a request (R2.4, R5.3).
-
-    For the two allowlisted public selector endpoints, scope by the effective
-    canonical institution before considering the caller's generic cache scope:
-    a trusted tenant host wins over a query value, and a registered neutral
-    shared portal selection uses that selected tenant's ``inst:<id>`` partition.
-    An unregistered/unknown host remains neutral. All other catalog endpoints
-    preserve their existing admin and host-derived cache behavior.
-    """
-    selector_endpoint = _CATALOG_EXPLICIT_SELECTOR_ENDPOINTS.get(
-        getattr(request, "path", "")
-    )
-    if selector_endpoint:
-        try:
-            context = _resolve_public_request_context(request)
-            institution_id = OfferingDirectoryService().resolved_institution_id(
-                context,
-                request.query_params.get("institution"),
-                request_host=_request_host(request),
-                endpoint=selector_endpoint,
-            )
-        except Exception:  # pragma: no cover - defensive
-            logger.warning(
-                "catalog cache: effective institution resolution failed; using neutral",
-                exc_info=True,
-            )
-            institution_id = None
-        if institution_id is not None:
-            return catalog_institution_scope(institution_id)
-
-    user = getattr(request, "user", None)
-    if user is not None and getattr(user, "is_authenticated", False) and _is_admin(request):
-        try:
-            return build_scope_signature(user)
-        except Exception:  # pragma: no cover - defensive
-            logger.warning(
-                "catalog cache: admin scope signature failed; using neutral",
-                exc_info=True,
-            )
-            return _CATALOG_NEUTRAL_SCOPE
-
-    # Public / student: resolve the white-label tenant context from the host.
-    try:
-        context = _resolve_public_request_context(request)
-    except Exception:  # pragma: no cover - defensive
-        logger.warning(
-            "catalog cache: public scope resolution failed; using neutral",
-            exc_info=True,
-        )
-        return _CATALOG_NEUTRAL_SCOPE
-    if context is not None and getattr(context, "institution", None) is not None:
-        return catalog_institution_scope(context.institution.pk)
-    return _CATALOG_NEUTRAL_SCOPE
-
-
-def _cached_catalog_payload(request, sub_key, compute):
-    """Return a cached catalog response body for the scoped key (R4.1–R4.7).
-
-    ``compute`` is a zero-argument callable returning the fully enveloped
-    response body dict (``{"success": True, "data": ...}``). The value is cached
-    under ``namespace="cat"`` keyed by the resolved tenant scope signature plus a
-    per-request ``sub_key`` (endpoint + relevant query params), with a TTL inside
-    the required 300–600s window (R4.2).
-
-    When the catalog cache flag is off the wrapper bypasses the cache entirely
-    and computes every time (pre-feature behaviour). A cache read/write failure
-    degrades to computation with no error surfaced to the caller (R4.7); both
-    behaviours are provided by :func:`~apps.common.scoped_cache.cached_or_compute`.
-    """
-    enabled = getattr(settings, "PERF_CACHE_CATALOG", False)
-    scope_signature = _catalog_scope_signature(request)
-    return cached_or_compute(
-        "cat",
-        scope_signature,
-        compute,
-        ttl=_CATALOG_CACHE_TTL,
-        sub_key=sub_key,
-        enabled=enabled,
-    )
 
 
 #: Per-method platform capabilities for the institution legacy write views

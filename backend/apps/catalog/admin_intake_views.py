@@ -28,7 +28,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.models import Intake
 from apps.catalog.permissions import HasPlatformCapability
 from apps.catalog.serializers import IntakeSerializer
@@ -94,7 +93,6 @@ class AdminIntakeListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         intake = Intake.objects.create(**serializer.validated_data)
-        invalidate_catalog_scopes(user=request.user)
         _audit_intake_change(request, verb="created", entity_id=intake.id)
         return Response(
             {"success": True, "data": IntakeSerializer(intake).data},
@@ -156,7 +154,6 @@ class AdminIntakeDetailView(APIView):
         for attr, value in serializer.validated_data.items():
             setattr(intake, attr, value)
         intake.save()
-        invalidate_catalog_scopes(user=request.user)
         verb = "deactivated" if request.data.get("is_active") in (False, "false", "False", 0, "0") else "updated"
         _audit_intake_change(request, verb=verb, entity_id=intake.id)
         return Response({"success": True, "data": IntakeSerializer(intake).data})
@@ -171,7 +168,6 @@ class AdminIntakeDetailView(APIView):
             )
         intake.is_active = False
         intake.save(update_fields=["is_active"])
-        invalidate_catalog_scopes(user=request.user)
         _audit_intake_change(request, verb="deactivated", entity_id=intake.id)
         return Response({"success": True, "data": {"message": "Intake deactivated"}})
 

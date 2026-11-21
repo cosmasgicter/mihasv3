@@ -1,6 +1,8 @@
 # End-to-End Production Readiness Finalization Runbook
 > Note (2026-11-09, platform-simplification task 11.4): the launch rollup (`rollup.py`, `launch-readiness.md`) and the operator-run evidence scripts it read (`record-migration-evidence.py`, `run-onboarding-smoke.py`, `check-operational-readiness.py`, `run-lighthouse.mjs`, `sample-api-timings.py`, `measure-mobile-ui.mjs`) were removed from the tree. They remain in git history. Commands below that name them no longer run; see `docs/runbooks/launch-verification.md` for the gates that remain.
 
+> Note (2026-11-21, platform-simplification tasks 16.1 and 16.2): the three performance caches and their flags (`PERF_CACHE_CAPABILITIES`, `PERF_CACHE_DASHBOARD`, `PERF_CACHE_CATALOG`) were removed (decision D7 option A). The Phase 3 steps that enable and invalidate them, and the Gate 3 checks that each cache is "enabled and observed", no longer apply. See `docs/runbooks/perf-flags.md`.
+
 
 Last updated: 2026-06-22
 

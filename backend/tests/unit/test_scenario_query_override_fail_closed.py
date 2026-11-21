@@ -6,8 +6,9 @@ STU-24**; Requirements **R2.2–R2.4, R5.2–R5.3**.
 
 This is the end-to-end acceptance scenario behind the task's Required_Evidence
 ("tenant A/B host, query override, cache, and unknown-host tests"), exercised
-against the *real* ``GET /api/v1/catalog/canonical-programs/`` endpoint and the
-real catalog cache scope signature — no mocks, no production code changed.
+against the *real* ``GET /api/v1/catalog/canonical-programs/`` and
+``GET /api/v1/catalog/programs/`` endpoints — no mocks, no production code
+changed.
 
 Two tenants are built, each offering a **distinct** canonical program so the
 listing content unambiguously identifies which tenant scope resolved:
@@ -33,10 +34,15 @@ Assertions:
 5. **Unknown host fails closed.** On an unregistered/unknown host,
    ``?institution=<B>`` is ignored and the neutral shared portal lists both — the
    selector never turns an unknown host into a tenant selector.
-6. **Cache scope partition.** The catalog cache scope signature keys on the
-   resolved host tenant on A's host (never the ``?institution=<B>`` value), on
-   the explicitly-selected tenant on the shared portal, and on the neutral scope
-   for a non-selector endpoint.
+6. **No selector outside the allowlist.** On the shared-portal host,
+   ``?institution=<A>`` on the programmes endpoint, which is not one of the two
+   selector endpoints, is ignored: the listing still spans both tenants.
+
+The "cache" evidence first checked the catalog cache's scope signature in three
+of these cases. The catalog cache was removed by platform-simplification task
+16.2 (decision D7 option A), so there is no cache key left to partition. Cases 1
+and 3 already check the first two on the response itself, and case 6 checks the
+third on the response in place of the cache key.
 
 Run::
 
@@ -52,12 +58,9 @@ import json
 import uuid
 
 import pytest
-from rest_framework.request import Request
-from rest_framework.test import APIClient, APIRequestFactory
+from rest_framework.test import APIClient
 
-from apps.catalog.catalog_cache import CATALOG_NEUTRAL_SCOPE, catalog_institution_scope
-from apps.catalog.models import InstitutionDomain
-from apps.catalog.views import _catalog_scope_signature
+from apps.catalog.models import InstitutionDomain, Program
 from tests.tenant_fixtures import (
     build_canonical_program,
     build_institution,
@@ -232,41 +235,30 @@ class TestQueryOverrideFailsClosed:
         assert str(world["canonical_a"].id) in ids
         assert str(world["canonical_b"].id) in ids
 
-    # --- Cache scope partition (the "cache" evidence) ----------------------
-
-    def _signature(self, *, host, params=None, path=CANONICAL_PROGRAMS_URL):
-        """Resolve ``_catalog_scope_signature`` for a wrapped DRF request."""
-        factory = APIRequestFactory()
-        django_request = factory.get(path, params or {}, HTTP_X_FORWARDED_HOST=host)
-        return _catalog_scope_signature(Request(django_request))
-
-    def test_cache_scope_keys_on_host_tenant_not_query_override(self):
-        """The catalog cache scope keys on the resolved host tenant (A), never
-        the conflicting ``?institution=<B>`` value — so the query can never
-        repartition (or poison) another tenant's cache entry (R2.4, R5.3)."""
+    def test_selector_on_a_non_selector_endpoint_never_narrows_the_listing(self):
+        """A ``?institution=`` on an endpoint outside the selector allowlist is
+        ignored, even on the shared-portal host: the programmes listing still
+        spans both tenants (R2.4, R5.3). This case was checked on the catalog
+        cache's scope signature until task 16.2 removed that cache."""
         world = _build_two_tenants()
-        signature = self._signature(
-            host=world["host_a"], params={"institution": str(world["inst_b"].id)}
+        resp = APIClient().get(
+            PROGRAMS_URL,
+            {"institution": str(world["inst_a"].id), "pageSize": 100},
+            HTTP_X_FORWARDED_HOST=PORTAL_HOST,
         )
-        assert signature == catalog_institution_scope(world["inst_a"].id)
-        assert signature != catalog_institution_scope(world["inst_b"].id)
-
-    def test_cache_scope_honors_explicit_selection_on_shared_portal(self):
-        """On the registered shared portal the cache scope keys on the
-        explicitly-selected tenant (the only context that honors it)."""
-        world = _build_two_tenants()
-        signature = self._signature(
-            host=PORTAL_HOST, params={"institution": str(world["inst_a"].id)}
-        )
-        assert signature == catalog_institution_scope(world["inst_a"].id)
-
-    def test_cache_scope_neutral_for_non_selector_endpoint(self):
-        """A ``?institution=`` on a non-allow-listed endpoint never repartitions
-        the cache — the scope stays neutral even on the shared-portal host."""
-        world = _build_two_tenants()
-        signature = self._signature(
-            host=PORTAL_HOST,
-            params={"institution": str(world["inst_a"].id)},
-            path=PROGRAMS_URL,
-        )
-        assert signature == CATALOG_NEUTRAL_SCOPE
+        assert resp.status_code == 200, resp.content
+        listed = {
+            str(row["id"])
+            for row in _list_rows(resp.json())
+            if isinstance(row, dict) and row.get("id")
+        }
+        offerings_a = {
+            str(pk)
+            for pk in Program.objects.filter(institution=world["inst_a"]).values_list("id", flat=True)
+        }
+        offerings_b = {
+            str(pk)
+            for pk in Program.objects.filter(institution=world["inst_b"]).values_list("id", flat=True)
+        }
+        assert offerings_a and offerings_a <= listed
+        assert offerings_b and offerings_b <= listed

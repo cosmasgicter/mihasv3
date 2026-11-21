@@ -26,18 +26,13 @@ It wires the task-2.1 divergence harness (``tests.perf_baseline``: the
 Any divergence — a changed envelope, field name, value type, nesting, or
 computed value — fails the gate (R13.1, R13.2, R13.6).
 
-Two passes run for every endpoint whose optimization is flag-gated:
-
-* **default (flags off)** — the always-on refactors must already be
-  output-equivalent to the baseline; and
-* **caches on** (``PERF_CACHE_CATALOG``) — the cached path, exercised twice so
-  the second call is a cache hit, must serve output still equivalent to the
-  baseline.
-
-The dashboard and scope endpoints lost their caches with platform-simplification
-task 16.1 (decision D7 option A). Their second pass keeps its shape on the one
-path that is left: seed once, read twice, and both reads must match the
-baseline and each other.
+Two passes ran for every endpoint whose optimization was flag-gated: the default
+pass with the flags off, and a caches-on pass (``PERF_CACHE_DASHBOARD`` /
+``PERF_CACHE_CAPABILITIES`` / ``PERF_CACHE_CATALOG``) that read twice so the
+second call was a cache hit. Platform-simplification tasks 16.1 and 16.2
+(decision D7 option A) removed all three caches. The second pass keeps its
+shape on the one path that is left: seed once, read twice, and both reads must
+match the baseline and each other.
 
 If a committed baseline is absent (golden snapshots not committed), capturing
 the genuine pre-feature output is impossible after the feature has landed, so
@@ -56,7 +51,6 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -458,7 +452,7 @@ def test_endpoint_output_is_stable_run_to_run(fixture_name):
 
 
 # ---------------------------------------------------------------------------
-# Caches-on pass — the flag-gated cached path must stay equivalent (R13.3, R13.6)
+# Re-read pass — seed once, read twice; both reads equal the baseline (R13.3, R13.6)
 # ---------------------------------------------------------------------------
 
 
@@ -488,19 +482,19 @@ def test_admin_scope_reread_no_divergence():
     assert_equivalent(first, second, label="admin_scope re-read", volatile_keys=_volatile_for("admin_scope"))
 
 
-@override_settings(PERF_CACHE_CATALOG=True)
-def test_canonical_program_list_cached_path_no_divergence():
-    """Catalog cache on: cached canonical-program output (incl. cache hit) equals baseline."""
-    from django.core.cache import cache
+def test_canonical_program_list_reread_no_divergence():
+    """Canonical programmes: a read and a re-read of the same state both equal the baseline.
+
+    This was the cache-on pass; the catalog cache was removed by
+    platform-simplification task 16.2, so both reads compute."""
     from tests.tenant_fixtures import build_tenant_world
 
-    cache.clear()
     build_tenant_world(with_application=False)  # one active offering under a canonical program
     first = _call_canonical_program_list()
     _assert_no_divergence("canonical_program_list", "canonical_program_list", first)
-    second = _call_canonical_program_list()  # within TTL -> cache-hit branch
+    second = _call_canonical_program_list()
     assert_equivalent(
-        first, second, label="canonical_program_list cached re-read",
+        first, second, label="canonical_program_list re-read",
         volatile_keys=_volatile_for("canonical_program_list"),
     )
 

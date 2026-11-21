@@ -35,7 +35,6 @@ from apps.catalog._catalog_view_helpers import (
     _ASSIGNMENT_PREVIEW_SELECTOR_ENDPOINT,
     _CANONICAL_PROGRAM_SELECTOR_ENDPOINT,
     _INTAKE_FILTER_UNRESOLVED,
-    _cached_catalog_payload,
     _forbidden_response,
     _is_admin,
     _request_host,
@@ -45,7 +44,6 @@ from apps.catalog._catalog_view_helpers import (
     _scope_program_queryset_for_request,
     _set_public_cache,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.legacy_write_telemetry import (
     canonical_program_required_response,
     mark_deprecated,
@@ -119,10 +117,6 @@ class ProgramListCreateView(APIView):
         return [OptionalJWTCookieAuthentication()]
 
     def get(self, request):
-        # Catalog read cache (R4.1, R4.2, R4.5–R4.7): the program listing body is
-        # computed under a tenant-scoped key and reused within its TTL. The flag
-        # defaults off, so this is byte-identical to the pre-feature path until
-        # ``PERF_CACHE_CATALOG`` is flipped.
         def compute():
             if _is_admin(request):
                 queryset = Program.objects.select_related("institution").all()
@@ -158,13 +152,7 @@ class ProgramListCreateView(APIView):
             serializer = ProgramSerializer(queryset, many=True)
             return {"success": True, "data": serializer.data}
 
-        sub_key = (
-            f"programs|admin={int(_is_admin(request))}"
-            f"|intake={request.query_params.get('intake') or ''}"
-            f"|page={request.query_params.get('page') or ''}"
-            f"|pageSize={request.query_params.get('pageSize') or ''}"
-        )
-        body = _cached_catalog_payload(request, sub_key, compute)
+        body = compute()
         response = Response(body)
 
         if not _is_admin(request):
@@ -208,10 +196,6 @@ class ProgramListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         program = Program.objects.create(**serializer.validated_data)
-        # R4.3: invalidate catalog reads (programs / canonical offerings /
-        # assignment preview) for the owning tenant + shared portal before the
-        # write response returns.
-        invalidate_catalog_scopes(program.institution_id, user=request.user)
         # R14.7 usage telemetry: this is the canonical offering-create write
         # (carries ``canonical_program_id``), measured so the migration can be
         # proven by the legacy counter trending to zero first-party callers.
@@ -277,11 +261,6 @@ class CanonicalProgramListView(APIView):
             endpoint=_CANONICAL_PROGRAM_SELECTOR_ENDPOINT,
         )
 
-        # Catalog read cache (R4.1, R4.2, R4.5–R4.7): the canonical-program
-        # offering listing is computed under a tenant-scoped key and reused
-        # within its TTL. The resolved ``institution_id`` (host- or param-driven)
-        # is carried in the sub-key so a white-label tenant and the shared portal
-        # never share an entry, on top of the scope-signature guard.
         def compute():
             queryset = directory.canonical_program_directory(
                 institution_id=institution_id, intake_id=intake_id
@@ -337,18 +316,7 @@ class CanonicalProgramListView(APIView):
             serializer = CanonicalProgramSerializer(inner_queryset, many=True, context=context)
             return {"success": True, "data": serializer.data}
 
-        # The sub-key carries the *resolved* intake, plus an explicit marker when
-        # a named intake resolved to nothing — otherwise "no intake requested"
-        # (list everything) and "an intake that does not exist" (list nothing)
-        # would share one cache entry and answer each other's question.
-        intake_key = "unresolved" if intake_unresolved else (intake_id or "")
-        sub_key = (
-            f"canonical|institution={institution_id or ''}"
-            f"|intake={intake_key}"
-            f"|page={request.query_params.get('page') or ''}"
-            f"|pageSize={request.query_params.get('pageSize') or ''}"
-        )
-        body = _cached_catalog_payload(request, sub_key, compute)
+        body = compute()
         response = Response(body)
         return _set_public_cache(response)
 
@@ -431,13 +399,9 @@ class AssignmentPreviewView(APIView):
             "Choose another intake, join the interest list, or contact admissions."
         )
 
-        # Catalog read cache (R4.1, R4.2, R4.5–R4.7): only the successful
-        # assignment-preview body is cached. The assignment computation runs
-        # inside ``compute`` so any ``OfferingAssignmentError`` / missing-record
-        # path propagates out and is rendered as the existing recoverable error
-        # envelope *without* being cached (``cached_or_compute`` stores only after
-        # ``compute`` returns). Inputs that vary the result (program/intake/
-        # residency/institution) are carried in the sub-key.
+        # The assignment computation runs inside ``compute`` so any
+        # ``OfferingAssignmentError`` / missing-record path propagates out and is
+        # rendered as the existing recoverable error envelope below.
         def compute():
             assigned = OfferingAssignmentService().assign(
                 program_id=str(program_id),
@@ -517,14 +481,8 @@ class AssignmentPreviewView(APIView):
                 },
             }
 
-        sub_key = (
-            f"assignment|program={program_id}|intake={intake_id}"
-            f"|nationality={nationality or ''}|country={country or ''}"
-            f"|institution={institution_id or ''}"
-        )
-
         try:
-            body = _cached_catalog_payload(request, sub_key, compute)
+            body = compute()
         except OfferingAssignmentError as exc:
             return Response(
                 {
@@ -669,17 +627,9 @@ class ProgramDetailView(TenantScopedCapabilityMixin, APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        old_institution_id = program.institution_id
         for attr, value in serializer.validated_data.items():
             setattr(program, attr, value)
         program.save()
-        # R4.3: invalidate catalog reads for the program's owning tenant(s) +
-        # shared portal before returning. Pass both the prior and the new
-        # institution so a write that moves the offering between tenants clears
-        # both white-label portals.
-        invalidate_catalog_scopes(
-            old_institution_id, program.institution_id, user=request.user
-        )
         # R14.7: this legacy offering-update route is frozen. The canonical
         # successor is PATCH /admin/institutions/{id}/programs/{id}/. Measure
         # residual callers and signal deprecation to any that remain.
@@ -704,9 +654,6 @@ class ProgramDetailView(TenantScopedCapabilityMixin, APIView):
             return _forbidden_response()
         program.is_active = False
         program.save(update_fields=["is_active"])
-        # R4.3: deactivating an offering changes the programs / canonical
-        # offerings listings for its tenant and the shared portal.
-        invalidate_catalog_scopes(program.institution_id, user=request.user)
         # R14.7: frozen legacy route; canonical successor is a PATCH
         # is_active=false on /admin/institutions/{id}/programs/{id}/.
         record_catalog_write(request, resource="program", method="DELETE", legacy=True)

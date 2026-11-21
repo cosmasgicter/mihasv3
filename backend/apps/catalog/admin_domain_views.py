@@ -37,7 +37,6 @@ from apps.catalog.canonical_config_commands import (
     config_change_verb as _verb_for_payload,
     create_institution_domain,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.models import InstitutionDomain
 from apps.catalog.services import DomainStatusMachine, DomainTransitionError
 
@@ -135,7 +134,6 @@ class AdminTenantDomainDetailView(_InstitutionChildDetailView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
         return Response({"success": True, "data": self.serializer_class(domain).data})
 
 
@@ -203,7 +201,6 @@ class AdminTenantDomainActivateView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status
@@ -301,7 +298,6 @@ class AdminTenantDomainRetryView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status
@@ -359,7 +355,6 @@ class AdminTenantDomainApproveView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status
@@ -424,7 +419,6 @@ class AdminTenantDomainRejectView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status
@@ -489,7 +483,6 @@ class AdminTenantDomainReactivateView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
-        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status

@@ -16,7 +16,6 @@ from rest_framework.views import APIView
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.catalog._catalog_view_helpers import (
     SubjectListResponseSerializer,
-    _cached_catalog_payload,
     _set_public_cache,
 )
 from apps.catalog.serializers import SubjectSerializer
@@ -50,8 +49,6 @@ class SubjectListView(APIView):
     serializer_class = SubjectSerializer
 
     def get(self, request):
-        # Catalog read cache (R4.1, R4.2, R4.5–R4.7): subjects are global catalog
-        # data; the body is computed under the scoped key and reused within TTL.
         def compute():
             queryset = active_subjects_queryset()
             serializer = SubjectSerializer(
@@ -63,7 +60,7 @@ class SubjectListView(APIView):
                 "meta": {"subject_catalog_version": SUBJECT_CATALOG_VERSION},
             }
 
-        body = _cached_catalog_payload(request, "subjects", compute)
+        body = compute()
         response = Response(body)
         _set_public_cache(response)
         return response

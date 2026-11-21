@@ -17,9 +17,8 @@ reused identically by:
   ``apps.catalog.change_request_service`` (a Tenant_Admin's approved request).
 
 Each command performs the serializer-validated write, records the canonical
-``tenant.<resource>.<verb>`` configuration Audit_Event under the acting user,
-and invalidates the tenant/catalog cache — exactly what the admin views did
-inline before. Authorization stays in the caller (the view / the service) per
+``tenant.<resource>.<verb>`` configuration Audit_Event under the acting user —
+exactly what the admin views did inline before. Authorization stays in the caller (the view / the service) per
 design §3; these functions own the *write*, never the *authority decision*.
 """
 
@@ -36,7 +35,6 @@ from apps.catalog.admin_serializers import (
     AdminInstitutionDomainSerializer,
     AdminInstitutionSerializer,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.models import InstitutionDomain, UserInstitutionMembership
 from apps.catalog.serializers import ProgramCreateUpdateSerializer
 from apps.catalog.tenant_audit_service import TenantAuditService
@@ -140,7 +138,7 @@ def apply_institution_profile_change(institution, data: dict, *, request=None):
     Validates ``data`` through :class:`AdminInstitutionSerializer`, saves it, and
     — when the change deactivates the tenant — suspends its active staff
     memberships in the same transaction (R6.9), then records the canonical
-    ``tenant.institution.<verb>`` audit event and invalidates the catalog cache.
+    ``tenant.institution.<verb>`` audit event.
     Returns the updated institution. Raises ``serializers.ValidationError`` on an
     invalid payload (the caller maps it to its envelope).
     """
@@ -160,9 +158,6 @@ def apply_institution_profile_change(institution, data: dict, *, request=None):
         entity_id=institution.id,
         institution_id=institution.id,
     )
-    invalidate_catalog_scopes(
-        institution.id, user=getattr(request, "user", None) if request else None
-    )
     return institution
 
 
@@ -171,7 +166,7 @@ def apply_program_offering_change(program, data: dict, *, request=None):
 
     Validates ``data`` through :class:`ProgramCreateUpdateSerializer` (bound to
     ``program``), applies the validated fields, saves, records the canonical
-    ``tenant.program.<verb>`` audit event, and invalidates the catalog cache.
+    ``tenant.program.<verb>`` audit event.
     Returns the updated program.
     """
     institution_id = program.institution_id
@@ -189,9 +184,6 @@ def apply_program_offering_change(program, data: dict, *, request=None):
         entity_id=program.id,
         institution_id=institution_id,
     )
-    invalidate_catalog_scopes(
-        institution_id, user=getattr(request, "user", None) if request else None
-    )
     return program
 
 
@@ -201,7 +193,7 @@ def create_institution_domain(institution_id, data: dict, *, request=None, creat
     Creates the domain in ``pending_dns`` with a freshly generated ≥32-char
     ``verification_token`` and ``dns_target``, records the canonical
     ``tenant.domain.created`` audit event, commits a durable verification job
-    **before returning** (design §6.3), and invalidates the catalog cache.
+    **before returning** (design §6.3).
     Returns ``(domain, dns_record)``. Lets ``IntegrityError`` propagate on a
     hostname collision so the caller maps it to its stable conflict code.
     """
@@ -235,9 +227,6 @@ def create_institution_domain(institution_id, data: dict, *, request=None, creat
     from apps.catalog.tasks import enqueue_domain_verification
 
     enqueue_domain_verification(instance.id)
-    invalidate_catalog_scopes(
-        institution_id, user=getattr(request, "user", None) if request else None
-    )
 
     dns_record = build_dns_record(hostname, dns_target, verification_token)
     return instance, dns_record

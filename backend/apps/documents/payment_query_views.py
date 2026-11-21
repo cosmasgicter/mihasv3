@@ -22,7 +22,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.permissions import HasPlatformCapability, HasTenantCapability
 from apps.catalog.services import (
     AccessScopeService,
@@ -880,34 +879,6 @@ class ProgramFeeViewSet(ModelViewSet):
         except Exception:  # pragma: no cover - audit must never block a write
             logger.warning("Failed to emit fee config Audit_Event", exc_info=True)
 
-    def _invalidate_fee_catalog(self, program_id):
-        """Invalidate catalog reads that derive a fee from this program (R4.3).
-
-        Resolved fees surface in the cached assignment-preview response, so a
-        fee write must clear the owning tenant's scope + the shared portal
-        before returning. The owning institution is resolved from the program;
-        a missing program degrades to invalidating the shared/actor scope only.
-        """
-        from apps.catalog.models import Program
-
-        # Resolving the owning institution is a DB read; it must never break the
-        # write path (R4.3 — invalidation is best-effort). A lookup failure
-        # degrades to invalidating the shared/actor scope only, exactly as the
-        # docstring describes.
-        try:
-            institution_id = (
-                Program.objects.filter(id=program_id)
-                .values_list("institution_id", flat=True)
-                .first()
-            )
-        except Exception:  # never break the write on invalidation
-            logger.warning(
-                "fee catalog invalidation: program lookup failed", exc_info=True
-            )
-            institution_id = None
-        actor = getattr(getattr(self, "request", None), "user", None)
-        invalidate_catalog_scopes(institution_id, user=actor)
-
     # R7.4/DATA-05/DATA-06: uq_program_fees_one_active (task 3.3,
     # scripts/2026_07_17_01_integrity_constraints_expand.sql) is the final race
     # guard behind the check-then-insert below. A concurrent double-submit that
@@ -956,7 +927,6 @@ class ProgramFeeViewSet(ModelViewSet):
             updated_at=timezone.now(),
         )
         self._audit_fee_write(verb="created", instance=serializer.instance)
-        self._invalidate_fee_catalog(program_id)
 
     def perform_update(self, serializer):
         program_id = self.kwargs.get("program_id")
@@ -988,7 +958,6 @@ class ProgramFeeViewSet(ModelViewSet):
         self._audit_fee_write(
             verb="updated", instance=serializer.instance, extra=previous
         )
-        self._invalidate_fee_catalog(program_id)
 
     def destroy(self, request, *args, **kwargs):
         """Soft delete: set is_active=false instead of deleting the record."""
@@ -997,6 +966,4 @@ class ProgramFeeViewSet(ModelViewSet):
         instance.updated_at = timezone.now()
         instance.save(update_fields=["is_active", "updated_at"])
         self._audit_fee_write(verb="deactivated", instance=instance)
-        # R4.3: removing a fee changes the cached assignment-preview fee data.
-        self._invalidate_fee_catalog(instance.program_id)
         return Response(status=status.HTTP_204_NO_CONTENT)

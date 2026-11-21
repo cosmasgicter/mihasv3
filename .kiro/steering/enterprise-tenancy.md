@@ -156,8 +156,9 @@ edges were added by admissions-v2 task 4.4 (R5.1); the `status` column is
   routing resumes.
 - **Duplicate active hostname** for another tenant → `HOSTNAME_CONFLICT` (409).
 - An invalid-for-status lifecycle command → `DOMAIN_TRANSITION_REJECTED` (409),
-  domain left unchanged. Every transition invalidates the tenant/catalog cache
-  and emits a `tenant.domain.<verb>` Audit_Event.
+  domain left unchanged. Every transition emits a `tenant.domain.<verb>`
+  Audit_Event. (The catalog cache it used to invalidate was removed by
+  platform-simplification task 16.2, decision D7.)
 
 **Fail-closed `Domain_Resolver`** (`InstitutionContextService.resolve`): resolve
 a tenant **only** when exactly one `InstitutionDomain` with `status=active`,

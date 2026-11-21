@@ -31,7 +31,6 @@ from apps.catalog.canonical_config_commands import (
     audit_config_change as _audit_config_change,
     config_change_verb as _verb_for_payload,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.models import Institution, Program
 from apps.catalog.serializers import ProgramSerializer
 from apps.catalog.tenant_readiness import build_tenant_readiness
@@ -91,8 +90,6 @@ class AdminTenantListCreateView(APIView):
             entity_id=institution.id,
             institution_id=institution.id,
         )
-        # R4.3: a new tenant changes the shared catalog portal listing.
-        invalidate_catalog_scopes(institution.id, user=request.user)
         return Response({"success": True, "data": AdminInstitutionSerializer(institution).data}, status=status.HTTP_201_CREATED)
 
 
@@ -126,7 +123,7 @@ class AdminTenantDetailView(APIView):
         # Delegate to the single canonical institution-profile command. This is
         # the SAME command the tenant change-request apply path calls on approval
         # (task 4.5): serializer-validated write, R6.9 membership suspension on
-        # deactivate, canonical audit event, and catalog-cache invalidation.
+        # deactivate, and the canonical audit event.
         institution = apply_institution_profile_change(
             institution, request.data, request=request
         )

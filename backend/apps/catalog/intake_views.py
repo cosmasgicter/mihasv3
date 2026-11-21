@@ -27,12 +27,10 @@ from apps.catalog._catalog_view_helpers import (
     IntakeListResponseSerializer,
     IntakeResponseSerializer,
     _INTAKE_WRITE_CAPABILITY,
-    _cached_catalog_payload,
     _is_admin,
     _request_method,
     _set_public_cache,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.legacy_write_telemetry import mark_deprecated, record_catalog_write
 from apps.catalog.models import Intake
 from apps.catalog.permissions import HasPlatformCapability
@@ -80,10 +78,6 @@ class IntakeListCreateView(APIView):
         return [OptionalJWTCookieAuthentication()]
 
     def get(self, request):
-        # Catalog read cache (R4.1, R4.2, R4.5–R4.7): the intake listing body is
-        # computed under a tenant-scoped key and reused within its TTL. Admin and
-        # ``include_closed`` variations are carried in the sub-key so they never
-        # collide.
         def compute():
             if _is_admin(request):
                 queryset = Intake.objects.all()
@@ -108,11 +102,7 @@ class IntakeListCreateView(APIView):
             serializer = IntakeSerializer(queryset, many=True)
             return {"success": True, "data": serializer.data}
 
-        sub_key = (
-            f"intakes|admin={int(_is_admin(request))}"
-            f"|include_closed={request.query_params.get('include_closed') or ''}"
-        )
-        body = _cached_catalog_payload(request, sub_key, compute)
+        body = compute()
         response = Response(body)
 
         if not _is_admin(request):
@@ -132,9 +122,6 @@ class IntakeListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         intake = Intake.objects.create(**serializer.validated_data)
-        # R4.3: intakes are global — invalidate the shared portal (and the
-        # actor's scope); intake-filtered canonical offerings derive from them.
-        invalidate_catalog_scopes(user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/intakes/.
         record_catalog_write(request, resource="intake", method="POST", legacy=True)
         out = IntakeSerializer(intake)
@@ -227,8 +214,6 @@ class IntakeDetailView(APIView):
         for attr, value in serializer.validated_data.items():
             setattr(intake, attr, value)
         intake.save()
-        # R4.3: global intake change — invalidate shared portal + actor scope.
-        invalidate_catalog_scopes(user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/intakes/{id}/.
         record_catalog_write(request, resource="intake", method="PATCH", legacy=True)
         response = Response({"success": True, "data": IntakeSerializer(intake).data})
@@ -246,8 +231,6 @@ class IntakeDetailView(APIView):
             )
         intake.is_active = False
         intake.save(update_fields=["is_active"])
-        # R4.3: global intake deactivation — invalidate shared portal + actor.
-        invalidate_catalog_scopes(user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/intakes/{id}/.
         record_catalog_write(request, resource="intake", method="DELETE", legacy=True)
         response = Response({"success": True, "data": {"message": "Intake deactivated"}})

@@ -1,40 +1,16 @@
 # Performance Feature Flags
 
-Environment-variable-driven flags that gate performance optimizations.
-Each defaults to `False` (off) so the legacy/safe behavior persists until
-explicitly flipped in production.
+There are no performance cache flags any more. The system-performance-hardening spec added three flag-gated caches: `PERF_CACHE_CAPABILITIES` (the admin scope and capabilities endpoints), `PERF_CACHE_DASHBOARD` (the admin dashboard) and `PERF_CACHE_CATALOG` (the catalogue reads). Platform-simplification tasks 16.1 and 16.2 removed all three, with their flags, invalidation signals and the shared `scoped_cache` module (decision D7 option A, 2026-11-21). Setting those names now does nothing. Every one of those endpoints computes its response on each request, which is what every configured environment already did, because the flags defaulted to off.
 
-| Flag | Default | Purpose | Safe to enable? |
-|------|---------|---------|-----------------|
-| `PERF_CACHE_CATALOG` | `False` | 450s Redis-backed cache on catalog read endpoints (programs, canonical programs, intakes, subjects, assignment-preview). Scope-aware: different tenant scopes get separate cache entries (R4.5). | Yes. Fully tested (`tests/unit/test_perf_catalog_cache.py`, 26 tests). Rollback: flip to `False` and redeploy. |
-| `PERF_CACHE_DASHBOARD` | `False` | Short-lived aggregate cache on AdminDashboardView (R2). | Yes. Same pattern as catalog cache. |
+## Why they were removed
 
-## Production Status
+- **No environment turned them on.** No production host exists to check (D14), so the check used the configuration the next server will be built from: `deploy/docker-compose.prod.yml`, `backend/config/settings/prod.py` and the tracked env templates. None of them sets any `PERF_CACHE_*` name, and neither do `staging.py`, `harness.py` or the harness compose file. `base.py` defaulted all three to off.
+- **The catalogue cache had no material benefit.** It was measured on the local harness with the same 14-request mix with the cache on and off, in the order off, on, off, on, with 200 passes each after a warm-up. With the cache on, the median catalogue request was 6.2 to 6.4 ms faster (about 30%), and the mean was 9.3 to 9.6 ms faster (about 43%). The bar, written down before the run, was at least 25% and at least 10 ms at the median. A phone round trip of 100 to 300 ms dwarfs that saving.
 
-No P0_Ops_Check has recorded a production value for any of these flags, so every production value is shown as Unverified.
+## Production values
 
-| Flag | Production value | Since |
-|------|-----------------|-------|
-| `PERF_CACHE_CATALOG` | Unverified | Unverified |
-| `PERF_CACHE_DASHBOARD` | Unverified | Unverified |
+No P0_Ops_Check ever recorded a production value for these flags. Previously claimed, and never shown by anything in the repository: `PERF_CACHE_CATALOG` `true` since 2026-07-04 (Performance Gate closure), and `PERF_CACHE_DASHBOARD` `false`.
 
-Previously claimed (nothing in the repository shows either): `PERF_CACHE_CATALOG` `true` since 2026-07-04 (Performance Gate closure); `PERF_CACHE_DASHBOARD` `false`, not yet enabled.
+## If a cache is wanted again
 
-## How to flip
-
-```bash
-ssh -i $KEY ubuntu@ec2-13-244-37-190.af-south-1.compute.amazonaws.com
-cd ~/mihas
-echo "PERF_CACHE_CATALOG=true" >> .env   # or false to disable
-docker compose -f docker-compose.prod.yml up -d --no-deps web
-# Verify:
-docker compose -f docker-compose.prod.yml exec -T web env | grep PERF_CACHE
-curl -s https://api.beanola.com/health/ready/
-```
-
-## Cache invalidation
-
-The catalog cache invalidates on a 450s TTL. No manual invalidation is needed
-for normal operations. If a program/intake/institution is created or modified
-and the change must appear immediately, restart the web container (which clears
-the in-process cache references; Redis keys expire naturally at TTL).
+Reintroducing one is a new decision. Measure first with the same request mix on the stack it is meant for, record the result, and enable it in the configuration production is built from. The removed code is in git history before the 16.1 and 16.2 commits.

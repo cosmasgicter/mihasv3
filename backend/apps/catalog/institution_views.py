@@ -33,7 +33,6 @@ from apps.catalog._catalog_view_helpers import (
     _scope_institution_queryset_for_request,
     _set_public_cache,
 )
-from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.legacy_write_telemetry import mark_deprecated, record_catalog_write
 from apps.catalog.models import Institution, Program
 from apps.catalog.permissions import HasPlatformCapability, TenantScopedCapabilityMixin
@@ -108,9 +107,6 @@ class InstitutionListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         institution = Institution.objects.create(**serializer.validated_data)
-        # R4.3: a new tenant changes the shared portal listing; invalidate the
-        # neutral scope + the new tenant's scope before returning.
-        invalidate_catalog_scopes(institution.id, user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/institutions/.
         record_catalog_write(request, resource="institution", method="POST", legacy=True)
         out = InstitutionSerializer(institution)
@@ -215,9 +211,6 @@ class InstitutionDetailView(TenantScopedCapabilityMixin, APIView):
         for attr, value in serializer.validated_data.items():
             setattr(institution, attr, value)
         institution.save()
-        # R4.3: institution branding/contact flows into cached offerings +
-        # assignment preview; invalidate this tenant + the shared portal.
-        invalidate_catalog_scopes(institution.id, user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/institutions/{id}/.
         record_catalog_write(request, resource="institution", method="PATCH", legacy=True)
         out = InstitutionSerializer(institution)
@@ -255,8 +248,6 @@ class InstitutionDetailView(TenantScopedCapabilityMixin, APIView):
 
         institution.is_active = False
         institution.save(update_fields=["is_active"])
-        # R4.3: deactivating a tenant removes it from the shared portal listing.
-        invalidate_catalog_scopes(institution.id, user=request.user)
         # R14.7: frozen legacy route; canonical successor is /admin/institutions/{id}/.
         record_catalog_write(request, resource="institution", method="DELETE", legacy=True)
         response = Response({"success": True, "data": {"message": "Institution deactivated"}})

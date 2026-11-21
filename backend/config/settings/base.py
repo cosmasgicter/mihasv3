@@ -810,21 +810,14 @@ PUBLIC_TRACKING_RATE_LIMITS = os.environ.get(
 ).lower() in ("1", "true", "yes")
 
 # ---------------------------------------------------------------------------
-# System performance hardening — scoped cache feature flags
-# (spec: .kiro/specs/system-performance-hardening). Each defaults to False so
-# the pre-feature code path (direct computation, no cache) stays in effect
-# until the flag is explicitly flipped. The caches are thin callers of
-# ``apps.common.scoped_cache`` and degrade gracefully on any cache error.
-# The capabilities and dashboard caches and their flags were removed by
-# platform-simplification task 16.1 (decision D7 option A): no environment the
-# repository configures turned them on.
+# System performance hardening (spec: .kiro/specs/system-performance-hardening)
+# added three flag-gated caches over ``apps.common.scoped_cache``: capabilities,
+# dashboard and catalog. Platform-simplification tasks 16.1 and 16.2 (decision
+# D7 option A) removed all three with their flags (``PERF_CACHE_CAPABILITIES``,
+# ``PERF_CACHE_DASHBOARD``, ``PERF_CACHE_CATALOG``): no environment the
+# repository configures turned them on, and a local on/off measurement of the
+# catalog cache showed no material benefit. Setting those names does nothing.
 # ---------------------------------------------------------------------------
-
-# Gates the catalog read-response cache (programs, canonical programs,
-# intakes, subjects, assignment-safe responses) (R4).
-PERF_CACHE_CATALOG = os.environ.get(
-    "PERF_CACHE_CATALOG", ""
-).lower() in ("1", "true", "yes")
 
 # Reconciliation minimum-age cutoff before pending payments are re-queried
 # via Lenco. Default 300s (5 minutes) per the design's Phase 2 rollout.
