@@ -148,6 +148,43 @@ test.afterAll(async () => {
   }
 });
 
+/**
+ * Wait until nothing on the page is part-way through a fade (platform-simplification
+ * task 22.5).
+ *
+ * axe computes contrast from the painted colour, opacity included, so text caught
+ * mid-fade fails `color-contrast` although it passes at rest. The wizard's auto-save
+ * confirmation does exactly that: "Saved" (`AutoSaveIndicator.tsx`,
+ * `transition-opacity duration-slow`) shows for 3 s after the draft loads and then
+ * fades out over 300 ms. Measured in the CI browser, the fade ran from about 2.6 s to
+ * 2.9 s after the wizard's action bar appeared, inside the scan, so this sweep failed
+ * at whichever width the scan happened to overlap it (1280x800, 768x1024, 390x844 in
+ * different runs) with `[serious] color-contrast @ .duration-slow`.
+ *
+ * So the scan starts once no finite CSS transition or animation is running and every
+ * "Saved" confirmation has finished fading. The confirmation is then hidden, and the
+ * whole page is scanned as before; nothing is excluded. At rest the label is
+ * #374151 on white, 10.3:1. (The rendered design gate runs with reduced motion, where
+ * the label has no fade: it is shown, then hidden.)
+ */
+async function waitForFadesToFinish(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const fading = document.getAnimations().some((animation) => {
+        if (animation.playState !== 'running') return false;
+        return animation.effect?.getComputedTiming().iterations !== Infinity;
+      });
+      if (fading) return false;
+      const confirmations = Array.from(document.querySelectorAll('[role="status"] span')).filter(
+        (el) => (el.textContent || '').trim() === 'Saved',
+      );
+      return confirmations.every((el) => getComputedStyle(el).opacity === '0');
+    },
+    undefined,
+    { timeout: 20_000, polling: 100 },
+  );
+}
+
 async function scan(
   page: Page,
   surface: AxeSurface,
@@ -161,6 +198,9 @@ async function scan(
   await settled(page);
   await surface.ready(page);
   const navMs = Date.now() - navStarted;
+  const settleStarted = Date.now();
+  await waitForFadesToFinish(page);
+  const settleMs = Date.now() - settleStarted;
 
   const axeStarted = Date.now();
   const results = await new AxeBuilder({ page })
@@ -181,8 +221,9 @@ async function scan(
     viewport: viewport.label,
     surface: surface.id,
     finding: surface.finding,
-    // The two durations, separately, so a slow row is attributable.
+    // The durations, separately, so a slow row is attributable.
     navMs,
+    settleMs,
     axeMs,
     scanMs: navMs + axeMs,
     passes: results.passes.length,
