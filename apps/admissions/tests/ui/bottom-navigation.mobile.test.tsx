@@ -142,6 +142,36 @@ describe('BottomNavigation mobile overflow', () => {
     unmount()
   })
 
+  /**
+   * Platform-simplification task 22.5 (Requirement 21.2): each item is as wide as its
+   * label needs, whatever the font. The bar was a flex row of `flex-1` items whose
+   * `min-w-[44px]` replaced flexbox's content minimum, so every slot was an equal
+   * share and a longer label spilled out of it: the CI browser's DejaVu Sans measured
+   * "My application" at 99 px in an 83 px slot. The row is now a grid of
+   * `minmax(min-content, 1fr)` columns, so slots stay equal while the labels fit and a
+   * longer label takes the width it needs. jsdom cannot measure layout, so this pins
+   * the classes; the rendered design gate measures the result at 390 px.
+   */
+  it('sizes each item to its whole label: a min-content grid, no equal flex shares', () => {
+    const { container, unmount } = renderNav(390)
+    const row = container.querySelector('nav > div:last-child')
+    const rowClasses = (row?.getAttribute('class') ?? '').split(/\s+/)
+    expect(rowClasses).toEqual(
+      expect.arrayContaining(['grid', 'grid-flow-col', 'auto-cols-[minmax(min-content,1fr)]']),
+    )
+    expect(rowClasses).not.toContain('flex')
+    const items = Array.from(row?.children ?? [])
+    expect(items.length, 'four primary items and More').toBe(5)
+    for (const item of items) {
+      const classes = (item.getAttribute('class') ?? '').split(/\s+/)
+      expect(classes, item.outerHTML.slice(0, 120)).not.toContain('flex-1')
+      expect(classes, 'the 44 px floor stays').toEqual(expect.arrayContaining(['min-h-[44px]', 'min-w-[44px]']))
+      const label = item.querySelector('span[aria-hidden="true"]:not([data-text-role])')
+      expect(label?.getAttribute('class')).toContain('whitespace-nowrap')
+      expect(label?.getAttribute('class')).not.toMatch(/\btruncate\b/)
+    }
+    unmount()
+  })
   it('matches snapshot at 360px with text labels visible', () => {
     const { container, unmount } = renderNav(360)
     expect(container.innerHTML).toMatchSnapshot()

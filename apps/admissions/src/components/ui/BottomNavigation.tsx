@@ -75,6 +75,24 @@ const MAX_NAV_ITEMS = 4
  */
 const ACTIVE_ITEM_TOKENS = 'bg-accent text-accent-foreground'
 
+/**
+ * `NAV_ROW_CLASSES`: one column per item, each at least as wide as its label
+ * (platform-simplification task 22.5, Requirement 21.2).
+ *
+ * The bar was a flex row of `flex-1` items. `min-w-[44px]` replaced flexbox's own
+ * minimum (the content's width), so every item got an equal share whatever its label
+ * measured, and a label that cannot wrap spilled out of its slot. With Inter
+ * "My application" needs 83 px of an 83 px slot at 390 px; with DejaVu Sans, the CI
+ * runner's fallback font and a common one on students' devices (Inter is not shipped),
+ * it needs 99 px, and "My school" needs 67 px of 64.
+ *
+ * `minmax(min-content, 1fr)` columns keep equal widths whenever the labels fit and
+ * give a longer label the width it needs when they do not, taken from the others.
+ * Labels stay whole and on one line (task 31.1 removed truncation), the bar keeps its
+ * height, and `min-w-[44px]` still sets each item's floor.
+ */
+const NAV_ROW_CLASSES = 'grid min-w-0 grid-flow-col auto-cols-[minmax(min-content,1fr)] items-center gap-1 px-2 pt-2'
+
 /** Route-to-import map for prefetching route chunks on hover/focus */
 const routeImports: Record<string, () => Promise<unknown>> = {
   [pathFor('student.dashboard')]: () => import('@/pages/student/Dashboard'),
@@ -136,8 +154,9 @@ function BottomNavLink({
   const hasImport = item.href in routeImports
   const prefetch = usePrefetch(routeImports[item.href] ?? noopImport)
   const prefetchProps = hasImport ? prefetch : {}
+  // No `flex-1`: the bar's grid sizes each item (`NAV_ROW_CLASSES`, task 22.5).
   const baseClassName = cn(
-    'flex flex-1 flex-col items-center justify-center',
+    'flex flex-col items-center justify-center',
     'min-h-[44px] min-w-[44px] px-1 py-2',
     'rounded-lg',
     'transition-colors duration-150',
@@ -335,7 +354,7 @@ export function BottomNavigation({
         </>
       )}
 
-      <div className="flex min-w-0 items-center justify-around gap-1 px-2 pt-2">
+      <div className={NAV_ROW_CLASSES}>
         {primaryItems.map((item) => (
           <BottomNavLink key={item.href} item={item} isActive={isItemActive(item)} iconOnly={isNarrowViewport} />
         ))}
@@ -345,7 +364,7 @@ export function BottomNavigation({
             ref={moreButtonRef}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center rounded-lg',
+              'flex flex-col items-center justify-center rounded-lg',
               'min-h-[44px] min-w-[44px] px-1 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',
