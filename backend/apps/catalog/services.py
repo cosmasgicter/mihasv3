@@ -29,7 +29,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from django.conf import settings
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
@@ -1031,36 +1030,14 @@ class AdminCapabilityService:
     }
 
     def get_capabilities(self, user) -> CapabilitySet:
-        """Resolve capabilities, sharing the flag-gated per-user authority cache.
+        """Resolve the actor's capabilities from current state, on every call.
 
-        The capability/scope endpoints cache their rendered payload in the
-        ``cap`` namespace.  Their permission class must resolve the same
-        authority *before* the view body runs, so caching only the rendered
-        payload still issued database queries on every apparent cache hit.
-
-        Cache the immutable :class:`CapabilitySet` alongside that payload under
-        a distinct sub-key.  The existing profile/membership/grant/institution
-        signals bump the namespace version, invalidating both values together.
-        Resolution errors are raised by ``compute`` and therefore are never
-        stored by ``cached_or_compute``.  With the feature flag disabled this
-        remains the original direct-compute path.
+        Nothing is cached: the flag-gated per-user capability cache was removed
+        by platform-simplification task 16.1 (decision D7 option A), because no
+        environment the repository configures turned it on. A resolution error
+        propagates as :class:`CapabilityResolutionError` so callers fail closed.
         """
-        user_id = getattr(user, "pk", None) or getattr(user, "id", None)
-        if not getattr(settings, "PERF_CACHE_CAPABILITIES", False) or not user_id:
-            return self._compute_capabilities(user)
-
-        # Lazy import avoids a module-loading cycle: scoped_cache's general
-        # tenant key builder also delegates authority resolution to this class.
-        from apps.common.scoped_cache import cached_or_compute
-
-        return cached_or_compute(
-            "cap",
-            str(user_id),
-            lambda: self._compute_capabilities(user),
-            ttl=60,
-            sub_key="capability-set",
-            enabled=True,
-        )
+        return self._compute_capabilities(user)
 
     def _compute_capabilities(self, user) -> CapabilitySet:
         """Resolve the actor's full :class:`CapabilitySet` (R1, R2.2, R2.3, R3.2, R3.3).

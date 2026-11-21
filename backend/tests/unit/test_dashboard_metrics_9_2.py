@@ -133,12 +133,6 @@ def production_scope(monkeypatch):
     )
 
 
-@pytest.fixture(autouse=True)
-def cache_off(settings):
-    """Measure the computation, not a cache hit (the flag's own default)."""
-    settings.PERF_CACHE_DASHBOARD = False
-
-
 @pytest.fixture()
 def worlds(db):
     """Two independent tenants sharing one canonical program, no applications."""

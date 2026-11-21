@@ -30,9 +30,14 @@ Two passes run for every endpoint whose optimization is flag-gated:
 
 * **default (flags off)** — the always-on refactors must already be
   output-equivalent to the baseline; and
-* **caches on** (``PERF_CACHE_DASHBOARD`` / ``PERF_CACHE_CAPABILITIES`` /
-  ``PERF_CACHE_CATALOG``) — the cached path, exercised twice so the second call
-  is a cache hit, must serve output still equivalent to the baseline.
+* **caches on** (``PERF_CACHE_CATALOG``) — the cached path, exercised twice so
+  the second call is a cache hit, must serve output still equivalent to the
+  baseline.
+
+The dashboard and scope endpoints lost their caches with platform-simplification
+task 16.1 (decision D7 option A). Their second pass keeps its shape on the one
+path that is left: seed once, read twice, and both reads must match the
+baseline and each other.
 
 If a committed baseline is absent (golden snapshots not committed), capturing
 the genuine pre-feature output is impossible after the feature has landed, so
@@ -439,8 +444,8 @@ def test_endpoint_output_is_stable_run_to_run(fixture_name):
     of objects; notifications are scoped to one student), which are idempotent
     under re-seeding. The global-scoped dashboard / canonical-program list count
     all rows, so re-seeding them in one transaction would accumulate — their
-    stability is instead covered by the cache re-read tests below (seed once,
-    call twice)."""
+    stability is instead covered by the re-read tests below (seed once, call
+    twice)."""
     driver, spec_key = _ENDPOINT_DRIVERS[fixture_name]
     first = driver()
     second = driver()
@@ -457,32 +462,30 @@ def test_endpoint_output_is_stable_run_to_run(fixture_name):
 # ---------------------------------------------------------------------------
 
 
-@override_settings(PERF_CACHE_DASHBOARD=True)
-def test_admin_dashboard_cached_path_no_divergence():
-    """Dashboard cache on: cached output (incl. a cache-hit re-read) equals baseline."""
-    from django.core.cache import cache
+def test_admin_dashboard_reread_no_divergence():
+    """Dashboard: a read and a re-read of the same state both equal the baseline.
 
-    cache.clear()
+    This was the cache-on pass; the dashboard cache was removed by
+    platform-simplification task 16.1, so both reads compute."""
     _seed_admin_dashboard_world()
-    user = _JWTUser("super_admin", uuid.uuid4())  # fixed user so the second call hits the cache
+    user = _JWTUser("super_admin", uuid.uuid4())
     first = _call_admin_dashboard(user)
     _assert_no_divergence("admin_dashboard", "admin_dashboard", first)
-    second = _call_admin_dashboard(user)  # within TTL -> cache-hit branch
-    assert_equivalent(first, second, label="admin_dashboard cached re-read", volatile_keys=_volatile_for("admin_dashboard"))
+    second = _call_admin_dashboard(user)
+    assert_equivalent(first, second, label="admin_dashboard re-read", volatile_keys=_volatile_for("admin_dashboard"))
 
 
-@override_settings(PERF_CACHE_CAPABILITIES=True)
-def test_admin_scope_cached_path_no_divergence():
-    """Capability cache on: cached scope output (incl. cache hit) equals baseline."""
-    from django.core.cache import cache
+def test_admin_scope_reread_no_divergence():
+    """Scope: a read and a re-read of the same state both equal the baseline.
 
-    cache.clear()
+    This was the cache-on pass; the capability cache was removed by
+    platform-simplification task 16.1, so both reads compute."""
     _seed_admin_scope_world()
-    user = _JWTUser("super_admin", uuid.uuid4())  # fixed user so the second call hits the cache
+    user = _JWTUser("super_admin", uuid.uuid4())
     first = _call_admin_scope(user)
     _assert_no_divergence("admin_scope", "admin_scope", first)
     second = _call_admin_scope(user)
-    assert_equivalent(first, second, label="admin_scope cached re-read", volatile_keys=_volatile_for("admin_scope"))
+    assert_equivalent(first, second, label="admin_scope re-read", volatile_keys=_volatile_for("admin_scope"))
 
 
 @override_settings(PERF_CACHE_CATALOG=True)

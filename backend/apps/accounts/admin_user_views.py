@@ -7,7 +7,6 @@ Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
 import logging
 import re
 
-from django.conf import settings
 from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
@@ -27,11 +26,6 @@ from apps.accounts.permissions import (
     is_super_admin,
 )
 from apps.common.openapi_helpers import ErrorResponseSerializer
-from apps.common.scoped_cache import (
-    build_scope_signature,
-    cached_or_compute,
-    invalidate_user,
-)
 
 # Stream 9 decomposition: shared serializers + helpers live in admin_serializers.
 from apps.accounts.admin_serializers import (  # noqa: F401
@@ -272,40 +266,19 @@ def _capability_resolution_denied():
 
 
 def _resolve_capability_payload(user):
-    """Return the capability/scope payload for ``user``, cached fail-closed (R5).
+    """Return the capability/scope payload for ``user``, computed on every request.
 
     Shared resolver for both ``GET /api/v1/admin/scope/`` and
-    ``GET /api/v1/admin/capabilities/``. Wraps the single source of truth
-    ``_build_capability_payload`` in the per-user
-    :func:`~apps.common.scoped_cache.cached_or_compute` (namespace ``"cap"``,
-    scope signature ``str(user.pk)``, ``ttl=60`` per R5.2), gated by the
-    ``PERF_CACHE_CAPABILITIES`` flag (default ``False`` so the pre-feature path
-    is unchanged until the flag is flipped — R5.1, R5.2).
+    ``GET /api/v1/admin/capabilities/``, over the single source of truth
+    ``_build_capability_payload``. Nothing is cached: the per-user capability
+    cache was removed by platform-simplification task 16.1 (decision D7 option
+    A), because no environment the repository configures turned it on.
 
-    Fail-closed authority (R5.3): a ``CapabilityResolutionError`` is caught so
-    the wrapper never stores it; any existing entry for the user is dropped via
-    :func:`~apps.common.scoped_cache.invalidate_user`, and the error is
-    re-raised so the view returns the existing fail-closed authorization
-    response (zero capabilities, no tenant data). Because ``cached_or_compute``
-    only stores the value after ``compute()`` returns successfully, a raised
-    error is never cached.
+    Fail-closed authority (R1.6): a ``CapabilityResolutionError`` propagates, so
+    the view returns the fail-closed authorization response (zero capabilities,
+    no tenant data), and the next request resolves again from current state.
     """
-    from apps.catalog.services import CapabilityResolutionError
-
-    enabled = getattr(settings, "PERF_CACHE_CAPABILITIES", False)
-
-    def compute():
-        return _build_capability_payload(user)
-
-    try:
-        return cached_or_compute(
-            "cap", str(user.pk), compute, ttl=60, enabled=enabled
-        )
-    except CapabilityResolutionError:
-        # Never store/serve a failed resolution; drop any existing entry and
-        # let the caller render the fail-closed authorization error (R5.3).
-        invalidate_user("cap", user.pk)
-        raise
+    return _build_capability_payload(user)
 
 
 @extend_schema_view(
@@ -529,17 +502,9 @@ class AdminDashboardView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # The scoped cache wraps the whole payload. The scope_signature embeds the
-        # requester's scope + role + in-scope institutions and the selected-school
-        # filter, so two Tenant_Scope_Keys never share an entry (R2.2, R2.7).
-        # Gated by PERF_CACHE_DASHBOARD; when off, nothing touches the cache.
-        dashboard_cache_enabled = getattr(settings, "PERF_CACHE_DASHBOARD", False)
-        scope_signature = (
-            build_scope_signature(request.user, institution_filter=institution_filter)
-            if dashboard_cache_enabled
-            else ""
-        )
-
+        # Computed on every request: the dashboard aggregate cache was removed by
+        # platform-simplification task 16.1 (decision D7 option A), because no
+        # environment the repository configures turned it on.
         def compute():
             payload = service.build(request.user, institution_id=institution_filter)
             applications, users, needs_attention = self._legacy_blocks(
@@ -553,13 +518,7 @@ class AdminDashboardView(APIView):
             }
 
         try:
-            data = cached_or_compute(
-                "dash",
-                scope_signature,
-                compute,
-                ttl=45,
-                enabled=dashboard_cache_enabled,
-            )
+            data = compute()
         except Exception:
             # A failure here is a failure of the *whole* read, not of one source,
             # so it is reported as an error rather than as an empty dashboard.

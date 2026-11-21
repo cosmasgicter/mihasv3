@@ -815,20 +815,10 @@ PUBLIC_TRACKING_RATE_LIMITS = os.environ.get(
 # the pre-feature code path (direct computation, no cache) stays in effect
 # until the flag is explicitly flipped. The caches are thin callers of
 # ``apps.common.scoped_cache`` and degrade gracefully on any cache error.
-# Rollout/blast-radius order: capabilities -> dashboard -> catalog.
+# The capabilities and dashboard caches and their flags were removed by
+# platform-simplification task 16.1 (decision D7 option A): no environment the
+# repository configures turned them on.
 # ---------------------------------------------------------------------------
-
-# Gates the per-user capability/scope cache wrapping
-# ``GET /api/v1/admin/scope/`` and ``GET /api/v1/admin/capabilities/`` (R5).
-PERF_CACHE_CAPABILITIES = os.environ.get(
-    "PERF_CACHE_CAPABILITIES", ""
-).lower() in ("1", "true", "yes")
-
-# Gates the short-lived admin dashboard aggregate cache on
-# ``AdminDashboardView`` (R2).
-PERF_CACHE_DASHBOARD = os.environ.get(
-    "PERF_CACHE_DASHBOARD", ""
-).lower() in ("1", "true", "yes")
 
 # Gates the catalog read-response cache (programs, canonical programs,
 # intakes, subjects, assignment-safe responses) (R4).

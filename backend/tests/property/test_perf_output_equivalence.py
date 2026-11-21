@@ -36,9 +36,10 @@ names, amounts), so the comparison checks envelope + field-name structure +
 value *types* + nesting + pagination keys — null-tolerant on nullable leaves and
 list-length independent — which is precisely the Property-6 contract.
 
-Two endpoints are additionally checked under their flag-gated cache **on**:
-a cache hit must serve output equivalent to direct recomputation (R2, R5), i.e.
-caching changes latency, never the observable payload.
+Two endpoints were additionally checked under their flag-gated cache **on**
+(R2 dashboard, R5 capabilities). Those caches and their flags were removed by
+platform-simplification task 16.1 (decision D7 option A), and the two
+cache-on checks went with them.
 
 **Validates: Requirements 13.1, 13.2, 13.6, 9.2, 10.8**
 
@@ -63,8 +64,6 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from django.core.cache import cache
-from django.test import override_settings
 from django.utils import timezone
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
@@ -641,74 +640,3 @@ def test_property_6_notifications_cursor_mode_shape_equivalent(specs):
         baseline, candidate,
         label="notifications cursor-mode vs pre-feature golden",
     )
-
-
-# ===========================================================================
-# Cache-on equivalence — a cache hit serves output equivalent to recomputation
-# ===========================================================================
-#
-# The flag-gated caches (R2 dashboard, R5 capabilities) must change latency,
-# never the observable payload: a warm cache hit must equal both the cold-miss
-# computation and the flag-off direct computation, for identical persisted
-# state. Deterministic (non-Hypothesis) checks against the LocMem test cache.
-
-
-def _seed_dashboard_world():
-    from tests.tenant_fixtures import build_application, build_tenant_world
-
-    world = build_tenant_world(with_application=False)
-    for status_value in ("submitted", "submitted", "approved"):
-        build_application(
-            student=world.student, institution=world.institution,
-            canonical_program=world.canonical_program, offering=world.offering,
-            intake=world.intake, suffix=f"cachew-{uuid.uuid4().hex[:8]}", status=status_value,
-        )
-    return world
-
-
-def test_property_6_dashboard_cache_hit_equals_recomputation():
-    """Dashboard cache-on hit == cold miss == flag-off recomputation (R2.1/R2.8).
-
-    **Validates: Requirements 13.1, 13.2, 13.6**
-    """
-    _seed_dashboard_world()
-    caller = _JWTUser("super_admin", uuid.uuid4())
-    volatile = _DASHBOARD_SPEC.volatile_keys()
-
-    with override_settings(PERF_CACHE_DASHBOARD=True):
-        cache.clear()
-        cold = _call_dashboard(caller)   # miss → compute + store
-        warm = _call_dashboard(caller)   # hit  → served from cache
-    assert cold.status_code == warm.status_code == 200
-    assert_equivalent(cold.data, warm.data, label="dashboard cold vs warm cache", volatile_keys=volatile)
-
-    with override_settings(PERF_CACHE_DASHBOARD=False):
-        cache.clear()
-        flag_off = _call_dashboard(caller)
-    assert flag_off.status_code == 200
-    assert_equivalent(cold.data, flag_off.data, label="dashboard cache-on vs flag-off", volatile_keys=volatile)
-
-
-def test_property_6_scope_cache_hit_equals_recomputation():
-    """Capability/scope cache-on hit == cold miss == flag-off recomputation (R5.1/R5.2).
-
-    **Validates: Requirements 13.1, 13.2, 13.6**
-    """
-    from tests.tenant_fixtures import build_institution
-
-    build_institution(suffix=f"cachescope-{uuid.uuid4().hex[:6]}", is_active=True)
-    caller = _JWTUser("super_admin", uuid.uuid4())
-    volatile = _SCOPE_SPEC.volatile_keys()
-
-    with override_settings(PERF_CACHE_CAPABILITIES=True):
-        cache.clear()
-        cold = _call_scope(caller)
-        warm = _call_scope(caller)
-    assert cold.status_code == warm.status_code == 200
-    assert_equivalent(cold.data, warm.data, label="scope cold vs warm cache", volatile_keys=volatile)
-
-    with override_settings(PERF_CACHE_CAPABILITIES=False):
-        cache.clear()
-        flag_off = _call_scope(caller)
-    assert flag_off.status_code == 200
-    assert_equivalent(cold.data, flag_off.data, label="scope cache-on vs flag-off", volatile_keys=volatile)

@@ -5,20 +5,19 @@ Feature: system-performance-hardening (task 1.5).
 Two concerns, both pure unit tests (no DB, no property-test machinery — the
 property tests for this feature live under ``backend/tests/property/``):
 
-1. **TTL bounds** — the TTL constants actually used by the three flag-gated
-   caches sit within the requirement windows:
-     - dashboard TTL ∈ [30, 60]            (R2.3)
+1. **TTL bounds** — the TTL constant actually used by the flag-gated catalog
+   cache sits within the requirement window:
      - catalog  TTL ∈ [300, 600]           (R4.2)
-     - capability TTL == 60                (R5.2)
-   We assert the *real* call/constant values used in the production code
-   (importing ``_CATALOG_CACHE_TTL`` and reading the literal ``ttl=`` argument
-   from the dashboard / capability call sites) rather than hard-coding a copy.
+   We assert the *real* constant used in the production code (importing
+   ``_CATALOG_CACHE_TTL``) rather than hard-coding a copy. The dashboard
+   (R2.3) and capability (R5.2) TTL checks went with those caches
+   (platform-simplification task 16.1, decision D7 option A).
 
 2. **Flag-off bypass** — ``cached_or_compute(..., enabled=False)`` calls
    ``compute()`` on every invocation and never reads from or writes to the
    cache backend (the pre-feature behaviour the flags default to).
 
-Requirements: 2.3, 4.2, 5.2.
+Requirements: 4.2.
 """
 
 from __future__ import annotations
@@ -82,22 +81,6 @@ def test_catalog_ttl_within_300_to_600():
     assert 300 <= _CATALOG_CACHE_TTL <= 600, (
         f"catalog TTL {_CATALOG_CACHE_TTL} outside [300, 600]"
     )
-
-
-def test_dashboard_ttl_within_30_to_60():
-    """Admin dashboard cache TTL is within [30, 60] seconds (R2.3)."""
-    from apps.accounts.admin_user_views import AdminDashboardView
-
-    ttl = _single_ttl(AdminDashboardView.get)
-    assert 30 <= ttl <= 60, f"dashboard TTL {ttl} outside [30, 60]"
-
-
-def test_capability_ttl_is_exactly_60():
-    """Capability/scope cache TTL is exactly 60 seconds (R5.2)."""
-    from apps.accounts.admin_user_views import _resolve_capability_payload
-
-    ttl = _single_ttl(_resolve_capability_payload)
-    assert ttl == 60, f"capability TTL {ttl} is not 60"
 
 
 # ---------------------------------------------------------------------------

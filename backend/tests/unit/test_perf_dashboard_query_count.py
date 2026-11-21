@@ -27,8 +27,8 @@ the ``applications`` and ``profiles`` tables (the collapsed block) are ``≤3``,
 and the grand total of count/aggregate queries stays far below the pre-feature
 12+ (it is the collapsed 3 + the 3 needs-attention table counts).
 
-The dashboard cache flag stays OFF (``PERF_CACHE_DASHBOARD`` default ``False``),
-so this measures the always-on conditional-count refactor and not a cache hit.
+The dashboard has no cache (it was removed by platform-simplification task 16.1,
+decision D7 option A), so this measures the always-on conditional-count refactor.
 """
 
 from __future__ import annotations
@@ -107,11 +107,8 @@ def _seed_dashboard_world():
 
 
 @pytest.mark.django_db
-def test_dashboard_collapsed_aggregate_block_is_at_most_three(settings):
+def test_dashboard_collapsed_aggregate_block_is_at_most_three():
     """R2.6: the collapsed application+user aggregate block issues <=3 count/aggregate queries."""
-    # Keep the always-on refactor under test (not a cache hit).
-    settings.PERF_CACHE_DASHBOARD = False
-
     _seed_dashboard_world()
 
     with CaptureQueriesContext(connection) as captured:
