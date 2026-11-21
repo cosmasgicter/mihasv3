@@ -211,6 +211,13 @@ export function NextActionPanel({
         has a genuine choice — changing intake instead of joining a waitlist, for
         instance.
       */}
+      {/*
+        Each label may break inside a word, and only when the word cannot fit on a
+        line of its own (task 22.5, the R16.8 reflow case above). At 320 px with a
+        32 px root font the panel leaves 174 px, and "application" alone measures
+        177 px in DejaVu Sans, so the row's minimum width (icon, gap and that word)
+        pushed the link 9.5 px past the panel. At ordinary sizes nothing changes.
+      */}
       {nextAction && nextAction.otherActions.length > 0 && (
         <ul data-testid="next-action-alternatives" className="mt-4 space-y-1.5">
           {nextAction.otherActions.map((action) => (
@@ -221,12 +228,12 @@ export function NextActionPanel({
                   className="inline-flex min-h-touch items-center gap-2 rounded-md text-base sm:text-sm font-medium text-primary hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  {action.label}
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{action.label}</span>
                 </Link>
               ) : (
                 <span className="inline-flex min-h-touch items-center gap-2 text-base sm:text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  {action.label}
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{action.label}</span>
                 </span>
               )}
             </li>
