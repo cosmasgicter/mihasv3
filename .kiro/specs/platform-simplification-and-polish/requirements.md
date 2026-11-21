@@ -558,6 +558,10 @@ How this register is used:
 - **Lean:** A, after the production environment check in P0_Ops_Check. Proposed in the critique; confirmed 2026-11-08 (see Status).
 - **Prerequisite:** the P0_Ops_Check needs a reachable production host, which depends on D14.
 - **Status:** Confirmed 2026-11-08 (option A: cut the capabilities and dashboard caches; keep the catalogue cache only if production has it enabled and it has been measured). The prerequisite stays: the P0_Ops_Check, which needs a live production host (D14); tasks 16.1 and 16.2 stay blocked until it has run.
+- **Prerequisite replaced and option A applied, decided 2026-11-21 under the owner's full approval.**
+  - No production host exists, and the new server will be configured from the repository. So the production check used `deploy/docker-compose.prod.yml`, `backend/config/settings/prod.py` and the tracked env templates. None of them enables a `PERF_CACHE_*` flag.
+  - The catalogue cache was measured on the local harness, with the same request mix with the cache on and off. The bar, written before the run, was a median at least 25% and at least 10 ms lower. With the cache on the median was about 30% lower but only 6.2 to 6.4 ms, so the benefit is not material.
+  - Tasks 16.1 and 16.2 removed all three caches, their flags and `scoped_cache.py`. The numbers are in task 16.2 and the evidence summary.
 - **Depends on it:** Requirements 5.1–5.3; tasks 16.1, 16.2.
 - **Decision-independent:** Requirements 5.4, 5.5; task 1.2.
 - **Under another option:** B: tasks 16.1 and 16.2 become "enable on staging, measure with `backend/tests/perf_baseline`, then decide per cache". C: tasks 16.1 and 16.2 are dropped and Requirement 5.1 is recorded as not met.

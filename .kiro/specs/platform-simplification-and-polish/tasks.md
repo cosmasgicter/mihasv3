@@ -472,19 +472,60 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Update `design-skills.md`, `engineering-skills.md` and `.agents/AGENTS.md` §3 to the kept set and its location.
     - _Requirements: 4.6, 6.1_
 
-- [ ] 16. Performance caches (D7)
-  - [ ] 16.1 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Remove the capabilities and dashboard caches (option A, after the P0_Ops_Check)
+- [x] 16. Performance caches (D7)
+  - [x] 16.1 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Remove the capabilities and dashboard caches (option A, after the P0_Ops_Check)
     - Read the P0_Ops_Check record. If a cache is on in production, stop and re-ask D7 with that data.
     - Remove the cache branches (`services.py:1048`, `admin_user_views.py:279-292,532-533`), their signal handlers, their flags and `scoped_cache.py` once it has no importer.
     - Triage each perf test file as design §5 describes, and record each file's disposition before deleting.
     - Update `perf-flags.md` and the env examples.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Production effect: the endpoints serve uncached bodies, the same as with the flags off (Requirement 5.4).
     - _Requirements: 5.1, 5.2, 5.4, 5.5_
+    - Done 2026-11-21 (finish run, W3), commit `fca170c28`.
+      - **The production check.** No live host exists, so the check was replaced, decided 2026-11-21 under the owner's full approval: it used the configuration the next server is built from. `deploy/docker-compose.prod.yml`, `backend/config/settings/prod.py` and the five tracked env templates set none of the `PERF_CACHE_*` names, and neither do `staging.py`, `harness.py` or the harness compose file. `base.py` defaulted all three to off. No cache is on, so option A applies without asking D7 again.
+      - **Removed:**
+        - the capability cache branch in `AdminCapabilityService.get_capabilities` and the per-user payload cache in `_resolve_capability_payload`;
+        - the dashboard cache in `AdminDashboardView.get`;
+        - `apps/accounts/signals.py` (both handler sets) and its registration in `AccountsConfig.ready()`;
+        - the two flags.
+        `scoped_cache.py` still had an importer, the catalogue cache, until task 16.2 removed both.
+      - **What changes.** With the flags off, the removed paths were already direct computation, so the bodies and status codes are unchanged (Requirement 5.4) and the OpenAPI schema is byte-identical. The one difference: a capability-resolution failure no longer bumps a Redis version key.
+      - **Test triage (design §5), with each file's disposition:**
+        - `tests/unit/test_perf_dashboard_cache.py` was deleted. Every test in it exercised the dashboard cache: a hit within the TTL, and invalidation on status, payment, membership, grant and institution changes. `test_perf_dashboard_counts.py` still covers count correctness and is unchanged.
+        - `tests/property/test_perf_capability_failclosed.py` (Property 16) was kept and retargeted to the uncached resolver. Old: a `CapabilityResolutionError` is never stored, drops the cached entry through `invalidate_user` and re-raises, and a flag-on read after it recomputes. New: the error re-raises, every call computes again, and a payload returned before a failure never masks the failure.
+        - `tests/unit/test_perf_capability_invalidation.py` was kept and retargeted. Old: each authority change invalidates the cached payload, proved by a zero-query hit before the change and a recompute after it. New: the next scope or capabilities read reflects a role change, a membership create, update or delete, a grant create, update or delete, and a super-admin demotion. Those payload assertions are unchanged. The query-count proofs went with the cache, and so did the `Institution.is_active` case, whose only proof was that query-count difference.
+        - `tests/property/test_perf_output_equivalence.py`: the two cache-on equivalence tests (dashboard, scope) were removed. The rest is unchanged.
+        - `tests/integration/test_perf_divergence_regression.py`: the dashboard and scope cache-on passes became re-read passes on the uncached path. Each seeds once and reads twice, and both reads must equal the baseline and each other. The assertions are unchanged.
+        - `tests/unit/test_perf_scoped_cache_ttl.py`: the dashboard and capability TTL tests were removed. Task 16.2 then deleted the file.
+        - `tests/unit/test_dashboard_metrics_9_2.py` and `tests/unit/test_perf_dashboard_query_count.py`: only the setup that set `PERF_CACHE_DASHBOARD = False` was removed. The assertions are unchanged.
+      - `perf-flags.md` was rewritten. The env examples never named these flags.
+      - **Deploy path in force:** none, because Deploy is disabled. This ships with the new server's first deploy. Rollback: revert the commit.
 
-  - [ ] 16.2 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Decide the catalogue cache from production data
+  - [x] 16.2 [Decision D7 confirmed 2026-11-08 (option A); blocked until a live production host exists and the P0_Ops_Check has run (D14)] Decide the catalogue cache from production data
     - Keep `catalog_cache.py` only if the P0_Ops_Check shows it on in production and a recorded measurement shows its effect. Otherwise remove it, its helper branches and its tests the same way.
     - Deploy path, if the cache is removed: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 5.1, 5.3, 5.4_
+    - Done 2026-11-21 (finish run, W3), commit `11fa31d90`. Decided 2026-11-21 under the owner's full approval: the cache is removed.
+      - **The production check** is the one task 16.1 used. No repository configuration turns `PERF_CACHE_CATALOG` on.
+      - **The measurement** replaced the production data. It ran on the local harness with the same 14-request catalogue mix, with the cache off, on, off, on, 200 passes each after 5 warm-up passes. All 11,200 requests answered 200.
+      - **The rule**, written before the run: keep the cache only if the median is at least 25% and at least 10 ms lower in both pairs.
+      - **The result:** the median was 29.5% and 30.7% lower but only 6.2 and 6.4 ms. The mean was 9.3 and 9.6 ms lower and p95 10.6 and 11.0 ms lower. That is not material, so the cache was removed. After removal the uncached path is 0.7 to 1 ms faster than the old flag-off path, because it no longer computes a cache scope signature.
+      - **Removed:**
+        - `catalog_cache.py`;
+        - the read-cache helpers in `_catalog_view_helpers.py`: the scope signature and payload wrapper, the TTL, the neutral scope and the selector-endpoint map;
+        - the 23 write-path invalidation calls in 8 modules, the fee views' helper among them;
+        - the matching re-exports in `apps/catalog/views.py`;
+        - the flag;
+        - `apps/common/scoped_cache.py`, which had no importer left.
+        The two selector-endpoint names stay, because `OfferingDirectoryService` uses them. The OpenAPI schema is byte-identical.
+      - **Test triage.**
+        - Deleted, because they test only the removed code: `test_perf_catalog_cache.py`, `test_perf_scoped_cache_ttl.py`, `test_perf_cache_degradation.py`, `test_perf_cache_invalidation.py`, `test_perf_scoped_cache_keys.py` and `test_perf_cache_tenant_isolation.py`.
+        - `tests/unit/test_scenario_query_override_fail_closed.py`, the admissions-v2 task 2.3 acceptance scenario. It is not one of the enterprise-tenant-authority scenarios A to D. Old: three tests asserted the catalogue cache scope signature: the host tenant rather than the query override, the selected tenant on the shared portal, and neutral for a non-selector endpoint. New: those three went with the signature. The file's two existing response tests already assert the first two cases, and they are unchanged. A new test asserts the third on the response: `?institution=<A>` on the programmes endpoint on the shared portal still lists both tenants. The five existing response tests are unchanged. Reason: the cache key they checked no longer exists.
+        - `tests/property/test_tenant_host_query_override.py` (admissions-v2 task 2.3). Old: Property B checked that a computation cached in the scoped cache under `catalog_institution_scope` is never served for another institution. New: Property B was removed with both modules. Property A, which checks that a trusted host wins and a selector fails closed, is unchanged.
+        - `tests/integration/test_perf_divergence_regression.py`: the catalogue cache-on pass became a re-read pass. The assertions are unchanged.
+        - `tests/property/test_perf_query_counts.py` and `tests/unit/test_perf_canonical_offerings_query_count.py`: docstrings only.
+      - The Requirement 22.1 files, enterprise-tenant-authority Properties 4 to 10 and scenarios A to D are unchanged and pass. The W3 tenant-isolation set gives 122 passed: the 124 from before, minus the three removed cache-scope tests, plus the new response test.
+      - Docs updated: `perf-flags.md`, a dated note in `end-to-end-production-readiness-finalization.md`, and the domain-transition sentence in `enterprise-tenancy.md`.
+      - **Deploy path in force:** none, because Deploy is disabled. Production effect: bodies and status codes are unchanged, and catalogue writes no longer bump Redis version keys. Rollback: revert the commit.
 
 - [x] 17. Capability catalogue (D3)
   - [x] 17.1 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 (its tasks 3 to 5) is merged] Remove `platform.user.create_global` (option B)

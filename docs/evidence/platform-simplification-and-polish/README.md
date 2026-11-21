@@ -289,6 +289,27 @@ Removal safety for every task below: `git grep` of each removed name across apps
 - Pruned to the D6 keep-list (option B): 310 `.kiro/skills` entries and 12 `.agents/skills` targets, the second `ui-ux-pro-max` copy and the two dangling symlinks with their baseline entries. `api-design-reviewer` is kept because CI's `api_quality.sh` runs its linter (recorded in contradictions.md). Impeccable, ui-ux-pro-max, design-for-ai, a11y-audit and the four engineering skills are kept. Steering and `.agents/AGENTS.md` section 3 name the kept set. Skill-path check green.
 ### 16.1, 16.2 Performance caches: BLOCKED
 - Need a live production host and the P0_Ops_Check (D14). Nothing changed.
+- **2026-11-21 (finish run, W3): both done, as `fca170c28` (16.1) and `11fa31d90` (16.2).** Decided 2026-11-21 under the owner's full approval.
+  - **Production check.** It used the configuration the new server will be built from. `deploy/docker-compose.prod.yml`, `prod.py`, `staging.py`, `harness.py`, the harness compose file and the five tracked env templates set no `PERF_CACHE_*` name, and `base.py` defaulted all three off.
+  - **Catalogue measurement.** It ran on the local harness, with a fixed 14-request mix over programmes, canonical programmes, intakes, subjects and the preview, for anonymous, tenant-host, student and tenant-admin callers. The phases were off, on, off and on, with 200 passes each and all 200 responses.
+
+    | Phase | p50 ms | mean ms | p95 ms |
+    |---|---:|---:|---:|
+    | off1 | 20.98 | 21.71 | 32.00 |
+    | on1 | 14.79 | 12.42 | 21.43 |
+    | off2 | 20.99 | 21.76 | 32.13 |
+    | on2 | 14.54 | 12.18 | 21.16 |
+    | after removal (2 runs) | 19.93, 20.26 | 20.66, 21.15 | 30.86, 31.72 |
+
+    The bar was set before the run: at least 25% and at least 10 ms lower at the median. With the cache on the median was 6.2 and 6.4 ms lower, so the benefit is not material and the cache was cut.
+  - **Removed:** the three caches, their flags, the `accounts` invalidation signals, `catalog_cache.py`, `scoped_cache.py` and 23 write-path invalidation calls. The OpenAPI schema is byte-identical, and the bodies and status codes match the flags-off path.
+  - **Test dispositions** are listed in `tasks.md` under 16.1 and 16.2:
+    - 7 files deleted as cache-only;
+    - 4 retargeted to the uncached path or to the response;
+    - 2 with only their cache-only tests removed and the rest unchanged;
+    - 4 changed in setup or docstrings only.
+  - **Tests run:** the 78 catalogue, fee, domain and perf test files passed on Postgres 16 with `-n 6` (846 passed, 2 skipped), and so did the tenant-isolation set (122 passed).
+  - **Path in force:** Deploy is disabled, so this ships with the new server's first deploy. Rollback: revert the two commits.
 ### 17.1 Remove `platform.user.create_global` (R8.1, 8.2, 8.5, 8.6, 22.1): 0858df457
 - Spec A's P0 was present in the base. Catalogue is now 16 platform and 17 tenant. Updated the 8.1 update set (authority matrix registry and v2, perf fixture, truth map, permissions plan, enterprise-tenancy and tech steering). Regression test `test_removed_capability_grant_17_1.py`: a grant naming it grants only the read bundle and raises nothing. Two count assertions 17 to 16 are named in the commit. Cross-tenant property tests unchanged and green.
 ### 17.2 BLOCKED, 17.3 DRAFT ONLY (R8.3, 8.4): 98a93a39e
