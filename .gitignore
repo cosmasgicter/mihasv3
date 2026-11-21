@@ -205,6 +205,12 @@ run-*.js
 *.sql
 !backend/scripts/*.sql
 !backend/scripts/**/*.sql
+# The task 12.3 read-only invariant queries: the fixture
+# tests/unit/test_legacy_column_contraction_12_3.py reads, and the path the 12.3
+# runbook and evidence name (a symlink to the fixture). The *.sql rule above kept
+# the file out of git from the day it was written (problem 3, 2026-11-21).
+!backend/tests/fixtures/legacy_column_contraction_12_3/invariants.sql
+!docs/v2-evidence/12.3/invariants.sql
 supabase-helper.bat
 
 # Keep important documentation

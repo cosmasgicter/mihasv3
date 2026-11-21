@@ -1,0 +1,1 @@
+../../../backend/tests/fixtures/legacy_column_contraction_12_3/invariants.sql

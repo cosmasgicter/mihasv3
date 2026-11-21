@@ -51,7 +51,14 @@ CONTRACT_SQL = (
 CONTRACT_ROLLBACK_SQL = (
     BACKEND / "scripts" / "future" / "legacy_columns_contract_2026_08_15_rollback.sql"
 )
-INVARIANTS_SQL = REPO_ROOT / "docs" / "v2-evidence" / "12.3" / "invariants.sql"
+#: The read-only invariant queries the operator runs before the contract
+#: migration. The tracked file is this test-owned fixture; the path the runbook
+#: and the 12.3 evidence name, ``docs/v2-evidence/12.3/invariants.sql``, is a
+#: symlink to it, so the file guarded here is the file an operator runs. (Until
+#: 2026-11-21 the test read that docs path, which the repository's ``*.sql``
+#: ignore rule had kept out of git, so the file existed in one checkout only.)
+INVARIANTS_SQL = BACKEND / "tests" / "fixtures" / "legacy_column_contraction_12_3" / "invariants.sql"
+OPERATOR_INVARIANTS_SQL = REPO_ROOT / "docs" / "v2-evidence" / "12.3" / "invariants.sql"
 SUPERSEDED_DROP_SQL = BACKEND / "scripts" / "legacy_columns_drop_2026_08_15.sql"
 
 #: The 7 columns task 12.3 found source-clean and ORM-unmapped. These are the
@@ -327,6 +334,19 @@ class TestInvariantSqlMatchesTheProjectionItClaimsToCheck:
                 "operator runs against PRODUCTION to decide whether contraction is "
                 "safe; it must not be able to change anything."
             )
+
+    def test_the_operator_path_is_the_guarded_file(self):
+        # The runbook, the contract migration's header and the 12.3 evidence tell
+        # the operator to run docs/v2-evidence/12.3/invariants.sql. Those must be
+        # the bytes this class guards; otherwise the guard protects a copy.
+        assert OPERATOR_INVARIANTS_SQL.is_file(), (
+            f"{OPERATOR_INVARIANTS_SQL} is missing; it is the path every operator "
+            "instruction for the 12.3 contraction names"
+        )
+        assert OPERATOR_INVARIANTS_SQL.read_bytes() == INVARIANTS_SQL.read_bytes(), (
+            f"{OPERATOR_INVARIANTS_SQL} differs from {INVARIANTS_SQL}; keep it a "
+            "symlink to the fixture so the guarded file is the file that is run"
+        )
 
     def test_invariants_cover_all_four_database_gates(self):
         sql = INVARIANTS_SQL.read_text(encoding="utf-8")
