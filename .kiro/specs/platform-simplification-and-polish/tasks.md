@@ -467,22 +467,28 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path, if the cache is removed: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 5.1, 5.3, 5.4_
 
-- [ ] 17. Capability catalogue (D3)
+- [x] 17. Capability catalogue (D3)
   - [x] 17.1 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 (its tasks 3 to 5) is merged] Remove `platform.user.create_global` (option B)
     - Remove it from `PLATFORM_CAPABILITIES`, and update every file in its update set from task 8.1 in the same commit: at HEAD `scripts/authority_matrix_registry.py`, `scripts/authority_matrix_v2.py`, `backend/tests/perf_baseline/fixtures/admin_scope.json`, the truth map and `docs/tenant-admin-super-admin-permissions-plan.md`, plus `enterprise-tenancy.md`'s capability list. Then run `test_capability_endpoint_shape.py`, `test_capability_self_description_m3.py` and the derivation property tests.
     - Add the regression test that a grant naming a removed capability grants nothing and raises nothing (design §8).
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.2, 8.5, 8.6, 22.1_
 
-  - [ ] 17.2 [Decision D3 confirmed 2026-11-08 (option B) and D5 confirmed 2026-11-08 (workflow dormant, option C); blocked: the two conflict, because the dormant workflow's submit authority uses these three capabilities (Requirement 8.3). It does not start until the user answers (D3, Interaction)] Remove the three `*.request_change` capabilities (only with D3 option B and D5 option B)
+  - [x] 17.2 [Decision D3 confirmed 2026-11-08 (option B) and D5 confirmed 2026-11-08 (workflow dormant, option C); blocked: the two conflict, because the dormant workflow's submit authority uses these three capabilities (Requirement 8.3). It does not start until the user answers (D3, Interaction)] Remove the three `*.request_change` capabilities (only with D3 option B and D5 option B)
     - Remove `tenant.profile.request_change`, `tenant.program.request_change` and `tenant.domain.request_change`, with their frontend gates, and update every file in their update set from task 8.1 (20 at HEAD, including the OpenAPI baselines and the generated API types), as in task 17.1.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.3, 8.5, 22.1_
+    - Closed 2026-11-21 (finish run, W3) with no code change. Nothing was removed. The conflict was settled on 2026-11-21 under the owner's full approval: the three `*.request_change` capabilities stay while the dormant change-request workflow exists, because D5 option C needs them (Requirement 8.3), and D3 is amended to match (Decision Register, D3, "Amended 2026-11-21"). The catalogue stays at 16 `platform.*` + 17 `tenant.*`. This task has no Deploy path, because it changes nothing production serves.
 
-  - [ ] 17.3 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 is merged and the user approves task 8.1's merge table] Apply the approved merge table
+  - [x] 17.3 [Decision D3 confirmed 2026-11-08 (option B); blocked until Spec A's P0 is merged and the user approves task 8.1's merge table] Apply the approved merge table
     - Apply only the merges you approved from task 8.1's table, one capability pair per commit, with the cross-tenant property tests unchanged and green after each.
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 8.1, 8.4, 8.5, 8.6, 22.1_
+    - Done 2026-11-21 (finish run, W3). Task 8.1's merge table (`docs/evidence/platform-simplification-and-polish/17.3-merge-table-draft.md`) is approved as drafted, decided 2026-11-21 under the owner's full approval. The table proposes no merge.
+      - A fresh run of `scripts/capability_inventory.py` at `966423cdb` again finds 0 merge candidates among the 33 capabilities: every group granted together has a member that some backend enforcement site or frontend gate names alone.
+      - So no pair was merged. No catalogue string changed, no stored membership or grant `permissions` value needs an alias or a data rewrite, and no `CapabilityContext` consumer changed.
+      - The cross-tenant property tests are unchanged. The tenant-isolation set (the Requirement 22.1 files, Properties 4 to 10 and the acceptance-scenario tests) passed on Postgres 16, 124 passed (evidence summary, 17.2 and 17.3). `docs/canonical-truth-map.md` records the outcome under the capability catalogue.
+      - This task has no Deploy path, because it changes nothing production serves.
 
 - [x] 18. OCR opt-in (D4)
   - [x] 18.1 [Decision D4 confirmed 2026-11-08 (option B)] Add the OCR policy and the backend gate (option B)

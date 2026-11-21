@@ -820,6 +820,16 @@ pinning the one hard-coded capability string it needs for navigation
 `tenant.audit.read`, `tenant.program.read`, `tenant.program.request_change`,
 `tenant.domain.read`, `tenant.domain.request_change`.
 
+**Decision D3 outcome (platform-simplification tasks 17.1 to 17.3; recorded 2026-11-21).**
+D3 option B removed only `platform.user.create_global` (task 17.1). The three
+`*.request_change` capabilities stay while the dormant change-request workflow
+exists, because D5 option C needs them (task 17.2, decided 2026-11-21 under the
+owner's full approval). Task 8.1's merge table was approved as drafted on the same
+date and merges nothing (task 17.3): `scripts/capability_inventory.py` finds no
+pair that is always granted together and that no gate tells apart. So no stored
+membership or grant permission needs an alias, and the catalogue above is the whole
+catalogue.
+
 ### Canonical routes (frontend)
 
 | Route | Component | Authority |
