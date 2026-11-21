@@ -53,6 +53,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
+from apps.accounts.permissions import catalog_permission_classes
 from apps.accounts.user_bulk_service import (
     BULK_OP_DEACTIVATE,
     BULK_OPERATIONS,
@@ -81,7 +82,6 @@ from apps.accounts.user_import_service import (
     UserImportRejected,
     UserImportService,
 )
-from apps.catalog.permissions import HasTenantCapability
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.common.pagination import StandardPagination
@@ -367,7 +367,7 @@ class AdminUserListView(APIView):
     because the paging is the server's.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     audit_resource_type = "profiles"
 
     def get_permissions(self):
@@ -636,7 +636,7 @@ class AdminUserDetailView(APIView):
     operator their correction worked.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     audit_resource_type = "profiles"
 
     def get_permissions(self):
@@ -879,7 +879,7 @@ class AdminUserExportView(APIView):
     export and a complete one look identical once downloaded.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     required_capability = USER_READ_CAPABILITY
     audit_resource_type = "profiles"
 
@@ -918,7 +918,7 @@ class AdminUserBulkView(APIView):
     a token computed for one selection cannot authorise a different one.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     required_capability = USER_WRITE_CAPABILITY
     audit_resource_type = "profiles"
 
@@ -984,7 +984,7 @@ _IMPORT_REQUEST_DESCRIPTION = (
 class _ImportBase(APIView):
     """Shared authority, parsing, and error mapping for preview and commit."""
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     required_capability = USER_WRITE_CAPABILITY
     audit_resource_type = "profiles"
 

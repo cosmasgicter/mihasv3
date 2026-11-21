@@ -11,6 +11,8 @@ from drf_spectacular.views import (
 
 from apps.common.health import LivenessView, ReadinessView, RedisHealthView
 from rest_framework.permissions import IsAuthenticated
+from apps.accounts.urls import urlpatterns as accounts_urlpatterns
+from apps.catalog.staff_invitation_views import StaffInvitationAcceptView
 from apps.common.views import APIHomeView
 from apps.documents.urls import (
     document_urlpatterns,
@@ -19,6 +21,23 @@ from apps.documents.urls import (
     payment_urlpatterns,
     program_fee_urlpatterns,
 )
+
+#: The /api/v1/auth/ routes, in the ``accounts`` namespace: apps.accounts' own,
+#: then the public staff-invitation acceptance handoff (task 4.2, R4.3), where
+#: the invitee sets their own password by consuming the single-use token.
+#: Unauthenticated (they are not yet signed in); the token is the sole guard.
+#: The handoff's view lives in apps.catalog, which imports apps.accounts at
+#: module level, so apps.accounts.urls cannot import it without making the two
+#: packages import each other (scripts/check_circular_imports.py). It is added
+#: here instead, with the same path, name and namespace it had there.
+auth_urlpatterns = [
+    *accounts_urlpatterns,
+    path(
+        "staff-invitation/accept/",
+        StaffInvitationAcceptView.as_view(),
+        name="auth-staff-invitation-accept",
+    ),
+]
 
 urlpatterns = [
     path("", APIHomeView.as_view(), name="api-root"),
@@ -40,7 +59,7 @@ urlpatterns = [
         name="redoc",
     ),
     # App endpoints under /api/v1/
-    path("api/v1/auth/", include("apps.accounts.urls")),
+    path("api/v1/auth/", include((auth_urlpatterns, "accounts"))),
     path("api/v1/sessions/", include("apps.accounts.session_urls")),
     path("api/v1/applications/", include("apps.applications.urls")),
     path("api/v1/catalog/", include("apps.catalog.urls")),

@@ -380,7 +380,7 @@ _register("/api/v1/auth/password-reset/confirm/", public(notes="Password reset c
 _register("/api/v1/auth/session/", public(auth="optional", notes="Session bootstrap; optional auth."))
 _register("/api/v1/auth/logout/", owner(auth="required", ownership="acts on own session", disclosure="n/a", notes="Self logout."))
 _register("/api/v1/auth/profile/", owner(ownership="Profile.id == actor.id", disclosure="n/a", notes="Self profile read/update (weak-bucket resolved -> owner)."))
-_register("/api/v1/auth/staff-invitation/accept/", public(auth="none", audit_event="tenant.staff.invitation_accepted", finding="TEN-01", notes="Public invitee handoff (apps.accounts.urls -> staff_invitation_views.StaffInvitationAcceptView, task 4.2). AllowAny + authentication_classes=[]; the invitee is not yet signed in and sets their OWN password by consuming a single-use token from the emailed link (R4.3). Token is the sole guard; no capability."))
+_register("/api/v1/auth/staff-invitation/accept/", public(auth="none", audit_event="tenant.staff.invitation_accepted", finding="TEN-01", notes="Public invitee handoff (config.urls auth_urlpatterns, accounts namespace -> staff_invitation_views.StaffInvitationAcceptView, task 4.2). AllowAny + authentication_classes=[]; the invitee is not yet signed in and sets their OWN password by consuming a single-use token from the emailed link (R4.3). Token is the sole guard; no capability."))
 
 # --- Sessions (apps.accounts.session_views) — self-owned device sessions -----
 _register("/api/v1/sessions/", owner(ownership="DeviceSession.user_id == actor.id", disclosure="n/a", notes="Own device sessions list."))

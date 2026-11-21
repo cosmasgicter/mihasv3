@@ -64,7 +64,6 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 
 from apps.accounts.permissions import ROLE_HIERARCHY
-from apps.catalog.services import AdminCapabilityService, CapabilityResolutionError
 
 logger = logging.getLogger(__name__)
 
@@ -389,6 +388,11 @@ class UserDirectoryQueryService:
 
     def redaction_policy(self, user) -> UserRedactionPolicy:
         """Resolve the actor's redaction policy from capabilities, not roles."""
+        # Function-local, here and below: a module-level import would add an
+        # accounts -> catalog edge to the package graph, and apps.catalog
+        # imports apps.accounts (scripts/check_circular_imports.py).
+        from apps.catalog.services import AdminCapabilityService, CapabilityResolutionError
+
         try:
             capabilities = AdminCapabilityService().get_capabilities(user)
         except CapabilityResolutionError:
@@ -400,6 +404,8 @@ class UserDirectoryQueryService:
 
     def visible_institution_ids(self, user) -> Optional[set[str]]:
         """The actor's visible institution ids, or ``None`` for all-access."""
+        from apps.catalog.services import AdminCapabilityService, CapabilityResolutionError
+
         service = AdminCapabilityService()
         try:
             capabilities = service.get_capabilities(user)
@@ -458,6 +464,8 @@ class UserDirectoryQueryService:
         masked 404) rather than returning an empty — and therefore
         distinguishable — page.
         """
+        from apps.catalog.services import AdminCapabilityService
+
         requested = str(institution_id or "").strip()
         if not requested:
             return None

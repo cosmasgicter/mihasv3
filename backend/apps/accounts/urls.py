@@ -16,7 +16,6 @@ from apps.accounts.views import (
     RegisterView,
     SessionView,
 )
-from apps.catalog.staff_invitation_views import StaffInvitationAcceptView
 
 app_name = "accounts"
 
@@ -29,12 +28,8 @@ urlpatterns = [
     path("password-reset/", PasswordResetRequestView.as_view(), name="auth-password-reset"),
     path("password-reset/confirm/", PasswordResetConfirmView.as_view(), name="auth-password-reset-confirm"),
     path("profile/", ProfileView.as_view(), name="auth-profile"),
-    # Public staff-invitation acceptance handoff (task 4.2, R4.3): the invitee
-    # sets their own password by consuming the single-use token. Unauthenticated
-    # (they are not yet signed in) — the token is the sole guard.
-    path(
-        "staff-invitation/accept/",
-        StaffInvitationAcceptView.as_view(),
-        name="auth-staff-invitation-accept",
-    ),
+    # ``staff-invitation/accept/`` is also served under /api/v1/auth/, but it is
+    # mounted in config/urls.py: its view lives in apps.catalog, and a
+    # module-level import of apps.catalog here would make apps.accounts and
+    # apps.catalog import each other (scripts/check_circular_imports.py).
 ]

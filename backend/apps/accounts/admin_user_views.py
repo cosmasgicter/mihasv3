@@ -21,9 +21,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.accounts.permissions import ROLE_HIERARCHY, is_super_admin
+from apps.accounts.permissions import (
+    ROLE_HIERARCHY,
+    catalog_permission_classes,
+    is_super_admin,
+)
 from apps.common.openapi_helpers import ErrorResponseSerializer
-from apps.catalog.permissions import HasPlatformCapability, HasTenantCapability
 from apps.common.scoped_cache import (
     build_scope_signature,
     cached_or_compute,
@@ -340,7 +343,7 @@ class AdminScopeView(APIView):
     ``apps.common.tenant_authorization``.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     capability_self_description = True
 
     @extend_schema(
@@ -388,7 +391,7 @@ class AdminCapabilitiesView(APIView):
     ``apps.common.tenant_authorization`` (13.6 remediation M3).
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     capability_self_description = True
 
     def get(self, request):
@@ -428,7 +431,7 @@ class AdminDashboardView(APIView):
     zeros would confirm the id resolves.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     serializer_class = AdminDashboardSerializer
     required_capability = "tenant.application.read"
     audit_resource_type = "dashboard"
@@ -615,7 +618,7 @@ class AdminUserEffectiveCapabilitiesView(APIView):
     returned with ``resolution_error=true`` rather than guessing authority (R1.6).
     """
 
-    permission_classes = [IsAuthenticated, HasPlatformCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasPlatformCapability")
     required_capability = "platform.user.manage_all"
 
     def get(self, request, pk):

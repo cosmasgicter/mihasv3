@@ -27,7 +27,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
+from apps.accounts.permissions import (
+    IsAdmin,
+    ROLE_HIERARCHY,
+    catalog_permission_classes,
+    is_super_admin,
+)
 from apps.accounts.services import hash_password
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
@@ -38,7 +43,6 @@ from apps.common.openapi_helpers import (
     paginated_serializer,
 )
 from apps.common.pagination import StandardPagination
-from apps.catalog.permissions import HasTenantCapability
 
 # Stream 9 decomposition: shared serializers live in admin_serializers.
 from apps.accounts.admin_serializers import (  # noqa: F401
@@ -186,7 +190,7 @@ class AdminAuditLogView(APIView):
     Filter by entity_type, action, actor, date range. Admin only. Paginated.
     """
 
-    permission_classes = [IsAuthenticated, HasTenantCapability]
+    permission_classes = catalog_permission_classes(IsAuthenticated, "HasTenantCapability")
     required_capability = "tenant.audit.read"
     serializer_class = AuditLogSerializer
 

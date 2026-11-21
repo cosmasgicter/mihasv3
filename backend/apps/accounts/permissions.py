@@ -20,6 +20,7 @@ Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
 
 import logging
 
+from django.utils.functional import SimpleLazyObject
 from rest_framework.permissions import BasePermission
 
 logger = logging.getLogger(__name__)
@@ -153,3 +154,48 @@ class IsOwnerOrAdmin(BasePermission):
 
         # No resolvable owner and not an admin — deny (fail closed).
         return False
+
+
+#: The capability permission classes an ``apps.accounts`` view may name through
+#: :func:`catalog_permission_classes`. They live in ``apps.catalog.permissions``.
+CATALOG_PERMISSION_CLASS_NAMES = frozenset({"HasTenantCapability", "HasPlatformCapability"})
+
+
+def catalog_permission_classes(*entries):
+    """A view's ``permission_classes`` that includes catalog capability classes.
+
+    ``apps.catalog`` imports ``apps.accounts`` at module level (``is_super_admin``,
+    ``IsAdmin``, the authentication classes, ``Profile``), so a module in
+    ``apps.accounts`` must not import ``apps.catalog`` at module level: the two
+    packages would import each other (``scripts/check_circular_imports.py``).
+
+    Each entry is a permission class or the name of one in
+    ``apps.catalog.permissions``. The result is a ``SimpleLazyObject`` over the
+    list, so ``apps.catalog.permissions`` is imported the first time the list is
+    used (iterated, indexed, measured or compared): by DRF on a request, or by a
+    tool that inspects the class. Merely reading the attribute does not import it,
+    which matters because drf-spectacular's ``extend_schema_view`` reads every
+    class attribute while it decorates the class. Once used, it holds the same
+    real classes in the same order as a literal
+    ``[IsAuthenticated, HasTenantCapability]``, so DRF, the schema generator and
+    the authority inventories see no difference.
+    """
+    unknown = sorted(
+        entry
+        for entry in entries
+        if isinstance(entry, str) and entry not in CATALOG_PERMISSION_CLASS_NAMES
+    )
+    if unknown:
+        raise ValueError(f"not a catalog capability permission class: {', '.join(unknown)}")
+
+    def _resolve():
+        # Function-local: a module-level import would add an accounts -> catalog
+        # edge to the package graph (see the docstring).
+        from apps.catalog import permissions as catalog_permissions
+
+        return [
+            getattr(catalog_permissions, entry) if isinstance(entry, str) else entry
+            for entry in entries
+        ]
+
+    return SimpleLazyObject(_resolve)

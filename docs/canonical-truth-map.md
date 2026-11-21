@@ -901,8 +901,8 @@ invite (finding TEN-01) and raw-UUID staff entry (finding TEN-05):
 - `POST /api/v1/admin/staff/invitations/<id>/resend/` — rotate token + re-email.
 - `POST /api/v1/admin/staff/invitations/<id>/revoke/` — cancel + deactivate the
   membership + revoke sessions (`tenant.staff.disable`).
-- `POST /api/v1/auth/staff-invitation/accept/` (`backend/apps/accounts/urls.py`)
-  — **public** handoff: the invitee consumes the single-use token and sets their
+- `POST /api/v1/auth/staff-invitation/accept/` (`backend/config/urls.py`,
+  `auth_urlpatterns`, in the `accounts` namespace) — **public** handoff: the invitee consumes the single-use token and sets their
   **own** password; the operator never sets or sees one. Frontend accept page:
   `apps/admissions/src/pages/auth/AcceptInvitationPage.tsx` (route
   `/auth/accept-invitation`; link built by `email_links.staff_invitation_url`).
