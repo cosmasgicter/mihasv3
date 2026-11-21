@@ -224,7 +224,15 @@ def test_concurrent_creates_on_the_count_fallback_all_succeed(monkeypatch, alloc
                 "RENAME TO next_application_number"
             )
 
-    assert set(numbers) == _expected_numbers(world, workers), sorted(numbers)
+    # Distinct and well-formed. Not necessarily contiguous: the fallback draws
+    # ``count + 1 + attempt`` from a count that moves under it, so a contended
+    # draw can skip a number (the sequence path test above asserts 00001-00008).
+    prefix = f"{world.institution.code.upper()}{timezone.now().year}"
+    assert len(set(numbers)) == workers, sorted(numbers)
+    assert all(
+        n.startswith(prefix) and len(n) == len(prefix) + 5 and n[len(prefix):].isdigit()
+        for n in numbers
+    ), sorted(numbers)
     # The path under test really ran: every request fell back, and the first
     # round of inserts collided for all but one of them.
     assert allocation_log.count(HELPER_UNAVAILABLE) >= workers, allocation_log.messages
