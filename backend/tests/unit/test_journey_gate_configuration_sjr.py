@@ -181,6 +181,15 @@ def test_rendered_gate_job_runs_the_harness_command_and_installs_no_browser_of_i
     assert steps["Run the rendered design gate and compare with the baseline"]["run"] == (
         "bash harness/bin/harness rendered-gate"
     )
+    # The harness's own install falls back to `bun install` quietly, so the job fails on
+    # lockfile drift only through this step, which runs before the gate.
+    names = [step.get("name") for step in job["steps"]]
+    install = "Install dependencies from the lockfile"
+    assert steps[install]["run"] == "bun install --frozen-lockfile"
+    assert steps[install]["if"] == "steps.changes.outputs.relevant == 'true'"
+    assert names.index(install) < names.index(
+        "Run the rendered design gate and compare with the baseline"
+    )
     runs = "\n".join(step.get("run", "") for step in job["steps"])
     assert "playwright install" not in runs, "the browser comes from the pinned image only"
     assert "npm install -g impeccable" not in runs, "impeccable comes from the pinned image only"

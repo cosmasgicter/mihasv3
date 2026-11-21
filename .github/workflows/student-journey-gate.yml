@@ -165,9 +165,14 @@ jobs:
           docker --version
           docker compose version
           bun --version
-      # Installs from the lockfile, builds the SPA, brings a fresh harness up, builds the
-      # pinned browser image, runs the gate's Playwright step in it, then compares the
-      # findings with the baseline. The same command a local run uses.
+      # The harness falls back to a plain `bun install` when the frozen install fails,
+      # quietly, so this step is what fails the job on lockfile drift.
+      - name: Install dependencies from the lockfile
+        if: steps.changes.outputs.relevant == 'true'
+        run: bun install --frozen-lockfile
+      # Builds the SPA, brings a fresh harness up, builds the pinned browser image, runs
+      # the gate's Playwright step in it, then compares the findings with the baseline.
+      # The same command a local run uses.
       - name: Run the rendered design gate and compare with the baseline
         if: steps.changes.outputs.relevant == 'true'
         run: bash harness/bin/harness rendered-gate
