@@ -176,7 +176,7 @@ async function mainVisible(page: Page): Promise<void> {
   await expect(page.locator('main').first()).toBeVisible({ timeout: 45_000 });
 }
 
-function wizardStep(step: string, testId: string): AuditedPage {
+function wizardStep(step: string, testId: string, contentTestId?: string): AuditedPage {
   return {
     id: `/student/application-wizard#${step}`,
     auth: 'draftStudent',
@@ -185,6 +185,7 @@ function wizardStep(step: string, testId: string): AuditedPage {
       await settled(page);
       await expect(page.getByTestId('wizard-action-bar')).toBeVisible({ timeout: 60_000 });
       await expect(page.getByTestId(testId)).toBeVisible({ timeout: 60_000 });
+      if (contentTestId) await expect(page.getByTestId(contentTestId)).toBeVisible({ timeout: 60_000 });
     },
   };
 }
@@ -255,7 +256,11 @@ export const AUDITED_PAGES: AuditedPage[] = [
   wizardStep('program', 'program-step'),
   wizardStep('assignedSchool', 'assigned-school-step'),
   wizardStep('personal', 'basic-kyc-step'),
-  wizardStep('education', 'education-step'),
+  // The draft's five grades produce the eligibility panel, but only after the
+  // eligibility check's 500 ms debounce, so a scan that started first never measured
+  // it: the panel's 4.3:1 advisory text reached axe in one run out of several, and
+  // only at 1440x900 (task 22.5). Waiting for the panel gives every run the same page.
+  wizardStep('education', 'education-step', 'eligibility-notification'),
   wizardStep('payment', 'payment-step'),
   wizardStep('submit', 'submit-step'),
   {
