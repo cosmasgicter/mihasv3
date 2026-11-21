@@ -68,15 +68,15 @@ from django.utils.dateparse import parse_date, parse_datetime
 
 from apps.catalog.services import AdminCapabilityService, CapabilityResolutionError
 
-logger = logging.getLogger(__name__)
+# Shared export ceiling: the same constant the 8.4 settlement authority uses,
+# rather than a restated one, so the platform has one export size limit rather
+# than one per surface. It is declared in ``apps.common.export_limits`` (and
+# re-exported by ``apps.documents.settlement_service``) because a module-level
+# import of ``apps.documents`` here would make ``apps.catalog`` and
+# ``apps.documents`` import each other (``scripts/check_circular_imports.py``).
+from apps.common.export_limits import EXPORT_ROW_LIMIT
 
-#: Shared export ceiling. Read from the 8.4 settlement authority rather than
-#: restated, so the platform has one export size limit rather than one per
-#: surface.
-try:  # pragma: no cover - import guard only
-    from apps.documents.settlement_service import EXPORT_ROW_LIMIT
-except Exception:  # pragma: no cover - defensive
-    EXPORT_ROW_LIMIT = 5000
+logger = logging.getLogger(__name__)
 
 #: The capability required to **read** a school's audit feed (R6.6).
 READ_CAPABILITY = "tenant.audit.read"

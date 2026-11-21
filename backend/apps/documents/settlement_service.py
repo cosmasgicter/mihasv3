@@ -57,6 +57,13 @@ from django.utils.dateparse import parse_date
 
 from apps.catalog.services import AdminCapabilityService, CapabilityResolutionError
 
+# Hard ceiling on an export, independent of page size (R6.5 "size limits"). An
+# export that would exceed it is refused with ``EXPORT_TOO_LARGE`` rather than
+# silently truncated. Declared in apps.common so the tenant audit export
+# (apps.catalog) reads the same value without importing apps.documents;
+# re-exported here (see __all__).
+from apps.common.export_limits import EXPORT_ROW_LIMIT
+
 logger = logging.getLogger(__name__)
 
 
@@ -107,11 +114,6 @@ RECONCILIATION_FILTERS: dict[str, str] = {
     "expired": "expired",
     "deferred": "deferred",
 }
-
-#: Hard ceiling on an export, independent of page size (R6.5 "size limits").
-#: An export that would exceed this is refused with ``EXPORT_TOO_LARGE`` rather
-#: than silently truncated — a truncated financial export is worse than none.
-EXPORT_ROW_LIMIT = 5000
 
 #: Ceiling on the number of payment rows an aggregate/report query will scan.
 #: Grouping happens in SQL, so this only bounds pathological ranges.
