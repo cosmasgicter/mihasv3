@@ -88,7 +88,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - **EXPECTED OUTCOME**: Test FAILS (the badge and its wrappers render, and it probes `/health/live/`)
     - _Requirements: 1.43_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fixes)
+- [x] 2. Write preservation property tests (BEFORE implementing fixes)
   - **Property 11–13: Preservation** - Student Journey Repair Preservation
   - **IMPORTANT**: Follow observation-first methodology — observe behavior on UNFIXED code first
   - **EXPECTED OUTCOME**: Tests PASS on unfixed code (this confirms the baseline to preserve)
@@ -145,7 +145,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Confirm `gatecheck-negative` fails as designed
     - _Requirements: 3.22, 3.23_
 
-  - [ ] 2.6 Pause automatic production deploys (operator step in GitHub settings; before task 3.2)
+  - [x] 2.6 Pause automatic production deploys (operator step in GitHub settings; before task 3.2)
     - Why: `.github/workflows/deploy.yml` rolls production after every green CI run on `main` (`:6-11`, `:24`), with no backup step and no approval (DEC-10). Without a pause, merging task 3.2 (the first enforcement of `REQUIRED_ENV_VARS`) or task 3.15 (the repair script the boot sweep applies) would reach production before task 6.1's name checks and backup. At HEAD `4a6c4ef` no job in `deploy.yml` references an environment
     - This pauses automatic deploys for every app the workflow ships: the backend, which serves admissions and jobs-ops, the frontend image, which carries the admissions and jobs-ops builds, and all Spec B work. Production is unreachable today (D14), so nobody sees an effect yet
     - Preferred: in repository Settings → Environments, create `production` with required reviewers named by the user, then do task 2.7 so both Deploy jobs reference it. This keeps the workflow and its rollback trap intact and leaves an approval trail. The environment gates nothing until task 2.7 merges
@@ -155,8 +155,9 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - The preferred path holds only while the repository is public: on the GitHub Free, Pro and Team plans, required reviewers on an environment apply only to public repositories ([GitHub: Managing environments for deployment](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment)). If the repository's visibility or plan changes before task 6.2 (D11), repeat the confirmation step; if a Deploy run no longer waits for review, switch to the fallback at once. Repeat this check before the task 3.2 and task 3.15 merges
     - Ask the user to confirm that the pause is in place before task 3.2 starts
     - _Requirements: 3.16_
+    - Superseded, and the pause was not performed. Decided 2026-11-21 under the owner's full approval, following the owner's decision of 2026-11-20. No step of this task was carried out: no required reviewers were added to `production`, and no confirmation run was made. Instead the owner removed the approval rule from the `Production` environment, no production host exists (D14), and the Deploy workflow is disabled until the new server exists. Checked 2026-11-21 (finish run, W3), read-only through the GitHub API: the Deploy workflow's state is `disabled_manually`, the `Production` environment has no protection rules, and `main` has no branch protection. Re-enabling Deploy is part of task 6.2, not of this task.
 
-  - [ ] 2.7 Make both Deploy jobs reference the `production` environment (code change; preferred path only)
+  - [x] 2.7 Make both Deploy jobs reference the `production` environment (code change; preferred path only)
     - `.github/workflows/deploy.yml`: add `environment: production` to the `build-and-push` job (`:22`) and the `deploy` job (`:80`). Change nothing else: the triggers, the `if:` gate, the concurrency group, the disk gate and the rollback trap stay as they are
     - Merge it only after task 2.6 has created `production` with required reviewers. GitHub creates a missing environment on first reference with no protection rules, so a merge before task 2.6 would deploy unattended
     - Each job waits for its own approval, so one Deploy run asks twice: before the images are built and pushed, and before the stack is rolled
@@ -164,6 +165,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Docs: `.kiro/steering/infrastructure.md` production stack section notes that both Deploy jobs run in the GitHub `production` environment
     - Skip this task on the fallback path
     - _Requirements: 3.16_
+    - Done; verified 2026-11-21 (finish run, W3). `.github/workflows/deploy.yml` has `environment: production` on the `build-and-push` job (`:25`) and the `deploy` job (`:83`). Commit `3685992ab` added those two lines and changed nothing else in the workflow, and `.kiro/steering/infrastructure.md` records it. The merge precondition (task 2.6's required reviewers) was superseded together with task 2.6, decided 2026-11-21 under the owner's full approval. The Deploy workflow is disabled (`disabled_manually`), so no Deploy run has deployed this change.
 
 - [ ] 3. Fix the P0a defects, one R-group at a time
   - **Property 1–6, 8, 10: Expected Behavior** - P0a fixes for R1–R6, R8 and R10
