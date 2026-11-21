@@ -13,6 +13,7 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
 
   return (
     <div
+      data-testid="eligibility-notification"
       // Tint only, from the status-tone map: this sits inside the wizard's card
       // (task 31.3, R21.5); the icon and the heading carry the status too.
       className={`rounded-lg p-4 animate-fade-in ${eligible ? 'bg-success/10' : 'bg-warning/10'}`}
@@ -27,8 +28,16 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className={`font-semibold ${
+          {/*
+            The heading row wraps (task 22.5). Unwrapped, its minimum width was the
+            heading's longest word plus both badges: wider than this column on a
+            390 px phone once the font is wider than Inter, as DejaVu Sans is on the
+            CI runner and as many students' fonts are (Inter is not shipped). That
+            widened the whole step past the card's edge. Now the badges move to the
+            next line.
+          */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
+            <h3 className={`min-w-0 break-words font-semibold ${
               eligible ? 'text-accent-foreground' : 'text-accent-foreground'
             }`}>
               {eligible ? 'Eligible' : 'Advisory'} {programName ? `for ${programName}` : ''}
@@ -47,8 +56,14 @@ export function EligibilityNotification({ eligibility, programName }: Eligibilit
             )}
           </div>
           
+          {/*
+            The advisory message is `text-foreground`, the status-tone map's label
+            colour (task 23.1, R18.2), not `text-yellow-700`: amber on the warning
+            tint measured 4.3:1 (#a16207 on #f8eee6), under AA's 4.5:1. axe reports it
+            whenever the panel has rendered before the scan (task 22.5).
+          */}
           <p className={`text-base sm:text-sm mb-2 ${
-            eligible ? 'text-accent-foreground' : 'text-yellow-700'
+            eligible ? 'text-accent-foreground' : 'text-foreground'
           }`}>
             {message}
           </p>

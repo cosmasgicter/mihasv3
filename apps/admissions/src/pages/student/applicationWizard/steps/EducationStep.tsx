@@ -224,7 +224,13 @@ const EducationStep = ({
           </div>
         )}
 
-        <fieldset className="border-none p-0 m-0">
+        {/*
+          `min-w-0` on both fieldsets (task 22.5): a fieldset's default
+          `min-inline-size: min-content` makes it grow to its widest child instead of
+          staying in the card's column, so one unwrappable row pushed every row of the
+          step past the card's right edge.
+        */}
+        <fieldset className="min-w-0 border-none p-0 m-0">
           <legend className="sr-only">Education details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             {/*
@@ -466,7 +472,7 @@ const EducationStep = ({
           )}
         </fieldset>
 
-        <fieldset className="border-none p-0 m-0">
+        <fieldset className="min-w-0 border-none p-0 m-0">
           <legend className="sr-only">Document uploads</legend>
           <div className="mb-4">
             <h2 className="text-md font-medium text-foreground">Upload your documents</h2>
