@@ -509,7 +509,7 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - Ask the user if questions arise
     - _Requirements: 2.1, 2.5, 2.12, 2.17, 2.21, 2.31, 2.41, 2.48, 3.21_
 
-- [ ] 4. Build the blocking CI journey gate (P0a scope)
+- [x] 4. Build the blocking CI journey gate (P0a scope)
   - **Property 9: Bug Condition** - Journey Gate
   - Starts after task 3.30 is green
   - _Requirements: 1.40, 1.41, 1.42_
@@ -555,13 +555,14 @@ Order is fixed: exploration tests, preservation tests and the pause on automatic
     - _Preservation: none affected_
     - _Requirements: 2.1, 2.46_
 
-  - [ ] 4.5 Workflow and required checks (design R9-e)
+  - [x] 4.5 Workflow and required checks (design R9-e)
     - New `.github/workflows/student-journey-gate.yml` triggered on every pull request, push to `main` and dispatch, with no `paths:` filter; each job's first steps compute the changed paths (`git diff --name-only`) and every later step runs only when one is under `apps/admissions/`, `backend/` or `harness/` or is the workflow file, so the required checks report success on unrelated pull requests instead of staying pending; both jobs, artifact upload, log dump on failure and teardown; no `continue-on-error`
     - Operator step (repository settings): make `journey-gate` and `local-stack-storage` required checks on `main`
     - _Bug_Condition: isBugCondition_R9 where admissions or backend changes run no journey_
     - _Expected_Behavior: the gate runs and blocks on every such pull request; it never contacts production_
     - _Preservation: `v2-harness-smoke.yml` and `ci.yml` unchanged_
     - _Requirements: 2.43, 2.46, 2.47_
+    - Done 2026-11-21 (finish run, W3), with the operator step waived. Waiving the required-check wiring was decided 2026-11-21 under the owner's full approval: the owner pushes directly to `main` and tests on this device (2026-11-20), and `main` has no branch protection (checked read-only through the GitHub API). The workflow exists as specified: it triggers on `pull_request`, on push to `main` and on `workflow_dispatch`; it has no `paths:` filter; relevance comes from `git diff --name-only`; and it uploads artefacts, dumps the harness logs on failure, tears the harness down and has no `continue-on-error`. Its `local-stack-storage` job was retired by Spec B task 11.2 (decision D2, `b63760319`), and the storage round trip runs inside `journey-gate`. Latest run on `main`, informational only: run 44946354487 at `966423cdb`, where `journey-gate` and `rendered-design-gate` both succeeded.
 
   - [x] 4.6 Checkpoint — gate green and stable
     - **Property 9: Expected Behavior** - Journey Gate
