@@ -313,7 +313,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
   - Ask the user if questions arise.
   - _Requirements: 1.11, 1.12, 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.12, 22.13_
 
-- [ ] 11. Local stack and evidence (D2)
+- [x] 11. Local stack and evidence (D2)
   - [x] 11.1 [Decision D2 confirmed 2026-11-08 (option A + B); the change to Spec A's `harness journey-gate` command waits for Spec A's R9 tasks (Spec A tasks 4.1 to 4.5) to merge] Make one stack the documented local stack
     - The harness's own isolation (the widget stub, the resource hints and both outside-host checks) is task 3.7's and the DSN is task 1.3's; both are done before this task, under every option.
     - Options A, B or C:
@@ -326,13 +326,14 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Write the decided wording into `tech.md` Commands.
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 1.8, 1.9, 1.10_
 
-  - [ ] 11.2 [Decision D2 confirmed 2026-11-08 (option A + B); blocked until the operator has removed `local-stack-storage` from the required checks on `main`] Retire the other local stacks
+  - [x] 11.2 [Decision D2 confirmed 2026-11-08 (option A + B); blocked until the operator has removed `local-stack-storage` from the required checks on `main`] Retire the other local stacks
     - Spec A's R1 builds on `backend/docker-compose.local-test.yml` (design §1, "Retiring the local-test stack"), so deleting it alone would fail a required check and the blocking unit suite. Do this in order:
       1. Ask the operator to remove `local-stack-storage` from the required checks on `main` (Spec A task 4.5 made it required), and wait for the answer.
       2. In one change: remove the `local-stack-storage` job from Spec A's `.github/workflows/student-journey-gate.yml` (the harness `journey-gate` already runs `storage_roundtrip_check --expect-private`, Spec A task 4.4); remove the compose assertions in `backend/tests/unit/test_storage_settings_contract.py` (Spec A task 1.1) and keep its settings assertions; remove `backend/.env.local.test.example`, its `.gitignore` exception, its `test_tracked_env_files.py` allowlist entry and its entry in the env-template test (Spec A task 3.3); then delete `backend/docker-compose.local-test.yml`, `backend/docker-compose.local-real.yml` and `backend/docker-compose.yml`, and every doc or steering sentence that presents them as supported, including the `LOCAL-TESTING.md` blocks that task 6.1 rewrote. The doc-path check must stay green.
       3. Record in the evidence summary that Spec A's clause 2.1 (a storage round-trip on the documented stack) is now met on the harness, and the merge commit of step 2. Do not edit Spec A.
     - Option D: retire nothing.
     - _Requirements: 1.7_
+    - Done 2026-11-21 (finish run, W3). Step 2 is commit `b63760319`, which is on `main`. Step 1, the operator removing `local-stack-storage` from the required checks, is moot: `main` has no branch protection and no required checks (checked read-only through the GitHub API), and required-check wiring is waived, decided 2026-11-21 under the owner's full approval. Verified with `git grep` over every tracked file: no workflow, harness file, script, steering file or current doc names the three removed compose files, `backend/.env.local.test.example` or the `local-stack-storage` job. The remaining hits are spec text, history (`docs/archive/`, `docs/audits/`, `docs/v2-evidence/`, `all-files.txt`, `audit-results/`), the steering sentence that says they were retired, the D11 history-purge runbook's list of real env-file paths, a test docstring that says its compose assertions went with the file, and `test_local_setup_doc.py`, which asserts that `LOCAL-TESTING.md` does not name them. One tracked leftover was removed: `backend/.localtest-host-env.sh`, a helper marked "Temporary instrument: delete after the batch" that sourced the retired stack's `backend/.env.local.test` and remapped its container ports. Only history READMEs under `docs/v2-evidence/` name it. Spec A's clause 2.1 is met on the harness: `journey-gate` runs `storage_roundtrip_check --expect-private` (evidence summary, 11.2).
 
   - [x] 11.3 [Decision D2 confirmed 2026-11-08 (option A + B)] Untrack raw evidence artefacts (option B or C)
     - Run both spec validators first.
