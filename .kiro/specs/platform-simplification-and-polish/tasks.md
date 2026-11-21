@@ -678,7 +678,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - **Validates: Requirements 18.2, 18.4, 18.6**
     - Test in `apps/admissions/tests/property/platformSimplificationPolish.property.test.ts` using fast-check, computing ratios from the token hex values over white, `--color-card` and `--color-muted`, asserting that every tone's text token is `--color-foreground`, or `--color-muted-foreground` for `muted`, and checking both icon options (the tone's icon class and the inherited text colour) against 3:1.
 
-- [ ] 24. Typography and copy (Impeccable `typeset`, `clarify`; copy-editing)
+- [x] 24. Typography and copy (Impeccable `typeset`, `clarify`; copy-editing)
   - [x] 24.1 Bring student mobile text to 16 px
     - Use `text-base` below `sm` for student paragraphs, labels and buttons, and on the input, select and textarea primitives.
     - Make `Button` set `data-text-role="control"` on what it renders, so a `Button asChild` link is measured as a control, and mark the helper-text paragraphs of `components/ui/input.tsx` (`:71-75`) and `textarea.tsx` with `data-text-role="caption"` (design §12.5 "Roles").
@@ -732,7 +732,7 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Deploy path: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy.
     - _Requirements: 16.1, 19.7_
 
-  - [ ] 24.8 [Blocked until D17 is confirmed] Bring links inside running text to the decided hit-area rule
+  - [x] 24.8 [Blocked until D17 is confirmed] Bring links inside running text to the decided hit-area rule
     - Option A: pad each link inside running text that the gate lists, such as the sign-up consent sentence's "Terms" and "Privacy Policy" (`pages/auth/SignUpPage.tsx:336,338`), to a 44 × 44 px hit area.
     - Option B: move each such link out of its sentence into a standalone link or button that meets the rule, keeping what the sentence says.
     - Option C: amend the 44 px rule in all four places that state it (`.kiro/steering/design-skills.md`, `.agents/AGENTS.md` §2, `PRODUCT.md:97` and `DESIGN.md:198`; `design-skills.md` says its guardrails duplicate `PRODUCT.md`) to exempt links inside running text, then make `scripts/rendered-gate-rules.ts` and the Property 11 test skip the records flagged `inRunningText` (design §12.7). Spec A is not edited.
@@ -740,6 +740,25 @@ P1 (simplification) comes first, then P2 (visual quality), following critique §
     - Under every option, delete the baseline entries tied to D17.
     - Deploy path, under option A or B: an approved Deploy run while Spec A's pause holds, otherwise the normal automatic deploy. Option C changes nothing production serves.
     - _Requirements: 16.10, 19.7, 19.9_
+    - Done 2026-11-21 (finish run, W3), commits `f887537ce` (the links) and `d0f491094` (the baseline). D17 was confirmed 2026-11-21: keep the guardrail, fix the links (option B), decided 2026-11-21 under the owner's full approval (Decision Register, D17).
+      - **The links.** Each one now stands outside its sentence, and the sentences keep their words.
+        - The sign-in link "New here? Create an account" and the sign-up link "Already have an account? Sign in" moved out of the description sentence. They now sit on their own line, in a new `headerAction` slot of `AuthShell`.
+        - The sign-up consent sentence still reads "By creating an account, you agree to our Terms and Privacy policy." Its "Terms" and "Privacy policy" links now sit on a row below it.
+        - All four are `AuthShellLink`s, which gained `min-w-touch` and centred content (it had `min-h-touch` only). So every link on the authentication pages is at least 44 × 44 px, however short its label.
+        - Measured in the pinned rendered-gate image: "Terms" 44 × 44, "Privacy policy" 96 × 44, and the two header links 207 to 267 × 44 px at 390x844 and 1440x900.
+      - **Unchanged:**
+        - the sign-in and sign-up fields' `autocomplete`, `inputMode` and `type` attributes;
+        - the 44 px guardrail in `.kiro/steering/design-skills.md`, `.agents/AGENTS.md`, `PRODUCT.md` and `DESIGN.md`;
+        - `scripts/rendered-gate-rules.ts` and the Property 11 test.
+      - **Baseline.** The rendered gate ran in the pinned image at `f887537ce`, with the baseline untouched: 40 of 40 visits, 0 NEW, and the eight entries tied to D17 reported STALE.
+        - Four are `measure/hit-area` at 390x844: the two header links and the two consent links.
+        - Four are `axe/link-in-text-block` on `/auth/signup`: the two consent links at 1440x900 and at 390x844.
+        - All eight were deleted, taking the baseline from 178 to 170 entries. The compare then passes, and its Requirement 19.9 exit list holds no hard-guardrail entry.
+        - Earlier records said four D17 entries, because they counted only the hit-area ones.
+      - Existing-test changes: none.
+      - **Deploy path in force:** none, because Deploy is disabled. This ships with the new server's first deploy.
+        - Production effect: on `/auth/signin` and `/auth/signup` the cross-link sits on its own line under the description, and the consent links sit on a row under the consent sentence.
+        - Rollback: revert the two commits.
 
 - [x] 25. Wizard chrome (Impeccable `distill`, `layout`)
   - [x] 25.1 One heading and one instruction per step
